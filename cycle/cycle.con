@@ -1,0 +1,61 @@
+Program : Statements .
+Statements : Statement* .
+Statement :
+	Rate /
+	Trigger /
+	Average /
+	Discard .
+
+Rate : 'Rate' RateSpec ';'.
+RateSpec :
+  Integer 'Hz' /
+  Integer '/' Integer 'Hz' /
+  Name .
+
+Trigger : 'Trigger' Name '{' 'Start:' Expr ';' Prestart RegionDefs '}' .
+Prestart : [ 'Prestart:' Expr ';' ] .
+
+RegionDefs : RegionDef* .
+RegionDef :	'Region' Name Intervals ';' .
+Intervals : Interval // ',' .
+Interval : LeftInterval Number ',' Number RightInterval .
+LeftInterval : '(' / '[' .
+RightInterval : ')' / ']' .
+
+Average : 'Average' OptRaw AvgVarList 'Over' RegionList ';' .
+OptRaw : ['Raw'] .
+AvgVarList : AvgVar // ',' .
+AvgVar : Variable .
+RegionList : Region // ',' .
+Region : Name .
+
+Discard : 'Discard' DiscVarList DiscOp ';' .
+DiscVarList : DiscVar // ',' .
+DiscVar : Variable .
+DiscOp : 'if' Expr / 'unless' Expr .
+
+Variable : Name .
+
+Expr :
+	Term /
+	Expr BinOp Term / UnOp Term /
+	Expr '?' Expr ':' Term .
+
+Term :
+	Ref / Integer / Float / String / CharConst /
+	'(' Expr ')' /
+	Ref '(' Expr ')' /
+	Ref '(' ')' .
+
+Ref :
+	Name /
+	Ref '[' Expr ']' /
+	Ref DeRef Name .
+
+DeRef : '.' / '->' .
+BinOp : '+' / '-' / '*' / '/' / '&' / '|' / '&&' / '||' / '^' /
+		'%' / '=' / '+=' / '-=' / '*=' / '/=' / '&=' / '|=' /
+		',' / '<' / '>' / '==' / '!=' / '<=' / '>=' .
+UnOp : '-' / '+' / '!' / '~' .
+
+Number : Integer / Float .
