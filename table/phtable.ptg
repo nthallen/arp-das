@@ -23,18 +23,19 @@ Window:
 # $3 attr
 # $4 str
 String:
-  { "  tbl_label( w, \"" } $4 string { "\", " $2 int ", " $1 int
-   " ); /* " $3 int " */\n" }
+  "  tbl_label( w, \"" $4 string "\", " $2 int ", " $1 int
+   " ); /* " $3 int " */\n" 
   [ preview_label $4 string $2 int $1 int ]
 
 # $1: table name (PTGNode)
 # $2: Field Number (int)
 # $3: Default Text (PTGNode)
 # $4, $5: row, col (int)
+# $6, $7: width, height (int)
 FieldDef:
   "  " $1 "_tbl_fld[" $2 int "] = tbl_field( w, \""
-  $3 "\", " $5 int ", " $4 int " );\n"
-  [ preview_field $2 int $5 int $4 int ]
+  $3 "\", " $5 int ", " $4 int ", " $6 int ", " $7 int " );\n"
+  [ preview_field $2 int $5 int $4 int $6 int $7 int ]
 
 # $1: table name (PTGNode)
 # $2: Field Number (int)

@@ -1,8 +1,14 @@
-Try eliminating CHAIN in StringPrint, FieldPrint? {
-  Or maybe not... Perhaps it is just as well to
-  preserve order when generating output. No, CONSTITUENTS
-  guarantees post-order visitation, which should be
-  identical to the CHAIN implementation.
+Do Rules
+Configuration in phtable {
+  bgcolor fgcolor
+  labelfont face size style bgcolor fgcolor
+  fieldfont face size style bgcolor fgcolor
+  headerfont face size style bgcolor fgcolor
+  titlefont face size style bgcolor fgcolor
+  linecolor
+  ColSpace (and glue?)
+  RuleSpace
+  Baselineskip?
 }
 Differences between phtable and table {
   Or maybe I still don't need to do that...
@@ -13,9 +19,6 @@ Add .clp {
   Specify -o option
   unlink output file before opening for write
   fchmod 0444 after writing
-}
-Add Overlay { } construct to overlay Datums only: {
-  Overlay : 'Overlay' '{' Datum* '}' .
 }
 
 -Make 'Table' keyword optional

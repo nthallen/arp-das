@@ -27,9 +27,9 @@ dims_t CalcWordDims(char *text, int attr) {
 	case 4: font = tbl_labelfont; break;
   }
   tbl_ExtentText( font, text, &extent );
-  wdims.Width.Space = extent.lr.x - extent.ul.x;
+  wdims.Width.Space = extent.lr.x - extent.ul.x + 1;
   wdims.Width.Glue = 0;
-  wdims.Height.Space = extent.lr.y - extent.ul.y;
+  wdims.Height.Space = extent.lr.y - extent.ul.y + 1;
   wdims.Height.Glue = 0;
   if ( wdims.Height.Space < BaselineSkip )
     wdims.Height.Space = BaselineSkip;
@@ -62,11 +62,11 @@ void preview_label( PTG_OUTPUT_FILE f, char *str, int r, int c ) {
   if (do_output) tbl_label( window, str, r, c );
 }
 
-void preview_field( PTG_OUTPUT_FILE f, int fldnum, int r, int c ) {
+void preview_field( PTG_OUTPUT_FILE f, int fldnum, int r, int c, int w, int h ) {
   if (do_output) {
     char buf[10];
     sprintf(buf, "%d", fldnum);
-    tbl_field( window, buf, r, c );
+    tbl_field( window, buf, r, c, w, h );
   }
 }
 

@@ -415,7 +415,8 @@ SYMBOL Datum COMPUTE
 	PTGSeq(THIS.StringPrint,
 	  PTGFieldDef( PTGAsIs("name"),
 	      THIS.DatumOffset, PTGAsIs("X"),
-		  THIS.Row, THIS.PrintCol));
+		  THIS.Row, THIS.PrintCol,
+		  SPACE(THIS.Width), SPACE(THIS.Height) ));
 END;
 
 ATTR IsEmpty : int;
