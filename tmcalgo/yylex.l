@@ -1,19 +1,25 @@
 %{
   /* yylex.l for tmcalgo
    * $Log$
+   * Revision 1.1  1993/05/18  20:37:15  nort
+   * Initial revision
    */
   #include <stdlib.h> /* for atoi */
   #include <string.h> /* for strdup */
   #include <assert.h>
   #include <ctype.h>
   #include <unistd.h> /* for read */
+  #include "compiler.h"
   #include "nortlib.h"
   #include "y.tab.h"
   #include "yytype.h"
   #include "memlib.h"
-  static char rcsid[] = "$Id$";
+  #pragma off (unreferenced)
+	static char rcsid[] =
+	  "$Id$";
+  #pragma on (unreferenced)
   
-  int input_line_number = 1, ta_input_line = 0;
+  int ta_input_line = 0;
   
   /* ta_input() returns an input character, but checks for newlines
      and EOF also */
@@ -22,11 +28,11 @@
 	
 	c = input();
 	if (c == '\n') {
-	  if (ta_input_line <= input_line_number)
-		ta_input_line = input_line_number + 1;
+	  if (ta_input_line <= input_linenumber)
+		ta_input_line = input_linenumber + 1;
 	  else ta_input_line++;
 	} else if (c == EOF)
-	  nl_error(3, "Unexpected EOF during TMC statement");
+	  compile_error(3, "Unexpected EOF during TMC statement");
 	return(c);
   }
   
@@ -49,7 +55,7 @@
   static void buffer_char(struct statbuf *sbuf, int c) {
 	assert(sbuf != NULL && sbuf->text != NULL);
 	if (sbuf->n_chars >= sbuf->size)
-	  nl_error(4, "STATBUF overflow: arbitrary limit exceeded");
+	  compile_error(4, "STATBUF overflow: arbitrary limit exceeded");
 	sbuf->text[sbuf->n_chars++] = c;
   }
   
@@ -90,11 +96,13 @@ Partition		return(KW_PARTITION);
 						buffer_char(&sbuf, c);
 						for (;;) {
 						  d = ta_input();
-						  buffer_char(&sbuf, d);
 						  if (d == c) break;
-						  else if (d == '\\') {
-							d = ta_input();
+						  else {
 							buffer_char(&sbuf, d);
+							if (d == '\\') {
+							  d = ta_input();
+							  buffer_char(&sbuf, d);
+							}
 						  }
 						}
 						break;
@@ -103,12 +111,12 @@ Partition		return(KW_PARTITION);
 					buffer_char(&sbuf, c);
 				  }
 				  yylval.textval = strdup(sbuftext(&sbuf));
-				  if (ta_input_line > input_line_number)
-					input_line_number = ta_input_line;
+				  if (ta_input_line > input_linenumber)
+					input_linenumber = ta_input_line;
 				  return TK_TMCSTAT;
 				}
 [+{}:]			return(yytext[0]);
 [ \t\f]       	;
 [;%#].*			;
-\n          	input_line_number++;
-.           	nl_error(2, "Illegal Character");
+\n          	input_linenumber++;
+.           	compile_error(2, "Illegal Character");
