@@ -86,3 +86,10 @@ ICOS Waveform Flat2 {
   Tz = 1 sec;
 }
 
+ICOS Waveform LongerTimeOff {
+  Nsample = 1500;
+  Tz = 95%;
+  dI/dt = 30 A/sec;
+  Ramp from 650 mA to 900 mA;
+  Ncoadd = 50;
+}

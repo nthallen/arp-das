@@ -240,6 +240,8 @@ RULE: TzSpec ::= TzTime COMPUTE
 END;
 RULE: TzTime ::= Time END;
 RULE: TzSpec ::= Percent COMPUTE
+  IF( GE( Percent.Value, 1. ),
+	  message (ERROR, "Tz percent must be less than 100", 0, COORDREF));
   TzSpec.Tz = IF(GT(Percent.Value,0),
 		 MUL(INCLUDING ICOSCmds.Tramps,
 	          MUL(0.5,DIV(Percent.Value,SUB(1.,Percent.Value)))),

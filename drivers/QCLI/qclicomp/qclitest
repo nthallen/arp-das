@@ -1,4 +1,8 @@
 #! /bin/bash
+# qclitest <foo>
+# Compiles <foo> or <foo>.qcli and produces
+# <foo>.out, <foo>.cmd, <foo>.tmc, <foo>.log and <foo>.m
+
 function nl_error {
   echo "qclitest: $*" >&2
   exit 1
