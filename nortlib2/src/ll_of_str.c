@@ -1,8 +1,8 @@
-/* llos defines a linked list of strings type
- * $Log$
- */
+/* llos defines a linked list of strings type */
 #include "nortlib.h"
 #include "ll_of_str.h"
+char rcsid_ll_of_str_c[] =
+  "$Header$";
 
 /*
 Functionality:
