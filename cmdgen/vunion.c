@@ -1,6 +1,9 @@
 /* vunion.c handles generation of the value stack union.
 
  * $Log$
+ * Revision 1.1  1992/10/20  20:28:46  nort
+ * Initial revision
+ *
  * Revision 1.2  1992/07/15  20:28:13  nort
  * Beta Release
  *
@@ -13,7 +16,7 @@
 #include <assert.h>
 #include "cmdgen.h"
 
-static char rcsid[] = "$Id";
+static char rcsid[] = "$Id$";
 
 static struct vtyp *vtypes = NULL;
 static unsigned n_members = 0;

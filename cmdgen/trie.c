@@ -1,6 +1,9 @@
 /* trie.c Defines grand trie structure in output file.
  *
  * $Log$
+ * Revision 1.1  1992/10/20  20:28:46  nort
+ * Initial revision
+ *
  * Revision 1.1  1992/07/09  18:36:44  nort
  * Initial revision
  *
@@ -13,7 +16,7 @@
 #endif
 #include "cmdgen.h"
 
-static char rcsid[] = "$Id";
+static char rcsid[] = "$Id$";
 
 static unsigned short trie_offset = 0;
 
