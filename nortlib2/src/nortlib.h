@@ -1,5 +1,11 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.16  2001/09/10 17:31:47  nort
+ *
+ * Patch to nl_error.c to match correct prototype
+ * Patch to nortlib.h to exclude functions not ported QNX6
+ * Add GNU support files
+ *
  * Revision 1.15  2001/01/18 15:07:20  nort
  * Getcon functions, memo_shutdown() and ci_time_str()
  *
@@ -81,6 +87,12 @@ char *nrtl_strdup(const char *s);
 
 /* dccc.c */
 unsigned short DigSelect( unsigned short cmd, unsigned short val );
+
+#if defined(__QNXNTO__)
+  #define OPTIND_RESET 1
+#else
+  #define OPTIND_RESET 0
+#endif
 
 /* QNX4 Section: Items to be migrated out if/when they are ported */
 #if defined(__QNX__) && ! defined(__QNXNTO__)

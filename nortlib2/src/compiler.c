@@ -127,7 +127,7 @@ void compile_init_options(int argc, char **argv, char *extension) {
   int c;
 
   opterr = 0;
-  optind = 0;  
+  optind = OPTIND_RESET;  
   while ((c = getopt(argc, argv, opt_string)) != -1) {
 	switch (c) {
 	  case 'q':
