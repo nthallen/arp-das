@@ -1,14 +1,4 @@
 /* commands.c Handles interface to command interpreters.
- * $Log$
- * Revision 1.3  1996/04/19  13:52:51  nort
- * tma.h
- *
- * Revision 1.2  1993/09/27  20:08:08  nort
- * Cleanup, common compiler functions
- *
- * Revision 1.1  1993/05/18  20:37:22  nort
- * Initial revision
- *
  */
 #include <string.h>
 #include "nortlib.h"
@@ -31,7 +21,9 @@ void check_command(const char *command) {
 	{ int old_response = set_response(0);
 	  if ( command == 0 ) rv = ci_sendcmd( command, 1 );
 	  else {
-		char *cmdnl = new_memory( strlen( command ) + 2 );
+		char *cmdnl;
+		if ( *command == '_' ) command++;
+		cmdnl = new_memory( strlen( command ) + 2 );
 		sprintf( cmdnl, "%s\n", command );
 		rv = ci_sendcmd( cmdnl, 1);
 		free_memory( cmdnl );
