@@ -1,6 +1,9 @@
 %{
   /* grammar.y Grammar for tmcalgo
    * $Log$
+ * Revision 1.5  1996/04/19  13:51:02  nort
+ * Added semicolon after QSTRING
+ *
  * Revision 1.4  1996/04/17  02:51:27  nort
  * Changes to support default commands in file slurps.
  *
@@ -37,6 +40,8 @@
 	cd->cmdtext = text;
 	cd->cmd2text = text2;
 	cd->cmdtype = type;
+	cd->timeout = 0;
+	cd->else_stat = NULL;
 	return(cd);
   }
   
@@ -90,6 +95,11 @@
 %token KW_DEPENDING
 %token KW_ON
 %token KW_VALIDATE
+%token KW_VALID
+%token KW_HOLD
+%token KW_UNTIL
+%token KW_OR
+%token KW_ELSE
 %token <textval>  TK_TMCSTAT
 %token <textval>  TK_NAME
 %token <textval>  TK_COMMAND
@@ -103,6 +113,10 @@
 %type  <cmdval>   untimed_command
 %type  <cmdsval>  untimed_commands
 %type  <cmdsval>  state_cmds
+%type  <cmdval>   hold_clause
+%type  <cmdval>   hold_cond
+%type  <cmdval>   else_clause
+%type  <intval>   opt_valid
 %type  <textval>  opt_state_file
 %type  <textval>  state_name_def
 %type  <stateval> state_def
@@ -232,5 +246,31 @@ timed_command : TK_COMMAND {
 	| KW_VALIDATE TK_NAME ';' {
 		$$ = new_command( CMDTYPE_VAL, $2, NULL );
 	  }
+	| KW_HOLD KW_UNTIL hold_clause { $$ = $3; }
 	| untimed_command { $$ = $1; }
+	;
+/* <cmdval == struct cmddef *> */
+hold_clause : hold_cond ';' {
+		$$ = $1;
+		$$->timeout = -1;
+		$$->else_stat = NULL;
+	  }
+	| hold_cond KW_OR time else_clause {
+		$$ = $1;
+		$$->timeout = $3;
+		$$->else_stat = $4;
+	  }
+	;
+/* <cmdval == struct cmddef *> */
+hold_cond : opt_valid TK_PARENSTAT {
+		$$ = new_command( $1, $2, NULL );
+	  }
+	;
+/* <intval> */
+opt_valid : { $$ = CMDTYPE_HOLD; }
+	| KW_VALID { $$ = CMDTYPE_VHOLD; }
+	;
+/* <cmdval == struct cmddef *> */
+else_clause : ';' { $$ = NULL; }
+	| KW_ELSE timed_command { $$ = $2; }
 	;
