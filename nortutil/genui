@@ -26,18 +26,18 @@ my $ui_limit = 20;
 sub shortname {
   my ( $pre, $name ) = @_;
   return $shortname{"$pre$name"}
-	if defined $shortname{"$pre$name"};
+    if defined $shortname{"$pre$name"};
   my $try = join '', $pre,
-	map lc,
-	  grep m/[A-Z]/,
-		split( //, $name );
+    map lc,
+      grep m/[A-Z]/,
+	split( //, $name );
   my $lcname = lc $name;
   for my $short ( $try, "$pre$lcname", "${pre}_$lcname" ) {
-	unless ( defined $longname{$short} ) {
-	  $longname{$short} = "$pre$name";
-	  $shortname{"$pre$name"} = $short;
-	  return $short;
-	}
+    unless ( defined $longname{$short} ) {
+      $longname{$short} = "$pre$name";
+      $shortname{"$pre$name"} = $short;
+      return $short;
+    }
   }
   die "Unable to find shortname for '$pre', '$name'\n";
 }
@@ -46,50 +46,54 @@ while (<>) {
   next if m/^\s*#/;
   next if m/^\s*$/;
   if ( m/^HEADER\s+(.*)$/ ) {
-	$header = $1;
+    $header = $1;
   } elsif ( m/^MNEMONIC\s+(\w+)/ ) {
-	$experiment = $1;
+    $experiment = $1;
   } elsif ( m/^HOMEDIR\s+(\S+)/ ) {
-	$homedir = $1;
+    $homedir = $1;
   } elsif ( m/^ROWS\s+(\d+)/ ) {
-	$ui_limit = $1;
+    $ui_limit = $1;
   } elsif ( m|^\s*(\d+(?:/\d+)?(?:\#\d+(?:/\d+)?)?) # rate
-               \s+(\w+(?::\w+:\d+)?) # mnemonic
-			   \s+(\w+) # group
-			   \s+(\w+) # plot
-			   \s*$|x ) {
-	my ( $rate, $mnemonic, $group, $plot ) = ( $1, $2, $3, $4 );
-	my $datum;
-	if ( $mnemonic =~ m/^\w+:(\w+):\d+$/ ) {
-	  $datum = $1;
-	} else {
-	  $datum = $mnemonic; # and leave $bit undef
-	}
-	# $rate =~ s,/,_,g;
-	$rate =~ s,^.*#,,;
-	$rate{$rate} = {} unless defined $rate{$rate};
-	$rate{$rate}->{$datum} = 1;
-	if ( defined( $datarate{$datum} ) &&
-		 $datarate{$datum} ne $rate ) {
-	  warn "Datum '$datum' extracted at both ",
-	    "$rate and $datarate{$datum} Hz\n";
-	} else {
-	  $datarate{$datum} = $rate;
-	}
-	my $grp = shortname('', $group);
-	my $plt = shortname($grp, $plot);
-	unless ( defined $group{$grp} ) {
-	  $group{$grp} = [];
-	  push @group, $grp;
-	}
-	unless ( defined $plot{$plt} ) {
-	  $plot{$plt} = [];
-	  push @{$group{$grp}}, $plt;
-	}
-	push @{$plot{$plt}}, $mnemonic;
+	       \s+(\w+(?::\w+:\d+)?) # mnemonic
+	       \s+(\w+) # group
+	       \s+(\w+) # plot
+	       (?:\s+(\w+))?
+	       \s*$|x ) {
+    my ( $rate, $mnemonic, $group, $plot, $legend ) =
+      ( $1, $2, $3, $4, $5 );
+    my $datum;
+    if ( $mnemonic =~ m/^\w+:(\w+):\d+$/ ) {
+      $datum = $1;
+    } else {
+      $datum = $mnemonic; # and leave $bit undef
+    }
+    # $rate =~ s,/,_,g;
+    $rate =~ s,^.*#,,;
+    $rate{$rate} = {} unless defined $rate{$rate};
+    $rate{$rate}->{$datum} = 1;
+    if ( defined( $datarate{$datum} ) &&
+	 $datarate{$datum} ne $rate ) {
+      warn "Datum '$datum' extracted at both ",
+	"$rate and $datarate{$datum} Hz\n";
+    } else {
+      $datarate{$datum} = $rate;
+    }
+    my $grp = shortname('', $group);
+    my $plt = shortname($grp, $plot);
+    unless ( defined $group{$grp} ) {
+      $group{$grp} = [];
+      push @group, $grp;
+    }
+    unless ( defined $plot{$plt} ) {
+      $plot{$plt} = [];
+      push @{$group{$grp}}, $plt;
+    }
+    push @{$plot{$plt}},
+      defined $legend ? { mnc => $mnemonic, legend => $legend } :
+	$mnemonic;
   } else {
-	chomp;
-	warn "Syntax error: '$_'\n";
+    chomp;
+    warn "Syntax error: '$_'\n";
   }
 }
 
@@ -102,7 +106,7 @@ for my $rate ( @rates ) {
   my $n_var = @vars + 1;
   print EDF "spreadsheet ${experiment}eng_$rate $n_var\n",
     join( "\n", map "  $_ $vars[$_-1] %5.1lf", ( 1 .. @vars ) ),
-	"\n";
+    "\n";
 }
 close EDF || warn "Error closing ${experiment}eng.edf\n";
 
@@ -119,57 +123,63 @@ for my $grp ( @group ) {
   my $grouptext =
     join " ", grep /./, split( /([A-Z][a-z]+)/, $group );
   if ( $ui_rows > 0 && $ui_rows + @plots + 1 > $ui_limit ) {
-	print UI "f = ne_dialg(f, 'newcol');\n";
-	$ui_rows = 0;
+    print UI "f = ne_dialg(f, 'newcol');\n";
+    $ui_rows = 0;
   }
   print UI
-	"f = ne_dialg(f, 'add', 0, 1, 'g$experiment$grp', '$grouptext' );\n";
+    "f = ne_dialg(f, 'add', 0, 1, 'g$experiment$grp', '$grouptext' );\n";
   $ui_rows += @plots + 1;
   open( GRP, ">g$experiment$grp.m" ) ||
-	die "Unable to write g$experiment$grp.m\n";
+    die "Unable to write g$experiment$grp.m\n";
   print GRP
-	"function fig = g$experiment$grp(varargin);\n",
-	"% g$experiment$grp(...)\n",
-	"% $grouptext\n",
-	"ffig = ne_group(varargin,'$grouptext',",
-	join( ",", map "'p$experiment$_'", @plots ),
-	");\n",
-	"if nargout > 0 fig = ffig; end\n";
+    "function fig = g$experiment$grp(varargin);\n",
+    "% g$experiment$grp(...)\n",
+    "% $grouptext\n",
+    "ffig = ne_group(varargin,'$grouptext',",
+    join( ",", map "'p$experiment$_'", @plots ),
+    ");\n",
+    "if nargout > 0 fig = ffig; end\n";
   close GRP || warn "Error closing g$experiment$grp.m\n";
   for my $plt ( @plots ) {
-	my $plot = $longname{$plt};
-	$plot =~ s/^$grp//;
-	my $plottext =
-	  join " ", grep /./, split( /([A-Z][a-z]+)/,
-		$plot );
-	print UI
-	  "f = ne_dialg(f, 'add', 1, 0, 'p$experiment$plt', '$plottext' );\n";
-	open( PLT, ">p$experiment$plt.m" ) ||
-	  die "Unable to write to plt_$plt.m\n";
-	print PLT
-	  "function p$experiment$plt(varargin);\n",
-	  "% p$experiment$plt( [...] );\n",
-	  "% $grouptext $plottext\n";
-	if ( grep /:/, @{$plot{$plt}} ) {
-	  die "Plot $plt mixes analog and digital data\n"
-		if grep !/:/, @{$plot{$plt}};
-	  print PLT
-		"h = ne_dstat({\n  ",
-		join( "; ...\n  ",
-		  map { m/^(\w+):(\w+):(\d+)$/; "'$1', '$2', $3"; }
-		    @{$plot{$plt}} ),
-		" }, '$plot', varargin{:} );\n";
-	} else {
-	  print PLT
-		"h = timeplot({",
-		join( ",", map "'$_'", @{$plot{$plt}} ), "}, ...\n",
-		"      '$grouptext $plottext', ...\n",
-		"      '$plot', ...\n",
-		"      {",
-		join( ",", map { s/_/\\_/g; "'$_'" } @{$plot{$plt}} ), "}, ...\n",
-		"      varargin{:} );\n";
-	}
-	close PLT || warn "Error closing p$experiment$plt.m\n";
+    my $plot = $longname{$plt};
+    $plot =~ s/^$grp//;
+    my $plottext =
+      join " ", grep /./, split( /([A-Z][a-z]+)/,
+	$plot );
+    print UI
+      "f = ne_dialg(f, 'add', 1, 0, 'p$experiment$plt', '$plottext' );\n";
+    open( PLT, ">p$experiment$plt.m" ) ||
+      die "Unable to write to plt_$plt.m\n";
+    print PLT
+      "function p$experiment$plt(varargin);\n",
+      "% p$experiment$plt( [...] );\n",
+      "% $grouptext $plottext\n";
+    my @mnemonics =
+      map { ref($_) ? $_->{mnc} : $_ } @{$plot{$plt}};
+    if ( grep /:/, @mnemonics ) {
+      die "Plot $plt mixes analog and digital data\n"
+	if grep !/:/, @mnemonics;
+      print PLT
+	"h = ne_dstat({\n  ",
+	join( "; ...\n	",
+	  map { m/^(\w+):(\w+):(\d+)$/; "'$1', '$2', $3"; }
+	    @mnemonics ),
+	" }, '$plot', varargin{:} );\n";
+    } else {
+      my @legends =
+	map { s/_/\\_/g; "'$_'" }
+	  map { ref($_) ? $_->{legend} : $_ }
+	    @{$plot{$plt}};
+      print PLT
+	"h = timeplot({",
+	join( ",", map "'$_'", @mnemonics ), "}, ...\n",
+	"      '$grouptext $plottext', ...\n",
+	"      '$plot', ...\n",
+	"      {",
+	join( ",", @legends ), "}, ...\n",
+	"      varargin{:} );\n";
+    }
+    close PLT || warn "Error closing p$experiment$plt.m\n";
   }
 }
 print UI
