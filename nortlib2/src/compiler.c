@@ -1,5 +1,9 @@
 /* compiler.c Support routines for compilers
  * $Log$
+ * Revision 1.3  1994/08/02  15:18:56  nort
+ * Changed option letter -h to -q to match compiler.h
+ * Change functionality to terminate if no input files are specified.
+ *
  * Revision 1.2  1993/09/15  19:27:19  nort
  * *** empty log message ***
  *
@@ -50,12 +54,11 @@
 FILE *ofile = NULL;
 extern FILE *yyin;
 short compile_options = CO_IGN_WARN;
-static int sargc, fno;
-static char **sargv;
 char *input_filename = NULL;
 char *output_filename = NULL;
 int input_linenumber = 0;
 int error_level = 0;
+ll_of_str input_files;
 
 static char *makeofile(char *in, char *extension) {
   int i, lastslash, lastdot;
@@ -114,16 +117,17 @@ int compile_error(int level, char *format, ...) {
 int yywrap(void) {
   input_linenumber = 0;
   if (input_filename != NULL) fclose(yyin);
-  if (fno < sargc) {
-	if (sargv[fno][0] == '-')
-	  compile_error(3, "Misplaced option %s", sargv[fno]);
-	input_filename = sargv[fno++];
-	yyin = fopen(input_filename, "r");
-	if (yyin == NULL)
-	  compile_error(3, "Unable to open input file %s", input_filename);
-	input_linenumber = 1;
-	return(0);
-  } else return(1);
+  /* I could free the old filename here, but I think I will leave
+     it allocated to allow the filename to be saved for debugging. */
+  input_filename = llos_deq(&input_files);
+  if (input_filename == 0) return(1);
+  if (input_filename[0] == '-')
+	compile_error(3, "Misplaced option %s", input_filename);
+  yyin = open_input_file(input_filename);
+  if (yyin == NULL)
+	compile_error(3, "Unable to open input file %s", input_filename);
+  input_linenumber = 1;
+  return(0);
 }
 
 void compile_init_options(int argc, char **argv, char *extension) {
@@ -148,11 +152,15 @@ void compile_init_options(int argc, char **argv, char *extension) {
 	}
   }
   atexit(compile_exit);
-  sargc = argc;
-  sargv = argv;
-  fno = optind;
+
+  /* enqueue the input file names */
+  for (c = optind; c < argc; c++)
+	llos_enq(&input_files, argv[c]);
+
+  /* open the first input file */
   if (yywrap())
 	compile_error(3, "No input file specified");
+
   if (ofile == NULL && input_filename != NULL) {
 	output_filename = makeofile(input_filename, extension);
 	ofile = open_output_file(output_filename);
