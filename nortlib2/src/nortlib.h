@@ -1,5 +1,7 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.12  1996/04/02  18:35:56  nort
+ * Pruned log, removed tmcalgo funcs to tma.h
  *
  * Revision 1.1  1992/08/25  15:31:42  nort
  * Initial revision
@@ -56,6 +58,15 @@ int ci_sendfcmd(int mode, char *fmt, ...);
 void ci_server(void); /* in nortlib/cis.c */
 void cis_initialize(void); /* in cmdgen.skel or .cmd */
 void cis_terminate(void);  /* in cmdgen.skel of .cmd */
+
+/* tmcalgo (tma) support routines */
+void tma_new_state(unsigned int partition, const char *name);
+void tma_new_time(unsigned int partition, long int t1, const char *next_cmd);
+void tma_hold(int hold);
+
+/* R1 routines */
+int tma_time_check(unsigned int partition);
+void tma_sendcmd(const char *cmd);
 
 /* guaranteed memory allocator, memlib.h subset.
  * Include memlib.h to obtain the full definition
