@@ -2,6 +2,8 @@ qclicomp.con
 qclicomp.gla
 qclicomp.lido
 qclicomp.pdl
+qclicomp.h
+gcd.c
 $/Name/CScope.gnrc:inst
 $/Prop/Unique.gnrc:inst
 $/Prop/Unique.gnrc +instance=Iz :inst
