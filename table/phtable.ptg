@@ -1,0 +1,38 @@
+Seq: $ $
+
+# $1: table name (PTGNode)
+# $2: N_Fields (int)
+Init:
+  "/* phtable output */\n"
+  "#include \"tablelib.h\"\n"
+  "PtWidget_t *" $1 "_tbl_fld[" $2 int "];\n"
+  "void " $1 "_init( void ) {\n"
+  "  PtWidget_t *w;\n"
+
+# $1: table name (PTGNode)
+# $2: Rows $3: Cols (int)
+Window:
+  "  w = tbl_window( \"" $1 "\", " $2 int ", " $3 int " );\n"
+  
+# $1 text as CString (PTGNode)
+# $2, $3 = row, col (int)
+# $1 $2 row, col
+# $3 attr
+# $4 str
+String:
+  { "  tbl_label( w, \"" } $4 { "\", " $1 int ", " $2 int
+   " ); /* " $3 int " */\n" }
+
+# $1: table name (PTGNode)
+# $2: Field Number (int)
+# $3: Default Text as CString (PTGNode)
+# $4, $5: row, col (int)
+FieldDef:
+  "  " $1 "_tbl_fld[" $2 int "] = tbl_field( w, " $3 ", "
+  $4 int ", " $5 int " );\n"
+
+# $1: table name (PTGNode)
+# $2: Field Number (int)
+# $3: Field Text (PTGNode)
+FieldRef:
+  "  display( " $1 "_tbl_fld[" $2 int "], text(" $3 "));\n"

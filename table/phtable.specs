@@ -8,9 +8,8 @@ ntable.map
 dim.c
 phbox.c
 phparam.c
-modprint.c
-ntable.pdl
-ntable.ptg
+phtable.pdl
+phtable.ptg
 $/Name/CScope.gnrc +instance=Col :inst
 $/Name/CScope.gnrc +instance=Table :inst
 $/Output/PtgCommon.fw

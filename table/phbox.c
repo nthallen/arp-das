@@ -3,6 +3,7 @@
 #include "err.h"
 #include "nbox.h"
 #include "modprint.h"
+#include "ptg_gen.h"
 
 #define RL_BT 1
 #define RL_TP 3
@@ -216,6 +217,7 @@ unsigned char scrchar[] = {
   '\xCE'  /* 80 = 2222 */
 };
 
+#ifdef DOPRINTRULE
 PTGNode print_rules( void ) {
   TableRule Rule;
   PTGNode rv = PTGNULL, nptg;
@@ -235,3 +237,5 @@ PTGNode print_rules( void ) {
   }
   return rv;
 }
+#endif
+

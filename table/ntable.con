@@ -1,7 +1,8 @@
-Program : NamedTables Table .
+Program : NamedTables UnnamedTable .
 
 NamedTables : / NamedTables NamedTable .
 NamedTable : BareWord Table .
+UnnamedTable : Table .
 
 Table : [ 'Table' ] '{' TableDefs '}' .
 TableDefs : / TDunterminated [ ';' ] .

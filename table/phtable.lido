@@ -250,9 +250,11 @@ ATTR Width, InhWidth, Height, InhHeight: dim_t;
 ATTR FullHeight: dim_t;
 CHAIN Glue: glue_t;
 
-RULE: Program ::= NamedTables Table COMPUTE
-  Program.Width = GlueDim( Table.MinWidth, Table.MinWidth );
-  Program.Height = GlueDim( Table.MinHeight, Table.MinHeight );
+RULE: Program ::= NamedTables UnnamedTable COMPUTE
+  Program.Width = GlueDim( UnnamedTable.MinWidth,
+                           UnnamedTable.MinWidth );
+  Program.Height = GlueDim( UnnamedTable.MinHeight,
+                            UnnamedTable.MinHeight );
 END;
 
 SYMBOL Table COMPUTE
@@ -379,13 +381,13 @@ SYMBOL Rule INHERITS TableLeaf END;
 CHAIN FieldPrint, StringPrint : PTGNode;
 
 SYMBOL Program COMPUTE
+  CHAINSTART HEAD.StringPrint =
+    PTGSeq(
+	  PTGInit( PTGAsIs("name"), TAIL.DatumOffset ),
+	  PTGWindow( PTGAsIs("name"),
+		ADD(SPACE(THIS.Height),1), ADD(SPACE(THIS.Width),1)));
   CHAINSTART HEAD.FieldPrint = PTGNULL;
-  CHAINSTART HEAD.StringPrint = PTGNULL;
-  PTGOut(PTGFieldFile(
-    ADD(SPACE(THIS.Height),1), ADD(SPACE(THIS.Width),1),
-	TAIL.FieldPrint,
-	TAIL.StringPrint,
-	THIS.RulePrint));
+  PTGOut(PTGSeq( TAIL.StringPrint, TAIL.FieldPrint ));
 END;
 
 SYMBOL Table COMPUTE
@@ -395,6 +397,7 @@ END;
 
 ATTR PrintCol : int;
 ATTR FullWidth : dim_t;
+ATTR DatumNumber : int;
 
 SYMBOL Datum COMPUTE
   SYNT.FullWidth =
@@ -403,18 +406,16 @@ SYMBOL Datum COMPUTE
 	SUB(ADD(THIS.Col,SPACE(THIS.FullWidth)),SPACE(THIS.Width));
   THIS.FieldPrint =
 	PTGSeq(THIS.FieldPrint,
-	  PTGField(
-		PTGId(THIS.String),
-		THIS.Row,
-		SYNT.PrintCol,
-		SPACE(THIS.Width),
-		SPACE(THIS.Height)));
+	  PTGFieldRef(
+	    PTGAsIs("name"),
+	    THIS.DatumOffset,
+		PTGId(THIS.String)));
 
   THIS.StringPrint =
 	PTGSeq(THIS.StringPrint,
-	  print_field_string(
-		THIS.Row, THIS.PrintCol,
-		SPACE(THIS.Width), SPACE(THIS.Height)));
+	  PTGFieldDef( PTGAsIs("name"),
+	      THIS.DatumOffset, PTGAsIs("X"),
+		  THIS.Row, THIS.PrintCol));
 END;
 
 ATTR IsEmpty : int;
@@ -432,7 +433,7 @@ ATTR RulePrint : PTGNode;
 
 SYMBOL Program COMPUTE
   SYNT.RulePlace = CONSTITUENTS Rule.RulePlace;
-  SYNT.RulePrint = print_rules() <- SYNT.RulePlace;
+  % SYNT.RulePrint = print_rules() <- SYNT.RulePlace;
 END;
 
 ATTR ForReal : int;
@@ -509,8 +510,8 @@ SYMBOL TableNameDef INHERITS TableIdDefScope END;
 SYMBOL TableNameUse INHERITS TableIdUseScope END;
 
 ATTR InstanceReady : VOID;
-RULE: Program ::= NamedTables Table COMPUTE
-  NamedTables.InstanceReady = Table.InstanceRecorded;
+RULE: Program ::= NamedTables UnnamedTable COMPUTE
+  NamedTables.InstanceReady = UnnamedTable.InstanceRecorded;
 END;
 SYMBOL Table COMPUTE
   SYNT.InstanceRecorded = CONSTITUENTS TableRef.InstanceRecorded;
@@ -560,3 +561,39 @@ RULE: NamedTable ::= TableNameDef Table COMPUTE
 	  GetStringPtg(TableNameDef.Key,	PTGNULL))
 		<- NamedTable.InstanceRecorded;
 END;
+
+%-------------------------------------------------------------
+% Calculation of DatumOffset and DatumNumber
+%   DatumOffset is the offset within the table
+%   DatumNumber is the absolute offset of realized data fields
+%-------------------------------------------------------------
+CHAIN DatumOffset : int;
+
+RULE: Program ::= NamedTables UnnamedTable COMPUTE
+  CHAINSTART HEAD.DatumOffset = 0;
+END;
+
+RULE: UnnamedTable ::= Table COMPUTE
+  Table.DatumOffset = MUL( 0, UnnamedTable.DatumOffset);
+  UnnamedTable.DatumOffset = Table.DatumOffset;
+  UnnamedTable.MinWidth = Table.MinWidth;
+  UnnamedTable.MinHeight = Table.MinHeight;
+  UnnamedTable.InstanceRecorded = Table.InstanceRecorded;
+END;
+
+ATTR TableOffsetSet : VOID;
+RULE: NamedTable ::= TableNameDef Table COMPUTE
+  Table.DatumOffset = MUL( 0, NamedTable.DatumOffset );
+  NamedTable.TableOffsetSet =
+    ResetNFields( TableNameDef.Key, Table.DatumOffset );
+  NamedTable.DatumOffset = 0 <- NamedTable.TableOffsetSet;
+END;
+
+SYMBOL Datum COMPUTE
+  THIS.DatumOffset = ADD(THIS.DatumOffset,1);
+END;
+
+SYMBOL TableRef COMPUTE
+  THIS.DatumOffset = ADD(THIS.DatumOffset,GetNFields(THIS.Key,0));
+END;
+

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "modprint.h"
+#include "ptg_gen.h"
 
 void FieldNo( PTG_OUTPUT_FILE f ) {
   static int fieldno = 1;
