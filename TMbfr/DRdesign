@@ -1,0 +1,229 @@
+DR Redesign Project
+
+TM data stream consists of:
+
+TMStream : Header Data*
+Data : DASCmd TMData TimeStamp
+
+Header :
+Header data defining frame dimensions, rate, and
+location of synch and MFCtr (tm.dac) Any newly
+opened stream will begin with this information,
+regardless of the current status of the stream.
+
+DASCmd :
+This might actually be obsolete. The old commands
+consisted of:
+  TM Start
+  TM End
+  Quit
+  TM Clear Errors
+  TM Suspend Logging
+  TM Resume Logging
+
+When looking at a TM Stream, TM Start is implicit. TM End
+has been deprecated for years. Quit is also implicit in
+EOF. TM Clear Errors pertained specifically to error counts
+when receiving bi-phase or serial data, and is hence
+driver-specific. Suspend and Resume Logging are a convenience
+that is focused on the logger. It is probably more appropriate
+for the logger to receive those commands directly somehow.
+
+TMData :
+
+The historical form of TMData was a variable identifying the
+number of minor frames or rows of data followed by the data.
+The incomplete implementation of multiple rows per minor frame
+negated their benefit. The idea was to save the storage space
+of multiple instances of MFCtr and Synch by not reporting them
+at the highest data rate, but the bfr implementation only delivered
+complete minor frames, so for display and algorithm use data now
+arrived in clumps and the minor frame rate. Hence for most purposes,
+the minor frame had to be pushed to the maximum data rate so display
+and algorithms could maintain time granularity.
+
+There are two possible approaches then. We could implement a bfr
+that can handle rows properly or come up with an alternative. The
+problem with rows in general is that we don't know what to make
+of them in isolation, since they don't necessarily contain the
+MFCtr that places them in the TM frame. One approach would be to
+allow the delivery of isolated rows, but accompany them with
+additional header data identifying the MFCtr and offset of the
+row within the minor frame.
+
+Another approach is to allow repackaging of minor frames without
+their MFCtr and/or Synch words for the purpose of logging. A
+TMData2 header could accompany them identifying the starting
+MFCtr. This would probably only be practical when the frame was
+laid out with MFCtr at offset 0 and Synch at the end, which is
+the default for 1-row minor frames. It might be desirable to
+include some sort of checksum, at least during logging.
+
+Bfr strategies:
+
+Initialization {
+  Command-line options to determine data buffer size
+  (although the actual allocation might not occur until
+  the writer arrives)
+  Use Experiment environment variable to determine device name.
+  /dev/huarp/$Experiment/TM
+  Task oui_init_options with handling all of that
+
+  When initialization is written {
+    Allocate buffer space (if specified by time)
+    Program timer for output (depending on command-line)
+  }
+}
+
+Suppose I ignore DASCmds. Then I need to make sure that:
+
+  1: Each client receives Header before any data
+  2: Each client receives Time Stamps in the correct location
+
+Store data in circular queue
+Store metadata in a separate circular queue or linked list
+  metadata {
+    Starting coordinate wrap:MFCtr:Row:TS
+    Type: Data for TimeStamp
+    n_rows or the actual TimeStamp
+    All data in this block must be in sequential rows. Any
+    skips in data require a new metadata block
+    Supply scratch area in each metadata record for header
+    information: No that won't work in multi-thread case.
+    Must supply enough scratch areas in each ocb(?)
+  }
+}
+
+Keep track of opens and closes so we know when it's OK to quit.
+Be sure to handle IONOTIFY stuff.
+
+Extend OCB {
+  Space for scratch buffer to hold at least one row of data
+  (or one missing rows record or timestamp)
+  nbytes, offset
+  missing rows
+}
+
+Process read request {
+  if internal offset is non-zero, send remainder of current
+  record {
+    if req < remaining, send req and update internal offset
+    else send remaining and update remaining req
+  }
+  if missing rows is non-zero, send missing rows record {
+    build record, then either add it to an IOV or copy
+    it into fractional buffer and do the partial thing.
+    If fractional buffer is in use, just return.
+  }
+  if a timestamp, send it
+  if data send as much as will fit {
+    Calculate number of rows, with minimum of 1
+    Build header in scratch area of metadata and add it
+    either as direct IOV and/or copied into fractional buffer.
+    Add data rows either as IOV and/or copied into fractional buffer.
+  }
+  If transmitting a partial minor frame (NMF > 1) use a TMDATA2
+  header that specifies the MFCtr and Row.
+
+  If transmitting a partial row (because requested data size is
+  smaller than a complete row), cache the remainder of the row
+  in the ocb for later broadcast.
+}
+
+On read {
+  Process request as far as possible, possibly queue for
+  later processing.
+}
+
+On write {
+  Record data and reply {
+	As data comes in, append it to the current data block if
+	possible, else create a new block. When the data queue wraps,
+	need to start retiring data from the first block.
+
+	As rows of data expire, could check against open ocbs and
+record if they are missing any data. They could be sent a
+record indicating the loss.
+  }
+  pthread_setschedparam() to highest blocked client and
+  run queue.
+}
+
+How do priority and threads interact? {
+  Write test app to explore inheritance issues.
+  I need the writer to operate at the highest
+  priority. I cannot afford priority inversion where a low
+  priority client is tying up the resmgr with a large
+  transfer. Hence, multi-threading is indicated. If I naively
+  implement multi-threading, it seems as though priority
+  inversion is still possible unless we guarantee that there
+  are at least as many threads as clients. This seems like
+  overkill, but maybe it isn't. Another approach that would
+  be more complicated but more reliable would involve immediately
+  enqueuing all read requests but processing write requests
+  immediately. This would work best with 2 or more threads, but
+  with only the first thread receiving requests. All the other
+  threads would only work on enqueued stuff.
+}
+
+Modes of Operation {
+  Local Realtime {
+    spit out data as fast as possible to readers for realtime
+    response. Return as soon as there is data to report.
+    Drop rows as necessary
+  }
+  Remote Realtime {
+    Regulate output of data for readability for all readers
+    (i.e. synchronize all readers)
+    Drop rows as necessary
+  }
+  Playback {
+    Regulate output of data for readability
+    Block writer instead of dropping rows
+  }
+  Extraction {
+    Stream output
+    Fill output buffers before replying
+    Block writer instead of dropping rows
+  }
+  Use command-line options to specify modes: {
+    -p: playback, block writer
+    -o[FR]: Specify output mode:
+      F = fast output: return up to nbytes but as little
+          as one row of data.
+      R = regulated output: return data at fixed rate
+      [default] return up to nbytes
+  }
+}
+
+DRbfr.c {
+  main() {
+    extend OCB
+  } 
+  io_read() {
+  }
+  io_write()
+  io_open() {
+    If open for write {
+	  Obtain a mutex
+	  check to make sure this is
+	  the only writer. attr->wcount == 0
+	}
+    probably call iofunc_open_default()
+    release the mutex
+  }
+  handle opens {
+	keep track of how many opens we have (or is that done automagically?
+  }
+  handle ionotify
+}
+DRopt.oui {
+  -p
+  -o[FR]
+  -b<size> buffer size
+  Command-line options to determine data buffer size
+  (although the actual allocation might not occur until
+  the writer arrives)
+  Use Experiment environment variable to determine device name.
+  /dev/huarp/$Experiment/TM
+}
