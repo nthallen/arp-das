@@ -54,5 +54,5 @@ SYMBOL Columns COMPUTE
 	ADDDIM(
 	  CONSTITUENTS CField.ColMinWidth SHIELD Columns
 	  WITH ( dim_t, ADDDIM, IDENTICAL, MKDIM0 ),
-	  MKDIM( SUB( THIS.N_Cols, 1 ), 0 ) );
+	  MKDIM( MUL(SUB( THIS.N_Cols, 1 ),ColSpace), 0 ) );
 END;

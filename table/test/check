@@ -12,6 +12,13 @@ for i in ; do
 	echo "$i: OK"
 	rm $new
   else
-    diff $old $new | less
+    sort $old >$old.sort
+	sort $new >$new.sort
+	if cmp -s $old.sort $new.sort; then
+	  echo "$i: OK but reordered"
+	  rm $new $new.sort $old.sort
+	else
+	  diff $old $new | less
+	fi
   fi
 done

@@ -9,6 +9,7 @@ ntable.HEAD.phi
 ntable.map
 dim.c
 nbox.c
+nparam.c
 modprint.c
 ntable.pdl
 ntable.ptg

@@ -1,12 +1,13 @@
-ntable.clp
+phtable.clp
 ntable.con
 ntable.gla
-ntable.lido
+phtable.lido
 mod.lido
 ntable.HEAD.phi
 ntable.map
 dim.c
 phbox.c
+phparam.c
 modprint.c
 ntable.pdl
 ntable.ptg
