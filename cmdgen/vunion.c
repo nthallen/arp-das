@@ -1,6 +1,9 @@
 /* vunion.c handles generation of the value stack union.
 
  * $Log$
+ * Revision 1.2  1992/10/20  20:29:39  nort
+ * Corrected IDs
+ *
  * Revision 1.1  1992/10/20  20:28:46  nort
  * Initial revision
  *
@@ -15,6 +18,7 @@
 #include <string.h>
 #include <assert.h>
 #include "cmdgen.h"
+#include "nortlib.h"
 
 static char rcsid[] = "$Id$";
 
@@ -129,6 +133,6 @@ void output_vdefs(void) {
 	for (vt = vtypes; vt != NULL; vt = vt->next)
 	  fprintf(ofile, "  %s %s;\n", vt->type, vt->member);
 	fprintf(ofile, "} vstack_type;\n");
-	fprintf(ofile, "#define NEED_VALUES\n");
   }
+  Skel_copy(ofile, "vstack", vtypes != NULL);
 }
