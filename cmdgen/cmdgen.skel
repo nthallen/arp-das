@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.10  1992/10/29  05:38:01  nort
+ * Put QNX_CONS into the skeleton.
+ *
  * Revision 1.9  1992/10/29  02:36:15  nort
  * Added update when command_exec() returns.
  *
@@ -31,7 +34,6 @@
 #include <assert.h>
 #include <ctype.h>
 #include "cmdalgo.h"
-#include "nl_cons.h"
 
 static char cg_rcsid[] = "$Id$";
 
@@ -59,7 +61,40 @@ static short ioflags;
 
 %headers%
 
-#define QNX_CONS /* Since that's what we're doing */
+/* Interface options:
+   Currently supporting QNX_CONS, SNAFU_CURSES and INTERFACE
+   INTERFACE is left as a way to externally provide another
+   interface without necessarily modifying this file. If none
+   is specified, QNX_CONS is the default.
+   
+   Additional options are NO_PROMPTS or MACHINE_PROMPTS
+   
+   Somewhere prior to here the modes of operation should be
+   defined, either explicitly by the user or by cmdgen. The
+   modes are CMD_INTERACT_MODE and CMD_BATCH_MODE. In order
+   to call cmd_interact(), of course, CMD_INTERACT_MODE must
+   be defined. In order to call cmd_batch(), CMD_BATCH_MODE
+   must be defined. I expect keyboard programs to usually
+   define just CMD_INTERACT_MODE (although history would
+   require BATCH also) and servers to define just CMD_BATCH_MODE.
+   Note that if only CMD_BATCH_MODE is defined, NO_PROMPTS is
+   assumed.
+*/
+#if defined QNX_CONS || defined SNAFU_CURSES
+  #define INTERFACE
+#endif
+#ifndef INTERFACE
+  #define QNX_CONS /* Since that's what we're doing */
+#endif
+#if (! defined CMD_INTERACT_MODE) && (! defined NO_PROMPTS)
+  #define NO_PROMPTS
+#endif
+#ifdef QNX_CONS
+  #include "nl_cons.h"
+#elif defined SNAFU_CURSES
+  #include "curses.h"
+  #include "scurses.h"
+#endif
 
 #define T_FLAG 0x80
 #define T_ROOT 1
@@ -71,10 +106,12 @@ typedef struct {
   cg_token_type prev;
 } trie_type;
 
+#ifndef NO_PROMPTS
 typedef struct {
   int more;
   unsigned short txt_idx;
 } prompt_type;
+#endif
 
 #ifdef QNX_CONS
   #define MACHINE_PROMPTS
@@ -187,7 +224,7 @@ static short full_reduce;
 static unsigned short unshift_value;
 
 #ifndef IOMODE_INIT
-  #define IOMODE_INIT 0
+  #define IOMODE_INIT (IO_SPACE|IO_BACKSPACE|IO_ALWAYS)
 #endif
 
 #define STORE_CHAR(x) do {\
@@ -201,11 +238,33 @@ static unsigned short unshift_value;
   #define GETCH() nlcon_getch()
   #define DISPLAY_CHAR(c) con_dispc(c)
   #define UNDISPLAY_CHAR con_undispc()
-  #define CLEAR_DISPLAY_LINE { con_col = con_low = 1;\
-							   con_nchars = 0;\
-							   ioflags |= IOF_UPDATE; }
+  #define CLEAR_DISPLAY_LINE do { con_col = con_low = 1;\
+							      con_nchars = 0;\
+								  ioflags |= IOF_UPDATE; } while (0)
   #define DISPLAY_PROMPT(x) con_prompt(prmt_text+x)
-  #define UPDATE_OUTPUT con_update();
+  #define UPDATE_OUTPUT con_update()
+#endif
+#ifdef SNAFU_CURSES
+  #define REJECT_CHAR snafu_reject_char()
+  #define SPECIAL_CHAR_FUNC(x) snafu_scan_code()
+  #define CMD_ERROR(x) do { cmderr(x); exit_snafu(1); } while (0)
+  #define DISPLAY_CHAR(x) do { waddch(cmdwin.w, (x)?(x):' ');\
+							   ioflags |= IOF_UPDATE; } while (0)
+  #define UNDISPLAY_CHAR do { waddch(cmdwin.w, '\b');\
+							  ioflags |= IOF_UPDATE; } while (0)
+  #define CLEAR_DISPLAY_LINE do { wclear(cmdwin.w);\
+  								  wmove(cmdwin.w, 0, 0);\
+								  swrefresh(cmdwin.h); } while (0)
+  #define DISPLAY_PROMPT(x) disp_prompt(prmt_text[x])
+  #define GETCH() sgetch()
+  #define UPDATE_OUTPUT curses_update()
+
+  static void curses_update(void) {
+	if (ioflags & IOF_UPDATE) {
+	  swrefresh(cmdwin.h);
+	  ioflags &= ~IOF_UPDATE;
+	}
+  }
 #endif
 
 /* These are the routines which define the operating system interface.
@@ -288,8 +347,10 @@ static void con_puts(char *buf, int byte_offset, int n) {
 }
 
 static void con_update(void) {
-  if (con_cur_prmt != con_new_prmt && (ioflags & IOF_INTERACTIVE))
-	con_puts(con_cur_prmt = con_new_prmt, 24*80*2, 80*2);
+  #ifndef NO_PROMPTS
+	if (con_cur_prmt != con_new_prmt && (ioflags & IOF_INTERACTIVE))
+	  con_puts(con_cur_prmt = con_new_prmt, 24*80*2, 80*2);
+  #endif
   if (ioflags & IOF_UPDATE) {
 	if (con_col == 79)
 	  con_puts(con_buf+con_nchars-78*2, 23*80*2+2, 78*2);
@@ -312,9 +373,11 @@ static void con_update(void) {
   }
 }
 
-static void con_prompt(char *c) {
-  con_new_prmt = c;
-}
+#ifndef NO_PROMPTS
+  static void con_prompt(char *c) {
+	con_new_prmt = c;
+  }
+#endif
 
 static void con_dispc(char c) {
   con_buf[con_nchars++] = c;
@@ -332,6 +395,7 @@ static void con_undispc(void) {
 
 #endif	/* QNX_CONS */
 
+#ifndef NO_PROMPTS
 static short cur_prompt = -1;
 
 static void new_prompt(short pn) {
@@ -347,28 +411,47 @@ static void next_prompt(void) {
   if (cur_prompt >= 0)
 	new_prompt(cur_prompt + prompts[cur_prompt].more);
 }
+#else
+  #define new_prompt(x)
+  #define next_prompt()
+#endif
 
-unsigned short command_getch(void) {
+#ifdef CMD_INTERACT_MODE
+static unsigned short command_getch(void) {
   unsigned short rv;
   
-  UPDATE_OUTPUT
+  UPDATE_OUTPUT;
   rv = GETCH();
   if (rv == 0) rv = 0xFF00 | GETCH();
   return(rv);
 }
+#endif
 
-static char *cmd_input;
+#ifdef CMD_BATCH_MODE
+  static char *cmd_input;
+#endif
 
-unsigned short input(void) {
+static unsigned short input(void) {
   unsigned short rv;
   
   if (ioflags & IOF_UNGOTNL) {
 	rv = '\n';
 	ioflags &= ~IOF_UNGOTNL;
-  } else if (cmd_input != NULL) {
-	rv = *cmd_input;
-	if (rv) cmd_input++;
-  } else rv = command_getch();
+  }
+  #ifdef CMD_BATCH_MODE
+	#ifdef CMD_INTERACT_MODE
+	  else if (cmd_input != NULL) {
+	#else
+	  else {
+		assert(cmd_input != NULL);
+	#endif
+		rv = *cmd_input;
+		if (rv) cmd_input++;
+	  }
+  #endif
+  #ifdef CMD_INTERACT_MODE
+	else rv = command_getch();
+  #endif
   return(rv);
 }
 
@@ -437,7 +520,7 @@ static void nterm_shift(cg_nonterm_type nt, unsigned short val, short prev) {
 #endif
 
 #ifdef VAR_some
-static void read_variable(short vartype, unsigned short n_chars) {
+static int read_variable(short vartype, unsigned short n_chars) {
   unsigned short getword = 1;
   short c;
   char *text;
@@ -454,21 +537,36 @@ static void read_variable(short vartype, unsigned short n_chars) {
 	switch (c) {
 	  case 0:
 		unshift_value = n_chars;
-		return;
+		return(0);
 	  case KG_RUBOUT:
 	  case KG_DEL:
-		if (n_chars > 0) {
-		  RUBOUT;
-		  n_chars--;
-		} else if (unshift()) return;
-		else REJECT_CHAR;
-		continue;
+		#ifdef CMD_BATCH_MODE
+		  #ifdef CMD_INTERACT_MODE
+			if (~(ioflags & IOF_INTERACTIVE))
+		  #endif
+			  return(1);
+		#endif
+		#ifdef CMD_INTERACT_MODE
+		  if (n_chars > 0) {
+			RUBOUT;
+			n_chars--;
+		  } else if (unshift()) return(0);
+		  else REJECT_CHAR;
+		  continue;
+		#endif
 	  case KG_TAB:
 		next_prompt();
 		continue;
 	  case KG_ESCAPE:
-		CANCEL_LINE;
-		return;
+		#ifdef CMD_INTERACT_MODE
+		  #ifdef CMD_BATCH_MODE
+			if (~(ioflags & IOF_INTERACTIVE)) return(1);
+		  #endif
+		  CANCEL_LINE;
+		  return(0);
+		#else
+		  return(1);
+		#endif
 	  case '\n':
 	  case '\r':
 		UNPUTNL;
@@ -508,12 +606,20 @@ static void read_variable(short vartype, unsigned short n_chars) {
 	  #endif
 	  #ifdef VAR_numerics
 			if (n_chars == 1) {
-			  REJECT_CHAR;
-			  RUBOUT;
-			  ioflags &= ~IOF_UNGOTNL;
-			  n_chars--;
-			  c = '\b';
-			  continue;
+			  #if defined CMD_BATCH_MODE && defined CMD_INTERACT_MODES
+				if (!(ioflags & IOF_INTERACTIVE))
+			  #endif
+			  #ifdef CMD_BATCH_MODE
+				  return(1);
+			  #endif
+			  #ifdef CMD_INTERACT_MODE
+				REJECT_CHAR;
+				RUBOUT;
+				ioflags &= ~IOF_UNGOTNL;
+				n_chars--;
+				c = '\b';
+				continue;
+			  #endif
 			}
 	  #endif
 	  #ifdef VAR_both
@@ -569,14 +675,22 @@ static void read_variable(short vartype, unsigned short n_chars) {
 		}
 		assert(text <= ep && ep <= ibuf+ibufidx-1);
 		if (*ep != '\0') {
-		  REJECT_CHAR;
-		  ioflags &= ~IOF_UNGOTNL;
-		  do {
-			RUBOUT;
-			n_chars--;
-		  } while (n_chars > 0 && ep < ibuf + ibufidx);
-		  c = '\b';
-		  continue;
+		  #if defined CMD_BATCH_MODE && defined CMD_INTERACT_MODES
+			if (!(ioflags & IOF_INTERACTIVE))
+		  #endif
+		  #ifdef CMD_BATCH_MODE
+			return(1);
+		  #endif
+		  #ifdef CMD_INTERACT_MODE
+			REJECT_CHAR;
+			ioflags &= ~IOF_UNGOTNL;
+			do {
+			  RUBOUT;
+			  n_chars--;
+			} while (n_chars > 0 && ep < ibuf + ibufidx);
+			c = '\b';
+			continue;
+		  #endif
 		}
 	  } /* numeric vartypes block */
 	  #endif /* VAR_numerics */
@@ -629,6 +743,7 @@ static int advance(unsigned short *triepos) {
   } else return(0);
 }
 
+#ifdef CMD_INTERACT_MODE
 /* retreat returns 1 if we backed up out of the current state. */
 static int retreat(unsigned short *triepos) {
   int once = 0;
@@ -647,16 +762,23 @@ static int retreat(unsigned short *triepos) {
 		   && (trie[*triepos+trie[*triepos].next].code & 0x80));
   return(0);
 }
+#endif
 
-static void read_words(unsigned short trieroot, unsigned short trie_offset) {
+/* read_words returns zero on success, non-zero if an unrecognized
+   character is encountered.
+*/
+static int read_words(unsigned short trieroot, unsigned short trie_offset) {
   unsigned short triepos, ntp;
   int c, cl;
   
   triepos = trieroot + trie_offset;
-  if ((ioflags & IOF_INTERACTIVE)
-	  && trie[triepos].code != T_ROOT && retreat(&triepos))
-	return;
-  
+
+  #ifdef CMD_INTERACT_MODE
+	if ((ioflags & IOF_INTERACTIVE)
+		&& trie[triepos].code != T_ROOT && retreat(&triepos))
+	  return(0);
+  #endif
+
   /* Now triepos points to the previous node. We must
      advance to next to find the first matching character
   */
@@ -676,10 +798,18 @@ static void read_words(unsigned short trieroot, unsigned short trie_offset) {
 	switch (c) {
 	  case 0:
 		unshift_value = triepos - trieroot;
-		return;
+		return(0);
 	  case KG_RUBOUT:
 	  case KG_DEL:
-		if (retreat(&triepos)) return;
+		#ifdef CMD_BATCH_MODE
+		  #ifdef CMD_INTERACT_MODE
+			if (~(ioflags & IOF_INTERACTIVE))
+		  #endif
+			  return(1);
+		#endif
+		#ifdef CMD_INTERACT_MODE
+		  if (retreat(&triepos)) return(0);
+		#endif
 		continue;
 	  case ' ':
 		if ((iomode & IO_SPACE) && advance(&triepos)) continue;
@@ -700,8 +830,15 @@ static void read_words(unsigned short trieroot, unsigned short trie_offset) {
 		next_prompt();
 		continue;
 	  case KG_ESCAPE:
-		CANCEL_LINE;
-		return;
+		#ifdef CMD_INTERACT_MODE
+		  #ifdef CMD_BATCH_MODE
+			if (~(ioflags & IOF_INTERACTIVE)) return(1);
+		  #endif
+		  CANCEL_LINE;
+		  return(0);
+		#else
+		  return(1);
+		#endif
 	  default:
 		if (isprint(c)) break;
 		SPECIAL_CHAR_FUNC(c);
@@ -717,11 +854,19 @@ static void read_words(unsigned short trieroot, unsigned short trie_offset) {
 	  }
 	} while ((trie[ntp++].code & 0x80) == 0);
 	if (ntp) {
-	  REJECT_CHAR;
-	  ioflags &= ~IOF_UNGOTNL;
+	  #ifdef CMD_BATCH_MODE
+		#ifdef CMD_INTERACT_MODE
+		  if (!(ioflags & IOF_INTERACTIVE))
+		#endif
+			return(1);
+	  #endif
+	  #ifdef CMD_INTERACT_MODE
+		REJECT_CHAR;
+		ioflags &= ~IOF_UNGOTNL;
+	  #endif
 	} else if (c == '\n') {
 	  triepos += trie[triepos].next;
-	  UPDATE_OUTPUT
+	  UPDATE_OUTPUT;
 	  full_reduce = 1;
 	} else {
 	  ACCEPT_CHAR(c); /* c could be \0 */
@@ -760,11 +905,12 @@ static int reduce_rule(unsigned short rule) {
   return(0);
 }
 
-void command_init(void) {
-  Con_init_options(0, NULL);
+void cmd_init(void) {
   ioflags = IOF_UPDATE | IOF_EXECUTE | IOF_INTERACTIVE;
   iomode = IOMODE_INIT;
-  cmd_input = NULL;
+  #ifdef CMD_BATCH_MODE
+	cmd_input = NULL;
+  #endif
   tsp = -1;
   #ifdef NEED_VALUES
 	vsp = 0;
@@ -774,20 +920,11 @@ void command_init(void) {
   full_reduce = 1;
 }
 
-int command_exec(char *cmdtxt) {
+static int cmd_exec(void) {
   state_type *st;
   tstack_type *stktop;
   cg_token_type cur_state;
-  short old_iomode;
 
-  if (cmdtxt != NULL) {
-	assert(ioflags & IOF_INTERACTIVE);
-	assert(cmd_input == NULL);
-	old_iomode = iomode;
-	iomode = 0;
-	cmd_input = cmdtxt;
-	ioflags &= ~IOF_INTERACTIVE;
-  }
   for (;;) {
 	stktop = &tstack[tsp];
 	cur_state = stktop->state;
@@ -800,51 +937,81 @@ int command_exec(char *cmdtxt) {
 		ibufidx = 0;
 		full_reduce = 0;
 	  }
-	  if (!(ioflags & (IOF_INTERACTIVE|IOF_UNGOTNL))
-		  && *cmd_input == '\0') {
-		UPDATE_OUTPUT;
-		iomode = old_iomode;
-		ioflags |= IOF_INTERACTIVE;
-		cmd_input = NULL;
-		return(0);
-	  }
+	  #ifdef CMD_BATCH_MODE
+		if (!(ioflags & (IOF_INTERACTIVE|IOF_UNGOTNL))
+			&& *cmd_input == '\0') {
+		  UPDATE_OUTPUT;
+		  return(0);
+		}
+	  #endif
 	  assert(st->prompt >= 0);
 	  new_prompt(st->prompt);
 	  #ifdef VAR_some
-		if (st->flag == STFL_VARIABLE)
-		  read_variable(st->offset, unshift_value);
-		else
+		if (st->flag == STFL_VARIABLE) {
+		  if (read_variable(st->offset, unshift_value))
+		    return(1000);
+		} else
 	  #else
 		assert(st->flag != STFL_VARIABLE);
 	  #endif
-		read_words(st->offset, unshift_value);
+		if (read_words(st->offset, unshift_value))
+		  return(1000);
 	}
   }
   CLEAR_DISPLAY_LINE;
-  return(1);
+  UPDATE_OUTPUT;
+  return(999);
 }
 
-command(void) {
-  command_init();
-  command_exec(NULL);
-}
+#ifdef CMD_BATCH_MODE
+/*	  Parses the specified command, executing if test == 0.
+	  Returns non-zero if an error occurred. Possible errors:
+	    999 Command execution resulted in termination
+		    (not exactly an error: more a status indication)
+	   1000-1999 Syntax error. Error value minus 1000 is the
+			character position where the error occurred.
+	  >2000 Execution error. Error code + 2000
+*/
+int cmd_batch(char *cmd, int test) {
+  short flaghold;
+  short old_iomode;
+  int retval;
 
-/* records the current state for comparison during command testing.
- * Also turns of user action execution if testcmds != 0
- */
-static cg_token_type record_state;
-static record_value;
-void command_record(int testcmds) {
-  if (testcmds) ioflags &= ~IOF_EXECUTE;
+  assert(cmd != NULL);
+  assert(ioflags & IOF_INTERACTIVE);
+  assert(cmd_input == NULL);
+  old_iomode = iomode;
+  iomode = 0;
+  cmd_input = cmdtxt;
+  ioflags &= ~IOF_INTERACTIVE;
+  flaghold = ioflags & IOF_EXECUTE;
+  if (test) ioflags &= ~IOF_EXECUTE;
   else ioflags |= IOF_EXECUTE;
-  record_state = tstack[tsp].state;
-  record_value = unshift_value;
+  retval = cmd_exec();
+  if (retval == 1000) retval += (cmd_input - cmdtxt);
+  ioflags = (ioflags & ~IOF_EXECUTE) | flaghold | IOF_INTERACTIVE;
+  iomode = old_iomode;
+  cmd_input = NULL;
+  return retval;
+}
+#endif
+
+#ifdef CMD_INTERACT_MODE
+void cmd_interact(void) {
+  cmd_init();
+  cmd_exec();
+}
+#endif
+
+void cmd_report(cmd_state *s) {
+  s->state = tstack[tsp].state;
+  s->value = unshift_value;
 }
 
-/* returns non-zero if the current state is different from the
- * state when command_record() was last called.
+/* Compares the current command state to the designated structure
+ * returning zero if the states match.
  */
-int command_check(void) {
-  return(record_state != tstack[tsp].state
-		|| record_value != unshift_value);
+int command_check(cmd_state *s) {
+  return(s->state != tstack[tsp].state
+		|| s->value != unshift_value);
 }
