@@ -179,6 +179,10 @@ void ptg_output_time( PTG_OUTPUT_FILE file ) {
   fprintf( file, "\n" );
 }
 
+void ptg_output_name( PTG_OUTPUT_FILE file, char *name ) {
+  fprintf( file, "  \"%-10.10s\"", name );
+}
+
 unsigned short amps_to_bits( double amps, CoordPtr pos ) {
   double bits = amps/AMPS_PER_BIT + 32768.;
   unsigned short sbits = (unsigned short) bits;

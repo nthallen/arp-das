@@ -56,6 +56,7 @@ extern long round_to_step( double time, long step );
 extern void ptg_output_short( PTG_OUTPUT_FILE file, short value );
 extern void ptg_output_word( PTG_OUTPUT_FILE file, unsigned short value, int count );
 extern void ptg_output_time( PTG_OUTPUT_FILE file );
+extern void ptg_output_name( PTG_OUTPUT_FILE file, char *name );
 #define ptg_output_hex( f, v, c ) ptg_output_word(f,(unsigned short)v,c)
 #define AMPS_PER_BIT -7.6294e-5
 #define APS_PER_BIT 6.5625e-3

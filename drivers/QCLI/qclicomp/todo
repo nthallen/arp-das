@@ -1,10 +1,23 @@
 Where am I? {
   ICOS Waveforms are fully specified
-  Output .cmd codes
-  Ringdown Waveforms are fully specified
-  Generating Ringdown output
+  -Output .cmd codes
+  -Ringdown Waveforms are fully specified
+  -Generating Ringdown output
+  Generate Display codes
 }
 todo {
+  Generate .cmd output {
+    %{
+      analogic_setup_t QCLi_Waves[] = {
+        FSam, NSam, NRep, NAvg, NCoadd, FTrigger, Options,
+      };
+    %}
+    &QCLI_Wave <int>
+    	: <name> { $0 = 0; }
+	: <name> { $0 = 1; }
+	...
+	;
+  }
   -Prior to 7/03, I made the assumption that Ton preceeded
    Toff in ICOS mode, but that is incorrect, so I need to
    swap their roles.

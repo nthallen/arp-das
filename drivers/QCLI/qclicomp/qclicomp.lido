@@ -170,6 +170,15 @@ END;
 /*---------------------*/
 /* Figure out sampling */
 /*---------------------*/
+ATTR Ncoadd_specd, Ncoadd: int;
+RULE: NcoaddDef ::= 'Ncoadd' '=' Integer COMPUTE
+  NcoaddDef.Ncoadd = Integer;
+END;
+SYMBOL Wave COMPUTE
+  SYNT.Ncoadd_specd = CONSTITUENTS NcoaddDef.Ncoadd
+    WITH( int, ADD, IDENTICAL, ZERO );
+  SYNT.Ncoadd = IF(GT(THIS.Ncoadd_specd,1),THIS.Ncoadd_specd,1);
+END;
 ATTR Tramps: double;
 SYMBOL ICOSCmds COMPUTE
   SYNT.Tramps = CONSTITUENTS ICOSRamp.Tramp
@@ -311,6 +320,7 @@ ATTR Trcypre: long; /* Time stolen from cycle for Trigger off */
 ATTR Ttrigger: long; /* Length of trigger in usecs */
 ATTR Scycle: int; /* Steps of Stepsize in full cycle */
 ATTR Tcycle: long; /* Length of total cycle in usecs */
+ATTR Ftrigger: long; /* Approximate trigger frequency */
 ATTR SplitCycle: int;
 ATTR Toff, Ton: long;
 SYMBOL ICOSCmds COMPUTE
@@ -334,6 +344,7 @@ SYMBOL ICOSCmds COMPUTE
   SYNT.Ttrigger = SUB( THIS.Tcyc0, THIS.Trcypre );
   SYNT.Scycle = ADD( THIS.Scyc0, THIS.Srcy );
   SYNT.Tcycle = ADD( THIS.Tcyc0, THIS.Trcy );
+  SYNT.Ftrigger = DIV_UP( 1000000, THIS.Tcycle );
 END;
 
 /* Calculate Steps taking SplitCycle into account */
@@ -456,7 +467,9 @@ SYMBOL SourceFile COMPUTE
 	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
     THIS.ProgLen
   );
-  PTGOut( THIS.PTG );
+  IF( NE(OutFile,NoKey),
+      PTGOutFile( StringTable(GetClpValue(OutFile,0)), THIS.PTG ),
+      PTGOut( THIS.PTG) );
 END;
 SYMBOL Wave COMPUTE
   SYNT.WaveIndex =
@@ -517,7 +530,8 @@ SYMBOL SourceFile COMPUTE
   SYNT.Summary = PTGFileSum(
     CONSTITUENTS ICOSCmds.Summary
 	  WITH ( PTGNode, PTGWaves, IDENTICAL, PTGNull ) );
-  PTGOut( THIS.Summary );
+  IF( NE(VerbFile,NoKey),
+      PTGOutFile( StringTable(GetClpValue(VerbFile,0)), THIS.Summary ));
 END;
 SYMBOL ICOSCmds COMPUTE
   SYNT.Summary =
@@ -536,7 +550,7 @@ SYMBOL ICOSCmds COMPUTE
 	    WITH( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
 	  CONSTITUENTS (TzTime.Summary, SampleSpec.Summary, Percent.Summary )
 	    WITH( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
-	  PTGFcycle( DIV(1000000.,THIS.Tcycle) ),
+	  PTGFcycle( THIS.Ftrigger ),
 	  PTGTz( PTGTime(MUL(THIS.Tz1,1000.)),
 	    THIS.TzRawSamples, THIS.TzSamples,
 		MUL( DIV( THIS.Tz1, THIS.Tramps1 ), 100. ) ),
@@ -632,6 +646,8 @@ SYMBOL RingCmds COMPUTE
     GetNsample(THIS.Key, MUL(THIS.RawRate,GetToff(THIS.Key,0)));
   SYNT.ToffD = GetToff(THIS.Key,DIV(THIS.Nsample,THIS.RawRate));
   SYNT.Toff = usecs(THIS.ToffD);
+  SYNT.Ttrigger = ADD(THIS.Ton,THIS.Toff);
+  SYNT.Ftrigger = DIV_UP(1000000,THIS.Ttrigger);
 END;
 SYMBOL RingRateDef COMPUTE
   INH.Key = INCLUDING Wave.Key;
@@ -773,4 +789,51 @@ SYMBOL CurrentSteps COMPUTE
   SYNT.PTG =
     RingdownPTG( THIS.Istart, THIS.Istop, THIS.Istep,
 		THIS.ProgLen, COORDREF );
+END;
+
+/*-----------------------------------------------------------*/
+/* Compiled .cmd Output                                      */
+/*-----------------------------------------------------------*/
+ATTR CMDoutput: PTGNode;
+SYMBOL SourceFile COMPUTE
+  SYNT.CMDoutput = PTGCmdCode(
+    CONSTITUENTS (ICOSCmds.CMDoutput,RingCmds.CMDoutput)
+      WITH ( PTGNode, PTGCommas, IDENTICAL, PTGNULL ),
+    CONSTITUENTS Wave.CMDoutput
+      WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNULL )
+  );
+  IF( NE(CmdFile,NoKey),
+      PTGOutFile( StringTable(GetClpValue(CmdFile,0)), THIS.CMDoutput ));
+END;
+SYMBOL Wave COMPUTE
+  SYNT.CMDoutput = PTGWaveCmd( PTGId(THIS.Sym), THIS.WaveNum );
+END;
+SYMBOL ICOSCmds COMPUTE
+  SYNT.CMDoutput = PTGCPCIdef(
+    THIS.RawRate, THIS.RawSamples, THIS.NetSamples,
+    THIS.Naverage, INCLUDING(Wave.Ncoadd), THIS.Ftrigger,
+    "ICOS" );
+END;
+SYMBOL RingCmds COMPUTE
+  SYNT.CMDoutput = PTGCPCIdef(
+    THIS.RawRate, THIS.Nsample, THIS.ProgLen,
+    1, INCLUDING(Wave.Ncoadd), THIS.Ftrigger,
+    "Ringdown" );
+END;
+
+/*-----------------------------------------------------------*/
+/* Display source code (waves.c)                             */
+/*-----------------------------------------------------------*/
+ATTR DISPoutput: PTGNode;
+SYMBOL SourceFile COMPUTE
+  SYNT.DISPoutput = PTGWaveNames(
+    CONSTITUENTS Wave.DISPoutput
+      WITH ( PTGNode, PTGCommas, IDENTICAL, PTGNULL ),
+    THIS.NWaves
+  );
+  IF( NE(DispFile,NoKey),
+      PTGOutFile( StringTable(GetClpValue(DispFile,0)), THIS.DISPoutput ));
+END;
+SYMBOL Wave COMPUTE
+  SYNT.DISPoutput = PTGWaveName( StringTable(THIS.Sym) );
 END;
