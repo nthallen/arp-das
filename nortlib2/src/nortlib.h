@@ -1,5 +1,9 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.6  1994/02/14  00:06:19  nort
+ * Library stuff
+ * cis_initialize() and cis_terminate()
+ *
  * Revision 1.5  1993/05/19  20:18:42  nort
  * Improved flexibility in nl_error support with nl_verror, nl_debug_level
  * Added cic_query. Changed ci_sendcmd() arg to const.
@@ -60,8 +64,9 @@ int cic_init(void);
 int cic_query(char *version);
 extern char ci_version[];
 void cic_transmit(char *buf, int n_chars, int transmit);
-int ci_sendcmd(const char *cmdtext, int test);
-#define OPT_CIC_INIT "C:"
+int ci_sendcmd(const char *cmdtext, int mode);
+int ci_sendfcmd(int mode, char *fmt, ...);
+#define OPT_CIC_INIT "C:p"
 void ci_server(void); /* in nortlib/cis.c */
 void cis_initialize(void); /* in cmdgen.skel or .cmd */
 void cis_terminate(void);  /* in cmdgen.skel of .cmd */
@@ -74,7 +79,7 @@ void tma_sendcmd(const char *cmd);
 void tma_init_options(const char *hdr, int nparts, int argc, char **argv);
 void tma_hold(int hold);
 extern int tma_is_holding;
-#define OPT_TMA_INIT "r:pm"
+#define OPT_TMA_INIT "r:m"
 
 #if defined __386__
 #  pragma library (nortlib3r)
