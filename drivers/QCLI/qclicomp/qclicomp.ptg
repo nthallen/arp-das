@@ -1,5 +1,15 @@
 /* qclicomp.ptg */
-ICOSWave: "ICOS Waveform " $1 " {" "\n"
+File:
+  "Source File\n"
+  "  8 Word Header\n"
+  "  Index: \n"
+  $1 /* Waveform Index */
+  "\n"
+  "  Total Length: " $3 long "\n\n"
+  "Waveform Summaries:\n\n"
+  $2 /* Waveform Summaries */
+
+ICOSWave: "ICOS Waveform " $1 " @ " $17 long " {" "\n"
   "  Sample Rate:      " $3 $2 "\n"
   "  Net Ramp Samples: " $5 $4 "\n"
   $6 /* Iz */
@@ -7,6 +17,7 @@ ICOSWave: "ICOS Waveform " $1 " {" "\n"
   $8 /* Tcycle */
   $12 /* Fcycle */
   $9 /* Stepsize */
+  "  Scycle:      " $15 int " " $16 int "\n"
   "  Tz:          " $13 $11 "\n" /* Tz Actual and specified */
   $14 /* Ton, Toff, Trcy+Trcypre */
   $10 /* Ramps */
@@ -17,7 +28,10 @@ Ramp:
   "    Istart:    " $2 $1 "\n"
   "    Istop:     " $4 $3 "\n"
   "    Tramp:     " $6 $5 "\n"
+  "    Sramp:     " $7 int "\n"
   "  }\n"
+
+WaveIndex: "    " $1 ": " $2 long "\n"
 
 Iz:         "  Iz:          " $1 "\n"
 dIdt:       "  dI/dt:       " $1 double " A/sec\n"

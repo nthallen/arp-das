@@ -1,8 +1,6 @@
 Where am I? {
-  Go back and re-read the spec and the manual to get my
-  bearings.
-  Summary could probably use some "Program Length" info.
-  Code generation.
+  ICOS Waveforms are fully specified
+  Generate output
 }
 Non-obvious semantic changes {
   Tz specifies the laser-off time before AND after
