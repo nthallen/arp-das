@@ -1,5 +1,8 @@
 /* compiler.h
  * $Log$
+ * Revision 1.1  1994/08/02 15:34:58  nort
+ * Initial revision
+ *
  */
 #ifndef _COMPILER_H_INCLUDED
 #define _COMPILER_H_INCLUDED
@@ -28,7 +31,7 @@ extern short compile_options;
 int compile_error(int level, char *format, ...);
 FILE *open_output_file(char *name);
 FILE *open_input_file(char *name);
-int compile_init_options(int argc, char **argv, char *extension);
+void compile_init_options(int argc, char **argv, char *extension);
 #ifdef yywrap
   #undef yywrap
 #endif
