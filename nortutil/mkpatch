@@ -1,9 +1,12 @@
 #! /bin/sh
 
 #__USAGE
-#%C
+#%C	[ofile [ifile]]
 #	Generates a patch file for the application defined in
-#	QNX.setup in the current directory
+#	QNX.setup in the current directory. If a file is specified,
+#	a patch for only that specific file is generated.
+#	Files which have been added to the application must be listed
+#	either in the "newfiles" variable or in QNX.newfiles.
 
 function nl_error {
   echo mkpatch: $* >&2
@@ -15,8 +18,11 @@ portpath=`fullpath -t .`
 portdir=`basename $portpath`
 . QNX.setup
 
+ofile=$1
+pfile=$2
+[ -z "$ofile" ] && ofile=$pkg
 [ -z "$pkg" ] && nl_error pkg must be defined
-[ -f $pkg.pat.F ] && nl_error $pkg.pat.F already exists
+[ -f $ofile.pat.F ] && nl_error $ofile.pat.F already exists
 cd ..
 
 [ -d "$pkg" ] || nl_error Cannot locate directory $pkg
@@ -25,8 +31,17 @@ cd ..
   nl_error Cannot locate original directory $portpath
 echo "mkpatch: Comparing $pkg.ORIG to $pkg"
 (
-  if [ -f $portdir/QNX.newfiles ]; then
-	for file in `cat $portdir/QNX.newfiles`; do
+  if [ -n "$pfile" ]; then
+	if [ -f $pkg.ORIG/$pfile -a -s $pkg.ORIG/$pfile ]; then
+	  newfiles=''
+	else
+	  newfiles=$pfile
+	fi
+  elif [ -z "$newfiles" -a -f $portdir/QNX.newfiles ]; then
+	newfiles=`cat $portdir/QNX.newfiles`
+  fi
+  if [ -n "$newfiles" ]; then
+	for file in $newfiles; do
 	  [ -f "$pkg.ORIG/$file" -a -s "$pkg.ORIG/$file" ] &&
 		nl_error $pkg.ORIG/$file exists!
 	  [ -f "$pkg/$file" ] || nl_error $pkg/$file missing
@@ -38,9 +53,15 @@ echo "mkpatch: Comparing $pkg.ORIG to $pkg"
 	done
   fi
   echo "exit 0\n=============\n"
-  for ffile in `find $pkg.ORIG -type f`; do
-	file=$pkg/${ffile#$pkg.ORIG/}
+  if [ -n "$pfile" ]; then
+	ffile=$pkg.ORIG/$pfile
+	file=$pkg/$pfile
 	cmp -s $file $ffile || diff -c $ffile $file
-  done
+  else
+	for ffile in `find $pkg.ORIG \( -name RCS -prune \) -o \( -type f -print \)`; do
+	  file=$pkg/${ffile#$pkg.ORIG/}
+	  cmp -s $file $ffile || diff -c $ffile $file
+	done
+  fi
   [ -n "$touched" ] && rm $touched
-) | freeze > $portdir/$pkg.pat.F
+) | freeze > $portdir/$ofile.pat.F
