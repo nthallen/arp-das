@@ -812,13 +812,13 @@ SYMBOL ICOSCmds COMPUTE
   SYNT.CMDoutput = PTGCPCIdef(
     THIS.RawRate, THIS.RawSamples, THIS.NetSamples,
     THIS.Naverage, INCLUDING(Wave.Ncoadd), THIS.Ftrigger,
-    "ICOS" );
+    "CPCI_ICOS" );
 END;
 SYMBOL RingCmds COMPUTE
   SYNT.CMDoutput = PTGCPCIdef(
     THIS.RawRate, THIS.Nsample, THIS.ProgLen,
     1, INCLUDING(Wave.Ncoadd), THIS.Ftrigger,
-    "Ringdown" );
+    "CPCI_RINGDOWN" );
 END;
 
 /*-----------------------------------------------------------*/

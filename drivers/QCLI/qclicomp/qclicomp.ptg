@@ -103,7 +103,7 @@ Commas: $1 { ",\n" } $2
 
 CmdCode:
   "%{\n"
-  "  analogic_setup_t QCLi_Waves[] = {\n"
+  "  analogic_setup_t QCLI_Waves[] = {\n"
   $1 /* CPCIDef */
   "\n"
   "  };\n"
@@ -113,20 +113,22 @@ CmdCode:
   "\t;\n"
 
 CPCIdef:
-  "  " $1 int ", " $2 int ", " $3 int ", "
+  "    " $1 int ", " $2 int ", " $3 int ", "
   $4 int ", " $5 int ", " $6 int ", " $7 string
 
 WaveCmd: "\t: " $1 " { $0 = " $2 int "; }\n"
 
-WaveName: [ ptg_output_name $1 string ]
+WaveName: "  " [ ptg_output_name $1 string ]
 WaveNames:
-  "static char *QWt[] = {\n"
+  "%{\n"
+  "  static char *QWt[] = {\n"
   $1 "\n"
-  "};\n"
-  "#define N_WAVES " $2 int "\n"
+  "  };\n"
+  "  #define N_WAVES " $2 int "\n"
   "\n"
-  "char *QCLI_Wave_text( int n ) {\n"
-  "  if ( n < 0 || n >= N_WAVES )\n"
-  "    return \"----------\";\n"
-  "  else return QWt[n];\n"
-  "}\n"
+  "  char *QCLI_Wave_text( int n ) {\n"
+  "    if ( n < 0 || n >= N_WAVES )\n"
+  "      return \"----------\";\n"
+  "    else return QWt[n];\n"
+  "  }\n"
+  "%}\n"
