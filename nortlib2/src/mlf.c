@@ -246,7 +246,8 @@ mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
   string takes precedence over the fbase and fsuffix parameters.
   
   Generated file names are of the form:
-     $fbase/\d\d+(/\d\d)* /\d\d\.$fsuffix
+
+  $fbase/\d\d+(/\d\d)* /\d\d\.$fsuffix
   
 =Returns
 
@@ -313,7 +314,9 @@ FILE *mlf_next_file( mlf_def_t *mlf ) {
 =Description
 
   Given an mlf definition, mlf_next_file() opens the next file in
-  the sequence.
+  the sequence. After calling mlf_next_file(), the path of the
+  open file is held in mlf->fpath, and the index is in
+  mlf->index. (See =mlf_set_index=())
   
 =Returns
 
