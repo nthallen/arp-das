@@ -11,8 +11,17 @@
  * The values chosen for NLRSP_* are arbitrarily chosen to match
  * the type codes to nl_error.
  * $Log$
+ * Revision 1.1  1992/09/02  13:26:38  nort
+ * Initial revision
+ *
  */
 #include "nortlib.h"
+#ifdef __WATCOMC__
+  #pragma off (unreferenced)
+	static char rcsid[] =
+	  "$Id$";
+  #pragma on (unreferenced)
+#endif
 
 int nl_response = NLRSP_DIE;
 

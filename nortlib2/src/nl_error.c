@@ -1,30 +1,27 @@
 /* nl_error.c provides a default error routine for nortlib routines.
  * $Log$
+ * Revision 1.1  1992/09/02  13:26:38  nort
+ * Initial revision
+ *
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include "nortlib.h"
 
-static char rcsid[] = "$Id$";
+#ifdef __WATCOMC__
+  #pragma off (unreferenced)
+	static char rcsid[] =
+	  "$Id$";
+  #pragma on (unreferenced)
+#endif
 
-int nl_err(unsigned int level, char *s, ...) {
-  char *lvlmsg;
+int nl_err(int level, char *s, ...) {
   va_list arg;
-  
+
   va_start(arg, s);
-  switch (level) {
-    case 0: lvlmsg = "Info"; break;
-	case 1: lvlmsg = "Warning"; break;
-	case 2: lvlmsg = "Error"; break;
-	case 3: lvlmsg = "Fatal"; break;
-	default: lvlmsg = "Internal"; break;
-  }
-  fprintf(stderr, "%s: ", lvlmsg);
-  vfprintf(stderr, s, arg);
+  nl_verror(stderr, level, s, arg);
   va_end(arg);
-  fputc('\n', stderr);
-  if (level > 2) exit(level);
   return(level);
 }
 
