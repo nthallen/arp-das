@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.18  1994/02/13  23:09:22  nort
+ * SNAFU stuff, I believe
+ *
  * Revision 1.17  1993/07/27  18:33:00  nort
  * *** empty log message ***
  *
@@ -1073,3 +1076,58 @@ int cmd_check(cmd_state *s) {
   return(s->state != tstack[tsp].state
 		|| s->value != unshift_value);
 }
+
+#if defined( SERVER_ACTIONS )
+  #if defined( SERVER_INIT )
+	#include <string.h>
+	#ifndef _NORTLIB_H_INCLUDED
+	  #error Must include nortlib.h
+	#endif
+	/* solp_init() returns a non-zero value only if there is a
+	   parsing error.
+	*/
+	int solp_init(unsigned char selector, unsigned char ID, char *cmd) {
+	  int rv;
+
+	  cmd_init();
+	  rv = cmd_batch(cmd, 1);
+	  if (rv != 0) switch (CMDREP_TYPE(rv)) {
+		case CMDREP_TYPE(CMDREP_QUIT):
+		  nl_error(2, "Termination Command Illegal in a proxy");
+		  nl_error(2, "%s", cmd);
+		  break;
+		case CMDREP_TYPE(CMDREP_SYNERR):
+		  nl_error(2, "Syntax Error in Proxy");
+		  nl_error(2, "%s", cmd);
+		  nl_error(2, "%*s", rv - CMDREP_SYNERR, "^");
+		  break;
+		case CMDREP_TYPE(CMDREP_EXECERR):
+		default:
+		  nl_error(2, "Error %d parsing proxy command:");
+		  nl_error(2, "%s", cmd);
+		  break;
+	  }
+	  if (rv == 0) {
+		ci_msg mymsg;
+		int size;
+
+		mymsg.msg_type = CMDINTERP_SEND_QUIET;
+		strcpy(mymsg.prefix, "Proxy");
+		size = strlen(cmd);
+		if (size >= CMD_INTERP_MAX)
+		  return(CMDREP_SYNERR + CMD_INTERP_MAX);
+		strcpy(mymsg.command, cmd);
+		/* add 1 for msg_type, and 1 for '\0' */
+		size += CMD_PREFIX_MAX + 1 + 1;
+		rv = set_response(1);
+		Soldrv_set_proxy(selector, ID, &mymsg, size);
+		set_response(rv);
+		rv = 0;
+	  }
+	  return(rv);
+	}
+  #else
+	void cis_initialize(void) {}
+	void cis_terminate(void) {}
+  #endif
+#endif
