@@ -17,7 +17,8 @@ function nl_error {
 }
 
 [ -f QNX.setup ] || nl_error Cannot locate QNX.setup
-portpath=`fullpath -t .`
+portpath=`pwd`
+# portpath=`fullpath -t .`
 # portdir=`basename $portpath`
 . ./QNX.setup
 
@@ -71,7 +72,8 @@ echo "mkpatch: Comparing ORIG/$pkg to BLD/$pkg"
 	  echo "touch $file"
 	done
   fi
-  echo "exit 0\n=============\n"
+  echo "exit 0"
+  echo "============="
   cd BLD
   if [ -n "$1" ]; then
 	for pfile in; do

@@ -70,7 +70,7 @@ function nl_error {
 }
 
 portpath=`pwd`
-portpath=`fullpath -t $portpath`
+# portpath=`fullpath -t $portpath`
 [ -d "$portpath" ] || nl_error Cannot find run directory
 # portdir=`basename $portpath`
 
@@ -90,7 +90,7 @@ function find_patch {
   patch=$1
   for path in "" "ARC/" "PAT/"; do
 	for ext in "" .F .z .gz; do
-	  [ -f "$path$patch$ext" ] && fullpath -t "$path$patch$ext" && return
+	  [ -f "$path$patch$ext" ] && echo `pwd`"/$path$patch$ext" && return
 	done
   done
 }
@@ -214,7 +214,8 @@ else
 	  [ "$archpkg" != "$pkg" -a -d "$archpkg" ] &&
 		mv $archpkg $archpkg.sav
 
-	  [ ! -d "$archpkg" ] && zcat ../$farchive | pax -rv
+	  # [ ! -d "$archpkg" ] && zcat ../$farchive | pax -rv
+	  [ ! -d "$archpkg" ] && zcat ../$farchive | tar -xvf -
 	  [ ! -d "$archpkg" ] && nl_error "Archive unpack failed"
 	  [ "$archpkg" != "$pkg" ] && mv $archpkg $pkg
 	  [ -d "$archpkg.sav" ] && mv -v $archpkg.sav $archpkg
