@@ -1,6 +1,9 @@
 /* cmdgen.c contains the main program for the Command Parser Generator.
  *
  * $Log$
+ * Revision 1.3  1992/10/27  08:38:20  nort
+ * Added command line options
+ *
  * Revision 1.2  1992/10/20  20:27:07  nort
  * Added IDs
  *
@@ -13,6 +16,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <time.h>
 #include <unistd.h>
@@ -23,6 +27,8 @@ static char rcsid[] = "$Id$";
 int (*nl_error)(unsigned int level, char *s, ...) = app_error;
 static int verbose = 0;
 FILE *ofile = NULL;
+static char data_file[FILENAME_MAX+1] = "";
+static time_t time_of_day;
 
 static void print_word(FILE *fp, struct sub_item_t *si) {
   switch (si->type) {
@@ -120,19 +126,39 @@ static void print_states(void) {
   }
 }
 
+static void output_version(void) {
+  fprintf(ofile, "char ci_version[] = __FILE__ \": %24.24s\";\n",
+		  ctime( &time_of_day));
+}
+
 static void generate_output(void) {
+  FILE *ofile_save;
+
   fprintf(ofile, "typedef unsigned %s cg_token_type;\n",
 		  n_states > 255 || max_tokens > 255 ? "short" : "char");
   fprintf(ofile, "typedef unsigned %s cg_nonterm_type;\n",
 		  n_nonterms > 255 ? "short" : "char");
   Skel_copy(ofile, "typedefs", 1);
+  output_version();
   output_vdefs();
   Skel_copy(ofile, "tstack", 1);
+  if (data_file[0] != '\0') {
+	ofile_save = ofile;
+	ofile = fopen(data_file, "w");
+	if (ofile == NULL)
+	  app_error(3, "Unable to open data structure file %s", data_file);
+  }
   output_trie();
-  output_rules();
   output_prompts();
   output_shifts();
   output_states();
+  if (data_file[0] != '\0') {
+	fclose(ofile);
+	ofile = ofile_save;
+	fprintf(ofile, "#include \"%s\"  /* Data Structure Definitions */\n",
+					data_file);
+  }
+  output_rules();
 }
 
 #ifdef __USAGE
@@ -140,18 +166,24 @@ static void generate_output(void) {
 	-h           Print this message
 	-o filename  Write output to this file
 	-V           Include verbose information
+	-d filename  Write data structures to this file
 #endif
 
 static void main_args(int argc, char **argv) {
   int c;
   extern FILE *yyin;
 
-  while ((c = getopt(argc, argv, "ho:V")) != -1) {
+  opterr = 0;
+  while ((c = getopt(argc, argv, "ho:Vd:")) != -1) {
 	switch (c) {
 	  case 'o':
 		ofile = fopen(optarg, "w");
 		if (ofile == NULL)
 		  app_error(3, "Unable to open output file %s", optarg);
+		break;
+	  case 'd':
+		strncpy(data_file, optarg, FILENAME_MAX);
+		data_file[FILENAME_MAX] = 0;
 		break;
 	  case 'V':
 		verbose = 1;
@@ -159,6 +191,8 @@ static void main_args(int argc, char **argv) {
 	  case 'h':
 		print_usage(argv);
 		exit(0);
+	  case '?':
+		app_error(3, "Unknown command option -%c", optopt);
 	}
   }
   if (optind < argc) {
@@ -170,8 +204,6 @@ static void main_args(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-  time_t time_of_day;
-  
   main_args(argc, argv);
   Skel_open("cmdgen.skel");
   time_of_day = time(NULL);
