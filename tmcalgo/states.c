@@ -1,5 +1,8 @@
 /* states.c
  * $Log$
+ * Revision 1.9  1996/05/02  13:20:08  nort
+ * *** empty log message ***
+ *
  * Revision 1.8  1996/04/19  13:52:17  nort
  * Added all states to slurp list
  *
@@ -47,7 +50,6 @@ char *new_state_name(char *name) {
 
 #define LINE_LENGTH_LIMIT 70
 static int state_listed = 0, line_length = 0, word_length;
-static char *first_substate;
 
 /* list_state adds one state name to the current state
    declaration, taking into account line lengths, etc.
@@ -163,11 +165,14 @@ static int needs_substate( int cmdtype ) {
    state. We create a substate only if there are TMC commands for 
    the specified time period (including _HOLD and _VHOLD).
 
+   * The following is not true. Always statically validate the
+     idle substate. at T=0, the appropriate substate will be
+	 validated ***********************************************
    A substate should be statically validated if it is at T=0 in 
    the first state in the partition. If there is no such 
    substate, the partition's idle substate should be validated.
 */
-static void list_substates( FILE *ofp, struct stdef *state, int first ) {
+static void list_substates( FILE *ofp, struct stdef *state ) {
   struct cmddef *cmd, *ncmd;
   int i = 1;
   char buf[80];
@@ -190,20 +195,17 @@ static void list_substates( FILE *ofp, struct stdef *state, int first ) {
     if ( cmd != 0 ) {
 	  if ( cmd->cmdtype == CMDTYPE_TMC ) {
 		for ( ncmd = cmd->next;
-			  ncmd != 0 && ncmd->cmdtime == cmd->cmdtime;
+			  ncmd != 0 && ncmd->cmdtime == cmd->cmdtime
+				&& ncmd->cmdtype == CMDTYPE_TMC;
 			  ncmd = ncmd->next );
 		if ( ncmd == 0 )
 		  sprintf( buf, "%s_end_", state->name );
 		else sprintf( buf, "%s_%d_", state->name, i++ );
 		substate = new_substate( ofp, buf, ncmd != 0, 1 );
-		if ( first && cmd->cmdtime == 0 ) {
-		  assert( first_substate == 0 );
-		  first_substate = substate->name;
-		}
 
 		while ( cmd != ncmd ) {
-		  if ( cmd->cmdtype == CMDTYPE_TMC )
-			cmd->substate = substate;
+		  assert( cmd->cmdtype == CMDTYPE_TMC );
+		  cmd->substate = substate;
 		  cmd = cmd->next;
 		}
 	  } else {
@@ -228,9 +230,7 @@ static void end_substates( FILE *ofp ) {
 	sprintf( buf, "part_%d_idle_", curr_partition->partno );
     curr_partition->idle_substate =
 	  new_substate( ofp, buf, 0, 1 );
-	if ( first_substate == 0 ) first_substate = buf;
-	end_state( ofp, first_substate );
-	first_substate = NULL;
+	end_state( ofp, buf );
   }
 }
 
@@ -265,20 +265,15 @@ void list_states(FILE *ofp) {
   end_state(ofp, first_state);
   
   /* now list the substates for each partition */
-  first_substate = NULL;
   curr_partition = NULL;
   for (pi = program; pi != NULL; pi = pi->next) {
-    int first = 1;
-
 	switch (pi->type) {
 	  case PRGTYPE_STATE:
-		list_substates(ofp, pi->u.state, first);
-		first = 0;
+		list_substates(ofp, pi->u.state );
 		break;
 	  case PRGTYPE_PARTITION:
 		if ( curr_partition != 0 )
 		  end_substates( ofp );
-		first = 1;
 		curr_partition = pi->u.partition;
 		break;
 	}
@@ -467,7 +462,7 @@ static void output_state(FILE *ofp, struct stdef *state ) {
   
   if (state->filename != 0 ) {
 	fprintf( ofp, "  tma_ifile %s_file_ = {\n", state->name );
-	fprintf( ofp, "    %d, %s, \"%s\", NULL, %s_cmds_, 0\n  };\n",
+	fprintf( ofp, "    %d, %s, \"%s\", NULL, %s_cmds_, -1\n  };\n",
 	  curr_partition->partno, state->filename, state->name, 
 	  state->name );
 	fprintf( ofp, "  tma_ifile *%s_filep_ = & %s_file_;\n",
