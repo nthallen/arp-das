@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.22  1994/08/29  18:53:15  nort
+ * Mods for OUI
+ *
  * Revision 1.21  1994/08/10  15:17:20  nort
  * Support for straight text interfaces
  *
@@ -1235,6 +1238,9 @@ int cmd_check(cmd_state *s) {
 #endif
 
 #if defined (CLIENT) || defined (SERVER)
+  /* We don't really need msg here. This could use nl_error() */
+  #include "msg.h"
+
   int main(int argc, char **argv) {
 	oui_init_options(argc, argv);
 	BEGIN_MSG;
