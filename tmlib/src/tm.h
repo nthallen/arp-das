@@ -1,7 +1,7 @@
 /* Copyright 2001 by the President and Fellows of Harvard College
  */
-#ifndef DBR_H
-#define DBR_H
+#ifndef TM_H
+#define TM_H
 
 #include <sys/types.h> /* this is for pid_t and nid_t and time_t */
 
