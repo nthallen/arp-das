@@ -1,30 +1,5 @@
 %{
-  /* yylex.l for tmcalgo
-   * $Log$
- * Revision 1.8  1996/06/18  17:09:39  nort
- * Attempt to get { recognized at the top of the file.
- *
- * Revision 1.7  1996/05/02  13:43:09  nort
- * Added keywords for "hold until valid or else"
- *
- * Revision 1.6  1996/04/19  13:50:41  nort
- * Many changes
- *
- * Revision 1.5  1996/01/24  17:49:20  nort
- * Support for arbitrarily long input tokens
- *
- * Revision 1.4  1994/10/14  16:16:21  nort
- * Removed arbitrary limitation on STATBUF size
- *
- * Revision 1.3  1994/08/29  17:42:27  nort
- * Removed memlib.h to use simple nortlib memory interface
- *
- * Revision 1.2  1993/09/27  20:05:32  nort
- * Cleanup, common compiler functions
- *
-   * Revision 1.1  1993/05/18  20:37:15  nort
-   * Initial revision
-   */
+  /* yylex.l for tmcalgo */
   #include <stdlib.h> /* for atoi, realloc */
   #include <string.h> /* for strdup */
   #include <assert.h>
@@ -169,7 +144,7 @@ Hold            return(KW_HOLD);
 until           return(KW_UNTIL);
 or              return(KW_OR);
 else            return(KW_ELSE);
-[A-Z][A-Z0-9_]*	{ yylval.textval = strdup(yytext);
+_?[A-Z][A-Z0-9_]* { yylval.textval = strdup(yytext);
 				  BEGIN statedef;
 				  return(TK_NAME);
 				}
