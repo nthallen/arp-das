@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.6  1992/10/26  16:54:02  nort
+ * Combination of typedefs.skel and functions.skel
+ *
  * Revision 1.2  1992/10/20  18:02:23  nort
  * Added some verbiage.
  *
@@ -20,6 +23,27 @@
 #include <ctype.h>
 #include "cmdalgo.h"
 static char cg_rcsid[] = "$Id$";
+
+/* iomode defines determine the mode of input.
+   IO_BACKSPACE indicates that backspace should backup
+   to the last non-trivial input character.
+   IO_SPACE auto-advances when a space or newline is entered
+   IO_ALWAYS advances within words whenever the following
+	 letters are unambiguous.
+   IO_WORD advances within words when the rest of the current
+	 word is unambiguous
+*/
+static short iomode;
+#define IO_BACKSPACE 1
+#define IO_SPACE 2
+#define IO_ALWAYS 4
+#define IO_WORD 8
+#define IO_NO_ADV 0x10
+#define IO_UNGOTNL 0x20
+
+void close_cons(void);
+
+%headers%
 
 #define T_FLAG 0x80
 #define T_ROOT 1
@@ -77,6 +101,26 @@ typedef struct {
    Variables should be treated as some sort of non-terminal
 */
 
+/* KG_ defines are values returned by kgetch() (and hence input())
+   for the specified keys
+*/
+#define KG_RUBOUT 8
+#define KG_ESCAPE 27
+#define KG_DEL 127
+#define KG_TAB 9
+
+static void nterm_shift(cg_nonterm_type nt, unsigned short val, short prev);
+
+%typedefs%
+
+#define VSTACK_SIZE 20
+#define NEED_VALUES
+vstack_type vstack[VSTACK_SIZE];
+short vsp;
+#define V(d,x) vstack[tstack[x-(d)].valpos]
+
+%vstack%
+
 /* prev member is non-negative if we left the previous state via
    a non-terminal. If so, it gives the tstack position of the
    previous element on the stack and value is set to the rule
@@ -115,60 +159,9 @@ typedef struct {
 #define TSTACK_SIZE 40
 tstack_type tstack[TSTACK_SIZE];
 short tsp;
-
-#ifdef NEED_VALUES
-  #define VSTACK_SIZE 20
-  vstack_type vstack[VSTACK_SIZE];
-  short vsp;
-#endif
-
-#define V(d,x) vstack[tstack[x-(d)].valpos]
 #define P(d,x) (tstack[x-(d)+1].prev-1)
 #define PP(d,x) (x-(d)+1)
-
-/* KG_ defines are values returned by kgetch() (and hence input())
-   for the specified keys
-*/
-#define KG_RUBOUT 8
-#define KG_ESCAPE 27
-#define KG_DEL 127
-#define KG_TAB 9
-
-/* iomode defines determine the mode of input.
-   IO_BACKSPACE indicates that backspace should backup
-   to the last non-trivial input character.
-   IO_SPACE auto-advances when a space or newline is entered
-   IO_ALWAYS advances within words whenever the following
-	 letters are unambiguous.
-   IO_WORD advances within words when the rest of the current
-	 word is unambiguous
-*/
-static short iomode;
-#define IO_BACKSPACE 1
-#define IO_SPACE 2
-#define IO_ALWAYS 4
-#define IO_WORD 8
-#define IO_NO_ADV 0x10
-#define IO_UNGOTNL 0x20
-
-static void nterm_shift(cg_nonterm_type nt, unsigned short val, short prev);
-
-%headers%
-/* functions.skel skeleton file
- * functions.skel,v log info:
- * Revision 1.2  1992/10/20  17:44:23  nort
- * Cleaned up header
- *
- * Revision 1.1  1992/10/20  17:43:35  nort
- * Initial revision
- *
- * Revision 1.5  1992/07/28  14:41:15  nort
- * Checkin before modifying console functions.
- *
- * Revision 1.4  1992/07/15  20:36:03  nort
- * Beta Release
- *
- */
+%tstack%
 
 #define INPUT_BUFFER_SIZE 256
 static char ibuf[INPUT_BUFFER_SIZE];
@@ -415,10 +408,6 @@ static unsigned short input(void) {
 }
 
 #define UNPUTNL { iomode |= IO_UNGOTNL; }
-
-#ifdef NEED_VALUES
-  vstack_type vstack[VSTACK_SIZE];
-#endif
 
 static void shift(cg_token_type st, unsigned short val, short prev) {
   tsp++;
