@@ -13,7 +13,7 @@ typedef struct {
   int n_levels;
   int n_files;
   char fpath[PATH_MAX];
-  char *fsuffix;
+  const char *fsuffix;
   int flags;
   unsigned long index;
 } mlf_def_t;
@@ -25,8 +25,8 @@ typedef struct {
 typedef struct {
   mlf_def_t *mlf;
   int *ntup;
-  char *base;
-  char *suffix;
+  const char *base;
+  const char *suffix;
 } mlf_ntup_t;
 
 #ifdef __cplusplus
@@ -36,8 +36,8 @@ extern "C" {
 FILE *mlf_next_file( mlf_def_t *mlf );
 int mlf_next_dir( mlf_def_t *mlf );
 mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
-	char *fbase, char *fsuffix, char *config );
-mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, char *fbase, char *fname );
+	const char *fbase, const char *fsuffix, const char *config );
+mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, const char *fbase, const char *fname );
 void mlf_free_mlfn( mlf_ntup_t *mlfn );
 void mlf_set_ntup( mlf_def_t *mlf, mlf_ntup_t *mlfn );
 int mlf_compare( mlf_def_t *mlf, mlf_ntup_t *mlfn );

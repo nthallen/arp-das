@@ -9,7 +9,7 @@
   Todo:
 	Separate out a type to hold a file as an n-tuple
 	mlf_ntup_t *mlfn;
-	mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, char *fname );
+	mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, const char *fname );
 	mlf_set_ntup( mlf_def_t *mlf, mlf_ntup_t *mlfn );
 	mlf_compare( mlf_def_t *mlf, mlf_ntup_t *mlfn );
 */
@@ -41,10 +41,11 @@ static char *mlf_strtok( char *buf, char *delset, char *delp ) {
   returned. The n_tuple has n_levels+1 elements. The 0-th
   points to the BASE directory.
 */
-mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, char *fbase, char *fname ) {
+mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, const char *fbase, const char *fname ) {
   mlf_ntup_t *mlfn;
   char *cfg;
-  char *num, *s, del;
+  char *num, del;
+  const char *s;
   int level;
 
   mlfn = new_memory( sizeof( mlf_ntup_t ) );
@@ -182,7 +183,7 @@ void mlf_set_ntup( mlf_def_t *mlf, mlf_ntup_t *mlfn ) {
 }
 
 mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
-	char *fbase, char *fsuffix, char *config ) {
+	const char *fbase, const char *fsuffix, const char *config ) {
   mlf_def_t *mlf;
   mlf_ntup_t *mlfn;
 
