@@ -39,8 +39,8 @@ extern long round_to_step( double time, long step );
 #define SW_TRIGGER    0x0001
 #define SW_RAMP_IN    0x0002
 #define SW_RAMP_RESET 0x0004
-#define SW_RAMP_OUT   0x0008
-#define SW_DAC0_OUT   0x0010
+#define SW_DAC0_OUT   0x0008
+#define SW_RAMP_OUT   0x0010
 #define SW_DAC2_OUT   0x0020
 #define SW_DAC3_OUT   0x0040
 #define SW_NEG_OUT    0x0080
