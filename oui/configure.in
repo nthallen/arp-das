@@ -3,15 +3,22 @@ AC_INIT(sample.oui)
 AM_INIT_AUTOMAKE(oui, 2.0)
 
 dnl Checks for programs.
+CPPFLAGS=-I/usr/local/include
 AC_PROG_CC
 AC_PROG_YACC
 AM_PROG_LEX
+AC_CHECK_PROG(USEMSG, usemsg, usemsg, :)
 
 dnl Checks for libraries.
+AC_CHECK_LIB(nort, nl_error, , AC_MSG_ERROR(Library nort is required))
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(limits.h malloc.h unistd.h)
+missing=''
+AC_CHECK_HEADERS(limits.h malloc.h unistd.h nortlib.h,,[missing="$missing $ac_hdr"])
+if test -n "$missing"; then
+  AC_MSG_ERROR(Missing headers: $missing)
+fi
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
