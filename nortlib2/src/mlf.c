@@ -51,7 +51,7 @@ mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, const char *fbase, const char *fn
   mlfn = new_memory( sizeof( mlf_ntup_t ) );
   mlfn->ntup = new_memory( (mlf->n_levels+1) * sizeof(int) );
   for ( level = 0; level <= mlf->n_levels; level++ )
-	mlfn->ntup[level] = 0;
+	mlfn->ntup[level] = -1;
   mlfn->mlf = mlf;
   mlfn->base = fbase;
   mlfn->suffix = NULL;
@@ -116,16 +116,28 @@ static void mlf_set_ixs( mlf_def_t *mlf, int *ixs ) {
 			  nl_error( 3, "Unable to create directory %s", mlf->fpath );
 		  }
 		}
+		if ( ixs[i] < 0 ) {
+		  for ( ; i <= mlf->n_levels; i++ ) {
+			mlf->flvl[i].index = -1;
+			mlf->index *= mlf->n_files;
+		  }
+		  mlf->flags |= MLF_INC_FIRST;
+		  return;
+		}
 		end = sprintf( mlf->flvl[i].s, "/%02d", mlf->flvl[i].index );
 		if ( i < mlf->n_levels )
 		  mlf->flvl[i+1].s = mlf->flvl[i].s + end;
 	  }
+	  if ( mlf->flvl[i].index < 0 )
+	    nl_error( 4, "Assertion failed: mlf->flvl[i].index < 0"	);
 	  mlf->index =
 		mlf->index * mlf->n_files + mlf->flvl[i].index;
 	}
   }
   mlf->index++;
   mlf->flags &= ~(MLF_INC_FIRST | MLF_INITIALIZE);
+  if ( mlf->flags & MLF_WRITING )
+    mlf->flags |= MLF_INC_FIRST;
 }
 
 void mlf_set_index( mlf_def_t * mlf, unsigned long index ) {
@@ -137,6 +149,7 @@ void mlf_set_index( mlf_def_t * mlf, unsigned long index ) {
   }
   ixs[0] = ix;
   mlf_set_ixs( mlf, ixs );
+  mlf->flags &= ~MLF_INC_FIRST;
 }
 /*
 =Name mlf_set_index(): Set next file by index
@@ -281,8 +294,12 @@ int mlf_compare( mlf_def_t *mlf, mlf_ntup_t *mlfn ) {
 
 static next_file( mlf_def_t *mlf, int level ) {
   if ( mlf->flags & MLF_INC_FIRST ) {
+    int lvlidx;
 	if ( level == mlf->n_levels ) mlf->index++;
-	if ( ++mlf->flvl[level].index >= mlf->n_files && level > 0 ) {
+	lvlidx = ++mlf->flvl[level].index;
+	if ( level > 0 &&
+	     (( lvlidx == 0 && mlf->flvl[level-1].index < 0 ) ||
+	      ( lvlidx >= mlf->n_files ))) {
 	  mlf->flvl[level].index = 0;
 	  next_file( mlf, level-1 );
 	}
@@ -336,6 +353,40 @@ FILE *mlf_next_file( mlf_def_t *mlf ) {
 =End  
 */
 
+/*
+=Name mlf_next_dir(): Open the next mlf directory
+=Subject Multi-level File Routines
+=Synopsis
+
+  #include "mlf.h"
+  int mlf_next_dir( mlf_def_t *mlf );
+
+=Description
+
+  mlf_next_dir() is used instead of mlf_next_file() for
+  applications that want sequentially numbered directories
+  that will contain multiple files as opposed to
+  sequentially numbered files.
+
+  Given an mlf definition, mlf_next_dir() checks to make
+  sure the next directory exists. If writing, the next
+  directory will be created if it doesn't already exist.
+  After calling mlf_next_dir(), the path of the
+  new directory is held in mlf->fpath, and the index is in
+  mlf->index. (See =mlf_set_index=())
+  
+=Returns
+
+  Returns 1 if the directory exists. If writing and the
+  directory cannot be created, an error will be issued
+  unless =nl_response= is zero.
+  
+=SeeAlso
+
+  =Multi-level File Routines=.
+
+=End  
+*/
 
 /* Returns 1 if the directory exists. If we're writing,
    then we'll try to create it if it doesn't exist.
@@ -345,9 +396,9 @@ int mlf_next_dir( mlf_def_t *mlf ) {
   next_file( mlf, mlf->n_levels );
   if ( stat( mlf->fpath, &buf ) || ! S_ISDIR(buf.st_mode) ) {
 	if ( mlf->flags & MLF_WRITING ) {
-	  if ( mkdir( mlf->fpath, 0775 ) != 0 )
-		nl_error( 1, "Unable to create directory %s", mlf->fpath );
-	  else return 1;
+	  if ( mkdir( mlf->fpath, 0775 ) == 0 ) return 1;
+	  if ( nl_response )
+		nl_error( 2, "Unable to create directory %s", mlf->fpath );
 	}
 	return 0;
   }
