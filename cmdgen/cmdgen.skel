@@ -1,6 +1,13 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.11  1993/01/30  02:24:55  nort
+ * Added SNAFU_CURSES definitions.
+ * Separated out CMD_BATCH_MODE and CMD_INTERACT_MODE
+ * Restructured main interface in line with separation
+ * Added ability to determine location of syntax errors
+ * Should change default REJECT_CHAR to beep without sound()
+ *
  * Revision 1.10  1992/10/29  05:38:01  nort
  * Put QNX_CONS into the skeleton.
  *
@@ -271,7 +278,7 @@ static unsigned short unshift_value;
    These are default routines which should be replaced by better ones.
 */
 #ifndef REJECT_CHAR
-  #define REJECT_CHAR do { sound(880); delay(50); nosound(); } while (0)
+  #define REJECT_CHAR do { putc(stderr,'\a'); fflush(stderr); } while (0)
 #endif
 #ifndef SPECIAL_CHAR_FUNC
   #define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
@@ -558,15 +565,8 @@ static int read_variable(short vartype, unsigned short n_chars) {
 		next_prompt();
 		continue;
 	  case KG_ESCAPE:
-		#ifdef CMD_INTERACT_MODE
-		  #ifdef CMD_BATCH_MODE
-			if (~(ioflags & IOF_INTERACTIVE)) return(1);
-		  #endif
-		  CANCEL_LINE;
-		  return(0);
-		#else
-		  return(1);
-		#endif
+		CANCEL_LINE;
+		return(0);
 	  case '\n':
 	  case '\r':
 		UNPUTNL;
@@ -830,15 +830,8 @@ static int read_words(unsigned short trieroot, unsigned short trie_offset) {
 		next_prompt();
 		continue;
 	  case KG_ESCAPE:
-		#ifdef CMD_INTERACT_MODE
-		  #ifdef CMD_BATCH_MODE
-			if (~(ioflags & IOF_INTERACTIVE)) return(1);
-		  #endif
-		  CANCEL_LINE;
-		  return(0);
-		#else
-		  return(1);
-		#endif
+		CANCEL_LINE;
+		return(0);
 	  default:
 		if (isprint(c)) break;
 		SPECIAL_CHAR_FUNC(c);
