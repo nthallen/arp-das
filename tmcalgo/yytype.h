@@ -1,5 +1,8 @@
 /* yytype.h
  * $Log$
+ * Revision 1.2  1996/04/19  13:53:06  nort
+ * R2 changes
+ *
  * Revision 1.1  1993/05/18  20:37:23  nort
  * Initial revision
  *
@@ -20,6 +23,8 @@ struct cmddef {
   struct substate *substate;
   char *cmdtext;
   char *cmd2text;
+  long int timeout;
+  struct cmddef *else_stat;
   int cmdtype;
 };
 /* cmdtype values: */
@@ -27,12 +32,16 @@ struct cmddef {
 #define CMDTYPE_QSTR 2
 #define CMDTYPE_CMD  3
 #define CMDTYPE_VAL  4
-/* for CMDTYPE_TMC, at least one of cmdtext or cmd2text must
-   be non-null. If cmd2text is null, cmdtext is the name of
-   a variable (or state) to be validated. Otherwise, cmd2text is
-   a tmc statement, and cmdtext is an optional list of 
-   dependencies. Validations will be promoted to CMDTYPE_VAL
-   if they can be implemented that way.
+#define CMDTYPE_HOLD 5
+#define CMDTYPE_VHOLD 6
+/* for CMDTYPE_TMC, cmd2text is a tmc statement, and cmdtext
+   is an optional list of dependencies.
+   For CMDTYPE_QSTR cmdtext is the quoted string.
+   For CMDTYPE_CMD cmdtext is the command.
+   For CMDTYPE_VAL cmdtext is the variable to be validated.
+   For CMDTYPE_HOLD cmdtext is the expression to hold for.
+   For CMDTYPE_VHOLD cmdtext is the validatation list.
+   Types _TMC, _HOLD and _VHOLD require substate generation.
 */
 
 struct cmdlst {
