@@ -344,7 +344,7 @@ END;
 SYMBOL CField COMPUTE
   SYNT.Row = INCLUDING VField.Row;
   SYNT.Col = THIS.CCol;
-  THIS.CCol = ADD(ADD( THIS.CCol, SPACE( THIS.Width )), 1);
+  THIS.CCol = ADD(ADD( THIS.CCol, SPACE( THIS.Width )), ColSpace);
 END;
 
 SYMBOL HBOX COMPUTE

@@ -4,7 +4,7 @@
 
 #define MAX_FIELD_WIDTH 150
 
-int ColSpace = 50;
+int ColSpace = 10;
 int BaselineSkip = 15;
 
 static int do_output;
