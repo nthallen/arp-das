@@ -1,11 +1,13 @@
 #! /bin/sh
 #__USAGE
-#%C	[orig] [make] [clean]
+#%C	[orig] [make] [clean] [dump]
 #	If orig is specified, two dirs are created, one clean
 #	If make is specified, a Configure and make are run
 #	after the installation.
 #	Archive will not be re-extracted if the directory exists
 #	unless clean is specified
+#	If dump is specified, install_app will just display
+#	what files it would use.
 
 # Assumption here is a directory structure of
 #   .                      current directory. This script,
