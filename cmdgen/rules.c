@@ -1,6 +1,9 @@
 /* rules.c
  *
  * $Log$
+ * Revision 1.3  1993/05/18  13:11:19  nort
+ * Client/Server Support in output
+ *
  * Revision 1.2  1992/10/27  01:09:39  nort
  * Added conditional around user actions
  *
@@ -32,7 +35,11 @@
 #include <ctype.h>
 #include <assert.h>
 #include "cmdgen.h"
-static char rcsid[] = "$Id$";
+#include "compiler.h"
+#pragma off (unreferenced)
+  static char rcsid[] =
+	"$Id$";
+#pragma on (unreferenced)
 
 #define IND_NOT_SET 10000
 #define ELT_HAS_VAL 1
@@ -55,7 +62,7 @@ static void output_action(unsigned short rnum) {
 
   for (si = rules[rnum]->items.first; si != NULL; si = si->next) {
 	if (n_elts >= MAXELTS)
-	  app_error(4, "Number of elements in rule %d exceeds arbitrary maximum",
+	  compile_error(4, "Number of elements in rule %d exceeds arbitrary maximum",
 			  rnum);
 	switch (si->type) {
 	  case SI_WORD:
@@ -73,7 +80,7 @@ static void output_action(unsigned short rnum) {
 		}
 		break;
 	  default:
-		app_error(4, "Unexpected sub item type %d in output_action", si->type);
+		compile_error(4, "Unexpected sub item type %d in output_action", si->type);
 	}
 	n_elts++;
   }
@@ -129,12 +136,12 @@ static void output_action(unsigned short rnum) {
 			break;
 		  }
 		  if (eltnum > n_elts)
-			app_error(3, "$%d exceeds element count in rule %d",
+			compile_error(3, "$%d exceeds element count in rule %d",
 					eltnum, rnum);
 		  if (eltnum == 0) epos = n_elts;
 		  else epos = eltnum-1;
 		  if ((eflags[epos] & ELT_HAS_VAL) == 0)
-			app_error(3, "$%d has no value in rule %d",
+			compile_error(3, "$%d has no value in rule %d",
 					eltnum, rnum);
 		  member = members[epos];
 		  fprintf(ofile, "V(");
@@ -209,5 +216,9 @@ void output_rules(void) {
 	fprintf(ofile, " */\n");
 	output_action(rnum);
   }
+  indent(CASEINDENT);
+  fprintf(ofile, "default:\n");
+  indent(CONDINDENT);
+  fprintf(ofile, "CMD_ERROR(\"Unexpected Rule in rule_action\");\n");
   fprintf(ofile, "  }\n}\n");
 }
