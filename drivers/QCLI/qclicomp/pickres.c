@@ -149,6 +149,7 @@ RateDefP NewRateDefPtr( double samples, int navg, int specd,
     message( DEADLY, "Out of memory in NewRateDef", 0, pos );
   newrate->samples = samples;
   newrate->naverage = navg;
+  return newrate;
 }
 
 longP Set_rval( longP rvals, int index, double val ) {
