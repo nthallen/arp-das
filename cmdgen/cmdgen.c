@@ -1,6 +1,9 @@
 /* cmdgen.c contains the main program for the Command Parser Generator.
  *
  * $Log$
+ * Revision 1.1  1992/10/20  19:45:08  nort
+ * Initial revision
+ *
  * Revision 1.1  1992/07/09  18:36:44  nort
  * Initial revision
  *
@@ -9,6 +12,10 @@
 #include <assert.h>
 #include <time.h>
 #include "cmdgen.h"
+#include "nortlib.h"
+static char rcsid[] = "$Id$";
+
+int (*nl_error)(unsigned int level, char *s, ...) = app_error;
 
 static void print_word(FILE *fp, struct sub_item_t *si) {
   switch (si->type) {
@@ -105,40 +112,26 @@ static void print_states(void) {
   }
 }
 
-static void copy_skeleton(char *fname) {
-  FILE *fp;
-  int c;
-  
-  fp = fopen(fname, "r");
-  if (fp == NULL)
-	app_error(2, "Unable to open skeleton file %s", fname);
-  else {
-	for (c = getc(fp); c != EOF; c = getc(fp)) putc(c, ofile);
-	fclose(fp);
-  }
-}
-
 static void generate_output(void) {
   fprintf(ofile, "typedef unsigned %s cg_token_type;\n",
 		  n_states > 255 || max_tokens > 255 ? "short" : "char");
   fprintf(ofile, "typedef unsigned %s cg_nonterm_type;\n",
 		  n_nonterms > 255 ? "short" : "char");
   output_vdefs();
-  copy_skeleton("typedefs.skel");
   output_trie();
   output_rules();
   output_prompts();
   output_shifts();
   output_states();
-  copy_skeleton("functions.skel");
-  pipe_tail();
 }
 
 int main(void) {
   time_t time_of_day;
 
+  Skel_open("cmdgen.skel");
   time_of_day = time(NULL);
   fprintf(ofile, "/* cmdgen output.\n * %s */\n", ctime( &time_of_day));
+  Skel_copy(ofile, "headers", 1);
   if (yyparse() == 0) {
 	if (vfile == ofile) fprintf(ofile, "#ifdef __DEFINITIONS\n");
 	print_rules();
@@ -146,6 +139,7 @@ int main(void) {
 	print_states();
 	if (vfile == ofile) fprintf(ofile, "#endif\n");
 	generate_output();
+	Skel_copy(ofile, NULL, 1);
   } else fprintf(efile, "Parsing failed\n");
   return(0);
 }
