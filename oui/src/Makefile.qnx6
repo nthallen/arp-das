@@ -1,6 +1,6 @@
 HOMEDIR=/usr/local/src/oui
 MNC=oui
-SUBDIRS=regress ouit /usr/local/include/oui ouilib
+SUBDIRS=regress ouit
 
 SRC=ouimain.c oui.y yylex.l opnifile.c llop.c ouidefs.h sortpkg.c output.c
 SRC+=ouiinit.oui ouiinit.c
