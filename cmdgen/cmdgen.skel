@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.17  1993/07/27  18:33:00  nort
+ * *** empty log message ***
+ *
  * Revision 1.16  1993/07/08  13:13:09  nort
  * *** empty log message ***
  *
@@ -107,6 +110,102 @@ static short ioflags;
   #include "curses.h"
   #include "scurses.h"
 #endif
+
+#define CG_IBUF_SIZE 256
+static char ibuf[CG_IBUF_SIZE];
+
+#ifndef IOMODE_INIT
+  #define IOMODE_INIT (IO_SPACE|IO_BACKSPACE|IO_ALWAYS)
+#endif
+
+#define STORE_CHAR(x) do {\
+  if (ibufidx==CG_IBUF_SIZE)\
+	CMD_ERROR("Input buffer overflow");\
+  ibuf[ibufidx++] = x;\
+} while (0)
+#define UNSTORE_CHAR { assert(ibufidx > 0); ibufidx--; }
+
+#ifdef QNX_CONS
+  #define GETCH() nlcon_getch()
+  #define DISPLAY_CHAR(c) con_dispc(c)
+  #define UNDISPLAY_CHAR con_undispc()
+  #define CLEAR_DISPLAY_LINE do { con_col = con_low = 1;\
+							      con_nchars = 0;\
+								  ioflags |= IOF_UPDATE; } while (0)
+  #define DISPLAY_PROMPT(x) con_prompt(prmt_text+x)
+  #define UPDATE_OUTPUT con_update()
+#endif
+#ifdef SNAFU_CURSES
+  #define REJECT_CHAR snafu_reject_char()
+  #define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
+  #define CMD_ERROR(x) do { cmderr(x); exit_snafu(1); } while (0)
+  #define DISPLAY_CHAR(x) do { waddch(cmdwin.w, (x)?(x):' ');\
+							   ioflags |= IOF_UPDATE; } while (0)
+  #define UNDISPLAY_CHAR do { waddch(cmdwin.w, '\b');\
+							  ioflags |= IOF_UPDATE; } while (0)
+  #define CLEAR_DISPLAY_LINE do { wclear(cmdwin.w);\
+  								  wmove(cmdwin.w, 0, 0);\
+								  swrefresh(cmdwin.h); } while (0)
+  #define DISPLAY_PROMPT(x) disp_prompt(prmt_text[x])
+  #define GETCH() snfgetch()
+  #define UPDATE_OUTPUT curses_update()
+
+  static int snfgetch() {
+	int c;
+	
+	for (;;) {
+	  c = sgetch();
+	  if (c == '@') {
+		c = sgetch();
+		if (c == '@') break;
+		else snafu_scan_code(c);
+	  } else break;
+	}
+	return(c);
+  }
+
+  static void curses_update(void) {
+	if (ioflags & IOF_UPDATE) {
+	  swrefresh(cmdwin.h);
+	  ioflags &= ~IOF_UPDATE;
+	}
+  }
+#endif
+
+/* These are the routines which define the operating system interface.
+   These are default routines which should be replaced by better ones.
+*/
+#ifndef REJECT_CHAR
+  #define REJECT_CHAR do { putc('\a', stderr); fflush(stderr); } while (0)
+#endif
+#ifndef SPECIAL_CHAR_FUNC
+  #define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
+#endif
+#ifndef CMD_ERROR
+  #define CMD_ERROR(x) do { fprintf(stderr, "%s\n", x); exit(1); } while (0)
+#endif
+#ifndef DISPLAY_CHAR
+  #define DISPLAY_CHAR(c) {putchar((c)?(c):' '); fflush(stdout);}
+#endif
+#ifndef UNDISPLAY_CHAR
+  #define UNDISPLAY_CHAR { printf("\b \b"); fflush(stdout); }
+#endif
+#ifndef CLEAR_DISPLAY_LINE
+  #define CLEAR_DISPLAY_LINE putchar('\n')
+#endif
+#ifndef DISPLAY_PROMPT
+  #define DISPLAY_PROMPT(x) { int i; printf("\n%s\n", prmt_text[x]);\
+			for (i = 0; i < ibufidx; i++) DISPLAY_CHAR(ibuf[i]); }
+#endif
+#ifndef GETCH
+  #define GETCH() getch()
+#endif
+#ifndef UPDATE_OUTPUT
+  #define UPDATE_OUTPUT
+#endif
+
+#define RUBOUT { UNSTORE_CHAR; UNDISPLAY_CHAR; }
+#define ACCEPT_CHAR(c) { STORE_CHAR(c); DISPLAY_CHAR(c); }
 
 #define T_FLAG 0x80
 #define T_ROOT 1
@@ -248,102 +347,6 @@ short tsp;
 #define P(d,x) (tstack[x-(d)+1].prev-1)
 #define PP(d,x) (x-(d)+1)
 %tstack%
-
-#define CG_IBUF_SIZE 256
-static char ibuf[CG_IBUF_SIZE];
-
-#ifndef IOMODE_INIT
-  #define IOMODE_INIT (IO_SPACE|IO_BACKSPACE|IO_ALWAYS)
-#endif
-
-#define STORE_CHAR(x) do {\
-  if (ibufidx==CG_IBUF_SIZE)\
-	CMD_ERROR("Input buffer overflow");\
-  ibuf[ibufidx++] = x;\
-} while (0)
-#define UNSTORE_CHAR { assert(ibufidx > 0); ibufidx--; }
-
-#ifdef QNX_CONS
-  #define GETCH() nlcon_getch()
-  #define DISPLAY_CHAR(c) con_dispc(c)
-  #define UNDISPLAY_CHAR con_undispc()
-  #define CLEAR_DISPLAY_LINE do { con_col = con_low = 1;\
-							      con_nchars = 0;\
-								  ioflags |= IOF_UPDATE; } while (0)
-  #define DISPLAY_PROMPT(x) con_prompt(prmt_text+x)
-  #define UPDATE_OUTPUT con_update()
-#endif
-#ifdef SNAFU_CURSES
-  #define REJECT_CHAR snafu_reject_char()
-  #define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
-  #define CMD_ERROR(x) do { cmderr(x); exit_snafu(1); } while (0)
-  #define DISPLAY_CHAR(x) do { waddch(cmdwin.w, (x)?(x):' ');\
-							   ioflags |= IOF_UPDATE; } while (0)
-  #define UNDISPLAY_CHAR do { waddch(cmdwin.w, '\b');\
-							  ioflags |= IOF_UPDATE; } while (0)
-  #define CLEAR_DISPLAY_LINE do { wclear(cmdwin.w);\
-  								  wmove(cmdwin.w, 0, 0);\
-								  swrefresh(cmdwin.h); } while (0)
-  #define DISPLAY_PROMPT(x) disp_prompt(prmt_text[x])
-  #define GETCH() snfgetch()
-  #define UPDATE_OUTPUT curses_update()
-
-  static int snfgetch() {
-	int c;
-	
-	for (;;) {
-	  c = sgetch();
-	  if (c == '@') {
-		c = sgetch();
-		if (c == '@') break;
-		else snafu_scan_code(c);
-	  } else break;
-	}
-	return(c);
-  }
-
-  static void curses_update(void) {
-	if (ioflags & IOF_UPDATE) {
-	  swrefresh(cmdwin.h);
-	  ioflags &= ~IOF_UPDATE;
-	}
-  }
-#endif
-
-/* These are the routines which define the operating system interface.
-   These are default routines which should be replaced by better ones.
-*/
-#ifndef REJECT_CHAR
-  #define REJECT_CHAR do { putc('\a', stderr); fflush(stderr); } while (0)
-#endif
-#ifndef SPECIAL_CHAR_FUNC
-  #define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
-#endif
-#ifndef CMD_ERROR
-  #define CMD_ERROR(x) do { fprintf(stderr, "%s\n", x); exit(1); } while (0)
-#endif
-#ifndef DISPLAY_CHAR
-  #define DISPLAY_CHAR(c) {putchar((c)?(c):' '); fflush(stdout);}
-#endif
-#ifndef UNDISPLAY_CHAR
-  #define UNDISPLAY_CHAR { printf("\b \b"); fflush(stdout); }
-#endif
-#ifndef CLEAR_DISPLAY_LINE
-  #define CLEAR_DISPLAY_LINE putchar('\n')
-#endif
-#ifndef DISPLAY_PROMPT
-  #define DISPLAY_PROMPT(x) { int i; printf("\n%s\n", prmt_text[x]);\
-			for (i = 0; i < ibufidx; i++) DISPLAY_CHAR(ibuf[i]); }
-#endif
-#ifndef GETCH
-  #define GETCH() getch()
-#endif
-#ifndef UPDATE_OUTPUT
-  #define UPDATE_OUTPUT
-#endif
-
-#define RUBOUT { UNSTORE_CHAR; UNDISPLAY_CHAR; }
-#define ACCEPT_CHAR(c) { STORE_CHAR(c); DISPLAY_CHAR(c); }
 
 #ifdef QNX_CONS
   #include <sys/stat.h>
