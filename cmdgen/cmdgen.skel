@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.26  1996/03/21  14:23:42  nort
+ * Support for really remote clients (Serclt)
+ *
  * Revision 1.25  1995/10/03  18:00:21  nort
  * Changes to support screens of varying sizes
  *
@@ -1097,11 +1100,11 @@ static int reduce_rule(unsigned short rule) {
 	assert(ntsp <= tsp);
 	if (ntsp < tsp) {
 	  #ifdef NEED_VALUES
-		if (tstack[ntsp].valpos < tstack[tsp].valpos) {
-		  if (vsp > tstack[tsp].valpos) {
-			vsp = tstack[ntsp].valpos;
-			vstack[vsp] = vstack[tstack[tsp].valpos];
-			tstack[tsp].valpos = vsp++;
+		if (tstack[ntsp-1].valpos < tstack[tsp-1].valpos) {
+		  if (vsp > tstack[tsp-1].valpos) {
+			vsp = tstack[ntsp-1].valpos;
+			vstack[vsp] = vstack[tstack[tsp-1].valpos];
+			tstack[tsp].valpos = ++vsp;
 		  } else tstack[tsp].valpos = vsp = tstack[ntsp].valpos;
 		}
 	  #endif
