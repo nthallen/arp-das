@@ -4,11 +4,12 @@
 #   Option to include certain plots in multiple groups.
 #   Workaround is not terribly onerous, just an extra pl_ file.
 
-# HEADER text
-# MNEMONIC \w+
-# HOMEDIR \S+
-# ROWS \d+
+# HEADER text - appears at the top of GUI index
+# MNEMONIC \w+ - used all over to make names specific
+# HOMEDIR \S+ - the directory where we'll find run subdirectories
+# ROWS \d+ - used to decide when to create a new column in the GUI
 # \d+(/\d+)? \w+(:\w+:\d+)? \w+ \w+
+#  <Rate> <Mnemonic>[:<Mnemonic>:<bitnumber>] <group> <plot>
 
 my %group; # for each grp, list of plots in definition order
 my @group; # list of grps in definition order
