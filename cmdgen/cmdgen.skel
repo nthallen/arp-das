@@ -1,56 +1,18 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
- * Revision 1.13  1993/02/11  02:45:43  nort
- * Added conditionals CMD_BATCH_MODE and CMD_INTERACT_MODE
- * prior to implementing CLIENT/SERVER.
- *
- * Revision 1.12  1993/01/30  03:25:05  nort
- * Changed default REJECT_CHAR
- * Put escape handling back in batch mode to support current usage.
- *
- * Revision 1.11  1993/01/30  02:24:55  nort
- * Added SNAFU_CURSES definitions.
- * Separated out CMD_BATCH_MODE and CMD_INTERACT_MODE
- * Restructured main interface in line with separation
- * Added ability to determine location of syntax errors
- * Should change default REJECT_CHAR to beep without sound()
- *
- * Revision 1.10  1992/10/29  05:38:01  nort
- * Put QNX_CONS into the skeleton.
- *
- * Revision 1.9  1992/10/29  02:36:15  nort
- * Added update when command_exec() returns.
- *
- * Revision 1.8  1992/10/27  00:33:21  nort
- * Delayed updates to the screen
- *
- * Revision 1.7  1992/10/26  18:21:48  nort
- * Fixed compilation problems
- *
- * Revision 1.6  1992/10/26  16:54:02  nort
- * Combination of typedefs.skel and functions.skel
- *
- * Revision 1.2  1992/10/20  18:02:23  nort
- * Added some verbiage.
- *
- * Revision 1.3  1992/09/03  17:13:20  nort
- * Before mucking with P() and PP() definitions.
- *
- * Revision 1.2  1992/07/10  19:29:39  nort
- * Basic operation with QNX consoles confirmed
- *
- * Revision 1.1  1992/07/09  15:33:19  nort
- * Initial revision
- *
+ * Revision 1.14  1993/05/18  13:11:32  nort
+ * Client/Server Support
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <ctype.h>
 #include "cmdalgo.h"
-
-static char cg_rcsid[] = "$Id$";
+#pragma off (unreferenced)
+  static char cg_rcsid[] =
+	"$Id$";
+#pragma on (unreferenced)
 
 /* iomode defines determine the mode of input.
    IO_BACKSPACE indicates that backspace should backup
@@ -75,6 +37,10 @@ static short iomode;
 static short ioflags;
 
 %headers%
+
+#if defined SNAFU_CURSES && ! defined SELF_SERVE
+  #define SELF_SERVE
+#endif
 
 /* Interface options:
    Currently supporting QNX_CONS, SNAFU_CURSES and INTERFACE
@@ -254,8 +220,8 @@ short tsp;
 #define PP(d,x) (x-(d)+1)
 %tstack%
 
-#define INPUT_BUFFER_SIZE 256
-static char ibuf[INPUT_BUFFER_SIZE];
+#define CG_IBUF_SIZE 256
+static char ibuf[CG_IBUF_SIZE];
 static int ibufidx;
 static short full_reduce;
 static unsigned short unshift_value;
@@ -265,7 +231,7 @@ static unsigned short unshift_value;
 #endif
 
 #define STORE_CHAR(x) do {\
-  if (ibufidx==INPUT_BUFFER_SIZE)\
+  if (ibufidx==CG_IBUF_SIZE)\
 	CMD_ERROR("Input buffer overflow");\
   ibuf[ibufidx++] = x;\
 } while (0)
@@ -283,7 +249,7 @@ static unsigned short unshift_value;
 #endif
 #ifdef SNAFU_CURSES
   #define REJECT_CHAR snafu_reject_char()
-  #define SPECIAL_CHAR_FUNC(x) snafu_scan_code()
+  #define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
   #define CMD_ERROR(x) do { cmderr(x); exit_snafu(1); } while (0)
   #define DISPLAY_CHAR(x) do { waddch(cmdwin.w, (x)?(x):' ');\
 							   ioflags |= IOF_UPDATE; } while (0)
@@ -293,8 +259,22 @@ static unsigned short unshift_value;
   								  wmove(cmdwin.w, 0, 0);\
 								  swrefresh(cmdwin.h); } while (0)
   #define DISPLAY_PROMPT(x) disp_prompt(prmt_text[x])
-  #define GETCH() sgetch()
+  #define GETCH() snfgetch()
   #define UPDATE_OUTPUT curses_update()
+
+  static int snfgetch() {
+	int c;
+	
+	for (;;) {
+	  c = sgetch();
+	  if (c == '@') {
+		c = sgetch();
+		if (c == '@') break;
+		else snafu_scan_code(c);
+	  }
+	}
+	return(c);
+  }
 
   static void curses_update(void) {
 	if (ioflags & IOF_UPDATE) {
@@ -367,7 +347,7 @@ static char con_clr[] = {
  * con_low is the lowest column that should be blank
  */
 static int con_col, con_high, con_low;
-static char con_buf[INPUT_BUFFER_SIZE*2+2];
+static char con_buf[CG_IBUF_SIZE*2+2];
 static int con_nchars = 0;
 #ifndef NO_PROMPTS
   static char *con_cur_prmt, *con_new_prmt;
@@ -496,7 +476,7 @@ static unsigned short input(void) {
 
 #define UNPUTNL { ioflags |= IOF_UNGOTNL; }
 
-static void shift(cg_token_type st, unsigned short val, short prev) {
+static void _shift(cg_token_type st, unsigned short val, short prev) {
   tsp++;
   tstack[tsp].state = st;
   tstack[tsp].prev = prev;
@@ -541,7 +521,7 @@ static void nterm_shift(cg_nonterm_type nt, unsigned short val, short prev) {
 	}
 	assert(cnt == nt);
   }
-  shift(non_terminals[ntsp].shift, val, prev);
+  _shift(non_terminals[ntsp].shift, val, prev);
 }
 
 #if defined VAR_s || defined VAR_w
@@ -736,7 +716,8 @@ static int read_variable(short vartype, unsigned short n_chars) {
 
 /* advance as far as is unambiguous, but not beyond EOW or newline.
    We accept EOW and display and store it, but we do not
-   accept newline: it must be explicit.
+   accept newline: it must be explicit. Returns TRUE if some
+   advancing was actually done.
    for (;;) {
      if current char is EOW break;
 	 if next is unambiguous and not newline {
@@ -854,6 +835,8 @@ static int read_words(unsigned short trieroot, unsigned short trie_offset) {
 		  UNPUTNL;
 		  continue;
 		}
+		/* newlines are only OK at the root of a trie. Otherwise
+		   we need to advance through EOW */
 		if (trie[triepos].code != T_ROOT) {
 		  UNPUTNL;
 		  c = 0;
@@ -873,7 +856,7 @@ static int read_words(unsigned short trieroot, unsigned short trie_offset) {
 	cl = tolower(c);
 	ntp = triepos + trie[triepos].next;
 	do {
-	  if (tolower(trie[ntp].code & 0x7F) == cl) {
+	  if (tolower(T_CHAR(ntp)) == cl) {
 		triepos = ntp;
 		ntp = 0;
 		break;
@@ -899,7 +882,7 @@ static int read_words(unsigned short trieroot, unsigned short trie_offset) {
 	  ioflags &= ~IOF_NO_ADV;
 	}
   }
-  shift(trie[triepos].next, triepos - trieroot, -1);
+  _shift(trie[triepos].next, triepos - trieroot, -1);
   return(0);
 }
 
@@ -942,7 +925,7 @@ void cmd_init(void) {
   #ifdef NEED_VALUES
 	vsp = 0;
   #endif
-  shift(0,0,-1);
+  _shift(0,0,-1);
   tstack[tsp].reversible = 0;
   full_reduce = 1;
 }
