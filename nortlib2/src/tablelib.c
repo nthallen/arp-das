@@ -6,7 +6,7 @@
 char *tbl_labelfont = "TitleFont10";
 char *tbl_fieldfont = "FixedFont10";
 
-void tbl_vert_sep( PtWidget_t *parent, int x, int y, int h ) {
+void tbl_vert_sep( PtWidget_t *parent, int x, int y, int h, int dbl ) {
   PtArg_t args[4];
   PhPoint_t pos;
   PhDim_t dim;
@@ -16,11 +16,12 @@ void tbl_vert_sep( PtWidget_t *parent, int x, int y, int h ) {
   PtSetArg( &args[0], Pt_ARG_POS, &pos, 0 );
   PtSetArg( &args[1], Pt_ARG_SEP_FLAGS, Pt_SEP_VERTICAL, Pt_SEP_ORIENTATION );
   PtSetArg( &args[2], Pt_ARG_DIM, &dim, 0 );
-  PtSetArg( &args[3], Pt_ARG_SEP_TYPE, Pt_SINGLE_LINE, 0 );
+  PtSetArg( &args[3], Pt_ARG_SEP_TYPE,
+            dbl ? Pt_DOUBLE_LINE : Pt_SINGLE_LINE, 0 );
   PtCreateWidget(PtSeparator, parent, 4, args );
 }
 
-void tbl_horiz_sep( PtWidget_t *parent, int x, int y, int w ) {
+void tbl_horiz_sep( PtWidget_t *parent, int x, int y, int w, int dbl ) {
   PtArg_t args[3];
   PhPoint_t pos;
   PhDim_t dim;
@@ -29,7 +30,8 @@ void tbl_horiz_sep( PtWidget_t *parent, int x, int y, int w ) {
   dim.w = w; dim.h = 1;
   PtSetArg( &args[0], Pt_ARG_POS, &pos, 0 );
   PtSetArg( &args[1], Pt_ARG_DIM, &dim, 0 );
-  PtSetArg( &args[2], Pt_ARG_SEP_TYPE, Pt_SINGLE_LINE, 0 );
+  PtSetArg( &args[2], Pt_ARG_SEP_TYPE,
+            dbl ? Pt_DOUBLE_LINE : Pt_SINGLE_LINE, 0 );
   PtCreateWidget(PtSeparator, parent, 3, args );
 }
 

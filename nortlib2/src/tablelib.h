@@ -6,8 +6,8 @@
 
 extern char *tbl_labelfont;
 extern char *tbl_fieldfont;
-void tbl_vert_sep( PtWidget_t *parent, int x, int y, int h );
-void tbl_horiz_sep( PtWidget_t *parent, int x, int y, int w );
+void tbl_vert_sep( PtWidget_t *parent, int x, int y, int h, int dbl );
+void tbl_horiz_sep( PtWidget_t *parent, int x, int y, int w, int dbl );
 PtWidget_t *tbl_label_widget( PtWidget_t *window, char *text,
 		int x, int y, char *font, PgColor_t color, int align );
 PtWidget_t *tbl_label( PtWidget_t *window, char *text, int x, int y );
