@@ -1,0 +1,852 @@
+/* cmdgen.skel skeleton file
+ *
+ * $Log$
+ * Revision 1.2  1992/10/20  18:02:23  nort
+ * Added some verbiage.
+ *
+ * Revision 1.3  1992/09/03  17:13:20  nort
+ * Before mucking with P() and PP() definitions.
+ *
+ * Revision 1.2  1992/07/10  19:29:39  nort
+ * Basic operation with QNX consoles confirmed
+ *
+ * Revision 1.1  1992/07/09  15:33:19  nort
+ * Initial revision
+ *
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <ctype.h>
+#include "cmdalgo.h"
+static char cg_rcsid[] = "$Id$";
+
+#define T_FLAG 0x80
+#define T_ROOT 1
+#define T_CHAR(i) (trie[i].code&0x7F)
+#define T_MATCH(i,c) (tolower(c)==tolower(T_CHAR(i)))
+typedef struct {
+  unsigned char code;
+  cg_token_type next;
+  cg_token_type prev;
+} trie_type;
+
+typedef struct {
+  int more;
+  unsigned short txt_idx;
+} prompt_type;
+
+#ifdef QNX_CONS
+  #define MACHINE_PROMPTS
+  #define PROMPT_ATTR 0x70
+  #define CMD_ATTR 7
+#endif
+
+#ifdef MACHINE_PROMPTS
+  #define PRMTOFST(x) ((x)*80*2)
+#else
+  #define PRMTOFST(x) x
+#endif
+
+typedef struct {
+  cg_nonterm_type nt;
+  cg_token_type shift;
+} shift_type;
+
+#define STFL_REDUCE 1
+#define STFL_VARIABLE 2
+#define STFL_WORD 4
+typedef struct {
+  unsigned char flag;
+  unsigned short offset; /* offset in rules[], vardef[] or trie[] */
+  short prompt; /* offset in prompts[] or -1 */
+  unsigned short nterm_offset; /* offset in non_terminals[] */
+} state_type;
+/* If flag == STFL_REDUCE
+	  offset is the rule number
+	  prompt is unused (-1)
+	  nterm_offset is offset in non_terminals[]
+   If flag == STFL_VARIABLE
+	  offset is variable type
+	  prompt is offset in prompts[]
+	  nterm_offset is offset in non_terminals[]
+   If flag == STFL_WORD
+	  offset is offset in trie[]
+	  prompt is offset in prompts[]
+	  nterm_offset is offset in non_terminals[]
+   Variables should be treated as some sort of non-terminal
+*/
+
+/* prev member is non-negative if we left the previous state via
+   a non-terminal. If so, it gives the tstack position of the
+   previous element on the stack and value is set to the rule
+   number by which the non-terminal was derived.
+   If prev is negative, we left the
+   previous state via a terminal and the previous state is
+   the previous position on the stack (offset -1). Information
+   about what kind of terminal it was is available in the
+   state description of this previous state. If it is a variable,
+   value is the number of characters. If it is a word,
+   value is the offset of the final position in the grand trie
+   as measured from the starting offset found in the state.
+   As such, a value of 0 is an appropriate starting point for
+   either type of terminal.
+   
+   Note that the value in one state position pertains to the
+   previous state. As such it indicates "how we got to this
+   state" not "how we left this state". This is necessary
+   due to the fact that one state may be previous to several
+   other states. For example, you may leave state 1 via a
+   word, then when the word reduces to a non-terminal, you
+   may leave state 1 via that non-terminal also while the
+   word is still saved on the stack for backtracking. The
+   non-terminal may in fact reduce to another non-terminal,
+   and so on.
+*/
+typedef struct {
+  cg_token_type state;
+  unsigned char reversible;
+  short prev;
+  #ifdef NEED_VALUES
+	unsigned char valpos;
+  #endif
+  unsigned short value; /* n_chars for variables, trie offset for words */
+} tstack_type;
+#define TSTACK_SIZE 40
+tstack_type tstack[TSTACK_SIZE];
+short tsp;
+
+#ifdef NEED_VALUES
+  #define VSTACK_SIZE 20
+  vstack_type vstack[VSTACK_SIZE];
+  short vsp;
+#endif
+
+#define V(d,x) vstack[tstack[x-(d)].valpos]
+#define P(d,x) (tstack[x-(d)+1].prev-1)
+#define PP(d,x) (x-(d)+1)
+
+/* KG_ defines are values returned by kgetch() (and hence input())
+   for the specified keys
+*/
+#define KG_RUBOUT 8
+#define KG_ESCAPE 27
+#define KG_DEL 127
+#define KG_TAB 9
+
+/* iomode defines determine the mode of input.
+   IO_BACKSPACE indicates that backspace should backup
+   to the last non-trivial input character.
+   IO_SPACE auto-advances when a space or newline is entered
+   IO_ALWAYS advances within words whenever the following
+	 letters are unambiguous.
+   IO_WORD advances within words when the rest of the current
+	 word is unambiguous
+*/
+static short iomode;
+#define IO_BACKSPACE 1
+#define IO_SPACE 2
+#define IO_ALWAYS 4
+#define IO_WORD 8
+#define IO_NO_ADV 0x10
+#define IO_UNGOTNL 0x20
+
+static void nterm_shift(cg_nonterm_type nt, unsigned short val, short prev);
+
+%headers%
+/* functions.skel skeleton file
+ * functions.skel,v log info:
+ * Revision 1.2  1992/10/20  17:44:23  nort
+ * Cleaned up header
+ *
+ * Revision 1.1  1992/10/20  17:43:35  nort
+ * Initial revision
+ *
+ * Revision 1.5  1992/07/28  14:41:15  nort
+ * Checkin before modifying console functions.
+ *
+ * Revision 1.4  1992/07/15  20:36:03  nort
+ * Beta Release
+ *
+ */
+
+#define INPUT_BUFFER_SIZE 256
+static char ibuf[INPUT_BUFFER_SIZE];
+static int ibufidx;
+static short full_reduce;
+
+static unsigned short unshift_value;
+
+#ifndef IOMODE_INIT
+  #define IOMODE_INIT 0
+#endif
+static short iomode = IOMODE_INIT;
+
+#define STORE_CHAR(x) do {\
+  if (ibufidx==INPUT_BUFFER_SIZE)\
+	CMD_ERROR("Input buffer overflow");\
+  ibuf[ibufidx++] = x;\
+} while (0)
+#define UNSTORE_CHAR { assert(ibufidx > 0); ibufidx--; }
+
+#ifdef QNX_CONS
+  #define GETCH() con_getch()
+  #define DISPLAY_CHAR(c) con_dispc(c)
+  #define UNDISPLAY_CHAR con_undispc()
+  #define CLEAR_DISPLAY_LINE { con_col = 1;\
+							   con_nchars = 0;\
+							   con_puts(con_clr, 23*80*2, 80*2); }
+  #define DISPLAY_PROMPT(x) con_puts(prmt_text+x, 24*80*2, 80*2)
+#endif
+
+/* These are the routines which define the operating system interface.
+   These are default routines which should be replaced by better ones.
+*/
+#ifndef REJECT_CHAR
+  #define REJECT_CHAR do { sound(880); delay(50); nosound(); } while (0)
+#endif
+#ifndef SPECIAL_CHAR_FUNC
+  #define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
+#endif
+#ifndef CMD_ERROR
+  #define CMD_ERROR(x) do { fprintf(stderr, "%s\n", x); exit(1); } while (0)
+#endif
+#ifndef DISPLAY_CHAR
+  #define DISPLAY_CHAR(c) {putchar((c)?(c):' '); fflush(stdout);}
+#endif
+#ifndef UNDISPLAY_CHAR
+  #define UNDISPLAY_CHAR { printf("\b \b"); fflush(stdout); }
+#endif
+#ifndef CLEAR_DISPLAY_LINE
+  #define CLEAR_DISPLAY_LINE putchar('\n')
+#endif
+#ifndef DISPLAY_PROMPT
+  #define DISPLAY_PROMPT(x) { int i; printf("\n%s\n", prmt_text[x]);\
+			for (i = 0; i < ibufidx; i++) DISPLAY_CHAR(ibuf[i]); }
+#endif
+#ifndef GETCH
+  #define GETCH() getch()
+#endif
+
+#define RUBOUT { UNSTORE_CHAR; UNDISPLAY_CHAR; }
+#define ACCEPT_CHAR(c) { STORE_CHAR(c); DISPLAY_CHAR(c); }
+#define CANCEL_LINE { while (unshift()); full_reduce=1; unshift_value=0; }
+
+#ifdef QNX_CONS
+  #include <sys/types.h>
+  #include <sys/dev.h>
+  #include <sys/stat.h>
+  #include <sys/kernel.h>
+  #include <sys/console.h>
+  #include <sys/proxy.h>
+  #include <fcntl.h>
+  #include <unistd.h>
+
+  #define IBUFSZ 40
+  #define MAXCONS 4
+
+static struct condef {
+  int fd;
+  unsigned old_mode;
+  struct _console_ctrl *con_ctrl;
+  nid_t nid;
+  pid_t proxy;
+  pid_t rproxy;
+} cons[MAXCONS];
+static unsigned int n_cons = 0;
+
+/* Returns zero on success. Else errno is set. */
+static int prepare_con(int fd) {
+  struct condef *con;
+  
+  if (n_cons < MAXCONS && fd >= 0) {
+    con = &cons[n_cons];
+	con->fd = fd;
+	con->con_ctrl = console_open(fd, O_RDWR);
+	if (con->con_ctrl == NULL) return(1);
+	con->old_mode = dev_mode(con->fd, 0, _DEV_ECHO | _DEV_EDIT | _DEV_ISIG);
+	{ struct _dev_info_entry info;
+	  
+	  con->proxy = qnx_proxy_attach(0, NULL, 0, -1);
+	  if (con->proxy == -1) CMD_ERROR("Error attaching proxy");
+	  if (dev_info(fd, &info)) CMD_ERROR("Error getting dev info");
+	  con->nid = info.nid;
+	  con->rproxy = qnx_proxy_rem_attach(con->nid, con->proxy);
+	  if (con->rproxy == -1) CMD_ERROR("Error getting remote proxy");
+	  if (dev_arm(con->fd, con->rproxy, _DEV_EVENT_INPUT) == -1)
+		CMD_ERROR("Error arming console");
+	  n_cons++;
+	  return(0);
+	}
+  }
+  return(1);
+}
+
+int define_con(char *name) {
+  int fd;
+  
+  fd = open(name, O_RDWR);
+  return(prepare_con(fd));
+}
+
+void close_cons(void) {
+  struct condef *con;
+  
+  while (n_cons > 0) {
+    con = &cons[--n_cons];
+	qnx_proxy_rem_detach(con->nid, con->rproxy);
+	qnx_proxy_detach(con->proxy);
+	dev_mode(con->fd, con->old_mode, _DEV_MODES);
+	close(con->fd);
+  }
+}
+
+int con_getch(void) {
+  pid_t who;
+  int i;
+  static unsigned char ibuf[IBUFSZ], *bptr;
+  static unsigned int nchars = 0;
+
+  assert(n_cons > 0);
+  while (nchars == 0) {
+	who = Receive(0, NULL, 0);
+	for (i = 0; i < n_cons; i++) {
+	  if (who == cons[i].proxy) {
+		/* input from cons[i] */
+		nchars = read(cons[i].fd, ibuf, IBUFSZ);
+		assert(nchars > 0);
+		bptr = ibuf;
+		if (dev_arm(cons[i].fd, cons[i].rproxy, _DEV_EVENT_INPUT) == -1)
+		  CMD_ERROR("Error arming console");
+		break;
+	  }
+	}
+	#ifdef RECVFUNC
+	  if (i == n_cons) RECVFUNC(who);
+	#endif
+  }
+  assert(nchars > 0);
+  nchars--;
+  return(*bptr++);
+}
+
+static char con_clr[] = {
+  62, PROMPT_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR,
+  32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR, 32, CMD_ATTR
+};
+
+static int con_col;
+static char con_buf[INPUT_BUFFER_SIZE*2+2];
+static int con_nchars = 0;
+
+static void con_puts(char *buf, int byte_offset, int n) {
+  int i;
+  static int con_row = 23;
+  
+  for (i = 0; i < n_cons; i++)
+	console_write(cons[i].con_ctrl, 0, byte_offset, buf, n,
+				&con_row, &con_col, NULL);
+}
+
+static void con_dispc(char c) {
+  con_buf[con_nchars++] = c;
+  con_buf[con_nchars++] = CMD_ATTR;
+  if (con_col == 79)
+	con_puts(con_buf+con_nchars-78*2, 23*80*2+2, 78*2);
+  else
+	con_puts(con_buf+con_nchars-2, 23*80*2 + 2*(con_col++), 2);
+}
+
+static void con_undispc(void) {
+  con_nchars -= 2;
+  if (con_nchars >= 78*2)
+	con_puts(con_buf+con_nchars-78*2, 23*80*2+2, 78*2);
+  else con_puts(con_clr+2, 23*80*2+2*(--con_col), 2);
+}
+
+#endif	/* QNX_CONS */
+
+static short cur_prompt = -1;
+
+static void new_prompt(short pn) {
+  if (pn >= 0 && pn != cur_prompt) {
+	if (cur_prompt < 0
+		|| prompts[pn].txt_idx != prompts[cur_prompt].txt_idx)
+	  DISPLAY_PROMPT(prompts[pn].txt_idx);
+	cur_prompt = pn;
+  }
+}
+
+static void next_prompt(void) {
+  if (cur_prompt >= 0)
+	new_prompt(cur_prompt + prompts[cur_prompt].more);
+}
+
+static unsigned short kgetch(void) {
+  unsigned short rv;
+  
+  rv = GETCH();
+  if (rv == 0) rv = 0xFF00 | GETCH();
+  return(rv);
+}
+
+static unsigned short input(void) {
+  unsigned short rv;
+  
+  if (iomode & IO_UNGOTNL) {
+	rv = '\n';
+	iomode &= ~IO_UNGOTNL;
+  } else rv = kgetch();
+  return(rv);
+}
+
+#define UNPUTNL { iomode |= IO_UNGOTNL; }
+
+#ifdef NEED_VALUES
+  vstack_type vstack[VSTACK_SIZE];
+#endif
+
+static void shift(cg_token_type st, unsigned short val, short prev) {
+  tsp++;
+  tstack[tsp].state = st;
+  tstack[tsp].prev = prev;
+  tstack[tsp].value = val;
+  unshift_value = 0;
+  #ifdef NEED_VALUES
+	tstack[tsp].valpos = vsp;
+  #endif
+  tstack[tsp].reversible = 1;
+}
+
+static int unshift(void) {
+  if (!tstack[tsp].reversible) return(0);
+  do {
+	#ifdef NEED_VALUES
+	  vsp = tstack[tsp].valpos;
+	#endif
+	unshift_value = tstack[tsp].value;
+  } while (tstack[tsp--].prev >= 0 && tstack[tsp].reversible);
+  return(1);
+}
+
+/* This routine is used for both non_terminals and variables.
+   The difference is that variables have .prev == -1 while
+   non_terminals have real previous values set. Shifting for
+   nts is relative to the previous state while variables shift
+   relative to the current state. nt is zero for variables,
+   non-zero for non-terminals.
+*/
+static void nterm_shift(cg_nonterm_type nt, unsigned short val, short prev) {
+  short ntsp;
+
+  ntsp = nt ? prev : tsp;
+  ntsp = states[tstack[ntsp].state].nterm_offset;
+  {
+	cg_nonterm_type cnt;
+
+	for (;;) {
+	  cnt = non_terminals[ntsp].nt;
+	  if (cnt == 0 || cnt == nt) break;
+	  ntsp++;
+	}
+	assert(cnt == nt);
+  }
+  shift(non_terminals[ntsp].shift, val, prev);
+}
+
+#if defined VAR_s || defined VAR_w
+  #define VAR_strings
+#endif
+#if defined VAR_d || defined VAR_ld || defined VAR_x || defined VAR_lx \
+ || defined VAR_o || defined VAR_lo || defined VAR_f || defined VAR_lf
+  #define VAR_numerics
+#endif
+#if defined VAR_strings && defined VAR_numerics
+  #define VAR_both
+#endif
+#if defined VAR_strings || defined VAR_numerics
+  #define VAR_some
+#endif
+
+#ifdef VAR_some
+static void read_variable(short vartype, unsigned short n_chars) {
+  unsigned short getword = 1;
+  short c;
+  char *text;
+  
+  #ifdef VAR_s
+	if (vartype == VAR_s) getword = 0;
+  #endif
+  if (n_chars > 0) {
+	RUBOUT;
+	n_chars--;
+  }
+  do {
+	c = input();
+	switch (c) {
+	  case KG_RUBOUT:
+	  case KG_DEL:
+		if (n_chars > 0) {
+		  RUBOUT;
+		  n_chars--;
+		} else if (unshift()) return;
+		else REJECT_CHAR;
+		continue;
+	  case KG_TAB:
+		next_prompt();
+		continue;
+	  case KG_ESCAPE:
+		CANCEL_LINE;
+		return;
+	  case '\n':
+	  case '\r':
+		UNPUTNL;
+		c = 0;
+		break;
+	  case ' ':
+		if (getword) c = 0;
+		break;
+	  default:
+		if (isprint(c) || c == 0) break;
+		SPECIAL_CHAR_FUNC(c);
+		continue;
+	}
+	
+	/* We should only get here when we want to display a char. */
+	ACCEPT_CHAR(c);
+	n_chars++;
+	
+	if (c == 0) {
+	  text = ibuf + ibufidx - n_chars;
+
+	  #ifdef VAR_both
+		switch (vartype) {
+		  #ifdef VAR_w
+			case VAR_w:
+		  #endif
+		  #ifdef VAR_s
+			case VAR_s:
+		  #endif
+	  #endif /* VAR_both */
+		  #ifdef VAR_strings
+			vstack[vsp].VTP_STR = text;
+		  #endif
+	  #ifdef VAR_both
+			continue;
+		  default:
+	  #endif
+	  #ifdef VAR_numerics
+			if (n_chars == 1) {
+			  REJECT_CHAR;
+			  RUBOUT;
+			  iomode &= ~IO_UNGOTNL;
+			  n_chars--;
+			  continue;
+			}
+	  #endif
+	  #ifdef VAR_both
+		}
+	  #endif /* VAR_both */
+	  
+	  #ifdef VAR_numerics
+	  { char *ep; /* numeric vartypes: strings CONTINUE beyond here */
+	  
+		ep = ibuf + ibufidx - 1;
+		switch (vartype) {
+		  #ifdef VAR_d
+			case VAR_d:
+			  vstack[vsp].VTP_SHRT = (short) strtol(text, &ep, 0);
+			  break;
+		  #endif
+		  #ifdef VAR_ld
+			case VAR_ld:
+			  vstack[vsp].VTP_LONG = strtol(text, &ep, 0);
+			  break;
+		  #endif
+		  #ifdef VAR_x
+			case VAR_x:
+			  vstack[vsp].VTP_SHRT = (short) strtol(text, &ep, 16);
+			  break;
+		  #endif
+		  #ifdef VAR_lx
+			case VAR_lx:
+			  vstack[vsp].VTP_LONG = strtol(text, &ep, 16);
+			  break;
+		  #endif
+		  #ifdef VAR_o
+			case VAR_o:
+			  vstack[vsp].VTP_SHRT = (short) strtol(text, &ep, 8);
+			  break;
+		  #endif
+		  #ifdef VAR_lo
+			case VAR_lo:
+			  vstack[vsp].VTP_LONG = strtol(text, &ep, 8);
+			  break;
+		  #endif
+		  #ifdef VAR_f
+			case VAR_f:
+			  vstack[vsp].VTP_FLT = (float) strtod(text, &ep);
+			  break;
+		  #endif
+		  #ifdef VAR_lf
+			case VAR_lf:
+			  vstack[vsp].VTP_DBL = strtod(text, &ep);
+			  break;
+		  #endif
+		  default: CMD_ERROR("Unexpected vartype in read_variable");
+		}
+		assert(text <= ep && ep <= ibuf+ibufidx-1);
+		if (*ep != '\0') {
+		  REJECT_CHAR;
+		  iomode &= ~IO_UNGOTNL;
+		  do {
+			RUBOUT;
+			n_chars--;
+		  } while (n_chars > 0 && ep < ibuf + ibufidx);
+		  c = '\b';
+		  continue;
+		}
+	  } /* numeric vartypes block */
+	  #endif /* VAR_numerics */
+	} /* (c==0) */
+  } while (c != 0);
+  vsp++;
+  nterm_shift(0, n_chars, -1);
+}
+#endif /* VAR_some */
+
+/* advance as far as is unambiguous, but not beyond EOW or newline.
+   We accept EOW and display and store it, but we do not
+   accept newline: it must be explicit.
+   for (;;) {
+     if current char is EOW break;
+	 if next is unambiguous and not newline {
+	   display it
+	   store it
+	 } else break;
+   }
+*/
+static int advance(unsigned short *triepos) {
+  unsigned short ntp;
+  
+  if (iomode & IO_WORD) {
+	ntp = *triepos;
+	for (;;) {
+	  if ((trie[ntp].code & 0x7F) == 0) break;
+	  ntp += trie[ntp].next;
+	  if ((trie[ntp].code & 0x80) == 0
+		  || (trie[ntp].code & 0x7F) == '\n') break;
+	}
+	if (trie[ntp].code != 0x80) return(0);
+  }
+  ntp = *triepos;
+  for (;;) {
+	if ((trie[ntp].code & 0x7F) == 0) break;
+	ntp += trie[ntp].next;
+	if ((trie[ntp].code & 0x80) == 0
+		|| (trie[ntp].code & 0x7F) == '\n') {
+	  ntp -= trie[ntp].prev;
+	  break;
+	}
+	ACCEPT_CHAR(trie[ntp].code & 0x7F); /* Could be 0 */
+	iomode &= ~IO_NO_ADV;
+  }
+  if (ntp != *triepos) {
+	*triepos = ntp;
+	return(1);
+  } else return(0);
+}
+
+/* retreat returns 1 if we backed up out of the current state. */
+static int retreat(unsigned short *triepos) {
+  int once = 0;
+  
+  iomode |= IO_NO_ADV;
+  do {
+	if (trie[*triepos].code == T_ROOT) {
+	  if (unshift()) return(1);
+	  else if (!once) REJECT_CHAR;
+	  return(0);
+	}
+	once = 1;
+	RUBOUT;
+	*triepos -= trie[*triepos].prev;
+  } while ((iomode & IO_BACKSPACE)
+		   && (trie[*triepos+trie[*triepos].next].code & 0x80));
+  return(0);
+}
+
+static void read_words(unsigned short trieroot, unsigned short trie_offset) {
+  unsigned short triepos, ntp;
+  int c, cl;
+  
+  triepos = trieroot + trie_offset;
+  assert(trie[trieroot].code == T_ROOT &&
+		 (triepos == trieroot || (trie[triepos].code & 0x7F) == '\0'));
+  if (trie[triepos].code != T_ROOT && retreat(&triepos)) return;
+  
+  /* Now triepos points to the previous node. We must
+     advance to next to find the first matching character
+  */
+  for (;;) {
+	/* When should we advance?
+		ALWAYS
+		  while there is an unambiguous character not '\n'
+		  0 translates to space
+		SPACE not now
+		ALWAYS | WORD
+		  if unambiguous to EOW
+	*/
+	if (!(iomode & IO_NO_ADV)	
+		&& (iomode & IO_ALWAYS)) advance(&triepos);
+	if ((trie[triepos].code & 0x7F) == 0) break;
+	c = input();
+	switch (c) {
+	  case KG_RUBOUT:
+	  case KG_DEL:
+		if (retreat(&triepos)) return;
+		continue;
+	  case ' ':
+		if ((iomode & IO_SPACE) && advance(&triepos)) continue;
+		c = 0;
+		break;
+	  case '\n':
+	  case '\r':
+		if ((iomode & IO_SPACE) && advance(&triepos)) {
+		  UNPUTNL;
+		  continue;
+		}
+		if (trie[triepos].code != T_ROOT) {
+		  UNPUTNL;
+		  c = 0;
+		} else c = '\n';
+		break;
+	  case KG_TAB:
+		next_prompt();
+		continue;
+	  case KG_ESCAPE:
+		CANCEL_LINE;
+		return;
+	  default:
+		if (isprint(c)) break;
+		SPECIAL_CHAR_FUNC(c);
+		continue;
+	}
+	cl = tolower(c);
+	ntp = triepos + trie[triepos].next;
+	do {
+	  if (tolower(trie[ntp].code & 0x7F) == cl) {
+		triepos = ntp;
+		ntp = 0;
+		break;
+	  }
+	} while ((trie[ntp++].code & 0x80) == 0);
+	if (ntp) {
+	  REJECT_CHAR;
+	  iomode &= ~IO_UNGOTNL;
+	} else if (c == '\n') {
+	  triepos += trie[triepos].next;
+	  full_reduce = 1;
+	} else {
+	  ACCEPT_CHAR(c); /* c could be \0 */
+	  iomode &= ~IO_NO_ADV;
+	}
+  }
+  shift(trie[triepos].next, triepos - trieroot, -1);
+}
+
+static int reduce_rule(unsigned short rule) {
+  unsigned short ntsp;
+  
+  /* rule_action is generated in output_rules(). It returns the non-terminal
+     number of the non-terminal which we reduced to or zero if the
+	 reduction was aborted during the action.
+  */
+  if (rule_action(rule)) return(1);
+  if (full_reduce) { /* <move back to prev location +1> */
+	tstack[tsp].reversible = 0;
+	ntsp = tstack[tsp].prev+1;
+	assert(ntsp <= tsp);
+	if (ntsp < tsp) {
+	  #ifdef NEED_VALUES
+		if (tstack[ntsp].valpos < tstack[tsp].valpos) {
+		  if (vsp > tstack[tsp].valpos) {
+			vsp = tstack[ntsp].valpos;
+			vstack[vsp] = vstack[tstack[tsp].valpos];
+			tstack[tsp].valpos = vsp++;
+		  } else tstack[tsp].valpos = vsp = tstack[ntsp].valpos;
+		}
+	  #endif
+	  tstack[ntsp] = tstack[tsp];
+	  tsp = ntsp;
+	}
+  }
+  return(0);
+}
+
+void command_init(void) {
+  #ifdef QNX_CONS
+	if (n_cons == 0 && prepare_con(0))
+	  CMD_ERROR("Unable to open stdin");
+  #endif
+  tsp = -1;
+  #ifdef NEED_VALUES
+	vsp = 0;
+  #endif
+  shift(0,0,-1);
+  tstack[tsp].reversible = 0;
+  full_reduce = 1;
+}
+
+int command_exec(char *cmdtxt) {
+  state_type *st;
+  tstack_type *stktop;
+  cg_token_type cur_state;
+
+  assert(cmdtxt == NULL);
+  for (;;) {
+	stktop = &tstack[tsp];
+	cur_state = stktop->state;
+	st = &states[cur_state];
+	if (st->flag == STFL_REDUCE) {
+	  if (reduce_rule(st->offset)) break;
+	} else {
+	  if (full_reduce) {
+		CLEAR_DISPLAY_LINE;
+		ibufidx = 0;
+		full_reduce = 0;
+	  }
+	  assert(st->prompt >= 0);
+	  new_prompt(st->prompt);
+	  #ifdef VAR_some
+		if (st->flag == STFL_VARIABLE)
+		  read_variable(st->offset, unshift_value);
+		else
+	  #else
+		assert(st->flag != STFL_VARIABLE);
+	  #endif
+		read_words(st->offset, unshift_value);
+	}
+  }
+  CLEAR_DISPLAY_LINE;
+  return(1);
+}
+
+command(void) {
+  command_init();
+  command_exec(NULL);
+}
