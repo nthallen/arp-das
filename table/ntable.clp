@@ -1,3 +1,4 @@
+OutputPhoton "-p" boolean "Produce output for Photon";
 usage "--help";
 usage "-h";
 usage "-?";

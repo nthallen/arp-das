@@ -30,25 +30,21 @@ SYMBOL Program INHERITS ColRootScope END;
 SYMBOL Table INHERITS ColRangeScope END;
 
 %----------------------------------------------------------------
-% Now we need a CHAIN to make sure all the column MinWidths are
+% Make sure all the column MinWidths are
 % calculated before we access them:
-%  (This could probably be done without a CHAIN, since the
-%   order of evaluation is irrelevant...)
 %----------------------------------------------------------------
-CHAIN CalcColSpecs: VOID;
 ATTR ColSpecsCalced : VOID;
 ATTR ColMinWidth : dim_t;
 
 SYMBOL Table COMPUTE
-  CHAINSTART HEAD.CalcColSpecs = "yes";
-  SYNT.ColSpecsCalced = TAIL.CalcColSpecs;
+  SYNT.ColSpecsCalced = CONSTITUENTS CField.ColSpecsCalced;
 END;
 
 SYMBOL CField COMPUTE
-  THIS.CalcColSpecs =
+  SYNT.ColSpecsCalced =
 	ResetMinWidth( THIS.Key,
 	  MAXDIM( GetMinWidth( THIS.Key, MKDIM0() ),
-		THIS.MinWidth ) ) <- THIS.CalcColSpecs;
+		THIS.MinWidth ) );
   SYNT.ColMinWidth = GetMinWidth( THIS.Key, MKDIM0() )
 	<- INCLUDING Table.ColSpecsCalced;
 END;

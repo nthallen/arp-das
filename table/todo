@@ -1,4 +1,11 @@
+Try eliminating CHAIN in StringPrint, FieldPrint? {
+  Or maybe not... Perhaps it is just as well to
+  preserve order when generating output. No, CONSTITUENTS
+  guarantees post-order visitation, which should be
+  identical to the CHAIN implementation.
+}
 Differences between phtable and table {
+  Or maybe I still don't need to do that...
   Remove Overlay
   Add font attribute specifications
 }
