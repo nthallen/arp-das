@@ -1,15 +1,100 @@
 /* prompts.c
  *
  * $Log$
+ * Revision 1.1  1992/07/09  18:36:44  nort
+ * Initial revision
+ *
  */
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 #include "cmdgen.h"
+
+#define PROMPT_ATTR 7
+
+struct pidx {
+  struct pidx *next;
+  char *text;
+};
+
+static int n_unique = 0;
+static struct pidx *ups;
+
+static void output_pbyte(int c, char *t) {
+  static int nchars = 0;
+  int n;
+  
+  if (nchars == 0) {
+	fprintf(ofile, "   ");
+	nchars = 3;
+  } else {
+	putc(',', ofile);
+	nchars++;
+  }
+  if (nchars > 70) {
+	fprintf(ofile, "\n   ");
+	nchars = 3;
+  }
+  if (t != NULL) fprintf(ofile, " %s%n", t, &n);
+  else fprintf(ofile, " %d%n", c, &n);
+  nchars += n;
+}
+
+static void output_ptext(void) {
+  struct pidx *up, *nup;
+  int nchars;
+  char *s;
+  
+  fprintf(ofile, "#ifdef MACHINE_PROMPTS\n"
+				 "  unsigned char prmt_text[] = {\n");
+  for (up = ups; up != NULL; up = up->next) {
+	for (nchars = 0, s = up->text; nchars < 80;
+								nchars++) {
+	  output_pbyte(*s == '\0' ? ' ' : *s++, NULL);
+	  output_pbyte(0, "PROMPT_ATTR");
+	}
+  }
+  fprintf(ofile, "\n  };\n#else\n  char *prmt_text[] = {");
+  for (up = ups; up != NULL; up = nup) {
+	if (up != ups) putc(',', ofile);
+	fprintf(ofile, "\n    \"%s\"", up->text);
+	nup = up->next;
+	free_memory(up->text);
+	free_memory(up);
+  }
+  fprintf(ofile, "\n  };\n#endif\n");
+}
+
+static struct pidx *new_ups(char *text) {
+  struct pidx *nups;
+  
+  nups = new_memory(sizeof(struct pidx));
+  nups->text = strdup(text);
+  nups->next = NULL;
+  n_unique++;
+  return(nups);
+}
+
+static int prompt_idx(char *text) {
+  struct pidx *up, *nup;
+  int cnt;
+  
+  if (n_unique == 0) {
+	ups = new_ups(text);
+  } else {
+	for (cnt = 0, up = ups;
+		 up != NULL;
+		 cnt++, nup = up, up = up->next)
+	  if (strcmp(text, up->text) == 0) return(cnt);
+	nup->next = new_ups(text);
+  }
+  return(n_unique-1);
+}
 
 static int n_prompts = 0;
 static void pprompt(int more, char *text) {
   if (n_prompts > 0) putc(',', ofile);
-  fprintf(ofile, "\n  %2d, \"%s\"", more, text);
+  fprintf(ofile, "\n  %2d, PRMTOFST(%d)", more, prompt_idx(text));
   n_prompts++;
 }
 
@@ -62,4 +147,5 @@ void output_prompts(void) {
 	}
   }
   fprintf(ofile, "\n};\n");
+  output_ptext();
 }
