@@ -3,7 +3,7 @@
 #__USAGE
 #%C	[-o ofile] [ifile ...]
 #	-o ofile specifies the name of the output patch file.
-#	   The default is ${pkg}_QNX.patch
+#	   The default is ${pkg}_QNX[.$n].patch
 #
 #	Generates a patch file for the application defined in
 #	QNX.setup in the current directory. If files are specified,
@@ -19,7 +19,7 @@ function nl_error {
 [ -f QNX.setup ] || nl_error Cannot locate QNX.setup
 portpath=`fullpath -t .`
 # portdir=`basename $portpath`
-. QNX.setup
+. ./QNX.setup
 
 ofile=''
 
@@ -34,14 +34,20 @@ let sval=$OPTIND-1
 shift $sval
 
 [ -z "$pkg" ] && nl_error pkg must be defined
-[ -z "$ofile" ] && ofile="${pkg}_QNX.patch"
-# cd ..
+if [ -z "$ofile" ]; then
+  i='0'
+  ofile="${pkg}_QNX.patch"
+  while [ -f $ofile ]; do
+    let i=i+1
+	ofile="${pkg}_QNX.$i.patch"
+  done
+fi
 
 [ -d "BLD/$pkg" ] || nl_error Cannot locate directory BLD/$pkg
 [ -d "ORIG/$pkg" ] || nl_error Cannot locate directory ORIG/$pkg
 [ -d "$portpath" ] ||
   nl_error Cannot locate original directory $portpath
-echo "mkpatch: Comparing $pkg.ORIG to $pkg"
+echo "mkpatch: Comparing ORIG/$pkg to BLD/$pkg"
 (
   if [ -n "$1" ]; then
 	newfiles=''
