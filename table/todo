@@ -1,3 +1,7 @@
+Differences between phtable and table {
+  Remove Overlay
+  Add font attribute specifications
+}
 Add .clp {
   Specify -o option
   unlink output file before opening for write

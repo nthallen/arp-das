@@ -3,12 +3,10 @@ ntable.con
 ntable.gla
 ntable.lido
 mod.lido
-overlay.lido
-overlay.con
 ntable.HEAD.phi
 ntable.map
 dim.c
-nbox.c
+phbox.c
 modprint.c
 ntable.pdl
 ntable.ptg
