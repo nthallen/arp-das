@@ -17,11 +17,11 @@
 #	./QNX.newfiles         used by mkpatch to identify files
 #	                       which must be created.
 #	./QNX.make             script to perform make operation
-#	../$archive            tar'ed and gzipped archive
+#	./$archive             tar'ed and gzipped archive
 #	                       defaults to $pkg.tar.gz
-#	../$archpkg            directory the archive unpacks to
-#	../$pkg                directory for new distribution
-#	../$pkg.ORIG           A clean directory when developing
+#	$archpkg               base directory in the archive
+#	./BLD/$pkg             directory for new distribution
+#	./ORIG/$pkg            A clean directory when developing
 
 # The archive, any patches and any mypatches may be located
 # either in the $portdir or its parent directory.
@@ -47,19 +47,19 @@ portdir=`basename $portpath`
 
 [ -f QNX.setup ] || nl_error Cannot locate QNX.setup
 . QNX.setup
-cd ..
+# cd ..
 [ -n "$pkg" ] ||
   nl_error QNX.setup must define pkg
 [ -z "$archpkg" ] && archpkg=$pkg
 [ -z "$archive" ] && archive=$archpkg.tar.gz
 farchive=""
-for i in "$archive" "$portdir/$archive"; do
+for i in "$archive" "ARC/$archive"; do
   [ -f "$i" ] && farchive=$i && break;
 done
 [ -z "$farchive" ] && nl_error Cannot locate archive $archive
 function find_patch {
   patch=$1
-  for path in "" "../" "$portdir/"; do
+  for path in "" "ARC/" "PAT/"; do
 	for ext in "" .F .z .gz; do
 	  [ -f "$path$patch$ext" ] && fullpath -t "$path$patch$ext" && return
 	done
@@ -118,7 +118,7 @@ if [ $dump = yes ]; then
   exit 0
 fi
 
-[ $make = yes -a ! -x $portpath/QNX.make ] &&
+[ $make = yes -a ! -x ./QNX.make ] &&
   nl_error Cannot make unless QNX.make is executable
 
 function dopatches {
@@ -138,26 +138,32 @@ function dopatches {
   done
 }
 
-[ ! -d "$pkg.ORIG" -a "$orig" = "yes" ] && unpack=yes
-[ ! -d "$pkg" -o "$clean" = "yes" ] && unpack=yes
-if [ "$unpack" = "yes" ]; then
+unpack=''
+[ ! -d "ORIG/$pkg" -a "$orig" = "yes" ] && unpack=ORIG
+[ ! -d "BLD/$pkg" -o "$clean" = "yes" ] && unpack="$unpack BLD"
+if [ -n "$unpack" ]; then
+  [ -d BLD ] || mkdir BLD ||
+	nl_error Unable to create BLD directory
   {
-  if [ -d "$pkg" -a "$clean" = "yes" ]; then
-	echo Removing old $pkg
-	rm -rf $pkg
-	[ -d "$pkg" ] && nl_error Unable to remove old $pkg
+  # now we're logging
+  if [ -d "BLD/$pkg" -a "$clean" = "yes" ]; then
+	echo Removing old BLD/$pkg
+	rm -rf BLD/$pkg
+	[ -d "BLD/$pkg" ] && nl_error Unable to remove old BLD/$pkg
   fi
-  [ -d "$archpkg.sav" ] && nl_error $archpkg.sav already exists
-  [ -d "$pkg.sav" ] && nl_error $pkg.sav already exists
-  [ "$archpkg" != "$pkg" -a -d "$archpkg" ] &&
-	mv $archpkg $archpkg.sav
-  [ "$orig" = "yes" -a -d "$pkg" ] &&
-	mv $pkg $pkg.sav
+  for tree in $unpack; do
+	[ -d $tree ] || mkdir $tree ||
+	  nl_error Unable to create $tree subdirectory
+	cd $tree
+	[ -d "$archpkg.sav" ] &&
+	  nl_error $tree/$archpkg.sav already exists
+	[ "$archpkg" != "$pkg" -a -d "$archpkg" ] &&
+	  mv $archpkg $archpkg.sav
 
-  while [ ! -d "$pkg" ]; do
-	[ ! -d "$archpkg" ] && zcat $farchive | pax -rv
+	[ ! -d "$archpkg" ] && zcat ../$farchive | pax -rv
 	[ ! -d "$archpkg" ] && nl_error "Archive unpack failed"
 	[ "$archpkg" != "$pkg" ] && mv $archpkg $pkg
+	[ -d "$archpkg.sav" ] && mv -v $archpkg.sav $archpkg
 	cd $pkg
 	chmod -R u+w *
 	for i in *.orig; do
@@ -165,32 +171,24 @@ if [ "$unpack" = "yes" ]; then
 		echo "Warning: $i in distribution will be deleted"
 	done
 	[ -n "$fpatches" ] && dopatches $fpatches
-	ln -fs $portpath qnxp
-
-	[ -d "../$pkg.ORIG" ] && ln -fs ../$pkg.ORIG ORIG
-	cd ..
-	if [ ! -d "$pkg.ORIG" -a $orig = yes ]; then
-	  mv $pkg $pkg.ORIG
-	  [ -d $pkg.sav ] && mv $pkg.sav $pkg
-	elif [ -n "$fmypatches" ]; then
-	  cd $pkg
+	# ln -fs $portpath qnxp
+	if [ -n "$fmypatches" -a ! "$tree" = ORIG ]; then
 	  dopatches $fmypatches
-	  cd ..
 	fi
+	cd ../..
   done
 
-  [ -d "$archpkg.sav" ] && mv $archpkg.sav $archpkg
 
-  } 2>&1 | tee $portpath/$pkg.log || exit 1
+  } 2>&1 | tee BLD/$pkg.log || exit 1
 fi
 
-cd $pkg
+cd BLD/$pkg
 pwd
 if [ $make = yes ]; then
   [ -x "$portpath/QNX.make" ] || nl_error "Cannot find QNX.make"
   if [ -n "$NOLOG" ]; then
 	$portpath/QNX.make
   else
-	$portpath/QNX.make 2>&1 | tee $portpath/$pkg.make.log
+	$portpath/QNX.make 2>&1 | tee ../$pkg.make.log
   fi
 fi
