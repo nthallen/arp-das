@@ -3,11 +3,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <unistd.h>
-#define THREAD_POOL_PARAM_T dispatch_context_t
-#include <sys/iofunc.h>
-#include <sys/dispatch.h>
 #include "oui.h"
-#include "DRbfr.h"
+#include "TMbfr.h"
 
 int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb);
 int iofunc_open_hook( resmgr_context_t *ctp, io_open_t *msg,
@@ -17,6 +14,30 @@ static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         io_funcs;
 static iofunc_attr_t             attr;
 
+static struct ocb *ocb_calloc (resmgr_context_t *ctp, struct device *device) {
+  ocb_t ocb = calloc( 1, sizeof(struct ocb) );
+  if ( ocb == 0 ) return 0;
+  /* Initialize any other elements. Currently all zeros is good. */
+  return ocb;
+}
+
+static void ocb_free (struct ocb *ocb) {
+  /* Be sure to remove this from the blocking list:
+     Actually, there really is no way it should be on
+     the blocking list. */
+  if ( ocb->hold_index )
+    nl_error( 2, "hold_index non-zero in ocb_free" );
+  free( ocb );
+}
+
+static iofunc_funcs_t ocb_funcs = { /* our ocb allocating & freeing functions */
+    _IOFUNC_NFUNCS,
+    ocb_calloc,
+    ocb_free
+};
+
+/* the mount structure, we have only one so we statically declare it */
+iofunc_mount_t mountpoint = { 0, 0, 0, 0, &ocb_funcs };
 
 int
 timer_tick(message_context_t *ctp, int code, unsigned flags, void *handle) {
@@ -62,6 +83,7 @@ main(int argc, char **argv) {
     /* initialize attribute structure used by the device */
     iofunc_attr_init(&attr, S_IFNAM | 0644, 0, 0);
     attr.nbytes = 0;
+	attr.mount = &mountpoint;
 
     /* Check Experiment variable for sanity: \w[\w.]* */
     /* Build device name */

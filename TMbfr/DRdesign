@@ -102,13 +102,16 @@ Extend OCB {
   (or one missing-rows record or timestamp)
   nbytes, offset
   missing rows
+  rcvid
+  nbytes_req
+  hold_index
 }
 
 Process read request {
   Calculate quickly whether we have enough data to complete
   the request. If not, stay on the queue. If so, send it.
-  Must hold a mutex throughout (remind me again why are
-  we multi-threaded?)
+  Must hold a mutex throughout (remind me again why we are
+  multi-threaded?)
   if internal offset is non-zero, send remainder of current
   record {
     if req < remaining, send req and update internal offset
@@ -202,7 +205,7 @@ Modes of Operation {
 
 TMbfr.c {
   main() {
-    extend OCB
+    -extend OCB
   } 
   io_read(ctp, msg, ocb) {
     We don't get to save the ctp or the msg it contains,
@@ -212,7 +215,13 @@ TMbfr.c {
     the number of bytes requested. I can write data
     to the reader's address space, which means I can
     block without fear that the writer will retire data.
-    Of course that isn't likely anyway... If we're 
+    Of course that isn't likely anyway... If we're doing
+    extractions, then we are probably blocking anyway.
+    If I made a provision to allow individual read clients
+    to change their read mode (-o[FRS]) then it would
+    make sense for an extraction to run -oS while a display
+    runs -oR, but that isn't a high priority. It might
+    make sense to have -oS force blocking behaviour
   }
   io_write()
   io_open() {
@@ -229,26 +238,36 @@ TMbfr.c {
   }
   handle ionotify
 }
-TMq.c {
+tmq.c {
   queue functions {
     process_read()
     run_reads()
     process_write()
     process_tick()
-    The simplest organization would probably be an array
-    with positions allocated when a read connection is opened.
-    These would be flagged as pending or not
-    process_read() would attempt to handle a read. If
-    successful, it would clear the pending bit and reply,
-    otherwise it would set the pending bit.
+    Make a simple array of pointers to OCBs
+    To add something to the list, add a pointer on the end
+    To remove, replace current position with what's at the
+    end of the list and decrease by one. Need to store a
+    hold_index in the OCB so that it can be removed
+    properly.
+    Need to hold a mutex while manipulating the array, but
+    it could be a different mutex from the read/write one.
     process_write() will know when new data has arrived and
     will pass through the array processing each pending request.
     process_tick() could do the same thing.
   }
 }
-TMopt.oui {
+tmopt.oui {
   -p
-  -o[FR]
+  -o[FRS]
+    F = Fast
+    R = Regulated
+    B = Block
+    Fast returns ASAP
+    Regulated returns ASAP but only releases data based
+      on a timer.
+    Block fills the readers' buffers before returning.
+    -oB requires -p.
   -b<size> buffer size
   Command-line options to determine data buffer size
   (although the actual allocation might not occur until
