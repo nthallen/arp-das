@@ -400,9 +400,12 @@ CHAIN DAHeap: WaveDtoAP;
 SYMBOL IzDef COMPUTE
   SYNT.Iz = CONSTITUENT Current.Value;
 END;
-SYMBOL ICOSCmds COMPUTE
+SYMBOL Wave COMPUTE
   SYNT.Iz = CONSTITUENTS IzDef.Iz
     WITH( double, ADD, IDENTICAL, ZERO );
+END;
+SYMBOL ICOSCmds COMPUTE
+  INH.Iz = INCLUDING Wave.Iz;
   SYNT.DtoAs = new_wavedtoa();
   CHAINSTART HEAD.CrntI = THIS.Iz;
   SYNT.DtoA = alloc_dtoa( THIS.DtoAs, THIS.Iz, COORDREF ) <-
@@ -432,11 +435,14 @@ END;
 SYMBOL Wave COMPUTE
   SYNT.WaveNum = THIS.WaveCnt;
   THIS.WaveCnt = ADD( THIS.WaveCnt, 1 );
+  SYNT.LoopAddr = ADD( THIS.WaveAddr, 10 );
+  SYNT.ProgLen =
+    CONSTITUENT ( ICOSCmds.ProgLen, RingCmds.ProgLen );
+  THIS.WaveAddr = ADD( THIS.LoopAddr, THIS.ProgLen );
 END;
 SYMBOL ICOSCmds COMPUTE
   INH.WaveNum = INCLUDING Wave.WaveNum;
-  SYNT.LoopAddr = ADD( THIS.WaveAddr, 10 );
-  THIS.WaveAddr = ADD( THIS.LoopAddr, THIS.ProgLen );
+  INH.LoopAddr = INCLUDING Wave.LoopAddr;
 END;
 
 /*-----------------------------------------*/
@@ -446,19 +452,21 @@ ATTR PTG, WaveIndex: PTGNode;
 SYMBOL SourceFile COMPUTE
   SYNT.PTG = PTGFile(
     PTGHeader( PTGHex( THIS.ProgLen, 1 ), PTGHex( 0, 5 ) ),
-    CONSTITUENTS ICOSCmds.WaveIndex
+    CONSTITUENTS Wave.WaveIndex
 	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
     PTGFill( 0, SUB(120,THIS.NWaves) ),
-    CONSTITUENTS ICOSCmds.PTG
+    CONSTITUENTS ( ICOSCmds.PTG, RingCmds.PTG )
 	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
     THIS.ProgLen
   );
   PTGOut( THIS.PTG );
 END;
-SYMBOL ICOSCmds COMPUTE
+SYMBOL Wave COMPUTE
   SYNT.WaveIndex =
-    PTGWaveIndex( PTGId(INCLUDING Wave.Sym),
+    PTGWaveIndex( PTGId(THIS.Sym),
 		  PTGHex(THIS.WaveAddr,1) );
+END;
+SYMBOL ICOSCmds COMPUTE
   SYNT.PTG =
     PTGSeq(
       PTGICOSHdr(THIS.WaveNum,
@@ -594,8 +602,11 @@ END;
 /* Ringdown stuff                                            */
 /*-----------------------------------------------------------*/
 ATTR ToffD: double;
+ATTR Tpre, TpreSpec: long;
 ATTR SetTimeParams, SetTon, SetTpre: VOID;
 SYMBOL RingCmds COMPUTE
+  SYNT.ProgLen = CONSTITUENTS RingData.ProgLen
+	WITH( int, ADD, IDENTICAL, ZERO );
   SYNT.SetTimeParams = CONSTITUENTS(
     RingRateDef.SetTimeParams, ToffDef.SetTimeParams,
     RingNsampleDef.SetTimeParams );
@@ -605,13 +616,17 @@ SYMBOL RingCmds COMPUTE
               0, COORDREF ));
   IF ( NOT(HasRateDef(THIS.Key)),
        message(ERROR, "SampleRate is required", 0, COORDREF )
-  );
+     );
   IF ( NOT(HasTon(THIS.Key)),
        message(ERROR, "Ton is required", 0, COORDREF )
-  ) <- CONSTITUENTS TonDef.SetTon;
+     ) <- CONSTITUENTS TonDef.SetTon;
+  SYNT.Ton = usecs(GetTon(THIS.Key,0.))
+    <- CONSTITUENTS TonDef.SetTon;
   IF ( NOT(HasTpre(THIS.Key)),
        message(ERROR, "Tpre is required", 0, COORDREF )
-  ) <- CONSTITUENTS TpreDef.SetTpre;
+     ) <- CONSTITUENTS TpreDef.SetTpre;
+  SYNT.TpreSpec = usecs(GetTpre(THIS.Key,2));
+  SYNT.Tpre = IF ( GT(THIS.TpreSpec,2),THIS.TpreSpec, 2 );
   SYNT.RawRate =
     IF( HasRateDef(THIS.Key),
         PTRSELECT(GetRateDef(THIS.Key,0),samples),
@@ -619,6 +634,7 @@ SYMBOL RingCmds COMPUTE
   SYNT.Nsample =
     GetNsample(THIS.Key, MUL(THIS.RawRate,GetToff(THIS.Key,0)));
   SYNT.ToffD = GetToff(THIS.Key,DIV(THIS.Nsample,THIS.RawRate));
+  SYNT.Toff = usecs(THIS.ToffD);
 END;
 SYMBOL RingRateDef COMPUTE
   INH.Key = INCLUDING Wave.Key;
@@ -691,4 +707,73 @@ END;
 RULE: TpreVal ::= Time COMPUTE TpreVal.Value = Time.Value; END;
 RULE: TpreVal ::= Integer 'Samples' COMPUTE
   TpreVal.Value = DIV(Integer,TpreVal.RawRate);
+END;
+SYMBOL RingData COMPUTE
+  SYNT.ProgLen = CONSTITUENT
+    ( RingCurrent.ProgLen, CurrentSteps.ProgLen );
+END;
+SYMBOL RingCurrent COMPUTE
+  SYNT.ProgLen = 1;
+  SYNT.Value = CONSTITUENT Current.Value;
+END;
+ATTR Istep: double;
+RULE: CurrentSteps ::= Current 'to' Current 'in' RingStep 'Steps'
+COMPUTE
+  CurrentSteps.Istart = Current[1].Value;
+  CurrentSteps.Istop = Current[2].Value;
+  CurrentSteps.Iramp = SUB(CurrentSteps.Istop,CurrentSteps.Istart);
+  CurrentSteps.ProgLen = RingStep.ProgLen;
+  CurrentSteps.Istep = RingStep.Istep;
+END;
+SYMBOL RingStep COMPUTE
+  SYNT.Istep =
+    CONSTITUENT ( RingCount.Istep, RingStepsize.Istep );
+  SYNT.ProgLen =
+    CONSTITUENT ( RingCount.ProgLen, RingStepsize.ProgLen );
+END;
+RULE: RingCount ::= Integer COMPUTE
+  RingCount.ProgLen = Integer;
+  .Iramp = INCLUDING CurrentSteps.Iramp;
+  RingCount.Istep = DIV(.Iramp,SUB(RingCount.ProgLen,1));
+END;
+RULE: RingStepsize ::= Current COMPUTE
+  RingStepsize.Istep = Current.Value;
+  RingStepsize.ProgLen =
+    ADD(ceil(SUB(DIV(INCLUDING CurrentSteps.Iramp,RingStepsize.Istep),
+                 .05)),
+        1 );
+END;
+
+/*-----------------------------------------------------------*/
+/* Ringdown Compiled Output                                  */
+/*-----------------------------------------------------------*/
+SYMBOL RingCmds COMPUTE
+  INH.Iz = INCLUDING Wave.Iz;
+  SYNT.PTG =
+    PTGSeq(
+      PTGRingHdr(INCLUDING Wave.WaveNum,
+	    PTGId(INCLUDING Wave.Sym),
+	    PTGHex(RINGDOWN_WAVEFORM_CODE,1),
+	    PTGHex(SUB( THIS.Ton, 1),1),
+	    PTGHex(SUB( THIS.Toff, 1),1),
+	    PTGHex(SUB(THIS.Tpre, 1),1),
+	    PTGHex(INCLUDING Wave.LoopAddr,1),
+	    PTGHex(THIS.ProgLen,1),
+	    PTGDACs(
+	      0, 0.,
+	      0, 0.,
+	      amps_to_bits(THIS.Iz,COORDREF), THIS.Iz,
+	      0, 0.
+	    ) ),
+      CONSTITUENTS ( RingCurrent.PTG, CurrentSteps.PTG )
+	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull )
+	    );
+END;
+SYMBOL RingCurrent COMPUTE
+  SYNT.PTG = PTGRingData(amps_to_bits(THIS.Value,COORDREF),THIS.Value);
+END;
+SYMBOL CurrentSteps COMPUTE
+  SYNT.PTG =
+    RingdownPTG( THIS.Istart, THIS.Istop, THIS.Istep,
+		THIS.ProgLen, COORDREF );
 END;

@@ -86,3 +86,15 @@ Tonoff:
 
 Fill: [ PTG_OUTPUT_HEX $1 short $2 int ]
 ICOSFill: [ PTG_OUTPUT_ICOSHEX $1 short $2 int ] "\n"
+
+RingHdr:
+  $3 " Ringdown Waveform " $1 int " " $2 "\n"
+  $9 /* DAC initialization */
+  $4 " Ton-1\n"
+  $5 " Toff-1\n"
+  $6 " Tpre-1\n"
+  $7 " Loop Address\n"
+  $8 " Loop Length\n"
+
+RingData:
+  [ PTG_OUTPUT_1HEX $1 short ] " " $2 double " Amps\n"

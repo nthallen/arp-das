@@ -4,6 +4,7 @@ dIdtDefined : int; /* 1 if defined once, 2 if defined more than once */
 RateDef : RateDefP [Has]; "qclicomp.h"
 Toff, Ton, Tpre : double [Has];
 Nsample : long [Has];
+PTG : PTGNode;
 
 int Has (DefTableKey key) {
   return(PRESENT);

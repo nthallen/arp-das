@@ -1,8 +1,8 @@
 Where am I? {
   ICOS Waveforms are fully specified
-  Generating output
-  Output DAC Values
   Output .cmd codes
+  Ringdown Waveforms are fully specified
+  Generating Ringdown output
 }
 todo {
   -Prior to 7/03, I made the assumption that Ton preceeded

@@ -2,6 +2,12 @@ Ringdown Waveform OK {
   SampleRate = 10 MHz;
   Toff = 40 usec;
   Nsample = 400;
-  Ton = 50%;
-  Tpre = 5 samples;
+  Ton = 80%;
+  Tpre = 5 Samples;
+  # Tpre = 1.6 usec;
+
+  Iz = .25 A;
+  I = .35 A;
+  # I = 500 mA to 800 mA in 20 Steps;
+  I = 500 mA to 800 mA in 100 mA Steps;
 }

@@ -44,6 +44,9 @@ TonVal : Time / FloatVal '%' .
 ToffDef : 'Toff' '=' Time .
 TpreDef : 'Tpre' '=' TpreVal .
 TpreVal : Time / Integer 'Samples' .
-RingData : 'I' '=' Current /
-           'I' '=' Current 'to' Current 'in' RingStep 'steps' .
-RingStep : Integer / Current .
+RingData : 'I' '=' ( RingCurrent / CurrentSteps ) .
+RingCurrent : Current .
+CurrentSteps : Current 'to' Current 'in' RingStep 'Steps' .
+RingStep : RingCount / RingStepsize .
+RingCount : Integer .
+RingStepsize : Current .

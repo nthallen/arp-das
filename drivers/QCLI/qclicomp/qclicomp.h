@@ -57,7 +57,7 @@ extern void ptg_output_short( PTG_OUTPUT_FILE file, short value );
 extern void ptg_output_word( PTG_OUTPUT_FILE file, unsigned short value, int count );
 extern void ptg_output_time( PTG_OUTPUT_FILE file );
 #define ptg_output_hex( f, v, c ) ptg_output_word(f,(unsigned short)v,c)
-#define AMPS_PER_BIT -1.63e-5
+#define AMPS_PER_BIT -7.6294e-5
 #define APS_PER_BIT 6.5625e-3
 #define MIN_DAC_BITS 0
 #define MAX_DAC_BITS 65535L
@@ -65,5 +65,7 @@ unsigned short amps_to_bits( double amps, CoordPtr pos );
 unsigned short aps_to_bits( double aps, CoordPtr pos );
 #define ICOS_WAVEFORM_CODE 0x3331
 #define RINGDOWN_WAVEFORM_CODE 0x3332
+PTGNode RingdownPTG( double Istart, double Istop, double Istep, int ProgLen,
+  CoordPtr pos );
 
 #endif

@@ -194,3 +194,14 @@ unsigned short aps_to_bits( double aps, CoordPtr pos ) {
     message( ERROR, "Ramp DAC Value out of range", 0, pos );
   return sbits;
 }
+
+PTGNode RingdownPTG( double Istart, double Istop, double Istep, int ProgLen, CoordPtr pos ) {
+  PTGNode PTG = PTGNULL;
+  int StepCnt;
+  for ( StepCnt = 0; StepCnt < ProgLen-1; StepCnt++ ) {
+    double StepCrnt = Istart + StepCnt*Istep;
+    PTG = PTGSeq(PTG,PTGRingData(amps_to_bits(StepCrnt,pos),StepCrnt));
+  }
+  PTG = PTGSeq(PTG,PTGRingData(amps_to_bits(Istop,pos),Istop));
+  return PTG;
+}
