@@ -1,6 +1,9 @@
 %{
   /* yylex.l for tmcalgo
    * $Log$
+ * Revision 1.8  1996/06/18  17:09:39  nort
+ * Attempt to get { recognized at the top of the file.
+ *
  * Revision 1.7  1996/05/02  13:43:09  nort
  * Added keywords for "hold until valid or else"
  *
@@ -154,7 +157,7 @@
 	input_linenumber = ta_input_line;
   }
 %}
-%Start statedef
+%start statedef
 %%
 State			return(KW_STATE);
 Partition		return(KW_PARTITION);
