@@ -1,4 +1,8 @@
 %{
+  /* trial.cmd
+   * $Id$
+   * $Log$
+   */
   #include <stdio.h>
   #define DCT_STR 3
   #define DCV_LmpAOn 0
@@ -15,6 +19,7 @@
 &commands :
 	: &commands &command
 	: &commands Other * &othercmds
+	: &commands Varchk * &varchks
 	;
 &command
 	: *
@@ -46,6 +51,35 @@
 	: b *
 	: c *
 	: Root &command
+	;
+&varchks
+	: &vchks quit *
+	;
+&vchks
+	:
+	: &vchks &varchk
+	;
+&varchk
+	: d %d (Enter integer) *
+		{ printf("\nInteger %d\n\n", $2); }
+	: ld %ld (Enter long integer) *
+		{ printf("\nLong Integer %ld\n\n", $2); }
+	: x %x (Enter hex integer) *
+		{ printf("\nHex Integer %X\n\n", $2); }
+	: lx %lx (Enter long hex integer) *
+		{ printf("\nLong Hex Integer %lX\n\n", $2); }
+	: o %o (Enter Octal integer) *
+		{ printf("\nOctal Integer %o\n\n", $2); }
+	: lo %lo (Enter long Octal integer) *
+		{ printf("\nLong Octal Integer %lo\n\n", $2); }
+	: f %f (Enter Float) *
+		{ printf("\nFloat %f\n\n", $2); }
+	: lf %lf (Enter Double) *
+		{ printf("\nDouble %lf\n\n", $2); }
+	: w %w (Enter Word) *
+		{ printf("\nWord \"%s\"\n\n", $2); }
+	: s %s (Enter Line of text) *
+		{ printf("\nLine \"%s\"\n\n", $2); }
 	;
 %%
 
