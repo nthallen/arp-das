@@ -1,6 +1,9 @@
 #! /bin/sh
-# rm -rf newsrc
-# eli "qclicomp.specs:source >newsrc"
+if [ ! -d newsrc ]; then
+  mkdir newsrc
+  eli "qclicomp.specs:source >newsrc"
+fi
+rm -f newsrc/obstack.[ch]
 for i in newsrc/*; do
   j=${i#new}
   if [ -f "$j" ]; then
