@@ -31,7 +31,7 @@ dims_t MKDIMS( dim_t Width, dim_t Height ) {
 }
 
 void NewInstance( DefTableKey Key, dim_t W, dim_t H,
-				  int Row, int Col, int Real ) {
+				  int Row, int Col, int Real, int Offset ) {
   instance_t inst;
   
   inst = malloc(sizeof(struct instance_s));
@@ -43,6 +43,7 @@ void NewInstance( DefTableKey Key, dim_t W, dim_t H,
   inst->Row = Row;
   inst->Col = Col;
   inst->ForReal = Real;
+  inst->Offset = Offset;
   ResetInstance( Key, inst );
 }
 

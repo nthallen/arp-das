@@ -52,7 +52,7 @@ int DatumHeight(int nrows) {
   return nrows * BaselineSkip;
 }
 
-int RuleThickness = 5;
+int RuleThickness = 9;
 
 void preview_window( PTG_OUTPUT_FILE f, char *name, int w, int h ) {
   if (do_output) window = tbl_window( name, w, h );

@@ -1,4 +1,8 @@
-Do Rules
+Field numbering is incomplete
+Would like to record datum spaces as well as width
+Do Rules {
+  Rules are done, but double rules don't look great. C'est la vie.
+}
 Configuration in phtable {
   bgcolor fgcolor
   labelfont face size style bgcolor fgcolor

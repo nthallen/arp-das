@@ -26,6 +26,7 @@ END;
 %  HGlue it would be DatumWidth(1). Fo
 %----------------------------------------------------------------
 ATTR Space, GlueScale: int;
+ATTR NSpaces : int;
 SYMBOL Dimension COMPUTE
   SYNT.Dimension =
 	MKDIM(
@@ -46,6 +47,7 @@ END;
 RULE: Space ::= Integer COMPUTE
   Space.Space = MUL(Integer,
     INCLUDING(HDimension.GlueScale,VDimension.GlueScale));
+  Space.NSpaces = Integer;
 END;
 
 RULE: GlueSpec ::= '+' Integer COMPUTE
@@ -126,21 +128,25 @@ RULE: Datum ::=  '(' Word DatumDimensions ')' COMPUTE
   Datum.String = Word.String;
   Datum.MinWidth = DatumDimensions.MinWidth;
   Datum.MinHeight = DatumDimensions.MinHeight;
+  Datum.NSpaces = DatumDimensions.NSpaces;
 END;
 
 RULE: DatumDimensions ::= COMPUTE
   DatumDimensions.MinWidth = MKDIM(DatumWidth(DEF_DATUM_WID),0);
   DatumDimensions.MinHeight = MKDIM(DatumHeight(DEF_DATUM_HT),0);
+  DatumDimensions.NSpaces = DEF_DATUM_WID;
 END;
 
 RULE: DatumDimensions ::= ',' HDimension COMPUTE
   DatumDimensions.MinWidth = HDimension.Dimension;
   DatumDimensions.MinHeight = MKDIM(DatumHeight(DEF_DATUM_HT),0);
+  DatumDimensions.NSpaces = HDimension CONSTITUENT Space.NSpaces;
 END;
 
 RULE: DatumDimensions ::= ',' HDimension ',' VDimension COMPUTE
   DatumDimensions.MinWidth = HDimension.Dimension;
   DatumDimensions.MinHeight = VDimension.Dimension;
+  DatumDimensions.NSpaces = HDimension CONSTITUENT Space.NSpaces;
 END;
 
 ATTR Vertical : int;
@@ -397,7 +403,7 @@ END;
 
 ATTR PrintCol : int;
 ATTR FullWidth : dim_t;
-ATTR DatumNumber : int;
+ATTR BaseOffset, DatumNumber : int;
 
 SYMBOL Datum COMPUTE
   SYNT.FullWidth =
@@ -408,13 +414,14 @@ SYMBOL Datum COMPUTE
 	PTGSeq(THIS.FieldPrint,
 	  PTGFieldRef(
 	    PTGAsIs("name"),
-	    THIS.DatumOffset,
-		PTGId(THIS.String)));
+	    THIS.DatumNumber,
+		PTGId(THIS.String),
+		THIS.NSpaces));
 
   THIS.StringPrint =
 	PTGSeq(THIS.StringPrint,
 	  PTGFieldDef( PTGAsIs("name"),
-	      THIS.DatumOffset, PTGAsIs("X"),
+	      THIS.DatumNumber, PTGAsIs("X"),
 		  THIS.Row, THIS.PrintCol,
 		  SPACE(THIS.Width), SPACE(THIS.Height) ));
 END;
@@ -467,7 +474,7 @@ RULE: NamedTable ::= TableNameDef Table COMPUTE
 	ResetMinDims(TableNameDef.Key,
 	  MKDIMS(Table.MinWidth,Table.MinHeight)),
 	NewInstance(TableNameDef.Key,
-	  Table.MinWidth, Table.MinHeight, 0, 0, 0 )
+	  Table.MinWidth, Table.MinHeight, 0, 0, 0, 0 )
   ) <- NamedTable.NamedDims;
 END;
 
@@ -518,7 +525,9 @@ SYMBOL TableRef COMPUTE
   SYNT.InstanceRecorded =
 	IF(THIS.ForReal,
 	  NewInstance(THIS.Key,THIS.Width,THIS.Height,
-			THIS.Row,THIS.Col, 1 ));
+			THIS.Row,THIS.Col, 1,
+			ADD(THIS.DatumOffset,
+			  INCLUDING (UnnamedTable.BaseOffset, NamedTable.BaseOffset )) ));
 END;
 RULE: NamedTables ::= NamedTables NamedTable COMPUTE
   NamedTable.InstanceReady = NamedTables[1].InstanceReady;
@@ -542,6 +551,7 @@ RULE: NamedTable ::= TableNameDef Table COMPUTE
   NamedTable.Row = INST_ROW(NamedTable.Instance);
   NamedTable.Col = INST_COL(NamedTable.Instance);
   NamedTable.ForReal = INST_EXISTS(NamedTable.Instance);
+  NamedTable.BaseOffset = INST_OFFSET(NamedTable.Instance);
 
   % These are the CHAINs we head:
   CHAINSTART HEAD.FieldPrint = PTGNULL
@@ -567,9 +577,10 @@ RULE: NamedTable ::= TableNameDef Table COMPUTE
 END;
 
 %-------------------------------------------------------------
-% Calculation of DatumOffset and DatumNumber
+% Calculation of DatumOffset and BaseOffset
 %   DatumOffset is the offset within the table
-%   DatumNumber is the absolute offset of realized data fields
+%   BaseOffset is the offset for the realized [Un]namedTable
+%   DatumNumber is the realized unique DatumOffset + BaseOffset
 %-------------------------------------------------------------
 CHAIN DatumOffset : int;
 
@@ -582,6 +593,7 @@ RULE: UnnamedTable ::= Table COMPUTE
   UnnamedTable.DatumOffset = Table.DatumOffset;
   UnnamedTable.MinWidth = Table.MinWidth;
   UnnamedTable.MinHeight = Table.MinHeight;
+  UnnamedTable.BaseOffset = 0;
 END;
 
 ATTR TableOffsetSet : VOID;
@@ -594,6 +606,9 @@ END;
 
 SYMBOL Datum COMPUTE
   THIS.DatumOffset = ADD(THIS.DatumOffset,1);
+  SYNT.DatumNumber =
+    ADD(THIS.DatumOffset,
+      INCLUDING (NamedTable.BaseOffset, UnnamedTable.BaseOffset));
 END;
 
 SYMBOL TableRef COMPUTE

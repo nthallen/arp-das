@@ -29,12 +29,14 @@ typedef struct instance_s {
   int Row;
   int Col;
   int ForReal;
+  int Offset;
 } *instance_t;
 
 #define INST_SIZE(x) ((x)->size)
 #define INST_ROW(x) ((x)->Row)
 #define INST_COL(x) ((x)->Col)
 #define INST_EXISTS(x) ((x)->ForReal)
+#define INST_OFFSET(x) ((x)->Offset)
 
 #define DEF_DATUM_WID 5
 #define DEF_DATUM_HT 1

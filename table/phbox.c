@@ -6,22 +6,18 @@
 #include "PtgCommon.h"
 #include "ptg_gen.h"
 
-#define RL_BT 1
-#define RL_TP 3
-#define RL_RT  9
-#define RL_LT 27
-
 typedef struct tblrule {
   struct tblrule *next;
   int Row, Col, Width, Height;
-  int Vertical, Lines, preplus, postplus;
+  int Vertical, Lines;
   int Attr;
-  #ifdef NBOX_C
-	unsigned char *rule;
-  #else
-    int x, y, l;
-  #endif
+  int Dims[2][2]; /* [vert][edge] */
+  int ext[2][2]; /* [vert][edge] */
+  int plus[2]; /* [edge] */
+  int t;
 } *TableRule;
+
+#define OPP(x) (1-(x))
 
 static TableRule TableRules;
 
@@ -73,216 +69,71 @@ void NewRule( int Row, int Col, int Width, int Height,
   if ( new == 0 )
 	message(DEADLY, "Out of memory in NewRule", 0, &curpos );
 
-  new->Row = Row;
-  new->Col = Col;
+  new->Row = new->Dims[1][0] = Row;
+  new->Col = new->Dims[0][0] = Col;
   new->Width = Width;
+  new->Dims[0][1] = Col+Width;
   new->Height = Height;
+  new->Dims[1][1] = Row+Height;
   new->Vertical = Vertical;
   new->Lines = Lines;
-  new->preplus = preplus;
-  new->postplus = postplus;
+  new->plus[0] = preplus;
+  new->plus[1] = postplus;
+  new->ext[0][0] = new->ext[0][1] =
+	 new->ext[1][0] = new->ext[1][1] = 0;
   new->Attr = Attr;
 
-  #ifdef NBOX_C
-	{ int Length = Width * Height;
-	  unsigned char middle;
-	  unsigned char *rule;
-
-	  rule = malloc( Length+1 );
-	  if ( rule == 0 )
-		message(DEADLY, "Out of memory in NewRule", 0, &curpos );
-	  middle = ( Vertical ? RL_TP+RL_BT : RL_LT+RL_RT ) * Lines;
-	  if (Length == 1) {
-		if (preplus) {
-		  if (postplus) rule[0] = middle;
-		  else rule[0] = (Vertical ? RL_TP : RL_LT)*Lines;
-		} else if ( postplus ) {
-		  rule[0] = (Vertical ? RL_BT : RL_RT)*Lines;
-		} else rule[0] = 0;
-	  } else if (Length > 0) {
-		rule[0] = preplus ? middle : ((Vertical ? RL_BT : RL_RT)*Lines);
-		{ int i;
-		  for ( i = 1; i < Length-1; i++ ) rule[i] = middle;
-		}
-		rule[Length-1] = postplus ? middle : ((Vertical ? RL_TP : RL_LT)*Lines);
-	  }
-	  rule[Length] = '\0';
-	  new->rule = rule;
-	}
-  #else
-    if (new->Vertical ) {
-      new->y = new->Row;
-      new->x = new->Col + new->Width/2 - new->Lines/2;
-      new->l = new->Height;
-    } else {
-      new->x = new->Col;
-      new->l = new->Width;
-      new->y = New->Row + new->Height/2 - new->Lines/2;
-    }
-  #endif
+  switch ( Lines ) {
+    case 1: new->t = 1; break;
+    case 2: new->t = 3; break;
+    default: message(DEADLY,"Lines not 1 or 2", 0, &curpos );
+  }
+  { int thick;
+    thick = new->Vertical ? Width : Height;
+    new->ext[OPP(new->Vertical)][0] = -(thick - new->t)/2;
+    new->ext[OPP(new->Vertical)][1] = -(thick - new->t + 1)/2;
+  }
 
   new->next = TableRules;
   TableRules = new;
 }
 
-#ifdef NBOX_C
-  static void add_bits( TableRule S, int row, int col, int t, int lines ) {
-	int c, i;
-	if ( row >= S->Row && row < S->Row + S->Height &&
-		 col >= S->Col && col < S->Col + S->Width ) {
-	  i = row-S->Row+col-S->Col;
-	  c = (S->rule[i]/t)%3;
-	  if ( c < lines )
-		S->rule[i] += t * (lines-c);
-	}
-  }
-#else
-
-  static int VAbutts( TableRule Below, TableRule Above ) {
-	return ( Above->Row + Above->Height == Below->Row );
-  }
-
-  static int HBrackets( TableRule Outside, TableRule Inside ) {
-	return ( Outside->Col <= Inside->Col &&
-		Outside->Col + Outside->Width >= Inside->Col + Inside->Width );
-  }
-
-  static int HAbutts( TableRule Left, TableRule Right ) {
-	return ( Left->Col + Left->Width == Right->Col );
-  }
-
-  static int VBrackets( TableRule Outside, TableRule Inside ) {
-	return ( Outside->Row <= Inside->Row &&
-		Outside->Row + Outside->Height >= Inside->Row + Inside->Height );
-  }
-#endif
-
 static void connect_rules( void ) {
   TableRule R, S;
-  #ifdef NBOX_C
-	unsigned char c, cc;
-	
-	for ( R = TableRules; R != 0; R = R->next ) {
+  int edge, sedge;
+
+  for ( R = TableRules; R != 0; R = R->next ) {
+	if ( R->plus[0] || R->plus[1] ) {
+	  int RV = R->Vertical;
 	  for ( S = TableRules; S != 0; S = S->next ) {
-		if ( R->Vertical ) {
-		  if ( R->preplus )
-			add_bits( S, R->Row-1, R->Col, RL_BT, R->Lines );
-		  if ( R->postplus )
-			add_bits( S, R->Row+R->Height, R->Col, RL_TP, R->Lines );
-		} else {
-		  if ( R->preplus )
-			add_bits( S, R->Row, R->Col-1, RL_RT, R->Lines );
-		  if ( R->postplus )
-			add_bits( S, R->Row, R->Col+R->Width, RL_LT, R->Lines );
-		}
-	  }
-	}
-  #else
-	for ( R = TableRules; R != 0; R = R->next ) {
-	  if ( R->preplus || R->postplus ) {
-		for ( S = TableRules; S != 0; S = S->next ) {
-		  if ( S->Vertical != R->Vertical ) {
-			if ( R->Vertical && HBrackets( S, R ) ) {
-			  if ( R->preplus && VAbutts( R, S ) ) {
-			  } else if ( R->postplus && VAbutts( S, R ) ) {
+	    int SV = S->Vertical;
+		if ( SV != RV ) {
+	    int SV = S->Vertical;
+		  for ( edge = 0; edge <= 1; edge++ ) {
+		    /* Check for plus extension */
+		    if ( R->plus[edge] &&
+		         S->Dims[RV][OPP(edge)] == R->Dims[RV][edge] &&
+		         S->Dims[SV][0] <= R->Dims[SV][0] &&
+		         S->Dims[SV][1] >= R->Dims[SV][1] ) {
+		      R->ext[RV][edge] = - S->ext[RV][OPP(edge)];
+			  /* Check for non-plus shortening */
+			  for ( sedge = 0; sedge <= 1; sedge++ ) {
+			    if ( ! S->plus[sedge] &&
+			         S->Dims[SV][sedge] ==
+			           R->Dims[SV][sedge] ) {
+			      int ext = R->ext[SV][sedge];
+			      if ( S->ext[SV][sedge] == 0 ||
+			           S->ext[SV][sedge] < ext )
+			        S->ext[SV][sedge] = ext;
+			    }
 			  }
-			} else if ( VBrackets(S,R) ) {
-			  if ( R->preplus && HAbutts( S, R ) ) {
-			  } else if ( R->postplus && HAbutts( R, S ) ) {
-			  }
-			}
+		    }
 		  }
 		}
 	  }
 	}
-  #endif
+  }
 }
-
-#ifdef NBOX_C
-unsigned char scrchar[] = {
-  '\x20', /*  0 = 0000 */
-  '\xB3', /*  1 = 0001 */
-  '\xBA', /*  2 = 0002 */
-  '\xB3', /*  3 = 0010 */
-  '\xB3', /*  4 = 0011 */
-  '\xBA', /*  5 = 0012 */
-  '\xBA', /*  6 = 0020 */
-  '\xBA', /*  7 = 0021 */
-  '\xBA', /*  8 = 0022 */
-  '\xC4', /*  9 = 0100 */
-  '\xDA', /* 10 = 0101 */
-  '\xD6', /* 11 = 0102 */
-  '\xC0', /* 12 = 0110 */
-  '\xC3', /* 13 = 0111 */
-  '\xD6', /* 14 = 0112 */
-  '\xD3', /* 15 = 0120 */
-  '\xD3', /* 16 = 0121 */
-  '\xC7', /* 17 = 0122 */
-  '\xCD', /* 18 = 0200 */
-  '\xD5', /* 19 = 0201 */
-  '\xC9', /* 20 = 0202 */
-  '\xD4', /* 21 = 0210 */
-  '\xC6', /* 22 = 0211 */
-  '\xC9', /* 23 = 0212 */
-  '\xC8', /* 24 = 0220 */
-  '\xC8', /* 25 = 0221 */
-  '\xCC', /* 26 = 0222 */
-  '\xC4', /* 27 = 1000 */
-  '\xBF', /* 28 = 1001 */
-  '\xB7', /* 29 = 1002 */
-  '\xD9', /* 30 = 1010 */
-  '\xB4', /* 31 = 1011 */
-  '\xB7', /* 32 = 1012 */
-  '\xBD', /* 33 = 1020 */
-  '\xBD', /* 34 = 1021 */
-  '\xB6', /* 35 = 1022 */
-  '\xC4', /* 36 = 1100 */
-  '\xC2', /* 37 = 1101 */
-  '\xD2', /* 38 = 1102 */
-  '\xC1', /* 39 = 1110 */
-  '\xC5', /* 40 = 1111 */
-  '\xD2', /* 41 = 1112 */
-  '\xD0', /* 42 = 1120 */
-  '\xD0', /* 43 = 1121 */
-  '\xD7', /* 44 = 1122 */
-  '\xCD', /* 45 = 1200 */
-  '\x20', /* 46 = 1201 */
-  '\x20', /* 47 = 1202 */
-  '\x20', /* 48 = 1210 */
-  '\x20', /* 49 = 1211 */
-  '\x20', /* 50 = 1212 */
-  '\x20', /* 51 = 1220 */
-  '\x20', /* 52 = 1221 */
-  '\x20', /* 53 = 1222 */
-  '\xCD', /* 54 = 2000 */
-  '\xB8', /* 55 = 2001 */
-  '\xBB', /* 56 = 2002 */
-  '\xBE', /* 57 = 2010 */
-  '\xB5', /* 58 = 2011 */
-  '\x20', /* 59 = 2012 */
-  '\xBC', /* 60 = 2020 */
-  '\x20', /* 61 = 2021 */
-  '\xB9', /* 62 = 2022 */
-  '\x20', /* 63 = 2100 */
-  '\x20', /* 64 = 2101 */
-  '\x20', /* 65 = 2102 */
-  '\x20', /* 66 = 2110 */
-  '\x20', /* 67 = 2111 */
-  '\x20', /* 68 = 2112 */
-  '\x20', /* 69 = 2120 */
-  '\x20', /* 70 = 2121 */
-  '\x20', /* 71 = 2122 */
-  '\xCD', /* 72 = 2200 */
-  '\xD1', /* 73 = 2201 */
-  '\xCB', /* 74 = 2202 */
-  '\xCF', /* 75 = 2210 */
-  '\xD8', /* 76 = 2211 */
-  '\x20', /* 77 = 2212 */
-  '\xCA', /* 78 = 2220 */
-  '\x20', /* 79 = 2221 */
-  '\xCE'  /* 80 = 2222 */
-};
-#endif
 
 PTGNode print_rules( void ) {
   TableRule Rule;
@@ -290,25 +141,17 @@ PTGNode print_rules( void ) {
 
   connect_rules();
   for ( Rule = TableRules; Rule != 0; Rule = Rule->next ) {
-	int i = Rule->Width * Rule->Height;
-	if ( i > 0 ) {
-	  #ifdef NBOX_C
-		for ( i--; i >= 0; i-- ) {
-		  Rule->rule[i] = scrchar[Rule->rule[i]];
-		}
-		nptg = Rule->Vertical ?
-		  print_vword(Rule->rule, Rule->Row, Rule->Col, Rule->Attr) :
-		  PTGString( Rule->Row, Rule->Col, Rule->Attr, PTGAsIs(Rule->rule) );
-		rv = PTGSeq(rv, nptg);
-	  #else
-	    nptg = Rule->Vertical ?
-	      PTGVRule(Rule->Row, Rule->Col + (Rule->Width/2), Rule->Height,
-	                  (Rule->Lines == 2)) :
-	      PTGHRule(Rule->Row + (Rule->Height/2), Rule->Col, Rule->Width,
-	                  (Rule->Lines == 2));
-	    rv = PTGSeq(rv, nptg);
-	  #endif
-	}
+    int x, y, l;
+    int v = Rule->Vertical;
+    int dbl = (Rule->Lines == 2);
+    x = Rule->Dims[0][0] - Rule->ext[0][0];
+    y = Rule->Dims[1][0] - Rule->ext[1][0];
+    l = Rule->Dims[v][1] + Rule->ext[v][1] - Rule->Dims[v][0] + Rule->ext[v][0];
+
+	nptg = Rule->Vertical ?
+	  PTGVRule( y, x+dbl, l, dbl ) :
+	  PTGHRule( y+dbl, x, l, dbl );
+	rv = PTGSeq(rv, nptg);
   }
   return rv;
 }

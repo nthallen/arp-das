@@ -7,18 +7,22 @@ function nl_error {
 for i in ; do
   old=${i%.tbl}.fld
   new=$old.new
-  ./table $i > $new
-  if cmp -s $old $new; then
-	echo "$i: OK"
-	rm $new
-  else
-    sort $old >$old.sort
-	sort $new >$new.sort
-	if cmp -s $old.sort $new.sort; then
-	  echo "$i: OK but reordered"
-	  rm $new $new.sort $old.sort
+  if [ -f $old ]; then
+	./table $i > $new
+	if cmp -s $old $new; then
+	  echo "$i: OK"
+	  rm $new
 	else
-	  diff $old $new | less
+	  sort $old >$old.sort
+	  sort $new >$new.sort
+	  if cmp -s $old.sort $new.sort; then
+		echo "$i: OK but reordered"
+		rm $new $new.sort $old.sort
+	  else
+		diff $old $new | less
+	  fi
 	fi
+  else
+    echo "$i: No test output\n"
   fi
 done

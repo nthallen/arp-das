@@ -39,8 +39,10 @@ FieldDef:
 # $1: table name (PTGNode)
 # $2: Field Number (int)
 # $3: Field Text (PTGNode)
+# $4: NSpaces (int)
 FieldRef:
-  "display( " $1 "_tbl_fld[" $2 int "], text(" $3 "));\n"
+  "phdisplay( " $1 "_tbl_fld[" $2 int "], text(" $3 "));"
+  " /* " $4 int " spaces */\n"
 
 # $1: row $2: col $3: w/h $4: dbl
 VRule :
