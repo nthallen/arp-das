@@ -99,12 +99,16 @@ Be sure to handle IONOTIFY stuff.
 
 Extend OCB {
   Space for scratch buffer to hold at least one row of data
-  (or one missing rows record or timestamp)
+  (or one missing-rows record or timestamp)
   nbytes, offset
   missing rows
 }
 
 Process read request {
+  Calculate quickly whether we have enough data to complete
+  the request. If not, stay on the queue. If so, send it.
+  Must hold a mutex throughout (remind me again why are
+  we multi-threaded?)
   if internal offset is non-zero, send remainder of current
   record {
     if req < remaining, send req and update internal offset
@@ -142,8 +146,8 @@ On write {
 	need to start retiring data from the first block.
 
 	As rows of data expire, could check against open ocbs and
-record if they are missing any data. They could be sent a
-record indicating the loss.
+	record if they are missing any data. They could be sent a
+	record indicating the loss.
   }
   pthread_setschedparam() to highest blocked client and
   run queue.
@@ -196,11 +200,19 @@ Modes of Operation {
   }
 }
 
-DRbfr.c {
+TMbfr.c {
   main() {
     extend OCB
   } 
-  io_read() {
+  io_read(ctp, msg, ocb) {
+    We don't get to save the ctp or the msg it contains,
+    so we need to save pertinent info about the request.
+    (This means we probably cannot take advantage of the
+    IOVs in the ctp either...) Save away the rcvid and
+    the number of bytes requested. I can write data
+    to the reader's address space, which means I can
+    block without fear that the writer will retire data.
+    Of course that isn't likely anyway... If we're 
   }
   io_write()
   io_open() {
@@ -217,7 +229,24 @@ DRbfr.c {
   }
   handle ionotify
 }
-DRopt.oui {
+TMq.c {
+  queue functions {
+    process_read()
+    run_reads()
+    process_write()
+    process_tick()
+    The simplest organization would probably be an array
+    with positions allocated when a read connection is opened.
+    These would be flagged as pending or not
+    process_read() would attempt to handle a read. If
+    successful, it would clear the pending bit and reply,
+    otherwise it would set the pending bit.
+    process_write() will know when new data has arrived and
+    will pass through the array processing each pending request.
+    process_tick() could do the same thing.
+  }
+}
+TMopt.oui {
   -p
   -o[FR]
   -b<size> buffer size
