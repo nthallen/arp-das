@@ -1,19 +1,39 @@
 /* yytype.h
  * $Log$
+ * Revision 1.1  1993/05/18  20:37:23  nort
+ * Initial revision
+ *
  */
 #ifndef _YYTYPE_H
 #define _YYTYPE_H
 
+struct substate {
+  struct substate *next;
+  char *name;
+  int once;
+  int state_case;
+};
+
 struct cmddef {
   struct cmddef *next;
   long int cmdtime;
+  struct substate *substate;
   char *cmdtext;
-  int cmdflags;
+  char *cmd2text;
+  int cmdtype;
 };
-/* cmdflags bits:
-   1 CMDFLAGS_TMC: Set if command is a TMCSTAT, else COMMAND
+/* cmdtype values: */
+#define CMDTYPE_TMC  1
+#define CMDTYPE_QSTR 2
+#define CMDTYPE_CMD  3
+#define CMDTYPE_VAL  4
+/* for CMDTYPE_TMC, at least one of cmdtext or cmd2text must
+   be non-null. If cmd2text is null, cmdtext is the name of
+   a variable (or state) to be validated. Otherwise, cmd2text is
+   a tmc statement, and cmdtext is an optional list of 
+   dependencies. Validations will be promoted to CMDTYPE_VAL
+   if they can be implemented that way.
 */
-#define CMDFLAGS_TMC 1
 
 struct cmdlst {
   struct cmddef *first;
@@ -24,14 +44,21 @@ struct cmdlst {
 struct stdef {
   char *name;
   struct cmddef *cmds;
+  char *filename;
+};
+
+struct prtn {
+  int partno;
+  struct substate *idle_substate;
 };
 
 struct prg {
   struct prg *next;
   int type;
   union {
-	char *tmccmd;
+	struct cmddef *tmccmd;
 	struct stdef *state;
+	struct prtn *partition;
   } u;
 };
 #define PRGTYPE_STATE 1
@@ -64,5 +91,8 @@ void output_states(FILE *ofp); /* states.c */
 extern struct prg *program; /* grammar.y */
 void check_command(const char *command); /* commands.c */
 void get_version(FILE *ofp); /* commands.c */
+struct substate *new_substate( FILE *ofp, char *name, int once, int mkcase );
+int get_state_case( char *statename, int slurp );
+void output_mainloop( FILE *ofp ); /* states.c */
 
 #endif
