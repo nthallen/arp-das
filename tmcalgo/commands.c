@@ -1,5 +1,8 @@
 /* commands.c Handles interface to command interpreters.
  * $Log$
+ * Revision 1.2  1993/09/27  20:08:08  nort
+ * Cleanup, common compiler functions
+ *
  * Revision 1.1  1993/05/18  20:37:22  nort
  * Initial revision
  *
@@ -55,6 +58,7 @@ void get_version(FILE *ofp) {
   }
   fprintf(ofp, "%%{\n"
 	"  #include \"nortlib.h\"\n"
+	"  #include \"tma.h\"\n"
 	"  char ci_version[] = \"%s\";\n"
 	"%%}\n", ci_version);
 }
