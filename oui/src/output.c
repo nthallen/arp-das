@@ -1,5 +1,8 @@
 /* output.c contains output routines for oui
  * $Log$
+ * Revision 1.3  1994/10/18  18:10:06  nort
+ * Modified indentation to support R2
+ *
  * Revision 1.2  1994/09/16  15:09:49  nort
  * Added sorting of sort options
  *
@@ -74,7 +77,7 @@ static void output_switch(void) {
 
   /* Dump the switch args */
   for (p = global_defs.packages.first; p != NULL; p = p->next)
-	dump_llos( &p->pkg->switches, "\t  " );
+	dump_llos( &p->pkg->switches, "\t\t" );
 
   fflush(ofile);
 
@@ -95,7 +98,7 @@ static void output_switch(void) {
 
 	/* Now the arg args */
 	for (p = global_defs.packages.first; p != NULL; p = p->next)
-	  dump_llos( &p->pkg->arg, "\t  " );
+	  dump_llos( &p->pkg->arg, "\t\t" );
 
 	fprintf(ofile, "\t}\n");
   }
