@@ -72,10 +72,10 @@ function nl_error {
 portpath=`pwd`
 portpath=`fullpath -t $portpath`
 [ -d "$portpath" ] || nl_error Cannot find run directory
-portdir=`basename $portpath`
+# portdir=`basename $portpath`
 
 [ -f QNX.setup ] || nl_error Cannot locate QNX.setup
-. QNX.setup
+. ./QNX.setup
 # cd ..
 [ -n "$pkg" ] ||
   nl_error QNX.setup must define pkg
@@ -129,6 +129,7 @@ done
 if [ $dump = yes ]; then
   echo "pkg=$pkg"
   echo "archive=$archive"
+  echo "farchive=$farchive"
   echo "archpkg=$archpkg"
   echo "patches:"
   for i in $patches; do
@@ -246,14 +247,18 @@ else
 	fi
   fi
   cd -
+  [ -f BLD/$pkg.made ] ||
+	nl_error "BLD/$pkg.made not found"
 fi
 
 if [ "$install" = "yes" ]; then
   [ $uid = 0 ] || nl_error Must be root to install
   [ -f BLD/$pkg.made ] ||
-	nl_error "BLD/$pkg.made missing: install aborted"
+	nl_error "BLD/$pkg.made not found"
   cd BLD/$pkg
   [ -x ../../QNX.install ] || nl_error "Cannot find QNX.install"
   ../../QNX.install 2>&1 | tee ../$pkg.inst.log
+  [ -f ../$pkg.installed ] ||
+	nl_error "BLD/$pkg.installed not found"
 fi
 :
