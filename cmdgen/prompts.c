@@ -1,6 +1,10 @@
 /* prompts.c
  *
  * $Log$
+ * Revision 1.2  1992/07/10  19:31:47  nort
+ * Added machine-dependent prompt texts
+ * and consolidated common prompts.
+ *
  * Revision 1.1  1992/07/09  18:36:44  nort
  * Initial revision
  *
@@ -9,6 +13,8 @@
 #include <assert.h>
 #include <string.h>
 #include "cmdgen.h"
+
+static char rcsid[] = "$Id$";
 
 #define PROMPT_ATTR 7
 
@@ -125,6 +131,8 @@ static void gen_tprompts(termlist *tl) {
 	  buf[bp] = '\0';
 	  if (more && tl == NULL) more = -n_rows;
 	  pprompt(more, buf);
+	  n_tls_this = 0;
+	  bp = 0;
 	  n_rows++;
 	}
   }
