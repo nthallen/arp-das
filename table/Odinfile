@@ -7,4 +7,5 @@
 +cc_flags='-I /usr/local/include' +lib=nort ph +lib_sp=(/usr/local/lib)
 
 phtable == phtable.specs +(%phflags) :exe
+dbphtable == phtable.specs +(%phflags) +debug :exe
 

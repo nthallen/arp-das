@@ -7,6 +7,15 @@
 int ColSpace = 4;
 int BaselineSkip = 15;
 
+static int do_output;
+static PtWidget_t *window;
+
+void SetupPhoton( int preview ) {
+  if (PtInit(NULL) == -1)
+      PtExit(EXIT_FAILURE);
+  do_output = preview;
+}
+
 dims_t CalcWordDims(char *text, int attr) {
   dims_t wdims;
   PhRect_t extent;

@@ -1,6 +1,11 @@
 ATTR Dimension, MinWidth, MinHeight: dim_t;
 TERM BareWord, CString, Integer: int;
 ATTR String: int;
+ATTR PhotonSetup : VOID;
+
+SYMBOL Program COMPUTE
+  SYNT.PhotonSetup = SetupPhoton(PreviewDisplay);
+END;
 
 %----------------------------------------------------------------
 % Pick up the terminals:
@@ -29,12 +34,12 @@ SYMBOL Dimension COMPUTE
 END;
 
 RULE: HDimension ::= Dimension COMPUTE
-  HDimension.GlueScale = DatumWidth(1);
+  HDimension.GlueScale = DatumWidth(1) <- INCLUDING Program.PhotonSetup;
   HDimension.Dimension = Dimension.Dimension;
 END;
 
 RULE: VDimension ::= Dimension COMPUTE
-  VDimension.GlueScale = DatumHeight(1);
+  VDimension.GlueScale = DatumHeight(1) <- INCLUDING Program.PhotonSetup;
   VDimension.Dimension = Dimension.Dimension;
 END;
 
@@ -111,7 +116,8 @@ SYMBOL Rule INHERITS AttrLeaf END;
 ATTR WordDims : dims_t;
 RULE: HWord ::= Word COMPUTE
   HWord.String = Word.String;
-  .WordDims = CalcWordDims(StringTable(HWord.String), HWord.Attr);
+  .WordDims = CalcWordDims(StringTable(HWord.String), HWord.Attr)
+                <- INCLUDING Program.PhotonSetup;
   HWord.MinWidth = WIDTH(.WordDims);
   HWord.MinHeight = HEIGHT(.WordDims);
 END;
