@@ -1,5 +1,9 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.4  1993/02/15  17:58:49  nort
+ * Having added a number of command interpreter functions for
+ * client/server operation.
+ *
  * Revision 1.3  1992/09/24  20:23:10  nort
  * With Command Queueing
  *
@@ -19,8 +23,12 @@
 int Skel_open(char *name);
 int Skel_copy(FILE *ofp, char *label, int copyout);
 
-extern int (*nl_error)(unsigned int level, char *s, ...);
-int nl_err(unsigned int level, char *s, ...);
+extern int (*nl_error)(int level, char *s, ...); /* nl_error.c */
+int nl_err(int level, char *s, ...); /* nl_error.c */
+#ifdef va_start
+  int nl_verror(FILE *ef, int level, const char *fmt, va_list args); /* nl_verr.c */
+#endif
+extern int nl_debug_level; /* nldbg.c */
 extern int nl_response; /* nlresp.c */
 int set_response(int newval); /* nlresp.c */
 #define NLRSP_DIE 3
@@ -43,10 +51,19 @@ int Soldrv_reset_proxy(unsigned char selector, unsigned char ID); /* solprox.c *
  */
 void cic_options(int argc, char **argv, char *def_prefix);
 int cic_init(void);
+int cic_query(char *version);
 extern char ci_version[];
 void cic_transmit(char *buf, int n_chars, int transmit);
-int ci_sendcmd(char *cmdtext, int test);
+int ci_sendcmd(const char *cmdtext, int test);
 #define OPT_CIC_INIT "C:"
 void ci_server(void);
+
+/* tmcalgo (tma) support routines */
+void tma_new_state(int partition, const char *name);
+void tma_new_time(int partition, long int t1, const char *next_cmd);
+int tma_time_check(int partition);
+void tma_sendcmd(const char *cmd);
+void tma_init_options(const char *hdr, int argc, char **argv);
+#define OPT_TMA_INIT "r:pm"
 
 #endif
