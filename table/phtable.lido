@@ -35,18 +35,25 @@ SYMBOL Dimension COMPUTE
 END;
 
 RULE: HDimension ::= Dimension COMPUTE
-  HDimension.GlueScale = DatumWidth(1) <- INCLUDING Program.PhotonSetup;
-  HDimension.Dimension = Dimension.Dimension;
+  % HDimension.GlueScale = DatumWidth(1) <- INCLUDING Program.PhotonSetup;
+  % HDimension.Dimension = Dimension.Dimension;
+  HDimension.Dimension = MKDIM(
+    DatumWidth(SPACE(Dimension.Dimension)),
+    GLUE(Dimension.Dimension));
 END;
 
 RULE: VDimension ::= Dimension COMPUTE
-  VDimension.GlueScale = DatumHeight(1) <- INCLUDING Program.PhotonSetup;
-  VDimension.Dimension = Dimension.Dimension;
+  % VDimension.GlueScale = DatumHeight(1) <- INCLUDING Program.PhotonSetup;
+  % VDimension.Dimension = Dimension.Dimension;
+  VDimension.Dimension = MKDIM(
+    DatumHeight(SPACE(Dimension.Dimension)),
+    GLUE(Dimension.Dimension));
 END;
 
 RULE: Space ::= Integer COMPUTE
-  Space.Space = MUL(Integer,
-    INCLUDING(HDimension.GlueScale,VDimension.GlueScale));
+  % Space.Space = MUL(Integer,
+  %   INCLUDING(HDimension.GlueScale,VDimension.GlueScale));
+  Space.Space = Integer;
   Space.NSpaces = Integer;
 END;
 

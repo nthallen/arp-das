@@ -44,7 +44,7 @@ int DatumWidth(int ncols) {
   if ( ncols > MAX_FIELD_WIDTH ) ncols = MAX_FIELD_WIDTH;
   for ( i = 0; i < ncols; i++ ) buf[i] = '0';
   buf[ncols] = '\0';
-  tbl_ExtentText( tbl_labelfont, buf, &extent );
+  tbl_ExtentText( tbl_fieldfont, buf, &extent );
   return extent.lr.x - extent.ul.x;
 }
 
