@@ -1,0 +1,46 @@
+CHAIN RegionNumber, RegionIndex : int;
+ATTR N_Regions, CurrRegionNumber, CurrRegion : int;
+
+RULE: Average ::= 'Average' OptRaw AvgVarList 'Over' RegionList ';'
+END;
+
+SYMBOL Average COMPUTE
+  CHAINSTART HEAD.RegionNumber = 1;
+  SYNT.N_Regions = SUB(TAIL.RegionNumber,1);
+  SYNT.CurrRegionNumber = 1;
+  SYNT.Done = UNTIL GE(SYNT.CurrRegionNumber,SYNT.N_Regions)
+			  ITERATE SYNT.CurrRegionNumber =
+				ADD(SYNT.CurrRegionNumber,1) <- SYNT.CurrRegion;
+  CHAINSTART HEAD.RegionIndex = NoStrIndex
+	<- SYNT.CurrRegionNumber;
+  SYNT.CurrRegion = TAIL.RegionIndex;
+END;
+
+RULE: RegionList ::= RegionListPart END;
+RULE: RegionListPart ::= RegionListElt END;
+RULE: RegionListPart ::= RegionListPart ',' RegionListElt END;
+RULE: RegionListElt ::= Name END;
+
+%----------------------------------------------------------------
+% RegionIndex is a CHAIN to select the (StringTable) index
+% for the current region. Ultimately the selected index is
+% assigned to the enclosing Average.CurrRegion.
+%----------------------------------------------------------------
+RULE: RegionListElt ::= Name COMPUTE
+  RegionListElt.RegionNumber = ADD(RegionListElt.RegionNumber,1);
+  RegionListElt.RegionIndex =
+	IF( EQ(RegionListElt.RegionNumber,
+		  INCLUDING	Average.CurrRegionNumber),
+		Name,
+		RegionListElt.RegionIndex );
+END;
+
+RULE: AvgVarList ::= VarListPart END;
+RULE: VarListPart ::= VarListElt END;
+RULE: VarListPart ::= VarListPart ',' VarListElt END;
+RULE: VarListElt ::= Name END;
+
+RULE: VarListElt ::= Name COMPUTE
+  printf( "Var %s Region %s\n", StringTable(Name),
+	StringTable(INCLUDING Average.CurrRegion) );
+END;
