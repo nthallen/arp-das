@@ -1,37 +1,5 @@
 /* nortlib.h include file for nortlib
  * $Log$
- * Revision 1.10  1994/08/02  15:35:42  nort
- * Added nrtl_strdup() to memory set
- *
- * Revision 1.9  1994/06/20  18:50:29  nort
- * sAdded nl_free_memory and remap of free_memory()
- *
- * Revision 1.8  1994/06/20  18:42:56  nort
- * Added subset memlib functionality to nortlib
- * Made both includes cognizant of the fact
- *
- * Revision 1.7  1994/02/15  19:03:33  nort
- * Moved -p option from TMA to CIC
- * Added ci_sendfcmd()
- *
- * Revision 1.6  1994/02/14  00:06:19  nort
- * Library stuff
- * cis_initialize() and cis_terminate()
- *
- * Revision 1.5  1993/05/19  20:18:42  nort
- * Improved flexibility in nl_error support with nl_verror, nl_debug_level
- * Added cic_query. Changed ci_sendcmd() arg to const.
- * Add TMA support services
- *
- * Revision 1.4  1993/02/15  17:58:49  nort
- * Having added a number of command interpreter functions for
- * client/server operation.
- *
- * Revision 1.3  1992/09/24  20:23:10  nort
- * With Command Queueing
- *
- * Revision 1.2  1992/09/09  18:45:23  nort
- * Latest version
  *
  * Revision 1.1  1992/08/25  15:31:42  nort
  * Initial revision
@@ -88,17 +56,6 @@ int ci_sendfcmd(int mode, char *fmt, ...);
 void ci_server(void); /* in nortlib/cis.c */
 void cis_initialize(void); /* in cmdgen.skel or .cmd */
 void cis_terminate(void);  /* in cmdgen.skel of .cmd */
-
-/* tmcalgo (tma) support routines */
-void tma_new_state(unsigned int partition, const char *name);
-void tma_new_time(unsigned int partition, long int t1, const char *next_cmd);
-int tma_time_check(unsigned int partition);
-void tma_sendcmd(const char *cmd);
-void tma_init_options(int argc, char **argv);
-void tma_hold(int hold);
-extern int tma_is_holding;
-extern const int tma_n_partitions;
-#define OPT_TMA_INIT "r:m"
 
 /* guaranteed memory allocator, memlib.h subset.
  * Include memlib.h to obtain the full definition
