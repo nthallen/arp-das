@@ -1,28 +1,39 @@
-State Begin {
-     > Telemetry Start
-  +1 Validate Lamp_On;
-}
+# State Begin {
+#      > Telemetry Start
+#   +1 Validate Lamp_On;
+# }
 
-{/* this is a top-level TMC statement block between Begin and Lamp_On */
-TM 1 Hz MFCtr;
-}
+# {/* this is a top-level TMC statement block between Begin and Lamp_On */
+# TM 1 Hz MFCtr;
+# }
 
 State Lamp_On {
- { if (WVRFW.convert > 3.0 && WVRFB.convert < 2.0)
-   Validate Operating; }
+#  { if (WVRFW.convert > 3.0 && WVRFB.convert < 2.0)
+#    Validate Operating; }
 
-     > Telemetry Logging Suspend
- +40 > Telemetry Logging Resume
-     { if (foobar) validate barfoo; }
+#      > Telemetry Logging Suspend
+# 	 hold until ( foo == 7 ) or 8:03 else Validate Lamp_On;
+#  +40 > Telemetry Logging Resume
+#      { if (foobar) validate barfoo; }
+
+# 	 #----------------------------------------------------------------
+# 	 # The following two statements cause an assert failure
+# 	 # unless +1 is placed before the hold until
+# 	 #----------------------------------------------------------------
+ +1  depending on (DHTR2_IDLE) { validate DHTR2_HEAT; }
+     hold until ( SF2BTemp > 300 ) or 80;
+
  +20 Validate Lamp_On;
+#  	{ End condition 1; }
+# 	{ End condition 2; }
 }
 
-State
-Slurpy
-"slurpy.tmas"
-( foo, bar )
-{}
+# State
+# Slurpy
+# "slurpy.tmas"
+# ( foo, bar )
+# {}
 
-%{ /* This is a top-level C pass-through block */
-#define foo bar
-%}
+# %{ /* This is a top-level C pass-through block */
+# #define foo bar
+# %}
