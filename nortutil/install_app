@@ -80,16 +80,29 @@ if [ -n "$mypatches" ]; then
   done
 fi
 
-typeset orig=no make=no clean=no typeset unpack=no
+typeset orig=no make=no clean=no typeset unpack=no dump=no
 
 while [ -n "$1" ]; do
   case "$1" in
 	orig) orig=yes;;
 	make) make=yes;;
 	clean) clean=yes;;
+	dump) dump=yes;;
+	*) nl_error "Unknown option '$1'";;
   esac
   shift
 done
+
+if [ $dump = yes ]; then
+  echo "pkg=$pkg"
+  echo "archive=$archive"
+  echo "archpkg=$archpkg"
+  echo "patches=$patches"
+  echo "mypatches=$mypatches"
+  echo "fpatches=$fpatches"
+  echo "fmypatches=$fmypatches"
+  exit 0
+fi
 
 [ $make = yes -a ! -x $portpath/QNX.make ] &&
   nl_error Cannot make unless QNX.make is executable
