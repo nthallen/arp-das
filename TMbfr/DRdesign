@@ -258,7 +258,6 @@ tmq.c {
   }
 }
 tmopt.oui {
-  -p
   -o[FRS]
     F = Fast
     R = Regulated
@@ -274,4 +273,8 @@ tmopt.oui {
   the writer arrives)
   Use Experiment environment variable to determine device name.
   /dev/huarp/$Experiment/TM
+  * - Playback flag could be handled through O_NONBLOCK as
+  determined by the writer. Collection is the only case where
+  O_NONBLOCK would be specified. All other approaches would
+  be blocking.
 }
