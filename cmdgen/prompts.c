@@ -1,6 +1,9 @@
 /* prompts.c
  *
  * $Log$
+ * Revision 1.3  1992/07/15  20:29:10  nort
+ * Beta Release
+ *
  * Revision 1.2  1992/07/10  19:31:47  nort
  * Added machine-dependent prompt texts
  * and consolidated common prompts.
@@ -10,6 +13,7 @@
  *
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 #include "cmdgen.h"
@@ -69,6 +73,7 @@ static void output_ptext(void) {
 	free_memory(up);
   }
   fprintf(ofile, "\n  };\n#endif\n");
+  fprintf(ofile, "#endif /* NO_PROMPTS */\n");
 }
 
 static struct pidx *new_ups(char *text) {
@@ -141,6 +146,7 @@ static void gen_tprompts(termlist *tl) {
 void output_prompts(void) {
   int i;
 
+  fprintf(ofile, "#ifndef NO_PROMPTS\n");
   fprintf(ofile, "prompt_type prompts[] = {");
   for (i = 0; i < n_states; i++) {
 	if (states[i]->terminal_type == SI_WORD) {
