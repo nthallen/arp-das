@@ -1,5 +1,8 @@
 /* compiler.c Support routines for compilers
  * $Log$
+ * Revision 1.2  1993/09/15  19:27:19  nort
+ * *** empty log message ***
+ *
  * Revision 1.1  1993/07/12  15:54:26  nort
  * Initial revision
  *
@@ -21,7 +24,7 @@
    This includes standard options, more or less as supported by
    tmc. The common options will include:
    
-	 -h print_usage
+	 -q print_usage
 	 -k keep output file on error
 	 -o specify output file name
 	 -v increase verbosity level
@@ -130,7 +133,7 @@ void compile_init_options(int argc, char **argv, char *extension) {
   optind = 0;  
   while ((c = getopt(argc, argv, opt_string)) != -1) {
 	switch (c) {
-	  case 'h':
+	  case 'q':
 		print_usage(argv);
 		exit(0);
 	  case 'w': compile_options &= ~CO_IGN_WARN; break;
@@ -148,7 +151,8 @@ void compile_init_options(int argc, char **argv, char *extension) {
   sargc = argc;
   sargv = argv;
   fno = optind;
-  yywrap();
+  if (yywrap())
+	compile_error(3, "No input file specified");
   if (ofile == NULL && input_filename != NULL) {
 	output_filename = makeofile(input_filename, extension);
 	ofile = open_output_file(output_filename);
