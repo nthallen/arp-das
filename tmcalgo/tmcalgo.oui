@@ -1,0 +1,6 @@
+<package> tmcalgo
+<include> compiler
+<include> client
+<package> output_ext_init
+<inits>
+  output_extension = ".tmc";
