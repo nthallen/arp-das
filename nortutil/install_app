@@ -28,12 +28,41 @@
 # After the archive is expanded, a softlink is created in
 # the ../$pkg directory to point to the $portpath:
 #   ln -s $portpath ../$pkg/qnxp
+# 
+# QNX.setup is charged with defining the variables pkg, archive,
+# archpkg, patches and mypatches
+# pkg: the name of the directory in which build we occur,
+#      usually coded by version number.
+# archive: the name of the archive file, defaulting to
+#      $pkg.tar.gz
+# archpkg: the name of the directory into which the archive
+#      expands. Defaults to ${archive%.tar*}
+# patches: a space-delimited list of official patches
+# mypatches: a space-delimited list of local unofficial patches
+#   The difference between patches and mypatches is that
+#   if we make any local changes, we'll want to generate diffs
+#   against the latest official patches, rather than an earlier
+#   version, so we apply patches to our ORIG directories, but
+#   only apply mypatches to the BLD directories.
 
-# The QNX.make command will be executed in the $pkg directory
-# with the QNX.setup having been executed. It would not be
-# unreasonable to have the QNX.make script read QNX.setup
-# itself and cd to the appropriate directory, but it is not
-# required.
+# The QNX.make command will be executed in the BLD/$pkg directory.
+# It isn't dot-executed, so it does not have immediate access to
+# the variables defined in QNX.setup. It can readily determine
+# the pkg via basename $PWD, and that is probably all that is
+# necessary, although if anything else is required, QNX.setup
+# could export the pertinent variable. QNX.make can also assume
+# that the port directory is ../..
+#
+# In addition to building the application, QNX.make is now
+# charged with creating a file in the BLD directory called
+# $pkg.made if the build is successful. If this file exists,
+# QNX.make won't be invoked.
+
+# The QNX.install command is very similar to the QNX.make.
+# It too is invoked in BLD/$pkg and is also charged with
+# creating a $pkg.installed file if the install is successful.
+# QNX.install will be run as root, whereas QNX.make is run
+# as $LOGNAME.
 
 function nl_error {
   echo "install_app: $*" >&2
