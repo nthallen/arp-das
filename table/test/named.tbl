@@ -1,0 +1,14 @@
+food {
+  three;
+  short;
+  (words,4,1)
+}
+
+fourfoo { HBox {
+	{ [food]; -+; [food] }; |; { [food]; +-; [food] }
+  }
+}
+
+bar { -; HBox { +|+;+|+ }; - }
+
+{ [bar] }

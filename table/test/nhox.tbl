@@ -1,0 +1,126 @@
+Hsk1 {
+  V300I: (V300I,4) A;
+  V28I1: (V28I1,4) A;
+  V28I2: (V28I2,4) A;
+  V28_V: (V28_V,4) V;
+  Lab_1: (Lab_1,4) V;
+  Lab_2: (Lab_2,4) V;
+  Lab_3: (Lab_3,4) V;
+}
+Hsk2 {
+  PC__T: (PC__T,5) C;
+  HD__T: (HD__T,5) C;
+  ICC_T: (ICC_T,5) C;
+  PS__T: (PS__T,5) C;
+  DRs_T: (DRs_T,5) C;
+  DTE_I: (DTE_I,4) A;
+  LTE_I: (LTE_I,4) A;
+}
+Housekeeping {
+  HBox{ +=+; Title: "Housekeeping"; +=+ };
+  HBox { [Hsk1]; |; [Hsk2] };
+}
+DetAxes {
+  HBox{ +=+; Title: "Detection Axes"; +=+ };
+  Header:
+    ""     {>SX1<}   {>SX2<}   {>LAB<};
+  Fixed: (SX1FG,5) (SX2FG,5) (LABFG,5);
+  Adjst: (SX1AG,5) (SX2AG,5) (LABAG,5);
+  Bkgnd: (SX1BG,6) (SX2BG,6) (LABBG,6);
+  "X*FAT:" (X1FAT,5) (X2FAT,5) >"øC";
+  "X*Las:" (X1Las,6) (X2Las,6) >Std;
+}
+DyeLas {
+  DLooT (DLooT,5) "C";
+  UVMon (UVMon,6) "";
+  DLH_P (DLH_P,6) "V";
+  Et_LW (Et_LW,6) "V";
+}
+LasIdx {
+  Header:
+	>Etn<         >Atn<        >Blw<;
+  (EtnPs,5)     (AtnPs,5)     (BlwPs,5);
+  (EtnStFlag,5) (AtnStFlag,5) (BlwStFlag,5);
+  (EtnFlg,4)    (AtnFlg,4)    (ID0Flg,4);
+  (EtPos,6)     (AtPos,5)     (BAPos,5);
+}
+GasDeck {
+  HBox{ +=+; Title: "NO System"; +=+ };
+  SP (NOSPt,5) (NOFlowStat,4) Air (AirSolStat, 4) X1 (X1_S,4);
+  Fl (NOFlw,4) (NOSolStat,4) Inj (InjStat,5) X2 (X2_S,4);
+}
+LasDiodes {
+  HBox{ +=+; Title: "Laser Diodes"; +=+ };
+  (RDiode_On,3)  Header:  >"1"<  >"2"<;
+  I      (RLSD1I,6)       (RLSD2I,6)       A;
+  Iset   (RLSD1ISP,6)     (RLSD2ISP,6)     A;
+  T      (LSD1T,4)        (LSD2T,4)        V;
+  "T(R)" (RLSD1T,6)       (RLSD2T,6)       C;
+  Tset   (RLSD1TSP,6)     (RLSD2TSP,6)     C;
+  OpHrs  (RLSD1OpHours,6) (RLSD2OpHours,6) Hrs;
+}
+Laser {
+  HBox{ +=+; Title: Laser; +=+ };
+  GrnP2: (GrnP2,4) V;
+  CIn_T: (CIn_T,5) C;
+  COutT: (COutT,5) C;
+  #Diodes: (RDiode_On,3);
+  DoubTSP: (RDoubTSP,4);
+  RepRtSP: (RepRtSP,5);
+  RepRt1: (RepRate1,5);
+  RepRt2: (RepRate2,5);
+}
+OHCell {
+  HBox{ +=+; Title: "OH Cell"; +=+ };
+  SOCFG: (SOCFG,5);
+  SOCAG: (SOCAG,5);
+  SOCBG: (SOCBG,6);
+  OCLUV: (OCLUV,4) "V";
+  OHCLI: (OHCLI,4) "A";
+}
+Gates {
+  "" "1A" "1B" "2A" "2B";
+  Wid: (Gt1AWid,3) (Gt1BWid,3) (Gt2AWid,3) (Gt2BWid,3);
+  Dly: (Gt1ADly,3) (Gt1BDly,3) (Gt2ADly,3) (Gt2BDly,3);
+}
+RLHist {
+  (RLHist2,50+1);
+  (RLHist1,50+1);
+  (RLHist0,50+1);
+}
+
+Table {
+  HBox {
+	||+;
+	{
+	  HBox { [Housekeeping]; ||+; [DetAxes] };
+	  HBox {
+		Table {
+		  HBox{ +=+; Title: "Dye Laser"; +=+ };
+		  HBox { [DyeLas]; |; [LasIdx] };
+		  [GasDeck];
+		};
+		||+;
+		[LasDiodes];
+	  };
+	};
+	||+;
+	{
+	  [Laser];
+	  [OHCell];
+	  +=+;
+	  >MFCtr: (MFCtr,5);
+	};
+	||+;
+  };
+  =;
+  HBox {
+	+||+;
+	[Gates];
+	+||+;
+	[RLHist];
+	+||+;
+  };
+  =;
+  (%CLIENT,0+1,1);
+}

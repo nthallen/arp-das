@@ -1,0 +1,17 @@
+#! /bin/sh
+
+function nl_error {
+  echo check: $* >&2
+  exit 1
+}
+for i in ; do
+  old=${i%.tbl}.fld
+  new=$old.new
+  table $i > $new
+  if cmp -s $old $new; then
+	echo "$i: OK"
+	rm $new
+  else
+    diff $old $new | less
+  fi
+done

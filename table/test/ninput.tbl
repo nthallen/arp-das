@@ -1,0 +1,9 @@
+Table {
+  Label: (datum) Unit;
+  Label:;
+  (datum);
+  Unit;
+  (datum,3);
+  (datum,50,2);
+  HBox { Table { "one" (datum,4+1) "two" "three"; };};
+}

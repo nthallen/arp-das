@@ -1,0 +1,13 @@
+Table {
+  Table {
+	>"Housekeeping"<;
+	V300I: (V300I,4) A;
+	V28I1: (V28I1,4) A;
+	V28I2: (V28I2,4) A;
+	V28_V: (V28_V,4) V;
+	Lab_1: (Lab_1,4) V;
+	Lab_2: (Lab_2,4) V;
+	Lab_3: (Lab_3,4) V;
+  };
+  (%CLIENT,0+1,2);
+}

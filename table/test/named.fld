@@ -1,0 +1,8 @@
+/* form: lines, cols, pos_y, pos_x */
+#FORM# 3 3 0 0
+/* attribute type */
+#ATTRIBUTES# NORMAL BOX FIELD HEADER LABEL TITLE UNITS
+/* fields: number, line, col, width, length, attribute code, string */
+/* strings: line, col, attribute code, string */
+#STRING 1 0 1 "ÀÙ"
+#STRING 0 0 1 "Ú¿"

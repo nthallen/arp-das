@@ -1,0 +1,24 @@
+/* form: lines, cols, pos_y, pos_x */
+#FORM# 9 51 0 0
+/* attribute type */
+#ATTRIBUTES# NORMAL BOX FIELD HEADER LABEL TITLE UNITS
+/* fields: number, line, col, width, length, attribute code, string */
+#FIELD# 1 0 7 5 1 2 "datum"
+#FIELD# 2 2 45 5 1 2 "datum"
+#FIELD# 3 4 47 3 1 2 "datum"
+#FIELD# 4 5 0 50 2 2 "datum"
+#FIELD# 5 7 4 36 1 2 "datum"
+/* strings: line, col, attribute code, string */
+#STRING 0 0 4 "Label:"
+#STRING 0 7 2 "     "
+#STRING 0 13 4 "Unit"
+#STRING 1 0 4 "Label:"
+#STRING 2 45 2 "     "
+#STRING 3 0 4 "Unit"
+#STRING 4 47 2 "   "
+#STRING 5 0 2 "                                                  "
+#STRING 6 0 2 "                                                  "
+#STRING 7 0 4 "one"
+#STRING 7 4 2 "                                    "
+#STRING 7 41 4 "two"
+#STRING 7 45 4 "three"

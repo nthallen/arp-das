@@ -1,0 +1,135 @@
+Housekeeping {
+  Title: >"Housekeeping"<;
+  V300I: (V300I,4) A;
+  V28I1: (V28I1,4) A;
+  V28I2: (V28I2,4) A;
+  V28_V: (V28_V,4) V;
+  Lab_1: (Lab_1,4) V;
+  Lab_2: (Lab_2,4) V;
+  Lab_3: (Lab_3,4) V;
+}
+PMTs {
+  Title: >"PMTs"<
+  Header: >KV<    >"øC"<;
+  X1   (X1_HV,4) (X1DAT,4);
+  X2   (X2_HV,4) (X2DAT,4);
+  OCl  (OClHV,4);
+}
+TEC {
+  Title: >"Thermo Elec Cool"<;
+  Header:
+     ""      >D<      >L<;
+  "*HX1T" (DHX1T,4) (LHX1T,4) C;
+  "*HX2T" (DHX2T,4) (LHX2T,4) C;
+  "*Rs_T" (DRs_T,4)    -      C;
+  "*TETV" (DTETV,4) (LTETV,4) C;
+  "*TE_I" (DTETI,4) (LTETI,4);
+  "PumpS" (DyePS,3) (CooPS,3);
+  "FlowS" (DL_Fl,3) (TFRFl,3);
+}
+GasDeck {
+  Title: >"Gas Deck"<;
+  Header:
+   "" >HP<      >LP<      >RgT<;
+  NO (NO_HP,4) (NO_LP,4) (NORgT,5);
+  Air (AirHP,4) (AirLP,4) (A_RgT,5);
+}
+AirFlow {
+  Title: >"Air Flow"<;
+  SD__P (SD__P,5);
+  SD_DP (SD_DP,5);
+  SAFB1 (SAFB1,5);
+  SAFB2 (SAFB2,5);
+  SCV   (SCV_S,4);
+  VGlue 0+1;
+  { HGlue 0+1 HBox{-;-} HGlue 0+1 };
+  VGlue 0+1;
+  Title: >Throttle<;
+  >{
+	(STVPs);
+	(STVStFlag,5);
+	(SVPos,4);
+	(STVFlg,4);
+  }<;
+}
+Laser {
+  Title: >Laser<;
+  Power (LaserS,3);
+  DLH1T (DLH1T,5) "øC";
+  DLH2T (DLH2T,5) "øC";
+  LMP_T (LMP_T,5) "øC";
+  PMonT (PMonT,5) "øC";
+  NoseP (NoseP,5);
+}
+Status {
+  Title: >Status<;
+  DStt0: (DStt0,8);
+  DStt1: (DStt1,8);
+  DStt2: (DStt2,8);
+  DStt3: (DStt3,8);
+  "I/O:" (IOSwS,8);
+}
+OtherT {
+  Title: >"Other T (øC)"<;
+  NOFlT (NOFlT,5);
+  OHCHT (OHCHT,5);
+  OHC2T (OHC2T,5);
+  HD__T (HD__T,5);
+  SolDT (SolDT,5);
+  SDP_T (SDP_T,5);
+}
+Software {
+  Title: >Software<;
+  Sol:   (SolSt,3);
+  SW:    (SW_St,3);
+}
+HBar { VGlue 0+1; +-+; VGlue 0+1 }
+
+Table {
+  HBox {
+	VGlue 24;
+	{
+	  -;
+	  HBox { +|+; Title: >"HOx Engineering"<; +|+ };
+	  -;
+	  HBox {
+		+|+;
+		Table {
+		  [Housekeeping];
+		  [HBar];
+		  [PMTs];
+		};
+		+|+;
+		Table {
+		  [TEC];
+		  [HBar];
+		  [GasDeck];
+		};
+		+|+;
+		[AirFlow];
+		+|+;
+		Table {
+		  [Laser];
+		  [HBar];
+		  [Status];
+		};
+		+|+;
+		Table {
+		  [OtherT];
+		  [HBar];
+		  [Software];
+		  [HBar];
+		  {	MFCtr: (MFCtr,5) };
+		};
+		+|+;
+	  };
+	  -;
+	  VGlue 0+30;
+	  Overlay {
+		(%TMA:hoxpalgo:1,0+1,2)
+		(%TMA:labalgo:1,0+1,2)
+	  };
+	  (%CLIENT,0+1,2);
+	}
+  }
+}
