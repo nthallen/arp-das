@@ -184,7 +184,7 @@ void ptg_output_name( PTG_OUTPUT_FILE file, char *name ) {
 }
 
 unsigned short amps_to_bits( double amps, CoordPtr pos ) {
-  double bits = amps/AMPS_PER_BIT + 32768.;
+  double bits = amps/AMPS_PER_BIT + AMPS_BIT_OFFSET;
   unsigned short sbits = (unsigned short) bits;
   if ( bits < MIN_DAC_BITS || bits > MAX_DAC_BITS )
     message( ERROR, "Offset DAC Value out of range", 0, pos );
@@ -192,7 +192,7 @@ unsigned short amps_to_bits( double amps, CoordPtr pos ) {
 }
 
 unsigned short aps_to_bits( double aps, CoordPtr pos ) {
-  double bits = aps/APS_PER_BIT;
+  double bits = aps/APS_PER_BIT + APS_BIT_OFFSET;
   unsigned short sbits = (unsigned short) bits;
   if ( bits < MIN_DAC_BITS || bits > MAX_DAC_BITS )
     message( ERROR, "Ramp DAC Value out of range", 0, pos );

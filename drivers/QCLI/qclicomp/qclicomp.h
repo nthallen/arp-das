@@ -60,8 +60,17 @@ extern void ptg_output_word( PTG_OUTPUT_FILE file, unsigned short value, int cou
 extern void ptg_output_time( PTG_OUTPUT_FILE file );
 extern void ptg_output_name( PTG_OUTPUT_FILE file, char *name );
 #define ptg_output_hex( f, v, c ) ptg_output_word(f,(unsigned short)v,c)
-#define AMPS_PER_BIT -7.6294e-5
-#define APS_PER_BIT 3.80625e-3
+
+/* New conversions for new op amp configuration 040423 */
+/* #define AMPS_PER_BIT -7.6294e-5
+   #define AMPS_BIT_OFFSET 32768.
+   #define APS_PER_BIT 3.80625e-3
+   #define APS_BIT_OFFSET 0
+*/
+#define AMPS_PER_BIT 3.8147e-5
+#define AMPS_BIT_OFFSET 0
+#define APS_PER_BIT -7.6294e-3
+#define APS_BIT_OFFSET 32768.
 #define MIN_DAC_BITS 0
 #define MAX_DAC_BITS 65535L
 unsigned short amps_to_bits( double amps, CoordPtr pos );
