@@ -112,3 +112,45 @@ long round_to_step( double time, long step ) {
   long divisor = DIV_UP(itime,step);
   return step*divisor;
 }
+
+typedef struct {
+  char *config;
+  int index;
+} dtoa_str;
+static dtoa_str dtoa_strs[N_DTOAS+1] = {
+  "0 0 0", NoStrIndex,
+  "1 0 0", NoStrIndex,
+  "1 1 0", NoStrIndex,
+  "1 1 1", NoStrIndex
+};
+
+WaveDtoAP new_wavedtoa( void ) {
+  int i;
+  WaveDtoAP wdp = (WaveDtoAP) malloc(sizeof(WaveDtoA));
+  if (wdp == 0)
+    message( DEADLY, "Out of memory in new_wavedtoa", 0,
+				NoPosition );
+  for (i = 0; i < N_DTOAS; i++)
+    wdp->value[i] = 0.;
+  wdp->n_used = 0;
+  return wdp;
+}
+
+int alloc_dtoa( WaveDtoAP wdp, double delta, CoordPtr pos ) {
+  if ( delta != 0 ) {
+    if ( wdp->n_used >= N_DTOAS )
+	  message( ERROR, "Not enough D/As in alloc_dtoa", 0, pos );
+	else wdp->value[wdp->n_used++] = delta;
+  }
+  if ( dtoa_strs[wdp->n_used].index == NoStrIndex )
+    dtoa_strs[wdp->n_used].index =
+	  stostr(dtoa_strs[wdp->n_used].config, 5);
+  return dtoa_strs[wdp->n_used].index;
+}
+
+double dtoa_value( WaveDtoAP wdp, int index ) {
+  if ( index < 1 || index > N_DTOAS )
+	  message( DEADLY, "Index out of range in dtoa_value", 0,
+			NoPosition );
+  return wdp->value[index-1];
+}

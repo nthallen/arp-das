@@ -54,3 +54,20 @@ ICOS Waveform FourthRamp {
   dI/dt = 25 A/sec;
   Ramp to 600mA in 16 msec;
 }
+
+ICOS Waveform TwoRamps {
+  Iz = .4 A;
+  Tz = 10%;
+  Nsample = 1500;
+  dI/dt = 6 A/sec;
+  Ramp from 500mA to 600mA;
+  Ramp from 800mA to 900mA;
+}
+
+ICOS Waveform TwoRampsNoZ {
+  Iz = .4 A;
+  Nsample = 1500;
+  dI/dt = 6 A/sec;
+  Ramp from 500mA to 600mA;
+  Ramp from 800mA to 900mA;
+}

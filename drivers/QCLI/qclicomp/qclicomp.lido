@@ -302,7 +302,6 @@ ATTR Scycle: int; /* Steps of Stepsize in full cycle */
 ATTR Tcycle: long; /* Length of total cycle in usecs */
 ATTR SplitCycle: int;
 ATTR Toff, Ton: long;
-ATTR ProgLen: int;
 SYMBOL ICOSWave COMPUTE
   SYNT.EstSamples =
 	IF( GT( THIS.RawRate, 0. ),
@@ -324,7 +323,30 @@ SYMBOL ICOSWave COMPUTE
   SYNT.Ttrigger = SUB( THIS.Tcyc0, THIS.Trcypre );
   SYNT.Scycle = ADD( THIS.Scyc0, THIS.Srcy );
   SYNT.Tcycle = ADD( THIS.Tcyc0, THIS.Trcy );
-  SYNT.ProgLen = MUL( IF( THIS.SplitCycle, 2, 1), THIS.Scycle );
+END;
+
+/* Calculate Steps taking SplitCycle into account */
+ATTR SSzi, SSrampi, SSzif, SSrcy: long;
+ATTR SplitFactor: int;
+ATTR ProgLen: int;
+SYMBOL ICOSWave COMPUTE
+  SYNT.SplitFactor = IF( THIS.SplitCycle, 2, 1 );
+  SYNT.ProgLen = MUL( THIS.SplitFactor, THIS.Scycle );
+  SYNT.SSzi = MUL( THIS.SplitFactor, THIS.Szi );
+  SYNT.SSzif = SUB( THIS.SSzi, IF(THIS.SSzi,THIS.SplitCycle,0) );
+  SYNT.SSrcy = IF( THIS.SplitCycle, 1, THIS.Srcy );
+END;
+SYMBOL ICOSWave INHERITS ICOSRampRootCount END;
+SYMBOL ICOSRamp INHERITS ICOSRampCount END;
+SYMBOL ICOSRamp COMPUTE
+  INH.SplitCycle = INCLUDING ICOSWave.SplitCycle;
+  INH.SplitFactor = INCLUDING ICOSWave.SplitFactor;
+  INH.SSzi = INCLUDING ICOSWave.SSzi;
+  SYNT.SSrampi = SUB( MUL( THIS.SplitFactor, THIS.Srampi ),
+	IF( AND( AND( THIS.SplitCycle, EQ(THIS.SSzi,0)),
+	          EQ(THIS.ICOSRampCount,
+				 INCLUDING ICOSWave.ICOSRampCountResult)),
+		1, 0 ) );
 END;
 
 /*------------------------------------*/
@@ -358,6 +380,11 @@ END;
 /* Assign D/A's */
 /*--------------*/
 ATTR Iz: double;
+ATTR DeltaI: double; /* Current step required */
+ATTR DtoA: int; /* DtoA config string for a Iz or ramp */
+ATTR DtoAs: WaveDtoAP;
+CHAIN CrntI: double;
+CHAIN DAHeap: WaveDtoAP;
 
 SYMBOL IzDef COMPUTE
   SYNT.Iz = CONSTITUENT Current.Value;
@@ -365,6 +392,17 @@ END;
 SYMBOL ICOSWave COMPUTE
   SYNT.Iz = CONSTITUENTS IzDef.Iz
     WITH( double, ADD, IDENTICAL, ZERO );
+  SYNT.DtoAs = new_wavedtoa();
+  CHAINSTART HEAD.CrntI = THIS.Iz;
+  SYNT.DtoA = alloc_dtoa( THIS.DtoAs, THIS.Iz, COORDREF ) <-
+	TAIL.CrntI;
+  CHAINSTART HEAD.DAHeap = THIS.DtoAs <- THIS.DtoA;
+END;
+SYMBOL ICOSRamp COMPUTE
+  SYNT.DeltaI = SUB( THIS.Istart1, THIS.CrntI );
+  THIS.CrntI = THIS.Istop1;
+  SYNT.DtoA = alloc_dtoa( THIS.DAHeap, THIS.DeltaI, COORDREF );
+  THIS.DAHeap = THIS.DAHeap <- THIS.DtoA;
 END;
 
 /*------------------------------*/
@@ -372,11 +410,20 @@ END;
 /*------------------------------*/
 CHAIN WaveAddr: long;
 ATTR LoopAddr: long;
+CHAIN WaveCnt: int;
+ATTR NWaves, WaveNum: int;
 SYMBOL SourceFile COMPUTE
   CHAINSTART HEAD.WaveAddr = 128;
   SYNT.ProgLen = TAIL.WaveAddr;
+  CHAINSTART HEAD.WaveCnt = 0;
+  SYNT.NWaves = TAIL.WaveCnt;
+END;
+SYMBOL Wave COMPUTE
+  SYNT.WaveNum = THIS.WaveCnt;
+  THIS.WaveCnt = ADD( THIS.WaveCnt, 1 );
 END;
 SYMBOL ICOSWave COMPUTE
+  INH.WaveNum = INCLUDING Wave.WaveNum;
   SYNT.LoopAddr = ADD( THIS.WaveAddr, 10 );
   THIS.WaveAddr = ADD( THIS.LoopAddr, THIS.ProgLen );
 END;
@@ -384,6 +431,54 @@ END;
 /*------------------------------*/
 /* Produce compiled QCLI output */
 /*------------------------------*/
+ATTR PTG, WaveIndex: PTGNode;
+SYMBOL SourceFile COMPUTE
+  SYNT.PTG = PTGFile(
+    CONSTITUENTS ICOSWave.WaveIndex
+	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+	PTGFill( SUB(120,THIS.NWaves), "0" ),
+    CONSTITUENTS ICOSWave.PTG
+	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+	THIS.ProgLen
+  );
+  PTGOut( THIS.PTG );
+END;
+SYMBOL ICOSWave COMPUTE
+  SYNT.WaveIndex =
+    PTGWaveIndex( PTGId(INCLUDING Wave.Sym), THIS.WaveAddr );
+  SYNT.PTG =
+    PTGSeq(
+      PTGICOSHdr(THIS.WaveNum,
+	    SUB( THIS.Ton, 1),
+		SUB( THIS.Toff, 1),
+		THIS.LoopAddr,
+	    THIS.ProgLen, PTGId(INCLUDING Wave.Sym),
+		PTGDACs(
+		  THIS.dIdt,
+		  dtoa_value(THIS.DtoAs,1),
+		  dtoa_value(THIS.DtoAs,2),
+		  dtoa_value(THIS.DtoAs,3)
+		) ),
+	  PTGICOSProg(
+		IF( THIS.SSzi,
+		  PTGICOSFill( THIS.SSzi, "0 1 1",
+			StringTable(THIS.DtoA), "1 1" ),
+		  PTGNULL ),
+		CONSTITUENTS ICOSRamp.PTG
+		  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+		IF( THIS.SSzif,
+		  PTGICOSFill( THIS.SSzif, "0 1 1",
+			StringTable(THIS.DtoA), "1 1" ),
+		  PTGNULL ),
+		PTGICOSFill( THIS.SSrcy, "0 1 1", StringTable(THIS.DtoA),
+		  "1 0" )
+	  ) );
+END;
+SYMBOL ICOSRamp COMPUTE
+  SYNT.PTG =
+  	PTGICOSFill( THIS.SSrampi, "1 0 1", StringTable(THIS.DtoA),
+		"1 1" );
+END;
 
 /*------------------------------*/
 /* Produce compiled .cmd output */
@@ -392,34 +487,29 @@ END;
 /*---------------------------*/
 /* Print Summary Information */
 /*---------------------------*/
-ATTR PTG, WaveIndex: PTGNode;
+ATTR Summary: PTGNode;
 SYMBOL SourceFile COMPUTE
-  SYNT.PTG = PTGFile(
-    CONSTITUENTS ICOSWave.WaveIndex
-	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
-    CONSTITUENTS ICOSWave.PTG
-	  WITH ( PTGNode, PTGWaves, IDENTICAL, PTGNull ),
-	THIS.ProgLen );
-  PTGOut( THIS.PTG );
+  SYNT.Summary = PTGFileSum(
+    CONSTITUENTS ICOSWave.Summary
+	  WITH ( PTGNode, PTGWaves, IDENTICAL, PTGNull ) );
+  PTGOut( THIS.Summary );
 END;
 SYMBOL ICOSWave COMPUTE
-  SYNT.WaveIndex =
-    PTGWaveIndex( PTGId(INCLUDING Wave.Sym), THIS.WaveAddr );
-  SYNT.PTG =
+  SYNT.Summary =
     PTGICOSWave( PTGId(INCLUDING Wave.Sym),
-	  CONSTITUENTS RateDef.PTG
+	  CONSTITUENTS RateDef.Summary
 		WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
 	  PTGSampleRate( THIS.RawRate, THIS.Naverage ),
-	  CONSTITUENTS NsampleDef.PTG
+	  CONSTITUENTS NsampleDef.Summary
 		WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
 	  PTGLong( THIS.RampSamples ),
 	  PTGIz( PTGCurrent( MUL(THIS.Iz, 1000.))),
 	  PTGdIdt( THIS.dIdt ),
 	  PTGTcycle( DIV(THIS.Tcycle,1000.) ),
 	  PTGStepsize( THIS.Stepsize ),
-	  CONSTITUENTS ICOSRamp.PTG
+	  CONSTITUENTS ICOSRamp.Summary
 	    WITH( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
-	  CONSTITUENTS (TzTime.PTG, SampleSpec.PTG, Percent.PTG )
+	  CONSTITUENTS (TzTime.Summary, SampleSpec.Summary, Percent.Summary )
 	    WITH( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
 	  PTGFcycle( DIV(1000000.,THIS.Tcycle) ),
 	  PTGTz( PTGTime(MUL(THIS.Tz1,1000.)),
@@ -428,29 +518,28 @@ SYMBOL ICOSWave COMPUTE
 	  PTGTonoff( THIS.Ton, THIS.Toff,
 		ADD(THIS.Trcy,THIS.Trcypre)),
 	  THIS.Scycle,
-	  THIS.ProgLen,
-	  THIS.WaveAddr
+	  THIS.ProgLen, THIS.WaveAddr
 	);
 END;
 
 SYMBOL RateDef COMPUTE
-  SYNT.PTG = PTGSpecd(
+  SYNT.Summary = PTGSpecd(
     PTGSampleRate( THIS.RawRate, THIS.Naverage ) );
 END;
 SYMBOL NsampleDef COMPUTE
-  SYNT.PTG = PTGSpecd( PTGLong( THIS.Nsample ));
+  SYNT.Summary = PTGSpecd( PTGLong( THIS.Nsample ));
 END;
 
 SYMBOL ICOSRamp COMPUTE
-  SYNT.PTG =
+  SYNT.Summary =
     PTGRamp(
-	  CONSTITUENTS Istart.PTG
+	  CONSTITUENTS Istart.Summary
 	    WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
       PTGCurrent( MUL(THIS.Istart1,1000.) ),
-	  CONSTITUENTS Istop.PTG
+	  CONSTITUENTS Istop.Summary
 	    WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
       PTGCurrent( MUL(THIS.Istop1,1000.) ),
-	  CONSTITUENTS PrepTime.PTG
+	  CONSTITUENTS PrepTime.Summary
 	    WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
       PTGTime( MUL(THIS.Tramp1,1000.) ),
 	  THIS.Srampi
@@ -458,25 +547,25 @@ SYMBOL ICOSRamp COMPUTE
 END;
 
 SYMBOL Istart COMPUTE
-  SYNT.PTG = PTGSpecd(PTGCurrent( MUL(THIS.Value,1000.) ));
+  SYNT.Summary = PTGSpecd(PTGCurrent( MUL(THIS.Value,1000.) ));
 END;
 SYMBOL Istop COMPUTE
-  SYNT.PTG = PTGSpecd(PTGCurrent( MUL(THIS.Value,1000.) ));
+  SYNT.Summary = PTGSpecd(PTGCurrent( MUL(THIS.Value,1000.) ));
 END;
 SYMBOL PrepTime COMPUTE
-  SYNT.PTG = PTGSpecd(PTGTime( MUL(THIS.Value,1000.) ));
+  SYNT.Summary = PTGSpecd(PTGTime( MUL(THIS.Value,1000.) ));
 END;
 
 SYMBOL TzTime COMPUTE
-  SYNT.PTG = PTGSpecd(PTGTime(
+  SYNT.Summary = PTGSpecd(PTGTime(
     MUL( CONSTITUENT Time.Value, 1000. )));
 END;
 RULE: SampleSpec ::= Integer 'Raw' 'Samples' COMPUTE
-  SampleSpec.PTG = PTGSpecd(PTGTzSample( Integer, "Raw " ));
+  SampleSpec.Summary = PTGSpecd(PTGTzSample( Integer, "Raw " ));
 END;
 RULE: SampleSpec ::= Integer 'Samples' COMPUTE
-  SampleSpec.PTG = PTGSpecd(PTGTzSample( Integer, "" ));
+  SampleSpec.Summary = PTGSpecd(PTGTzSample( Integer, "" ));
 END;
 SYMBOL Percent COMPUTE
-  SYNT.PTG = PTGSpecd(PTGPercent(MUL(THIS.Value,100.)));
+  SYNT.Summary = PTGSpecd(PTGPercent(MUL(THIS.Value,100.)));
 END;

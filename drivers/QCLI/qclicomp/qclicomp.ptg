@@ -1,13 +1,32 @@
 /* qclicomp.ptg */
 File:
-  "Source File\n"
+  "\nCompiled Output:\n"
   "  8 Word Header\n"
   "  Index: \n"
   $1 /* Waveform Index */
-  "\n"
-  "  Total Length: " $3 long "\n\n"
+  $2 /* Fill at end of index */
+  $3 /* Waveforms */
+  "  Total Length: " $4 long "\n"
+
+FileSum: /* Summary of waveforms */
   "Waveform Summaries:\n\n"
-  $2 /* Waveform Summaries */
+  $1 /* Waveform Summaries */
+
+ICOSHdr:
+  "\n"
+  "  ICOS Waveform " $1 int " " $6 "\n"
+  $7 /* DAC initialization */
+  "  " $2 long ": Ton-1\n"
+  "  " $3 long ": Toff-1\n"
+  "  0: Tpre\n"
+  "  " $4 long ": Loop Address\n"
+  "  " $5 int ": Loop Length\n"
+
+DACs:
+  "  " $1 double " Amps/Sec DAC1\n"
+  "  " $2 double " Amps DAC2\n"
+  "  " $3 double " Amps DAC3\n"
+  "  " $4 double " Amps DAC4\n"
 
 ICOSWave: "ICOS Waveform " $1 " @ " $17 long " {" "\n"
   "  Sample Rate:      " $3 $2 "\n"
@@ -23,6 +42,12 @@ ICOSWave: "ICOS Waveform " $1 " @ " $17 long " {" "\n"
   $10 /* Ramps */
   "}\n"
 
+ICOSProg:
+  $1 /* Tz */
+  $2 /* Ramps */
+  $3 /* Tz' */
+  $4 /* Trcy */
+  
 Ramp:
   "  Ramp {\n"
   "    Istart:    " $2 $1 "\n"
@@ -31,7 +56,7 @@ Ramp:
   "    Sramp:     " $7 int "\n"
   "  }\n"
 
-WaveIndex: "    " $1 ": " $2 long "\n"
+WaveIndex: "  " $2 long ": " $1 "\n"
 
 Iz:         "  Iz:          " $1 "\n"
 dIdt:       "  dI/dt:       " $1 double " A/sec\n"
@@ -51,3 +76,8 @@ Waves:   $1 { "\n" } $2
 Tonoff:
   "  Ton/Toff:    " $1 long "/" $2 long " usec\n"
   "  Trecycle:    " $3 long " usec\n"
+
+Fill:  "  " $2 string " repeated " $1 int " times\n"
+ICOSFill:
+  "  " $2 string " " $3 string " " $4 string
+  " repeated " $1 int " times\n"

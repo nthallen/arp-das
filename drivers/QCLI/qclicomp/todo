@@ -1,6 +1,8 @@
 Where am I? {
   ICOS Waveforms are fully specified
-  Generate output
+  Generating output
+  Output DAC Values
+  Output .cmd codes
 }
 Non-obvious semantic changes {
   Tz specifies the laser-off time before AND after

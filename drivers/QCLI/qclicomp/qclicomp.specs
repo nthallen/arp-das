@@ -14,4 +14,5 @@ $/Prop/Unique.gnrc +instance=Iz :inst
 $/Prop/Unique.gnrc +instance=Tz :inst
 $/Prop/Unique.gnrc +instance=Ncoadd :inst
 $/Prop/Unique.gnrc +instance=Sample :inst
+$/Tech/Counter.gnrc +instance=ICOSRamp :inst
 $/Output/PtgCommon.fw

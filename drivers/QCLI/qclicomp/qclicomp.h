@@ -2,6 +2,7 @@
 #define QCLICOMP_H_INCLUDED
 #include <math.h>
 #include "err.h"
+#include "csm.h"
 
 typedef struct {
   double samples;
@@ -14,6 +15,15 @@ extern RateDefP NewRateDefPtr( double samples, int navg,
 typedef long *longP;
 extern longP Set_rval( longP rvals, int index, double val );
 extern long PickRes( int npts, longP lp );
+
+#define N_DTOAS 3
+typedef struct {
+  double value[N_DTOAS];
+  int n_used;
+} WaveDtoA, *WaveDtoAP;
+extern WaveDtoAP new_wavedtoa( void );
+extern int alloc_dtoa( WaveDtoAP wdp, double delta, CoordPtr pos );
+extern double dtoa_value( WaveDtoAP wdp, int index );
 
 extern long round_to_step( double time, long step );
 #define NULLRATE() NewRateDefPtr(0.,1,0,NoPosition)
