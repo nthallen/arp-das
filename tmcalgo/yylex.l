@@ -1,6 +1,9 @@
 %{
   /* yylex.l for tmcalgo
    * $Log$
+ * Revision 1.4  1994/10/14  16:16:21  nort
+ * Removed arbitrary limitation on STATBUF size
+ *
  * Revision 1.3  1994/08/29  17:42:27  nort
  * Removed memlib.h to use simple nortlib memory interface
  *
@@ -59,13 +62,13 @@
   
   static void buffer_char(struct statbuf *sbuf, int c) {
 	assert(sbuf != NULL && sbuf->text != NULL);
-	sbuf->text[sbuf->n_chars++] = c;
 	if (sbuf->n_chars >= sbuf->size) {
-	  sbuf->n_chars *= 2;
-	  sbuf->text = realloc(sbuf->text, sbuf->n_chars);
+	  sbuf->size = sbuf->size * 2 + 1;
+	  sbuf->text = realloc(sbuf->text, sbuf->size + 1);
 	  if (sbuf->text == 0)
 		compile_error(4, "No memory to expand STATBUF");
 	}
+	sbuf->text[sbuf->n_chars++] = c;
   }
   
   static char *sbuftext(struct statbuf *sbuf) {
