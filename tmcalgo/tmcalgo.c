@@ -1,55 +1,45 @@
 /* tmcalgo.c Main program for tmcalgo
  * $Log$
+ * Revision 1.1  1993/05/18  20:37:19  nort
+ * Initial revision
  */
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include "nortlib.h"
+#include "compiler.h"
 #include "yytype.h"
-static char rcsid[] = "$Id$";
+#pragma off (unreferenced)
+  static char rcsid[] =
+	"$Id$";
+#pragma on (unreferenced)
 
-static int error_level = 0;
+int (*nl_error)(int level, char *s, ...) = compile_error;
 
-static int ta_err(int level, char *s, ...) {
-  va_list arg;
+#ifdef __USAGE
+%C	[options] [files]
+	-k             Keep output file (.c) even on error
+	-o <filename>  Send .tmc output to named file
+	-v             Produce Debug Messages
+	-q             Show this help message
+	-w             Give error return on warnings
+	-C <node>      Look for command server on specified node
+#endif
 
-  if (level >= -1 || level >= nl_debug_level) {
-	if (input_line_number > 0)
-	  fprintf(stderr, "%d - ", input_line_number);
-	va_start(arg, s);
-	nl_verror(stderr, level, s, arg);
-	va_end(arg);
-  }
-  if (level > error_level) error_level = level;
-  return(level);
-} 
+char *opt_string = "h:" OPT_CIC_INIT OPT_COMPILER_INIT;
 
-int (*nl_error)(int level, char *s, ...) = ta_err;
-
-char *opt_string = "vh:" OPT_CIC_INIT;
+static void algo_exit(void) {
+  check_command(NULL); /* Ask the server to quit */
+}
 
 int main(int argc, char **argv) {
-  int c;
-
-  optind = 0; /* start from the beginning */
-  opterr = 0; /* disable default error message */
-  while ((c = getopt(argc, argv, opt_string)) != -1) {
-	switch (c) {
-	  case 'v':
-		nl_debug_level--;
-		break;
-	  case '?':
-		nl_error(3, "Unrecognized Option -%c", optopt);
-	  default:
-		nl_error(4, "Unsupported Option -%c", c);
-	}
-  }
+  compile_init_options(argc, argv, ".tmc");
   cic_options(argc, argv, NULL);
+  atexit(algo_exit);
   yyparse();
   if (error_level >= 2) exit(error_level);
-  input_line_number = 0;
-  get_version(stdout);
-  list_states(stdout);
-  output_states(stdout);
-  return(0);
+  get_version(ofile);
+  list_states(ofile);
+  output_states(ofile);
+  return(error_level);
 }
