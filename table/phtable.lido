@@ -445,6 +445,7 @@ SYMBOL Rule COMPUTE
 	IF(THIS.ForReal,
 	  NewRule( THIS.Row, THIS.Col, SPACE(THIS.Width),
 			  SPACE(THIS.Height), 1, THIS.String ));
+  SYNT.Height = INCLUDING VField.Height;
 END;
 
 %----------------------------------------------------------------
