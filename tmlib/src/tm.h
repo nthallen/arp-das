@@ -9,76 +9,150 @@
   #define __attribute__(x)
 #endif
 
-typedef unsigned short mfc_t;
-
 /*
  * Message structures 
  */
-
-/* token info */
-typedef unsigned char token_type;
-
-/* Structure used to transmit data around the dbr */
+typedef unsigned short mfc_t;
+typedef unsigned short tm_hdrw_t;
+typedef unsigned long tmcks_t;
 typedef struct {
-  token_type n_rows;
-  unsigned char data[1];
-} __attribute__((packed)) dbr_data_type;
+  tm_hdrw_t tm_id; /* 'TM' TMHDR_WORD */
+  tm_hdrw_t tm_type;
+} tm_hdr_t;
+#define TMHDR_WORD 0x544D
+#define TMBUFSIZE 16384
+#define TM_DEV_BASE "/dev/huarp"
+#define TM_DEV_SUFFIX "TM"
+
+/* Recognized tm_type codes: */
+#define TMTYPE_INIT 0x0100
+#define TMTYPE_TSTAMP 0x0200
+#define TMTYPE_DATA_T1 0x0301
+#define TMTYPE_DATA_T2 0x0302
+#define TMTYPE_DATA_T3 0x0303
+#define TMTYPE_DATA_T4 0x0304
+
 
 /* Time stamp information */
 typedef struct {
-  unsigned short mfc_num;
+  mfc_t mfc_num;
   time_t secs;
-} __attribute__((packed)) tstamp_type;
+} __attribute__((packed)) tstamp_t;
 
-/* dbr client initialization */
 /* This will need some tweaking as we learn
-   what RCS can and can't do for us
+   what RCS and/or MD5 can and can't do for us
 */
 typedef struct {
-  char ident[21]; /* 12345678.123,v 12.12 */
-} tmid_type;
+  char ident[32]; /* 12345678.123,v 12.12 */
+} tmid_t;
 
 /* nrowsper/nsecsper = rows/sec */
 typedef struct {
-  tmid_type    tmid;
-  unsigned short nbminf;
-  unsigned short nbrow;
-  unsigned short nrowmajf;
-  unsigned short nsecsper;
-  unsigned short nrowsper;
-  unsigned short mfc_lsb;
-  unsigned short mfc_msb;
-  unsigned short synch;
-  unsigned short isflag;
-} __attribute__((packed)) tm_info_type;
-#define ISF_INVERTED 1
+  tmid_t    tmid;
+  tm_hdrw_t nbminf;
+  tm_hdrw_t nbrow;
+  tm_hdrw_t nrowmajf;
+  tm_hdrw_t nsecsper;
+  tm_hdrw_t nrowsper;
+  tm_hdrw_t mfc_lsb;
+  tm_hdrw_t mfc_msb;
+  tm_hdrw_t synch;
+  tm_hdrw_t flags;
+} __attribute__((packed)) tm_dac_t;
+#define TMF_INVERTED 1
 
 typedef struct {
-  tm_info_type tm;	    /* data info */
+  tm_dac_t tm;	    /* data info */
   unsigned short nrowminf;    /* number rows per minor frame */
   unsigned short max_rows;    /* maximum number of rows allowed to be sent in a message */
-  unsigned short unused;	    /* tid to send to */
-  unsigned short tm_started;  /* flow flag */
-  tstamp_type  t_stmp;	    /* current time stamp */
-  unsigned char mod_type;   /* module type */
-} __attribute__((packed)) dbr_info_type;
+  tstamp_t t_stmp;	    /* current time stamp */
+} tm_info_t;
+
+/* tm_data_t1_t applies when tmtype is TMTYPE_DATA_T1
+   This structure type can be used when entire minor frames are
+   being. This is true iff nrowminf is a multiple of n_rows and
+   the first row transmitted is the first row (row 0) of the
+   minor frame. MFCtr and Synch can be extracted from the data
+   that follows. data consists of n_rows * nbrow bytes. */
+typedef struct {
+  tm_hdrw_t n_rows;
+  char data[2];
+} __attribute__((packed)) tm_data_t1_t;
+
+/* tm_data_t2_t applies when tmtype is TMTYPE_DATA_T2
+   This structure type can be used to transmit rows even
+   when the whole minor frame is not present since the
+   mfctr and rownum of the first row are included in
+   the header. Subsequent rows are guaranteed to be
+   consecutive. data consists of n_rows * nbrow bytes. */
+typedef struct {
+  tm_hdrw_t n_rows;
+  mfc_t mfctr;
+  mfc_t rownum;
+  char data[2];
+} __attribute__((packed)) tm_data_t2_t;
+
+/* tm_data_t3_t applies when tmtype is TMTYPE_DATA_T3
+   This structure type can be used only in the case where
+   nrowminf=1, mfc_lsb=0 and mfc_msb=1. data is compressed
+   by stripping off the leading mfctr and trailing synch
+   from each minor frame. Hence data consists of
+   n_rows * (nbrow-4) bytes. All rows are guaranteed to
+   be sequential (since there is no way to determine
+   their sequence without the mfctr). */
+typedef struct {
+  tm_hdrw_t n_rows;
+  mfc_t mfctr;
+  char data[2];
+} __attribute__((packed)) tm_data_t3_t;
+
+/* tm_data_t4_t applies when tmtype is TMTYPE_DATA_T4
+   This structure type can be used under the same conditions
+   as tm_data_t3_t. The difference is the inclusion of a
+   cksum dword which can be used to verify the data.
+   The algorithm for calculating the cksum has yet to be
+   defined. */
+typedef struct {
+  tm_hdrw_t n_rows;
+  mfc_t mfctr;
+  tmcks_t cksum;
+  char data[2];
+} __attribute__((packed)) tm_data_t4_t;
+
+typedef union {
+  struct tm_msg {
+    tm_hdr_t hdr;
+    union {
+      tstamp_t ts;
+      tm_dac_t init;
+      tm_data_t1_t data1;
+      tm_data_t2_t data2;
+      tm_data_t3_t data3;
+      tm_data_t4_t data4;
+    } payload;
+  } __attribute__((packed)) msg;
+  char raw[TMBUFSIZE];
+} tm_packet_t;
 
 /* Function prototypes: */
 
 /* Data Client library functions: */
-extern int TM_open_stream(int blocking);
+extern int TM_open_stream( int write, int nonblocking );
+extern int TM_read_stream( void );
 extern int TM_readfd(void);
 extern int TM_stream( int nbytes, const char *data );
 
 /*  Data Client application functions: */
-extern void TM_data( int datatype, mfc_t mfctr, int row, int nrows, const char *data );
+extern void TM_data( tm_packet_t *ubuf, int n_bytes );
 extern void TM_init( void );
 extern void TM_row( mfc_t mfctr, int row, const char *data );
 extern void TM_tstamp( int tstype, mfc_t mfctr, time_t time );
 extern void TM_quit( void );
 
 /* Global variables */
-extern dbr_info_type dbr_info;
-#define tmi(x) dbr_info.tm.x
+extern tm_info_t tm_info;
+#define tmi(x) tm_info.tm.x
+extern int TM_fd;
+extern char *TM_buf;
 
 #endif

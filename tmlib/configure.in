@@ -3,6 +3,7 @@ AC_INIT(INSTALL.tm)
 AM_INIT_AUTOMAKE(tmlib, 2.0)
 
 dnl Checks for programs.
+AM_PROG_LIBTOOL
 
 dnl Checks for libraries.
 
