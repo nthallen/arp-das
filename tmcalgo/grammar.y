@@ -1,6 +1,9 @@
 %{
   /* grammar.y Grammar for tmcalgo
    * $Log$
+ * Revision 1.1  1993/05/18  20:37:18  nort
+ * Initial revision
+ *
    */
   #include <stdio.h>
   #include <assert.h>
@@ -8,7 +11,10 @@
   #include "yytype.h"
   #include "y.tab.h"
   #include "memlib.h"
-  static char rcsid[] = "$Id$";
+  #pragma off (unreferenced)
+	static char rcsid[] =
+	  "$Id$";
+  #pragma on (unreferenced)
 
   #define yyerror(x) nl_error(2, x)
   #define PARSE_DEBUG (-2)
@@ -79,12 +85,14 @@
 %%
 Program : prog_items { program = $1.first; }
 	;
+/* <pglval == struct prglst == first/last list of struct prg> */
 prog_items : { $$.first = $$.last = NULL; }
 	| prog_items prog_item {
 	  $$ = $1;
 	  append_prog(&$$, &$2);
 	}
 	;
+/* <prgval == struct prg> */
 prog_item : state_def {
 	  $$.type = PRGTYPE_STATE;
 	  $$.u.state = $1;
@@ -95,6 +103,7 @@ prog_item : state_def {
 	}
 	| KW_PARTITION { $$.type = PRGTYPE_PARTITION; }
 	;
+/* <stateval == struct stdef *> */
 state_def : KW_STATE state_name_def '{' untimed_commands timed_commands '}' {
 	  nl_error(PARSE_DEBUG, "State Definition %s", $2);
 	  if ($4.first == NULL) $4.first = $5.first;
@@ -102,8 +111,10 @@ state_def : KW_STATE state_name_def '{' untimed_commands timed_commands '}' {
 	  $$ = new_state($2, $4.first);
 	}
 	;
+/* <textval == char *> */
 state_name_def : TK_NAME { $$ = new_state_name($1); }
 	;
+/* <cmdsval == struct cmdlst == first/last list of cmddef> */
 untimed_commands : {
 	  last_command_time = -1;
 	  $$.first = $$.last = NULL;
@@ -113,6 +124,7 @@ untimed_commands : {
 	  $2->cmdtime = -1;
 	  append_command(&$$, $2);
 	}
+/* <cmdsval == struct cmdlst == first/last list of cmddef> */
 timed_commands : {
 	  last_command_time = 0;
 	  $$.first = $$.last = NULL;
