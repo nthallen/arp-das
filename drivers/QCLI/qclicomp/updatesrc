@@ -1,4 +1,5 @@
 #! /bin/sh
+rm -rf newsrc
 if [ ! -d newsrc ]; then
   mkdir newsrc
   eli "qclicomp.specs:source >newsrc"
