@@ -1,0 +1,15 @@
+#! /bin/bash
+function nl_error {
+  echo "qclitest: $*" >&2
+  exit 1
+}
+
+ifile=$1
+[ -n "$ifile" ] || nl_error "Must specify an input file"
+if [ ! -f "$ifile" -a -f "$ifile.qcli" ]; then
+  ifile="$ifile.qcli"
+fi
+[ -f "$ifile" ] || nl_error "Cannot locate input file $ifile"
+base=${ifile%.*}
+./qclicomp.exe -o $base.out -c $base.cmd -d $base.tmc -v $base.log $ifile
+
