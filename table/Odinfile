@@ -1,2 +1,10 @@
 %run == input +cmd=(ntable.specs:exe):stdout
 %visitprocs.c == ntable.specs:level_4_specs:ligaBe/visitprocs.c
+%myccflags == <<
+-I /usr/local/include
+
+%phflags == <<
++cc_flags='-I /usr/local/include' +lib=nort ph +lib_sp=(/usr/local/lib)
+
+phtable == phtable.specs +(%phflags) :exe
+
