@@ -1,12 +1,4 @@
-OBJ.c/yyparse.o
-OBJ.c/yylex.o
-OBJ.c/dstructs.o
-OBJ.c/cmdgen.o
-OBJ.c/states.o
-OBJ.c/vunion.o
-OBJ.c/trie.o
-OBJ.c/prompts.o
-OBJ.c/rules.o
+OBJ.*
 y.tab.h
 yyparse.c
 yylex.c
