@@ -303,6 +303,8 @@ FILE *mlf_next_file( mlf_def_t *mlf ) {
   
   next_file( mlf, mlf->n_levels );
   fp = fopen( mlf->fpath, (mlf->flags & MLF_WRITING) ? "w" : "r" );
+  if ( fp == 0 && nl_response > 0 )
+    nl_error( 1, "Unable to open file '%s'", mlf->fpath );
   return fp;
 }
 /*
