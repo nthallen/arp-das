@@ -1,22 +1,23 @@
 SRC=yyparse.y yylex.l cmdgen.h dstructs.c cmdgen.c states.c vunion.c
 SRC+=typedefs.skel trie.c functions.skel prompts.c rules.c
 TOOL=Makefile trial.cmd trial2.cmd
-DOC=todo
+DOC=todo wrtest.c rdtest.c
 OBJ=yyparse.o yylex.o dstructs.o cmdgen.o states.o vunion.o trie.o prompts.o
 OBJ+=rules.o
 INTERMED=y.tab.h yyparse.c yylex.c cmdgen trial.c trial.o trial
-TEMPORARY=*.err
+TEMPORARY=*.err rdtest.o wrtest.o rdtest wrtest
 SAVE=$(SRC) $(TOOL) $(DOC)
 PURGE=$(OBJ) $(INTERMED) $(TEMPORARY)
 MNC=cmdg
 
 YFLAGS=-d -t -l
 LFLAGS=-i
-CFLAGS=-g -ms
+CFLAGS=-g -mc
 
 trial : trial.o
-	$(LINK.c) -o trial trial.o $(LDFLAGS)
+	$(CC) -g -ms -o trial trial.o $(LDFLAGS)
 trial.o : trial.c
+	$(CC) -c -g -ms trial.c
 trial.c : trial.cmd cmdgen typedefs.skel functions.skel
 	cmdgen <trial.cmd >trial.c
 cmdgen : $(OBJ)
