@@ -5,6 +5,7 @@ while (<>) {
   s/\s*$/\n/;
   s/\x85/.../g; # …
   s/\x96/-/g; # –
+  s/\x97/--/g; # —
   s/\x91/'/g; # ‘
   s/\xED/'/g; # í
   s/\x92/'/g; # ’
@@ -13,6 +14,7 @@ while (<>) {
   s/\xEC/"/g; # ì
   s/\xEE/"/g; # î
   s|\xBD|1/2|g; # 1/2 ligature
+  s|\xA0| |g;  # some special kind of space
   s|\xD8|>|g;   # Ø
   if ( m/([^ -~\n])/ ) {
 	warn "Unprintable char found: '$1' in '$_'\n";
