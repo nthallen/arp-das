@@ -1,5 +1,37 @@
 Things to accomplish for TMCALGO v2.0
+Bugs/Features {
+  {	depending on (DHTR2_IDLE) { validate DHTR2_HEAT; }
+	hold until (SF2BTemp > 300 ) or 80;
+
+	Causes an assertion (states.c line 356) unless hold until is
+	preceeded by +1. Problem lies in list_substates() where I 
+	couldn't decide whether these should be in the same or 
+	different substates. The answer is almost certainly 
+	"different", though that could lead to non-execution in most 
+	cases. The preceeding TMC statement is clearly internal, and 
+	hence is supposed to be executed no more than once anyway. 
+  }
+  { Would it be worthwhile to support an option to execute an 
+	internal TMC statement more than once?
+  }
+  If modtime is zero, file is never read in slurp mode {
+	Changed beginning modtime to -1 and library error value
+	to -1 also
+  }
+  If slurp file disappears, sometimes SIGSEGVs {
+	(test this w/ htrsim)
+  }
+  Very long slurp files report spurious syntax errors
+}
+New Feature Wish List {
+  hold unless valid (); (pertains to whole partition)
+}
+states.c {
+  Perhaps commands following a hold until should be deemed to
+  belong to another time period.
+}
 Library {
+  During playback, report itime() in all messages?
 }
 Documentation Notes {
   Untimed commands consist entirely of tmc_statements
@@ -11,6 +43,24 @@ Documentation Notes {
   TMC statements within {} lose their curlies when going into the 
   TMC file. Double braces are required if a compound TMC 
   statement is desired.
+  
+  Within one time period, commands are sorted by type
+    Regular commands
+	Explicit Validations
+	Qstrings
+    TMC commands (i.e. validation of appropriate substate )
+	Conditionals
+  You may wish to sort your commands this way also to avoid 
+  confusion.
+  
+  Note that TMC statements at the same time as conditionals
+  (hold until) in all likelihood won't be executed, particularly 
+  if they have time constraints since their substates are 
+  validated and then immediately invalidated. By the same token, 
+  TMC statements in the else-clause of a conditional will have a 
+  similarly limited execution window. As such, they should be 
+  limited to C statements with no TM dependencies ( msg() for 
+  example).
 }
 New syntax elements {
   +depending on ( <validation list> ) { <statement> ... }
