@@ -25,7 +25,7 @@ ICOSHdr:
   $9 /* DAC initialization */
   $4 " Ton-1\n"
   $5 " Toff-1\n"
-  $6 " Tpre (0)\n"
+  $6 " Tpre (1)\n"
   $7 " Loop Address\n"
   $8 " Loop Length\n"
 
@@ -36,8 +36,8 @@ DACs:
   [ PTG_OUTPUT_1HEX $7 short ] " DAC3 - " $8 double " Amps\n"
 
 ICOSWave: "ICOS Waveform " $1 " @ " $17 long " {" "\n"
-  "  Sample Rate:      " $3 $2 "\n"
-  "  Net Ramp Samples: " $5 $4 "\n"
+  "  Sampling:    " $18 " @ " $3 $2 "\n"
+  "  Net Samples: " $19 " Z:" $20 " ramp:" $5 $4 "\n"
   $6 /* Iz */
   $7 /* dI/dt */
   $8 /* Tcycle */
@@ -77,11 +77,11 @@ Current:    $1 double " mA"
 Time:       $1 double " msec"
 TzSample:   $1 int " " $2 string "Samples"
 Percent:    $1 double "%"
-Tz:         $1 ", " $2 long "/" $3 long
-              " Samples, " $4 double "%"
+Tz:         $1 ", " $2 long " Samples, " $3 double "%"
 Waves:   $1 { "\n" } $2
 Tonoff:
   "  Ton/Toff:    " $1 long "/" $2 long " usec\n"
+  "  Ttrigger:    " $4 "\n"
   "  Trecycle:    " $3 long " usec\n"
 
 Fill: [ PTG_OUTPUT_HEX $1 short $2 int ]
@@ -92,7 +92,7 @@ RingHdr:
   $9 /* DAC initialization */
   $4 " Ton-1\n"
   $5 " Toff-1\n"
-  $6 " Tpre-1\n"
+  $6 " Tpre\n"
   $7 " Loop Address\n"
   $8 " Loop Length\n"
 

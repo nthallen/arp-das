@@ -71,3 +71,18 @@ ICOS Waveform TwoRampsNoZ {
   Ramp from 500mA to 600mA;
   Ramp from 800mA to 900mA;
 }
+
+ICOS Waveform Flat {
+  dI/dt = 0 mA/sec;
+  Iz = 960 mA;
+  Nsample = 0;
+  Tz = 1 sec;
+}
+
+ICOS Waveform Flat2 {
+  dI/dt = 0 mA/sec;
+  Iz = 960 mA;
+  SampleRate = 10 MHz;
+  Tz = 1 sec;
+}
+

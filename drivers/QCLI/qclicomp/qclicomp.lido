@@ -198,10 +198,18 @@ ATTR RateDef: RateDefP;
 RULE: NsampleDef ::= 'Nsample' '=' Integer COMPUTE
   NsampleDef.Nsample = Integer;
 END;
+
+/* If Tramps is 0 (flat waveform), tie Nsample to 2*Tz instead */
 SYMBOL ICOSNsampleDef COMPUTE
+  INH.Tramps = INCLUDING ICOSCmds.Tramps;
+  SYNT.Nsample = CONSTITUENT NsampleDef.Nsample;
+  IF(AND(EQ(THIS.Tramps,0),GT(THIS.Nsample,0)),
+     message (ERROR, "Cannot specify Nsample on waveform with no ramp", 0, COORDREF));
   SYNT.RateDef =
-    NewRateDefPtr( DIV( CONSTITUENT NsampleDef.Nsample, INCLUDING ICOSCmds.Tramps ), 1,
-					0, COORDREF );
+    NewRateDefPtr( IF(GT(THIS.Tramps,0),
+            DIV( THIS.Nsample, THIS.Tramps ),
+	    THIS.Nsample),
+      1, 0, COORDREF );
 END;
 RULE: RateDef ::= 'SampleRate' '=' Integer RateUnit Naverage COMPUTE
   RateDef.RawRate = MUL(Integer,RateUnit.Value);
@@ -232,7 +240,10 @@ RULE: TzSpec ::= TzTime COMPUTE
 END;
 RULE: TzTime ::= Time END;
 RULE: TzSpec ::= Percent COMPUTE
-  TzSpec.Tz = MUL(INCLUDING ICOSCmds.Tramps, Percent.Value);
+  TzSpec.Tz = IF(GT(Percent.Value,0),
+		 MUL(INCLUDING ICOSCmds.Tramps,
+	          MUL(0.5,DIV(Percent.Value,SUB(1.,Percent.Value)))),
+		 0);
 END;
 SYMBOL SampleSpec COMPUTE
   INH.Naverage = INCLUDING ICOSCmds.Naverage;
@@ -387,9 +398,12 @@ SYMBOL ICOSCmds COMPUTE
   SYNT.RawSamples = MUL( THIS.NetSamples, THIS.Naverage );
   SYNT.RampSamples =
 	IF( GT( THIS.NetRate, 0. ),
-	  CAST(long, floor(
-		MUL( THIS.Tramps1, THIS.NetRate ))),
-	  0 );
+	    CAST(long,
+	      SUB(
+		floor(MUL(ADD(THIS.Tz1,THIS.Tramps1), THIS.NetRate )),
+		THIS.TzSamples)
+	    ),
+	    0 );
   SYNT.TzSamples =
 	IF( GT( THIS.NetRate, 0. ),
 	  CAST(long, floor(
@@ -518,10 +532,6 @@ SYMBOL ICOSRamp COMPUTE
 	  THIS.SSrampi);
 END;
 
-/*------------------------------*/
-/* Produce compiled .cmd output */
-/*------------------------------*/
-
 /*---------------------------*/
 /* Print Summary Information */
 /*---------------------------*/
@@ -533,7 +543,9 @@ SYMBOL SourceFile COMPUTE
   IF( NE(VerbFile,NoKey),
       PTGOutFile( StringTable(GetClpValue(VerbFile,0)), THIS.Summary ));
 END;
+ATTR TriggerSecs: double;
 SYMBOL ICOSCmds COMPUTE
+  SYNT.TriggerSecs = DIV(THIS.Ttrigger,1000000.);
   SYNT.Summary =
     PTGICOSWave( PTGId(INCLUDING Wave.Sym),
 	  CONSTITUENTS RateDef.Summary
@@ -551,13 +563,15 @@ SYMBOL ICOSCmds COMPUTE
 	  CONSTITUENTS (TzTime.Summary, SampleSpec.Summary, Percent.Summary )
 	    WITH( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
 	  PTGFcycle( THIS.Ftrigger ),
-	  PTGTz( PTGTime(MUL(THIS.Tz1,1000.)),
-	    THIS.TzRawSamples, THIS.TzSamples,
-		MUL( DIV( THIS.Tz1, THIS.Tramps1 ), 100. ) ),
+	  PTGTz( PTGTime(MUL(THIS.Tz1,1000.)), THIS.TzSamples,
+		MUL( DIV( SUB(THIS.TriggerSecs,THIS.Tramps1), THIS.TriggerSecs ), 100. ) ),
 	  PTGTonoff( THIS.Ton, THIS.Toff,
-		ADD(THIS.Trcy,THIS.Trcypre)),
+		ADD(THIS.Trcy,THIS.Trcypre),
+		PTGTime(MUL(THIS.TriggerSecs,1000.))),
 	  THIS.Scycle,
-	  THIS.ProgLen, THIS.WaveAddr
+	  THIS.ProgLen, THIS.WaveAddr,
+	  PTGLong(THIS.RawSamples), PTGLong(THIS.NetSamples),
+	  PTGLong(THIS.TzSamples)
 	);
 END;
 
@@ -633,17 +647,20 @@ SYMBOL RingCmds COMPUTE
      ) <- CONSTITUENTS TonDef.SetTon;
   SYNT.Ton = usecs(GetTon(THIS.Key,0.))
     <- CONSTITUENTS TonDef.SetTon;
-  IF ( NOT(HasTpre(THIS.Key)),
-       message(ERROR, "Tpre is required", 0, COORDREF )
-     ) <- CONSTITUENTS TpreDef.SetTpre;
-  SYNT.TpreSpec = usecs(GetTpre(THIS.Key,2));
-  SYNT.Tpre = IF ( GT(THIS.TpreSpec,2),THIS.TpreSpec, 2 );
+  /* IF ( NOT(HasTpre(THIS.Key)),                          */
+  /*     message(ERROR, "Tpre is required", 0, COORDREF )  */
+  /*   ) <- CONSTITUENTS TpreDef.SetTpre;                  */
+  SYNT.TpreSpec = usecs(GetTpre(THIS.Key,.000001));
+  SYNT.Tpre = IF ( GT(THIS.TpreSpec,1),THIS.TpreSpec, 1 );
   SYNT.RawRate =
     IF( HasRateDef(THIS.Key),
         PTRSELECT(GetRateDef(THIS.Key,0),samples),
 	10000000. );
   SYNT.Nsample =
-    GetNsample(THIS.Key, MUL(THIS.RawRate,GetToff(THIS.Key,0)));
+    GetNsample(THIS.Key,
+      MUL(THIS.RawRate,
+	  ADD(DIV(THIS.Tpre,1000000.),
+	      GetToff(THIS.Key,0))));
   SYNT.ToffD = GetToff(THIS.Key,DIV(THIS.Nsample,THIS.RawRate));
   SYNT.Toff = usecs(THIS.ToffD);
   SYNT.Ttrigger = ADD(THIS.Ton,THIS.Toff);
@@ -769,7 +786,7 @@ SYMBOL RingCmds COMPUTE
 	    PTGHex(RINGDOWN_WAVEFORM_CODE,1),
 	    PTGHex(SUB( THIS.Ton, 1),1),
 	    PTGHex(SUB( THIS.Toff, 1),1),
-	    PTGHex(SUB(THIS.Tpre, 1),1),
+	    PTGHex(THIS.Tpre,1),
 	    PTGHex(INCLUDING Wave.LoopAddr,1),
 	    PTGHex(THIS.ProgLen,1),
 	    PTGDACs(
@@ -790,6 +807,10 @@ SYMBOL CurrentSteps COMPUTE
     RingdownPTG( THIS.Istart, THIS.Istop, THIS.Istep,
 		THIS.ProgLen, COORDREF );
 END;
+
+/*-----------------------------------------------------------*/
+/* Ringdown waveform summary                                 */
+/*-----------------------------------------------------------*/
 
 /*-----------------------------------------------------------*/
 /* Compiled .cmd Output                                      */

@@ -11,3 +11,12 @@ Ringdown Waveform OK {
   # I = 500 mA to 800 mA in 20 Steps;
   I = 500 mA to 800 mA in 100 mA Steps;
 }
+
+Ringdown Waveform Ring500 {
+  SampleRate = 10 MHz;
+  Ncoadd = 5;
+  Toff = 40 usec;
+  Ton = 1960 usec;
+  Tpre = 1 usec;
+  I = 550 mA to 950 mA in 100 Steps;
+}
