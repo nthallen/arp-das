@@ -1,5 +1,8 @@
 /* states.c
  * $Log$
+ * Revision 1.10  1997/01/16 16:40:22  nort
+ * New syntax
+ *
  * Revision 1.9  1996/05/02  13:20:08  nort
  * *** empty log message ***
  *
@@ -525,6 +528,7 @@ void output_mainloop( FILE *ofp ) {
 				"  long int it;\n"
 				"  int subcase;\n\n"
 				"  it = itime();\n"
+				"  ci_settime( it );\n"
 				"  while ( subcase = tma_process( it ) ) {\n"
 				"\tswitch (subcase) {\n" );
   fprintf( ofp, "\t  case 0: break;\n" );
