@@ -1,8 +1,6 @@
 /*
  * File: hello.c
  */
-#include <Pt.h>
-#include <photon/Pf.h>
 #include "tablelib.h"
 
 char *labelfont = "TitleFont10";
@@ -10,8 +8,11 @@ char *fieldfont = "FixedFont10";
 
 void tbl_vert_sep( PtWidget_t *parent, int x, int y, int h ) {
   PtArg_t args[4];
-  PhPoint_t pos = { x, y };
-  PhDim_t dim = { 1, h };
+  PhPoint_t pos;
+  PhDim_t dim;
+
+  pos.x = x; pos.y = y;
+  dim.w = 1; dim.h = h;
   PtSetArg( &args[0], Pt_ARG_POS, &pos, 0 );
   PtSetArg( &args[1], Pt_ARG_SEP_FLAGS, Pt_SEP_VERTICAL, Pt_SEP_ORIENTATION );
   PtSetArg( &args[2], Pt_ARG_DIM, &dim, 0 );
@@ -21,8 +22,11 @@ void tbl_vert_sep( PtWidget_t *parent, int x, int y, int h ) {
 
 void tbl_horiz_sep( PtWidget_t *parent, int x, int y, int w ) {
   PtArg_t args[3];
-  PhPoint_t pos = { x, y };
-  PhDim_t dim = { w, 1 };
+  PhPoint_t pos;
+  PhDim_t dim;
+
+  pos.x = x; pos.y = y;
+  dim.w = w; dim.h = 1;
   PtSetArg( &args[0], Pt_ARG_POS, &pos, 0 );
   PtSetArg( &args[1], Pt_ARG_DIM, &dim, 0 );
   PtSetArg( &args[2], Pt_ARG_SEP_TYPE, Pt_SINGLE_LINE, 0 );

@@ -3,7 +3,7 @@
 #define TABLELIB_H
 
 #include <Pt.h>
-#include <photon/Pf.h>
+/* #include <photon/Pf.h> */
 
 extern char *labelfont;
 extern char *fieldfont;
