@@ -1,14 +1,19 @@
 %{
   /* yylex.l Lexical Analyzer for parser generator
    * $Log$
- * Revision 1.1  1992/07/09  18:36:44  nort
- * Initial revision
- *
+   * Revision 1.1  1992/10/20  19:45:08  nort
+   * Initial revision
+   *
+   * Revision 1.1  1992/07/09  18:36:44  nort
+   * Initial revision
+   *
    */
    #include <string.h>
    #include <unistd.h>
    #include "y.tab.h"
    #include "cmdgen.h"
+   static char rcsid[] = "$Id$";
+
    #define ACTBUFSIZE 2048
    #define ret_full_str(x) { yylval.str_val = strdup(yytext);\
 							 return(x); }
@@ -19,7 +24,17 @@
 
 %%
 
-^"%%" { return(0); /* This marks the end of input at the top level */ }
+^"%%" {
+  /* This marks the end of input at the top level */
+  int c;
+  
+  for (;;) {
+	c = input();
+	if (c == EOF) break;
+	putc(c, ofile);
+  }
+}
+
 ^"%{" {
   int c, d;
 
@@ -68,16 +83,3 @@
 [\n] app_line++;
 [:;*] return(yytext[0]);
 [^ \t\n]+ ret_full_str(TK_WORD);
-
-%%
-
-void pipe_tail(void) {
-  int c;
-  
-  for (;;) {
-	c = input();
-	if (c == EOF) break;
-	putc(c, ofile);
-  }
-}
-
