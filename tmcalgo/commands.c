@@ -1,5 +1,8 @@
 /* commands.c Handles interface to command interpreters.
  * $Log$
+ * Revision 1.3  1996/04/19  13:52:51  nort
+ * tma.h
+ *
  * Revision 1.2  1993/09/27  20:08:08  nort
  * Cleanup, common compiler functions
  *
@@ -7,6 +10,7 @@
  * Initial revision
  *
  */
+#include <string.h>
 #include "nortlib.h"
 #include "compiler.h"
 #include "cmdalgo.h"
@@ -21,20 +25,27 @@ char ci_version[CMD_VERSION_MAX] = "";
 static int cswarn = 0;
 
 void check_command(const char *command) {
-  int old_response, rv;
-  
   if (!cswarn) {
-	old_response = set_response(0);
-	rv = ci_sendcmd(command, 1);
-	set_response(old_response);
-	if (rv != 0) switch (CMDREP_TYPE(rv)) {
+	int rv;
+
+	{ int old_response = set_response(0);
+	  if ( command == 0 ) rv = ci_sendcmd( command, 1 );
+	  else {
+		char *cmdnl = new_memory( strlen( command ) + 2 );
+		sprintf( cmdnl, "%s\n", command );
+		rv = ci_sendcmd( cmdnl, 1);
+		free_memory( cmdnl );
+	  }
+	  set_response(old_response);
+	}
+	switch (CMDREP_TYPE(rv)) {
 	  case 0:
-		compile_error(1, "Command Server not found: commands untested");
-		cswarn = 1;
+		if ( rv != 0 ) {
+		  compile_error(1, "Command Server not found: commands untested");
+		  cswarn = 1;
+		}
 		break;
 	  case CMDREP_TYPE(CMDREP_QUIT):
-		if (command != NULL)
-		  compile_error(1, "Unexpected Quit code from CIS", rv);
 		break;
 	  case CMDREP_TYPE(CMDREP_EXECERR):
 		compile_error(4, "Unexpected Execution Error %d from CIS", rv);
