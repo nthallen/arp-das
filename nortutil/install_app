@@ -99,10 +99,22 @@ if [ $dump = yes ]; then
   echo "pkg=$pkg"
   echo "archive=$archive"
   echo "archpkg=$archpkg"
-  echo "patches=$patches"
-  echo "mypatches=$mypatches"
-  echo "fpatches=$fpatches"
-  echo "fmypatches=$fmypatches"
+  echo "patches:"
+  for i in $patches; do
+	echo "  $i"
+  done
+  echo "mypatches:"
+  for i in $mypatches; do
+	echo "  $i"
+  done
+  echo "fpatches:"
+  for i in $fpatches; do
+	echo "  $i"
+  done
+  echo "fmypatches:"
+  for i in $fmypatches; do
+	echo "  $i"
+  done
   exit 0
 fi
 
