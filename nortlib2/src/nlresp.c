@@ -10,18 +10,10 @@
  * will be printed, just the error return value.
  * The values chosen for NLRSP_* are arbitrarily chosen to match
  * the type codes to nl_error.
- * $Log$
- * Revision 1.1  1992/09/02  13:26:38  nort
- * Initial revision
- *
  */
 #include "nortlib.h"
-#ifdef __WATCOMC__
-  #pragma off (unreferenced)
-	static char rcsid[] =
-	  "$Id$";
-  #pragma on (unreferenced)
-#endif
+char rcsid_nlresp_c[] =
+  "$Header$";
 
 int nl_response = NLRSP_DIE;
 
@@ -32,3 +24,49 @@ int set_response(int newval) {
   nl_response = newval;
   return(oldval);
 }
+/*
+=Name nl_response: Error Response Code
+=Subject Nortlib
+=Name set_response(): Modify Error Response Code
+=Subject Nortlib
+=Synopsis
+
+#include "nortlib.h"
+int nl_response;
+int set_response(int newval);
+
+=Description
+
+  The nl_response setting determines how most all nortlib
+  functions react to errors. nl_response may be set to any value
+  acceptable as a level argument to =nl_error=() or msg(). By
+  default, nl_response is set to 3, which means any error in a
+  nortlib function will be considered a fatal error. By changing
+  the setting to 1, an error will simply be reported as a
+  warning.<P>
+  
+  The philosophy here is that if you have not taken steps to
+  handle an error condition, then the error condition cannot be
+  tolerated. This makes it possible to write simple programs
+  simply and to find out if more sophisticated error handling is
+  required. In many cases, additional error handling will not be
+  required; If your program need to communicate with a particular
+  server and the server cannot be located, that probably should
+  be a fatal error, and no further programming is required to
+  make it so. Additional code is only required when you wish to
+  selectively tolerate specific errors.<P>
+  
+  set_response() is a convenient way to manipulate nl_response.
+  It sets nl_response to a new value and returns the old value so
+  that it can be saved and restored after the current operation
+  is completed.<P>
+
+=Returns
+  set_response() returns the old value of nl_response so that it
+  can be saved and restored.
+
+=SeeAlso
+  =nl_error=().
+
+=End
+*/

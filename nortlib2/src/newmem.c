@@ -2,14 +2,11 @@
  * nl_new_memory() in order not to conflict with memlib.h, but
  * nortlib.h will define new_memory to be nl_new_memory if memlib.h
  * has not been included.
- * $Log$
  */
 #include <stdlib.h>
 #include "nortlib.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+char rcsid_newmem_c[] =
+  "$Header$";
 
 void *new_memory(size_t size) {
   void *p;

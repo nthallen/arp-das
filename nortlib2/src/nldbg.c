@@ -1,12 +1,25 @@
 /* nldbg.c defines nl_debug_level
- * $Log$
- * Revision 1.1  1993/07/01  15:30:23  nort
- * Initial revision
  */
 #include "nortlib.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+char rcsid_nldbg_c[] =
+  "$Header$";
 
 int nl_debug_level = -1;
+/*
+=Name nl_debug_level: Select level of debug messages
+=Subject Nortlib
+=Synopsis
+int nl_debug_level;
+
+=Description
+
+nl_debug_level controls which debug messages are output in
+=nl_err=() by =nl_verror=(). nl_debug_level has no effect on
+msg(), which controls debug verbosity via the -l flag.
+
+=SeeAlso
+
+  =Nortlib= functions.
+
+=End
+*/
