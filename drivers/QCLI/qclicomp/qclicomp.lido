@@ -1,0 +1,9 @@
+/* Definition of waveform names. */
+/* Still have not required that they be unique */
+RULE: ICOSWave ::= 'ICOS' 'Waveform' DefIdent '{' ICOSCmds '}' END;
+RULE: DefIdent ::= Ident COMPUTE DefIdent.Sym = Ident; END;
+SYMBOL DefIdent INHERITS IdDefScope, Unique COMPUTE
+  IF (NOT (THIS.Unique),
+	  message (ERROR, CatStrInd ("Waveform is multiply defined: ", THIS.Sym),
+			   0, COORDREF));
+END;

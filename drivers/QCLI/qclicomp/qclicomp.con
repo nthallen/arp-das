@@ -1,0 +1,23 @@
+SourceFile : Wave+ .
+Wave : ICOSWave .
+ICOSWave : 'ICOS' 'Waveform' Ident '{' ICOSCmds '}' .
+ICOSCmds : ICOSCmd+ .
+ICOSCmd : ICOSAssign ';' / ICOSRamp .
+ICOSAssign :
+ 'Tz' '=' FloatVal TimeUnit /
+ 'Iz' '=' FloatVal CurrentUnit /
+ 'Ncoadd' '=' Integer /
+ 'Nsample' '=' Integer /
+ 'SampleRate' '=' Integer '/' TimeUnit Naverage /
+ 'dI' '/' 'dt' '=' FloatVal CurrentUnit '/' TimeUnit .
+ICOSRamp : 'Ramp' '{' ICOSRampCmds '}' .
+ICOSRampCmds : ( ICOSRampAssign ';' )+ .
+ICOSRampAssign :
+ 'Istart' '=' FloatVal CurrentUnit /
+ 'Istop' '=' FloatVal CurrentUnit /
+ 'Tramp' '=' FloatVal TimeUnit .
+FloatVal : Integer / Float .
+CurrentUnit : 'A' / 'mA' / 'uA' .
+TimeUnit : 'sec' / 'msec' / 'usec' .
+Naverage : / '/' Integer .
+

@@ -1,0 +1,16 @@
+Use Unique.gnrc to make sure certain things can't be multiply
+defined. Specifically {
+  Only one Iz def is allowed
+  Only one Tz def is allowed
+  One Nsample or SampleRate must be defined
+  Only one dI/dt is allowed
+
+  Within a Ramp {
+    Only one Istart is allowed
+    Only one Istop is allowed
+    At least one of Istart or Istop is required
+    Only one Tramp is allowed
+  }
+}
+
+Once the conditions are met, we need to propogate values.

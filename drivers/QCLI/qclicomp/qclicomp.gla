@@ -1,0 +1,7 @@
+Integer : C_INTEGER
+Float   : C_FLOAT
+Ident   : C_IDENTIFIER
+          C_COMMENT
+          AWK_COMMENT
+          $"//" (auxEOL)
+

@@ -1,0 +1,24 @@
+# icoswave.txt
+# Sample source for ICOS waveform definitions
+
+ICOS Waveform FirstRamp {
+  Iz = .4 A;
+  Tz = 4 msec;
+  Nsample = 2000;
+  dI/dt = 25 A/sec;
+  Ramp {
+    Istart = 600 mA;
+    Tramp = 15 msec;
+  }
+}
+
+ICOS Waveform SecondRamp {
+  Iz = .4 A;
+  Tz = 4 msec;
+  SampleRate = 650/msec/5;
+  Ramp {
+    Istart = 600 mA;
+    Istop = 900 mA;
+    Tramp = 16 msec;
+  }
+}
