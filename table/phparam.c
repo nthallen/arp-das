@@ -29,7 +29,7 @@ dims_t CalcWordDims(char *text, int attr) {
   tbl_ExtentText( font, text, &extent );
   wdims.Width.Space = extent.lr.x - extent.ul.x;
   wdims.Width.Glue = 0;
-  wdims.Height.Space = extent.ul.y - extent.lr.y;
+  wdims.Height.Space = extent.lr.y - extent.ul.y;
   wdims.Height.Glue = 0;
   if ( wdims.Height.Space < BaselineSkip )
     wdims.Height.Space = BaselineSkip;
@@ -42,7 +42,7 @@ int DatumWidth(int ncols) {
   PhRect_t extent;
 
   if ( ncols > MAX_FIELD_WIDTH ) ncols = MAX_FIELD_WIDTH;
-  for ( i = 0; i < ncols; i++ ) buf[i] = ' ';
+  for ( i = 0; i < ncols; i++ ) buf[i] = '0';
   buf[ncols] = '\0';
   tbl_ExtentText( tbl_labelfont, buf, &extent );
   return extent.lr.x - extent.ul.x;
