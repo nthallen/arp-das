@@ -18,7 +18,7 @@ function nl_error {
 
 [ -f QNX.setup ] || nl_error Cannot locate QNX.setup
 portpath=`fullpath -t .`
-portdir=`basename $portpath`
+# portdir=`basename $portpath`
 . QNX.setup
 
 ofile=''
@@ -39,7 +39,7 @@ shift $sval
 
 [ -d "BLD/$pkg" ] || nl_error Cannot locate directory BLD/$pkg
 [ -d "ORIG/$pkg" ] || nl_error Cannot locate directory ORIG/$pkg
-[ -d "$portdir" -a -d "$portpath" ] ||
+[ -d "$portpath" ] ||
   nl_error Cannot locate original directory $portpath
 echo "mkpatch: Comparing $pkg.ORIG to $pkg"
 (
@@ -50,8 +50,8 @@ echo "mkpatch: Comparing $pkg.ORIG to $pkg"
 		newfiles="$newfiles $pfile"
 	  fi
 	done
-  elif [ -z "$newfiles" -a -f $portdir/QNX.newfiles ]; then
-	newfiles=`cat $portdir/QNX.newfiles`
+  elif [ -z "$newfiles" -a -f QNX.newfiles ]; then
+	newfiles=`cat QNX.newfiles`
   fi
   if [ -n "$newfiles" ]; then
 	for file in $newfiles; do
@@ -81,6 +81,6 @@ echo "mkpatch: Comparing $pkg.ORIG to $pkg"
 	done
   fi
   [ -n "$touched" ] && rm $touched
-) > $portdir/$ofile
+) > $ofile
 
 echo Output written to $ofile
