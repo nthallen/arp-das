@@ -1,8 +1,7 @@
 # $1: PTGNode StringPrint
+# $2: PTGNode RulePrint
 # $2: PTGNode FieldPrint
-File: $1 "}\n" $2 [ preview_loop ]
-
-Seq: $ $
+File: $1 $2 "}\n" $3 [ preview_loop ]
 
 # $1: table name (PTGNode)
 # $2: N_Fields (int)
@@ -42,3 +41,12 @@ FieldDef:
 # $3: Field Text (PTGNode)
 FieldRef:
   "display( " $1 "_tbl_fld[" $2 int "], text(" $3 "));\n"
+
+# $1: row $2: col $3: w/h $4: dbl
+VRule :
+  "  tbl_vert_sep( w, " $2 int ", " $1 int ", " $3 int ", " $4 int " );\n"
+  [ preview_vrule $2 int $1 int $3 int $4 int ]
+HRule :
+  "  tbl_horiz_sep( w, " $2 int ", " $1 int ", " $3 int ", " $4 int " );\n"
+  [ preview_hrule $2 int $1 int $3 int $4 int ]
+

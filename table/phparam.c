@@ -77,3 +77,15 @@ void preview_loop( PTG_OUTPUT_FILE f ) {
   }
 }
 
+void preview_vrule( PTG_OUTPUT_FILE f, int r, int c, int h, int dbl ) {
+  if ( do_output ) {
+    tbl_vert_sep( window, r, c, h, dbl );
+  }
+}
+
+void preview_hrule( PTG_OUTPUT_FILE f, int r, int c, int w, int dbl ) {
+  if ( do_output ) {
+    tbl_horiz_sep( window, r, c, w, dbl );
+  }
+}
+

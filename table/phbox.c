@@ -3,6 +3,7 @@
 #include "err.h"
 #include "nbox.h"
 #include "modprint.h"
+#include "PtgCommon.h"
 #include "ptg_gen.h"
 
 #define RL_BT 1
@@ -15,7 +16,9 @@ typedef struct tblrule {
   int Row, Col, Width, Height;
   int Vertical, Lines, preplus, postplus;
   int Attr;
-  unsigned char *rule;
+  #ifdef NBOX_C
+	unsigned char *rule;
+  #endif
 } *TableRule;
 
 static TableRule TableRules;
@@ -38,9 +41,8 @@ int IsVertical(int index) {
 void NewRule( int Row, int Col, int Width, int Height,
 				int Attr, int index ) {
   TableRule new;
-  unsigned char *rule, *rulecode;
-  unsigned char middle;
-  int Length, Vertical, Lines;
+  unsigned char *rulecode;
+  int Vertical, Lines;
   int preplus = 0, postplus = 0;
 
   rulecode = StringTable(index);
@@ -65,11 +67,10 @@ void NewRule( int Row, int Col, int Width, int Height,
   }
   if ( rulecode[1] == '+' ) postplus = 1;
 
-  Length = Width * Height;
   new = malloc(sizeof(struct tblrule));
-  rule = malloc( Length+1 );
-  if ( new == 0 || rule == 0 )
+  if ( new == 0 )
 	message(DEADLY, "Out of memory in NewRule", 0, &curpos );
+
   new->Row = Row;
   new->Col = Col;
   new->Width = Width;
@@ -80,59 +81,75 @@ void NewRule( int Row, int Col, int Width, int Height,
   new->postplus = postplus;
   new->Attr = Attr;
 
-  middle = ( Vertical ? RL_TP+RL_BT : RL_LT+RL_RT ) * Lines;
-  if (Length == 1) {
-	if (preplus) {
-	  if (postplus) rule[0] = middle;
-	  else rule[0] = (Vertical ? RL_TP : RL_LT)*Lines;
-	} else if ( postplus ) {
-	  rule[0] = (Vertical ? RL_BT : RL_RT)*Lines;
-	} else rule[0] = 0;
-  } else if (Length > 0) {
-	rule[0] = preplus ? middle : ((Vertical ? RL_BT : RL_RT)*Lines);
-	{ int i;
-	  for ( i = 1; i < Length-1; i++ ) rule[i] = middle;
+  #ifdef NBOX_C
+	{ int Length = Width * Height;
+	  unsigned char middle;
+	  unsigned char *rule;
+
+	  rule = malloc( Length+1 );
+	  if ( rule == 0 )
+		message(DEADLY, "Out of memory in NewRule", 0, &curpos );
+	  middle = ( Vertical ? RL_TP+RL_BT : RL_LT+RL_RT ) * Lines;
+	  if (Length == 1) {
+		if (preplus) {
+		  if (postplus) rule[0] = middle;
+		  else rule[0] = (Vertical ? RL_TP : RL_LT)*Lines;
+		} else if ( postplus ) {
+		  rule[0] = (Vertical ? RL_BT : RL_RT)*Lines;
+		} else rule[0] = 0;
+	  } else if (Length > 0) {
+		rule[0] = preplus ? middle : ((Vertical ? RL_BT : RL_RT)*Lines);
+		{ int i;
+		  for ( i = 1; i < Length-1; i++ ) rule[i] = middle;
+		}
+		rule[Length-1] = postplus ? middle : ((Vertical ? RL_TP : RL_LT)*Lines);
+	  }
+	  rule[Length] = '\0';
+	  new->rule = rule;
 	}
-	rule[Length-1] = postplus ? middle : ((Vertical ? RL_TP : RL_LT)*Lines);
-  }
-  rule[Length] = '\0';
-  new->rule = rule;
+  #endif
+
   new->next = TableRules;
   TableRules = new;
 }
 
-static void add_bits( TableRule S, int row, int col, int t, int lines ) {
-  int c, i;
-  if ( row >= S->Row && row < S->Row + S->Height &&
-	   col >= S->Col && col < S->Col + S->Width ) {
-	i = row-S->Row+col-S->Col;
-	c = (S->rule[i]/t)%3;
-	if ( c < lines )
-	  S->rule[i] += t * (lines-c);
-  }
-}
-
-static void connect_rules( void ) {
-  TableRule R, S;
-  unsigned char c, cc;
-  
-  for ( R = TableRules; R != 0; R = R->next ) {
-	for ( S = TableRules; S != 0; S = S->next ) {
-	  if ( R->Vertical ) {
-		if ( R->preplus )
-		  add_bits( S, R->Row-1, R->Col, RL_BT, R->Lines );
-		if ( R->postplus )
-		  add_bits( S, R->Row+R->Height, R->Col, RL_TP, R->Lines );
-	  } else {
-		if ( R->preplus )
-		  add_bits( S, R->Row, R->Col-1, RL_RT, R->Lines );
-		if ( R->postplus )
-		  add_bits( S, R->Row, R->Col+R->Width, RL_LT, R->Lines );
-	  }
+#ifdef NBOX_C
+  static void add_bits( TableRule S, int row, int col, int t, int lines ) {
+	int c, i;
+	if ( row >= S->Row && row < S->Row + S->Height &&
+		 col >= S->Col && col < S->Col + S->Width ) {
+	  i = row-S->Row+col-S->Col;
+	  c = (S->rule[i]/t)%3;
+	  if ( c < lines )
+		S->rule[i] += t * (lines-c);
 	}
   }
+#endif
+
+static void connect_rules( void ) {
+  #ifdef NBOX_C
+	TableRule R, S;
+	unsigned char c, cc;
+	
+	for ( R = TableRules; R != 0; R = R->next ) {
+	  for ( S = TableRules; S != 0; S = S->next ) {
+		if ( R->Vertical ) {
+		  if ( R->preplus )
+			add_bits( S, R->Row-1, R->Col, RL_BT, R->Lines );
+		  if ( R->postplus )
+			add_bits( S, R->Row+R->Height, R->Col, RL_TP, R->Lines );
+		} else {
+		  if ( R->preplus )
+			add_bits( S, R->Row, R->Col-1, RL_RT, R->Lines );
+		  if ( R->postplus )
+			add_bits( S, R->Row, R->Col+R->Width, RL_LT, R->Lines );
+		}
+	  }
+	}
+  #endif
 }
 
+#ifdef NBOX_C
 unsigned char scrchar[] = {
   '\x20', /*  0 = 0000 */
   '\xB3', /*  1 = 0001 */
@@ -216,8 +233,8 @@ unsigned char scrchar[] = {
   '\x20', /* 79 = 2221 */
   '\xCE'  /* 80 = 2222 */
 };
+#endif
 
-#ifdef DOPRINTRULE
 PTGNode print_rules( void ) {
   TableRule Rule;
   PTGNode rv = PTGNULL, nptg;
@@ -226,16 +243,23 @@ PTGNode print_rules( void ) {
   for ( Rule = TableRules; Rule != 0; Rule = Rule->next ) {
 	int i = Rule->Width * Rule->Height;
 	if ( i > 0 ) {
-	  for ( i--; i >= 0; i-- ) {
-		Rule->rule[i] = scrchar[Rule->rule[i]];
-	  }
-	  nptg = Rule->Vertical ?
-		print_vword(Rule->rule, Rule->Row, Rule->Col, Rule->Attr) :
-		PTGString( Rule->Row, Rule->Col, Rule->Attr, PTGAsIs(Rule->rule) );
-	  rv = PTGSeq(rv, nptg);
+	  #ifdef NBOX_C
+		for ( i--; i >= 0; i-- ) {
+		  Rule->rule[i] = scrchar[Rule->rule[i]];
+		}
+		nptg = Rule->Vertical ?
+		  print_vword(Rule->rule, Rule->Row, Rule->Col, Rule->Attr) :
+		  PTGString( Rule->Row, Rule->Col, Rule->Attr, PTGAsIs(Rule->rule) );
+		rv = PTGSeq(rv, nptg);
+	  #else
+	    nptg = Rule->Vertical ?
+	      PTGVRule(Rule->Row, Rule->Col + (Rule->Width/2), Rule->Height,
+	                  (Rule->Lines == 2)) :
+	      PTGHRule(Rule->Row + (Rule->Height/2), Rule->Col, Rule->Width,
+	                  (Rule->Lines == 2));
+	    rv = PTGSeq(rv, nptg);
+	  #endif
 	}
   }
   return rv;
 }
-#endif
-

@@ -387,7 +387,7 @@ SYMBOL Program COMPUTE
 	  PTGWindow( "name",
 		ADD(SPACE(THIS.Height),1), ADD(SPACE(THIS.Width),1)));
   CHAINSTART HEAD.FieldPrint = PTGNULL;
-  PTGOut(PTGFile( TAIL.StringPrint, TAIL.FieldPrint ));
+  PTGOut(PTGFile( TAIL.StringPrint, THIS.RulePrint, TAIL.FieldPrint ));
 END;
 
 SYMBOL Table COMPUTE
@@ -434,7 +434,7 @@ ATTR RulePrint : PTGNode;
 
 SYMBOL Program COMPUTE
   SYNT.RulePlace = CONSTITUENTS Rule.RulePlace;
-  % SYNT.RulePrint = print_rules() <- SYNT.RulePlace;
+  SYNT.RulePrint = print_rules() <- SYNT.RulePlace;
 END;
 
 ATTR ForReal : int;
