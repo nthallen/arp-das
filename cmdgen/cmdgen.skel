@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.23  1994/09/08  13:49:43  nort
+ * *** empty log message ***
+ *
  * Revision 1.22  1994/08/29  18:53:15  nort
  * Mods for OUI
  *
@@ -27,8 +30,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <ctype.h>
+#include <unistd.h>
 #include "cmdalgo.h"
-#include "nortlib.h" /* Included for cis_init. prototype() */
+#include "nortlib.h" /* Included for cis_init. prototype(), nl_error() */
                      /* <stdio.h>   Included by nortlib.h */
 #include "oui.h"
 #pragma off (unreferenced)
@@ -232,12 +236,7 @@ static char ibuf[CG_IBUF_SIZE];
     "unreachable code" in rule_action()
 */
 #ifndef CMD_ERROR
-  #ifdef NLRSP_QUIET
-	#define CMD_ERROR(x) nl_error(4,x)
-  #else
-	#define CMD_ERROR(x) fprintf(stderr, "%s\n", x); exit(1)
-	#define CMD_ERROR_FIX
-  #endif
+  #define CMD_ERROR(x) nl_error(4,x)
 #endif
 #ifndef CMD_ERROR_FIX
   #define CMD_ERROR_FIX exit(1);
@@ -545,6 +544,21 @@ static void con_undispc(void) {
 	con_low = con_col;
   ioflags |= IOF_UPDATE;
 }
+
+static void con_cleanup( void ) {
+  int i;
+  struct _console_ctrl *cc;
+  static int row = 24, col = 80;
+  
+  for (i = 0; i < MAXCONS; i++) {
+	if (nlcon_ctrl(i, &cc)) {
+	  console_write(cc, 0, 0, NULL, 0, &row, &col, NULL);
+	  write( nl_cons[i].fd, "\n", 1 );
+	}
+  }
+}
+
+#define FINAL_CLEANUP con_cleanup();
 
 #endif	/* QNX_CONS */
 
@@ -1238,18 +1252,24 @@ int cmd_check(cmd_state *s) {
 #endif
 
 #if defined (CLIENT) || defined (SERVER)
-  /* We don't really need msg here. This could use nl_error() */
-  #include "msg.h"
+  static void cmd_exit( void ) {
+	CLEAR_DISPLAY_LINE;
+	UPDATE_OUTPUT;
+	#ifdef FINAL_CLEANUP
+	  FINAL_CLEANUP
+	#endif
+	nl_error(0, "task %d: completed", getpid());
+  }
 
   int main(int argc, char **argv) {
 	oui_init_options(argc, argv);
-	BEGIN_MSG;
+	nl_error(0, "task %d: started",getpid());
+	atexit( cmd_exit );
 	#ifdef CLIENT
 	  cmd_interact();
 	#else
 	  ci_server();
 	#endif
-	DONE_MSG;
 	return(0);
   }
 #endif
