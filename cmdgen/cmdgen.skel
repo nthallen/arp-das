@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.24  1995/09/07  20:05:22  nort
+ * Changes to make termination cleaner.
+ *
  * Revision 1.23  1994/09/08  13:49:43  nort
  * *** empty log message ***
  *
@@ -486,38 +489,58 @@ static int con_nchars = 0;
   static char *con_cur_prmt, *con_new_prmt;
 #endif
 
-static void con_puts(char *buf, int byte_offset, int n) {
+/* con_puts() outputs n bytes from buf at the specified byte_offset
+   of the specified row on all defined consoles.
+   row_offset of 0 is the typing line and 1 is the prompt line.
+   byte_offset starts at 0 and advances 2 for each char.
+   n is now n_chars, byte_offset changes to char_offset
+*/
+static void
+con_puts(char *buf, int row_offset, int char_offset, int n_chars) {
   int i;
   struct _console_ctrl *cc;
-  static int con_row = 23;
   
   for (i = 0; i < MAXCONS; i++) {
-	if (nlcon_ctrl(i, &cc))
-	  console_write(cc, 0, byte_offset, buf, n,
-				&con_row, &con_col, NULL);
+	if (nlcon_ctrl(i, &cc)) {
+	  nl_con_def *nlcd = &nl_cons[i];
+	  if ( char_offset < nlcd->columns ) {
+		int crow, ccol, out_offset;
+		int nc;
+
+		if ( char_offset + n_chars > nlcd->columns )
+		  nc = nlcd->columns - char_offset;
+		else nc = n_chars;
+		crow = nlcd->rows-2;
+		ccol = con_col;
+		out_offset =
+		  (nlcd->rows - 2 + row_offset) * nlcd->columns * 2 + char_offset*2;
+		console_write(cc, 0, out_offset, buf, nc*2,
+				  &crow, &ccol, NULL);
+	  }
+	}
   }
 }
 
 static void con_update(void) {
   #ifndef NO_PROMPTS
 	if (con_cur_prmt != con_new_prmt && (ioflags & IOF_INTERACTIVE))
-	  con_puts(con_cur_prmt = con_new_prmt, 24*80*2, 80*2);
+	  con_puts(con_cur_prmt = con_new_prmt, 1, 0, 80);
   #endif
   if (ioflags & IOF_UPDATE) {
 	if (con_col == 79)
-	  con_puts(con_buf+con_nchars-78*2, 23*80*2+2, 78*2);
+	  con_puts(con_buf+con_nchars-78*2, 0, 1, 78);
 	else if (con_col == 1)
-	  con_puts(con_clr, 23*80*2, 2*80);
+	  con_puts(con_clr, 0, 0, 80);
 	else {
 	  if (con_low < con_col) {
-		int nbytes;
-		nbytes = (con_col - con_low) * 2;
-		con_puts(con_buf+con_nchars-nbytes, 23*80*2 + 2*con_low, nbytes);
+		int nchars;
+		nchars = (con_col - con_low);
+		con_puts(con_buf+con_nchars-(nchars*2), 0, con_low, nchars);
 	  }
 	  if (con_col < con_high) {
-		int nbytes;
-		nbytes = (con_high - con_col) * 2;
-		con_puts(con_clr+2, 23*80*2 + 2*con_col, nbytes);
+		int nchars;
+		nchars = (con_high - con_col);
+		con_puts(con_clr+2, 0, con_col, nchars);
 	  }
 	}
 	con_low = con_high = con_col;
@@ -548,10 +571,13 @@ static void con_undispc(void) {
 static void con_cleanup( void ) {
   int i;
   struct _console_ctrl *cc;
-  static int row = 24, col = 80;
+  int row, col;
   
   for (i = 0; i < MAXCONS; i++) {
 	if (nlcon_ctrl(i, &cc)) {
+	  nl_con_def *nlcd = &nl_cons[i];
+	  row = nlcd->rows - 1;
+	  col = nlcd->columns;
 	  console_write(cc, 0, 0, NULL, 0, &row, &col, NULL);
 	  write( nl_cons[i].fd, "\n", 1 );
 	}
@@ -1051,7 +1077,12 @@ static int reduce_rule(unsigned short rule) {
   /* rule_action is generated in output_rules().
 	 It returns the non-zero if the root non-terminal is reduced.
   */
-  if (rule_action(rule)) return(1);
+  { int oldresp, action_result;
+    oldresp = set_response( 1 );
+	action_result = rule_action(rule);
+	set_response( oldresp );
+	if ( action_result ) return(1);
+  }
   if (full_reduce) { /* <move back to prev location +1> */
 	tstack[tsp].reversible = 0;
 	ntsp = tstack[tsp].prev+1;
