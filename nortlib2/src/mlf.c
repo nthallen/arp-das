@@ -124,12 +124,13 @@ static void mlf_set_ixs( mlf_def_t *mlf, int *ixs ) {
 		mlf->index * mlf->n_files + mlf->flvl[i].index;
 	}
   }
+  mlf->index++;
   mlf->flags &= ~(MLF_INC_FIRST | MLF_INITIALIZE);
 }
 
 void mlf_set_index( mlf_def_t * mlf, unsigned long index ) {
   int ixs[MLF_MAX_LEVELS+1], i, nf = mlf->n_files;
-  unsigned long ix = index;
+  unsigned long ix = index > 0 ? index - 1 : 0;
   for ( i = mlf->n_levels; i > 0; i-- ) {
 	ixs[i] = ix % nf;
 	ix = ix/nf;
