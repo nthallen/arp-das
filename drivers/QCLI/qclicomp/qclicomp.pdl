@@ -1,9 +1,9 @@
-/* properties of a ramp */
-Istart, Istop, Tramp : double [Has];
+/* properties of a Wave */
 dIdt : double;
-
-/* properties of a waveform */
 dIdtDefined : int; /* 1 if defined once, 2 if defined more than once */
+RateDef : RateDefP [Has]; "qclicomp.h"
+Toff, Ton, Tpre : double [Has];
+Nsample : long [Has];
 
 int Has (DefTableKey key) {
   return(PRESENT);

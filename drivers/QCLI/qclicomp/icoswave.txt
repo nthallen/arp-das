@@ -71,3 +71,9 @@ ICOS Waveform TwoRampsNoZ {
   Ramp from 500mA to 600mA;
   Ramp from 800mA to 900mA;
 }
+
+Ringdown Waveform RD1 {
+  Iz = .4 A;
+  SampleRate = 10 MHz;
+  Nsample = 400;
+}

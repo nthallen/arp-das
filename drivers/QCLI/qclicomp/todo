@@ -57,6 +57,24 @@ Trecycle {
   Toff = IF( SplitCycle, Trcymin, Stepsize );
   Ton  = IF( SplitCycle, SUB(Stepsize, Toff), Toff );
 }
+RingdownWave Compilation {
+  Ringdown Waveform <name> {
+    SampleRate = 10 MHz; # Required
+    Toff = 100 usecs; # Toff or Nsample required
+    Nsample = 400; # samples during ringdown
+    Ton = 400 usecs;
+    Ton = 80%;
+    Tpre = 8 usecs;
+    Tpre = 5 samples;
+    Iz = 400 mA;
+    I = 500 mA to 800 mA in 80 steps;
+    I = 500 mA to 800 mA by 2 mA steps;
+  }
+  Steps {
+    validate sample rate selection (exact match required?)
+    Determine Toff and NRingSamples
+  }
+}
 ICOSWave Compilation {
   Summary output {
 	Add Nsteps to summary

@@ -1,16 +1,18 @@
 SourceFile : Wave+ .
-Wave : ICOSWave .
+Wave : ICOSWave / RingWave .
 ICOSWave : 'ICOS' 'Waveform' Ident '{' ICOSCmds '}' .
 ICOSCmds : ( ICOSCmd ';' )+ .
-ICOSCmd : TzDef / IzDef / NcoaddDef / NsampleDef / RateDef / dIdt / ICOSRamp .
+ICOSCmd : TzDef / IzDef / NcoaddDef / ICOSNsampleDef / ICOSRateDef / dIdt / ICOSRamp .
 TzDef : 'Tz' '=' TzSpec .
 TzSpec : Time / SampleSpec / Percent .
 SampleSpec : Integer 'Raw' 'Samples' / Integer 'Samples' .
 Percent : FloatVal '%' .
 IzDef : 'Iz' '=' Current .
 NcoaddDef : 'Ncoadd' '=' Integer .
+ICOSNsampleDef : NsampleDef .
+ICOSRateDef : RateDef .
 NsampleDef : 'Nsample' '=' Integer .
-RateDef : 'SampleRate' '=' Integer '/' TimeUnit Naverage .
+RateDef : 'SampleRate' '=' Integer RateUnit Naverage .
 Naverage : / '/' Integer .
 dIdt : 'dI' '/' 'dt' '=' Current '/' TimeUnit .
 
@@ -30,4 +32,18 @@ Time : FloatVal TimeUnit .
 FloatVal : Integer / Float .
 CurrentUnit : 'A' / 'mA' / 'uA' .
 TimeUnit : 'sec' / 'msec' / 'usec' .
+RateUnit : 'Hz' / 'kHz' / 'MHz' / '/' TimeUnit .
 
+RingWave : 'Ringdown' 'Waveform' Ident '{' RingCmds '}' .
+RingCmds : ( RingCmd ';' )+ .
+RingCmd : TonDef / ToffDef / TpreDef / IzDef / RingNsampleDef / RingRateDef / RingData .
+RingNsampleDef : NsampleDef .
+RingRateDef : RateDef .
+TonDef : 'Ton' '=' TonVal .
+TonVal : Time / FloatVal '%' .
+ToffDef : 'Toff' '=' Time .
+TpreDef : 'Tpre' '=' TpreVal .
+TpreVal : Time / Integer 'Samples' .
+RingData : 'I' '=' Current /
+           'I' '=' Current 'to' Current 'in' RingStep 'steps' .
+RingStep : Integer / Current .
