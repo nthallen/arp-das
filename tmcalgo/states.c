@@ -1,5 +1,8 @@
 /* states.c
  * $Log$
+ * Revision 1.3  1993/09/27  20:07:26  nort
+ * Validation of first states.
+ *
  * Revision 1.2  1993/07/12  15:58:54  nort
  * *** empty log message ***
  *
@@ -184,17 +187,20 @@ static void output_state(FILE *ofp, struct stdef *state, int partition) {
 	/* Now display individual conditions for this substate */
 	for (; cmd0 != cmd; cmd0 = cmd0->next) {
 	  assert(cmd0 != NULL && (cmd0->cmdflags & CMDFLAGS_TMC));
-	  fprintf(ofp, "depending on (%s_%d_) {\n%s\n}\n",
-		state->name, i, cmd0->cmdtext);
+	  fprintf(ofp, "depending on (%s_%d_%s) {\n%s\n}\n",
+		state->name, i, (t0!=0) ? " once" : "", cmd0->cmdtext);
 	}
 	
 	/* Output a tma_time_check if there are more commands */
+	fprintf(ofp, "depending on (%s_%d_, 1 Hz) {\n", state->name, i);
 	if (t0 > 0) {
-	  fprintf(ofp, "depending on (%s_%d_, 1 Hz) {\n", state->name, i);
 	  fprintf(ofp, "  if (tma_time_check(%d))\n", partition);
 	  fprintf(ofp, "    validate %s_%d_;\n", state->name, ++i);
-	  fprintf(ofp, "}\n");
-	} else assert(cmd == NULL);
+	} else {
+	  assert(cmd == NULL);
+	  fprintf(ofp, "  tma_time_check(%d);\n", partition);
+	}
+	fprintf(ofp, "}\n");
   } while (cmd != NULL);
 }
 
