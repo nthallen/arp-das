@@ -1,25 +1,26 @@
-Use Unique.gnrc to make sure certain things can't be multiply
-defined. Specifically {
-  Within a Ramp {
-    Only one Istart is allowed
-    Only one Istop is allowed
-    Only one Tramp is allowed
-    At least one of Istart or Istop is required
-  }
-}
+ICOSWave Compilation {
+  Decide on a resolution {
+    GCD of Tz and Tramp(s) is a good place to start,
+    but what is really going to be driving resolution
+    is how short we want Trecycle to be. If we define
+    resolution to be the number of steps in a compiled
+    waveform, then resolution will be greater than or
+    equal to Tcycle/min(Tz,Tramp,Trecycle). Presumably
+    we will want Trecycle to be the shortest here, and
+    if we want it to be less than 1%, say, then resolution
+    will need to be greater than 100.
 
-Once the conditions are met, we need to propogate values.
-Cases I need to handle {
-  dI/dt specified {
-    Istart & Tramp => calculate Istop
-    Istop & Tramp  => calculate Istart
-    Istart & Istop => calculate Tramp
+    If Trecycle were specified, then we could just use
+    gcd(Tz,Tramp,Trecycle), but as a free parameter it
+    gets trickier. We can start with gcd(Tz,Tramp). If
+    that gives a resolution below 100, we need to look
+    for a divisor that gets us into the right range.
+    If that doesn't work, we need to arbitrarily choose
+    a resolution in the right range.
+    What's the right range? 100-300? Whatever.
+
+    If the resolution isn't exact, we need to increase
+    Tz & Tramp to a resolution boundary. Changing Tramp
+    requires adjust Istop as well.
   }
-  dI/dt not specified {
-    Istart & Istop & Tramp => calculate dI/dt
-  }
-  use defines_dIdt property of a waveform and a ramp
-  Set to 1 when defined
-  Count how many times it's defined using CONSTITUENTS ( dIdt.Key, ICOSRamp.Key )
-  Complain if defined more than once or not at all.
 }
