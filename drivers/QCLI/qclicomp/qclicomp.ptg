@@ -120,7 +120,7 @@ CPCIdef:
   ", " $8 long
 
 MFile:
-  "Waves = struct( ...\n"
+  "WaveSpecs = struct( ...\n"
   "  'Name', { " $1 " }, ...\n"
   "  'RawRate', { " $2 " }, ...\n"
   "  'RawSamples', { " $3 " }, ...\n"
