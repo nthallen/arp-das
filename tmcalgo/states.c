@@ -1,5 +1,9 @@
 /* states.c
  * $Log$
+ * Revision 1.4  1993/09/28  16:15:25  nort
+ * Change to support "once" execution of tmc statements within
+ * states, time updates at the end of states.
+ *
  * Revision 1.3  1993/09/27  20:07:26  nort
  * Validation of first states.
  *
@@ -14,7 +18,6 @@
 #include "nortlib.h"
 #include "compiler.h"
 #include "yytype.h"
-#include "memlib.h"
 #pragma off (unreferenced)
   static char rcsid[] =
 	"$Id$";
@@ -228,11 +231,6 @@ void output_states(FILE *ofp) {
   }
   if (saw_state) partition++;
   fprintf(ofp, "%%{\n"
-	"  #ifndef MSG_LABEL\n"
-	"\t#define MSG_LABEL \"TMA\"\n"
-	"  #endif\n"
-	"  #define OPT_CONSOLE_INIT OPT_CON_INIT OPT_CIC_INIT OPT_TMA_INIT\n"
-	"  #define CONSOLE_INIT tma_init_options(MSG_LABEL, %d, argc, argv)\n"
 	"  #ifndef NEED_TIME_FUNCS\n"
 	"\t#define NEED_TIME_FUNCS\n"
 	"  #endif\n"
