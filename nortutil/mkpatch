@@ -1,0 +1,46 @@
+#! /bin/sh
+
+#__USAGE
+#%C
+#	Generates a patch file for the application defined in
+#	QNX.setup in the current directory
+
+function nl_error {
+  echo mkpatch: $* >&2
+  exit 1
+}
+
+[ -f QNX.setup ] || nl_error Cannot locate QNX.setup
+portpath=`fullpath -t .`
+portdir=`basename $portpath`
+. QNX.setup
+
+[ -z "$pkg" ] && nl_error pkg must be defined
+[ -f $pkg.pat.F ] && nl_error $pkg.pat.F already exists
+cd ..
+
+[ -d "$pkg" ] || nl_error Cannot locate directory $pkg
+[ -d "$pkg.ORIG" ] || nl_error Cannot locate directory $pkg.ORIG
+[ -d "$portdir" -a -d "$portpath" ] ||
+  nl_error Cannot locate original directory $portpath
+echo "mkpatch: Comparing $pkg.ORIG to $pkg"
+(
+  if [ -f $portdir/QNX.newfiles ]; then
+	for file in `cat $portdir/QNX.newfiles`; do
+	  [ -f "$pkg.ORIG/$file" -a -s "$pkg.ORIG/$file" ] &&
+		nl_error $pkg.ORIG/$file exists!
+	  [ -f "$pkg/$file" ] || nl_error $pkg/$file missing
+	  if [ -s "$pkg/$file" ]; then
+		touch $pkg.ORIG/$file
+		touched="$touched $pkg.ORIG/$file"
+	  fi
+	  echo "touch $file"
+	done
+  fi
+  echo "exit 0\n=============\n"
+  for ffile in `find $pkg.ORIG -type f`; do
+	file=$pkg/${ffile#$pkg.ORIG/}
+	cmp -s $file $ffile || diff -c $ffile $file
+  done
+  [ -n "$touched" ] && rm $touched
+) | freeze > $portdir/$pkg.pat.F

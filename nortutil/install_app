@@ -1,0 +1,157 @@
+#! /bin/sh
+#__USAGE
+#%C	[orig] [make] [clean]
+#	If orig is specified, two dirs are created, one clean
+#	If make is specified, a Configure and make are run
+#	after the installation.
+#	Archive will not be re-extracted if the directory exists
+#	unless clean is specified
+
+# Assumption here is a directory structure of
+#   .                      current directory. This script,
+#                          QNX patches, etc.
+#	./QNX.setup            Setup script which defines at least
+#                          archive, pkg, patches, mypatches
+#	./QNX.newfiles         used by mkpatch to identify files
+#	                       which must be created.
+#	./QNX.make             script to perform make operation
+#	../$archive            tar'ed and gzipped archive
+#	                       defaults to $pkg.tar.gz
+#	../$archpkg            directory the archive unpacks to
+#	../$pkg                directory for new distribution
+#	../$pkg.ORIG           A clean directory when developing
+
+# The archive, any patches and any mypatches may be located
+# either in the $portdir or its parent directory.
+# After the archive is expanded, a softlink is created in
+# the ../$pkg directory to point to the $portpath:
+#   ln -s $portpath ../$pkg/qnxp
+
+# The QNX.make command will be executed in the $pkg directory
+# with the QNX.setup having been executed. It would not be
+# unreasonable to have the QNX.make script read QNX.setup
+# itself and cd to the appropriate directory, but it is not
+# required.
+
+function nl_error {
+  echo "install_app: $*" >&2
+  exit 1
+}
+
+portpath=`pwd`
+portpath=`fullpath -t $portpath`
+[ -d "$portpath" ] || nl_error Cannot find run directory
+portdir=`basename $portpath`
+
+[ -f QNX.setup ] || nl_error Cannot locate QNX.setup
+. QNX.setup
+cd ..
+[ -n "$pkg" ] ||
+  nl_error QNX.setup must define pkg
+[ -z "$archive" ] && archive=$pkg.tar.gz
+[ ! -f "$archive" -a -f "$portdir/$archive" ] &&
+  archive=$portpath/$archive
+[ -f "$archive" ] || nl_error Cannot locate archive $archive
+if [ -n "$patches" -o -n "$mypatches" ]; then
+  for file in $patches $mypatches; do
+	[ -f "$file" -o -f "$portdir/$file" ] ||
+	  nl_error Cannot locate patch file $file
+  done
+fi
+
+typeset orig=no make=no clean=no typeset unpack=no
+
+while [ -n "$1" ]; do
+  case "$1" in
+	orig) orig=yes;;
+	make) make=yes;;
+	clean) clean=yes;;
+  esac
+  shift
+done
+
+[ $make = yes -a ! -x $portpath/QNX.make ] &&
+  nl_error Cannot make unless QNX.make is executable
+
+function dopatch {
+  echo dopatch: $*
+  pwd
+  for pat in $*; do
+	echo $pat ../$pat $portpath/$pat
+	pppat=""
+	for ppat in $pat ../$pat $portpath/$pat; do
+	  [ -f "$ppat" ] && break
+	done
+	print pat is $pat, ppat is $ppat
+	[ -f "$ppat" ] && pat=$ppat
+	[ -f "$pat" ] || nl_error Could not find patch $pat
+	case $pat in
+	  *.gz) zcat $pat >patchtmp.pat; pat=patchtmp.pat;;
+	  *.z)  zcat $pat >patchtmp.pat; pat=patchtmp.pat;;
+	  *.F)  fcat $pat >patchtmp.pat; pat=patchtmp.pat;;
+	esac
+	sh $pat
+	patch -p1 -N <$pat
+	rm -f patchtmp.pat
+	find . -name "*.orig" | xargs rm -f
+  done
+}
+
+[ ! -d "$pkg.ORIG" -a "$orig" = "yes" ] && unpack=yes
+[ ! -d "$pkg" -o "$clean" = "yes" ] && unpack=yes
+if [ "$unpack" = "yes" ]; then
+  {
+  if [ -d "$pkg" -a "$clean" = "yes" ]; then
+	echo Removing old $pkg
+	rm -rf $pkg
+  fi
+  [ -z "$archpkg" ] && archpkg=$pkg
+  [ -d "$archpkg.sav" ] && nl_error $archpkg.sav already exists
+  [ -d "$pkg.sav" ] && nl_error $pkg.sav already exists
+  [ "$archpkg" != "$pkg" -a -d "$archpkg" ] &&
+	mv $archpkg $archpkg.sav
+  [ "$orig" = "yes" -a -d "$pkg" ] &&
+	mv $pkg $pkg.sav
+
+  while [ ! -d "$pkg" ]; do
+	[ ! -d "$archpkg" ] && zcat $archive | pax -rv
+	[ ! -d "$archpkg" ] && nl_error "Archive unpack failed"
+	[ "$archpkg" != "$pkg" ] && mv $archpkg $pkg
+	cd $pkg
+	chmod -R u+w *
+	for i in *.orig; do
+	  [ -f "$i" ] &&
+		echo "Warning: $i in distribution will be deleted"
+	done
+	if [ -n "$patches" ]; then
+	  for patch in $patches; do
+		dopatch $patch
+	  done
+	fi
+	ln -fs $portpath qnxp
+
+	[ -d "../$pkg.ORIG" ] && ln -fs ../$pkg.ORIG ORIG
+	cd ..
+	if [ ! -d "$pkg.ORIG" -a $orig = yes ]; then
+	  mv $pkg $pkg.ORIG
+	  [ -d $pkg.sav ] && mv $pkg.sav $pkg
+	elif [ -n "$mypatches" ]; then
+	  cd $pkg
+	  for i in $mypatches; do
+		dopatch $i
+	  done
+	  cd ..
+	fi
+  done
+
+  [ -d "$archpkg.sav" ] && mv $archpkg.sav $archpkg
+
+  } 2>&1 | tee $portpath/$pkg.log || exit 1
+fi
+
+cd $pkg
+pwd
+if [ $make = yes ]; then
+  [ -x "$portpath/QNX.make" ] || nl_error "Cannot find QNX.make"
+  $portpath/QNX.make | tee $portpath/$pkg.make.log
+fi
