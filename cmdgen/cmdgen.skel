@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.25  1995/10/03  18:00:21  nort
+ * Changes to support screens of varying sizes
+ *
  * Revision 1.24  1995/09/07  20:05:22  nort
  * Changes to make termination cleaner.
  *
@@ -400,6 +403,11 @@ static int ibufidx;
   unshift_value = ibufidx = 0;\
   return(0);\
 } while (0)
+
+#ifdef CLIENT
+  extern int cgc_forwarding;
+  int cgc_exit_code = 0;
+#endif
 
 %typedefs%
 
@@ -1297,10 +1305,11 @@ int cmd_check(cmd_state *s) {
 	nl_error(0, "task %d: started",getpid());
 	atexit( cmd_exit );
 	#ifdef CLIENT
-	  cmd_interact();
+	  do cmd_interact(); while ( cgc_forwarding != 0 );
+	  return cgc_exit_code;
 	#else
 	  ci_server();
+	  return 0;
 	#endif
-	return(0);
   }
 #endif
