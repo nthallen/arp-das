@@ -1,14 +1,14 @@
 # Source Files
 SRC=yylex.l grammar.y tmcalgo.c states.c commands.c
-SRC+=yytype.h tmcalgo.oui
+SRC+=yytype.h tmcalgo.oui dot.c dot.h
 TOOL=Makefile setup.dbg
 DOC=todo algo grammar sample.tma oh_op.tma todo.R2
 
 # Derived Files
 TA_OBJS=tmcalgo.o grammar.o yylex.o states.o commands.o
-TA_OBJS+=tmcalgooui.o
+TA_OBJS+=tmcalgooui.o dot.o
 OBJ=$(TA_OBJS)
-INTERMED=y.tab.h grammar.c yylex.c tmcalgooui.c
+INTERMED=y.tab.h y.tab.c grammar.c yylex.c tmcalgooui.c
 TEMPORARY=*.err tmcalgo.map sample.tmc
 
 # Maintenance definitions
@@ -17,7 +17,7 @@ OBJECT=$(OBJ) $(INTERMED) $(TEMPORARY)
 TARGET=tmcalgo
 HOMEDIR=/usr/local/src/das/tmcalgo
 MNC=tmca
-# SUBDIRS none
+SUBDIRS4=regress
 
 # Compilation options
 YFLAGS=-d -l -t
@@ -37,3 +37,4 @@ tmcalgooui.c : tmcalgo.oui
 	oui -o tmcalgooui.c tmcalgo.oui
 y.output : grammar.y
 	$(YACC.y) -v grammar.y
+dot.o : dot.c dot.h
