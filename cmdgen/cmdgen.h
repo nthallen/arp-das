@@ -1,5 +1,8 @@
 /* cmdgen.h Definitions for Command Parser Generator
  * $Log$
+ * Revision 1.3  1992/10/27  08:38:20  nort
+ * Added command line options
+ *
  * Revision 1.2  1992/10/22  18:37:14  nort
  * Removed pipe_tail() prototype
  *
@@ -132,15 +135,13 @@ struct nt_t *non_terminal(char *name); /* dstructs.c */
 void dmy_non_term(struct sub_t *sub); /* dstructs.c */
 struct sub_t *new_sub(void); /* dstructs.c */
 struct sub_item_t *new_sub_item(unsigned type); /* dstructs.c */
-void *new_memory(unsigned int size); /* dstructs.c */
-#define free_memory(x) free(x)
 extern state **states; /* states.c */
 extern unsigned short n_states; /* states.c */
 extern unsigned short max_tokens; /* states.c */
 state *new_state(void); /* states.c */
 void add_rule_pos(state *state, unsigned short rnum, unsigned short pos); /* states.c */
 void eval_states(void); /* states.c */
-void print_state(state *st); /* cmdgen.c */
+void print_state(FILE *sfile, state *st); /* cmdgen.c */
 void print_rule_pos(FILE *fp, unsigned int rnum, int pos); /* cmdgen.c */
 void output_trie(void); /* trie.c */
 void output_prompts(void); /* prompts.c */
@@ -148,6 +149,5 @@ void output_shifts(void); /* states.c */
 void output_states(void); /* states.c */
 void output_rules(void); /* rules.c */
 
-extern FILE *ofile;
 #define vfile ofile
 #define efile stderr
