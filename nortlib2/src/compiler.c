@@ -5,7 +5,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
-#include <process.h>
 #include "nortlib.h"
 #include "compiler.h"
 char rcsid_compiler_c[] =

@@ -29,6 +29,10 @@ typedef struct {
   char *suffix;
 } mlf_ntup_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 FILE *mlf_next_file( mlf_def_t *mlf );
 mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
 	char *fbase, char *fsuffix, char *config );
@@ -37,5 +41,9 @@ void mlf_free_mlfn( mlf_ntup_t *mlfn );
 void mlf_set_ntup( mlf_def_t *mlf, mlf_ntup_t *mlfn );
 int mlf_compare( mlf_def_t *mlf, mlf_ntup_t *mlfn );
 void mlf_set_index( mlf_def_t * mlf, unsigned long index );
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif

@@ -1,5 +1,9 @@
 /* compiler.h
  * $Log$
+ * Revision 1.2  2001/10/05 21:03:49  nort
+ * Updated compiler.h to fix prototype.
+ * Removed Makefile.in
+ *
  * Revision 1.1  1994/08/02 15:34:58  nort
  * Initial revision
  *
@@ -7,9 +11,8 @@
 #ifndef _COMPILER_H_INCLUDED
 #define _COMPILER_H_INCLUDED
 
-#ifndef _LLOFSTR_INCLUDED
-  #include "ll_of_str.h"
-#endif
+#include <stdio.h>
+#include "ll_of_str.h"
 
 extern FILE *ofile, *yyin;
 extern char *input_filename, *output_filename;
@@ -28,6 +31,10 @@ extern short compile_options;
 #define CO_KEEP_OUTPUT 2
 #define CO_CUSTOM 4
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int compile_error(int level, char *format, ...);
 FILE *open_output_file(char *name);
 FILE *open_input_file(char *name);
@@ -39,6 +46,10 @@ int yywrap(void);
 int yylex(void);
 int yyparse(void);
 extern int yydebug;
+
+#ifdef __cplusplus
+};
+#endif
 
 #if defined __386__
 #  pragma library (nortlib3r)

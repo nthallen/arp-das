@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.17  2001/10/11 16:34:41  nort
+ * Added compiler.oui. Fixed compiler.h.
+ *
  * Revision 1.16  2001/09/10 17:31:47  nort
  *
  * Patch to nl_error.c to match correct prototype
@@ -25,12 +28,13 @@
  */
 #ifndef _NORTLIB_H_INCLUDED
 #define _NORTLIB_H_INCLUDED
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <stdio.h>
 #include <sys/types.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int Skel_open(char *name);
 int Skel_copy(FILE *ofp, char *label, int copyout);
