@@ -1,5 +1,9 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.7  1994/02/15  19:03:33  nort
+ * Moved -p option from TMA to CIC
+ * Added ci_sendfcmd()
+ *
  * Revision 1.6  1994/02/14  00:06:19  nort
  * Library stuff
  * cis_initialize() and cis_terminate()
@@ -80,6 +84,14 @@ void tma_init_options(const char *hdr, int nparts, int argc, char **argv);
 void tma_hold(int hold);
 extern int tma_is_holding;
 #define OPT_TMA_INIT "r:m"
+
+/* guaranteed memory allocator, memlib.h subset.
+ * Include memlib.h to obtain the full definition
+ */
+#ifndef MEMLIB_H_INCLUDED
+  #define new_memory(x) nl_new_memory(x)
+  #define free_memory(x) free(x)
+#endif
 
 #if defined __386__
 #  pragma library (nortlib3r)
