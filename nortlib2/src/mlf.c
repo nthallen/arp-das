@@ -331,3 +331,22 @@ FILE *mlf_next_file( mlf_def_t *mlf ) {
 
 =End  
 */
+
+
+/* Returns 1 if the directory exists. If we're writing,
+   then we'll try to create it if it doesn't exist.
+*/   
+int mlf_next_dir( mlf_def_t *mlf ) {
+  struct stat buf;
+  next_file( mlf, mlf->n_levels );
+  if ( stat( mlf->fpath, &buf ) || ! S_ISDIR(buf.st_mode) ) {
+	if ( mlf->flags & MLF_WRITING ) {
+	  if ( mkdir( mlf->fpath, 0775 ) != 0 )
+		nl_error( 1, "Unable to create directory %s", mlf->fpath );
+	  else return 1;
+	}
+	return 0;
+  }
+  return 1;
+}
+

@@ -34,6 +34,7 @@ extern "C" {
 #endif
 
 FILE *mlf_next_file( mlf_def_t *mlf );
+int mlf_next_dir( mlf_def_t *mlf );
 mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
 	char *fbase, char *fsuffix, char *config );
 mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, char *fbase, char *fname );
