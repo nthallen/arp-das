@@ -1,5 +1,8 @@
 /* states.c
  * $Log$
+ * Revision 1.2  1993/07/12  15:58:54  nort
+ * *** empty log message ***
+ *
  * Revision 1.1  1993/05/18  20:37:21  nort
  * Initial revision
  */
@@ -67,9 +70,11 @@ static void list_state(FILE *ofp, const char *name) {
 /* end_state() ends the current state declaration (if one
    has in fact been started).
 */
-static void end_state(FILE *ofp) {
+static void end_state(FILE *ofp, char *first_state) {
   if (started) {
 	fprintf(ofp, ");\n");
+	if (first_state != NULL)
+	  fprintf(ofp, "Validate %s;\n", first_state);
 	started = 0;
   }
 }
@@ -103,23 +108,31 @@ static void list_substates(FILE *ofp, struct stdef *state) {
 */
 void list_states(FILE *ofp) {
   struct prg *pi;
+  char *first_state = NULL;
 
   for (pi = program; pi != NULL; pi = pi->next) {
 	switch (pi->type) {
-	  case PRGTYPE_STATE: list_state(ofp, pi->u.state->name); break;
-	  case PRGTYPE_PARTITION: end_state(ofp); break;
+	  case PRGTYPE_STATE:
+		list_state(ofp, pi->u.state->name);
+		if (first_state == NULL)
+		  first_state = pi->u.state->name;
+		break;
+	  case PRGTYPE_PARTITION:
+		end_state(ofp, first_state);
+		first_state = NULL;
+		break;
 	}
   }
-  end_state(ofp);
+  end_state(ofp, first_state);
   
   /* now list the substates for each partition */
   for (pi = program; pi != NULL; pi = pi->next) {
 	switch (pi->type) {
 	  case PRGTYPE_STATE: list_substates(ofp, pi->u.state); break;
-	  case PRGTYPE_PARTITION: end_state(ofp); break;
+	  case PRGTYPE_PARTITION: end_state(ofp, NULL); break;
 	}
   }
-  end_state(ofp);
+  end_state(ofp, NULL);
 }
 
 /* Output one top-level state */
@@ -210,9 +223,12 @@ void output_states(FILE *ofp) {
   if (saw_state) partition++;
   fprintf(ofp, "%%{\n"
 	"  #ifndef MSG_LABEL\n"
-	"	#define MSG_LABEL \"TMA\"\n"
+	"\t#define MSG_LABEL \"TMA\"\n"
 	"  #endif\n"
 	"  #define OPT_CONSOLE_INIT OPT_CON_INIT OPT_CIC_INIT OPT_TMA_INIT\n"
 	"  #define CONSOLE_INIT tma_init_options(MSG_LABEL, %d, argc, argv)\n"
+	"  #ifndef NEED_TIME_FUNCS\n"
+	"\t#define NEED_TIME_FUNCS\n"
+	"  #endif\n"
 	"%%}\n", partition);
 }
