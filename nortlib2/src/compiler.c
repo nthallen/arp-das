@@ -1,20 +1,4 @@
-/* compiler.c Support routines for compilers
- * $Log$
- * Revision 1.4  1994/08/02  15:34:08  nort
- * Added ll_of_str for input_files
- * Make open_input_file() a separate module to allow customization
- *
- * Revision 1.3  1994/08/02  15:18:56  nort
- * Changed option letter -h to -q to match compiler.h
- * Change functionality to terminate if no input files are specified.
- *
- * Revision 1.2  1993/09/15  19:27:19  nort
- * *** empty log message ***
- *
- * Revision 1.1  1993/07/12  15:54:26  nort
- * Initial revision
- *
- */
+/* compiler.c Support routines for compilers */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
