@@ -1,0 +1,6 @@
+2.0.2
+  Tweaked configuration to make sure libtool gets built.
+2.0.1
+  Added mlf_next_dir() in mlf.c
+2.0
+  First release.
