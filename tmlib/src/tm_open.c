@@ -5,9 +5,6 @@
 #include "nortlib.h"
 #include "tm.h"
 
-int TM_fd = -1;
-char *TM_buf;
-
 int TM_open_stream( int write, int nonblocking ) {
   char *exp, *devname;
   int namelen, splen, mode;
@@ -34,14 +31,6 @@ int TM_open_stream( int write, int nonblocking ) {
     nl_error( nl_response, "Error opening '%s': %s",
       devname, strerror(errno) );
     return 1;
-  }
-  /* Do I need to allocate TM_buf for writing? */
-  if ( ! write ) {
-	TM_buf = (char *) malloc( TMBUFSIZE );
-	if ( TM_buf == 0 ) {
-	  nl_error( nl_response, "No memory for TM_buf in TM_open_stream" );
-	  return 1;
-	}
   }
   return 0;
 }

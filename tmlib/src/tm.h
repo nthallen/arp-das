@@ -43,7 +43,8 @@ typedef struct {
    what RCS and/or MD5 can and can't do for us
 */
 typedef struct {
-  char ident[32]; /* 12345678.123,v 12.12 */
+  char version[16]; /* 1.0 etc. contents of VERSION */
+  char md5[16];     /* MD5 digest of core TM frame definitions */
 } tmid_t;
 
 /* nrowsper/nsecsper = rows/sec */

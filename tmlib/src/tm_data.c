@@ -4,7 +4,8 @@
 static void tm_data2( int type, int n_rows, mfc_t mfctr, int row,
                      const unsigned char *data ) {
   while ( n_rows-- > 0 ) {
-    if ( row == tm_info.nrowminf ) {
+    if ( row == tm_info.nrowminf ) row = 0;
+    if ( row == 0 ) {
 	  mfc_t mfcchk;
 	  mfcchk = data[tmi(mfc_lsb)] + ( data[tmi(mfc_msb)] << 8 );
 	  if ( type == TMTYPE_DATA_T1 ) mfctr = mfcchk;
@@ -12,7 +13,6 @@ static void tm_data2( int type, int n_rows, mfc_t mfctr, int row,
 	    nl_error( 2, "Invalid mfctr in tm_data2" );
 	    return;
 	  }
-	  row = 0;
 	}
 	if ( row+1 == tm_info.nrowminf ) {
 	  unsigned short synch =

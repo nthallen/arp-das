@@ -2,17 +2,25 @@
 #include "nortlib.h"
 #include "tm.h"
 
+int TM_fd = -1;
+char *TM_buf;
 
 int TM_read_stream( void ) {
   if ( TM_fd < 0 && TM_open_stream( 0, 0 ) ) return 1;
   return TM_readfd();
 }
 
-
 int TM_readfd(void) {
-  if (TM_fd < 0 || TM_buf == 0 ) {
+  if ( TM_fd < 0 ) {
     nl_error( nl_response, "TM stream not opened in TM_readfd" );
     return 1;
+  }
+  if ( TM_buf == 0 ) {
+	TM_buf = (char *) malloc( TMBUFSIZE );
+	if ( TM_buf == 0 ) {
+	  nl_error( nl_response, "No memory for TM_buf in TM_open_stream" );
+	  return 1;
+	}
   }
   for (;;) {
     ssize_t nbytes = read( TM_fd, TM_buf, TMBUFSIZE );

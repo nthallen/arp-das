@@ -23,7 +23,7 @@ without express or implied warranty of any kind.
 These notices must be retained in any copies of any part of this
 documentation and/or software.
  */
-
+#include <string.h>
 #include "md5.h"
 
 /* Constants for MD5Transform routine.
@@ -52,6 +52,8 @@ static void Decode PROTO_LIST
   ((UINT4 *, unsigned char *, unsigned int));
 static void MD5_memcpy PROTO_LIST ((POINTER, POINTER, unsigned int));
 static void MD5_memset PROTO_LIST ((POINTER, int, unsigned int));
+#define MD5_memcpy memcpy
+#define MD5_memset memset
 
 static unsigned char PADDING[64] = {
   0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -308,6 +310,7 @@ unsigned int len;
 /* Note: Replace "for loop" with standard memcpy if possible.
  */
 
+#ifndef MD5_memcpy
 static void MD5_memcpy (output, input, len)
 POINTER output;
 POINTER input;
@@ -318,9 +321,11 @@ unsigned int len;
   for (i = 0; i < len; i++)
   output[i] = input[i];
 }
+#endif
 
 /* Note: Replace "for loop" with standard memset if possible.
  */
+#ifndef MD5_memset
 static void MD5_memset (output, value, len)
 POINTER output;
 int value;
@@ -331,4 +336,4 @@ unsigned int len;
   for (i = 0; i < len; i++)
  ((char *)output)[i] = (char)value;
 }
-
+#endif
