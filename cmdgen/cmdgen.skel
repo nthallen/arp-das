@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.16  1993/07/08  13:13:09  nort
+ * *** empty log message ***
+ *
  * Revision 1.15  1993/07/07  22:23:21  nort
  * Mods for snafu.
  *
@@ -23,14 +26,16 @@
    IO_SPACE auto-advances when a space or newline is entered
    IO_ALWAYS advances within words whenever the following
 	 letters are unambiguous.
-   IO_WORD advances within words when the rest of the current
-	 word is unambiguous
+   IO_WORD only advances within words when the rest of the current
+	 word is unambiguous (e.g. prevents advancing 'O' for On/Off)
+   IO_WORDSKIP will advance or at the beginning of a word.
 */
 static short iomode;
 #define IO_BACKSPACE 1
 #define IO_SPACE 2
 #define IO_ALWAYS 4
 #define IO_WORD 8
+#define IO_WORDSKIP 0x10
 
 #define IOF_NO_ADV 0x1
 #define IOF_UNGOTNL 0x2
@@ -171,11 +176,23 @@ typedef struct {
 
 static void nterm_shift(cg_nonterm_type nt, unsigned short val, short prev);
 
+/* Unshifting and Cancellation definitions:
+   CANCEL_LINE may be used in actions. (The do/while allows use
+   of the form: if (x) CANCEL_LINE; else ...) CANCEL_LINE
+   includes a return(0) which is the right thing to do in
+   rule_action or in read_variable() or read_words(), but
+   care should be taken if this construct is used elsewhere.
+*/
 static unsigned short unshift_value;
 static short full_reduce;
 static int unshift(void);
-#define CANCEL_LINE do\
-  { while (unshift()); full_reduce=1; unshift_value=0; } while (0)
+static int ibufidx;
+#define CANCEL_LINE do {\
+  while (unshift());\
+  full_reduce=1;\
+  unshift_value = ibufidx = 0;\
+  return(0);\
+} while (0)
 
 %typedefs%
 
@@ -217,6 +234,9 @@ typedef struct {
   cg_token_type state;
   unsigned char reversible;
   short prev;
+  #ifdef CLIENT
+	short saw_srvr;
+  #endif
   #ifdef NEED_VALUES
 	unsigned char valpos;
   #endif
@@ -231,7 +251,6 @@ short tsp;
 
 #define CG_IBUF_SIZE 256
 static char ibuf[CG_IBUF_SIZE];
-static int ibufidx;
 
 #ifndef IOMODE_INIT
   #define IOMODE_INIT (IO_SPACE|IO_BACKSPACE|IO_ALWAYS)
@@ -484,9 +503,13 @@ static unsigned short input(void) {
 
 static void _shift(cg_token_type st, unsigned short val, short prev) {
   tsp++;
+  if (tsp >= TSTACK_SIZE) CMD_ERROR("Token Stack Overflow");
   tstack[tsp].state = st;
   tstack[tsp].prev = prev;
   tstack[tsp].value = val;
+  #ifdef CLIENT
+	tstack[tsp].saw_srvr = saw_server_action;
+  #endif
   unshift_value = 0;
   #ifdef NEED_VALUES
 	tstack[tsp].valpos = vsp;
@@ -499,6 +522,9 @@ static int unshift(void) {
   do {
 	#ifdef NEED_VALUES
 	  vsp = tstack[tsp].valpos;
+	#endif
+	#ifdef CLIENT
+	  saw_server_action = tstack[tsp].saw_srvr;
 	#endif
 	unshift_value = tstack[tsp].value;
   } while (tstack[tsp--].prev >= 0 && tstack[tsp].reversible);
@@ -584,7 +610,6 @@ static int read_variable(short vartype, unsigned short n_chars) {
 		continue;
 	  case KG_ESCAPE:
 		CANCEL_LINE;
-		return(0);
 	  case '\n':
 	  case '\r':
 		UNPUTNL;
@@ -800,8 +825,12 @@ static int read_words(unsigned short trieroot, unsigned short trie_offset) {
   #endif
 
   /* Now triepos points to the previous node. We must
-     advance to next to find the first matching character
+     advance to next to find the first matching character.
+	 First advance at the beginning if specified.
   */
+  if (!(ioflags & IOF_NO_ADV)
+	  && (iomode & IO_WORDSKIP)) advance(&triepos);
+
   for (;;) {
 	/* When should we advance?
 		ALWAYS
@@ -811,7 +840,7 @@ static int read_words(unsigned short trieroot, unsigned short trie_offset) {
 		ALWAYS | WORD
 		  if unambiguous to EOW
 	*/
-	if (!(ioflags & IOF_NO_ADV)	
+	if (!(ioflags & IOF_NO_ADV)
 		&& (iomode & IO_ALWAYS)) advance(&triepos);
 	if ((trie[triepos].code & 0x7F) == 0) break;
 	c = input();
@@ -853,7 +882,6 @@ static int read_words(unsigned short trieroot, unsigned short trie_offset) {
 		continue;
 	  case KG_ESCAPE:
 		CANCEL_LINE;
-		return(0);
 	  default:
 		if (isprint(c)) break;
 		SPECIAL_CHAR_FUNC(c);
