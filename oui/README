@@ -1,0 +1,9 @@
+When installing from the CVS repository, you'll need to run
+
+  aclocal
+  automake --add-missing
+  autoconf
+  ./configure
+  make
+
+oui requires libnort to be installed for its compiler module.
