@@ -19,22 +19,28 @@
 #	./QNX.make             script to perform make operation
 #	./$archive             tar'ed and gzipped archive
 #	                       defaults to $pkg.tar.gz
-#	$archpkg               base directory in the archive
+#	./ARC/                 Optional location for archives and
+#	                       patches.
+#	./PAT/                 Optional location for patches.
 #	./BLD/$pkg             directory for new distribution
 #	./ORIG/$pkg            A clean directory when developing
 
-# The archive, any patches and any mypatches may be located
-# either in the $portdir or its parent directory.
-# After the archive is expanded, a softlink is created in
-# the ../$pkg directory to point to the $portpath:
-#   ln -s $portpath ../$pkg/qnxp
-# 
 # QNX.setup is charged with defining the variables pkg, archive,
 # archpkg, patches and mypatches
 # pkg: the name of the directory in which build we occur,
 #      usually coded by version number.
 # archive: the name of the archive file, defaulting to
-#      $pkg.tar.gz
+#      $pkg.tar.gz. The archive may be located in the
+#      current directory or in the ARC/ subdirectory
+#      or remotely at $arcurl. The $archive variable should
+#      only contain the filename, not the path.
+# arcurl: the URL where the archive can be found if not in
+#   ./$archive or ARC/$archive. If arcurl ends in '/', $archive
+#   is suffixed. The archive is retrieved using lynx and
+#   placed in ARC/$archive.
+# arccksum: The output of cksum on the archive. If the archive
+#   will be located remotely, this line should list the archive
+#   as ARC/$archive, since that is where it will be downloaded.
 # archpkg: the name of the directory into which the archive
 #      expands. Defaults to ${archive%.tar*}
 # patches: a space-delimited list of official patches
@@ -44,6 +50,9 @@
 #   against the latest official patches, rather than an earlier
 #   version, so we apply patches to our ORIG directories, but
 #   only apply mypatches to the BLD directories.
+#
+#   Files listed in patches and mypatches may be located in
+#   the current directory, or the ARC/ or PAT/ subdirectories.
 
 # The QNX.make command will be executed in the BLD/$pkg directory.
 # It isn't dot-executed, so it does not have immediate access to
