@@ -42,10 +42,15 @@ END;
 
 /*-------------------------------------------------------------------*/
 /* Istart, Istop and Tramp */
-ATTR Istart, Istop, Tramp, Value: double;
+ATTR dIdt,Istart,Istop,Tramp,Value: double;
 ATTR dIdtAssessed: VOID;
-ATTR defines_dIdt: int;
 ATTR WaveKey : DefTableKey;
+RULE: Current ::= FloatVal CurrentUnit COMPUTE
+  Current.Value = MUL(FloatVal.Value,CurrentUnit.Value);
+END;
+RULE: Time ::= FloatVal TimeUnit COMPUTE
+  Time.Value = MUL(FloatVal.Value,TimeUnit.Value);
+END;
 RULE: CurrentUnit ::= 'A' COMPUTE CurrentUnit.Value = 1; END;
 RULE: CurrentUnit ::= 'mA' COMPUTE CurrentUnit.Value = 0.001; END;
 RULE: CurrentUnit ::= 'uA' COMPUTE CurrentUnit.Value = 0.000001; END;
@@ -56,8 +61,8 @@ RULE: FloatVal ::= Integer COMPUTE FloatVal.Value = CAST(double,Integer); END;
 RULE: FloatVal ::= Float COMPUTE FloatVal.Value = atof(StringTable(Float)); END;
 
 /* Make sure only one dIdt is defined per waveform */
-RULE: dIdt ::= 'dI' '/' 'dt' '=' FloatVal CurrentUnit '/' TimeUnit COMPUTE
-  dIdt.Value = DIV(MUL(FloatVal.Value,CurrentUnit.Value),TimeUnit.Value);
+RULE: dIdt ::= 'dI' '/' 'dt' '=' Current '/' TimeUnit COMPUTE
+  dIdt.Value = DIV(Current.Value,TimeUnit.Value);
 END;
 SYMBOL dIdt COMPUTE
   INH.Key = INCLUDING Wave.Key; 
@@ -76,29 +81,41 @@ SYMBOL ICOSWave COMPUTE
     message(ERROR, "dI/dt undefined: ", 0, COORDREF))
       <- THIS.dIdtAssessed;
 END;
+
 SYMBOL ICOSRamp COMPUTE
   SYNT.Key = NewKey();
   INH.WaveKey = INCLUDING Wave.Key;
-  SYNT.defines_dIdt =
-    IF( AND(HasIstart(THIS.Key),
-          AND(HasIstop(THIS.Key),HasTramp(THIS.Key))), 1, 0 );
-  SYNT.dIdtAssessed =
-	IF( THIS.defines_dIdt,
-	  ORDER(SetdIdtDefined(THIS.WaveKey,1,2),
-			ResetdIdt(THIS.WaveKey,
-			  DIV(SUB(GetIstop(THIS.Key,0.),GetIstart(THIS.Key,0.)),
-				  GetTramp(THIS.Key,1.)))));
-  IF(AND(THIS.defines_dIdt,EQ(GetdIdtDefined(THIS.WaveKey,0),2)),
+  INH.dIdt = GetdIdt(THIS.WaveKey, 1.) <- INCLUDING ICOSWave.dIdtAssessed;
+END;
+RULE: ICOSRamp ::= 'Ramp' Istart Istop PrepTime COMPUTE
+  ICOSRamp.dIdtAssessed = ORDER(
+	SetdIdtDefined(ICOSRamp.WaveKey,1,2),
+	ResetdIdt(ICOSRamp.WaveKey,DIV(SUB(Istop.Value,Istart.Value),PrepTime.Value)));
+  IF(EQ(GetdIdtDefined(ICOSRamp.WaveKey,0),2),
 	  message (ERROR, "dI/dt is multiply defined: ", 0, COORDREF))
 	    <- INCLUDING ICOSWave.dIdtAssessed;
+  ICOSRamp.Istart = Istart.Value;
+  ICOSRamp.Istop = Istop.Value;
+  ICOSRamp.Tramp = PrepTime.Value;
 END;
-SYMBOL ICOSRampAssign COMPUTE INH.Key = INCLUDING ICOSRamp.Key; END;
-RULE: ICOSRampAssign ::= 'Istart' '=' FloatVal CurrentUnit COMPUTE
-  ResetIstart(ICOSRampAssign.Key,MUL(FloatVal.Value, CurrentUnit.Value));
+RULE: ICOSRamp ::= 'Ramp' Istart Istop COMPUTE
+  ICOSRamp.dIdtAssessed = 1;
+  ICOSRamp.Istart = Istart.Value;
+  ICOSRamp.Istop = Istop.Value;
+  ICOSRamp.Tramp = DIV(SUB(Istop.Value,Istart.Value),ICOSRamp.dIdt);
 END;
-RULE: ICOSRampAssign ::= 'Istop' '=' FloatVal CurrentUnit COMPUTE
-  ResetIstop(ICOSRampAssign.Key,MUL(FloatVal.Value, CurrentUnit.Value));
+RULE: ICOSRamp ::= 'Ramp' Istart PrepTime COMPUTE
+  ICOSRamp.dIdtAssessed = 1;
+  ICOSRamp.Istart = Istart.Value;
+  ICOSRamp.Istop = ADD(Istart.Value,MUL(PrepTime.Value,ICOSRamp.dIdt));
+  ICOSRamp.Tramp = PrepTime.Value;
 END;
-RULE: ICOSRampAssign ::= 'Tramp' '=' FloatVal TimeUnit COMPUTE
-  ResetTramp(ICOSRampAssign.Key,MUL(FloatVal.Value, TimeUnit.Value));
+RULE: ICOSRamp ::= 'Ramp' Istop PrepTime COMPUTE
+  ICOSRamp.dIdtAssessed = 1;
+  ICOSRamp.Istart = SUB(Istop.Value,MUL(PrepTime.Value,ICOSRamp.dIdt));
+  ICOSRamp.Istop = Istop.Value;
+  ICOSRamp.Tramp = PrepTime.Value;
 END;
+SYMBOL Istart COMPUTE SYNT.Value = CONSTITUENT Current.Value; END;
+SYMBOL Istop COMPUTE SYNT.Value = CONSTITUENT Current.Value; END;
+SYMBOL PrepTime COMPUTE SYNT.Value = CONSTITUENT Time.Value; END;
