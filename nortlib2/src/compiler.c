@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
+#include <process.h>
 #include "nortlib.h"
 #include "compiler.h"
 char rcsid_compiler_c[] =
@@ -45,6 +46,12 @@ char *output_filename = NULL;
 int input_linenumber = 0;
 int error_level = 0;
 ll_of_str input_files;
+
+#ifdef __QNXNTO__
+  #define USE_BIN "/usr/bin/use"
+#else
+  #define USE_BIN "/bin/use"
+#endif
 
 static char *makeofile(char *in, char *extension) {
   int i, lastslash, lastdot;
@@ -124,8 +131,9 @@ void compile_init_options(int argc, char **argv, char *extension) {
   while ((c = getopt(argc, argv, opt_string)) != -1) {
 	switch (c) {
 	  case 'q':
-		print_usage(argv);
-		exit(0);
+	    execl( USE_BIN, USE_BIN, argv[0], NULL );
+		compile_error(4, "Unable to exec use" );
+		exit(1);
 	  case 'w': compile_options &= ~CO_IGN_WARN; break;
 	  case 'k': compile_options |= CO_KEEP_OUTPUT; break;
 	  case 'v':
