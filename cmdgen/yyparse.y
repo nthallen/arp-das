@@ -1,5 +1,8 @@
 %{
-  /* $Log$ */
+  /* $Log$
+ * Revision 1.1  1992/07/09  18:36:44  nort
+ * Initial revision
+ * */
   #include <stdio.h>
   #include <stdlib.h>
   #include <stdarg.h>
@@ -20,31 +23,45 @@
 %token <str_val> TK_PROMPT
 %token TK_END_OF_RULES
 %type <nt_val> Rule
+%type <nt_val> nt_spec
 %type <type_val> type_spec
 %type <sub_val> sub_items
 %type <subi_val> sub_item
 %type <str_val> var_prmpt
 %%
 Rules     :
-		  | Rules Rule ';'
+		  | Rules Rule ';' {
+			  if ($2->rules.first == NULL)
+				app_error(3, "Non-terminal has no rules");
+			}
 		  ;
-Rule	  : TK_NON_TERMINAL type_spec ':' sub_items {
+Rule	  : nt_spec
+		  | Rule ':' sub_items {
+			  /* If Rule is a Client nt, check for dummy nts
+				 and make them client nts also.
+			  */
+			  if ($1->name[0] == '&') {
+				struct sub_item_t *si;
+				
+				for (si = $3->items.first; si != NULL; si = si->next) {
+				  if (si->type == SI_NT && si->u.nt->name[0] == '_')
+					si->u.nt->name[0] = '&';
+				}
+			  }
+			  if ($1->rules.last == NULL)
+				$1->rules.first = $1->rules.last = $3;
+			  else $1->rules.last = $1->rules.last->next = $3;
+			  $3->reduces = $1;
+			  $$ = $1;
+			}
+		  ;
+nt_spec	  : TK_NON_TERMINAL type_spec {
 			  if ($2 != NULL) {
 			    if ($1->type != NULL)
 				  app_error(2, "Attempted redefinition of type for %s",
 						  $1->name);
 				$1->type = $2;
 			  }
-			  if ($1->rules.last == NULL)
-				$1->rules.first = $1->rules.last = $4;
-			  else $1->rules.last = $1->rules.last->next = $4;
-			  $4->reduces = $1;
-			  $$ = $1;
-			}
-		  | Rule ':' sub_items {
-			  assert($1->rules.last != NULL);
-			  $1->rules.last = $1->rules.last->next = $3;
-			  $3->reduces = $1;
 			  $$ = $1;
 			}
 		  ;
