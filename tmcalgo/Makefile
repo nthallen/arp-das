@@ -21,10 +21,12 @@ MNC=tmca
 # Compilation options
 YFLAGS=-d -l
 LFLAGS=-i -l
-CFLAGS=-g -ml -w4 -I /usr/local/include
-LDFLAGS=-b -M -l nortlib -l memlib -L /usr/local/lib
+CFLAGS=-g -ml -2 -w4
+LDFLAGS=$(BETALIB) -M
 LINK.it=$(LINK.c) -o $@ $(LDFLAGS)
 
 tmcalgo : $(TA_OBJS)
 	$(LINK.it) $(TA_OBJS)
+	usemsg tmcalgo tmcalgo.c
+	ln -f tmcalgo /usr/local/bin/tmcalgo
 tmcalgo.o : tmcalgo.c yytype.h

@@ -16,20 +16,38 @@ State Definition:
   
   Instrument commands are executed once (of course) at the specified
   time offset.
-  
+
+		OLD SYNTAX:
   TMC statement are executed at a TMC-determined rate during the
   period of time for which they are valid.
+		CHANGE TO:
+  TMC statements may appear in four different contexts within an
+  algorithm:
+    1) Outside any state
+	2) At the beginning of a state
+	3) At the end of a state
+	4) In the middle of a state
+  In general, TMC commands are executed according to TMC rules
+  of dependency together with additional restrictions applied
+  by tmcalgo. Commands listed outside any state have no additional
+  restrictions applied. Commands listed at the beginning of a
+  state are executed only when that state is valid. Commands
+  listed at the end of a state are executed from the time that
+  endpoint is reached until the state is invalidated. Commands
+  located in the middle of a state are executed at most once
+  at the appropriate time.
   
   TMC statements should be listed after any instrument commands
   for the same time:
-
       3:00 > Lamp On							Correct
 	       [ if (stat) validate Lamp_Not_On; ]
+		+1 > Lamp Set Point 395
 
 	  3:00 > Lamp On							Incorrect
 		   [ if (stat) validate Lamp_Not_On; ]
 		   > Lamp Set Point 395
 
+		OLD_SYNTAX:
   TMC statements listed prior to the first time specification
   are valid for the entire duration of the state. TMC statements
   with a time specification are valid from their specified time
