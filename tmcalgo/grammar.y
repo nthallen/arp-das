@@ -1,6 +1,9 @@
 %{
   /* grammar.y Grammar for tmcalgo
    * $Log$
+ * Revision 1.2  1993/09/28  16:15:13  nort
+ * Cleanup, added some comments
+ *
  * Revision 1.1  1993/05/18  20:37:18  nort
  * Initial revision
  *
@@ -10,7 +13,7 @@
   #include "nortlib.h"
   #include "yytype.h"
   #include "y.tab.h"
-  #include "memlib.h"
+  /* #include "memlib.h" */
   #pragma off (unreferenced)
 	static char rcsid[] =
 	  "$Id$";
@@ -20,14 +23,17 @@
   #define PARSE_DEBUG (-2)
   static long int last_command_time;
   
-  static struct cmddef *new_command(int flags, char *text) {
+  static struct cmddef *
+  new_command(int type, char *text, char *text2 ) {
 	struct cmddef *cd;
 	
 	cd = new_memory(sizeof(struct cmddef));
 	cd->next = NULL;
 	cd->cmdtime = 0L;
+	cd->substate = NULL;
 	cd->cmdtext = text;
-	cd->cmdflags = flags;
+	cd->cmd2text = text2;
+	cd->cmdtype = type;
 	return(cd);
   }
   
@@ -35,14 +41,15 @@
 	if (cl->first == NULL) cl->first = cl->last = cmd;
 	else {
 	  assert(cl->last != NULL);
-	  if (cl->last->cmdtime == cmd->cmdtime &&
-		  (cl->last->cmdflags & CMDFLAGS_TMC) &&
-		  (cmd->cmdflags & CMDFLAGS_TMC) == 0)
-		nl_error(2, "TMC Command must follow all commands for time");
+	  /* eliminated sorting test here. Sort on output? */
+	  /* nl_error(2, "TMC Command must follow all commands for time"); */
 	  cl->last = cl->last->next = cmd;
 	}
   }
   
+  /* append_prog() duplicates the specified struct prg and 
+	 appends the copy to the specified struct prglst
+  */
   static void append_prog(struct prglst *pl, struct prg *prog) {
 	struct prg *pg;
 
@@ -53,108 +60,163 @@
 	else pl->last = pl->last->next = pg;
   }
   
-  static struct stdef *new_state(char *name, struct cmddef *cmds) {
+  static struct stdef *new_state(char *name, struct cmddef *cmds, char *fname) {
 	struct stdef *ns;
 	
 	ns = new_memory(sizeof(struct stdef));
 	ns->name = name;
 	ns->cmds = cmds;
+	ns->filename = fname;
 	return(ns);
   }
   
+  static struct prtn *new_partition( void ) {
+	struct prtn *part;
+	
+	part = new_memory( sizeof( struct prtn ) );
+	part->partno = -1;
+	part->idle_substate = NULL;
+	return part;
+  }
+
   struct prg *program;
 %}
 
 %token KW_STATE
 %token KW_PARTITION
+%token KW_DEPENDING
+%token KW_ON
+%token KW_VALIDATE
 %token <textval>  TK_TMCSTAT
 %token <textval>  TK_NAME
 %token <textval>  TK_COMMAND
+%token <textval>  TK_PARENSTAT
+%token <textval>  TK_QSTRING
 %token <intval>   TK_INTEGER
 %type  <intval>   time
 %type  <intval>   time_spec
-%type  <cmdval>   command
-%type  <cmdval>   tmc_statement
+%type  <cmdval>   timed_command
 %type  <cmdsval>  timed_commands
+%type  <cmdval>   untimed_command
 %type  <cmdsval>  untimed_commands
 %type  <textval>  state_name_def
-%type  <stateval> state_def 
+%type  <stateval> state_def
 %type  <prgval>   prog_item
+%type  <prgval>   partn_def
 %type  <pglval>   prog_items
 
 %%
 Program : prog_items { program = $1.first; }
 	;
 /* <pglval == struct prglst == first/last list of struct prg> */
-prog_items : { $$.first = $$.last = NULL; }
+prog_items : partn_def {
+		$$.first = $$.last = NULL;
+		append_prog( &$$, &$1 );
+	  }
 	| prog_items prog_item {
-	  $$ = $1;
-	  append_prog(&$$, &$2);
-	}
+		$$ = $1;
+		append_prog(&$$, &$2);
+	  }
 	;
 /* <prgval == struct prg> */
 prog_item : state_def {
-	  $$.type = PRGTYPE_STATE;
-	  $$.u.state = $1;
-	}
-	| TK_TMCSTAT {
-	  $$.type = PRGTYPE_TMCCMD;
-	  $$.u.tmccmd = $1;
-	}
-	| KW_PARTITION { $$.type = PRGTYPE_PARTITION; }
+		$$.type = PRGTYPE_STATE;
+		$$.u.state = $1;
+	  }
+	| KW_PARTITION partn_def { $$ = $2; }
+	| untimed_command {
+		$$.type = PRGTYPE_TMCCMD;
+		$$.u.tmccmd = $1;
+	  }
+	;
+/* <prgval == struct prg> */
+partn_def : {
+		$$.type = PRGTYPE_PARTITION;
+		$$.u.partition = new_partition();
+	  }
 	;
 /* <stateval == struct stdef *> */
 state_def : KW_STATE state_name_def '{' untimed_commands timed_commands '}' {
-	  nl_error(PARSE_DEBUG, "State Definition %s", $2);
-	  if ($4.first == NULL) $4.first = $5.first;
-	  else $4.last->next = $5.first;
-	  $$ = new_state($2, $4.first);
-	}
+		nl_error(PARSE_DEBUG, "State Definition %s", $2);
+		if ($4.first == NULL) $4.first = $5.first;
+		else $4.last->next = $5.first;
+		$$ = new_state($2, $4.first, NULL);
+	  }
+	| KW_STATE state_name_def TK_QSTRING opt_state_list ';' {
+		nl_error( PARSE_DEBUG, "Slurp: %s %s", $2, $3 );
+		$$ = new_state( $2, NULL, $3 );
+	  }
+	;
+opt_state_list :
+	| '(' state_list ')'
+	;
+state_list : state_list_elem
+	| state_list ',' state_list_elem
+	;
+state_list_elem : TK_NAME { get_state_case( $1, 1 ); }
 	;
 /* <textval == char *> */
-state_name_def : TK_NAME { $$ = new_state_name($1); }
+state_name_def : TK_NAME {
+		  $$ = new_state_name($1);
+		  nl_error( PARSE_DEBUG, "state_name_def: %s", $1 );
+		}
 	;
 /* <cmdsval == struct cmdlst == first/last list of cmddef> */
 untimed_commands : {
-	  last_command_time = -1;
-	  $$.first = $$.last = NULL;
-	}
-	| untimed_commands tmc_statement {
-	  $$ = $1;
-	  $2->cmdtime = -1;
-	  append_command(&$$, $2);
-	}
+		last_command_time = -1;
+		$$.first = $$.last = NULL;
+	  }
+	| untimed_commands untimed_command {
+		$$ = $1;
+		$2->cmdtime = -1;
+		append_command(&$$, $2);
+	  }
+	;
+/* <cmdval == struct cmddef *> */
+untimed_command : TK_TMCSTAT {
+		nl_error(PARSE_DEBUG, "TMC: {%s}", $1 );
+		$$ = new_command( CMDTYPE_TMC, NULL, $1 );
+	  }
+	| KW_DEPENDING KW_ON TK_PARENSTAT TK_TMCSTAT {
+		nl_error(PARSE_DEBUG, "DEP: (%s) {%s}", $3, $4 );
+		$$ = new_command( CMDTYPE_TMC, $3, $4 );
+	  }
+	;
 /* <cmdsval == struct cmdlst == first/last list of cmddef> */
 timed_commands : {
-	  last_command_time = 0;
-	  $$.first = $$.last = NULL;
-	}
-	| timed_commands time_spec command {
-	  $$ = $1;
-	  $3->cmdtime = $2;
-	  append_command(&$$, $3);
-	}
+		last_command_time = 0;
+		$$.first = $$.last = NULL;
+	  }
+	| timed_commands time_spec timed_command {
+		$$ = $1;
+		$3->cmdtime = $2;
+		append_command(&$$, $3);
+	  }
 	;
 time_spec : { $$ = last_command_time; }
 	| time {
-	  if ($1 < last_command_time)
-		nl_error(2, "Command Time preceeds previous command");
-	  $$ = last_command_time = $1;
-	}
+		if ($1 < last_command_time)
+		  nl_error(2, "Command Time preceeds previous command");
+		$$ = last_command_time = $1;
+	  }
 	| '+' time { $$ = last_command_time += $2; }
 	;
 time : TK_INTEGER { $$ = $1; }
 	| time ':' TK_INTEGER { $$ = $1 * 60 + $3; }
 	;
-command : TK_COMMAND {
-	  nl_error(PARSE_DEBUG, "Read command \"%s\"", $1);
-	  check_command($1);
-	  $$ = new_command(0, $1);
-	}
-	| tmc_statement
-	;
-tmc_statement : TK_TMCSTAT {
-	  nl_error(PARSE_DEBUG, "Saw statement:\n%s", $1);
-	  $$ = new_command(CMDFLAGS_TMC, $1);
-	}
+
+/* <cmdval == struct cmddef *> */
+timed_command : TK_COMMAND {
+		nl_error(PARSE_DEBUG, "Read command \"%s\"", $1);
+		check_command($1);
+		$$ = new_command( CMDTYPE_CMD, $1, NULL );
+	  }
+	| TK_QSTRING {
+		nl_error(PARSE_DEBUG, "Qstring %s", $1 );
+		$$ = new_command( CMDTYPE_QSTR, $1, NULL );
+	  }
+	| KW_VALIDATE TK_NAME ';' {
+		$$ = new_command( CMDTYPE_VAL, $2, NULL );
+	  }
+	| untimed_command { $$ = $1; }
 	;
