@@ -1,6 +1,9 @@
 /* rules.c
  *
  * $Log$
+ * Revision 1.4  1993/07/27  18:48:44  nort
+ * Added default to rule_action(switch(){})
+ *
  * Revision 1.3  1993/05/18  13:11:19  nort
  * Client/Server Support in output
  *
@@ -135,14 +138,22 @@ static void output_action(unsigned short rnum) {
 			putc(*act++, ofile);
 			break;
 		  }
-		  if (eltnum > n_elts)
-			compile_error(3, "$%d exceeds element count in rule %d",
+		  if (eltnum > n_elts) {
+			compile_error(2, "$%d exceeds element count in rule %d:",
 					eltnum, rnum);
+			print_rule_pos(stderr, rnum, -1);
+			fputc('\n', stderr);
+			compile_error(3, "Cannot Continue");
+		  }
 		  if (eltnum == 0) epos = n_elts;
 		  else epos = eltnum-1;
-		  if ((eflags[epos] & ELT_HAS_VAL) == 0)
-			compile_error(3, "$%d has no value in rule %d",
+		  if ((eflags[epos] & ELT_HAS_VAL) == 0) {
+			compile_error(2, "$%d has no value in rule %d",
 					eltnum, rnum);
+			print_rule_pos(stderr, rnum, -1);
+			fputc('\n', stderr);
+			compile_error(3, "Cannot Continue");
+		  }
 		  member = members[epos];
 		  fprintf(ofile, "V(");
 		  for (epos++, dcnt = 0, pcnt = 1; epos <= n_elts; epos++) {
@@ -220,5 +231,7 @@ void output_rules(void) {
   fprintf(ofile, "default:\n");
   indent(CONDINDENT);
   fprintf(ofile, "CMD_ERROR(\"Unexpected Rule in rule_action\");\n");
+  indent(CONDINDENT);
+  fprintf(ofile, "exit(1);\n");
   fprintf(ofile, "  }\n}\n");
 }
