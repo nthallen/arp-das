@@ -1,6 +1,9 @@
 %{
   /* yylex.l for tmcalgo
    * $Log$
+ * Revision 1.5  1996/01/24  17:49:20  nort
+ * Support for arbitrarily long input tokens
+ *
  * Revision 1.4  1994/10/14  16:16:21  nort
  * Removed arbitrary limitation on STATBUF size
  *
@@ -40,7 +43,7 @@
 		ta_input_line = input_linenumber + 1;
 	  else ta_input_line++;
 	} else if (c == EOF)
-	  compile_error(3, "Unexpected EOF during TMC statement");
+	  compile_error(3, "Unexpected EOF during TMC or C statement");
 	return(c);
   }
   
@@ -76,11 +79,84 @@
 	sbuf->text[sbuf->n_chars] = '\0';
 	return(sbuf->text);
   }
+
+  /* qstat
+       op = open character, e.g. '{'
+	   cl = close character, e.g. '}'
+	   store = non-zero if outer chars are to be saved
+  */
+  static void qstat( int op, int cl, int store ) {
+	int level = 0, c, quoting = 0;
+	static struct statbuf sbuf;
+
+	empty(&sbuf);
+	ta_input_line = input_linenumber;
+	c = op;
+	if ( store ) buffer_char(&sbuf, c);
+	if ( op == '\"' ) quoting = op;
+	else level++;
+	c = ta_input();
+	for (;;) {
+	  if ( quoting ) {
+		for (;;) {
+		  if (c == quoting) break;
+		  else {
+			buffer_char(&sbuf, c);
+			if (c == '\\') {
+			  c = ta_input();
+			  buffer_char(&sbuf, c);
+			}
+		  }
+		  c = ta_input();
+		}
+		quoting = 0;
+		if ( op == '\"' ) break;
+		buffer_char(&sbuf, c);
+		c = ta_input();
+	  }
+	  if ( c == op ) level++;
+	  else if ( c == cl ) level--;
+	  else if ( c == '\"' || c == '\'' ) quoting = c;
+	  if ( level == 0 ) break;
+	  buffer_char( &sbuf, c );
+	  c = ta_input();
+	}
+	if ( store ) buffer_char( &sbuf, c );
+	yylval.textval = strdup(sbuftext(&sbuf));
+	input_linenumber = ta_input_line;
+  }
+
+  static void pipe_code(void) {
+	int c;
+
+    ta_input_line = input_linenumber;
+	fprintf( ofile, "%%{" );
+	c = ta_input();
+	for (;;) {
+	  fputc( c, ofile );
+	  if (c == '\n') {
+		c = ta_input();
+		if (c == '%') {
+		  c = ta_input();
+		  if (c == '}') break;
+		  fputc( '%', ofile );
+		  fputc( c, ofile );
+		}
+	  } else c = ta_input();
+	}
+	fprintf( ofile, "%%}\n" );
+	input_linenumber = ta_input_line;
+  }
 %}
+%Start statedef other
 %%
 State			return(KW_STATE);
 Partition		return(KW_PARTITION);
+depending       return(KW_DEPENDING);
+on              return(KW_ON);
+Validate        return(KW_VALIDATE);
 [A-Z][A-Z0-9_]*	{ yylval.textval = strdup(yytext);
+				  BEGIN statedef;
 				  return(TK_NAME);
 				}
 [0-9]+			{ yylval.intval = atoi(yytext);
@@ -95,40 +171,15 @@ Partition		return(KW_PARTITION);
 				  yylval.textval = strdup(&yytext[i]);
 				  return(TK_COMMAND);
 				}
-"["				{ int level = 1, c, d;
-				  static struct statbuf sbuf;
-
-				  empty(&sbuf);
-				  for (;;) {
-					switch (c = ta_input()) {
-					  case '[': level++; break;
-					  case ']': level--; break;
-					  case '\"':
-					  case '\'':
-						buffer_char(&sbuf, c);
-						for (;;) {
-						  d = ta_input();
-						  if (d == c) break;
-						  else {
-							buffer_char(&sbuf, d);
-							if (d == '\\') {
-							  d = ta_input();
-							  buffer_char(&sbuf, d);
-							}
-						  }
-						}
-						break;
-					}
-					if (level == 0) break;
-					buffer_char(&sbuf, c);
-				  }
-				  yylval.textval = strdup(sbuftext(&sbuf));
-				  if (ta_input_line > input_linenumber)
-					input_linenumber = ta_input_line;
-				  return TK_TMCSTAT;
-				}
-[+{}:]			return(yytext[0]);
+<statedef>[()]  { return yytext[0]; }
+<statedef>"{"   { BEGIN other; return yytext[0]; }
+<other>"("		{ qstat( '(', ')', 0 ); return TK_PARENSTAT; }
+<other>"{"		{ qstat( '{', '}', 0 ); return TK_TMCSTAT; }
+"\""			{ qstat( '"', '"', 1 ); return TK_QSTRING; }
+"["             { qstat( '[', ']', 0 ); return TK_TMCSTAT; }
+^"%{"           { pipe_code(); }
+[+:;},]	    	{ BEGIN other; return(yytext[0]); }
 [ \t\f]       	;
-[;%#].*			;
+"#".*			;
 \n          	input_linenumber++;
 .           	compile_error(2, "Illegal Character");
