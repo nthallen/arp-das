@@ -1,0 +1,9 @@
+package oui
+include compiler
+% The default extension is fine
+synopsis >%C	[options] file [file ...]
+
+opts >u
+sort >	-u Don't sort the "sort" strings
+#include "ouidefs.h"
+switch >case 'u': sort_output = 0; break;
