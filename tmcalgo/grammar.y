@@ -1,6 +1,9 @@
 %{
   /* grammar.y Grammar for tmcalgo
    * $Log$
+   * Revision 1.8  2001/01/05 21:55:31  nort
+   * Added argument to get_state_case()
+   *
    * Revision 1.7  1999/12/03 16:46:11  nort
    * Added NoLog option to state definition
    *
@@ -35,7 +38,7 @@
   #define PARSE_DEBUG (-2)
   static long int last_command_time;
   
-  static struct cmddef *
+  struct cmddef *
   new_command(int type, char *text, char *text2 ) {
 	struct cmddef *cd;
 	
@@ -48,6 +51,7 @@
 	cd->cmdtype = type;
 	cd->timeout = 0;
 	cd->else_stat = NULL;
+	cd->else_count = 0;
 	return(cd);
   }
   
@@ -109,6 +113,8 @@
 %token KW_OR
 %token KW_ELSE
 %token KW_NOLOG
+%token KW_RESUME
+%token KW_AND
 %token <textval>  TK_TMCSTAT
 %token <textval>  TK_NAME
 %token <textval>  TK_COMMAND
@@ -263,24 +269,35 @@ timed_command : TK_COMMAND {
 	| KW_VALIDATE TK_NAME ';' {
 		$$ = new_command( CMDTYPE_VAL, $2, NULL );
 	  }
-	| KW_HOLD KW_UNTIL hold_clause { $$ = $3; }
+	| KW_HOLD hold_clause { $$ = $2; }
+	| KW_RESUME TK_NAME ';' {
+		$$ = new_command( CMDTYPE_RES, $2, NULL );
+	  }
 	| untimed_command { $$ = $1; }
 	;
 /* <cmdval == struct cmddef *> */
 hold_clause : hold_cond ';' {
+		nl_error(PARSE_DEBUG, "Hold w/o timeout" );
 		$$ = $1;
 		$$->timeout = -1;
 		$$->else_stat = NULL;
 	  }
 	| hold_cond KW_OR time else_clause {
+		nl_error(PARSE_DEBUG, "Hold w/ timeout %d", $3 );
 		$$ = $1;
 		$$->timeout = $3;
 		$$->else_stat = $4;
 	  }
 	;
 /* <cmdval == struct cmddef *> */
-hold_cond : opt_valid TK_PARENSTAT {
-		$$ = new_command( $1, $2, NULL );
+hold_cond : { $$ = new_command( CMDTYPE_HOLDV, NULL, NULL ); }
+	| KW_AND KW_VALIDATE TK_NAME {
+		nl_error(PARSE_DEBUG, "(hold_cond Hold and Validate %s)", $3 );
+		$$ = new_command( CMDTYPE_HOLDV, $3, NULL );
+	  }
+	| KW_UNTIL opt_valid TK_PARENSTAT {
+		nl_error(PARSE_DEBUG, "(hold_cond Hold until %d %s)", $2, $3 );
+		$$ = new_command( $2, $3, NULL );
 	  }
 	;
 /* <intval> */
@@ -289,5 +306,8 @@ opt_valid : { $$ = CMDTYPE_HOLD; }
 	;
 /* <cmdval == struct cmddef *> */
 else_clause : ';' { $$ = NULL; }
-	| KW_ELSE timed_command { $$ = $2; }
+	| KW_ELSE timed_command {
+		$$ = $2;
+		$$->cmdtime = last_command_time;
+	  }
 	;
