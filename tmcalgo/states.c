@@ -198,8 +198,7 @@ static void list_substates( FILE *ofp, struct stdef *state ) {
     if ( cmd != 0 ) {
 	  if ( cmd->cmdtype == CMDTYPE_TMC ) {
 		for ( ncmd = cmd->next;
-			  ncmd != 0 && ncmd->cmdtime == cmd->cmdtime
-				&& ncmd->cmdtype == CMDTYPE_TMC;
+			  ncmd != 0 && ncmd->cmdtime == cmd->cmdtime;
 			  ncmd = ncmd->next );
 		if ( ncmd == 0 )
 		  sprintf( buf, "%s_end_", state->name );
@@ -207,8 +206,8 @@ static void list_substates( FILE *ofp, struct stdef *state ) {
 		substate = new_substate( ofp, buf, ncmd != 0, 1 );
 
 		while ( cmd != ncmd ) {
-		  assert( cmd->cmdtype == CMDTYPE_TMC );
-		  cmd->substate = substate;
+		  if ( cmd->cmdtype == CMDTYPE_TMC )
+			cmd->substate = substate;
 		  cmd = cmd->next;
 		}
 	  } else {
