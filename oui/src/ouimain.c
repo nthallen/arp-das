@@ -4,26 +4,16 @@
 #include "nortlib.h"
 #include "compiler.h"
 #include "ouidefs.h"
-
-#ifdef __USAGE
-%C	[-qwvk] [-o filename] file [file ...]
-	-q Print usage message
-	-w Treat warnings as errors
-	-v Increasing level of verbosity
-	-k Keep incomplete output file on error
-	-o Specify Output Filename
-#endif
-
-char *opt_string = OPT_COMPILER_INIT;
-void (*nl_error)(int level, char *format, ...) = compile_error;
+#include "oui.h"
 
 int switch_needed = 0, arg_needed = 0;
+int sort_output = 1;
 glbldef global_defs;
 
 void main(int argc, char **argv) {
   unsigned int errlevel;
 
-  compile_init_options(argc, argv, ".c");
+  oui_init_options(argc, argv);
   errlevel = yyparse();
   if (error_level < errlevel) error_level = errlevel;
   if (error_level == 0) {
