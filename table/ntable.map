@@ -1,0 +1,4 @@
+MAPSYM
+HFIELD ::= HField HAField .
+GFIELD ::= GField AField .
+HBOX ::= HBox Align .

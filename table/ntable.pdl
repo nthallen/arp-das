@@ -1,0 +1,18 @@
+MinWidth : dim_t; "dim.h"
+MinHeight : dim_t;
+MinDims : dims_t [Has];
+Width : dim_t;
+Instance : instance_t;
+FieldPtg : PTGNode [Seq]; "ptg_gen.h"
+StringPtg : PTGNode [Seq];
+
+int Has (DefTableKey key) {
+  return(PRESENT);
+}
+
+void Seq (DefTableKey key, PTGNode ptg ) {
+  PTGNode was;
+  
+  was = ACCESS ? VALUE : PTGNULL;
+  VALUE = PTGSeq(was,ptg);  
+}

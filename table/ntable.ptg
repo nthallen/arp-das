@@ -1,0 +1,19 @@
+# $1: Rows $2: Cols $3: Fields $4: Strings $5: Rule Strings
+FieldFile:
+  "/* form: lines, cols, pos_y, pos_x */\n"
+  "#FORM# " $1 int " " $2 int " 0 0\n"
+  "/* attribute type */\n"
+  "#ATTRIBUTES# NORMAL BOX FIELD HEADER LABEL TITLE UNITS\n"
+  "/* fields: number, line, col, width, length,"
+  " attribute code, string */\n"
+  $3
+  "/* strings: line, col, attribute code, string */\n"
+  $4
+  $5
+
+Field:
+  "#FIELD# " [FieldNo] " " $2 int " " $3 int " " $4 int " " $5 int
+  " 2 \"" $1 "\"\n"
+
+# row, col, attr, string
+String: { "#STRING " $ int " " $ int " " $ int " \"" } $ { "\"\n" }

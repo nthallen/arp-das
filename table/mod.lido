@@ -1,0 +1,62 @@
+%----------------------------------------------------------------
+% Figure out how many columns we have
+%----------------------------------------------------------------
+ATTR N_Cols: int;
+
+SYMBOL Table COMPUTE
+  SYNT.N_Cols =
+	CONSTITUENTS Columns.N_Cols SHIELD ( Columns, HBOX, Table )
+	WITH ( int, max, IDENTICAL, ZERO );
+END;
+
+CHAIN ColNumber: int;
+
+SYMBOL Columns COMPUTE
+  CHAINSTART HEAD.ColNumber = 0;
+  SYNT.N_Cols = TAIL.ColNumber;
+END;
+
+SYMBOL CField COMPUTE
+  THIS.ColNumber = ADD( THIS.ColNumber, 1 );
+  THIS.Sym = THIS.ColNumber;
+END;
+
+%----------------------------------------------------------------
+% Now we'll treat column numbers as identifiers and use
+% CScope.gnrc to consider each column 0 to be the same.
+%----------------------------------------------------------------
+SYMBOL CField INHERITS ColIdDefScope END;
+SYMBOL Program INHERITS ColRootScope END;
+SYMBOL Table INHERITS ColRangeScope END;
+
+%----------------------------------------------------------------
+% Now we need a CHAIN to make sure all the column MinWidths are
+% calculated before we access them:
+%  (This could probably be done without a CHAIN, since the
+%   order of evaluation is irrelevant...)
+%----------------------------------------------------------------
+CHAIN CalcColSpecs: VOID;
+ATTR ColSpecsCalced : VOID;
+ATTR ColMinWidth : dim_t;
+
+SYMBOL Table COMPUTE
+  CHAINSTART HEAD.CalcColSpecs = "yes";
+  SYNT.ColSpecsCalced = TAIL.CalcColSpecs;
+END;
+
+SYMBOL CField COMPUTE
+  THIS.CalcColSpecs =
+	ResetMinWidth( THIS.Key,
+	  MAXDIM( GetMinWidth( THIS.Key, MKDIM0() ),
+		THIS.MinWidth ) ) <- THIS.CalcColSpecs;
+  SYNT.ColMinWidth = GetMinWidth( THIS.Key, MKDIM0() )
+	<- INCLUDING Table.ColSpecsCalced;
+END;
+
+SYMBOL Columns COMPUTE
+  SYNT.MinWidth =
+	ADDDIM(
+	  CONSTITUENTS CField.ColMinWidth SHIELD Columns
+	  WITH ( dim_t, ADDDIM, IDENTICAL, MKDIM0 ),
+	  MKDIM( SUB( THIS.N_Cols, 1 ), 0 ) );
+END;

@@ -1,0 +1,67 @@
+Program : NamedTables Table .
+
+NamedTables : / NamedTables NamedTable .
+NamedTable : BareWord Table .
+
+Table : [ 'Table' ] '{' TableDefs '}' .
+TableDefs : / TDunterminated [ ';' ] .
+TDunterminated : VField / TDunterminated ';' VField .
+
+HBox : 'HBox' '{' HBFields '}' .
+HBFields : / HBunterminated [ ';' ] .
+HBunterminated : HField / HBunterminated ';' HField .
+
+VField : GAField / Columns .
+CField : GAField .
+HField : GAField .
+Columns : CField CField+ .
+GAField : [ Attr ] GField .
+Attr :
+	'Title:' /
+	'Header:' /
+	'Attr' Integer .
+GField :
+	Table /
+	HBox /
+	TableRef /
+	Align /
+	HWord /
+	Datum /
+	Rule /
+	Glue .
+
+AField :
+	Table /
+	HBox /
+	TableRef /
+	HWord /
+	Datum /
+	Rule .
+
+TableRef : '[' BareWord ']' .
+
+Align : LeftAlign HAField RightAlign .
+HAField : AField .
+LeftAlign : LeftAlignChar+ .
+RightAlign : RightAlignChar* .
+LeftAlignChar : '>' .
+RightAlignChar : '<' .
+
+HWord : Word .
+Datum : '(' Word DatumDimensions ')' .
+DatumDimensions :
+	/
+	',' Dimension /
+	',' Dimension ',' Dimension  .
+Word :
+	BareWord /
+	CString .
+
+Glue : HGlue / VGlue .
+HGlue : 'HGlue' Dimension .
+VGlue : 'VGlue' Dimension .
+Dimension : Space [GlueSpec] .
+Space : Integer .
+GlueSpec : '+' Integer .
+
+Rule : RuleString .

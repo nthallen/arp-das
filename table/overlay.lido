@@ -1,0 +1,11 @@
+RULE: Overlay ::= 'Overlay' '{' OVData '}' END;
+RULE: OVData ::= Datum END;
+RULE: OVData ::= OVData Datum END;
+RULE: GFIELD ::= Overlay COMPUTE
+  GFIELD.MinWidth =
+	CONSTITUENTS DatumDimensions.MinWidth
+	WITH (dim_t,MAXDIM,IDENTICAL,MKDIM0);
+  GFIELD.MinHeight =
+	CONSTITUENTS DatumDimensions.MinHeight
+	WITH (dim_t,MAXDIM,IDENTICAL,MKDIM0);
+END;

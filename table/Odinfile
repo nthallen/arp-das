@@ -1,0 +1,2 @@
+%run == input +cmd=(ntable.specs:exe):stdout
+%visitprocs.c == ntable.specs:level_4_specs:ligaBe/visitprocs.c

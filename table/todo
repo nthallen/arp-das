@@ -1,0 +1,50 @@
+Add .clp {
+  Specify -o option
+  unlink output file before opening for write
+  fchmod 0444 after writing
+}
+Add Overlay { } construct to overlay Datums only: {
+  Overlay : 'Overlay' '{' Datum* '}' .
+}
+
+-Make 'Table' keyword optional
+-Add named tables {
+   MinDims get stored with named table's entity
+ }
+-Change Rule syntax to +?[-=]+?
+-Rule Connection needs augmentation
+-Eliminate TableOpts (Width/Height) but add Glue {
+   Augment glue to include at least fill (0+0+1).
+ }
+-Alignment options
+- Write token processor for C Strings starting with
+  $elipkg/Scan/str.c
+  
+- Eliminate Box spacing {
+	Do not support overlaying box with text
+	HBox {
+	  Rule;
+	  Table {
+		HBox {
+		  Table { Rule; };
+		  "This is the Title";
+		  Table { Rule; };
+		}
+		"This is the real table";
+		Rule;
+	  }
+	  Rule;
+	}
+  }
+- Implement Glue {
+	GlueSet( dim_t mydim, dim_t encdim ) {
+	  Just uses width of encdim
+  }
+- Calculate actual Width, Height
+- Calculate Row,Col Position
+- Produce Output
+- Deal with box intersections {
+	Maintain a database of strings, calculate all intersections...
+  }
+- Introduce Attributes
++ Augment mkcstr to recognize octal escapes
