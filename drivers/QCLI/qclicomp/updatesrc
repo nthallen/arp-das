@@ -1,0 +1,15 @@
+#! /bin/sh
+# rm -rf newsrc
+# eli "qclicomp.specs:source >newsrc"
+for i in newsrc/*; do
+  j=${i#new}
+  if [ -f "$j" ]; then
+    if diff $j $i | grep "^[<>]" | grep -v -q "\$Id"; then
+	  echo $i has changed
+	  cp $i $j
+    fi
+  else
+    echo $i is a new file
+	cp $i $j
+  fi
+done

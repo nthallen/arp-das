@@ -4,6 +4,21 @@ Where am I? {
   Output DAC Values
   Output .cmd codes
 }
+todo {
+  -Prior to 7/03, I made the assumption that Ton preceeded
+   Toff in ICOS mode, but that is incorrect, so I need to
+   swap their roles.
+  
+  Implement conversions for DAC outputs
+  -Reorder DAC outputs (swap 0 & 1)
+  -Identify correct switches
+  Decide on header format {
+    Program Version (set how?)
+    Compilation Time/Date - Unix-format seconds since epoch
+      requires 2 words
+  }
+  Create non-verbose output and write it to a separate file
+}
 Non-obvious semantic changes {
   Tz specifies the laser-off time before AND after
   the ramps. Total off time is 2*Tz.

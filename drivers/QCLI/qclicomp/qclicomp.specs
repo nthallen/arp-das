@@ -5,6 +5,7 @@ qclicomp.pdl
 qclicomp.ptg
 qclicomp.h
 qclicomp.head.phi
+qclicomp.ptg.phi
 qclicomp.init.phi
 qclicomp.finl.phi
 pickres.c

@@ -83,6 +83,8 @@ SYMBOL PrepTime COMPUTE SYNT.Value = CONSTITUENT Time.Value; END;
 /* Make sure only one dIdt is defined per waveform */
 /*-------------------------------------------------*/
 ATTR dIdtAssessed: VOID;
+ATTR dIdt: double;
+ATTR dIdt_bits: short;
 RULE: dIdt ::= 'dI' '/' 'dt' '=' Current '/' TimeUnit COMPUTE
   dIdt.Value = DIV(Current.Value,TimeUnit.Value);
 END;
@@ -103,12 +105,13 @@ SYMBOL ICOSWave COMPUTE
     message(ERROR, "dI/dt undefined", 0, COORDREF))
       <- THIS.dIdtAssessed;
   SYNT.dIdt = GetdIdt(THIS.Key, 1.) <- THIS.dIdtAssessed;
+  SYNT.dIdt_bits = aps_to_bits( THIS.dIdt, COORDREF );
 END;
 
 /*-------------------------------------------------------------------*/
 /* Istart, Istop and Tramp */
 /*-------------------------------------------------------------------*/
-ATTR dIdt, Istart, Istop, Tramp: double;
+ATTR Istart, Istop, Tramp: double;
 ATTR Iramp, Istart1, Istop1: double; /* Final values */
 ATTR WaveKey : DefTableKey;
 
@@ -316,10 +319,10 @@ SYMBOL ICOSWave COMPUTE
   SYNT.Srcy = IF( THIS.SplitCycle, 0,
 				  DIV_UP(THIS.Trcymin, THIS.Stepsize));
   SYNT.Trcy = MUL( THIS.Stepsize, THIS.Srcy );
-  SYNT.Toff = IF( THIS.SplitCycle, THIS.Trcymin, THIS.Stepsize );
-  SYNT.Ton  = IF( THIS.SplitCycle,
-				  SUB(THIS.Stepsize, THIS.Toff),
-				  THIS.Toff );
+  SYNT.Ton  = IF( THIS.SplitCycle, THIS.Trcymin, THIS.Stepsize );
+  SYNT.Toff = IF( THIS.SplitCycle,
+				  SUB(THIS.Stepsize, THIS.Ton),
+				  THIS.Ton );
   SYNT.Ttrigger = SUB( THIS.Tcyc0, THIS.Trcypre );
   SYNT.Scycle = ADD( THIS.Scyc0, THIS.Srcy );
   SYNT.Tcycle = ADD( THIS.Tcyc0, THIS.Trcy );
@@ -428,56 +431,65 @@ SYMBOL ICOSWave COMPUTE
   THIS.WaveAddr = ADD( THIS.LoopAddr, THIS.ProgLen );
 END;
 
-/*------------------------------*/
+/*-----------------------------------------*/
 /* Produce compiled QCLI output */
-/*------------------------------*/
+/*-----------------------------------------*/
 ATTR PTG, WaveIndex: PTGNode;
 SYMBOL SourceFile COMPUTE
   SYNT.PTG = PTGFile(
+    PTGHeader( PTGHex( THIS.ProgLen, 1 ), PTGHex( 0, 5 ) ),
     CONSTITUENTS ICOSWave.WaveIndex
 	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
-	PTGFill( SUB(120,THIS.NWaves), "0" ),
+    PTGFill( 0, SUB(120,THIS.NWaves) ),
     CONSTITUENTS ICOSWave.PTG
 	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
-	THIS.ProgLen
+    THIS.ProgLen
   );
   PTGOut( THIS.PTG );
 END;
 SYMBOL ICOSWave COMPUTE
   SYNT.WaveIndex =
-    PTGWaveIndex( PTGId(INCLUDING Wave.Sym), THIS.WaveAddr );
+    PTGWaveIndex( PTGId(INCLUDING Wave.Sym),
+		  PTGHex(THIS.WaveAddr,1) );
   SYNT.PTG =
     PTGSeq(
       PTGICOSHdr(THIS.WaveNum,
-	    SUB( THIS.Ton, 1),
-		SUB( THIS.Toff, 1),
-		THIS.LoopAddr,
-	    THIS.ProgLen, PTGId(INCLUDING Wave.Sym),
-		PTGDACs(
-		  THIS.dIdt,
-		  dtoa_value(THIS.DtoAs,1),
-		  dtoa_value(THIS.DtoAs,2),
-		  dtoa_value(THIS.DtoAs,3)
-		) ),
-	  PTGICOSProg(
-		IF( THIS.SSzi,
-		  PTGICOSFill( THIS.SSzi, "0 1 1",
-			StringTable(THIS.DtoA), "1 1" ),
-		  PTGNULL ),
-		CONSTITUENTS ICOSRamp.PTG
-		  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
-		IF( THIS.SSzif,
-		  PTGICOSFill( THIS.SSzif, "0 1 1",
-			StringTable(THIS.DtoA), "1 1" ),
-		  PTGNULL ),
-		PTGICOSFill( THIS.SSrcy, "0 1 1", StringTable(THIS.DtoA),
-		  "1 0" )
-	  ) );
+	    PTGId(INCLUDING Wave.Sym),
+	    PTGHex(ICOS_WAVEFORM_CODE,1),
+	    PTGHex(SUB( THIS.Ton, 1),1),
+	    PTGHex(SUB( THIS.Toff, 1),1),
+	    PTGHex(1,1),
+	    PTGHex(THIS.LoopAddr,1),
+	    PTGHex(THIS.ProgLen,1),
+	    PTGDACs(
+	      THIS.dIdt_bits, THIS.dIdt,
+	      dtoa_bits(THIS.DtoAs,1), dtoa_value(THIS.DtoAs,1),
+	      dtoa_bits(THIS.DtoAs,2), dtoa_value(THIS.DtoAs,2),
+	      dtoa_bits(THIS.DtoAs,3), dtoa_value(THIS.DtoAs,3)
+	    ) ),
+      PTGICOSProg(
+	    IF( THIS.SSzi,
+	      PTGICOSFill(
+		ADD(SW_RAMP_OFF_LASER_ON, THIS.DtoA),
+		THIS.SSzi),
+	      PTGNULL ),
+	    CONSTITUENTS ICOSRamp.PTG
+	      WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+	    IF( THIS.SSzif,
+	      PTGICOSFill(
+		ADD(SW_RAMP_OFF_LASER_ON, THIS.DtoA),
+		THIS.SSzif),
+	      PTGNULL ),
+	    PTGICOSFill(
+	      ADD(SW_RAMP_OFF_LASER_ON_T, THIS.DtoA ),
+	      THIS.SSrcy)
+      ) );
 END;
 SYMBOL ICOSRamp COMPUTE
   SYNT.PTG =
-  	PTGICOSFill( THIS.SSrampi, "1 0 1", StringTable(THIS.DtoA),
-		"1 1" );
+  	PTGICOSFill(
+	  ADD(SW_RAMP_ON_LASER_ON, THIS.DtoA),
+	  THIS.SSrampi);
 END;
 
 /*------------------------------*/

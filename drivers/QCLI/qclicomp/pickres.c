@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <time.h>
 #include "qclicomp.h"
 
 
@@ -113,15 +114,11 @@ long round_to_step( double time, long step ) {
   return step*divisor;
 }
 
-typedef struct {
-  char *config;
-  int index;
-} dtoa_str;
-static dtoa_str dtoa_strs[N_DTOAS+1] = {
-  "0 0 0", NoStrIndex,
-  "1 0 0", NoStrIndex,
-  "1 1 0", NoStrIndex,
-  "1 1 1", NoStrIndex
+static int dtoa_strs[N_DTOAS+1] = {
+  0,
+  SW_DAC0_OUT,
+  SW_DAC0_OUT | SW_DAC2_OUT,
+  SW_DAC0_OUT | SW_DAC2_OUT | SW_DAC3_OUT
 };
 
 WaveDtoAP new_wavedtoa( void ) {
@@ -140,12 +137,12 @@ int alloc_dtoa( WaveDtoAP wdp, double delta, CoordPtr pos ) {
   if ( delta != 0 ) {
     if ( wdp->n_used >= N_DTOAS )
 	  message( ERROR, "Not enough D/As in alloc_dtoa", 0, pos );
-	else wdp->value[wdp->n_used++] = delta;
+    else {
+      wdp->value[wdp->n_used] = delta;
+      wdp->bits[wdp->n_used++] = amps_to_bits( delta, pos );
+    }
   }
-  if ( dtoa_strs[wdp->n_used].index == NoStrIndex )
-    dtoa_strs[wdp->n_used].index =
-	  stostr(dtoa_strs[wdp->n_used].config, 5);
-  return dtoa_strs[wdp->n_used].index;
+  return dtoa_strs[wdp->n_used];
 }
 
 double dtoa_value( WaveDtoAP wdp, int index ) {
@@ -153,4 +150,47 @@ double dtoa_value( WaveDtoAP wdp, int index ) {
 	  message( DEADLY, "Index out of range in dtoa_value", 0,
 			NoPosition );
   return wdp->value[index-1];
+}
+
+short dtoa_bits( WaveDtoAP wdp, int index ) {
+  if ( index < 1 || index > N_DTOAS )
+	  message( DEADLY, "Index out of range in dtoa_bits", 0,
+			NoPosition );
+  return wdp->bits[index-1];
+}
+
+void ptg_output_short( PTG_OUTPUT_FILE file, short value ) {
+  char buf[10];
+  fprintf( file, "0x%04X", value );
+}
+
+void ptg_output_word( PTG_OUTPUT_FILE file, unsigned short value, int count ) {
+  if ( count > 1 )
+    fprintf( file, "%04X x %d:", value, count );
+  else
+    fprintf( file, "%04X:", value );
+}
+
+void ptg_output_time( PTG_OUTPUT_FILE file ) {
+  time_t value = time(NULL);
+  ptg_output_word( file, (unsigned short)(value&0xFFFFL), 1);
+  fprintf( file, " Time\n" );
+  ptg_output_word( file, (unsigned short)((value >> 16) & 0xFFFFL), 1);
+  fprintf( file, "\n" );
+}
+
+unsigned short amps_to_bits( double amps, CoordPtr pos ) {
+  double bits = amps/AMPS_PER_BIT + 32768.;
+  unsigned short sbits = (unsigned short) bits;
+  if ( bits < MIN_DAC_BITS || bits > MAX_DAC_BITS )
+    message( ERROR, "Offset DAC Value out of range", 0, pos );
+  return sbits;
+}
+
+unsigned short aps_to_bits( double aps, CoordPtr pos ) {
+  double bits = aps/APS_PER_BIT;
+  unsigned short sbits = (unsigned short) bits;
+  if ( bits < MIN_DAC_BITS || bits > MAX_DAC_BITS )
+    message( ERROR, "Ramp DAC Value out of range", 0, pos );
+  return sbits;
 }

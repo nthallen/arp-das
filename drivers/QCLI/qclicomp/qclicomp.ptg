@@ -1,32 +1,39 @@
 /* qclicomp.ptg */
 File:
   "\nCompiled Output:\n"
-  "  8 Word Header\n"
-  "  Index: \n"
-  $1 /* Waveform Index */
-  $2 /* Fill at end of index */
-  $3 /* Waveforms */
-  "  Total Length: " $4 long "\n"
+  $1 /* Header */
+  ": Index: \n"
+  $2 /* Waveform Index */
+  $3 " Fill at end of index\n"
+  $4 /* Waveforms */
+  ": Total Length: " $5 long "\n"
+
+Header:
+  $1 " Program Length\n"
+  [ ptg_output_time ]
+  $2 " Padding\n"
+
+Hex:
+  [ PTG_OUTPUT_HEX $1 short $2 int ]
 
 FileSum: /* Summary of waveforms */
   "Waveform Summaries:\n\n"
   $1 /* Waveform Summaries */
 
 ICOSHdr:
-  "\n"
-  "  ICOS Waveform " $1 int " " $6 "\n"
-  $7 /* DAC initialization */
-  "  " $2 long ": Ton-1\n"
-  "  " $3 long ": Toff-1\n"
-  "  0: Tpre\n"
-  "  " $4 long ": Loop Address\n"
-  "  " $5 int ": Loop Length\n"
+  $3 " ICOS Waveform " $1 int " " $2 "\n"
+  $9 /* DAC initialization */
+  $4 " Ton-1\n"
+  $5 " Toff-1\n"
+  $6 " Tpre (0)\n"
+  $7 " Loop Address\n"
+  $8 " Loop Length\n"
 
 DACs:
-  "  " $1 double " Amps/Sec DAC1\n"
-  "  " $2 double " Amps DAC2\n"
-  "  " $3 double " Amps DAC3\n"
-  "  " $4 double " Amps DAC4\n"
+  [ PTG_OUTPUT_1HEX $3 short ] " DAC0 - " $4 double " Amps\n"
+  [ PTG_OUTPUT_1HEX $1 short ] " DAC1 - " $2 double " Amps/Sec\n"
+  [ PTG_OUTPUT_1HEX $5 short ] " DAC2 - " $6 double " Amps\n"
+  [ PTG_OUTPUT_1HEX $7 short ] " DAC3 - " $8 double " Amps\n"
 
 ICOSWave: "ICOS Waveform " $1 " @ " $17 long " {" "\n"
   "  Sample Rate:      " $3 $2 "\n"
@@ -56,7 +63,7 @@ Ramp:
   "    Sramp:     " $7 int "\n"
   "  }\n"
 
-WaveIndex: "  " $2 long ": " $1 "\n"
+WaveIndex: $2 " " $1 "\n"
 
 Iz:         "  Iz:          " $1 "\n"
 dIdt:       "  dI/dt:       " $1 double " A/sec\n"
@@ -77,7 +84,5 @@ Tonoff:
   "  Ton/Toff:    " $1 long "/" $2 long " usec\n"
   "  Trecycle:    " $3 long " usec\n"
 
-Fill:  "  " $2 string " repeated " $1 int " times\n"
-ICOSFill:
-  "  " $2 string " " $3 string " " $4 string
-  " repeated " $1 int " times\n"
+Fill: [ PTG_OUTPUT_HEX $1 short $2 int ]
+ICOSFill: [ PTG_OUTPUT_ICOSHEX $1 short $2 int ] "\n"
