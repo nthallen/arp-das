@@ -1,5 +1,8 @@
 /* yytype.h
  * $Log$
+ * Revision 1.4  1999/12/03 16:46:11  nort
+ * Added NoLog option to state definition
+ *
  * Revision 1.3  1997/01/16 16:40:41  nort
  * comments
  *
@@ -105,7 +108,7 @@ extern struct prg *program; /* grammar.y */
 void check_command(const char *command); /* commands.c */
 void get_version(FILE *ofp); /* commands.c */
 struct substate *new_substate( FILE *ofp, char *name, int once, int mkcase );
-int get_state_case( char *statename, int slurp );
+int get_state_case( char *statename, int slurp, int partno );
 void output_mainloop( FILE *ofp ); /* states.c */
 
 #endif

@@ -1,6 +1,9 @@
 %{
   /* grammar.y Grammar for tmcalgo
    * $Log$
+   * Revision 1.7  1999/12/03 16:46:11  nort
+   * Added NoLog option to state definition
+   *
    * Revision 1.6  1997/01/16 16:39:50  nort
    * All the new syntax
    *
@@ -195,7 +198,7 @@ opt_state_list :
 state_list : state_list_elem
 	| state_list ',' state_list_elem
 	;
-state_list_elem : TK_NAME { get_state_case( $1, 1 ); }
+state_list_elem : TK_NAME { get_state_case( $1, 1, -1 ); }
 	;
 /* <textval == char *> */
 state_name_def : TK_NAME {
