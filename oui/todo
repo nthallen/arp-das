@@ -1,0 +1,15 @@
+Verify that all options are unique
+../file does not work
+Verify C include files have not been output before outputing
+Add functionality for adding simple switch statements.
+
+Review how atexit() works. Use it in various initializations
+to provide useful terminations: ssp might ss_close_all(). LIFO?
+
+Write oui files for
+  -subbus
+  memlib?
+  ssp?
+Use oui for various apps: indexer, timerbd, etc.
+
+Write doc!

@@ -1,0 +1,163 @@
+/* output.c contains output routines for oui
+ * $Log$
+ */
+#include <ctype.h>
+#include <assert.h>
+#include <string.h>
+#include "nortlib.h"
+#include "compiler.h"
+#include "ouidefs.h"
+#pragma off (unreferenced)
+  static char rcsid[] =
+	"$Id$";
+#pragma on (unreferenced)
+
+void output_comments(void) {
+  llpkgleaf *p;
+
+  fprintf(ofile, "/* OUI output from the following packages:\n");  
+  for (p = global_defs.packages.first; p != NULL; p = p->next) {
+	fprintf(ofile, "   %s\n", p->pkg->name);
+  }
+  fprintf(ofile, "*/\n");
+}
+
+void output_opt_string(void) {
+  llpkgleaf *p;
+  char *s;
+
+  fprintf(ofile, "char *opt_string = \"");  
+  for (p = global_defs.packages.first; p != NULL; p = p->next) {
+	s = p->pkg->opt_string;
+	if (s != 0) {
+	  while (isspace(*s)) s++;
+	  fprintf(ofile, "%s", s);
+	}
+  }
+  fprintf(ofile, "\";\n");
+}
+
+static dump_llos( ll_of_str *ll, char *prefix ) {
+  char *s;
+
+  while ( s = llos_deq( ll ) ) {
+	fprintf(ofile, "%s%s\n", prefix, s);
+	free_memory(s);
+  }
+}
+
+void output_defs(void) {
+  llpkgleaf *p;
+  
+  for (p = global_defs.packages.first; p != NULL; p = p->next) {
+	assert(p->pkg != 0);
+	dump_llos( &p->pkg->defs, "" );
+  }
+}
+
+static void output_switch(void) {
+  llpkgleaf *p;
+
+  fprintf(ofile, "%s", "\n"
+	"  { int optltr;\n\n"
+	"\toptind = 0;\n"
+	"\topterr = 0;\n"
+	"\twhile ((optltr = getopt(argc, argv, opt_string)) != -1) {\n"
+	"\t  switch (optltr) {\n");
+
+  /* Dump the switch args */
+  for (p = global_defs.packages.first; p != NULL; p = p->next)
+	dump_llos( &p->pkg->switches, "\t\t" );
+
+  fflush(ofile);
+
+  fprintf(ofile, "%s",
+	"\t\tcase '?':\n"
+	"\t\t  nl_error(3, \"Unrecognized Option -%c\", optopt);\n"
+	"\t\tdefault:\n"
+	"\t\t  break;\n"
+	"\t  }\n"
+	"\t}\n");
+
+  fflush(ofile);
+
+  if (arg_needed) {
+	fprintf(ofile, "%s",
+	  "\tfor (; optind < argc; optind++) {\n"
+	  "\t  optarg = argv[optind];\n");
+
+	/* Now the arg args */
+	for (p = global_defs.packages.first; p != NULL; p = p->next)
+	  dump_llos( &p->pkg->arg, "\t  " );
+
+	fprintf(ofile, "\t}\n");
+  }
+  fprintf(ofile, "  }\n");
+}
+
+void output_inits(void) {
+  llpkgleaf *p;
+
+  fprintf(ofile, "\nvoid oui_init_options(int argc, char **argv) {\n");
+
+  /* Vars */
+  for (p = global_defs.packages.first; p != NULL; p = p->next)
+	dump_llos( &p->pkg->vars, "  " );
+
+  if (switch_needed) output_switch();
+
+  /* Inits */
+  for (p = global_defs.packages.first; p != NULL; p = p->next)
+	dump_llos( &p->pkg->inits, "  " );
+
+  fprintf(ofile, "}\n");
+}
+
+static void one_include(ll_of_str *ll, const char *s) {
+  struct llosleaf *lll;
+  
+  for (lll = ll->first; lll != NULL; lll = lll->next)
+	if (strcmp(lll->text, s) == 0) return;
+  llos_enq(ll, s);
+}
+
+void output_includes(void) {
+  llpkgleaf *p;
+  ll_of_str prtd;
+  char *s;
+
+  prtd.first = prtd.last = NULL;
+  one_include(&prtd, "\"oui.h\"");
+  for (p = global_defs.packages.first; p != NULL; p = p->next) {
+	while (s = llos_deq(&p->pkg->c_inc)) {
+	  one_include(&prtd, s);
+	  free_memory(s);
+	}
+  }
+  dump_llos( &prtd, "#include " );
+}
+
+static void output_sorted(void) {
+  dump_llos( &global_defs.sorted, "" );
+}
+
+void output_usage(void) {
+  llpkgleaf *p;
+
+  fprintf( ofile, "\n#ifdef __USAGE\n");
+  
+  /* Output the synopsis */
+  if ( global_defs.synopsis == 0 )
+	fprintf( ofile, "%%C\t[options]\n");
+  else
+	fprintf( ofile, "%s\n", global_defs.synopsis );
+
+  /* Output the sorted options */
+  output_sorted();
+  
+  /* and output the unsorted help */
+  for (p = global_defs.packages.first; p != NULL; p = p->next)
+	dump_llos( &p->pkg->unsort, "" );
+
+  fprintf( ofile, "#endif\n");
+}

@@ -1,0 +1,125 @@
+OUI: Options, Usage and Initializations
+
+Command-line options must conform to POSIX getopts() format. To 
+specify options, several things are required.
+
+First: you must specify the string of chars supported:
+
+opts: ms:tH
+
+Second: you must specify the code to handle the initialization
+
+init: msg_init_options(DFLT_HDR, argc, argv);
+
+Third: you may need to include definitions:
+
+#include "msg.h"
+def >int max_files;
+
+(would like to eliminate duplicate inclusions if possible: maybe
+later)
+
+Fourth: Would like to include usage for the specified options. I see 
+two kinds of usage: sorted and unsorted. Since I haven't generated any 
+unsorted uage yet, I don't need to support it initially. Usage will 
+look like:
+  Synopsis
+    sorted options
+	unsorted text
+
+The default synopsis is: "%C\t[options]" but could be specified once 
+if different (only one synopsis allowed per application).
+
+Fifth: Would like to define some interdependencies: certain sets 
+should automatically include other sets. Certain initializations 
+should preceed others. May make the assumption that dependency implies 
+order also, although in some cases order may matter only if both are 
+required, though each can exist separately.
+
+(I think this is overkill: try a simple include mechanism. We'll
+run a preprocessor which will do the includes, writing to a temp
+file, then run the compiler which will read from the temp file.
+These may need to be two separate programs. The preprocessor probably
+won't use lex and yacc since it only needs to recognize include
+directives and since it seems to be difficult to implement includes
+using lex.)
+
+I've changed my mind again. This isn't overkill. This will work.
+Instead of using obscure characters, change the syntax to:
+  package <package>
+  include <filename> [<filename> ...]
+  preceed <package> [<package> ...]
+  follow <package> [<package> ...]
+Must define package by name. Include does not define any precedence.
+preceed and follow define precedence. (directed edges between nodes).
+
+6: provide a mechanism for communicating parameters between related
+initializations, providing default behaviour. (var)
+
+KW_C_INCLUDE TK_INC_FILE
+KW_DEF TK_STRING
+KW_VAR TK_STRING
+KW_INIT TK_STRING
+KW_UNSORT TK_STRING
+KW_SYNOPSIS TK_STRING
+KW_SORT TK_STRING
+include
+preceed
+follow
+
+KW_SWITCH TK_STRING
+KW_ARG TK_STRING
+  These two commands provide a facility for easily adding a few
+  options to a program without actually needing to code an init
+  function with getopt() yourself. The strings following "switch"
+  are placed inside the switch statement for handling individual
+  options. If the option has an argument, you may reference via
+  the optarg variable as documented in the getopt() documentation.
+  The strings following "arg" are processed after the getopt() loop
+  once for each of the following arguments. Again, optarg points to
+  the argument.
+  
+  Use of either of these statements triggers the inclusion of
+  <unistd.h> for the definition of getopt() and "nortlib.h" for
+  the definition of nl_error. Unrecognized options will trigger
+  a fatal call to nl_error. Note that the switch statement preceeds
+  other initializations, so any redefinition of nl_error must occur
+  before calling oui_init_options() (or statically) in order to
+  take effect.
+
+Output looks like:
+/* comments (noting all packages which have been included) */
+char *opt_string = "...";
+
+<#includes>
+
+<defs>
+
+void oui_init_options(int argc, const char * const *argv) {
+  <vars>
+  { int optltr;
+
+	optind = 0; /* start from the beginning */
+	opterr = 0; /* disable default error message */
+	while ((optltr = getopt(argc, argv, "options")) != -1) {
+	  switch (optltr) {
+		<switches>
+		case '?':
+		  nl_error(3, "Unrecognized Option -%c", optopt);
+		default:
+		  break;
+	  }
+	}
+	while (optind < argc) {
+	  optarg = argv[optind];
+	  <args>
+	}
+  }
+  <inits>
+}
+
+#ifdef __USAGE
+%C	[options] ----or---- <synopsis>
+<sorted usage>
+<unsorted usage>
+#endif

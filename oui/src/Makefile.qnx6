@@ -1,0 +1,37 @@
+HOMEDIR=/usr/local/src/oui
+MNC=oui
+SUBDIRS=regress ouit /usr/local/include/oui ouilib
+
+SRC=ouimain.c oui.y yylex.l opnifile.c llop.c ouidefs.h sortpkg.c output.c
+TOOL=Makefile oui.doc sample.oui todo
+OUIOBJ=ouimain.o oui.o opnifile.o llop.o yylex.o sortpkg.o output.o
+OBJ=$(OUIOBJ) oui.c y.tab.h sample.c
+TEMP=*.err
+TGT=oui
+
+SOURCE=$(SRC) $(TOOL)
+OBJECT=$(OBJ) $(TEMP)
+TARGET=$(TGT)
+
+YFLAGS=-d -t -l
+LFLAGS=-i -l
+CFLAGS=-w4 -g -ms -2
+LDFLAGS=$(BETALIB)
+
+test : oui sample.oui
+	oui -o - sample.oui
+oui : $(OUIOBJ)
+	$(LINK.c) -o oui $(OUIOBJ)
+	usemsg oui ouimain.c
+oui.o : oui.c ouidefs.h
+	$(COMPILE.c) -D lint oui.c
+oui.c : oui.y
+yylex.o : yylex.l oui.c ouidefs.h
+	$(LEX.l) yylex.l > yylex.c
+	$(COMPILE.c) yylex.c
+	$(RM) yylex.c
+llop.o : llop.c ouidefs.h
+ouimain.o : ouimain.c ouidefs.h
+sortpkg.o : sortpkg.c ouidefs.h
+output.o : output.c ouidefs.h
+#	oui ouiinit.oui
