@@ -1,5 +1,8 @@
 /* output.c contains output routines for oui
  * $Log$
+ * Revision 1.4  1994/10/18  18:33:03  nort
+ * Made a compromise on indentation
+ *
  * Revision 1.3  1994/10/18  18:10:06  nort
  * Modified indentation to support R2
  *
@@ -82,10 +85,10 @@ static void output_switch(void) {
   fflush(ofile);
 
   fprintf(ofile, "%s",
-	"\t\tcase '?':\n"
-	"\t\t  nl_error(3, \"Unrecognized Option -%c\", optopt);\n"
-	"\t\tdefault:\n"
-	"\t\t  break;\n"
+	"\t\t  case '?':\n"
+	"\t\t\tnl_error(3, \"Unrecognized Option -%c\", optopt);\n"
+	"\t\t  default:\n"
+	"\t\t\tbreak;\n"
 	"\t  }\n"
 	"\t}\n");
 
@@ -98,7 +101,7 @@ static void output_switch(void) {
 
 	/* Now the arg args */
 	for (p = global_defs.packages.first; p != NULL; p = p->next)
-	  dump_llos( &p->pkg->arg, "\t\t" );
+	  dump_llos( &p->pkg->arg, "\t" );
 
 	fprintf(ofile, "\t}\n");
   }
