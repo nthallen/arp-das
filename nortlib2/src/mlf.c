@@ -121,20 +121,24 @@ void mlf_set_ntup( mlf_def_t *mlf, mlf_ntup_t *mlfn ) {
   }
 }
 
-/* Return 0 on success, 1 on any syntax error */
-
 mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
 	char *fbase, char *fsuffix, char *config ) {
   mlf_def_t *mlf;
   mlf_ntup_t *mlfn;
 
-  if ( n_levels < 1 )
+  if ( n_levels < 1 ) {
 	nl_error( 3, "mlf_init: n_levels must be >= 1" );
-  if ( n_files < 2 )
+	return NULL;
+  }
+  if ( n_files < 2 ) {
 	nl_error( 3, "mlf_init: n_files must be >= 2" );
+	return NULL;
+  }
   n_levels--;
   mlf = new_memory( sizeof(mlf_def_t) );
-  mlf->flvl = new_memory( (n_levels+1) * sizeof(mlf_elt_t) );
+  if ( mlf )
+	mlf->flvl = new_memory( (n_levels+1) * sizeof(mlf_elt_t) );
+  if ( mlf == NULL || mlf->flvl == NULL ) return NULL;
   mlf->n_levels = n_levels;
   mlf->n_files = n_files;
   mlf->flags = writing ? MLF_WRITING : 0;
@@ -147,6 +151,57 @@ mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
   mlf_free_mlfn( mlfn );
   return mlf;
 }
+/*
+=Name mlf_init(): Initialize multi-level file operations
+=Subject Multi-level File Routines
+=Synopsis
+
+  #include "mlf.h"
+  mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
+	  char *fbase, char *fsuffix, char *config );
+
+=Description
+  
+  The multi-level file routines are designed for efficiently
+  storing a large number of sequential files. Most hierarchical
+  file systems become seriously inefficient as the number of
+  files in a single directory becomes large. This is due in large
+  part to the fact that any search for a specific filename
+  requires a linear search through the directory, and hence
+  sequentially accessing each file in a directory is an order n^2
+  operation.
+  
+  The MLF routines address this issue by using multiple directory
+  levels to store sequential files. The number of levels and the
+  number of entries at each level is configurable, depending on
+  the total expected number of files.
+
+  mlf_init() establishes the parameters for subsequent
+  multi-level file operations. n_levels specifies how many levels
+  of directories should be used. n_files specifies the number of
+  files per directory. the writing argument should be non-zero
+  for write operations, zero for read operations. fbase is the
+  name of the first level directory. fsuffix is a suffix that is
+  appended to each file. config is an optional string defining
+  the first file to access. The base and suffix in the config
+  string takes precedence over the fbase and fsuffix parameters.
+  
+  Generated file names are of the form:
+     $fbase/\d\d+(/\d\d)* /\d\d\.$fsuffix
+  
+=Returns
+
+  mlf_init() returns a pointer to a dynamically allocated
+  structure which holds the definitions. Most errors are syntax
+  errors and are fatal, although they can be made non-fatal
+  by manipulating =nl_response=.
+
+=SeeAlso
+
+  =Multi-level File Routines=.
+
+=End  
+*/
 
 /* returns < 0 if current file position preceeds mlfn,
    0 if equal, >0 if later
@@ -187,3 +242,27 @@ FILE *mlf_next_file( mlf_def_t *mlf ) {
   fp = fopen( mlf->fpath, (mlf->flags & MLF_WRITING) ? "w" : "r" );
   return fp;
 }
+/*
+=Name mlf_next_file(): Open the next mlf file
+=Subject Multi-level File Routines
+=Synopsys
+
+  #include "mlf.h"
+  FILE *mlf_next_file( mlf_def_t *mlf );
+
+=Description
+
+  Given an mlf definition, mlf_next_file() opens the
+  next file in the sequence.
+  
+=Returns
+
+  A FILE pointer to the newly opened file or NULL if
+  the file could not be opened.
+  
+=SeeAlso
+
+  =Multi-level File Routines=.
+
+=End  
+*/
