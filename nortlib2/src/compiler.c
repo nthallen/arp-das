@@ -1,5 +1,9 @@
 /* compiler.c Support routines for compilers
  * $Log$
+ * Revision 1.4  1994/08/02  15:34:08  nort
+ * Added ll_of_str for input_files
+ * Make open_input_file() a separate module to allow customization
+ *
  * Revision 1.3  1994/08/02  15:18:56  nort
  * Changed option letter -h to -q to match compiler.h
  * Change functionality to terminate if no input files are specified.
@@ -19,10 +23,8 @@
 #include <assert.h>
 #include "nortlib.h"
 #include "compiler.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+char rcsid_compiler_c[] =
+	"$Header$";
 
 /* The idea here is to provide common functionality for compilers.
    This includes standard options, more or less as supported by
@@ -166,3 +168,84 @@ void compile_init_options(int argc, char **argv, char *extension) {
 	ofile = open_output_file(output_filename);
   }
 }
+/*
+=Name open_output_file(): Compiler support function
+=Subject Compiler
+=Synopsis
+
+#include <stdio.h>
+#include "compiler.h"
+FILE *open_output_file(char *name);
+
+=Description
+
+  Performs standard operations to open a compiler output file.
+
+=Returns
+
+  Output file pointer.
+
+=SeeAlso
+  =Compiler= functions.
+=End
+
+=Name yywrap(): Process multiple input files
+=Subject Compiler
+=Synopsis
+
+#include <stdio.h>
+#include "compiler.h"
+int yywrap(void);
+
+=Description
+
+  This is a redefinition of the default yacc yywrap() function in
+  order to support processing of multiple input files as one.
+
+=Returns
+=SeeAlso
+  =Compiler= functions.
+=End
+
+=Name compile_init_options(): Command line arguments for compilers
+=Subject Compiler
+=Subject Startup
+=Synopsis
+
+#include <stdio.h>
+#include "compiler.h"
+void compile_init_options(int argc, char **argv, char *extension);
+
+=Description
+
+  Handles command line arguments for compilers, specifically:
+  
+  <UL>
+  <LI>-q: Print the compiler's usage message
+  <LI>-w: Treat warnings as errors
+  <LI>-k: Do not delete the output file if there are errors
+  <LI>-v: Add another level of debugging
+  <LI>-o file: Write output to file
+  </UL>
+
+=Returns
+
+  Nothing.
+
+=SeeAlso
+  =Compiler= functions.
+=End
+
+=Name compile_error(): nl_error function for compilers
+=Subject Compiler
+=Synopsis
+#include <stdio.h>
+#include "compiler.h"
+int compile_error(int level, char *format, ...);
+
+=Description
+=Returns
+=SeeAlso
+  =Compiler= functions.
+=End
+*/
