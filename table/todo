@@ -1,5 +1,7 @@
-Field numbering is incomplete
-Would like to record datum spaces as well as width
+Would like to record datum spaces as well as width {
+  Augment syntax of tmc text(var) to support text(var[,nspaces])
+  Then tmc can report an error if the number of spaces does not match
+}
 Do Rules {
   Rules are done, but double rules don't look great. C'est la vie.
 }

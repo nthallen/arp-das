@@ -1,7 +1,14 @@
 # $1: PTGNode StringPrint
 # $2: PTGNode RulePrint
 # $2: PTGNode FieldPrint
-File: $1 $2 "}\n" $3 [ preview_loop ]
+File:
+  "%{\n"
+  $1
+  $2
+  "  PtRealizeWidget(w);\n"
+  "}\n%}\n\n"
+  $3
+  [ preview_loop ]
 
 # $1: table name (PTGNode)
 # $2: N_Fields (int)
@@ -23,7 +30,7 @@ Window:
 # $4 str
 String:
   "  tbl_label( w, \"" $4 string "\", " $2 int ", " $1 int
-   " ); /* " $3 int " */\n" 
+   " ); /* Attr " $3 int " */\n" 
   [ preview_label $4 string $2 int $1 int ]
 
 # $1: table name (PTGNode)
