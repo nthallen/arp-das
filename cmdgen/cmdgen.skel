@@ -1,14 +1,11 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.19  1994/04/27  18:26:47  nort
+ * Added solp_init() for solenoid proxies.
+ *
  * Revision 1.18  1994/02/13  23:09:22  nort
  * SNAFU stuff, I believe
- *
- * Revision 1.17  1993/07/27  18:33:00  nort
- * *** empty log message ***
- *
- * Revision 1.16  1993/07/08  13:13:09  nort
- * *** empty log message ***
  *
  * Revision 1.15  1993/07/07  22:23:21  nort
  * Mods for snafu.
@@ -34,7 +31,10 @@
 	 letters are unambiguous.
    IO_WORD only advances within words when the rest of the current
 	 word is unambiguous (e.g. prevents advancing 'O' for On/Off)
-   IO_WORDSKIP will advance or at the beginning of a word.
+   IO_WORDSKIP Controls advancing at the beginning of a word. If
+     not specified, no advancement will take place at the
+	 beginning of a word without further input. If specified,
+	 entire words may be skipped if they are unambiguous.
 */
 static short iomode;
 #define IO_BACKSPACE 1
@@ -56,28 +56,46 @@ static short ioflags;
   #define SELF_SERVE
 #endif
 
-/* Interface options:
-   Currently supporting QNX_CONS, SNAFU_CURSES and INTERFACE
-   INTERFACE is left as a way to externally provide another
-   interface without necessarily modifying this file. If none
-   is specified, QNX_CONS is the default.
-   
-   Additional options are NO_PROMPTS or MACHINE_PROMPTS
-   
-   Somewhere prior to here the modes of operation should be
-   defined, either explicitly by the user or by cmdgen. The
-   modes are CMD_INTERACT_MODE and CMD_BATCH_MODE. In order
-   to call cmd_interact(), of course, CMD_INTERACT_MODE must
-   be defined. In order to call cmd_batch(), CMD_BATCH_MODE
-   must be defined. I expect keyboard programs to usually
-   define just CMD_INTERACT_MODE (although history would
-   require BATCH also) and servers to define just CMD_BATCH_MODE.
-   Note that if only CMD_BATCH_MODE is defined, NO_PROMPTS is
-   assumed.
-   
-   For Client/Server, conditionals are CLIENT, SERVER and SELF_SERVE.
-   SELF_SERVE is pretty much the way it has been. CLIENT is
-   CMD_INTERACT_MODE and then some. SERVER is CMD_BATCH_MODE.
+/* Compilations options:
+ Interface options:
+   CLIENT        Ships commands to a server
+   SERVER        Receives commands from clients
+   SELF_SERVE    Does is all! (default if SNAFU_CURSES)
+
+ Low-level action options:
+   CLIENT_ACTIONS Executes actions specified for client.
+   SERVER_ACTIONS Executes actions specified for server.
+     (default is to do both, but usually controlled by Interace option)
+ 
+ Low-level mode options:
+   CMD_BATCH_MODE generates cmd_batch()
+   CMD_INTERACT_MODE generates cmd_interact()
+     (INTERACT is default, but usually controlled by interface option)
+
+	 These are set by the Interface option, although it is still 
+	 possible to specify them individually if necessary.
+
+	 I expect keyboard (CLIENT) programs to usually define just 
+	 CMD_INTERACT_MODE (although history would require BATCH also) 
+	 and SERVERs to define just CMD_BATCH_MODE. Note that if only 
+	 CMD_BATCH_MODE is defined, NO_PROMPTS is assumed.
+
+ I/O options:
+   QNX_CONS      uses nortlib nl_cons.h stuff (default)
+   SNAFU_CURSES  specific to snafu. Implies SELF_SERVE
+   LL_INTERFACE  allows for external definition each
+				 interface element, but defaults to a
+				 "Low Level" interface.
+
+ Prompt options:
+   NO_PROMPTS      suppresses all prompting code and data
+                   default when CMD_INTERACT_MODE is not
+				   defined (i.e. when SERVER is defined)
+   MACHINE_PROMPTS used by QNX_CONS to generate faster prompts.
+                   Irrelevant if NO_PROMPTS is defined.
+
+ I/O Mode:
+   IOMODE_INIT   initial value to be assigned for iomode
 */
 #if defined SELF_SERVE
   #define CMD_INTERACT_MODE
@@ -95,7 +113,7 @@ static short ioflags;
   #define CLIENT_ACTIONS
 #endif
 
-#if ! (defined QNX_CONS || defined SNAFU_CURSES)
+#if ! (defined QNX_CONS || defined SNAFU_CURSES || defined LL_INTERFACE)
   #define QNX_CONS
 #endif
 
@@ -123,7 +141,7 @@ static char ibuf[CG_IBUF_SIZE];
 
 #define STORE_CHAR(x) do {\
   if (ibufidx==CG_IBUF_SIZE)\
-	CMD_ERROR("Input buffer overflow");\
+	{ CMD_ERROR("Input buffer overflow"); }\
   ibuf[ibufidx++] = x;\
 } while (0)
 #define UNSTORE_CHAR { assert(ibufidx > 0); ibufidx--; }
@@ -141,7 +159,8 @@ static char ibuf[CG_IBUF_SIZE];
 #ifdef SNAFU_CURSES
   #define REJECT_CHAR snafu_reject_char()
   #define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
-  #define CMD_ERROR(x) do { cmderr(x); exit_snafu(1); } while (0)
+  #define CMD_ERROR(x) cmderr(x); exit_snafu(1)
+  #define CMD_ERROR_FIX
   #define DISPLAY_CHAR(x) do { waddch(cmdwin.w, (x)?(x):' ');\
 							   ioflags |= IOF_UPDATE; } while (0)
   #define UNDISPLAY_CHAR do { waddch(cmdwin.w, '\b');\
@@ -175,38 +194,91 @@ static char ibuf[CG_IBUF_SIZE];
   }
 #endif
 
-/* These are the routines which define the operating system interface.
-   These are default routines which should be replaced by better ones.
-*/
+/*----------------------------------------------------------------
+  These are the routines which define the operating system interface.
+  These are default routines which should be replaced by better ones.
+----------------------------------------------------------------*/
+/* REJECT_CHAR only referenced in CMD_INTERACT_MODE */
 #ifndef REJECT_CHAR
   #define REJECT_CHAR do { putc('\a', stderr); fflush(stderr); } while (0)
 #endif
+
+/* SPECIAL_CHAR_FUNC(x) always called for non-printable characters */
 #ifndef SPECIAL_CHAR_FUNC
-  #define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
+  #ifdef CMD_INTERACT_MODE
+	#define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
+  #else
+	#define SPECIAL_CHAR_FUNC(x)
+  #endif
 #endif
+
+/* CMD_ERROR is for fatal internal errors
+    it can safely include multiple statements since its use is
+	quite limited.
+   CMD_ERROR_FIX can be defined to nothing if you are getting
+    "unreachable code" in rule_action()
+*/
 #ifndef CMD_ERROR
-  #define CMD_ERROR(x) do { fprintf(stderr, "%s\n", x); exit(1); } while (0)
+  #ifdef NLRSP_QUIET
+	#define CMD_ERROR(x) nl_error(4,x)
+  #else
+	#define CMD_ERROR(x) fprintf(stderr, "%s\n", x); exit(1)
+	#define CMD_ERROR_FIX
+  #endif
 #endif
+#ifndef CMD_ERROR_FIX
+  #define CMD_ERROR_FIX exit(1);
+#endif
+
+/* DISPLAY_CHAR always referenced */
 #ifndef DISPLAY_CHAR
-  #define DISPLAY_CHAR(c) {putchar((c)?(c):' '); fflush(stdout);}
+  #ifdef CMD_INTERACT_MODE
+	#define DISPLAY_CHAR(c) putchar((c)?(c):' ')
+  #else
+	#define DISPLAY_CHAR(c)
+  #endif
 #endif
+
+/* UNDISPLAY_CHAR is referenced by RUBOUT which is always referenced,
+   although it needn't really be unless CMD_INTERACT_MODE. */
 #ifndef UNDISPLAY_CHAR
-  #define UNDISPLAY_CHAR { printf("\b \b"); fflush(stdout); }
+  #ifdef CMD_INTERACT_MODE
+	#define UNDISPLAY_CHAR fputs("\b \b", stdout)
+  #else
+	#define UNDISPLAY_CHAR
+  #endif
 #endif
+
+/* CLEAR_DISPLAY_LINE Always used regardless of mode */
 #ifndef CLEAR_DISPLAY_LINE
-  #define CLEAR_DISPLAY_LINE putchar('\n')
+  #ifdef CMD_INTERACT_MODE
+	#define CLEAR_DISPLAY_LINE fputs("\n& ", stdout)
+  #else
+	#define CLEAR_DISPLAY_LINE
+  #endif
 #endif
+
+/* DISPLAY_PROMPT displays a prompt. Not referenced if NO_PROMPTS */
 #ifndef DISPLAY_PROMPT
   #define DISPLAY_PROMPT(x) { int i; printf("\n%s\n", prmt_text[x]);\
+			CLEAR_DISPLAY_LINE;\
 			for (i = 0; i < ibufidx; i++) DISPLAY_CHAR(ibuf[i]); }
 #endif
+
+/* GETCH is low-level get character routine for interactive input.
+   It is not used if CMD_INTERACT_MODE is not defined. */
 #ifndef GETCH
   #define GETCH() getch()
 #endif
+
+/* UPDATE_OUTPUT always used regardless of mode. This is used for
+   indicating when output really needs to be forced to the screen.
+ */
 #ifndef UPDATE_OUTPUT
-  #define UPDATE_OUTPUT
+  #define UPDATE_OUTPUT fflush(stdout)
 #endif
 
+/*----------------------------------------------------------------*/
 #define RUBOUT { UNSTORE_CHAR; UNDISPLAY_CHAR; }
 #define ACCEPT_CHAR(c) { STORE_CHAR(c); DISPLAY_CHAR(c); }
 
@@ -509,7 +581,7 @@ static unsigned short input(void) {
 
 static void _shift(cg_token_type st, unsigned short val, short prev) {
   tsp++;
-  if (tsp >= TSTACK_SIZE) CMD_ERROR("Token Stack Overflow");
+  if (tsp >= TSTACK_SIZE) { CMD_ERROR("Token Stack Overflow"); }
   tstack[tsp].state = st;
   tstack[tsp].prev = prev;
   tstack[tsp].value = val;
