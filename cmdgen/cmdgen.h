@@ -1,5 +1,8 @@
 /* cmdgen.h Definitions for Command Parser Generator
  * $Log$
+ * Revision 1.1  1992/10/20  19:55:06  nort
+ * Initial revision
+ *
  * Revision 1.1  1992/07/09  18:36:44  nort
  * Initial revision
  *
@@ -112,7 +115,6 @@ extern YYSTYPE yyval, yylval;
 int yyparse(void); /* yyparse.y */
 void app_error(unsigned int level, char *s, ...); /* yyparse.y */
 int yylex(void); /* yylex.l */
-void pipe_tail(void); /* yylex.l */
 extern int app_line; /* yyparse.y */
 #define app_die(x) exit(x)
 struct vtyp *get_vtype(char *type); /* vunion.c */
