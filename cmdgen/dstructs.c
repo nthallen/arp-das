@@ -1,6 +1,9 @@
 /* dstructs.c defines routines for creating and manipulating
  * data structures for command parser generator.
  * $Log$
+ * Revision 1.1  1992/10/20  20:27:07  nort
+ * Initial revision
+ *
  * Revision 1.1  1992/07/09  18:36:44  nort
  * Initial revision
  *
@@ -55,6 +58,10 @@ struct nt_t *non_terminal(char *name) {
   return(ntn);
 }
 
+/* Dummy non-terminals are given names beginning with '_'.
+   These could later be changed to '&' if they are part of
+   a Client reduction.
+*/
 void dmy_non_term(struct sub_t *sub) {
   static int dummy_num = 0;
   char dbuf[10];
@@ -62,7 +69,8 @@ void dmy_non_term(struct sub_t *sub) {
   struct sub_item_t *nsi;
   
   assert(sub->action != NULL);
-  itoa(dummy_num++, dbuf, 10);
+  dbuf[0] = '_';
+  itoa(dummy_num++, dbuf+1, 10);
   nt = non_terminal(dbuf);
   nt->rules.first = nt->rules.last = new_sub();
   nt->rules.last->action = sub->action;

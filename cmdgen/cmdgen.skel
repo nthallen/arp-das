@@ -1,6 +1,10 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.13  1993/02/11  02:45:43  nort
+ * Added conditionals CMD_BATCH_MODE and CMD_INTERACT_MODE
+ * prior to implementing CLIENT/SERVER.
+ *
  * Revision 1.12  1993/01/30  03:25:05  nort
  * Changed default REJECT_CHAR
  * Put escape handling back in batch mode to support current usage.
@@ -90,19 +94,39 @@ static short ioflags;
    require BATCH also) and servers to define just CMD_BATCH_MODE.
    Note that if only CMD_BATCH_MODE is defined, NO_PROMPTS is
    assumed.
+   
+   For Client/Server, conditionals are CLIENT, SERVER and SELF_SERVE.
+   SELF_SERVE is pretty much the way it has been. CLIENT is
+   CMD_INTERACT_MODE and then some. SERVER is CMD_BATCH_MODE.
 */
-#if defined QNX_CONS || defined SNAFU_CURSES
-  #define INTERFACE
+#if defined SELF_SERVE
+  #define CMD_INTERACT_MODE
+  #define SERVER_ACTIONS
+  #define CLIENT_ACTIONS
+#elif defined CLIENT
+  #define CMD_INTERACT_MODE
+  #define CLIENT_ACTIONS
+  static short saw_server_action;
+#elif defined SERVER
+  #define CMD_BATCH_MODE
+  #define SERVER_ACTIONS
+#else /* default to all actions to support existing usage */
+  #define SERVER_ACTIONS
+  #define CLIENT_ACTIONS
 #endif
-#ifndef INTERFACE
-  #define QNX_CONS /* Since that's what we're doing */
+
+#if ! (defined QNX_CONS || defined SNAFU_CURSES)
+  #define QNX_CONS
 #endif
-#if (! defined CMD_INTERACT_MODE) && (! defined CMD_BATCH_MODE)
-  #error Must define either CMD_BATCH_MODE or CMD_INTERACT_MODE
+
+#if ! (defined CMD_INTERACT_MODE || defined CMD_BATCH_MODE)
+  #define CMD_INTERACT_MODE
 #endif
-#if (! defined CMD_INTERACT_MODE) && (! defined NO_PROMPTS)
+
+#if ! (defined CMD_INTERACT_MODE || defined NO_PROMPTS)
   #define NO_PROMPTS
 #endif
+
 #ifdef QNX_CONS
   #include "nl_cons.h"
 #elif defined SNAFU_CURSES
@@ -234,7 +258,6 @@ short tsp;
 static char ibuf[INPUT_BUFFER_SIZE];
 static int ibufidx;
 static short full_reduce;
-
 static unsigned short unshift_value;
 
 #ifndef IOMODE_INIT
@@ -934,9 +957,19 @@ static int cmd_exec(void) {
 	cur_state = stktop->state;
 	st = &states[cur_state];
 	if (st->flag == STFL_REDUCE) {
-	  if (reduce_rule(st->offset)) break;
+	  if (reduce_rule(st->offset)) {
+		#ifdef CLIENT
+		  cic_transmit(ibuf, ibufidx, saw_server_action);
+		  saw_server_action = 0;
+		#endif
+		break;
+	  }
 	} else {
 	  if (full_reduce) {
+		#ifdef CLIENT
+		  cic_transmit(ibuf, ibufidx, saw_server_action);
+		  saw_server_action = 0;
+		#endif
 		CLEAR_DISPLAY_LINE;
 		ibufidx = 0;
 		full_reduce = 0;
@@ -964,7 +997,7 @@ static int cmd_exec(void) {
   }
   CLEAR_DISPLAY_LINE;
   UPDATE_OUTPUT;
-  return(CMDREP_SYNERR);
+  return(CMDREP_QUIT);
 }
 
 #ifdef CMD_BATCH_MODE
