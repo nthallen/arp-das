@@ -108,7 +108,7 @@ int TM_stream( int nbytes, const char *data ) {
 			case TMTYPE_DATA_T2:
 			case TMTYPE_DATA_T3:
 			case TMTYPE_DATA_T4:
-			  TM_data( ubuf, want );
+			  TM_data( &ubuf->msg, want );
 			  break;
 			default: nl_error( 4, "Invalid tmtype 3" );
 		  }
@@ -116,21 +116,21 @@ int TM_stream( int nbytes, const char *data ) {
 		} else {
 		  switch ( ubuf->msg.hdr.tm_type ) {
 			case TMTYPE_INIT: 
-			  memcpy( &tm_info, &ubuf->msg.payload.init, sizeof(tm_dac_t) );
+			  memcpy( &tm_info, &ubuf->msg.body.init, sizeof(tm_dac_t) );
 			  TM_init();
 			  want = 0; buf_offset = 0; break;
 			case TMTYPE_TSTAMP: 
-			  tm_info.t_stmp = ubuf->msg.payload.ts;
-			  TM_tstamp( TMTYPE_TSTAMP, ubuf->msg.payload.ts.mfc_num,
-			    ubuf->msg.payload.ts.secs );
+			  tm_info.t_stmp = ubuf->msg.body.ts;
+			  TM_tstamp( TMTYPE_TSTAMP, ubuf->msg.body.ts.mfc_num,
+			    ubuf->msg.body.ts.secs );
 			  want = 0; buf_offset = 0; break;
 			case TMTYPE_DATA_T1: 
 			case TMTYPE_DATA_T2:
-			  want += ubuf->msg.payload.data1.n_rows * tm_info.tm.nbrow;
+			  want += ubuf->msg.body.data1.n_rows * tm_info.tm.nbrow;
 			  break;
 			case TMTYPE_DATA_T3:
 			case TMTYPE_DATA_T4:
-			  want += ubuf->msg.payload.data1.n_rows *
+			  want += ubuf->msg.body.data1.n_rows *
 			    ( tm_info.tm.nbrow - 4 );
 			  break;
 			default:

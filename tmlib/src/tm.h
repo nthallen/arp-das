@@ -76,7 +76,7 @@ typedef struct {
    that follows. data consists of n_rows * nbrow bytes. */
 typedef struct {
   tm_hdrw_t n_rows;
-  char data[2];
+  unsigned char data[2];
 } __attribute__((packed)) tm_data_t1_t;
 
 /* tm_data_t2_t applies when tmtype is TMTYPE_DATA_T2
@@ -89,7 +89,7 @@ typedef struct {
   tm_hdrw_t n_rows;
   mfc_t mfctr;
   mfc_t rownum;
-  char data[2];
+  unsigned char data[2];
 } __attribute__((packed)) tm_data_t2_t;
 
 /* tm_data_t3_t applies when tmtype is TMTYPE_DATA_T3
@@ -103,7 +103,7 @@ typedef struct {
 typedef struct {
   tm_hdrw_t n_rows;
   mfc_t mfctr;
-  char data[2];
+  unsigned char data[2];
 } __attribute__((packed)) tm_data_t3_t;
 
 /* tm_data_t4_t applies when tmtype is TMTYPE_DATA_T4
@@ -116,21 +116,23 @@ typedef struct {
   tm_hdrw_t n_rows;
   mfc_t mfctr;
   tmcks_t cksum;
-  char data[2];
+  unsigned char data[2];
 } __attribute__((packed)) tm_data_t4_t;
 
+typedef struct tm_msg {
+  tm_hdr_t hdr;
+  union {
+	tstamp_t ts;
+	tm_dac_t init;
+	tm_data_t1_t data1;
+	tm_data_t2_t data2;
+	tm_data_t3_t data3;
+	tm_data_t4_t data4;
+  } body;
+} __attribute__((packed)) tm_msg_t;
+
 typedef union {
-  struct tm_msg {
-    tm_hdr_t hdr;
-    union {
-      tstamp_t ts;
-      tm_dac_t init;
-      tm_data_t1_t data1;
-      tm_data_t2_t data2;
-      tm_data_t3_t data3;
-      tm_data_t4_t data4;
-    } payload;
-  } __attribute__((packed)) msg;
+  tm_msg_t msg;
   char raw[TMBUFSIZE];
 } tm_packet_t;
 
@@ -143,9 +145,9 @@ extern int TM_readfd(void);
 extern int TM_stream( int nbytes, const char *data );
 
 /*  Data Client application functions: */
-extern void TM_data( tm_packet_t *ubuf, int n_bytes );
+extern void TM_data( tm_msg_t *msg, int n_bytes );
 extern void TM_init( void );
-extern void TM_row( mfc_t mfctr, int row, const char *data );
+extern void TM_row( mfc_t mfctr, int row, const unsigned char *data );
 extern void TM_tstamp( int tstype, mfc_t mfctr, time_t time );
 extern void TM_quit( void );
 
