@@ -1,37 +1,38 @@
 Things to accomplish for TMCALGO v2.0
+Syntax to make commands, states silent {
+  State names ending with '_' and commands
+  beginning with '_' will not be logged.
+  The state name kluge is sub-optimal since the change
+  from logging to silent requires every reference to the state
+  name to be changed. It would be much more helpful if there
+  were a syntax at the declaration that would mark the state as
+  being silent.
+}
 Bugs/Features {
-  {	depending on (DHTR2_IDLE) { validate DHTR2_HEAT; }
-	hold until (SF2BTemp > 300 ) or 80;
-
-	Causes an assertion (states.c line 356) unless hold until is
-	preceeded by +1. Problem lies in list_substates() where I 
-	couldn't decide whether these should be in the same or 
-	different substates. The answer is almost certainly 
-	"different", though that could lead to non-execution in most 
-	cases. The preceeding TMC statement is clearly internal, and 
-	hence is supposed to be executed no more than once anyway. 
+  Messages need to be cleared more consistently {
+	Could hold onto the currently displayed message. Then we 
+	would know if a new one needs to be displayed.
   }
-  { Would it be worthwhile to support an option to execute an 
-	internal TMC statement more than once?
+  Commands should not be sorted within time intervals {
+	This is confusing and I don't think it serves the original 
+	purpose.
   }
-  If modtime is zero, file is never read in slurp mode {
-	Changed beginning modtime to -1 and library error value
-	to -1 also
-  }
-  If slurp file disappears, sometimes SIGSEGVs {
-	(test this w/ htrsim)
-  }
-  Very long slurp files report spurious syntax errors
 }
 New Feature Wish List {
   hold unless valid (); (pertains to whole partition)
-}
-states.c {
-  Perhaps commands following a hold until should be deemed to
-  belong to another time period.
-}
-Library {
-  During playback, report itime() in all messages?
+  Syntax to make commands, states silent
+  Figure out how to make internal commands execute exactly once
+  states.c {
+	Perhaps commands following a hold until should be deemed to
+	belong to another time period. Definitely. Probably already 
+	true.
+  }
+  Library {
+	During playback, report itime() in all messages?
+  }
+  { Would it be worthwhile to support an option to execute an 
+	internal TMC statement more than once? I think not.
+  }
 }
 Documentation Notes {
   Untimed commands consist entirely of tmc_statements

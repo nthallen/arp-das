@@ -1,4 +1,8 @@
 todo {
+  Command rearrangement {
+	Is a bad thing. Consider just doing away with it.
+	states.c has some bugs with it anyway.
+  }
   code generation {
 	tmcalgo code generation 1.2 when waiting at the end of a state,
 	still should call tma_time_check() (see 1.2 below under code)
