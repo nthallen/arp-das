@@ -1,0 +1,183 @@
+#! /usr/bin/perl -w
+use strict;
+
+my %sizes = (
+  a => 1,
+  c => 1,
+  C => 1,
+  s => 2,
+  S => 2,
+  l => 4,
+  L => 4,
+  f => 4,
+  d => 8,
+  n => 2,
+  N => 4
+);
+
+# decipher <pattern> <input> [<input> ...]
+my $pattern = load_pattern(shift @ARGV);
+my @ifiles = open_ifiles(@ARGV);
+process_pattern( $pattern, @ifiles );
+exit(0);
+
+# What is a pattern?
+# Width \d+ - set the width of a column
+#
+# [addr] - output the current file offset
+# [cCsSlLfdnN][\d+] %[.\w+] - Read that many of that type and
+#   display using the specified format
+# ".*" - output the specified string and a newline
+# $  - output a newline
+# #  - comments
+# REPEAT [\d+]
+# END
+
+sub process_pattern {
+  my ( $pat, @fh ) = @_;
+  my $width;
+  my @out;
+  foreach ( @fh ) {
+    push @out, [];
+  }
+  do_pattern( $pat, \$width, \@out, @fh );
+}
+
+# Returns non-zero on end of file
+sub do_pattern {
+  my ( $pat, $width, $out, @fh ) = @_;
+  for my $fline ( @$pat ) {
+    if ( ref($fline) ) {
+      my $count = $fline->{count};
+      my $subpat = $fline->{pattern};
+      while ( $count != 0 ) {
+	return 1 if do_pattern( $subpat, $width, $out, @fh );
+	$count-- unless $count < 0;
+      }
+    } else {
+      my $line = $fline;
+      while ( $line !~ m/^\s*$/ ) {
+	last if $line =~ m/^\s*#/;
+	if ( $line =~ s/^\s*Width\s*(\d+)// ) {
+	  $$width = $1;
+	} elsif ( $line =~ s/^\s*\$// ) {
+	  flush_out( $width, $out );
+	} elsif ( $line =~ s/^\s*Z\*// ) {
+	  do_readZ( $out, @fh );
+	} elsif ( $line =~ s/^\s*([acCsSlLfdnN])(\d+)?\s+(%[.\w]+)// ) {
+	  my $code = $1;
+	  my $count = $2 || 1;
+	  my $fmt = $3;
+	  do_read( $code, $count, $fmt, $out, @fh );
+	} elsif ( $line =~ s/^\s*A(\s*%[\w.]+)?// ) {
+	  do_addr( $out, $1 || '%04X', @fh );
+	} else {
+	  $line =~ s/\s*$//;
+	  die "Invalid format: '$line'\n";
+	}
+      }
+    }
+  }
+  return 0;
+}
+
+sub do_addr {
+  my ( $out, $fmt, @fh ) = @_;
+  for my $i ( 0 .. $#fh ) {
+    my $fpos = tell $fh[$i];
+    push @{$out->[$i]}, "Addr:", sprintf $fmt, $fpos;
+  }
+}
+
+sub do_readZ {
+  my ( $out, @fh ) = @_;
+  my $size = 80;
+  for my $i ( 0 .. $#fh ) {
+    my $data;
+    my $fpos = tell $fh[$i];
+    read $fh[$i], $data, $size;
+    my $text = unpack( "Z$size", $data );
+    my $trusize = length($text)+1;
+    $trusize = 4 if $trusize < 4;
+    $trusize++ if $trusize%2;
+    if ( $trusize < $size ) {
+      seek $fh[$i], $trusize-$size, 1;
+    }
+    push @{$out->[$i]}, $text;
+  }
+}
+
+sub do_read {
+  my ( $code, $count, $fmt, $out, @fh ) = @_;
+  my $size = $sizes{$code} * $count;
+  for my $i ( 0 .. $#fh ) {
+    my $data;
+    my $packcode = "$code$count";
+    my $text;
+    read $fh[$i], $data, $size;
+    if ( $code eq 'a' ) {
+      $text = $data;
+      $text =~ s/[^[:print:]]/./g;
+      $packcode = "C$count";
+    }
+    my @cdata = unpack( $packcode, $data );
+    for my $cdata ( @cdata ) {
+      push @{$out->[$i]}, sprintf( $fmt, $cdata );
+    }
+    push @{$out->[$i]}, $text if defined $text;
+  }
+}
+
+sub flush_out {
+  my ( $width, $out ) = @_;
+  for my $col ( @$out ) {
+    my $text = join ' ', @$col;
+    if ( length($text) >= $$width ) {
+      $$width = length($text) + 1;
+      warn "Expanding width to $$width\n";
+    }
+    print $text, ' ' x ($$width - length($text));
+    @$col = ();
+  }
+  print "\n";
+}
+
+# Returns an array ref to a pattern
+sub load_pattern {
+  my $filename = shift @_;
+  my $fh;
+  open $fh, "<$filename" ||
+    die "Unable to read pattern file '$filename'\n";
+  my $pat = read_pattern( $fh );
+  close $fh || print "Error closing $filename\n";
+  return $pat;
+}
+
+sub read_pattern {
+  my $fh = shift @_;
+  my $pat = [];
+  while (my $line = <$fh>) {
+    next if $line =~ m/^\s*#/;
+    next if $line =~ m/^\s*$/;
+    last if $line =~ m/^\s*END/;
+    if ( $line =~ m/^\s*REPEAT(?:\s*(\d+))?/ ) {
+      my $count = defined($1) ? $1 : -1;
+      my $subpat = read_pattern($fh);
+      $line = { count => $count, pattern => $subpat };
+    }
+    push( @$pat, $line );
+  }
+  return $pat;
+}
+
+sub open_ifiles {
+  my @ifiles = @_;
+  my @ifh;
+  foreach my $filename (@ifiles) {
+    my $ref;
+    open( $ref, "<$filename" ) ||
+      die "Could not open input file '$filename'\n"; 
+    push( @ifh, $ref );
+  }
+  @ifh;
+}
