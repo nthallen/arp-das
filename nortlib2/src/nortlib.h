@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.2  1992/09/09  18:45:23  nort
+ * Latest version
+ *
  * Revision 1.1  1992/08/25  15:31:42  nort
  * Initial revision
  *
@@ -21,11 +24,15 @@ int set_response(int newval); /* nlresp.c */
 #define NLRSP_WARN 1
 #define NLRSP_QUIET 0
 
+pid_t nl_find_name(nid_t node, char *name); /* find_name.c */
+pid_t nl_make_proxy(void *msg, int size); /* make_proxy.c */
 pid_t find_DG(void); /* find_dg.c */
 int send_DG(void *msg, int size); /* send_dg.c */
 pid_t find_CC(int dg_ok); /* find_cc.c */
 int send_CC(void *msg, int size, int dg_ok); /* send_cc.c */
 int send_dascmd(int type, int value, int dg_ok); /* senddasc.c */
 int reply_byte(pid_t sent_pid, unsigned char msg); /* repbyte.c */
+int Soldrv_set_proxy(unsigned char selector, unsigned char ID, void *msg, int size); /* solprox.c */
+int Soldrv_reset_proxy(unsigned char selector, unsigned char ID); /* solprox.c */
 
 #endif
