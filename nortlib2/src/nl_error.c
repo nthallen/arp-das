@@ -16,7 +16,7 @@ int nl_err(int level, char *s, ...) {
   return(level);
 }
 
-int (*nl_error)(unsigned int level, char *s, ...) = nl_err;
+int (*nl_error)(int level, char *s, ...) = nl_err;
 /*
 =Name nl_error(): Standard error message function
 =Subject Nortlib
@@ -24,7 +24,7 @@ int (*nl_error)(unsigned int level, char *s, ...) = nl_err;
 =Subject Nortlib
 =Synopsis
 #include "nortlib.h"
-int (*nl_error)(unsigned int level, char *s, ...);
+int (*nl_error)(int level, char *s, ...);
 int nl_err(int level, char *s, ...);
 
 =Description

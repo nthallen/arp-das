@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.15  2001/01/18 15:07:20  nort
+ * Getcon functions, memo_shutdown() and ci_time_str()
+ *
  * Revision 1.14  1999/06/18 18:04:05  nort
  * Added ci_settime (a long time ago?)
  * Added DigSelect() from dccc.c
@@ -37,19 +40,6 @@ int set_response(int newval); /* nlresp.c */
 #define NLRSP_DIE 3
 #define NLRSP_WARN 1
 #define NLRSP_QUIET 0
-
-pid_t nl_find_name(nid_t node, const char *name); /* find_name.c */
-char *nl_make_name(const char *base, int global); /* make_name.c */
-pid_t nl_make_proxy(void *msg, int size); /* make_proxy.c */
-pid_t find_DG(void); /* find_dg.c */
-int send_DG(void *msg, int size); /* send_dg.c */
-pid_t find_CC(int dg_ok); /* find_cc.c */
-int send_CC(void *msg, int size, int dg_ok); /* send_cc.c */
-int send_dascmd(int type, int value, int dg_ok); /* senddasc.c */
-int reply_byte(pid_t sent_pid, unsigned char msg); /* repbyte.c */
-int Soldrv_set_proxy(unsigned char selector, unsigned char ID, void *msg, int size); /* solprox.c */
-int Soldrv_reset_proxy(unsigned char selector, unsigned char ID); /* solprox.c */
-pid_t get_server_proxy(const char *name, int global, const char *cmd); /* cmdprox.c */
 
 /* Command Interpreter Client (CIC) and Server (CIS) Utilities
    Message-level definition is in cmdalgo.h
@@ -92,27 +82,41 @@ char *nrtl_strdup(const char *s);
 /* dccc.c */
 unsigned short DigSelect( unsigned short cmd, unsigned short val );
 
-/* memo.c */
-int memo_shutdown( nid_t node );
+/* QNX4 Section: Items to be migrated out if/when they are ported */
+#if defined(__QNX__) && ! defined(__QNXNTO__)
+  int memo_shutdown( nid_t node ); /* memo.c */
+  pid_t nl_find_name(nid_t node, const char *name); /* find_name.c */
+  char *nl_make_name(const char *base, int global); /* make_name.c */
+  pid_t nl_make_proxy(void *msg, int size); /* make_proxy.c */
+  pid_t find_DG(void); /* find_dg.c */
+  int send_DG(void *msg, int size); /* send_dg.c */
+  pid_t find_CC(int dg_ok); /* find_cc.c */
+  int send_CC(void *msg, int size, int dg_ok); /* send_cc.c */
+  int send_dascmd(int type, int value, int dg_ok); /* senddasc.c */
+  int reply_byte(pid_t sent_pid, unsigned char msg); /* repbyte.c */
+  int Soldrv_set_proxy(unsigned char selector, unsigned char ID, void *msg, int size); /* solprox.c */
+  int Soldrv_reset_proxy(unsigned char selector, unsigned char ID); /* solprox.c */
+  pid_t get_server_proxy(const char *name, int global, const char *cmd); /* cmdprox.c */
 
-/* getcon.c */
-char *getcon_server_name( pid_t ppid );
-int getcon_release( char *conname );
+  /* getcon.c */
+  char *getcon_server_name( pid_t ppid );
+  int getcon_release( char *conname );
+
+  #if defined __386__
+  #  pragma library (nortlib3r)
+  #elif defined __SMALL__
+  #  pragma library (nortlibs)
+  #elif defined __COMPACT__
+  #  pragma library (nortlibc)
+  #elif defined __MEDIUM__
+  #  pragma library (nortlibm)
+  #elif defined __LARGE__
+  #  pragma library (nortlibl)
+  # endif
+#endif
 
 #ifdef __cplusplus
 };
 #endif
-
-#if defined __386__
-#  pragma library (nortlib3r)
-#elif defined __SMALL__
-#  pragma library (nortlibs)
-#elif defined __COMPACT__
-#  pragma library (nortlibc)
-#elif defined __MEDIUM__
-#  pragma library (nortlibm)
-#elif defined __LARGE__
-#  pragma library (nortlibl)
-# endif
 
 #endif
