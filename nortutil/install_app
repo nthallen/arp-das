@@ -1,6 +1,6 @@
 #! /bin/sh
 #__USAGE
-#%C	[orig] [make] [clean] [dump]
+#%C	[orig] [make] [clean] [dump] [install]
 #	If orig is specified, two dirs are created, one clean
 #	If make is specified, a Configure and make are run
 #	after the installation.
@@ -83,15 +83,20 @@ if [ -n "$mypatches" ]; then
 fi
 
 typeset orig=no make=no clean=no typeset unpack=no dump=no
+typeset install=no
 
+suargs=''
 while [ -n "$1" ]; do
+  suarg=$1
   case "$1" in
 	orig) orig=yes;;
 	make) make=yes;;
 	clean) clean=yes;;
 	dump) dump=yes;;
+	install) install=yes; suarg='';;
 	*) nl_error "Unknown option '$1'";;
   esac
+  [ -n "$suarg" ] && suargs="$suargs $suarg"
   shift
 done
 
@@ -120,6 +125,8 @@ fi
 
 [ $make = yes -a ! -x ./QNX.make ] &&
   nl_error Cannot make unless QNX.make is executable
+[ $install = yes -a ! -x ./QNX.install ] &&
+  nl_error Cannot install unless QNX.install is executable
 
 function dopatches {
   echo dopatches: $*
@@ -141,54 +148,73 @@ function dopatches {
 unpack=''
 [ ! -d "ORIG/$pkg" -a "$orig" = "yes" ] && unpack=ORIG
 [ ! -d "BLD/$pkg" -o "$clean" = "yes" ] && unpack="$unpack BLD"
-if [ -n "$unpack" ]; then
-  [ -d BLD ] || mkdir BLD ||
-	nl_error Unable to create BLD directory
-  {
-  # now we're logging
-  if [ -d "BLD/$pkg" -a "$clean" = "yes" ]; then
-	echo Removing old BLD/$pkg
-	rm -rf BLD/$pkg
-	[ -d "BLD/$pkg" ] && nl_error Unable to remove old BLD/$pkg
-  fi
-  for tree in $unpack; do
-	[ -d $tree ] || mkdir $tree ||
-	  nl_error Unable to create $tree subdirectory
-	cd $tree
-	[ -d "$archpkg.sav" ] &&
-	  nl_error $tree/$archpkg.sav already exists
-	[ "$archpkg" != "$pkg" -a -d "$archpkg" ] &&
-	  mv $archpkg $archpkg.sav
-
-	[ ! -d "$archpkg" ] && zcat ../$farchive | pax -rv
-	[ ! -d "$archpkg" ] && nl_error "Archive unpack failed"
-	[ "$archpkg" != "$pkg" ] && mv $archpkg $pkg
-	[ -d "$archpkg.sav" ] && mv -v $archpkg.sav $archpkg
-	cd $pkg
-	chmod -R u+w *
-	for i in *.orig; do
-	  [ -f "$i" ] &&
-		echo "Warning: $i in distribution will be deleted"
-	done
-	[ -n "$fpatches" ] && dopatches $fpatches
-	# ln -fs $portpath qnxp
-	if [ -n "$fmypatches" -a ! "$tree" = ORIG ]; then
-	  dopatches $fmypatches
+if [ "$clean" ="yes" -o ! -f BLD/$pkg.made ]; then
+  [ "$install" = "yes" ] && make=yes
+fi
+uid=`id -u`
+if [ -n "$unpack" -o "$make" = "yes" ] &&
+	[ $uid = 0 -a ! "$LOGNAME" = root ]; then
+  su `$LOGNAME` -c "$0 $suargs"
+else
+  if [ -n "$unpack" ]; then
+	[ -d BLD ] || mkdir BLD ||
+	  nl_error Unable to create BLD directory
+	{
+	# now we're logging
+	if [ -d "BLD/$pkg" -a "$clean" = "yes" ]; then
+	  echo Removing old BLD/$pkg
+	  rm -rf BLD/$pkg
+	  [ -d "BLD/$pkg" ] && nl_error Unable to remove old BLD/$pkg
 	fi
-	cd ../..
-  done
+	for tree in $unpack; do
+	  [ -d $tree ] || mkdir $tree ||
+		nl_error Unable to create $tree subdirectory
+	  cd $tree
+	  [ -d "$archpkg.sav" ] &&
+		nl_error $tree/$archpkg.sav already exists
+	  [ "$archpkg" != "$pkg" -a -d "$archpkg" ] &&
+		mv $archpkg $archpkg.sav
+
+	  [ ! -d "$archpkg" ] && zcat ../$farchive | pax -rv
+	  [ ! -d "$archpkg" ] && nl_error "Archive unpack failed"
+	  [ "$archpkg" != "$pkg" ] && mv $archpkg $pkg
+	  [ -d "$archpkg.sav" ] && mv -v $archpkg.sav $archpkg
+	  cd $pkg
+	  chmod -R u+w *
+	  for i in *.orig; do
+		[ -f "$i" ] &&
+		  echo "Warning: $i in distribution will be deleted"
+	  done
+	  [ -n "$fpatches" ] && dopatches $fpatches
+	  # ln -fs $portpath qnxp
+	  if [ -n "$fmypatches" -a ! "$tree" = ORIG ]; then
+		dopatches $fmypatches
+	  fi
+	  cd ../..
+	done
 
 
-  } 2>&1 | tee BLD/$pkg.log || exit 1
+	} 2>&1 | tee BLD/$pkg.log || exit 1
+  fi
+
+  cd BLD/$pkg
+  pwd
+  if [ $make = yes ]; then
+	[ -x "$portpath/QNX.make" ] || nl_error "Cannot find QNX.make"
+	if [ -n "$NOLOG" ]; then
+	  $portpath/QNX.make
+	else
+	  $portpath/QNX.make 2>&1 | tee ../$pkg.make.log
+	fi
+  fi
+  cd -
 fi
 
-cd BLD/$pkg
-pwd
-if [ $make = yes ]; then
-  [ -x "$portpath/QNX.make" ] || nl_error "Cannot find QNX.make"
-  if [ -n "$NOLOG" ]; then
-	$portpath/QNX.make
-  else
-	$portpath/QNX.make 2>&1 | tee ../$pkg.make.log
-  fi
+if [ "$install" = "yes" ]; then
+  [ $uid = 0 ] || nl_error Must be root to install
+  [ -f BLD/$pkg.made ] ||
+	nl_error "BLD/$pkg.made missing: install aborted"
+  cd BLD/$pkg
+  [ -x ../../QNX.install ] || nl_error "Cannot find QNX.install"
+  ../../QNX.install 2>&1 | tee ../$pkg.inst.log
 fi
