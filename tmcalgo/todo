@@ -3,12 +3,8 @@ todo {
 	tmcalgo code generation 1.2 when waiting at the end of a state,
 	still should call tma_time_check() (see 1.2 below under code)
   }
-  runtime {
+  runtime { done
 	tma.c needs to deal gracefully with the case nexttime==0
-  }
-  grammar/language definition {
-	restructure to make clear the legal position of tmc_commands
-	and exp_commands.
   }
 }
 Support Routines {
