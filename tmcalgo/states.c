@@ -1,5 +1,8 @@
 /* states.c
  * $Log$
+ * Revision 1.8  1996/04/19  13:52:17  nort
+ * Added all states to slurp list
+ *
  * Revision 1.7  1996/04/17  02:51:54  nort
  * Rev 2 mods, including support for default commands in file slurps.
  *
@@ -138,11 +141,27 @@ struct substate *new_substate( FILE *ofp, char *name,
   return newsub;
 }
 
+static int needs_substate( int cmdtype ) {
+  switch ( cmdtype ) {
+	case CMDTYPE_TMC:
+	case CMDTYPE_HOLD:
+	case CMDTYPE_VHOLD:
+	  return 1;
+	case CMDTYPE_QSTR:
+	case CMDTYPE_CMD:
+	case CMDTYPE_VAL:
+	  return 0;
+	default:
+	  compile_error( 4, "Unknown command type %d", cmdtype );
+	  return 0;
+  }
+}
+
 /* list_substates() outputs sub-state declarations for
    one state. Each partition will have at least one idle 
    substate, but we don't require any default substates per 
    state. We create a substate only if there are TMC commands for 
-   the specified time period.
+   the specified time period (including _HOLD and _VHOLD).
 
    A substate should be statically validated if it is at T=0 in 
    the first state in the partition. If there is no such 
@@ -157,32 +176,44 @@ static void list_substates( FILE *ofp, struct stdef *state, int first ) {
   /* Skip over top commands */
   for (cmd = state->cmds; cmd != NULL && cmd->cmdtime < 0;
 		cmd = cmd->next) {
-	assert( cmd->cmdtype == CMDTYPE_TMC );
 	if ( cmd->cmdtype == CMDTYPE_TMC )
 	  cmd->substate = new_substate( NULL, state->name, 0, 0 );
+	else compile_error( 4,
+		"Unexpected CMDTYPE %d at time < 0", cmd->cmdtype );
   }
   while ( cmd != 0 ) {
     /* look through the current time for TM commands */
-	while ( cmd != 0 && cmd->cmdtype != CMDTYPE_TMC )
-	  cmd = cmd->next;
+	for ( ; cmd != 0; cmd = cmd->next )
+	  if ( needs_substate( cmd->cmdtype ) ) break;
 
 	/* look ahead to determine if this is the last state */
     if ( cmd != 0 ) {
-	  for ( ncmd = cmd->next;
-			ncmd != 0 && ncmd->cmdtime == cmd->cmdtime;
-			ncmd = ncmd->next );
-	  if ( ncmd != 0 )
-		sprintf( buf, "%s_end_", state->name );
-	  else sprintf( buf, "%s_%d_", state->name, i++ );
-	  substate = new_substate( ofp, buf, ncmd != 0, 1 );
-	  if ( first && cmd->cmdtime == 0 ) {
-		assert( first_substate == 0 );
-		first_substate = substate->name;
-	  }
+	  if ( cmd->cmdtype == CMDTYPE_TMC ) {
+		for ( ncmd = cmd->next;
+			  ncmd != 0 && ncmd->cmdtime == cmd->cmdtime;
+			  ncmd = ncmd->next );
+		if ( ncmd == 0 )
+		  sprintf( buf, "%s_end_", state->name );
+		else sprintf( buf, "%s_%d_", state->name, i++ );
+		substate = new_substate( ofp, buf, ncmd != 0, 1 );
+		if ( first && cmd->cmdtime == 0 ) {
+		  assert( first_substate == 0 );
+		  first_substate = substate->name;
+		}
 
-	  while ( cmd != ncmd ) {
-		if ( cmd->cmdtype == CMDTYPE_TMC )
-		  cmd->substate = substate;
+		while ( cmd != ncmd ) {
+		  if ( cmd->cmdtype == CMDTYPE_TMC )
+			cmd->substate = substate;
+		  cmd = cmd->next;
+		}
+	  } else {
+		assert( cmd->cmdtype == CMDTYPE_HOLD || cmd->cmdtype == CMDTYPE_VHOLD );
+		for ( ncmd = cmd; ncmd != 0; ncmd = ncmd->else_stat ) {
+		  if ( needs_substate( ncmd->cmdtype ) ) {
+			sprintf( buf, "%s_%d_", state->name, i++ );
+			ncmd->substate = new_substate(ofp, buf, 0, 1 );
+		  }
+		}
 		cmd = cmd->next;
 	  }
 	}
@@ -217,6 +248,7 @@ void list_states(FILE *ofp) {
 		list_state(ofp, pi->u.state->name);
 		if ( first_state == 0 )
 		  first_state = pi->u.state->name;
+		/* Make states available to slurp files: */
 		get_state_case( pi->u.state->name, 1 );
 		break;
 	  case PRGTYPE_PARTITION:
@@ -254,6 +286,21 @@ void list_states(FILE *ofp) {
   end_substates( ofp );
 }
 
+static void output_dependency( FILE *ofp,
+	struct substate *substate, char *depends ) {
+  fprintf( ofp, "depending on ( " );
+  if ( substate != 0 ) {
+	fprintf( ofp, "%s", substate->name );
+	if ( substate->once )
+	  fprintf( ofp, " once" );
+	if ( depends != 0 ) fprintf( ofp, ", " );
+	else putc( ' ', ofp );
+  }
+  if ( depends != 0 )
+	fprintf( ofp, "%s ", depends );
+  fprintf( ofp, ") " );
+}
+
 static void output_tmccmd( FILE *ofp, struct cmddef *cmd ) {
   int is_val, has_deps;
   
@@ -261,23 +308,14 @@ static void output_tmccmd( FILE *ofp, struct cmddef *cmd ) {
   assert( cmd->cmd2text != 0 || cmd->cmdtext != 0 );
   assert( cmd->cmdtype == CMDTYPE_TMC );
   is_val = ( cmd->cmd2text == 0 ); /* If this is a validation */
+  assert( ! is_val ); /* obsolete usage? Now CMDTYPE_VAL */
   has_deps = ( ! is_val ) && cmd->cmdtext != 0;
 
   /* I'm guessing the following is true: */
   assert( cmd->substate == 0 || ! is_val );
 
   if ( cmd->substate != 0 || has_deps ) {
-	fprintf( ofp, "depending on ( " );
-	if ( cmd->substate != 0 ) {
-	  fprintf( ofp, "%s", cmd->substate->name );
-	  if ( cmd->substate->once )
-		fprintf( ofp, " once" );
-	  if ( has_deps ) fprintf( ofp, ", " );
-	  else putc( ' ', ofp );
-	}
-	if ( has_deps )
-	  fprintf( ofp, "%s ", cmd->cmdtext );
-	fprintf( ofp, ") " );
+	output_dependency( ofp, cmd->substate, cmd->cmdtext );
 	if ( is_val ) fprintf( ofp, "Validate %s;\n", cmd->cmdtext );
 	else fprintf( ofp, "{%s}\n", cmd->cmd2text );
   } else if ( is_val )
@@ -285,11 +323,73 @@ static void output_tmccmd( FILE *ofp, struct cmddef *cmd ) {
   else fprintf( ofp, "%s\n", cmd->cmd2text );
 }
 
+static void output_hold( FILE *ofp, struct cmddef *cmd ) {
+  output_dependency( ofp, cmd->substate, NULL );
+  fprintf( ofp, "{\n  if (%s) {\n", cmd->cmdtext );
+  fprintf( ofp, "    tma_succeed( %d, %d );\n",
+	curr_partition->partno, cmd->substate->state_case );
+  fprintf( ofp, "    validate %s;\n  }\n}\n",
+	curr_partition->idle_substate->name );
+}
+
+static void output_vhold( FILE *ofp, struct cmddef *cmd ) {
+  output_dependency( ofp, cmd->substate, cmd->cmdtext );
+  fprintf( ofp, "{\n  tma_succeed( %d, %d );\n",
+	curr_partition->partno, cmd->substate->state_case );
+  fprintf( ofp, "  validate %s;\n}\n",
+	curr_partition->idle_substate->name );
+}
+
+void output_cmd_code( FILE *ofp, struct cmddef *cmd ) {
+  int successor;
+  struct cmddef *cmd1;
+  
+  assert( cmd != 0 );
+  switch ( cmd->cmdtype ) {
+	case CMDTYPE_CMD:
+	  fprintf( ofp, "%8ld, \">%s\\n\",\n", cmd->cmdtime, cmd->cmdtext );
+	  break;
+	case CMDTYPE_VAL:
+	  fprintf( ofp, "%8ld, \"#%d\", /* %s */\n", cmd->cmdtime,
+		get_state_case( cmd->cmdtext, 0 ), cmd->cmdtext );
+	  break;
+	case CMDTYPE_QSTR:
+	  fprintf( ofp, "%8ld, \"\\%s,\n", cmd->cmdtime, cmd->cmdtext );
+	  break;
+	case CMDTYPE_HOLD:
+	case CMDTYPE_VHOLD:
+	  successor = 1;
+	  assert( cmd->substate != 0 );
+	  for ( cmd1 = cmd->else_stat;
+			cmd1 != 0;
+			cmd1 = cmd1->else_stat ) {
+		successor++;
+	  }
+	  fprintf( ofp, "%8ld, \"?%d,%ld,%d\", /* %s */\n", 
+		cmd->cmdtime, successor, cmd->timeout,
+		cmd->substate->state_case, cmd->substate->name );
+	  break;
+	case CMDTYPE_TMC:
+	  assert( cmd->substate != 0 );
+	  fprintf( ofp, "%8ld, \"#%d\", /* %s */\n", cmd->cmdtime,
+		cmd->substate->state_case, cmd->substate->name );
+	  break;
+	default:
+	  compile_error( 4,
+		"Unexpected cmdtype %d in output_cmd_code",
+		cmd->cmdtype );
+  }
+}
+
+#define N_CMD_LIST_TYPES 3
+static int type_list[N_CMD_LIST_TYPES] = {
+  CMDTYPE_CMD, CMDTYPE_VAL, CMDTYPE_QSTR
+};
 /* Output one top-level state */
 static void output_state(FILE *ofp, struct stdef *state ) {
-  struct cmddef *cmd, *cmd0;
+  struct cmddef *cmd, *cmd0, *cmd1, *ncmd;
   long int t0;
-  int subcase, prev_subcase;
+  int subcase, prev_subcase, cti;
   char *substatename;
 
   /* Skip the T=-1 conditions */
@@ -306,47 +406,62 @@ static void output_state(FILE *ofp, struct stdef *state ) {
   t0 = 0;
   subcase = prev_subcase = -1;
   while ( cmd != 0 ) {
-	for ( cmd0 = cmd; cmd0 != 0 && cmd0->cmdtime == cmd->cmdtime;
-		  cmd0 = cmd0->next ) {
-	  if ( cmd0->cmdtype == CMDTYPE_CMD )
-		fprintf( ofp, "%8ld, \">%s\\n\",\n", cmd->cmdtime, cmd0->cmdtext );
+	for ( ncmd = cmd; ncmd != 0 && ncmd->cmdtime == cmd->cmdtime;
+		  ncmd = ncmd->next ) {
+	  if ( ncmd == 0 || ncmd->cmdtime != cmd->cmdtime ) break;
+	  if ( ncmd->cmdtype == CMDTYPE_HOLD ||
+			ncmd->cmdtype == CMDTYPE_VHOLD ) {
+		ncmd = ncmd->next;
+		break;
+	  }
 	}
-	for ( cmd0 = cmd; cmd0 != 0 && cmd0->cmdtime == cmd->cmdtime;
-		  cmd0 = cmd0->next ) {
-	  if ( cmd0->cmdtype == CMDTYPE_VAL )
-		fprintf( ofp, "%8ld, \"#%d\", /* %s */\n", cmd->cmdtime,
-		  get_state_case( cmd0->cmdtext, 0 ), cmd0->cmdtext );
-	}
-	/* Output QSTRs last */
-	for ( cmd0 = cmd; cmd0 != 0 && cmd0->cmdtime == cmd->cmdtime;
-		  cmd0 = cmd0->next ) {
-	  if ( cmd0->cmdtype == CMDTYPE_QSTR )
-		fprintf( ofp, "%8ld, \"\\%s,\n", cmd->cmdtime, cmd0->cmdtext );
+	for ( cti = 0; cti < N_CMD_LIST_TYPES; cti++ ) {
+	  for ( cmd0 = cmd; cmd0 != ncmd; cmd0 = cmd0->next ) {
+		if ( cmd0->cmdtype == type_list[cti] )
+		  output_cmd_code( ofp, cmd0 );
+	  }
 	}
 	subcase = -1;
 	substatename = "";
-	for ( cmd0 = cmd; cmd0 != 0 && cmd0->cmdtime == cmd->cmdtime;
-		  cmd0 = cmd0->next ) {
-	  if ( cmd0->cmdtype == CMDTYPE_TMC ) {
-		assert( cmd0->substate != 0 );
-		subcase = cmd0->substate->state_case;
-		substatename = cmd0->substate->name;
-		assert( subcase != -1 );
-	  }
+	for ( cmd0 = cmd; cmd0 != ncmd; cmd0 = cmd0->next ) {
+	  if ( cmd0->cmdtype == CMDTYPE_TMC ) break;
 	}
-	if ( subcase == -1 ) {
-	  assert( curr_partition != 0 );
-	  assert( curr_partition->idle_substate != 0 );
-	  subcase = curr_partition->idle_substate->state_case;
-	  substatename = curr_partition->idle_substate->name;
+	if ( cmd0 != ncmd ) {
+	  assert( cmd0->substate != 0 );
+	  subcase = cmd0->substate->state_case;
+	  substatename = cmd0->substate->name;
 	  assert( subcase != -1 );
-	}
-	if ( subcase != prev_subcase ) {
+	  assert( subcase != prev_subcase );
 	  fprintf( ofp, "%8ld, \"#%d\", /* %s */\n", cmd->cmdtime,
 				subcase, substatename );
 	  prev_subcase = subcase;
 	}
-	cmd = cmd0;
+	
+	/* Now the conditionals */
+	for ( cmd0 = cmd; cmd0 != ncmd; cmd0 = cmd0->next ) {
+	  if ( cmd0->cmdtype == CMDTYPE_HOLD ||
+		  cmd0->cmdtype == CMDTYPE_VHOLD )
+		break;
+	}
+	if ( cmd0 != ncmd ) {
+	  for ( cmd1 = cmd0; cmd1 != 0; cmd1 = cmd1->else_stat ) {
+		output_cmd_code( ofp, cmd1 );
+	  }
+	} else {
+	  if ( subcase == -1 ) {
+		assert( curr_partition != 0 );
+		assert( curr_partition->idle_substate != 0 );
+		subcase = curr_partition->idle_substate->state_case;
+		substatename = curr_partition->idle_substate->name;
+		assert( subcase != -1 );
+	  }
+	  if ( subcase != prev_subcase ) {
+		fprintf( ofp, "%8ld, \"#%d\", /* %s */\n", cmd->cmdtime,
+				  subcase, substatename );
+		prev_subcase = subcase;
+	  }
+	}
+	cmd = ncmd;
   }
   fprintf( ofp, "%8ld, NULL\n  };\n", -1L );
   
@@ -374,8 +489,13 @@ static void output_state(FILE *ofp, struct stdef *state ) {
 
   /* output the substate commands */
   for ( cmd = state->cmds; cmd != 0; cmd = cmd->next ) {
-	if ( cmd->cmdtype == CMDTYPE_TMC )
-	  output_tmccmd( ofp, cmd );
+	for ( cmd0 = cmd; cmd0 != 0; cmd0 = cmd0->else_stat ) {
+	  switch ( cmd0->cmdtype ) {
+		case CMDTYPE_TMC: output_tmccmd( ofp, cmd0 ); break;
+		case CMDTYPE_HOLD: output_hold( ofp, cmd0 ); break;
+		case CMDTYPE_VHOLD: output_vhold( ofp, cmd0 ); break;
+	  }
+	}
   }
 }
 
