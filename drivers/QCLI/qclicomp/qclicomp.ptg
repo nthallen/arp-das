@@ -8,6 +8,7 @@ ICOSWave: "ICOS Waveform " $1 " {" "\n"
   $12 /* Fcycle */
   $9 /* Stepsize */
   "  Tz:          " $13 $11 "\n" /* Tz Actual and specified */
+  $14 /* Ton, Toff, Trcy+Trcypre */
   $10 /* Ramps */
   "}\n"
 
@@ -33,3 +34,6 @@ Percent:    $1 double "%"
 Tz:         $1 ", " $2 long "/" $3 long
               " Samples, " $4 double "%"
 Waves:   $1 { "\n" } $2
+Tonoff:
+  "  Ton/Toff:    " $1 long "/" $2 long " usec\n"
+  "  Trecycle:    " $3 long " usec\n"

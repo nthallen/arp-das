@@ -17,7 +17,8 @@
    We want to minimize the cost/benefit ratio,
    which is to say, minimize cummult*cumerr.
 */
-int recurse( int npts, long dT, long *lp, int i, long minstep, long maxstep,
+static int recurse( int npts, long dT, long *lp, int i,
+    long minstep, long maxstep,
     long cumerr, int cummult, long *besterr, long *beststep ) {
   long min_m, max_m, m;
   long myerr = cumerr*cummult;

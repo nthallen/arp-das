@@ -1,5 +1,72 @@
+Where am I? {
+  Go back and re-read the spec and the manual to get my
+  bearings.
+  Summary could probably use some "Program Length" info.
+  Code generation.
+}
+Non-obvious semantic changes {
+  Tz specifies the laser-off time before AND after
+  the ramps. Total off time is 2*Tz.
+  
+  Trecycle is carved out of the trailing Tz time,
+  so in terms of the sample, the trailing Tz will be
+  slightly shorter than the leading. This is based
+  on the plan of using an asymetrical Ton/Toff pair
+  to establish the primary stepsize. Stepsize=Ton+Toff
+  and Toff = Trecycle.
+  
+  If we decided to go for an approach that repeated a
+  ramp multiple times, we would want Toff to be even
+  shorter (1usec say) to serve as the ramp reset duration.
+  In that case, we might have to abandon it's use for
+  Trecycle, and use the full Stepsize for that.
+  
+  
+}
+Trecycle {
+  If Trecycle << Tz
+  Trec_fullsteps = floor(Trecycle/Stepsize);
+  Trec_rem = Trecycle % Stepsize;
+  If this remainder is small compared to Tz (< Tz/5), we
+  can carve it out of Tz by setting Toff = Trec_rem and
+  Ton = Stepsize - Toff. This doubles the number of steps,
+  but means we don't have to set a tiny Stepsize to achieve
+  high on/off ratios. Obviously this makes the most sense
+  when Trecycle << Stepsize. Actually, it really isn't
+  worth it otherwise. So let's make the rules:
+  Trcymin = IF( GE( Nsample_est, 16348 ), 200, 10 );
+  SplitCycle = LT( MUL(4,Trcymin), Stepsize );
+  Trcy = IF( SplitCycle,
+			 0,
+			 MUL( Stepsize, DIV_UP(Trcymin,Stepsize)) );
+  Toff = IF( SplitCycle, Trcymin, Stepsize );
+  Ton  = IF( SplitCycle, SUB(Stepsize, Toff), Toff );
+}
 ICOSWave Compilation {
   Summary output {
+	Add Nsteps to summary
+	Liz wants information about nyquist frequency {
+	  Nyquist frequency is just half the sample frequency,
+	  but we're interested in wavenumber space in addition
+	  to time space. Where the transform of time is
+	  frequency, the transform of wavenumber is going to
+	  be cm. In time, the Nyquist frequency is the
+	  highest frequency (shortest time duration) that
+	  can be resolved. In wavenumber, the Nyquist frequency
+	  is the longest length (shortest wavenumber span)
+	  that can be resolved.
+	  
+	  If Nf is the Nyquist frequency in time and TR is
+	  the (average) tuning rate in cm-1/A, then the
+	  Nyquist frequency in cm is:
+	    Nf (samples/sec) / [TR (cm-1/A) * dI/dt (A/sec)]
+	  This represents the highest frequency that can be
+	  resolved, corresponding to the longest re-entry
+	  length.
+	  What you can actually resolve may be lower, since the
+	  preamp/amplifier circuit may limit the temporal resolution
+	  to less than the sample rate.
+	}
     ICOS Waveform <name> {
 	                  specified  actual
 	  SampleRate
@@ -15,7 +82,6 @@ ICOSWave Compilation {
 	  }
 	  Tz:Time RawSamples/NetSamples
 	}
-	Add Nsteps to summary
   }
   Figure out sampling first {
     Nsample = number of (net) samples specified in the ramp
@@ -95,6 +161,11 @@ ICOSWave Compilation {
     If that doesn't work, we need to arbitrarily choose
     a resolution in the right range.
     What's the right range? 100-300? Whatever.
+	
+	Current approach: Trecycle is carved out of the
+	trailing Tz time and need not be considered for
+	the purposes of determining resolution. Its
+	magnitude only affects Nsample.
 
 	stepsize = 0;
 	Tcycle = Tz + sum(Tramp);
@@ -173,6 +244,20 @@ ICOSWave Compilation {
 		Iz trigger reset
 		Istart0 trigger !reset ramp
 		Istart0 trigger !reset ramp
+	  }
+	}
+  }
+  Determine Waveform lengths for assigning memory locations {
+    MEMHDR   8 words defining version, date, time
+	WAVDIR 120 words defining waveform start addresses
+	WAVDEF {
+	  ICOS {
+		ICOSHDR 10 words
+		ICOSLOOP n words
+	  }
+	  RingDown {
+		RINGHDR 10 words
+		RINGLOOP n words
 	  }
 	}
   }
