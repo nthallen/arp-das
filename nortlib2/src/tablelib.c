@@ -3,8 +3,8 @@
  */
 #include "tablelib.h"
 
-char *labelfont = "TitleFont10";
-char *fieldfont = "FixedFont10";
+char *tbl_labelfont = "TitleFont10";
+char *tbl_fieldfont = "FixedFont10";
 
 void tbl_vert_sep( PtWidget_t *parent, int x, int y, int h ) {
   PtArg_t args[4];
@@ -49,20 +49,35 @@ PtWidget_t *tbl_label_widget( PtWidget_t *window, char *text,
 }
 
 PtWidget_t *tbl_label( PtWidget_t *window, char *text, int x, int y ) {
-  return tbl_label_widget( window, text, x, y, labelfont, Pg_WHITE, Pt_LEFT ); 
+  return tbl_label_widget( window, text, x, y, tbl_labelfont, Pg_WHITE, Pt_LEFT ); 
 }
 
 PtWidget_t *tbl_field( PtWidget_t *window, char *text, int x, int y ) {
-  return tbl_label_widget( window, text, x, y, fieldfont, Pg_WHITE, Pt_RIGHT ); 
+  return tbl_label_widget( window, text, x, y, tbl_fieldfont, Pg_WHITE, Pt_RIGHT ); 
 }
 
-PtWidget_t *tbl_window( char *title ) {
-  PtArg_t args[3];
+PtWidget_t *tbl_window( char *title, int width, int height ) {
+  PtArg_t args[7];
   PtSetArg(&args[0], Pt_ARG_WINDOW_TITLE, title, 0); 
   PtSetArg(&args[1], Pt_ARG_WINDOW_MANAGED_FLAGS,
       Pt_FALSE, Ph_WM_MAX | Ph_WM_RESIZE );
   PtSetArg(&args[2], Pt_ARG_WINDOW_MANAGED_FLAGS,
       Pt_TRUE, Ph_WM_COLLAPSE );
-  return PtCreateWidget( PtWindow, Pt_NO_PARENT, 3, args );
+  PtSetArg(&args[3], Pt_ARG_WIDTH, width, 0); 
+  PtSetArg(&args[4], Pt_ARG_HEIGHT, height, 0); 
+  PtSetArg(&args[5], Pt_ARG_WINDOW_RENDER_FLAGS,
+      Pt_FALSE, Ph_WM_RENDER_MAX | Ph_WM_RENDER_RESIZE );
+  PtSetArg(&args[6], Pt_ARG_WINDOW_RENDER_FLAGS,
+      Pt_TRUE, Ph_WM_RENDER_COLLAPSE );
+  return PtCreateWidget( PtWindow, Pt_NO_PARENT, 7, args );
 }
 
+void tbl_dispfield( PtWidget_t *field, char *text ) {
+  PtSetResource( field, Pt_ARG_TEXT_STRING, text, 0 );
+}
+
+int tbl_ExtentText( const char *font, const char *str, PhRect_t *extent ) {
+  PhRect_t *extp = PfExtentText( extent, NULL, font, str, 0 );
+  if ( extp == NULL ) return 0;
+  else return 1;
+}
