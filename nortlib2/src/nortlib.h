@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.10  1994/08/02  15:35:42  nort
+ * Added nrtl_strdup() to memory set
+ *
  * Revision 1.9  1994/06/20  18:50:29  nort
  * sAdded nl_free_memory and remap of free_memory()
  *
@@ -36,6 +39,9 @@
  */
 #ifndef _NORTLIB_H_INCLUDED
 #define _NORTLIB_H_INCLUDED
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -55,8 +61,8 @@ int set_response(int newval); /* nlresp.c */
 #define NLRSP_WARN 1
 #define NLRSP_QUIET 0
 
-pid_t nl_find_name(nid_t node, char *name); /* find_name.c */
-char *nl_make_name(char *base, int global); /* make_name.c */
+pid_t nl_find_name(nid_t node, const char *name); /* find_name.c */
+char *nl_make_name(const char *base, int global); /* make_name.c */
 pid_t nl_make_proxy(void *msg, int size); /* make_proxy.c */
 pid_t find_DG(void); /* find_dg.c */
 int send_DG(void *msg, int size); /* send_dg.c */
@@ -66,6 +72,7 @@ int send_dascmd(int type, int value, int dg_ok); /* senddasc.c */
 int reply_byte(pid_t sent_pid, unsigned char msg); /* repbyte.c */
 int Soldrv_set_proxy(unsigned char selector, unsigned char ID, void *msg, int size); /* solprox.c */
 int Soldrv_reset_proxy(unsigned char selector, unsigned char ID); /* solprox.c */
+pid_t get_server_proxy(const char *name, int global, const char *cmd); /* cmdprox.c */
 
 /* Command Interpreter Client (CIC) and Server (CIS) Utilities
    Message-level definition is in cmdalgo.h
@@ -87,9 +94,10 @@ void tma_new_state(unsigned int partition, const char *name);
 void tma_new_time(unsigned int partition, long int t1, const char *next_cmd);
 int tma_time_check(unsigned int partition);
 void tma_sendcmd(const char *cmd);
-void tma_init_options(const char *hdr, int nparts, int argc, char **argv);
+void tma_init_options(int argc, char **argv);
 void tma_hold(int hold);
 extern int tma_is_holding;
+extern const int tma_n_partitions;
 #define OPT_TMA_INIT "r:m"
 
 /* guaranteed memory allocator, memlib.h subset.
@@ -103,6 +111,10 @@ extern int tma_is_holding;
 void *nl_new_memory(size_t size);
 void nl_free_memory(void *p);
 char *nrtl_strdup(const char *s);
+
+#ifdef __cplusplus
+};
+#endif
 
 #if defined __386__
 #  pragma library (nortlib3r)
