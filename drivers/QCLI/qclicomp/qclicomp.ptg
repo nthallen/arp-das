@@ -1,0 +1,46 @@
+/* qclicomp.ptg */
+ICOSWave: "ICOS Waveform " $1 " {" "\n"
+  "  Sample Rate:\n"
+  $2 /* Sample Rate Specified */
+  "    Actual:    " $3 "\n"
+  "  Net Ramp Samples:\n"
+  $4 /* Specified */
+  "    Actual:    " $5 "\n"
+  $6 /* Iz */
+  $7 /* dI/dt */
+  $8 /* Tcycle */
+  $12 /* Fcycle */
+  $9 /* Stepsize */
+  "  Tz:\n"
+  $11 /* Specified */
+  $13 /* Tz actual */
+  $10 /* Ramps */
+  "}\n"
+
+Ramp:
+  "  Ramp {\n"
+  "   Istart:\n"
+  $1 /* Istart specified */
+  "    Actual:    " $2 "\n"
+  "   Istop:\n"
+  $3 /* Istop specified */
+  "    Actual:    " $4 "\n"
+  "   Tramp:\n"
+  $5 /* Tramp specified */
+  "    Actual:    " $6 "\n"
+  "  }\n"
+
+Iz:         "  Iz:          " $1 "\n"
+dIdt:       "  dI/dt:       " $1 double " A/sec\n"
+SampleRate: $1 double "/Sec/" $2 int
+Specd:      "    Specified: " $1 "\n"
+Long:       $1 long
+Tcycle:     "  Tcycle:      " $1 double " msec\n"
+Fcycle:     "  Fcycle:      " $1 double " Hz\n"
+Stepsize:   "  Stepsize:    " $1 long " usec\n"
+Current:    $1 double " mA"
+Time:       $1 double " msec"
+TzSample:   $1 int " " $2 string "Samples"
+Percent:    $1 double "%"
+Tz:         "    Actual:    " $1 ", " $2 long "/" $3 long
+              " Samples, " $4 double "%\n"

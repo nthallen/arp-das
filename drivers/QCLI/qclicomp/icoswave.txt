@@ -1,6 +1,33 @@
 # icoswave.txt
 # Sample source for ICOS waveform definitions
 
+ICOS Waveform Standard {
+  Nsample = 1500;
+  Tz = 25%;
+  Ramp from 500 mA to 900 mA in 12 msec;
+}
+
+ICOS Waveform dIdt1 {
+  dI/dt = 30 A/sec;
+  Nsample = 1500;
+  Tz = 100 Raw Samples;
+  Ramp from 500 mA to 900 mA;
+}
+
+ICOS Waveform dIdt2 {
+  dI/dt = 50 A/sec;
+  Nsample = 1500;
+  Tz = 100 Raw Samples;
+  Ramp from 500 mA to 900 mA;
+}
+
+ICOS Waveform dIdt3 {
+  dI/dt = 100 A/sec;
+  Nsample = 1500;
+  Tz = 100 Raw Samples;
+  Ramp from 500 mA to 900 mA;
+}
+
 ICOS Waveform FirstRamp {
   Iz = .4 A;
   Tz = 5 msec;

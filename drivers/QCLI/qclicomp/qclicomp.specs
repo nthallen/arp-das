@@ -2,6 +2,7 @@ qclicomp.con
 qclicomp.gla
 qclicomp.lido
 qclicomp.pdl
+qclicomp.ptg
 qclicomp.h
 qclicomp.head.phi
 qclicomp.init.phi
@@ -13,3 +14,4 @@ $/Prop/Unique.gnrc +instance=Iz :inst
 $/Prop/Unique.gnrc +instance=Tz :inst
 $/Prop/Unique.gnrc +instance=Ncoadd :inst
 $/Prop/Unique.gnrc +instance=Sample :inst
+$/Output/PtgCommon.fw

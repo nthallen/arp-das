@@ -102,6 +102,7 @@ SYMBOL ICOSWave COMPUTE
   IF(EQ(GetdIdtDefined(THIS.Key,0),0),
     message(ERROR, "dI/dt undefined", 0, COORDREF))
       <- THIS.dIdtAssessed;
+  SYNT.dIdt = GetdIdt(THIS.Key, 1.) <- THIS.dIdtAssessed;
 END;
 
 /*-------------------------------------------------------------------*/
@@ -184,8 +185,10 @@ RULE: NsampleDef ::= 'Nsample' '=' Integer COMPUTE
 					0, COORDREF );
 END;
 RULE: RateDef ::= 'SampleRate' '=' Integer '/' TimeUnit Naverage COMPUTE
+  RateDef.RawRate = DIV(Integer,TimeUnit.Value);
+  RateDef.Naverage = Naverage.Naverage;
   RateDef.RateDef =
-    NewRateDefPtr( DIV(Integer,TimeUnit.Value), Naverage.Naverage,
+    NewRateDefPtr( RateDef.RawRate, Naverage.Naverage,
 					1, COORDREF );
 END;
 SYMBOL ICOSWave COMPUTE
@@ -204,16 +207,24 @@ ATTR Tz: double;
 SYMBOL TzSpec COMPUTE
   INH.RawRate = INCLUDING ICOSWave.RawRate;
 END;
-RULE: TzSpec ::= Time COMPUTE TzSpec.Tz = Time.Value; END;
+RULE: TzSpec ::= TzTime COMPUTE
+  TzSpec.Tz = CONSTITUENT Time.Value;
+END;
+RULE: TzTime ::= Time END;
 RULE: TzSpec ::= Percent COMPUTE
   TzSpec.Tz = MUL(INCLUDING ICOSWave.Tramps, Percent.Value);
 END;
+SYMBOL SampleSpec COMPUTE
+  INH.Naverage = INCLUDING ICOSWave.Naverage;
+END;
 RULE: SampleSpec ::= Integer 'Raw' 'Samples' COMPUTE
-  SampleSpec.Nsample = Integer;
+  SampleSpec.Nsample =
+    MUL( DIV_UP( Integer, SampleSpec.Naverage ),
+	  SampleSpec.Naverage );
 END;
 RULE: SampleSpec ::= Integer 'Samples' COMPUTE
   SampleSpec.Nsample =
-    MUL(Integer,PTRSELECT(INCLUDING ICOSWave.RateDef, naverage));
+    MUL(Integer, INCLUDING ICOSWave.Naverage);
 END;
 RULE: TzSpec ::= SampleSpec COMPUTE
   IF( EQ( TzSpec.RawRate, 0. ),
@@ -252,48 +263,84 @@ END;
 /*-------------------------------------------*/
 /* Calculate actual durations given Stepsize */
 /*-------------------------------------------*/
+ /* usecs in Iz, single ramp and full cycle */ 
 ATTR Tzi, Trampi, Tcyclei: long;
-SYMBOL TzSpec COMPUTE
-  SYNT.Tzi =
-    round_to_step( THIS.Tz, INCLUDING ICOSWave.Stepsize );
-END;
+ /* Final secs in Iz, single ramp and all ramps: */
+ATTR Tz1, Tramp1, Tramps1: double;
 SYMBOL ICOSRamp COMPUTE
   SYNT.Trampi =
     round_to_step( THIS.Tramp, INCLUDING ICOSWave.Stepsize );
-  SYNT.Iramp = MUL( DIV( THIS.Trampi, 1000000. ), THIS.dIdt );
+  SYNT.Tramp1 = DIV( THIS.Trampi, 1000000. );
+  SYNT.Iramp = MUL( THIS.Tramp1, THIS.dIdt );
 END;
 SYMBOL ICOSWave COMPUTE
-  SYNT.Tcyclei =
-    CONSTITUENTS ( TzSpec.Tzi, ICOSRamp.Trampi )
-	WITH ( long, ADD, IDENTICAL, ZERO );
-END;
-
-/*------------------------------------*/
-/* Determine actual number of samples */
-/*------------------------------------*/
-ATTR RawSamples, NetSamples: long;
-SYMBOL ICOSWave COMPUTE
-  SYNT.NetSamples =
-	IF( GT( THIS.NetRate, 0. ),
-	  CAST(long, floor(
-		DIV( DIV( THIS.Tcyclei, THIS.NetRate ),
-			 1000000. ))),
-	  0 );
-  SYNT.RawSamples = MUL( THIS.NetSamples, THIS.Naverage );
+  SYNT.Tzi =
+    round_to_step( THIS.Tz, THIS.Stepsize );
+  SYNT.Tcyclei = ADD( MUL( 2, THIS.Tzi ),
+    CONSTITUENTS ICOSRamp.Trampi
+	WITH ( long, ADD, IDENTICAL, ZERO ) );
+  SYNT.Tramps1 =
+    CONSTITUENTS ICOSRamp.Tramp1
+	WITH ( double, ADD, IDENTICAL, ZERO );
+  SYNT.Tz1 = DIV( THIS.Tzi, 1000000. );
 END;
 
 /*--------------------*/
 /* Determine Trecycle */
 /*--------------------*/
-ATTR Trecycle: long;
+ATTR EstSamples: long; /* Estimated number of raw samples */
+ATTR Trecycle: long; /* length of Toff in usecs */
 SYMBOL ICOSWave COMPUTE
+  SYNT.EstSamples =
+	IF( GT( THIS.RawRate, 0. ),
+	  CAST(long, floor(
+		DIV( MUL( THIS.Tcyclei, THIS.RawRate ),
+			 1000000. ))),
+	  0 );
   SYNT.Trecycle =
-    IF ( GE(THIS.RawSamples, 16384), 200, 10 );
+    IF ( GE(THIS.EstSamples, 16384), 200, 10 );
+END;
+
+/*------------------------------------*/
+/* Determine actual number of samples */
+/*------------------------------------*/
+ATTR RawSamples, NetSamples: long; /* Total Raw and net samples */
+ATTR RampSamples:long; /* Net samples over ramps */
+ATTR TzSamples, TzRawSamples: long; /* Net and raw samples in Tz */
+SYMBOL ICOSWave COMPUTE
+  SYNT.NetSamples =
+	IF( GT( THIS.NetRate, 0. ),
+	  CAST(long, floor(
+		DIV( MUL( SUB( THIS.Tcyclei, THIS.Trecycle),
+		          THIS.NetRate ),
+			 1000000. ))),
+	  0 );
+  SYNT.RawSamples = MUL( THIS.NetSamples, THIS.Naverage );
+  SYNT.RampSamples =
+	IF( GT( THIS.NetRate, 0. ),
+	  CAST(long, floor(
+		MUL( THIS.Tramps1, THIS.NetRate ))),
+	  0 );
+  SYNT.TzSamples =
+	IF( GT( THIS.NetRate, 0. ),
+	  CAST(long, floor(
+		MUL( THIS.Tz1, THIS.NetRate ))),
+	  0 );
+  SYNT.TzRawSamples = MUL( THIS.TzSamples, THIS.Naverage );
 END;
 
 /*--------------*/
 /* Assign D/A's */
 /*--------------*/
+ATTR Iz: double;
+
+RULE: IzDef ::= 'Iz' '=' Current COMPUTE
+  IzDef.Iz = Current.Value;
+END;
+SYMBOL ICOSWave COMPUTE
+  SYNT.Iz = CONSTITUENTS IzDef.Iz
+    WITH( double, ADD, IDENTICAL, ZERO );
+END;
 
 /*------------------------------*/
 /* Produce compiled QCLI output */
@@ -306,3 +353,75 @@ END;
 /*---------------------------*/
 /* Print Summary Information */
 /*---------------------------*/
+ATTR PTG: PTGNode;
+SYMBOL ICOSWave COMPUTE
+  PTGOut(
+    PTGICOSWave( PTGId(INCLUDING Wave.Sym),
+	  CONSTITUENTS RateDef.PTG
+		WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+	  PTGSampleRate( THIS.RawRate, THIS.Naverage ),
+	  CONSTITUENTS NsampleDef.PTG
+		WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+	  PTGLong( THIS.RampSamples ),
+	  PTGIz( PTGCurrent( MUL(THIS.Iz, 1000.))),
+	  PTGdIdt( THIS.dIdt ),
+	  PTGTcycle( DIV(THIS.Tcyclei,1000.) ),
+	  PTGStepsize( THIS.Stepsize ),
+	  CONSTITUENTS ICOSRamp.PTG
+	    WITH( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+	  CONSTITUENTS (TzTime.PTG, SampleSpec.PTG, Percent.PTG )
+	    WITH( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+	  PTGFcycle( DIV(1000000.,THIS.Tcyclei) ),
+	  PTGTz( PTGTime(MUL(THIS.Tz1,1000.)),
+	    THIS.TzRawSamples, THIS.TzSamples,
+		MUL( DIV( THIS.Tz1, THIS.Tramps1 ), 100. ) )
+	)
+  );
+END;
+
+SYMBOL RateDef COMPUTE
+  SYNT.PTG = PTGSpecd(
+    PTGSampleRate( THIS.RawRate, THIS.Naverage ) );
+END;
+SYMBOL NsampleDef COMPUTE
+  SYNT.PTG = PTGSpecd( PTGLong( THIS.Nsample ));
+END;
+
+SYMBOL ICOSRamp COMPUTE
+  SYNT.PTG =
+    PTGRamp(
+	  CONSTITUENTS Istart.PTG
+	    WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      PTGCurrent( MUL(THIS.Istart1,1000.) ),
+	  CONSTITUENTS Istop.PTG
+	    WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      PTGCurrent( MUL(THIS.Istop1,1000.) ),
+	  CONSTITUENTS PrepTime.PTG
+	    WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      PTGTime( MUL(THIS.Tramp1,1000.) )
+	);
+END;
+
+SYMBOL Istart COMPUTE
+  SYNT.PTG = PTGSpecd(PTGCurrent( MUL(THIS.Value,1000.) ));
+END;
+SYMBOL Istop COMPUTE
+  SYNT.PTG = PTGSpecd(PTGCurrent( MUL(THIS.Value,1000.) ));
+END;
+SYMBOL PrepTime COMPUTE
+  SYNT.PTG = PTGSpecd(PTGTime( MUL(THIS.Value,1000.) ));
+END;
+
+SYMBOL TzTime COMPUTE
+  SYNT.PTG = PTGSpecd(PTGTime(
+    MUL( CONSTITUENT Time.Value, 1000. )));
+END;
+RULE: SampleSpec ::= Integer 'Raw' 'Samples' COMPUTE
+  SampleSpec.PTG = PTGSpecd(PTGTzSample( Integer, "Raw " ));
+END;
+RULE: SampleSpec ::= Integer 'Samples' COMPUTE
+  SampleSpec.PTG = PTGSpecd(PTGTzSample( Integer, "" ));
+END;
+SYMBOL Percent COMPUTE
+  SYNT.PTG = PTGSpecd(PTGPercent(MUL(THIS.Value,100.)));
+END;

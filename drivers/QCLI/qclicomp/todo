@@ -1,10 +1,21 @@
 ICOSWave Compilation {
   Summary output {
     ICOS Waveform <name> {
-	     specified  actual
+	                  specified  actual
+	  SampleRate
+	  NetSamples
 	  Iz
-	  Tz
-	  
+	  dI/dt
+	  Cycle Length
+	  Stepsize
+	  Ramp {
+	    Istart
+		Istop
+		Tramp
+	  }
+	  Tz:Time
+	  Tz:RawSamples
+	  Tz:NetSamples
 	}
   }
   Figure out sampling first {
