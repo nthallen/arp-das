@@ -1,4 +1,128 @@
+Bugs {
 todo {
+  Test Code generation for new syntaxes {
+	Hold;
+	Hold or 5;
+	Hold or 5 else Validate Failed;
+	Hold and Validate WAIT_FOR_CONDITION;
+	Hold and Validate WAIT_FOR_CONDITION or 5;
+	Hold and Validate WAIT_FOR_CONDITION or 5 else Validate Failed;
+	Resume Foo;
+	
+	Look specifically at how the default states are handled.
+  }
+  Augment documentation
+  
+  Document tma_state structure {
+	This should be part of an appendix in the html documentation
+	Commands for a state are stored as an array of
+	tma_state structures (defined in tma.h)
+	typedef struct {
+	  long int dt;
+	  char *cmd;
+	} tma_state;
+	dt is the number of seconds since the beginning of the
+	state for this command. Commands must of course be sorted
+	with respect to time. The last command in the state should
+	have a dt of -1.
+	cmd is a string of the following syntax:
+	  >_?[\w\s]+   Command text to be sent to server
+	  #\d+         Validate state_case
+	  "[\w\s]+     Quoted Text for prompt
+	  ?\d+,\d+,\d+[,\d+]?
+				   Hold. Arguments are:
+				   1: Number of commands to advance on success
+					  (i.e. size of the else clause + 1). Min
+					  value is 1.
+				   2: timeout in seconds. -1 means no timeout
+				   3: state_case to validate
+				   4: state_case of this state for Resume
+	  R\d+,\d+     Resume ( partition number, state_case )
+				   state_case is compared to the fourth
+				   argument in the corresponding Hold statement
+	}
+  }
+  Feature request {
+	grammar.y {
+	  Add new syntax for generic Hold
+	  Add new syntax for Resume <state>
+	}
+	states.c {
+	  Should I support a new opcode for Resume?
+	  Probably a good idea: Needs partno and
+	  state_case
+	}
+	tmaR2.c {
+	}
+	tma_file.c {
+	  Validate <state> and Hold;
+	  Hold;
+	  Resume <state>?
+	  Generate 4-arg Hold output
+	}
+
+	Hold [or timeout [else condition]]
+	but mostly:
+	Hold;
+	to be supported in slurp files, coupled with
+	Resume <state>;
+	which needn't be supported in slurp files.
+
+	Hold [and Validate <name>] [or timeout [else condition]]
+	?1+,timeout or -1,statecase(<NAME>) or 0,statecase(<crntstate>)
+	tma_process needs to be tweaked to
+	  a. not return the 0 if present, but keep looping
+	
+	Resume <STATENAME>;
+	tma_succeed( partion_number(<STATENAME>), 0,
+				  statecase(<STATENAME>) )
+	tma_succeed() needs to be tweaked
+	  a. If caller state_case is 0, then only resume state
+		 if callee callee state_case equals 4th argument.
+	  This makes sure that Resume <state>; will only
+	  resume the specified state, but also allows this to be
+	  issued from any location.
+	
+	Validate <NAME> and Hold;
+	This syntax is useful for eliminating any race condition
+	where the validated state might immediately Resume the held
+	state.
+	
+	Resume <state>; would need to translate the state name
+	to a partition number and then call tma_succeed( <pn>, 0 );
+	Note that with this implementation, the resume command is
+	actually "Resume partition of <state>", since it would resume
+	any other state in the same partition. Could use negative
+	state_case values to identify the states, using the same
+	state_case values.
+	
+	Is it easy to map state names to partition numbers?
+	Not as currently implemented. Mapping is determined
+	in list_states(), but not remembered in a convenient
+	form.
+	
+	Could add partition number to get_state_case, but then
+	need to have a different function to locate the partition.
+	No biggy.
+  }
+  BUG {
+	Internal TMC statement followed directly by hold until
+	generates assertion failure
+	Sample code below fails without the +1: {
+		Hold until valid (Mass_Idle);
+		{ if ( dither3_skip-- > 0 ) {
+			if ( pump_fail_ct <= 0 ) Validate Record_Aerosol;
+			  else Validate Record_Gas;
+		  }
+		}
+		Validate Mass_Dither_3;
+		{ dither3_skip = 3; }
+	+1	Hold until valid (Mass_Idle);
+		{ if ( pump_fail_ct <= 0 ) Validate Record_Aerosol;
+		  else Validate Record_Gas;
+		}
+	}
+  }
   Command rearrangement {
 	Is a bad thing. Consider just doing away with it.
 	states.c has some bugs with it anyway.
