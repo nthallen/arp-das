@@ -1,8 +1,11 @@
 Makefile
 config.h
 stamp-h
+libtool
 .deps
 config.log config.cache config.status
 INST
 .nortlib.h.swp
+*.lo *.la
+.libs
 
