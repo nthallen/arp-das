@@ -79,10 +79,12 @@ mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, char *fbase, char *fname ) {
 		  num, level );
 	}
   }
-  mlfn->suffix = mlf_strtok( NULL, "/", &del );
-  for ( s = mlfn->suffix; *s; s++ )
-	if ( ! isalnum(*s) && *s != '_' )
-	  nl_error( 3, "mlf_convert_fname: Illegal char in suffix" );
+  if ( del == '.' ) {
+	mlfn->suffix = mlf_strtok( NULL, "/", &del );
+	for ( s = mlfn->suffix; *s; s++ )
+	  if ( ! isalnum(*s) && *s != '_' )
+		nl_error( 3, "mlf_convert_fname: Illegal char in suffix" );
+  }
 
   return mlfn;
 }
