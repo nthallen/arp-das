@@ -19,8 +19,69 @@ ICOSWave Compilation {
     a resolution in the right range.
     What's the right range? 100-300? Whatever.
 
-    If the resolution isn't exact, we need to increase
-    Tz & Tramp to a resolution boundary. Changing Tramp
-    requires adjust Istop as well.
+	stepsize = 0;
+	Tcycle = Tz + sum(Tramp);
+	step = gcd(Tz,Tramp);
+	nsteps = Tcycle/step;
+	if ( nsteps < nstepsmin ) {
+	  /* The perfect answer has too few steps (Trecycle is too long)
+		look for a divisor of step between
+		ceil( nstepsmin/nsteps ) and floor( nstepsmax/nsteps )
+		which yields a number of steps closest to nstepsopt
+		in a logarithmic sense. */
+      divmin = ceil( nstepsmin/nsteps );
+	  divmax = floor( nstepsmax/nsteps );
+	  logdivopt = log(((double)nstepsopt)/nsteps);
+	  logdiverr = -1;
+	  for ( divisor = divmin; divisor <= divmax; divisor++ ) {
+	    if ( step % divisor == 0 ) {
+		  mylogdiverr = fabs( log(divisor) - logdivopt );
+		  if ( logdiverr < 0 || mylogdiverr < logdiverr  ) {
+		    logdiverr = mylogdiverr;
+			bestdiv = divisor;
+		  } else if ( logdiverr >= 0 && mylogdiverr > logdiverr ) {
+		    break;
+		  }
+		}
+	  }
+	  if (logdiverr >= 0) {
+	    stepsize = step / divisor;
+	  } else {
+	    /* A nice, simple divisor exists, but it requires
+		   Trecycle to be unacceptably large. Will have to
+		   approximate. */
+	  }
+	} else if ( nsteps <= nstepsmax ) {
+	  /* All set! */
+	  stepsize = step;
+	} else {
+	  /* The perfect answer has way too many steps */
+	}
+	if ( stepsize == 0 ) {
+	  /* Could not find a perfect answer. Go for a nstepsopt
+		resolution.
+		If the resolution isn't exact, we need to increase
+		Tz & Tramp to a resolution boundary. Changing Tramp
+		requires adjust Istop as well. */
+	  step = ceil(Tcycle/nstepsopt);
+	  Tzsteps = ceil(Tz/step);
+	  Tzp = step * Tzsteps;
+	  Trampsteps = ceil(Tramp/step);
+	  Trampp = step * Trampsteps;
+	  Istopp = Istart + dIdt*Trampp;
+	}
+
+  }
+  Now figure out the sampling {
+    Could have either specified Nsample or SampleRate
+	In either case, Nsample is assumed to be adjustable.
+	if ( Nsample is specified ) {
+	  SampleRate = Nsample/Tcycle;
+    }
+	if (SampleRate is not legal) {
+	  if (it was specified) complain;
+	  pick a nearby sample rate instead
+	}
+	Nsamplep = SampleRate * Tcycle;
   }
 }

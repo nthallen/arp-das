@@ -42,6 +42,7 @@ END;
 
 /*-------------------------------------------------------------------*/
 /* Istart, Istop and Tramp */
+/*-------------------------------------------------------------------*/
 ATTR dIdt,Istart,Istop,Tramp,Value: double;
 ATTR dIdtAssessed: VOID;
 ATTR WaveKey : DefTableKey;
@@ -119,3 +120,29 @@ END;
 SYMBOL Istart COMPUTE SYNT.Value = CONSTITUENT Current.Value; END;
 SYMBOL Istop COMPUTE SYNT.Value = CONSTITUENT Current.Value; END;
 SYMBOL PrepTime COMPUTE SYNT.Value = CONSTITUENT Time.Value; END;
+
+/*-------------------------------------------------------------------*/
+/* Determine Resolution, Cycle time, etc.
+/*-------------------------------------------------------------------*/
+ATTR Tcyclei, Tzi, gcd: long; /* specified values */
+ATTR Tstepi, TzSteps: long; /* Final values */
+ATTR Tzi_set: VOID;
+RULE: TzDef ::= 'Tz' '=' Time COMPUTE
+  TzDef.WaveKey = INCLUDING Wave.Key;
+  TzDef.Tzi_set = ResetTzi( TzDef.WaveKey, usecs(Time.Value) );
+END;
+SYMBOL ICOSWave COMPUTE
+  SYNT.Tzi = GetTzi(THIS.Key, TZI_DEFAULT)
+    <- CONSTITUENTS TzDef.Tzi_set;
+  SYNT.Tcyclei = ADD( THIS.Tzi,
+    usecs( CONSTITUENTS ICOSRamp.Tramp
+	       WITH (double, ADD, IDENTICAL, ZERO)));
+  SYNT.gcd = gcd( THIS.Tzi,
+	  CONSTITUENTS ICOSRamp.Tramp
+		WITH( long, gcd, usecs, ZERO ) );
+  SYNT.Tstepi = PickRes( THIS.Tcyclei, THIS.gcd, COORDREF );
+  SYNT.TzSteps = DIV_UP( THIS.Tzi, THIS.Tstepi );
+END;
+SYMBOL ICOSRamp COMPUTE
+  
+END;

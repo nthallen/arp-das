@@ -1,0 +1,1 @@
+lisedit( SRCFILE, stderr, 0, 1 );
