@@ -16,8 +16,10 @@ OBJECT=$(OBJ) $(TEMP)
 TARGET=$(TGT)
 
 YFLAGS=-d -t -l
-LFLAGS=-i -l
-CFLAGS=-w4 -g -ms -2
+# LFLAGS=-i -l
+LEX=flex
+LFLAGS=-i -L
+CFLAGS=-w4 -g -ml -2
 LDFLAGS=$(BETALIB)
 
 test : oui sample.oui

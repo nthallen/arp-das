@@ -13,3 +13,62 @@ Write oui files for
 Use oui for various apps: indexer, timerbd, etc.
 
 Write doc!
+
+starter : program
+	;
+program :
+	| program package_def
+	;
+package_def : KW_PACKAGE package { oui_defpkg($2); }
+	| package_def statement
+	;
+mi_statement : KW_OPTS TK_STRING { oui_opts($2); }
+	| KW_C_INCLUDE TK_INC_FILE { oui_c_include($2); }
+	| KW_SYNOPSIS TK_STRING { oui_synopsis($2); }
+	| include
+	| preceed
+	| follow
+	;
+statement : mi_statment
+	| defs
+	| vars
+	| inits
+	| unsort
+	| sort
+	| switch
+	| arg
+	;
+defs : KW_DEF
+	| defs mi_statement
+	| defs KW_LINE { oui_defs($2); }
+	;
+vars : KW_VAR
+	| vars mi_statement
+	| vars KW_LINE { oui_vars($2); }
+	| KW_DEF TK_STRING { oui_defs($2); }
+	| KW_VAR TK_STRING { oui_vars($2); }
+	| KW_INIT TK_STRING { oui_inits($2); }
+	| KW_UNSORT TK_STRING { oui_unsort($2); }
+	| KW_SORT TK_STRING { oui_sort($2); }
+	| KW_SWITCH TK_STRING { oui_switch($2); }
+	| KW_ARG TK_STRING { oui_arg($2); }
+include : KW_INCLUDE inc_file
+	| include inc_file
+	;
+inc_file : TK_PACKAGE { oui_include($1); }
+	;
+
+preceed : KW_PRECEED pre_package
+	| preceed pre_package
+	;
+pre_package : package { oui_prepkg($1); }
+	;
+
+follow : KW_FOLLOW fol_package
+	| follow fol_package
+	;
+fol_package : package { oui_folpkg($1); }
+	;
+	
+package : TK_PACKAGE { $$ = find_package($1); free_memory($1); }
+	;

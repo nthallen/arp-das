@@ -1,10 +1,19 @@
-package bervia
-include sample
-preceed obvia
-follow  terbia
-opts >abcde:f
-sort >	-a option
-sort >	-b option
-unsort >An unsorted message
-#include <stdio.h>
-init >opt_init(argc, argv);
+<package> bervia
+<include> sample
+<preceed> obvia
+<follow>  terbia
+<opts>    "abcde:f"
+
+<sort>
+	-a option
+	-b option
+
+<unsort>
+An unsorted message
+<BLANK>
+Space in the unsorted messages preceeded this line
+
+<include> <stdio.h>
+
+<init>
+  opt_init(argc, argv);
