@@ -1,6 +1,11 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.20  1994/05/02  18:02:02  nort
+ * Cleaned up options and documentation of options.
+ * Added LL_INTERFACE option to allow straight keyboard input
+ * for simple applications.
+ *
  * Revision 1.19  1994/04/27  18:26:47  nort
  * Added solp_init() for solenoid proxies.
  *
@@ -252,22 +257,40 @@ static char ibuf[CG_IBUF_SIZE];
 /* CLEAR_DISPLAY_LINE Always used regardless of mode */
 #ifndef CLEAR_DISPLAY_LINE
   #ifdef CMD_INTERACT_MODE
-	#define CLEAR_DISPLAY_LINE fputs("\n& ", stdout)
+	#define CLEAR_DISPLAY_LINE putchar('\n')
+	#ifndef DISPLAY_INPUT_PROMPT
+	  #define DISPLAY_INPUT_PROMPT fputs("& ", stdout);
+	#endif
   #else
 	#define CLEAR_DISPLAY_LINE
   #endif
 #endif
 
+/* DISPLAY_EOL Referenced when newline is accepted */
+#ifndef DISPLAY_EOL
+  #ifdef LL_INTERFACE
+	#define DISPLAY_EOL putchar('\n');
+  #else
+	#define DISPLAY_EOL
+  #endif
+#endif
+
+/* DISPLAY_INPUT_PROMPT Always referenced regardless of mode */
+#ifndef DISPLAY_INPUT_PROMPT
+  #define DISPLAY_INPUT_PROMPT
+#endif
+
 /* DISPLAY_PROMPT displays a prompt. Not referenced if NO_PROMPTS */
 #ifndef DISPLAY_PROMPT
-  #define DISPLAY_PROMPT(x) { int i; printf("\n%s\n", prmt_text[x]);\
-			CLEAR_DISPLAY_LINE;\
+  #define DISPLAY_PROMPT(x) { int i; printf("\n%s", prmt_text[x]);\
+			CLEAR_DISPLAY_LINE; DISPLAY_INPUT_PROMPT \
 			for (i = 0; i < ibufidx; i++) DISPLAY_CHAR(ibuf[i]); }
 #endif
 
 /* GETCH is low-level get character routine for interactive input.
    It is not used if CMD_INTERACT_MODE is not defined. */
 #ifndef GETCH
+  #include <conio.h>
   #define GETCH() getch()
 #endif
 
@@ -987,6 +1010,7 @@ static int read_words(unsigned short trieroot, unsigned short trie_offset) {
 	  #endif
 	} else if (c == '\n') {
 	  triepos += trie[triepos].next;
+	  DISPLAY_EOL
 	  UPDATE_OUTPUT;
 	  full_reduce = 1;
 	} else {
@@ -1066,6 +1090,7 @@ static int cmd_exec(void) {
 		  saw_server_action = 0;
 		#endif
 		CLEAR_DISPLAY_LINE;
+		DISPLAY_INPUT_PROMPT
 		ibufidx = 0;
 		full_reduce = 0;
 	  }
