@@ -1,16 +1,25 @@
 Use Unique.gnrc to make sure certain things can't be multiply
 defined. Specifically {
-  Only one Iz def is allowed
-  Only one Tz def is allowed
-  One Nsample or SampleRate must be defined
-  Only one dI/dt is allowed
-
   Within a Ramp {
     Only one Istart is allowed
     Only one Istop is allowed
-    At least one of Istart or Istop is required
     Only one Tramp is allowed
+    At least one of Istart or Istop is required
   }
 }
 
 Once the conditions are met, we need to propogate values.
+Cases I need to handle {
+  dI/dt specified {
+    Istart & Tramp => calculate Istop
+    Istop & Tramp  => calculate Istart
+    Istart & Istop => calculate Tramp
+  }
+  dI/dt not specified {
+    Istart & Istop & Tramp => calculate dI/dt
+  }
+  use defines_dIdt property of a waveform and a ramp
+  Set to 1 when defined
+  Count how many times it's defined using CONSTITUENTS ( dIdt.Key, ICOSRamp.Key )
+  Complain if defined more than once or not at all.
+}

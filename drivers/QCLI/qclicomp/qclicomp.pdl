@@ -1,0 +1,11 @@
+/* properties of a ramp */
+Istart, Istop, Tramp : double [Has];
+dIdt : double;
+
+/* properties of a waveform */
+dIdtDefined : int; /* 1 if defined once, 2 if defined more than once */
+
+int Has (DefTableKey key) {
+  return(PRESENT);
+}
+

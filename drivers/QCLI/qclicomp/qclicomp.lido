@@ -1,6 +1,5 @@
 /* Definition of waveform names. */
 ATTR Key : DefTableKey;
-/* Still have not required that they be unique */
 RULE: ICOSWave ::= 'ICOS' 'Waveform' DefIdent '{' ICOSCmds '}' END;
 RULE: DefIdent ::= Ident COMPUTE DefIdent.Sym = Ident; END;
 SYMBOL DefIdent INHERITS IdDefScope, Unique COMPUTE
@@ -41,9 +40,65 @@ CLASS SYMBOL SampleUnique COMPUTE
 	  message (ERROR, "Only one definition of Nsample or SampleRate is allowed: ", 0, COORDREF));
 END;
 
+/*-------------------------------------------------------------------*/
+/* Istart, Istop and Tramp */
+ATTR Istart, Istop, Tramp, Value: double;
+ATTR dIdtAssessed: VOID;
+ATTR defines_dIdt: int;
+ATTR WaveKey : DefTableKey;
+RULE: CurrentUnit ::= 'A' COMPUTE CurrentUnit.Value = 1; END;
+RULE: CurrentUnit ::= 'mA' COMPUTE CurrentUnit.Value = 0.001; END;
+RULE: CurrentUnit ::= 'uA' COMPUTE CurrentUnit.Value = 0.000001; END;
+RULE: TimeUnit ::= 'sec' COMPUTE TimeUnit.Value = 1; END;
+RULE: TimeUnit ::= 'msec' COMPUTE TimeUnit.Value = 0.001; END;
+RULE: TimeUnit ::= 'usec' COMPUTE TimeUnit.Value = 0.000001; END;
+RULE: FloatVal ::= Integer COMPUTE FloatVal.Value = CAST(double,Integer); END;
+RULE: FloatVal ::= Float COMPUTE FloatVal.Value = atof(StringTable(Float)); END;
+
 /* Make sure only one dIdt is defined per waveform */
-SYMBOL dIdt INHERITS dIdtUnique COMPUTE
+RULE: dIdt ::= 'dI' '/' 'dt' '=' FloatVal CurrentUnit '/' TimeUnit COMPUTE
+  dIdt.Value = DIV(MUL(FloatVal.Value,CurrentUnit.Value),TimeUnit.Value);
+END;
+SYMBOL dIdt COMPUTE
   INH.Key = INCLUDING Wave.Key; 
-  IF (NOT (THIS.dIdtUnique),
-	  message (ERROR, "dIdt is multiply defined: ", 0, COORDREF));
+  SYNT.dIdtAssessed = ORDER(
+	SetdIdtDefined(THIS.Key,1,2),
+	ResetdIdt(THIS.Key, THIS.Value ));
+  IF(EQ(GetdIdtDefined(THIS.Key,0),2),
+	  message (ERROR, "dI/dt is multiply defined: ", 0, COORDREF))
+	    <- INCLUDING ICOSWave.dIdtAssessed;
+END;
+
+SYMBOL ICOSWave COMPUTE
+  INH.Key = INCLUDING Wave.Key;
+  SYNT.dIdtAssessed = CONSTITUENTS ( ICOSRamp.dIdtAssessed, dIdt.dIdtAssessed );
+  IF(EQ(GetdIdtDefined(THIS.Key,0),0),
+    message(ERROR, "dI/dt undefined: ", 0, COORDREF))
+      <- THIS.dIdtAssessed;
+END;
+SYMBOL ICOSRamp COMPUTE
+  SYNT.Key = NewKey();
+  INH.WaveKey = INCLUDING Wave.Key;
+  SYNT.defines_dIdt =
+    IF( AND(HasIstart(THIS.Key),
+          AND(HasIstop(THIS.Key),HasTramp(THIS.Key))), 1, 0 );
+  SYNT.dIdtAssessed =
+	IF( THIS.defines_dIdt,
+	  ORDER(SetdIdtDefined(THIS.WaveKey,1,2),
+			ResetdIdt(THIS.WaveKey,
+			  DIV(SUB(GetIstop(THIS.Key,0.),GetIstart(THIS.Key,0.)),
+				  GetTramp(THIS.Key,1.)))));
+  IF(AND(THIS.defines_dIdt,EQ(GetdIdtDefined(THIS.WaveKey,0),2)),
+	  message (ERROR, "dI/dt is multiply defined: ", 0, COORDREF))
+	    <- INCLUDING ICOSWave.dIdtAssessed;
+END;
+SYMBOL ICOSRampAssign COMPUTE INH.Key = INCLUDING ICOSRamp.Key; END;
+RULE: ICOSRampAssign ::= 'Istart' '=' FloatVal CurrentUnit COMPUTE
+  ResetIstart(ICOSRampAssign.Key,MUL(FloatVal.Value, CurrentUnit.Value));
+END;
+RULE: ICOSRampAssign ::= 'Istop' '=' FloatVal CurrentUnit COMPUTE
+  ResetIstop(ICOSRampAssign.Key,MUL(FloatVal.Value, CurrentUnit.Value));
+END;
+RULE: ICOSRampAssign ::= 'Tramp' '=' FloatVal TimeUnit COMPUTE
+  ResetTramp(ICOSRampAssign.Key,MUL(FloatVal.Value, TimeUnit.Value));
 END;
