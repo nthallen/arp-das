@@ -16,9 +16,8 @@
 	-k Keep incomplete output file on error
 	-o <filename> Specify Output Filename
 
-<include> "compiler.h" "nortlib.h"
-<defs>
-  int (*nl_error)(int level, char *s, ...) = compile_error;
+<include> <stdio.h>
+<include> "compiler.h"
   
 <vars>
   char *output_extension;
@@ -26,6 +25,19 @@
 <inits>
   compile_init_options(argc, argv, output_extension);
 
+<comment>------------------------------------------------------
+  Following is a default definition for nl_error.
+  It can be overridden by creating another nl_error_init package
+  -------------------------------------------------------------
+<package> nl_error_init
+<include> "nortlib.h"
+<defs>
+  int (*nl_error)(int level, char *s, ...) = compile_error;
+
+<comment>------------------------------------------------------
+  Here is the definition of the output file extension.
+  This can be overridden in the usual way...
+  -------------------------------------------------------------
 <package> output_ext_init
 <inits>
   output_extension = ".c";
