@@ -1,5 +1,6 @@
 /* Definition of waveform names. */
 ATTR Key : DefTableKey;
+ATTR Sym : int;
 RULE: ICOSWave ::= 'ICOS' 'Waveform' DefIdent '{' ICOSCmds '}' END;
 RULE: DefIdent ::= Ident COMPUTE DefIdent.Sym = Ident; END;
 SYMBOL DefIdent INHERITS IdDefScope, Unique COMPUTE
@@ -8,44 +9,55 @@ SYMBOL DefIdent INHERITS IdDefScope, Unique COMPUTE
 			   0, COORDREF));
 END;
 
-SYMBOL Wave COMPUTE SYNT.Key = CONSTITUENT DefIdent.Key; END;
+SYMBOL Wave COMPUTE
+  SYNT.Key = CONSTITUENT DefIdent.Key;
+  SYNT.Sym = CONSTITUENT DefIdent.Sym;
+END;
 
+/*-----------------------------------------------*/
 /* Make sure only one Tz is defined per waveform */
+/*-----------------------------------------------*/
 SYMBOL TzDef INHERITS TzUnique COMPUTE
   INH.Key = INCLUDING Wave.Key; 
   IF (NOT (THIS.TzUnique),
-	  message (ERROR, "Tz is multiply defined: ", 0, COORDREF));
+	  message (ERROR, "Tz is multiply defined", 0, COORDREF));
 END;
 
+/*-----------------------------------------------*/
 /* Make sure only one Iz is defined per waveform */
+/*-----------------------------------------------*/
 SYMBOL IzDef INHERITS IzUnique COMPUTE
   INH.Key = INCLUDING Wave.Key; 
   IF (NOT (THIS.IzUnique),
-	  message (ERROR, "Iz is multiply defined: ", 0, COORDREF));
+	  message (ERROR, "Iz is multiply defined", 0, COORDREF));
 END;
 
+/*---------------------------------------------------*/
 /* Make sure only one Ncoadd is defined per waveform */
+/*---------------------------------------------------*/
 SYMBOL NcoaddDef INHERITS NcoaddUnique COMPUTE
   INH.Key = INCLUDING Wave.Key; 
   IF (NOT (THIS.NcoaddUnique),
-	  message (ERROR, "Ncoadd is multiply defined: ", 0, COORDREF));
+	  message (ERROR, "Ncoadd is multiply defined", 0, COORDREF));
 END;
 
+/*---------------------------------------------------*/
 /* Make sure only one Sample is defined per waveform */
+/*---------------------------------------------------*/
 SYMBOL NsampleDef INHERITS SampleUnique END;
 SYMBOL RateDef INHERITS SampleUnique END;
 CLASS SYMBOL SampleUnique COMPUTE
   INH.Key = INCLUDING Wave.Key; 
   IF (NOT (THIS.SampleUnique),
-	  message (ERROR, "Only one definition of Nsample or SampleRate is allowed: ", 0, COORDREF));
+	  message (ERROR,
+	   "Only one definition of Nsample or SampleRate is allowed",
+	    0, COORDREF));
 END;
 
-/*-------------------------------------------------------------------*/
-/* Istart, Istop and Tramp */
-/*-------------------------------------------------------------------*/
-ATTR dIdt,Istart,Istop,Tramp,Value: double;
-ATTR dIdtAssessed: VOID;
-ATTR WaveKey : DefTableKey;
+/*--------------------------*/
+/* Units                    */
+/*--------------------------*/
+ATTR Value: double;
 RULE: Current ::= FloatVal CurrentUnit COMPUTE
   Current.Value = MUL(FloatVal.Value,CurrentUnit.Value);
 END;
@@ -60,8 +72,17 @@ RULE: TimeUnit ::= 'msec' COMPUTE TimeUnit.Value = 0.001; END;
 RULE: TimeUnit ::= 'usec' COMPUTE TimeUnit.Value = 0.000001; END;
 RULE: FloatVal ::= Integer COMPUTE FloatVal.Value = CAST(double,Integer); END;
 RULE: FloatVal ::= Float COMPUTE FloatVal.Value = atof(StringTable(Float)); END;
+SYMBOL Percent COMPUTE
+  SYNT.Value = DIV( CONSTITUENT FloatVal.Value, 100. );
+END;
+SYMBOL Istart COMPUTE SYNT.Value = CONSTITUENT Current.Value; END;
+SYMBOL Istop COMPUTE SYNT.Value = CONSTITUENT Current.Value; END;
+SYMBOL PrepTime COMPUTE SYNT.Value = CONSTITUENT Time.Value; END;
 
+/*-------------------------------------------------*/
 /* Make sure only one dIdt is defined per waveform */
+/*-------------------------------------------------*/
+ATTR dIdtAssessed: VOID;
 RULE: dIdt ::= 'dI' '/' 'dt' '=' Current '/' TimeUnit COMPUTE
   dIdt.Value = DIV(Current.Value,TimeUnit.Value);
 END;
@@ -71,7 +92,7 @@ SYMBOL dIdt COMPUTE
 	SetdIdtDefined(THIS.Key,1,2),
 	ResetdIdt(THIS.Key, THIS.Value ));
   IF(EQ(GetdIdtDefined(THIS.Key,0),2),
-	  message (ERROR, "dI/dt is multiply defined: ", 0, COORDREF))
+	  message (ERROR, "dI/dt is multiply defined", 0, COORDREF))
 	    <- INCLUDING ICOSWave.dIdtAssessed;
 END;
 
@@ -79,9 +100,16 @@ SYMBOL ICOSWave COMPUTE
   INH.Key = INCLUDING Wave.Key;
   SYNT.dIdtAssessed = CONSTITUENTS ( ICOSRamp.dIdtAssessed, dIdt.dIdtAssessed );
   IF(EQ(GetdIdtDefined(THIS.Key,0),0),
-    message(ERROR, "dI/dt undefined: ", 0, COORDREF))
+    message(ERROR, "dI/dt undefined", 0, COORDREF))
       <- THIS.dIdtAssessed;
 END;
+
+/*-------------------------------------------------------------------*/
+/* Istart, Istop and Tramp */
+/*-------------------------------------------------------------------*/
+ATTR dIdt, Istart, Istop, Tramp: double;
+ATTR Iramp, Istart1, Istop1: double; /* Final values */
+ATTR WaveKey : DefTableKey;
 
 SYMBOL ICOSRamp COMPUTE
   SYNT.Key = NewKey();
@@ -93,56 +121,188 @@ RULE: ICOSRamp ::= 'Ramp' Istart Istop PrepTime COMPUTE
 	SetdIdtDefined(ICOSRamp.WaveKey,1,2),
 	ResetdIdt(ICOSRamp.WaveKey,DIV(SUB(Istop.Value,Istart.Value),PrepTime.Value)));
   IF(EQ(GetdIdtDefined(ICOSRamp.WaveKey,0),2),
-	  message (ERROR, "dI/dt is multiply defined: ", 0, COORDREF))
+	  message (ERROR, "dI/dt is multiply defined", 0, COORDREF))
 	    <- INCLUDING ICOSWave.dIdtAssessed;
   ICOSRamp.Istart = Istart.Value;
   ICOSRamp.Istop = Istop.Value;
   ICOSRamp.Tramp = PrepTime.Value;
+
+  ICOSRamp.Istart1 = ICOSRamp.Istart;
+  ICOSRamp.Istop1 = ADD(ICOSRamp.Istart,ICOSRamp.Iramp);
 END;
 RULE: ICOSRamp ::= 'Ramp' Istart Istop COMPUTE
   ICOSRamp.dIdtAssessed = 1;
   ICOSRamp.Istart = Istart.Value;
   ICOSRamp.Istop = Istop.Value;
   ICOSRamp.Tramp = DIV(SUB(Istop.Value,Istart.Value),ICOSRamp.dIdt);
+
+  ICOSRamp.Istart1 = ICOSRamp.Istart;
+  ICOSRamp.Istop1 = ADD(ICOSRamp.Istart,ICOSRamp.Iramp);
 END;
 RULE: ICOSRamp ::= 'Ramp' Istart PrepTime COMPUTE
   ICOSRamp.dIdtAssessed = 1;
   ICOSRamp.Istart = Istart.Value;
   ICOSRamp.Istop = ADD(Istart.Value,MUL(PrepTime.Value,ICOSRamp.dIdt));
   ICOSRamp.Tramp = PrepTime.Value;
+
+  ICOSRamp.Istart1 = ICOSRamp.Istart;
+  ICOSRamp.Istop1 = ADD(ICOSRamp.Istart,ICOSRamp.Iramp);
 END;
 RULE: ICOSRamp ::= 'Ramp' Istop PrepTime COMPUTE
   ICOSRamp.dIdtAssessed = 1;
   ICOSRamp.Istart = SUB(Istop.Value,MUL(PrepTime.Value,ICOSRamp.dIdt));
   ICOSRamp.Istop = Istop.Value;
   ICOSRamp.Tramp = PrepTime.Value;
-END;
-SYMBOL Istart COMPUTE SYNT.Value = CONSTITUENT Current.Value; END;
-SYMBOL Istop COMPUTE SYNT.Value = CONSTITUENT Current.Value; END;
-SYMBOL PrepTime COMPUTE SYNT.Value = CONSTITUENT Time.Value; END;
 
-/*-------------------------------------------------------------------*/
-/* Determine Resolution, Cycle time, etc.
-/*-------------------------------------------------------------------*/
-ATTR Tcyclei, Tzi, gcd: long; /* specified values */
-ATTR Tstepi, TzSteps: long; /* Final values */
-ATTR Tzi_set: VOID;
-RULE: TzDef ::= 'Tz' '=' Time COMPUTE
-  TzDef.WaveKey = INCLUDING Wave.Key;
-  TzDef.Tzi_set = ResetTzi( TzDef.WaveKey, usecs(Time.Value) );
+  ICOSRamp.Istop1 = ICOSRamp.Istop;
+  ICOSRamp.Istart1 = SUB(ICOSRamp.Istop,ICOSRamp.Iramp);
+END;
+
+/*---------------------*/
+/* Figure out sampling */
+/*---------------------*/
+ATTR Tramps: double;
+SYMBOL ICOSWave COMPUTE
+  SYNT.Tramps = CONSTITUENTS ICOSRamp.Tramp
+	WITH( double, ADD, IDENTICAL, ZERO );
+END;
+
+ATTR Naverage: int;
+RULE: Naverage ::= COMPUTE Naverage.Naverage = 1; END;
+RULE: Naverage ::= '/' Integer COMPUTE
+  Naverage.Naverage = Integer;
+END;
+
+ATTR RawRate, NetRate: double;
+ATTR Nsample: long;
+ATTR RateDef: RateDefP;
+
+RULE: NsampleDef ::= 'Nsample' '=' Integer COMPUTE
+  NsampleDef.Nsample = Integer;
+  NsampleDef.RateDef =
+    NewRateDefPtr( DIV( NsampleDef.Nsample, INCLUDING ICOSWave.Tramps ), 1,
+					0, COORDREF );
+END;
+RULE: RateDef ::= 'SampleRate' '=' Integer '/' TimeUnit Naverage COMPUTE
+  RateDef.RateDef =
+    NewRateDefPtr( DIV(Integer,TimeUnit.Value), Naverage.Naverage,
+					1, COORDREF );
 END;
 SYMBOL ICOSWave COMPUTE
-  SYNT.Tzi = GetTzi(THIS.Key, TZI_DEFAULT)
-    <- CONSTITUENTS TzDef.Tzi_set;
-  SYNT.Tcyclei = ADD( THIS.Tzi,
-    usecs( CONSTITUENTS ICOSRamp.Tramp
-	       WITH (double, ADD, IDENTICAL, ZERO)));
-  SYNT.gcd = gcd( THIS.Tzi,
-	  CONSTITUENTS ICOSRamp.Tramp
-		WITH( long, gcd, usecs, ZERO ) );
-  SYNT.Tstepi = PickRes( THIS.Tcyclei, THIS.gcd, COORDREF );
-  SYNT.TzSteps = DIV_UP( THIS.Tzi, THIS.Tstepi );
+  SYNT.RateDef =
+    CONSTITUENTS ( NsampleDef.RateDef, RateDef.RateDef )
+	WITH ( RateDefP, PICKRATE, IDENTICAL, NULLRATE );
+  SYNT.RawRate = PTRSELECT(THIS.RateDef,samples);
+  SYNT.Naverage = PTRSELECT(THIS.RateDef, naverage);
+  SYNT.NetRate = DIV(THIS.RawRate, THIS.Naverage );
+END;
+
+/*----------------*/
+/* Figure out Tz  */
+/*----------------*/
+ATTR Tz: double;
+SYMBOL TzSpec COMPUTE
+  INH.RawRate = INCLUDING ICOSWave.RawRate;
+END;
+RULE: TzSpec ::= Time COMPUTE TzSpec.Tz = Time.Value; END;
+RULE: TzSpec ::= Percent COMPUTE
+  TzSpec.Tz = MUL(INCLUDING ICOSWave.Tramps, Percent.Value);
+END;
+RULE: SampleSpec ::= Integer 'Raw' 'Samples' COMPUTE
+  SampleSpec.Nsample = Integer;
+END;
+RULE: SampleSpec ::= Integer 'Samples' COMPUTE
+  SampleSpec.Nsample =
+    MUL(Integer,PTRSELECT(INCLUDING ICOSWave.RateDef, naverage));
+END;
+RULE: TzSpec ::= SampleSpec COMPUTE
+  IF( EQ( TzSpec.RawRate, 0. ),
+	  message (ERROR, "Tz specified in samples, but rate is zero", 0, COORDREF));
+  TzSpec.Tz = IF( GT(TzSpec.RawRate, 0. ),
+    DIV( SampleSpec.Nsample, TzSpec.RawRate ), 0. );
+END;
+SYMBOL ICOSWave COMPUTE
+  SYNT.Tz = CONSTITUENTS TzSpec.Tz
+    WITH ( double, ADD, IDENTICAL, ZERO );
+END;
+
+/*-----------------------*/
+/* Determine Resolution  */
+/*-----------------------*/
+CHAIN rcnt: int;
+CHAIN rvals: longP;
+ATTR Stepsize: long;
+SYMBOL ICOSWave COMPUTE
+  CHAINSTART HEAD.rcnt = 0;
+  CHAINSTART HEAD.rvals = malloc(MUL(sizeof(long),TAIL.rcnt));
+  SYNT.Stepsize = PickRes( TAIL.rcnt, TAIL.rvals );
+END;
+SYMBOL TzSpec COMPUTE
+  THIS.rcnt = ADD( THIS.rcnt, IF( GT( THIS.Tz, 0. ), 2, 0 ) );
+  THIS.rvals = IF( GT(THIS.Tz, 0.),
+    ORDER( Set_rval( THIS.rvals, THIS.rcnt, THIS.Tz ),
+		   Set_rval( THIS.rvals, ADD(THIS.rcnt,1), THIS.Tz )),
+	THIS.rvals );
 END;
 SYMBOL ICOSRamp COMPUTE
-  
+  THIS.rcnt = ADD( THIS.rcnt, 1 );
+  THIS.rvals = Set_rval( THIS.rvals, THIS.rcnt, THIS.Tramp );
 END;
+
+/*-------------------------------------------*/
+/* Calculate actual durations given Stepsize */
+/*-------------------------------------------*/
+ATTR Tzi, Trampi, Tcyclei: long;
+SYMBOL TzSpec COMPUTE
+  SYNT.Tzi =
+    round_to_step( THIS.Tz, INCLUDING ICOSWave.Stepsize );
+END;
+SYMBOL ICOSRamp COMPUTE
+  SYNT.Trampi =
+    round_to_step( THIS.Tramp, INCLUDING ICOSWave.Stepsize );
+  SYNT.Iramp = MUL( DIV( THIS.Trampi, 1000000. ), THIS.dIdt );
+END;
+SYMBOL ICOSWave COMPUTE
+  SYNT.Tcyclei =
+    CONSTITUENTS ( TzSpec.Tzi, ICOSRamp.Trampi )
+	WITH ( long, ADD, IDENTICAL, ZERO );
+END;
+
+/*------------------------------------*/
+/* Determine actual number of samples */
+/*------------------------------------*/
+ATTR RawSamples, NetSamples: long;
+SYMBOL ICOSWave COMPUTE
+  SYNT.NetSamples =
+	IF( GT( THIS.NetRate, 0. ),
+	  CAST(long, floor(
+		DIV( DIV( THIS.Tcyclei, THIS.NetRate ),
+			 1000000. ))),
+	  0 );
+  SYNT.RawSamples = MUL( THIS.NetSamples, THIS.Naverage );
+END;
+
+/*--------------------*/
+/* Determine Trecycle */
+/*--------------------*/
+ATTR Trecycle: long;
+SYMBOL ICOSWave COMPUTE
+  SYNT.Trecycle =
+    IF ( GE(THIS.RawSamples, 16384), 200, 10 );
+END;
+
+/*--------------*/
+/* Assign D/A's */
+/*--------------*/
+
+/*------------------------------*/
+/* Produce compiled QCLI output */
+/*------------------------------*/
+
+/*------------------------------*/
+/* Produce compiled .cmd output */
+/*------------------------------*/
+
+/*---------------------------*/
+/* Print Summary Information */
+/*---------------------------*/

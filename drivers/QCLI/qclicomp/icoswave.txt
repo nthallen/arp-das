@@ -3,10 +3,10 @@
 
 ICOS Waveform FirstRamp {
   Iz = .4 A;
-  Tz = 1000 msec;
+  Tz = 5 msec;
   Nsample = 2000;
   dI/dt = 25 A/sec;
-  Ramp from 600mA for 1500 sec;
+  Ramp from 600mA for 15 msec;
 }
 
 ICOS Waveform SecondRamp {
@@ -19,7 +19,7 @@ ICOS Waveform SecondRamp {
 ICOS Waveform ThirdRamp {
   Iz = .4A;
   dI/dt = 25 A/sec;
-  Ramp from 600mA to 600mA;
+  Ramp from 600mA to 800mA;
 }
 
 ICOS Waveform FourthRamp {

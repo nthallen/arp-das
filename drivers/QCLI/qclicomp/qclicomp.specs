@@ -6,7 +6,6 @@ qclicomp.h
 qclicomp.head.phi
 qclicomp.init.phi
 qclicomp.finl.phi
-gcd.c
 pickres.c
 $/Name/CScope.gnrc:inst
 $/Prop/Unique.gnrc:inst

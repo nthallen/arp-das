@@ -4,7 +4,6 @@ dIdt : double;
 
 /* properties of a waveform */
 dIdtDefined : int; /* 1 if defined once, 2 if defined more than once */
-Tzi : long; /* Value of Tz in usec */
 
 int Has (DefTableKey key) {
   return(PRESENT);

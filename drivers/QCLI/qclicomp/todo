@@ -1,6 +1,73 @@
 ICOSWave Compilation {
+  Summary output {
+    ICOS Waveform <name> {
+	     specified  actual
+	  Iz
+	  Tz
+	  
+	}
+  }
+  Figure out sampling first {
+    Nsample = number of (net) samples specified in the ramp
+	NetRate = samples/sec
+	RawRate = samples/sec
+	
+    Could have either specified Nsample or SampleRate
+	In either case, Nsample is assumed to be adjustable.
+	if ( Nsample is specified ) {
+	  SampleRate = Nsample/Tramp /sec/1;
+    }
+	if (SampleRate is not legal) {
+	  if (it was specified) complain;
+	  pick the next higher sample rate
+	}
+	Nsamplep = SampleRate * Tramp;
+	
+  }
+  Determine Tz, Trecycle
   Decide on a resolution {
     GCD of Tz and Tramp(s) is a good place to start,
+	but when these aren't set explicitly, chances are
+	there won't be an exact answer that fits.
+	
+	Suppose we establish a criteria of accuracy in time
+	of 1% of the total specified cycle length meaning
+	we will tolerate the actual Tz or Tramp being longer
+	by up to 1% of the total specified cycle length.
+	The largest step size possible would then be
+	min(Tz,Tramp(s)) + .01*Tcycle
+	
+	Let Ti be all of the time lengths we're trying to hit
+	ordered from smallest to largest. Let dT be our
+	tolerance.
+	n divisor of T0 to determine the stepsize
+	i index into Ti
+	m multiplier of stepsize to hit Ti
+	
+	for ( n = 1; n < 100; n++ ) {
+	  maxstep = floor((T0 + dT)/n);
+	  minstep = ceil((T0 - dT)/n);
+	  minmult = 1;
+	  maxmult = 100;
+	  for ( i = 1; minstep < maxstep && i < NT; i++ ) {
+	    min_m = ceil(Ti/(T0+dT));
+		max_m = floor((Ti+dT)/T0);
+		minminstep = maxstep;
+		maxmaxstep = minstep;
+		for ( m = min_m; m <= max_m; m++ ) {
+		  myminstep = ceil(Ti/m);
+		  if ( myminstep < minminstep ) minminstep = myminstep;
+		  mymaxstep = floor((Ti+dT)/m);
+		  if ( mymaxstep > maxmaxstep ) maxmaxstep = mymaxstep;
+		}
+		if ( minminstep > minstep ) minstep = minminstep;
+		if ( maxmaxstep < maxstep ) maxstep = maxmaxstep;
+	  }
+	  if ( minstep <= maxstep ) {
+	    anything in this range will apparently work
+	  }
+	}
+	
     but what is really going to be driving resolution
     is how short we want Trecycle to be. If we define
     resolution to be the number of steps in a compiled
@@ -72,16 +139,31 @@ ICOSWave Compilation {
 	}
 
   }
-  Now figure out the sampling {
-    Could have either specified Nsample or SampleRate
-	In either case, Nsample is assumed to be adjustable.
-	if ( Nsample is specified ) {
-	  SampleRate = Nsample/Tcycle;
-    }
-	if (SampleRate is not legal) {
-	  if (it was specified) complain;
-	  pick a nearby sample rate instead
+  Determine Trecycle {
+    if raw samples are less than 16384, we
+    can recycle quicker, say 5 usecs. Otherwise, we need to allow
+	time for interrupt latency, which might be more like 100
+	usecs, but TBD.
+  }
+  Allocate D/A channels {
+    Allocate a D/A "state" for Iz and each Ramp
+	After allocation, optimize to determine how each state
+	will be implemented.
+	Iz holds ramp in reset and out of the loop
+	Ramp states may or may not be preceeded by a reset {
+	  If reset, current during the preceeding reset should
+	  be Istart for the ramp.
+	  First ramp doesn't really have a reset option {
+	    it is always preceeded by a reset, but the current
+		during that reset should be Iz, not Istart
+	  }
+	  Difference could be codified by creating a state for
+	  each transition: {
+		Iz trigger reset
+		Iz trigger reset
+		Istart0 trigger !reset ramp
+		Istart0 trigger !reset ramp
+	  }
 	}
-	Nsamplep = SampleRate * Tcycle;
   }
 }

@@ -3,7 +3,10 @@ Wave : ICOSWave .
 ICOSWave : 'ICOS' 'Waveform' Ident '{' ICOSCmds '}' .
 ICOSCmds : ( ICOSCmd ';' )+ .
 ICOSCmd : TzDef / IzDef / NcoaddDef / NsampleDef / RateDef / dIdt / ICOSRamp .
-TzDef : 'Tz' '=' Time .
+TzDef : 'Tz' '=' TzSpec .
+TzSpec : Time / SampleSpec / Percent .
+SampleSpec : Integer 'Raw' 'Samples' / Integer 'Samples' .
+Percent : FloatVal '%' .
 IzDef : 'Iz' '=' Current .
 NcoaddDef : 'Ncoadd' '=' Integer .
 NsampleDef : 'Nsample' '=' Integer .
