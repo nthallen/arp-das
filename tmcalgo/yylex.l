@@ -134,7 +134,7 @@
 %}
 %start statedef
 %%
-State			return(KW_STATE);
+State			{ BEGIN statedef; return(KW_STATE); }
 Partition		return(KW_PARTITION);
 depending       return(KW_DEPENDING);
 on              return(KW_ON);
@@ -145,8 +145,9 @@ until           return(KW_UNTIL);
 or              return(KW_OR);
 else            return(KW_ELSE);
 NoLog           return(KW_NOLOG);
+Resume          return(KW_RESUME);
+and             return(KW_AND);
 [A-Z][A-Z0-9_]* { yylval.textval = strdup(yytext);
-				  BEGIN statedef;
 				  return(TK_NAME);
 				}
 [0-9]+			{ yylval.intval = atoi(yytext);
