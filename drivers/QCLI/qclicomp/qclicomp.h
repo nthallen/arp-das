@@ -35,7 +35,8 @@ extern long round_to_step( double time, long step );
 #define DIV_UP(x,y) (((x)+(y)-1)/(y))
 #define TZI_DEFAULT 10000
 #define N_STEPS_MAX 1000
-#define FIRST(x,y) (x)
+#define FIRSTNONNEG(x,y) ((x)>=0?(x):(y))
+#define NEGONE() (-1.)
 
 #define SW_TRIGGER    0x0001
 #define SW_RAMP_IN    0x0002
