@@ -1,0 +1,68 @@
+#! /usr/local/bin/perl -w
+
+#__USAGE
+#%C	<dir1> <dir2>
+#	Compares all files in dir1 to files in dir2, reporting
+#	any differences.
+my ( $dir1, $dir2 );
+
+($#ARGV == 1) || die "Must specify two directories\n";
+$dir1 = $ARGV[0];
+$dir2 = $ARGV[1];
+
+$| = 1;
+use File::Compare;
+
+sub dircomp {
+  my ($dir1,$dir2) = @_;
+  -d $dir1 || die "dir1 $dir1 is not a directory\n";
+  if ( ! -d $dir2 ) {
+	if ( -e $dir2 ) {
+	  print "tgt $dir2 is not a directory\n";
+	} else {
+	  print "tgt $dir2/ does not exist\n";
+	}
+	return;
+  }
+  opendir(DIR1,$dir1) || die "Unable to open srcdir $dir1\n";
+  my ( $file, @dirs );
+  while (defined($file = readdir(DIR1))) {
+	if ( ! ( $file =~ /^\.\.?$/ ) ) {
+	  if ( -d "$dir1/$file" ) {
+		push(@dirs,$file);
+	  } elsif ( -f "$dir2/$file" ) {
+		my $diff = 0;
+		my $msg = "";
+		$diff = 1 if compare( "$dir1/$file", "$dir2/$file" ) != 0;
+		my $tdiff = ( -M "$dir2/$file" ) - ( -M "$dir1/$file" );
+		if ( $tdiff > 0 ) {
+		  $msg = "older";
+		  $msg .= $diff ? ", differs" : " but identical";
+		} elsif ( $tdiff < 0 ) {
+		  $msg = "newer";
+		  $msg .= $diff ? ", differs" : " but identical";
+		} elsif ( $diff ) {
+		  $msg = "same date but differs";
+		}
+		print "tgt $dir2/$file $msg\n" if $msg;
+	  } else {
+		print "tgt $dir2/$file does not exist\n";
+	  }
+	}
+  }
+  closedir(DIR1);
+  
+  opendir(DIR2,$dir2) || die "Unable to open tgtdir $dir2\n";
+  while (defined($file = readdir(DIR2))) {
+	if ( ! ( $file =~ /^\.\.?$/ ) ) {
+	  ( -e "$dir1/$file" ) ||
+		print "src $dir1/$file does not exist\n";
+	}
+  }
+  closedir(DIR2);
+  foreach $file (@dirs) {
+	dircomp( "$dir1/$file", "$dir2/$file" );
+  }
+}
+print "dircompare $dir1 $dir2\n";
+dircomp($dir1, $dir2 );
