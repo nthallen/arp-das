@@ -1,13 +1,16 @@
 %{
   /* yylex.l for tmcalgo
    * $Log$
+ * Revision 1.3  1994/08/29  17:42:27  nort
+ * Removed memlib.h to use simple nortlib memory interface
+ *
  * Revision 1.2  1993/09/27  20:05:32  nort
  * Cleanup, common compiler functions
  *
    * Revision 1.1  1993/05/18  20:37:15  nort
    * Initial revision
    */
-  #include <stdlib.h> /* for atoi */
+  #include <stdlib.h> /* for atoi, realloc */
   #include <string.h> /* for strdup */
   #include <assert.h>
   #include <ctype.h>
@@ -56,9 +59,13 @@
   
   static void buffer_char(struct statbuf *sbuf, int c) {
 	assert(sbuf != NULL && sbuf->text != NULL);
-	if (sbuf->n_chars >= sbuf->size)
-	  compile_error(4, "STATBUF overflow: arbitrary limit exceeded");
 	sbuf->text[sbuf->n_chars++] = c;
+	if (sbuf->n_chars >= sbuf->size) {
+	  sbuf->n_chars *= 2;
+	  sbuf->text = realloc(sbuf->text, sbuf->n_chars);
+	  if (sbuf->text == 0)
+		compile_error(4, "No memory to expand STATBUF");
+	}
   }
   
   static char *sbuftext(struct statbuf *sbuf) {
