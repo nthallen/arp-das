@@ -1,5 +1,10 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.5  1993/05/19  20:18:42  nort
+ * Improved flexibility in nl_error support with nl_verror, nl_debug_level
+ * Added cic_query. Changed ci_sendcmd() arg to const.
+ * Add TMA support services
+ *
  * Revision 1.4  1993/02/15  17:58:49  nort
  * Having added a number of command interpreter functions for
  * client/server operation.
@@ -36,6 +41,7 @@ int set_response(int newval); /* nlresp.c */
 #define NLRSP_QUIET 0
 
 pid_t nl_find_name(nid_t node, char *name); /* find_name.c */
+char *nl_make_name(char *base, int global); /* make_name.c */
 pid_t nl_make_proxy(void *msg, int size); /* make_proxy.c */
 pid_t find_DG(void); /* find_dg.c */
 int send_DG(void *msg, int size); /* send_dg.c */
@@ -49,21 +55,37 @@ int Soldrv_reset_proxy(unsigned char selector, unsigned char ID); /* solprox.c *
 /* Command Interpreter Client (CIC) and Server (CIS) Utilities
    Message-level definition is in cmdalgo.h
  */
-void cic_options(int argc, char **argv, char *def_prefix);
+void cic_options(int argc, char **argv, const char *def_prefix);
 int cic_init(void);
 int cic_query(char *version);
 extern char ci_version[];
 void cic_transmit(char *buf, int n_chars, int transmit);
 int ci_sendcmd(const char *cmdtext, int test);
 #define OPT_CIC_INIT "C:"
-void ci_server(void);
+void ci_server(void); /* in nortlib/cis.c */
+void cis_initialize(void); /* in cmdgen.skel or .cmd */
+void cis_terminate(void);  /* in cmdgen.skel of .cmd */
 
 /* tmcalgo (tma) support routines */
-void tma_new_state(int partition, const char *name);
-void tma_new_time(int partition, long int t1, const char *next_cmd);
-int tma_time_check(int partition);
+void tma_new_state(unsigned int partition, const char *name);
+void tma_new_time(unsigned int partition, long int t1, const char *next_cmd);
+int tma_time_check(unsigned int partition);
 void tma_sendcmd(const char *cmd);
-void tma_init_options(const char *hdr, int argc, char **argv);
+void tma_init_options(const char *hdr, int nparts, int argc, char **argv);
+void tma_hold(int hold);
+extern int tma_is_holding;
 #define OPT_TMA_INIT "r:pm"
+
+#if defined __386__
+#  pragma library (nortlib3r)
+#elif defined __SMALL__
+#  pragma library (nortlibs)
+#elif defined __COMPACT__
+#  pragma library (nortlibc)
+#elif defined __MEDIUM__
+#  pragma library (nortlibm)
+#elif defined __LARGE__
+#  pragma library (nortlibl)
+# endif
 
 #endif
