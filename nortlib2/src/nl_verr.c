@@ -1,6 +1,9 @@
 /* nl_verr.c contains nl_verror() which allows easy expansion of
  * the nl_error capabilities in many cases.
  * $Log$
+ * Revision 1.2  1993/09/15  19:24:15  nort
+ * *** empty log message ***
+ *
  * Revision 1.1  1993/07/01  15:30:23  nort
  * Initial revision
  */
@@ -31,6 +34,10 @@ int nl_verror(FILE *ef, int level, const char *fmt, va_list args) {
   fprintf(ef, "%s", lvlmsg);
   vfprintf(ef, fmt, args);
   fputc('\n', ef);
+  if (level > 3 ) {
+	fflush( ef );
+	abort();
+  }
   if (level > 2 || level == -1) exit(level > 0 ? level : 0);
   return(level);
 }
