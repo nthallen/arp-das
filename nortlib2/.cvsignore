@@ -4,4 +4,4 @@ config.h
 stamp-h stamp-h.in
 libtool
 INST
-
+nortlib-*.tar.gz

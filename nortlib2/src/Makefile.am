@@ -7,3 +7,4 @@ include_HEADERS = nortlib.h compiler.h ll_of_str.h md5.h mlf.h
 ouidir = $(includedir)/oui
 oui_HEADERS = compiler.oui
 bin_SCRIPTS = mlf_find
+EXTRA_DIST = mlf_find
