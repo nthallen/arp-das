@@ -334,8 +334,8 @@ END;
 /*--------------*/
 ATTR Iz: double;
 
-RULE: IzDef ::= 'Iz' '=' Current COMPUTE
-  IzDef.Iz = Current.Value;
+SYMBOL IzDef COMPUTE
+  SYNT.Iz = CONSTITUENT Current.Value;
 END;
 SYMBOL ICOSWave COMPUTE
   SYNT.Iz = CONSTITUENTS IzDef.Iz
@@ -354,8 +354,13 @@ END;
 /* Print Summary Information */
 /*---------------------------*/
 ATTR PTG: PTGNode;
-SYMBOL ICOSWave COMPUTE
+SYMBOL SourceFile COMPUTE
   PTGOut(
+    CONSTITUENTS ICOSWave.PTG
+	WITH ( PTGNode, PTGWaves, IDENTICAL, PTGNull ) );
+END;
+SYMBOL ICOSWave COMPUTE
+  SYNT.PTG =
     PTGICOSWave( PTGId(INCLUDING Wave.Sym),
 	  CONSTITUENTS RateDef.PTG
 		WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
@@ -375,8 +380,7 @@ SYMBOL ICOSWave COMPUTE
 	  PTGTz( PTGTime(MUL(THIS.Tz1,1000.)),
 	    THIS.TzRawSamples, THIS.TzSamples,
 		MUL( DIV( THIS.Tz1, THIS.Tramps1 ), 100. ) )
-	)
-  );
+	);
 END;
 
 SYMBOL RateDef COMPUTE

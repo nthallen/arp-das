@@ -1,2 +1,3 @@
 %run == icoswave.txt +cmd=(qclicomp.specs:exe) :stdout
 %help == qclicomp.specs:exe:help
+qclicomp.exe == qclicomp.specs:exe

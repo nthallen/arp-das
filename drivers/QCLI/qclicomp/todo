@@ -13,10 +13,9 @@ ICOSWave Compilation {
 		Istop
 		Tramp
 	  }
-	  Tz:Time
-	  Tz:RawSamples
-	  Tz:NetSamples
+	  Tz:Time RawSamples/NetSamples
 	}
+	Add Nsteps to summary
   }
   Figure out sampling first {
     Nsample = number of (net) samples specified in the ramp

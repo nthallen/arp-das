@@ -39,7 +39,7 @@ ICOS Waveform FirstRamp {
 ICOS Waveform SecondRamp {
   Iz = .4 A;
   Tz = 100 msec;
-  SampleRate = 650/msec/5;
+  SampleRate = 625/msec/5;
   Ramp from 600mA to 900mA in 10 sec;
 }
 
