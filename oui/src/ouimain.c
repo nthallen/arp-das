@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "nortlib.h"
 #include "compiler.h"
 #include "ouidefs.h"
@@ -37,10 +39,45 @@ void main(int argc, char **argv) {
   exit(error_level);
 }
 
+/* check_new_opts() reports on any options incompatabilities, but
+   it doesn't actually terminate, so additional incompatabilities
+   can be reported.
+*/
+static void check_new_opts(const char *opts, char *pkgname) {
+  char *buf, *op;
+  const char *o;
+  llpkgleaf *p;
+  
+  buf = new_memory(strlen(opts));
+  for (o = opts; isspace(*o); o++); /* skip whitespace */
+
+  /* collect the option letters from opts into buf */
+  for (op = buf; *o != '\0'; o++) {
+	if (*o != ':') *op++ = *o;
+  }
+  *op = '\0';
+
+  /* now check these against all the other packages */
+  for (p = global_defs.packages.first; p != NULL; p = p->next) {
+	op = p->pkg->opt_string;
+	while (op != NULL) {
+	  op = strpbrk(op, buf);
+	  if (op != NULL) {
+		nl_error(2, "Package %s option -%c conflicts with package %s",
+		  pkgname, *op, p->pkg->name);
+		op++;
+	  }
+	}
+  }
+
+  free_memory(buf);
+}
+
 void oui_opts(char *str) {
   if (global_defs.crnt_pkg != 0) {
 	if (global_defs.crnt_pkg->opt_string == 0) {
 	  /* want to check option against existing options */
+	  check_new_opts(str, global_defs.crnt_pkg->name);
 	  global_defs.crnt_pkg->opt_string = str;
 	} else compile_error(2,
 	  "Redefinition of option string for package %s",
