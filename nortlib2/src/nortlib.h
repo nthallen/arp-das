@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.13  1996/04/02  19:06:44  nort
+ * Put back some tma.h defs to support old version (temporarily)
+ *
  * Revision 1.12  1996/04/02  18:35:56  nort
  * Pruned log, removed tmcalgo funcs to tma.h
  *
@@ -54,6 +57,7 @@ extern char ci_version[];
 void cic_transmit(char *buf, int n_chars, int transmit);
 int ci_sendcmd(const char *cmdtext, int mode);
 int ci_sendfcmd(int mode, char *fmt, ...);
+void ci_settime( long int time );
 #define OPT_CIC_INIT "C:p"
 void ci_server(void); /* in nortlib/cis.c */
 void cis_initialize(void); /* in cmdgen.skel or .cmd */
@@ -79,6 +83,9 @@ void tma_sendcmd(const char *cmd);
 void *nl_new_memory(size_t size);
 void nl_free_memory(void *p);
 char *nrtl_strdup(const char *s);
+
+/* dccc.c */
+unsigned short DigSelect( unsigned short cmd, unsigned short val );
 
 #ifdef __cplusplus
 };
