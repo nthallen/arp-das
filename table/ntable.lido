@@ -156,29 +156,33 @@ SYMBOL VField INHERITS TableField END;
 SYMBOL CField INHERITS TableField END;
 SYMBOL HFIELD INHERITS TableField END;
 
-SYMBOL GFIELD COMPUTE
-  SYNT.MinHeight =
-	CONSTITUENTS (
-		Table.MinHeight,
-		HBOX.MinHeight,
-		TableRef.MinHeight,
-		HWord.MinHeight,
-		DatumDimensions.MinHeight,
-		Rule.MinHeight,
-		Glue.MinHeight )
-	  SHIELD ( Table, HBOX )
-	  WITH ( dim_t, MAXDIM, IDENTICAL, MKDIM0 );
-  SYNT.MinWidth =
-	CONSTITUENTS (
-		Table.MinWidth,
-		HBOX.MinWidth,
-		TableRef.MinWidth,
-		HWord.MinWidth,
-		DatumDimensions.MinWidth,
-		Rule.MinWidth,
-		Glue.MinWidth )
-	  SHIELD ( HBOX, Table )
-	  WITH ( dim_t, MAXDIM, IDENTICAL, MKDIM0 );
+RULE: GFIELD ::= Table COMPUTE
+  GFIELD.MinHeight = Table.MinHeight;
+  GFIELD.MinWidth = Table.MinWidth;
+END;
+RULE: GFIELD ::= HBOX COMPUTE
+  GFIELD.MinHeight = HBOX.MinHeight;
+  GFIELD.MinWidth = HBOX.MinWidth;
+END;
+RULE: GFIELD ::= TableRef COMPUTE
+  GFIELD.MinHeight = TableRef.MinHeight;
+  GFIELD.MinWidth = TableRef.MinWidth;
+END;
+RULE: GFIELD ::= HWord COMPUTE
+  GFIELD.MinHeight = HWord.MinHeight;
+  GFIELD.MinWidth = HWord.MinWidth;
+END;
+RULE: GFIELD ::= Datum COMPUTE
+  GFIELD.MinHeight = CONSTITUENT DatumDimensions.MinHeight;
+  GFIELD.MinWidth = CONSTITUENT DatumDimensions.MinWidth;
+END;
+RULE: GFIELD ::= Rule COMPUTE
+  GFIELD.MinHeight = Rule.MinHeight;
+  GFIELD.MinWidth = Rule.MinWidth;
+END;
+RULE: GFIELD ::= Glue COMPUTE
+  GFIELD.MinHeight = Glue.MinHeight;
+  GFIELD.MinWidth = Glue.MinWidth;
 END;
 
 %----------------------------------------------------------------
