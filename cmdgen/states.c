@@ -1,6 +1,9 @@
 /* states.c
  *
  * $Log$
+ * Revision 1.1  1992/10/20  20:25:37  nort
+ * Initial revision
+ *
  * Revision 1.1  1992/07/09  18:36:44  nort
  * Initial revision
  *
@@ -190,7 +193,6 @@ void eval_states(void) {
 	  ntl->action.value = nst->state_number;
 	}
   }
-  printf("Total of %d states\n", n_states);
 }
 
 /* output_shifts outputs the non_terminals[] array.
