@@ -1,11 +1,18 @@
 /* states.c
  * $Log$
+ * Revision 1.1  1993/05/18  20:37:21  nort
+ * Initial revision
  */
 #include <string.h>
 #include <assert.h>
 #include "nortlib.h"
+#include "compiler.h"
 #include "yytype.h"
 #include "memlib.h"
+#pragma off (unreferenced)
+  static char rcsid[] =
+	"$Id$";
+#pragma on (unreferenced)
 
 /* Check the new name against the list of names already defined */
 static struct nmlst {
@@ -18,7 +25,7 @@ char *new_state_name(char *name) {
 
   for (nl = namelist; nl != NULL; nl = nl->next) {
 	if (stricmp(nl->name, name) == 0) {
-	  nl_error(2, "Duplicate State Name");
+	  compile_error(2, "Duplicate State Name");
 	  break;
 	}
   }
@@ -143,7 +150,7 @@ static void output_state(FILE *ofp, struct stdef *state, int partition) {
 	for ( ; cmd != NULL && cmd->cmdtime == t0 &&
 		    (cmd->cmdflags & CMDFLAGS_TMC) == 0;
 			cmd = cmd->next)
-	  fprintf(ofp, "  ci_sendcmd(\"%s\\n\", tma_test);\n", cmd->cmdtext);
+	  fprintf(ofp, "  tma_sendcmd(\"%s\\n\");\n", cmd->cmdtext);
 
 	/* Now hold our position but look ahead for the next time
 	   and the next command.
@@ -200,4 +207,12 @@ void output_states(FILE *ofp) {
 		break;
 	}
   }
+  if (saw_state) partition++;
+  fprintf(ofp, "%%{\n"
+	"  #ifndef MSG_LABEL\n"
+	"	#define MSG_LABEL \"TMA\"\n"
+	"  #endif\n"
+	"  #define OPT_CONSOLE_INIT OPT_CON_INIT OPT_CIC_INIT OPT_TMA_INIT\n"
+	"  #define CONSOLE_INIT tma_init_options(MSG_LABEL, %d, argc, argv)\n"
+	"%%}\n", partition);
 }
