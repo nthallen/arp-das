@@ -1,6 +1,10 @@
 /* rules.c
  *
  * $Log$
+ * Revision 1.5  1994/02/14  21:23:12  nort
+ * Older changes.
+ * Added a redundant exit(1) after CMD_ERROR()
+ *
  * Revision 1.4  1993/07/27  18:48:44  nort
  * Added default to rule_action(switch(){})
  *
@@ -232,6 +236,6 @@ void output_rules(void) {
   indent(CONDINDENT);
   fprintf(ofile, "CMD_ERROR(\"Unexpected Rule in rule_action\");\n");
   indent(CONDINDENT);
-  fprintf(ofile, "exit(1);\n");
+  fprintf(ofile, "CMD_ERROR_FIX\n");
   fprintf(ofile, "  }\n}\n");
 }

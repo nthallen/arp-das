@@ -1,6 +1,9 @@
 /* states.c
  *
  * $Log$
+ * Revision 1.3  1993/07/09  19:48:42  nort
+ * Filled out reduce_state() to make nesting possible.
+ *
  * Revision 1.2  1992/10/27  08:38:20  nort
  * Removed illegal output
  *
@@ -16,12 +19,12 @@
 #include <string.h>
 #include <assert.h>
 #include "cmdgen.h"
-#ifdef __WATCOMC__
-  #pragma off (unreferenced)
-	static char rcsid[] =
-	  "$Id$";
-  #pragma on (unreferenced)
-#endif
+#include "compiler.h"
+#include "nortlib.h"
+#pragma off (unreferenced)
+  static char rcsid[] =
+	"$Id$";
+#pragma on (unreferenced)
 
 state **states = NULL;
 unsigned short n_states = 0;
@@ -36,7 +39,7 @@ state *new_state(void) {
 	max_states += STATE_INCREMENT;
 	if (n_states) states = realloc(states, max_states * sizeof(state *));
 	else states = malloc(max_states * sizeof(state *));
-	if (states == NULL) app_error(4, "State List Allocation Failure");
+	if (states == NULL) compile_error(4, "State List Allocation Failure");
   }
   ns = states[n_states] = new_memory(sizeof(state));
   ns->state_number = n_states++;
@@ -109,10 +112,11 @@ void add_rule_pos(state *st, unsigned short rnum, unsigned short pos) {
 	if (st->terminal_type == 0) st->terminal_type = item_type;
 	else if (st->terminal_type != item_type) {
 	  if (st->terminal_type == SI_EOR || item_type == SI_EOR)
-		app_error(2, "Shift/Reduce conflict:");
-	  else app_error(2, "Variable/Keyword conflict:");
-	  print_state(st);
-	  app_error(3, "Cannot Continue");
+		compile_error(2, "Shift/Reduce conflict:");
+	  else compile_error(2, "Variable/Keyword conflict:");
+	  print_state(stderr, st);
+	  fprintf(stderr, "\n");
+	  compile_error(3, "Cannot Continue");
 	}
 	/* terminal types are SI_VSPC, SI_WORD and SI_EOR
 	   If SI_WORD, we need to sort the terminals.
@@ -126,7 +130,12 @@ void add_rule_pos(state *st, unsigned short rnum, unsigned short pos) {
 		c = stricmp(si->u.text, tl->term->u.text);
 		if (c <= 0) break;
 	  }
-    } else assert(tl == NULL);
+    } else if (tl != NULL) {
+	  compile_error(2, "Variable/Variable or EOR/EOR conflict:");
+	  print_state(stderr, st);
+	  fprintf(stderr, "\n");
+	  compile_error(3, "Cannot Continue");
+	}
 	if (c != 0) {
 	  ntl = new_memory(sizeof(termlist));
 	  ntl->next = tl;
@@ -232,6 +241,8 @@ void eval_states(void) {
 	     If there is a default action and the reduced rule
 		 has any sub items, we can't.
 	  */
+	  if (ntl->nt->rules.first == NULL)
+		compile_error(2, "non-terminal %s is undefined", ntl->nt->name);
 	  nst = new_state();
 	  for (rl = st->rules; rl != NULL; rl = rl->next) {
 		if (rl->si != NULL
@@ -325,7 +336,7 @@ void output_states(void) {
 		break;
       case SI_NT:
 	  default:
-		app_error(4, "Unexpected terminal type %d", st->terminal_type);
+		compile_error(4, "Unexpected terminal type %d", st->terminal_type);
 	}
   }
   fprintf(ofile, "\n};\n");

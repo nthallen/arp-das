@@ -1,6 +1,9 @@
 /* prompts.c
  *
  * $Log$
+ * Revision 1.4  1993/05/18  13:10:47  nort
+ * NO_PROMPTS support
+ *
  * Revision 1.3  1992/07/15  20:29:10  nort
  * Beta Release
  *
@@ -17,8 +20,12 @@
 #include <assert.h>
 #include <string.h>
 #include "cmdgen.h"
-
-static char rcsid[] = "$Id$";
+#include "compiler.h"
+#include "nortlib.h"
+#pragma off (unreferenced)
+  static char rcsid[] =
+	"$Id$";
+#pragma on (unreferenced)
 
 #define PROMPT_ATTR 7
 

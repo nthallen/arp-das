@@ -1,6 +1,9 @@
 /* vunion.c handles generation of the value stack union.
 
  * $Log$
+ * Revision 1.3  1993/02/11  15:12:44  nort
+ * Skeleton Support
+ *
  * Revision 1.2  1992/10/20  20:29:39  nort
  * Corrected IDs
  *
@@ -18,9 +21,12 @@
 #include <string.h>
 #include <assert.h>
 #include "cmdgen.h"
+#include "compiler.h"
 #include "nortlib.h"
-
-static char rcsid[] = "$Id$";
+#pragma off (unreferenced)
+  static char rcsid[] =
+	"$Id$";
+#pragma on (unreferenced)
 
 static struct vtyp *vtypes = NULL;
 static unsigned n_members = 0;
@@ -94,7 +100,7 @@ void get_vsymbol(struct sub_item_t *si, char *fmt, char *prompt) {
   
   for (i = 0; i < N_VARFMTS; i++)
 	if (stricmp(fmt, varfmts[i].fmt) == 0) break;
-  if (i >= N_VARFMTS) app_error(3, "Illegal Variable Format %s", fmt);
+  if (i >= N_VARFMTS) compile_error(3, "Illegal Variable Format %s", fmt);
   else {
 	varfmts[i].used = 1;
 	j = varfmts[i].vtype;

@@ -1,5 +1,8 @@
 %{
   /* $Log$
+ * Revision 1.2  1993/05/18  13:07:37  nort
+ * Changes for client/server support
+ *
  * Revision 1.1  1992/07/09  18:36:44  nort
  * Initial revision
  * */
@@ -9,11 +12,13 @@
   #include <assert.h>
   #include <ctype.h>
   #include "cmdgen.h"
+  #include "compiler.h"
   
-  #ifndef lint
-	static char rcsid[] = "$Id$";
-  #endif
-  #define yyerror(x) app_error(2, x)
+  #pragma off (unreferenced)
+	static char rcsid[] =
+	  "$Id$";
+  #pragma on (unreferenced)
+  #define yyerror(x) compile_error(2, x)
 %}
 %token <nt_val>  TK_NON_TERMINAL
 %token <str_val> TK_TYPE_SPEC
@@ -21,7 +26,6 @@
 %token <str_val> TK_VAR_SPEC
 %token <str_val> TK_C_CODE
 %token <str_val> TK_PROMPT
-%token TK_END_OF_RULES
 %type <nt_val> Rule
 %type <nt_val> nt_spec
 %type <type_val> type_spec
@@ -32,7 +36,7 @@
 Rules     :
 		  | Rules Rule ';' {
 			  if ($2->rules.first == NULL)
-				app_error(3, "Non-terminal has no rules");
+				compile_error(3, "Non-terminal has no rules");
 			}
 		  ;
 Rule	  : nt_spec
@@ -58,7 +62,7 @@ Rule	  : nt_spec
 nt_spec	  : TK_NON_TERMINAL type_spec {
 			  if ($2 != NULL) {
 			    if ($1->type != NULL)
-				  app_error(2, "Attempted redefinition of type for %s",
+				  compile_error(2, "Attempted redefinition of type for %s",
 						  $1->name);
 				$1->type = $2;
 			  }
@@ -87,7 +91,7 @@ sub_item  : TK_WORD {
 			  
 			  for (s = $1; *s != '\0'; s++)
 				if (!isprint(*s))
-				  app_error(3, "Illegal character 0x%02X", *s);
+				  compile_error(3, "Illegal character 0x%02X", *s);
 			  $$ = new_sub_item(SI_WORD);
 			  $$->u.text = $1;
 			}
@@ -107,34 +111,3 @@ sub_item  : TK_WORD {
 var_prmpt : { $$ = NULL; }
 		  | TK_PROMPT { $$ = $1; }
 		  ;
-%%
-
-int error_level = 0, ignore_warnings = 0;
-char *ifname = NULL;
-int app_line = 1;
-
-void app_error(unsigned int level, char *s, ...) {
-  char *lvlmsg;
-  va_list arg;
-
-  fflush(stdout);  
-  if (level > error_level) error_level = level;
-  if (error_level == 1 && ignore_warnings) error_level = 0;
-  va_start(arg, s);
-  if (app_line > 0) {
-	if (ifname != NULL) fprintf(efile, "%s %d:", ifname, app_line);
-	else fprintf(efile, "%d:", app_line);
-  }
-  switch (level) {
-    case 0: lvlmsg = "Info"; break;
-	case 1: lvlmsg = "Warning"; break;
-	case 2: lvlmsg = "Error"; break;
-	case 3: lvlmsg = "Fatal"; break;
-	default: lvlmsg = "Internal"; break;
-  }
-  fprintf(efile, "%s: ", lvlmsg);
-  vfprintf(efile, s, arg);
-  va_end(arg);
-  fputc('\n', efile);
-  if (level > 2) app_die(level);
-}

@@ -1,6 +1,9 @@
 %{
   /* yylex.l Lexical Analyzer for parser generator
    * $Log$
+   * Revision 1.4  1993/07/09  19:48:27  nort
+   * *** empty log message ***
+   *
    * Revision 1.3  1993/05/18  13:08:34  nort
    * More comments, client/server support
    *
@@ -18,6 +21,8 @@
    #include <unistd.h>
    #include "y.tab.h"
    #include "cmdgen.h"
+   #include "compiler.h"
+   #include "nortlib.h"
    #pragma off (unreferenced)
 	 static char rcsid[] =
 	   "$Id$";
@@ -54,26 +59,15 @@
 
 %%
 
-^"%%" {
-  /* This marks the end of input at the top level */
-  int c;
-  
-  for (;;) {
-	c = input();
-	if (c == EOF) break;
-	putc(c, ofile);
-  }
-}
-
 ^"%{" {
   int c, d;
 
   c = input();
   for (;;) {
-	if (c == EOF) app_error(3, "Unexpected EOF in %{");
+	if (c == EOF) compile_error(3, "Unexpected EOF in %{");
 	fputc(c, ofile);
 	if (c == '\n') {
-	  app_line++;
+	  input_linenumber++;
 	  c = input();
 	  if (c == '%') {
 		d = input();
@@ -91,13 +85,13 @@
   act[0] = '{';
   for (level = 1, i = 1; level > 0; ) {
 	if (i == ACTBUFSIZE)
-	  app_error(4, "Action Buffer Arbitrary Limit Exceeded");
+	  compile_error(4, "Action Buffer Arbitrary Limit Exceeded");
 	act[i++] = c = input();
 	if (c == '{') level++;
 	else if (c == '}') level--;
-	else if (c == '\n') app_line++;
+	else if (c == '\n') input_linenumber++;
 	else if (c == EOF)
-	  app_error(3, "Unexpected EOF reading C Code");
+	  compile_error(3, "Unexpected EOF reading C Code");
   }
   act[i] = '\0';
   yylval.str_val = strdup(act);
@@ -111,6 +105,6 @@
 \(([^\n\)]|\\.)*\) ret_inner(TK_PROMPT);
 \<([^\n\>]|\\.)*\> ret_inner(TK_TYPE_SPEC);
 [ \t] ;
-[\n] app_line++;
+[\n] input_linenumber++;
 [:;*] return(yytext[0]);
-[^ \t\n]+ ret_full_str(TK_WORD);
+[^ {\t\n%][^ \t\n]* ret_full_str(TK_WORD);

@@ -1,6 +1,9 @@
 /* trie.c Defines grand trie structure in output file.
  *
  * $Log$
+ * Revision 1.2  1992/10/20  20:29:39  nort
+ * Corrected IDs
+ *
  * Revision 1.1  1992/10/20  20:28:46  nort
  * Initial revision
  *
@@ -10,13 +13,15 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <assert.h>
-#ifndef NDEBUG
-  #include <ctype.h>
-#endif
 #include "cmdgen.h"
-
-static char rcsid[] = "$Id$";
+#include "compiler.h"
+#include "nortlib.h"
+#pragma off (unreferenced)
+  static char rcsid[] =
+	"$Id$";
+#pragma on (unreferenced)
 
 static unsigned short trie_offset = 0;
 
@@ -45,14 +50,14 @@ static void add_to_trie(tnode *tn, char *s, unsigned short shift) {
   int c;
 
   if (*s != 0 && *s != '\n' && !isprint(*s))
-    app_error(2, "add_to_trie character 0x%2X", *s);
+    compile_error(2, "add_to_trie character 0x%2X", *s);
   c = tolower(*s);
   for (tncp = NULL, tnc = tn->child; tnc != NULL;
 	   tncp = tnc, tnc = tnc->sib)
 	if (tolower(tnc->code) == tolower(*s)) break;
   if (tnc != NULL) {
 	if (c == 0)
-	  app_error(4, "Duplicate trie entry!");
+	  compile_error(4, "Duplicate trie entry!");
   } else {
 	tnc = new_tnode(*s);
 	if (tncp != NULL) tncp->sib = tnc;

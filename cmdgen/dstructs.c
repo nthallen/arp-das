@@ -1,6 +1,9 @@
 /* dstructs.c defines routines for creating and manipulating
  * data structures for command parser generator.
  * $Log$
+ * Revision 1.2  1993/05/18  13:09:13  nort
+ * Client/Server Support
+ *
  * Revision 1.1  1992/10/20  20:27:07  nort
  * Initial revision
  *
@@ -13,7 +16,11 @@
 #include <string.h>
 #include <assert.h>
 #include "cmdgen.h"
-static char rcsid[] = "$Id$";
+#include "compiler.h"
+#pragma off (unreferenced)
+  static char rcsid[] =
+	"$Id$";
+#pragma on (unreferenced)
 
 struct nt_t *non_terms = NULL;
 struct sub_t **rules = NULL;
@@ -26,7 +33,7 @@ void *new_memory(unsigned int size) {
   void *m;
   
   m = malloc(size);
-  if (m == NULL) app_error(3, "Memory Allocation Failure");
+  if (m == NULL) compile_error(3, "Memory Allocation Failure");
   return(m);
 }
 
@@ -89,7 +96,7 @@ struct sub_t *new_sub(void) {
 	max_rules += RULE_INCREMENT;
 	if (n_rules) rules = realloc(rules, max_rules * sizeof(struct sub_t *));
 	else rules = malloc(max_rules * sizeof(struct sub_t *));
-	if (rules == NULL) app_error(3, "Rule List Allocation Failure");
+	if (rules == NULL) compile_error(3, "Rule List Allocation Failure");
   }
   ns = new_memory(sizeof(struct sub_t));
   ns->next = NULL;
