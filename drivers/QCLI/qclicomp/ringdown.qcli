@@ -1,0 +1,7 @@
+Ringdown Waveform OK {
+  SampleRate = 10 MHz;
+  Toff = 40 usec;
+  Nsample = 400;
+  Ton = 50%;
+  Tpre = 5 samples;
+}
