@@ -1,6 +1,9 @@
 %{
   /* yylex.l for tmcalgo
    * $Log$
+ * Revision 1.6  1996/04/19  13:50:41  nort
+ * Many changes
+ *
  * Revision 1.5  1996/01/24  17:49:20  nort
  * Support for arbitrarily long input tokens
  *
@@ -155,6 +158,11 @@ Partition		return(KW_PARTITION);
 depending       return(KW_DEPENDING);
 on              return(KW_ON);
 Validate        return(KW_VALIDATE);
+valid           return(KW_VALID);
+Hold            return(KW_HOLD);
+until           return(KW_UNTIL);
+or              return(KW_OR);
+else            return(KW_ELSE);
 [A-Z][A-Z0-9_]*	{ yylval.textval = strdup(yytext);
 				  BEGIN statedef;
 				  return(TK_NAME);
@@ -176,7 +184,6 @@ Validate        return(KW_VALIDATE);
 <other>"("		{ qstat( '(', ')', 0 ); return TK_PARENSTAT; }
 <other>"{"		{ qstat( '{', '}', 0 ); return TK_TMCSTAT; }
 "\""			{ qstat( '"', '"', 1 ); return TK_QSTRING; }
-"["             { qstat( '[', ']', 0 ); return TK_TMCSTAT; }
 ^"%{"           { pipe_code(); }
 [+:;},]	    	{ BEGIN other; return(yytext[0]); }
 [ \t\f]       	;
