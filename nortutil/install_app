@@ -48,14 +48,35 @@ portdir=`basename $portpath`
 cd ..
 [ -n "$pkg" ] ||
   nl_error QNX.setup must define pkg
-[ -z "$archive" ] && archive=$pkg.tar.gz
-[ ! -f "$archive" -a -f "$portdir/$archive" ] &&
-  archive=$portpath/$archive
-[ -f "$archive" ] || nl_error Cannot locate archive $archive
-if [ -n "$patches" -o -n "$mypatches" ]; then
-  for file in $patches $mypatches; do
-	[ -f "$file" -o -f "$portdir/$file" ] ||
-	  nl_error Cannot locate patch file $file
+[ -z "$archpkg" ] && archpkg=$pkg
+[ -z "$archive" ] && archive=$archpkg.tar.gz
+farchive=""
+for i in "$archive" "$portdir/$archive"; do
+  [ -f "$i" ] && farchive=$i && break;
+done
+[ -z "$farchive" ] && nl_error Cannot locate archive $archive
+function find_patch {
+  patch=$1
+  for path in "" "../" "$portdir/"; do
+	for ext in "" .F .z .gz; do
+	  [ -f "$path$patch$ext" ] && fullpath -t "$path$patch$ext" && return
+	done
+  done
+}
+fpatches=""
+if [ -n "$patches" ]; then
+  for file in $patches; do
+	fpatch=`find_patch $file`
+	[ -z "$fpatch" ] && nl_error Cannot locate patch $file
+	fpatches="$fpatches $fpatch"
+  done
+fi
+fmypatches=""
+if [ -n "$mypatches" ]; then
+  for file in $mypatches; do
+	fpatch=`find_patch $file`
+	[ -z "$fpatch" ] && nl_error Cannot locate patch $file
+	fmypatches="$fmypatches $fpatch"
   done
 fi
 
@@ -73,17 +94,10 @@ done
 [ $make = yes -a ! -x $portpath/QNX.make ] &&
   nl_error Cannot make unless QNX.make is executable
 
-function dopatch {
-  echo dopatch: $*
+function dopatches {
+  echo dopatches: $*
   pwd
   for pat in $*; do
-	echo $pat ../$pat $portpath/$pat
-	pppat=""
-	for ppat in $pat ../$pat $portpath/$pat; do
-	  [ -f "$ppat" ] && break
-	done
-	print pat is $pat, ppat is $ppat
-	[ -f "$ppat" ] && pat=$ppat
 	[ -f "$pat" ] || nl_error Could not find patch $pat
 	case $pat in
 	  *.gz) zcat $pat >patchtmp.pat; pat=patchtmp.pat;;
@@ -104,8 +118,8 @@ if [ "$unpack" = "yes" ]; then
   if [ -d "$pkg" -a "$clean" = "yes" ]; then
 	echo Removing old $pkg
 	rm -rf $pkg
+	[ -d "$pkg" ] && nl_error Unable to remove old $pkg
   fi
-  [ -z "$archpkg" ] && archpkg=$pkg
   [ -d "$archpkg.sav" ] && nl_error $archpkg.sav already exists
   [ -d "$pkg.sav" ] && nl_error $pkg.sav already exists
   [ "$archpkg" != "$pkg" -a -d "$archpkg" ] &&
@@ -114,7 +128,7 @@ if [ "$unpack" = "yes" ]; then
 	mv $pkg $pkg.sav
 
   while [ ! -d "$pkg" ]; do
-	[ ! -d "$archpkg" ] && zcat $archive | pax -rv
+	[ ! -d "$archpkg" ] && zcat $farchive | pax -rv
 	[ ! -d "$archpkg" ] && nl_error "Archive unpack failed"
 	[ "$archpkg" != "$pkg" ] && mv $archpkg $pkg
 	cd $pkg
@@ -123,11 +137,7 @@ if [ "$unpack" = "yes" ]; then
 	  [ -f "$i" ] &&
 		echo "Warning: $i in distribution will be deleted"
 	done
-	if [ -n "$patches" ]; then
-	  for patch in $patches; do
-		dopatch $patch
-	  done
-	fi
+	[ -n "$fpatches" ] && dopatches $fpatches
 	ln -fs $portpath qnxp
 
 	[ -d "../$pkg.ORIG" ] && ln -fs ../$pkg.ORIG ORIG
@@ -135,11 +145,9 @@ if [ "$unpack" = "yes" ]; then
 	if [ ! -d "$pkg.ORIG" -a $orig = yes ]; then
 	  mv $pkg $pkg.ORIG
 	  [ -d $pkg.sav ] && mv $pkg.sav $pkg
-	elif [ -n "$mypatches" ]; then
+	elif [ -n "$fmypatches" ]; then
 	  cd $pkg
-	  for i in $mypatches; do
-		dopatch $i
-	  done
+	  dopatches $fmypatches
 	  cd ..
 	fi
   done
@@ -153,5 +161,9 @@ cd $pkg
 pwd
 if [ $make = yes ]; then
   [ -x "$portpath/QNX.make" ] || nl_error "Cannot find QNX.make"
-  $portpath/QNX.make | tee $portpath/$pkg.make.log
+  if [ -n "$NOLOG" ]; then
+	$portpath/QNX.make
+  else
+	$portpath/QNX.make 2>&1 | tee $portpath/$pkg.make.log
+  fi
 fi
