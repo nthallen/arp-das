@@ -1,0 +1,37 @@
+tmcalgo - A quickly determined name intending to convey the idea that
+this is the combination of the TMC data flow with command algorithms.
+
+State Definition:
+  State name {
+    time_spec command
+  }
+
+  A time spec is either a time relative to the beginning of the
+  present state or preceeded by "+" to designate time relative
+  to the previous command.
+  
+  A command can be either a TMC statement (generally an "if" statement
+  to check for a condition or a "validate" statement to switch to
+  another state) or an instrument command.
+  
+  Instrument commands are executed once (of course) at the specified
+  time offset.
+  
+  TMC statement are executed at a TMC-determined rate during the
+  period of time for which they are valid.
+  
+  TMC statements should be listed after any instrument commands
+  for the same time:
+
+      3:00 > Lamp On							Correct
+	       [ if (stat) validate Lamp_Not_On; ]
+
+	  3:00 > Lamp On							Incorrect
+		   [ if (stat) validate Lamp_Not_On; ]
+		   > Lamp Set Point 395
+
+  TMC statements listed prior to the first time specification
+  are valid for the entire duration of the state. TMC statements
+  with a time specification are valid from their specified time
+  to the time of the next command. (This syntax is borderline:
+  1 shift/reduce conflict, but shift is the correct action)

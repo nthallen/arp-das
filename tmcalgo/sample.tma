@@ -1,0 +1,13 @@
+State Begin {
+     > Telemetry Start
+  +1 [ Validate Lamp_On; ]
+}
+
+State Lamp_On {
+ [ if (WVRFW.convert > 3.0 && WVRFB.convert < 2.0)
+   Validate Operating; ]
+
+     > Telemetry Logging Suspend
+ +40 > Telemetry Logging Resume
+ +20 [ Validate Lamp_On; ]
+}

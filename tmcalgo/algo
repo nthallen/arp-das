@@ -1,0 +1,53 @@
+State Begin {
+     > Telemetry Start       .0
+  +1 GotoState(Lamp_On)      .1
+}
+
+depending on (Begin Once) {
+  validate Begin_0;
+}
+
+depending on (Begin_0) {
+  send_cmd("Telemetry Start");
+  t0 = itime();
+  validate Begin_1;
+}
+
+depending on (1 Hz, Begin_1) {
+  if (itime() - t0 >= 1) {
+	validate Lamp_On;
+  }
+}
+
+State Lamp_On {
+     > Lamp On               .0
+ +20 > Lamp Off              .1
+ +40 GotoState(Lamp_On)      .2
+
+ if (WVRFW.convert > 3.0 && WVRFB.convert < 2.0)
+   GotoState(Operating);
+}
+
+depending on (Lamp_On Once) {
+  send_cmd("Lamp On");
+  t0 = itime();
+  validate Lamp_On_1;
+}
+
+depending on (1 Hz, Lamp_On_1) {
+  if (itime() - t0 >= 20) {
+	send_cmd("Lamp Off");
+	validate Lamp_On_2;
+  }
+}
+
+depending on (1 Hz, Lamp_On_2) {
+  if (itime() - t0 >= 40) {
+	validate Lamp_On;
+  }
+}
+
+depending on (Lamp_On) {
+ if (WVRFW.convert > 300 && WVRFB.convert < 200)
+   validate Operating;
+}

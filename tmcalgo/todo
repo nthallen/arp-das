@@ -1,0 +1,54 @@
+Support Routines {
+  tma_new_state()
+  tma_new_time()
+  tma_time_check()
+  tma_test
+  For each partition {
+	Keep track of (Current state name), base time, next time
+  }
+}
+Code generation {
+  for each partition:
+	Output top-level state declaration
+  for each partition:
+	for each state:
+	  Output low-level state declaration
+	  Output TMC commands for T=-1
+	  for each command:
+		process
+  Substates {
+	i = -1, 0, ... , N
+	t(i) = time associated with i'th substate.
+		   t(-1)=-1, t(0)=0, T(N+1)=0
+	T(i) = TMC commands list at time t(i)
+	C(i) = Interpreter commands listed at time t(i)
+	
+	for each T in T(-1)
+	  depending on (State) { T }
+	
+	depending on (State once) {
+	  tma_new_state(partition, "State"); /* sets starting time, name */
+	  validate State_0_;
+	}
+
+	for i = 0, ..., N
+	  depending on (State_i_ once) {
+		C(i)
+		tma_new_time(partition, t(i+1), text); (t(N+1)=0)
+	  }
+
+	  for each T in T(i)
+		depending on (State_i_) { T }
+
+	  if (i < N)
+		depending on (State_i_, 1 Hz) {
+		  if (tma_check_time(partition))
+			validate State_i+1_;
+		}
+  }
+}
+Parsing {
+  For prettiness: swallow leading whitespace intelligently
+  when reading tmc statements. Replace appropriate indentation
+  during output.
+}

@@ -1,0 +1,115 @@
+State Initialize {
+           > telemetry start
+       +10 > OH power solenoids and steppers on
+           > OH Adjustable Gate 0 Delay 15 Width 255
+           > OH Adjustable Gate 1 Delay 0 Width 100
+       +10 > OH tfr coolant pump on
+       +15 > OH dye pump on
+       +20 > OH power tec control on
+       +1  > OH drive secondary throttle in 11000
+           > OH drive secondary throttle out 2090
+           > OH drive secondary throttle to 1500
+      1:00 > OH laser 1 power on
+      1:02 > OH laser 2 power on
+      2:10 > OH axis 1 filter in on
+        +3 > OH axis 1 filter in off
+      2:20 > OH axis 1 filter out on
+        +3 > OH axis 1 filter out off
+      2:30 > OH axis 1 filter in on
+        +3 > OH axis 1 filter in off
+      3:40 > OH axis 2 filter in on
+        +3 > OH axis 2 filter in off
+      3:50 > OH axis 2 filter out on
+        +3 > OH axis 2 filter out off
+      4:00 > OH axis 2 filter in on
+        +3 > OH axis 2 filter in off
+      4:30 > OH drive etalon out 65000
+       +20 > OH drive etalon in 30000
+       +20 > OH drive etalon in 65000
+       +20 > OH drive etalon out 6400
+       +20 > OH drive etalon to 15000
+      7:30 > OH purge oh optics on
+      7:50 > OH air solenoid loop injector on
+       +10 > OH air solenoid loop injector off
+      8:10 > OH c3f6 solenoid on
+       +10 > OH c3f6 solenoid off
+      8:30 > OH power oh cell on
+     10:00 > OH laser 1 diode on
+     10:10 > OH laser 2 diode on
+     12:00 > OH set etalon online position 33250
+       +20 > OH scan etalon out 45000 by 100
+      +130 > OH drive etalon to 29000
+       +20 > OH scan etalon out 9000 by 40
+           [ Validate Record; ]
+}
+State Record {
+             > OH set etalon online delta 20
+             > OH set etalon offline delta -300
+        5:00 > OH Peakup Off
+          +3 > OH Stop Etalon
+             > OH Soldrv Select Mode 5
+         +30 > OH Peakup On
+        +160 > OH Soldrv Select Mode 4
+             > OH drive secondary throttle to 3500
+         +20 > OH Soldrv Select Mode 5
+        +190 > OH Soldrv Select Mode 4
+             > OH drive secondary throttle to 2500
+         +20 > OH Soldrv Select Mode 5
+        +190 > OH Soldrv Select Mode 4
+             > OH drive secondary throttle to 1500
+         +20 > OH Soldrv Select Mode 5
+        +190 > OH Soldrv Select Mode 4
+             > OH drive secondary throttle to 3500
+         +20 > OH Soldrv Select Mode 5
+        +190 > OH Soldrv Select Mode 4
+             > OH drive secondary throttle to 2500
+         +20 > OH Soldrv Select Mode 5
+        +190 > OH Soldrv Select Mode 4
+             > OH drive secondary throttle to 1500
+         +20 > OH Soldrv Select Mode 5
+        +190 > OH Soldrv Select Mode 4
+             > OH drive secondary throttle to 3500
+         +20 > OH Soldrv Select Mode 5
+        +190 > OH Soldrv Select Mode 4
+             > OH drive secondary throttle to 2500
+         +20 > OH Soldrv Select Mode 5
+        +190 > OH Soldrv Select Mode 4
+             > OH drive secondary throttle to 1500
+         +30 > OH Drive Etalon to 15000
+          +5 > OH Scan Etalon out 45000 by 100
+        +130 > OH Drive Etalon to 29000
+         +20 > OH Scan Etalon out 9000 by 40
+             [ Validate Record; ]
+}
+State Shutdown {
+       +10 > OH Soldrv Select Mode 4
+	   +32 > OH drive etalon out 0
+       +10 > OH drive bellows to 35000
+        +5 > OH drive secondary throttle in 65000
+	 +5:00 > OH drive etalon to 15000
+        +5 > OH Scan Etalon out 45000 by 100
+      +130 > OH drive etalon to 15000
+        +5 > OH Scan Etalon out 45000 by 100
+      +130 > OH Drive Etalon to 15000
+        +5 > OH Scan Etalon out 45000 by 100
+      +130 > OH drive etalon to 15000
+        +5 > OH Scan Etalon out 45000 by 100
+      +130 > OH drive etalon to 15000
+        +5 > OH Scan Etalon out 45000 by 100
+      +130 > OH drive etalon to 15000
+        +5 > OH Scan Etalon out 45000 by 100
+      +130 > OH drive etalon to 15000
+        +5 > OH Scan Etalon out 45000 by 100
+      +130 > OH drive etalon to 15000
+       +10 > OH laser 1 diode off
+       +10 > OH laser 2 diode off
+       +10 > OH laser 1 power off
+       +10 > OH laser 2 power off
+       +10 > OH power tec control off
+        +5 > OH dye pump off
+        +5 > OH tfr coolant pump off
+        +5 > OH power oh cell off
+     +1:00 > telemetry logging suspend
+           > Fail 1
+     +1:00 > quit
+}
