@@ -1,6 +1,9 @@
 /* rules.c
  *
  * $Log$
+ * Revision 1.6  1995/05/25  17:21:24  nort
+ * Use standard nortlib compiler functions
+ *
  * Revision 1.5  1994/02/14  21:23:12  nort
  * Older changes.
  * Added a redundant exit(1) after CMD_ERROR()
@@ -220,6 +223,10 @@ void output_rules(void) {
   
   fprintf(ofile, "static int rule_action(unsigned short rule) {\n");
   fprintf(ofile, "  switch (rule) {\n");
+  indent(CASEINDENT);
+  fprintf(ofile, "default:\n");
+  indent(CONDINDENT);
+  fprintf(ofile, "CMD_ERROR(\"Unexpected Rule in rule_action\");\n");
   for (rnum = 0; rnum < n_rules; rnum++) {
 	indent(CASEINDENT);
 	fprintf(ofile, "case %d:\n", rnum);
@@ -231,11 +238,5 @@ void output_rules(void) {
 	fprintf(ofile, " */\n");
 	output_action(rnum);
   }
-  indent(CASEINDENT);
-  fprintf(ofile, "default:\n");
-  indent(CONDINDENT);
-  fprintf(ofile, "CMD_ERROR(\"Unexpected Rule in rule_action\");\n");
-  indent(CONDINDENT);
-  fprintf(ofile, "CMD_ERROR_FIX\n");
   fprintf(ofile, "  }\n}\n");
 }
