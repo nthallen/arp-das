@@ -99,6 +99,8 @@
 %type  <cmdsval>  timed_commands
 %type  <cmdval>   untimed_command
 %type  <cmdsval>  untimed_commands
+%type  <cmdsval>  state_cmds
+%type  <textval>  opt_state_file
 %type  <textval>  state_name_def
 %type  <stateval> state_def
 %type  <prgval>   prog_item
@@ -136,15 +138,24 @@ partn_def : {
 	  }
 	;
 /* <stateval == struct stdef *> */
-state_def : KW_STATE state_name_def '{' untimed_commands timed_commands '}' {
+state_def : KW_STATE state_name_def opt_state_file state_cmds {
 		nl_error(PARSE_DEBUG, "State Definition %s", $2);
-		if ($4.first == NULL) $4.first = $5.first;
-		else $4.last->next = $5.first;
-		$$ = new_state($2, $4.first, NULL);
+		$$ = new_state( $2, $4.first, $3 );
 	  }
-	| KW_STATE state_name_def TK_QSTRING opt_state_list ';' {
-		nl_error( PARSE_DEBUG, "Slurp: %s %s", $2, $3 );
-		$$ = new_state( $2, NULL, $3 );
+	;
+/* opt_state_file == textval */
+opt_state_file : { $$ = NULL; }
+	| TK_QSTRING opt_state_list {
+		$$ = $1;
+		nl_error(PARSE_DEBUG, "State file %s", $1 );
+	  }
+	;
+/* state_cmds == cmdsval == struct cmdlst == first/last list of cmddef> */
+state_cmds : '{' untimed_commands timed_commands '}' {
+		nl_error(PARSE_DEBUG, "State_cmds" );
+		if ($2.first == NULL) $2.first = $3.first;
+		else $2.last->next = $3.first;
+		$$ = $2;
 	  }
 	;
 opt_state_list :
