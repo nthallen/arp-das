@@ -18,7 +18,7 @@ END;
 
 SYMBOL CField COMPUTE
   THIS.ColNumber = ADD( THIS.ColNumber, 1 );
-  THIS.Sym = THIS.ColNumber;
+  SYNT.Sym = THIS.ColNumber;
 END;
 
 %----------------------------------------------------------------

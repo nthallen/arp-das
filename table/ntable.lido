@@ -422,7 +422,7 @@ ATTR ForReal : int;
 SYMBOL Rule COMPUTE
   SYNT.ForReal =
 	INCLUDING (Program.ForReal, NamedTable.ForReal);
-  THIS.RulePlace =
+  SYNT.RulePlace =
 	IF(THIS.ForReal,
 	  NewRule( THIS.Row, THIS.Col, SPACE(THIS.Width),
 			  SPACE(THIS.Height), 1, THIS.String ));
