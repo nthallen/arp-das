@@ -1,6 +1,9 @@
 /* rules.c
  *
  * $Log$
+ * Revision 1.2  1992/10/27  01:09:39  nort
+ * Added conditional around user actions
+ *
  * Revision 1.1  1992/10/20  20:28:46  nort
  * Initial revision
  *
@@ -36,7 +39,8 @@ static char rcsid[] = "$Id$";
 #define ELT_IS_NT 2
 #define MAXELTS 20
 #define CASEINDENT 4
-#define BASEINDENT (CASEINDENT+2)
+#define CONDINDENT (CASEINDENT+2)
+#define BASEINDENT (CONDINDENT+2)
 #define ACTINDENT (BASEINDENT+2)
 #define indent(x) {int y=x;\
 				   while (y>TABSIZE) {putc('\t',ofile);y-=TABSIZE;}\
@@ -82,6 +86,9 @@ static void output_action(unsigned short rnum) {
 
   act = rules[rnum]->action;
   if (act != NULL) {
+	indent(CONDINDENT);
+	fprintf(ofile, "#ifdef %s_ACTIONS\n",
+	  rules[rnum]->reduces->name[0] == '&' ? "CLIENT" : "SERVER");
 	indent(BASEINDENT);
 	fprintf(ofile, "if (ioflags & IOF_EXECUTE)\n");
 	indent(BASEINDENT);
@@ -148,16 +155,24 @@ static void output_action(unsigned short rnum) {
 		break;
 	}
 	putc('\n', ofile);
+	if (rules[rnum]->reduces->name[0] != '&') {
+	  indent(CONDINDENT);
+	  fprintf(ofile, "#else\n");
+	  indent(BASEINDENT);
+	  fprintf(ofile, "saw_server_action = 1;\n");
+	}
+	indent(CONDINDENT);
+	fprintf(ofile, "#endif\n");
   }
 
   /* <vsp++ if a value was produced> */
   if (eflags[n_elts] & ELT_HAS_VAL) {
-	indent(BASEINDENT);
+	indent(CONDINDENT);
     fprintf(ofile, "vsp++;\n");
   }
 
   /* fill in prev location in tstack top. */
-  indent(BASEINDENT);
+  indent(CONDINDENT);
   fprintf(ofile, "nterm_shift(%d, %d, PP(",
 	rules[rnum]->reduces != NULL ? rules[rnum]->reduces->number : 0, rnum);
   { unsigned short epos, dcnt, pcnt;
@@ -174,19 +189,19 @@ static void output_action(unsigned short rnum) {
   }
   fprintf(ofile, ");\n");
 
-  indent(BASEINDENT);
+  indent(CONDINDENT);
   fprintf(ofile, "return(%d);\n", rules[rnum]->reduces != NULL ? 0 : 1);
 }
 
 void output_rules(void) {
   unsigned short rnum;
   
-  fprintf(ofile, "static cg_nonterm_type rule_action(unsigned short rule) {\n");
+  fprintf(ofile, "static int rule_action(unsigned short rule) {\n");
   fprintf(ofile, "  switch (rule) {\n");
   for (rnum = 0; rnum < n_rules; rnum++) {
 	indent(CASEINDENT);
 	fprintf(ofile, "case %d:\n", rnum);
-    indent(BASEINDENT);
+    indent(CONDINDENT);
 	fprintf(ofile, "/*");
 	if (rnum > 0)
 	  fprintf(ofile, " &%s :", rules[rnum]->reduces->name);
