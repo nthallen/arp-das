@@ -1,5 +1,9 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.8  1994/06/20  18:42:56  nort
+ * Added subset memlib functionality to nortlib
+ * Made both includes cognizant of the fact
+ *
  * Revision 1.7  1994/02/15  19:03:33  nort
  * Moved -p option from TMA to CIC
  * Added ci_sendfcmd()
@@ -90,8 +94,10 @@ extern int tma_is_holding;
  */
 #ifndef MEMLIB_H_INCLUDED
   #define new_memory(x) nl_new_memory(x)
-  #define free_memory(x) free(x)
+  #define free_memory(x) nl_free_memory(x)
 #endif
+void *nl_new_memory(size_t size);
+void nl_free_memory(void *p);
 
 #if defined __386__
 #  pragma library (nortlib3r)
