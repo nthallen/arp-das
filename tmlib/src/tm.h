@@ -9,27 +9,7 @@
   #define __attribute__(x)
 #endif
 
-#ifndef __QNXNTO__
-  #include <sys/name.h>
-  /* only one dg and one db allowed per node */
-  #define DG_NAME "dg"
-  #define DB_NAME "db"
-
-  /* module types */
-  #define DRC 0				/* data ring client */
-  #define DBC 1				/* data buffer client */
-  #define DG 2				/* data generator */
-  #define DB 3				/* data buffer */
-  #define DBCP 4              /* non-blocking buffer client Parent */
-  #define DBCC 5              /* non-blocking buffer client child */
-
-  #define MAX_BUF_SIZE 1000 /* arbitrary size for DBRING message buffers with data */
-
-  /* Option string definitions: */
-  #define OPT_DG_INIT "n:j:"
-  #define OPT_DC_INIT "b:i:"
-  #define OPT_DG_DAC_IN "f:"
-#endif
+typedef unsigned short mfc_t;
 
 /*
  * Message structures 
@@ -73,7 +53,6 @@ typedef struct {
 } __attribute__((packed)) tm_info_type;
 #define ISF_INVERTED 1
 
-/* Reply to drinit */
 typedef struct {
   tm_info_type tm;	    /* data info */
   unsigned short nrowminf;    /* number rows per minor frame */
@@ -86,62 +65,20 @@ typedef struct {
 
 /* Function prototypes: */
 
-/*  Data Client application functions: */
-void DC_data(dbr_data_type *dr_data);
-void DC_tstamp(tstamp_type *tstamp);
-void DC_DASCmd(unsigned char type, unsigned char number);
-void DC_other(unsigned char *msg_ptr, pid_t sent_tid);
-
 /* Data Client library functions: */
-#ifndef __QNXNTO__
-  int  DC_init(int, nid_t);
-  int  DC_init_options(int, char ** );
-  int  DC_operate(void);
-  int  DC_bow_out(void);
+extern int TM_open_stream(int blocking);
+extern int TM_readfd(void);
+extern int TM_stream( int nbytes, const char *data );
 
-  /* Data Generator library functions: */
-  int  DG_init(int start_after_inits_num, int delay_in_ms);
-  int  DG_dac_in(int argc, char **argv);
-  int  DG_init_options(int argc, char **argv);
-  int  DG_operate(void);
-  void DG_s_data(token_type n_rows, unsigned char *data, token_type n_rows1, unsigned char *data1);
-  void DG_s_tstamp(tstamp_type *tstamp);
-  void DG_s_dascmd(unsigned char type, unsigned char val);
+/*  Data Client application functions: */
+extern void TM_data( int datatype, mfc_t mfctr, int row, int nrows, const char *data );
+extern void TM_init( void );
+extern void TM_row( mfc_t mfctr, int row, const char *data );
+extern void TM_tstamp( int tstype, mfc_t mfctr, time_t time );
+extern void TM_quit( void );
 
-  /* Data Generator application functions: */
-  int  DG_DASCmd(unsigned char type, unsigned char val);
-  int  DG_other(unsigned char *msg_ptr, int sent_tid);
-  int  DG_get_data(token_type n_rows);
-
-  /* Data Buffer library functions */
-  int  DB_init(void);
-  void DB_s_data(pid_t who, token_type n_rows, unsigned char  *data, token_type n_rows1, unsigned char *data1);
-  void DB_s_tstamp(pid_t who, tstamp_type *tstamp);
-  void DB_s_dascmd(pid_t who, unsigned char type, unsigned char val);
-  void DB_s_init_client(pid_t who, unsigned char replycode);
-
-  /* Data Buffer application functions */
-  int DB_get_data(pid_t who, token_type n_rows);
-
-  /* Global variables declared in dbr_info.c */
-   extern dbr_info_type dbr_info;
-   #define tmi(x) dbr_info.tm.x
-   extern int dbr_breaksignal;
-
-   /* data clients */
-   extern token_type DC_data_rows;
-
-  #if defined __386__
-  #  pragma library (dbr3r)
-  #elif defined __SMALL__
-  #  pragma library (dbrs)
-  #elif defined __COMPACT__
-  #  pragma library (dbrc)
-  #elif defined __MEDIUM__
-  #  pragma library (dbrm)
-  #elif defined __LARGE__
-  #  pragma library (dbrl)
-  # endif
-#endif
+/* Global variables */
+extern dbr_info_type dbr_info;
+#define tmi(x) dbr_info.tm.x
 
 #endif
