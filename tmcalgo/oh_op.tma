@@ -40,7 +40,7 @@ State Initialize {
        +20 > OH scan etalon out 45000 by 100
       +130 > OH drive etalon to 29000
        +20 > OH scan etalon out 9000 by 40
-           [ Validate Record; ]
+           { Validate Record; }
 }
 State Record {
              > OH set etalon online delta 20
@@ -79,7 +79,7 @@ State Record {
           +5 > OH Scan Etalon out 45000 by 100
         +130 > OH Drive Etalon to 29000
          +20 > OH Scan Etalon out 9000 by 40
-             [ Validate Record; ]
+             { Validate Record; }
 }
 State Shutdown {
        +10 > OH Soldrv Select Mode 4
