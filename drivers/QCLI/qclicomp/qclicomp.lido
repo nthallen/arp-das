@@ -331,7 +331,7 @@ SYMBOL ICOSCmds COMPUTE
 			 1000000. ))),
 	  0 );
   SYNT.Trcymin =
-    IF ( GE(THIS.EstSamples, 16384), 200, 10 );
+    IF ( GE(THIS.EstSamples, 16384), 200, 20 );
   SYNT.SplitCycle = LT( MUL(4,THIS.Trcymin), THIS.Stepsize );
   SYNT.Trcypre = IF( THIS.SplitCycle, THIS.Trcymin, 0 );
   SYNT.Srcy = IF( THIS.SplitCycle, 0,
