@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.9  1994/06/20  18:50:29  nort
+ * sAdded nl_free_memory and remap of free_memory()
+ *
  * Revision 1.8  1994/06/20  18:42:56  nort
  * Added subset memlib functionality to nortlib
  * Made both includes cognizant of the fact
@@ -95,9 +98,11 @@ extern int tma_is_holding;
 #ifndef MEMLIB_H_INCLUDED
   #define new_memory(x) nl_new_memory(x)
   #define free_memory(x) nl_free_memory(x)
+  #define nl_strdup(x) nrtl_strdup(x)
 #endif
 void *nl_new_memory(size_t size);
 void nl_free_memory(void *p);
+char *nrtl_strdup(const char *s);
 
 #if defined __386__
 #  pragma library (nortlib3r)
