@@ -1,6 +1,9 @@
 %{
   /* yylex.l for tmcalgo
    * $Log$
+ * Revision 1.7  1996/05/02  13:43:09  nort
+ * Added keywords for "hold until valid or else"
+ *
  * Revision 1.6  1996/04/19  13:50:41  nort
  * Many changes
  *
@@ -151,7 +154,7 @@
 	input_linenumber = ta_input_line;
   }
 %}
-%Start statedef other
+%Start statedef
 %%
 State			return(KW_STATE);
 Partition		return(KW_PARTITION);
@@ -180,12 +183,12 @@ else            return(KW_ELSE);
 				  return(TK_COMMAND);
 				}
 <statedef>[()]  { return yytext[0]; }
-<statedef>"{"   { BEGIN other; return yytext[0]; }
-<other>"("		{ qstat( '(', ')', 0 ); return TK_PARENSTAT; }
-<other>"{"		{ qstat( '{', '}', 0 ); return TK_TMCSTAT; }
+<statedef>"{"   { BEGIN 0; return yytext[0]; }
+"("				{ qstat( '(', ')', 0 ); return TK_PARENSTAT; }
+"{"				{ qstat( '{', '}', 0 ); return TK_TMCSTAT; }
 "\""			{ qstat( '"', '"', 1 ); return TK_QSTRING; }
 ^"%{"           { pipe_code(); }
-[+:;},]	    	{ BEGIN other; return(yytext[0]); }
+[+:;},]	    	{ BEGIN 0; return(yytext[0]); }
 [ \t\f]       	;
 "#".*			;
 \n          	input_linenumber++;
