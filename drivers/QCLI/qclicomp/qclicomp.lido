@@ -395,7 +395,6 @@ ATTR DeltaI: double; /* Current step required */
 ATTR DtoA: int; /* DtoA config string for a Iz or ramp */
 ATTR DtoAs: WaveDtoAP;
 CHAIN CrntI: double;
-CHAIN DAHeap: WaveDtoAP;
 
 SYMBOL IzDef COMPUTE
   SYNT.Iz = CONSTITUENT Current.Value;
@@ -407,16 +406,14 @@ END;
 SYMBOL ICOSCmds COMPUTE
   INH.Iz = INCLUDING Wave.Iz;
   SYNT.DtoAs = new_wavedtoa();
-  CHAINSTART HEAD.CrntI = THIS.Iz;
-  SYNT.DtoA = alloc_dtoa( THIS.DtoAs, THIS.Iz, COORDREF ) <-
-	TAIL.CrntI;
-  CHAINSTART HEAD.DAHeap = THIS.DtoAs <- THIS.DtoA;
+  SYNT.DtoA = alloc_dtoa( THIS.DtoAs, THIS.Iz, COORDREF );
+  CHAINSTART HEAD.CrntI = THIS.Iz <- THIS.DtoA;
 END;
 SYMBOL ICOSRamp COMPUTE
+  INH.DtoAs = INCLUDING ICOSCmds.DtoAs;
   SYNT.DeltaI = SUB( THIS.Istart1, THIS.CrntI );
-  THIS.CrntI = THIS.Istop1;
-  SYNT.DtoA = alloc_dtoa( THIS.DAHeap, THIS.DeltaI, COORDREF );
-  THIS.DAHeap = THIS.DAHeap <- THIS.DtoA;
+  SYNT.DtoA = alloc_dtoa( THIS.DtoAs, THIS.DeltaI, COORDREF );
+  THIS.CrntI = THIS.Istop1 <- THIS.DtoA;
 END;
 
 /*------------------------------*/
