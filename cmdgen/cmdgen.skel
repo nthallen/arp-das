@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.21  1994/08/10  15:17:20  nort
+ * Support for straight text interfaces
+ *
  * Revision 1.20  1994/05/02  18:02:02  nort
  * Cleaned up options and documentation of options.
  * Added LL_INTERFACE option to allow straight keyboard input
@@ -18,11 +21,13 @@
  * Revision 1.14  1993/05/18  13:11:32  nort
  * Client/Server Support
  */
-#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <ctype.h>
 #include "cmdalgo.h"
+#include "nortlib.h" /* Included for cis_init. prototype() */
+                     /* <stdio.h>   Included by nortlib.h */
+#include "oui.h"
 #pragma off (unreferenced)
   static char cg_rcsid[] =
 	"$Id$";
@@ -65,7 +70,7 @@ static short ioflags;
  Interface options:
    CLIENT        Ships commands to a server
    SERVER        Receives commands from clients
-   SELF_SERVE    Does is all! (default if SNAFU_CURSES)
+   SELF_SERVE    Does it all! (default if SNAFU_CURSES)
 
  Low-level action options:
    CLIENT_ACTIONS Executes actions specified for client.
@@ -1227,4 +1232,18 @@ int cmd_check(cmd_state *s) {
 	void cis_initialize(void) {}
 	void cis_terminate(void) {}
   #endif
+#endif
+
+#if defined (CLIENT) || defined (SERVER)
+  int main(int argc, char **argv) {
+	oui_init_options(argc, argv);
+	BEGIN_MSG;
+	#ifdef CLIENT
+	  cmd_interact();
+	#else
+	  ci_server();
+	#endif
+	DONE_MSG;
+	return(0);
+  }
 #endif
