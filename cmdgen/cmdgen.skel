@@ -1,6 +1,10 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.12  1993/01/30  03:25:05  nort
+ * Changed default REJECT_CHAR
+ * Put escape handling back in batch mode to support current usage.
+ *
  * Revision 1.11  1993/01/30  02:24:55  nort
  * Added SNAFU_CURSES definitions.
  * Separated out CMD_BATCH_MODE and CMD_INTERACT_MODE
@@ -92,6 +96,9 @@ static short ioflags;
 #endif
 #ifndef INTERFACE
   #define QNX_CONS /* Since that's what we're doing */
+#endif
+#if (! defined CMD_INTERACT_MODE) && (! defined CMD_BATCH_MODE)
+  #error Must define either CMD_BATCH_MODE or CMD_INTERACT_MODE
 #endif
 #if (! defined CMD_INTERACT_MODE) && (! defined NO_PROMPTS)
   #define NO_PROMPTS
@@ -278,7 +285,7 @@ static unsigned short unshift_value;
    These are default routines which should be replaced by better ones.
 */
 #ifndef REJECT_CHAR
-  #define REJECT_CHAR do { putc(stderr,'\a'); fflush(stderr); } while (0)
+  #define REJECT_CHAR do { putc('\a', stderr); fflush(stderr); } while (0)
 #endif
 #ifndef SPECIAL_CHAR_FUNC
   #define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
@@ -339,7 +346,9 @@ static char con_clr[] = {
 static int con_col, con_high, con_low;
 static char con_buf[INPUT_BUFFER_SIZE*2+2];
 static int con_nchars = 0;
-static char *con_cur_prmt, *con_new_prmt;
+#ifndef NO_PROMPTS
+  static char *con_cur_prmt, *con_new_prmt;
+#endif
 
 static void con_puts(char *buf, int byte_offset, int n) {
   int i;
@@ -698,6 +707,7 @@ static int read_variable(short vartype, unsigned short n_chars) {
   } while (c != 0);
   vsp++;
   nterm_shift(0, n_chars, -1);
+  return(0);
 }
 #endif /* VAR_some */
 
@@ -809,8 +819,8 @@ static int read_words(unsigned short trieroot, unsigned short trie_offset) {
 		#endif
 		#ifdef CMD_INTERACT_MODE
 		  if (retreat(&triepos)) return(0);
+		  continue;
 		#endif
-		continue;
 	  case ' ':
 		if ((iomode & IO_SPACE) && advance(&triepos)) continue;
 		c = 0;
@@ -867,14 +877,15 @@ static int read_words(unsigned short trieroot, unsigned short trie_offset) {
 	}
   }
   shift(trie[triepos].next, triepos - trieroot, -1);
+  return(0);
 }
 
+/* Returns non-zero if the root non-terminal is reduced */
 static int reduce_rule(unsigned short rule) {
   unsigned short ntsp;
   
-  /* rule_action is generated in output_rules(). It returns the non-terminal
-     number of the non-terminal which we reduced to or zero if the
-	 reduction was aborted during the action.
+  /* rule_action is generated in output_rules().
+	 It returns the non-zero if the root non-terminal is reduced.
   */
   if (rule_action(rule)) return(1);
   if (full_reduce) { /* <move back to prev location +1> */
@@ -942,28 +953,29 @@ static int cmd_exec(void) {
 	  #ifdef VAR_some
 		if (st->flag == STFL_VARIABLE) {
 		  if (read_variable(st->offset, unshift_value))
-		    return(1000);
+		    return(CMDREP_SYNERR);
 		} else
 	  #else
 		assert(st->flag != STFL_VARIABLE);
 	  #endif
 		if (read_words(st->offset, unshift_value))
-		  return(1000);
+		  return(CMDREP_SYNERR);
 	}
   }
   CLEAR_DISPLAY_LINE;
   UPDATE_OUTPUT;
-  return(999);
+  return(CMDREP_SYNERR);
 }
 
 #ifdef CMD_BATCH_MODE
 /*	  Parses the specified command, executing if test == 0.
 	  Returns non-zero if an error occurred. Possible errors:
-	    999 Command execution resulted in termination
+	   CMDREP_QUIT Command execution resulted in termination
 		    (not exactly an error: more a status indication)
-	   1000-1999 Syntax error. Error value minus 1000 is the
+	   CMDREP_SYNERR - (CMDREP_EXECERR-1)
+			Syntax error. Error value minus 1000 is the
 			character position where the error occurred.
-	  >2000 Execution error. Error code + 2000
+	  >=CMDREP_EXECERR Execution error. Error code + CMDREP_EXECERR
 */
 int cmd_batch(char *cmd, int test) {
   short flaghold;
@@ -975,13 +987,13 @@ int cmd_batch(char *cmd, int test) {
   assert(cmd_input == NULL);
   old_iomode = iomode;
   iomode = 0;
-  cmd_input = cmdtxt;
+  cmd_input = cmd;
   ioflags &= ~IOF_INTERACTIVE;
   flaghold = ioflags & IOF_EXECUTE;
   if (test) ioflags &= ~IOF_EXECUTE;
   else ioflags |= IOF_EXECUTE;
   retval = cmd_exec();
-  if (retval == 1000) retval += (cmd_input - cmdtxt);
+  if (retval == CMDREP_SYNERR) retval += (cmd_input - cmd);
   ioflags = (ioflags & ~IOF_EXECUTE) | flaghold | IOF_INTERACTIVE;
   iomode = old_iomode;
   cmd_input = NULL;
@@ -1004,7 +1016,7 @@ void cmd_report(cmd_state *s) {
 /* Compares the current command state to the designated structure
  * returning zero if the states match.
  */
-int command_check(cmd_state *s) {
+int cmd_check(cmd_state *s) {
   return(s->state != tstack[tsp].state
 		|| s->value != unshift_value);
 }
