@@ -1,6 +1,9 @@
 %{
   /* yylex.l for tmcalgo
    * $Log$
+ * Revision 1.2  1993/09/27  20:05:32  nort
+ * Cleanup, common compiler functions
+ *
    * Revision 1.1  1993/05/18  20:37:15  nort
    * Initial revision
    */
@@ -13,7 +16,6 @@
   #include "nortlib.h"
   #include "y.tab.h"
   #include "yytype.h"
-  #include "memlib.h"
   #pragma off (unreferenced)
 	static char rcsid[] =
 	  "$Id$";
