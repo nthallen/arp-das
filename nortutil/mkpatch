@@ -35,10 +35,10 @@ shift $sval
 
 [ -z "$pkg" ] && nl_error pkg must be defined
 [ -z "$ofile" ] && ofile="${pkg}_QNX.patch"
-cd ..
+# cd ..
 
-[ -d "$pkg" ] || nl_error Cannot locate directory $pkg
-[ -d "$pkg.ORIG" ] || nl_error Cannot locate directory $pkg.ORIG
+[ -d "BLD/$pkg" ] || nl_error Cannot locate directory BLD/$pkg
+[ -d "ORIG/$pkg" ] || nl_error Cannot locate directory ORIG/$pkg
 [ -d "$portdir" -a -d "$portpath" ] ||
   nl_error Cannot locate original directory $portpath
 echo "mkpatch: Comparing $pkg.ORIG to $pkg"
@@ -46,7 +46,7 @@ echo "mkpatch: Comparing $pkg.ORIG to $pkg"
   if [ -n "$1" ]; then
 	newfiles=''
 	for pfile in ; do
-	  if [ ! -f $pkg.ORIG/$pfile -o ! -s $pkg.ORIG/$pfile ]; then
+	  if [ ! -f ORIG/$pkg/$pfile -o ! -s ORIG/$pkg/$pfile ]; then
 		newfiles="$newfiles $pfile"
 	  fi
 	done
@@ -55,27 +55,28 @@ echo "mkpatch: Comparing $pkg.ORIG to $pkg"
   fi
   if [ -n "$newfiles" ]; then
 	for file in $newfiles; do
-	  [ -f "$pkg.ORIG/$file" -a -s "$pkg.ORIG/$file" ] &&
-		nl_error $pkg.ORIG/$file exists!
-	  [ -f "$pkg/$file" ] || nl_error $pkg/$file missing
-	  if [ -s "$pkg/$file" ]; then
-		touch $pkg.ORIG/$file
-		touched="$touched $pkg.ORIG/$file"
+	  [ -f "ORIG/$pkg/$file" -a -s "ORIG/$pkg/$file" ] &&
+		nl_error ORIG/$pkg/$file exists!
+	  [ -f "BLD/$pkg/$file" ] || nl_error BLD/$pkg/$file missing
+	  if [ -s "BLD/$pkg/$file" ]; then
+		touch ORIG/$pkg/$file
+		touched="$touched ORIG/$pkg/$file"
 	  fi
 	  echo "touch $file"
 	done
   fi
   echo "exit 0\n=============\n"
+  cd BLD
   if [ -n "$1" ]; then
 	for pfile in; do
 	  echo pfile is $pfile >&2
-	  ffile=$pkg.ORIG/$pfile
+	  ffile=../ORIG/$pkg/$pfile
 	  file=$pkg/$pfile
 	  cmp -s $file $ffile || diff -c $ffile $file
 	done
   else
-	for ffile in `find $pkg.ORIG \( -name RCS -prune \) -o \( -type f -print \)`; do
-	  file=$pkg/${ffile#$pkg.ORIG/}
+	for ffile in `find ../ORIG/$pkg \( -name RCS -prune \) -o \( -type f -print \)`; do
+	  file=${ffile#../ORIG/}
 	  cmp -s $file $ffile || diff -c $ffile $file
 	done
   fi
