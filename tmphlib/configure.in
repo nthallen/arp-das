@@ -3,6 +3,7 @@ AC_INIT(INSTALL.tmph)
 AM_INIT_AUTOMAKE(tmph, 1.0)
 
 dnl Checks for programs.
+AM_PROG_LIBTOOL
 
 dnl Checks for libraries.
 
