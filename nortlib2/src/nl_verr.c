@@ -1,17 +1,17 @@
 /* nl_verr.c contains nl_verror() which allows easy expansion of
  * the nl_error capabilities in many cases.
  * $Log$
+ * Revision 1.1  1993/07/01  15:30:23  nort
+ * Initial revision
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include "nortlib.h"
-#ifdef __WATCOMC__
-  #pragma off (unreferenced)
-	static char rcsid[] =
-	  "$Id$";
-  #pragma on (unreferenced)
-#endif
+#pragma off (unreferenced)
+  static char rcsid[] =
+	"$Id$";
+#pragma on (unreferenced)
 
 int nl_verror(FILE *ef, int level, const char *fmt, va_list args) {
   char *lvlmsg;

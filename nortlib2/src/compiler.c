@@ -1,5 +1,8 @@
 /* compiler.c Support routines for compilers
  * $Log$
+ * Revision 1.1  1993/07/12  15:54:26  nort
+ * Initial revision
+ *
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,7 +72,7 @@ static char *makeofile(char *in, char *extension) {
   return(out);
 }
 
-static FILE *oofile(char *name) {
+FILE *open_output_file(char *name) {
   FILE *fp;
   
   if (*name == '-') return(stdout);
@@ -87,9 +90,10 @@ static void compile_exit(void) {
   }
 }
 
-void compile_error(int level, char *format, ...) {
+int compile_error(int level, char *format, ...) {
   va_list arg;
   
+  if (level < -1 && nl_debug_level > level) return(level);
   if (level > error_level) error_level = level;
   if (error_level == 1 && (compile_options&CO_IGN_WARN))
 	error_level = 0;
@@ -101,6 +105,7 @@ void compile_error(int level, char *format, ...) {
   }
   nl_verror(stderr, level, format, arg);
   va_end(arg);
+  return(level);
 }
 
 int yywrap(void) {
@@ -135,7 +140,7 @@ void compile_init_options(int argc, char **argv, char *extension) {
 		break;
 	  case 'o':
 		output_filename = optarg;
-		ofile = oofile(output_filename);
+		ofile = open_output_file(output_filename);
 		break;
 	}
   }
@@ -146,6 +151,6 @@ void compile_init_options(int argc, char **argv, char *extension) {
   yywrap();
   if (ofile == NULL && input_filename != NULL) {
 	output_filename = makeofile(input_filename, extension);
-	ofile = oofile(output_filename);
+	ofile = open_output_file(output_filename);
   }
 }
