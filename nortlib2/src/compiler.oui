@@ -1,25 +1,31 @@
-package compiler
-follow output_ext_init
-%----------------------------------------------------------------
-% compiler package uses the variable output_extension which is
-% defined in the package output_ext_init. The default extension
-% is ".c", but can be altered by copying the last two lines of
-% this file into another .oui which is read before this one
-% and modifying the extension there.
-%----------------------------------------------------------------
+<package> compiler
+<follow> output_ext_init
 
-opts >qkwvo:
-sort >	-q Print usage message
-sort >	-w Treat warnings as errors
-sort >	-v Increasing level of verbosity
-sort >	-k Keep incomplete output file on error
-sort >	-o <filename> Specify Output Filename
+<comment>
+  compiler package uses the variable output_extension which is
+  defined in the package output_ext_init. The default extension
+  is ".c", but can be altered by copying the last two lines of
+  this file into another .oui which is read before this one
+  and modifying the extension there.
 
-#include "compiler.h"
-#include "nortlib.h"
-defs >int (*nl_error)(int level, char *s, ...) = compile_error;
-vars >char *output_extension;
-inits >compile_init_options(argc, argv, output_extension);
+<opts> "qkwvo:"
+<sort>
+	-q Print usage message
+	-w Treat warnings as errors
+	-v Increasing level of verbosity
+	-k Keep incomplete output file on error
+	-o <filename> Specify Output Filename
 
-package output_ext_init
-inits >output_extension = ".c";
+<include> "compiler.h" "nortlib.h"
+<defs>
+  int (*nl_error)(int level, char *s, ...) = compile_error;
+  
+<vars>
+  char *output_extension;
+
+<inits>
+  compile_init_options(argc, argv, output_extension);
+
+<package> output_ext_init
+<inits>
+  output_extension = ".c";
