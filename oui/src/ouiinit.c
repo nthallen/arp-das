@@ -37,7 +37,7 @@ void oui_init_options(int argc, char **argv) {
 	-k Keep incomplete output file on error
 	-o <filename> Specify Output Filename
 	-q Print usage message
-	-u Don't sort the "sort" strings
+	-u Do not sort the "sort" strings
 	-v Increasing level of verbosity
 	-w Treat warnings as errors
 #endif

@@ -36,7 +36,7 @@ glbldef global_defs;
   #define CHECK_HEAP
 #endif
 
-void main(int argc, char **argv) {
+int main(int argc, char **argv) {
   unsigned int errlevel;
 
   oui_init_options(argc, argv);

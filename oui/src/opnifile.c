@@ -1,8 +1,12 @@
 /* opnifile.c Replacement for default version.
  * $Log$
+ * Revision 1.1  1994/09/15 19:45:28  nort
+ * Initial revision
+ *
  */
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include "nortlib.h"
 #include "compiler.h"
 
@@ -17,6 +21,7 @@ FILE *open_input_file(char *filename) {
   char fullname[ PATH_MAX ], partname[ PATH_MAX ];
   char *bn, *dot, *first;
   int i;
+  FILE *fp;
   
   strcpy(partname, "oui/");
   i = strlen(partname);
@@ -31,9 +36,14 @@ FILE *open_input_file(char *filename) {
 	strncpy(partname+i, ".oui", PATH_MAX-i);
 	partname[PATH_MAX-1] = '\0';
   }
-  _searchenv(first, "INCLUDE", fullname);
-  if (fullname[0] == '\0' && first[0] != '/')
-	_searchenv(partname, "INCLUDE", fullname);
+  fp = fopen( first, "r" );
+  if ( fp != NULL ) return fp;
+  searchenv(first, "INCLUDE", fullname);
+  if (fullname[0] == '\0' && first[0] != '/') {
+    fp = fopen( partname, "r" );
+    if ( fp != NULL ) return fp;
+	searchenv(partname, "INCLUDE", fullname);
+  }
   if (fullname[0] != '\0') return fopen(fullname, "r");
   else return 0;
 }

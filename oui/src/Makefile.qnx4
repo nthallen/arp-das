@@ -1,0 +1,49 @@
+HOMEDIR=/usr/local/src/oui
+MNC=oui
+SUBDIRS=regress ouit
+
+SRC=ouimain.c oui.y yylex.l opnifile.c llop.c ouidefs.h sortpkg.c output.c
+SRC+=ouiinit.oui ouiinit.c
+TOOL=Makefile oui.doc sample.oui todo
+OUIOBJ=ouimain.o oui.o opnifile.o llop.o yylex.o sortpkg.o output.o
+OUIOBJ+=ouiinit.o
+OBJ=$(OUIOBJ) oui.c y.tab.h sample.c
+TEMP=*.err
+TGT=oui
+
+SOURCE=$(SRC) $(TOOL)
+OBJECT=$(OBJ) $(TEMP)
+TARGET=$(TGT)
+
+YFLAGS=-d -t -l
+# LFLAGS=-i -l
+LEX=flex
+LFLAGS=-i -L
+CFLAGS=-w4 -g -ml -2
+LDFLAGS=$(BETALIB)
+
+test : oui sample.oui
+	oui -o - sample.oui
+oui : $(OUIOBJ)
+	$(LINK.c) -o oui $(OUIOBJ)
+	usemsg oui ouiinit.c
+oui.o : oui.c ouidefs.h
+	$(COMPILE.c) -D lint oui.c
+oui.c : oui.y
+yylex.o : yylex.l oui.c ouidefs.h
+	$(LEX.l) yylex.l > yylex.c
+	$(COMPILE.c) yylex.c
+	$(RM) yylex.c
+llop.o : llop.c ouidefs.h
+ouimain.o : ouimain.c ouidefs.h
+sortpkg.o : sortpkg.c ouidefs.h
+output.o : output.c ouidefs.h
+ouiinit.o : ouiinit.c ouidefs.h
+#----------------------------------------------------------------
+# In true compiler-compiler fashion, oui requires oui to make.
+# The idea is to handle this stuff by hand, making ouiinit.c
+# be part of the source distribution, although it was automatically
+# generated after oui was built.
+#----------------------------------------------------------------
+# ouiinit.c : oui ouiinit.oui
+#	oui ouiinit.oui

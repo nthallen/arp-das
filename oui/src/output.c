@@ -1,5 +1,8 @@
 /* output.c contains output routines for oui
  * $Log$
+ * Revision 1.5  2001/10/05 20:43:24  nort
+ * Indentation
+ *
  * Revision 1.4  1994/10/18  18:33:03  nort
  * Made a compromise on indentation
  *
@@ -150,8 +153,8 @@ void output_includes(void) {
   dump_llos( &prtd, "#include " );
 }
 
-static int compar(const char **a, const char **b) {
-  return(stricmp(*a, *b));
+static int compar(const void *a, const void *b) {
+  return(stricmp(*((const char **)a), *((const char **)b)));
 }
 
 static void output_sorted(void) {

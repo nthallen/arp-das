@@ -1,14 +1,17 @@
 %{
   /* yylex.l lexical analyzer for oui
      $Log$
+     Revision 1.2  2001/10/05 20:44:25  nort
+     Totally redone
+
  * Revision 1.1  1994/09/15  19:45:27  nort
  * Initial revision
  *
    */
   #include "nortlib.h"
   #include "compiler.h"
-  #include "y.tab.h"
   #include "ouidefs.h"
+  #include "y.tab.h"
   #pragma off (unreferenced)
 	static char rcsid[] =
 	  "$Id$";
