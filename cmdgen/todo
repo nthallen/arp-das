@@ -1,3 +1,40 @@
+Look Ahead? {
+  I through out look-ahead from the beginning, believing that it 
+  was incompatibile with an interactive parser, but I think that 
+  was probably an overreaction. Clearly I cannot look ahead when 
+  a carriage return is encountered: that's the time to act, but 
+  many syntaxes would be well served if I could look ahead a bit. 
+  How difficult would that be? Need to separate the shift and 
+  reduce operations. Obviously it would make sense to reduce 
+  immediately if look-ahead is not required.
+}
+Skeleton {
+  6/4/96 Updated skeleton because I was mishandling the value 
+  stack, causing erroneous values under some constructs. I am 
+  still unhappy about how the valpos is handled on the stack.
+  I would like to further modify the skeleton when time allows to 
+  shift first (storing the current vsp in valpos) and then 
+  increment vsp if a value was used. This would require mods to 
+  the P() and possible PP() macros as well as the full_reduce 
+  section of the code.
+}
+History Implementation {
+  To implement history, I believe I must do the following:
+  Augment the GETCH() function (nlcon_getch()) to call a special 
+  function when special scan codes are received. That function 
+  would accept up and down and call cmd_init() and cmd_batch()
+  and return 0 (which lets the routines percolate up to the top 
+  to accept interactive input again) iomode should be saved 
+  across the call to cmd_init() (Alternatively, check to see if 
+  that initialization can be moved out of cmd_init() entirely.)
+  Upon execution, clients would have to store command text along 
+  with the context in which they were executed (? or would I just 
+  scroll back through different contexts? That would be confusing 
+  no doubt. Perhaps it could be an option)
+  
+  cic_transmit() is a good place to record history, since that is 
+  where I keep track of state, etc.
+}
 Command Server {
   Decide on option letters to be compatible with existing set
   Uses cmd_batch() exclusively: i.e. CMD_BATCH_MODE but not

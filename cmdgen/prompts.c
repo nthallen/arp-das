@@ -1,6 +1,9 @@
 /* prompts.c
  *
  * $Log$
+ * Revision 1.5  1995/05/25  17:21:13  nort
+ * Use standard nortlib compiler functions
+ *
  * Revision 1.4  1993/05/18  13:10:47  nort
  * NO_PROMPTS support
  *

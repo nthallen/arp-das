@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.28  1997/01/06 00:22:54  nort
+ * Removed CMD_ERROR_FIX
+ *
  * Revision 1.27  1996/06/04  19:13:45  nort
  * Screwed up the value stack!
  *
@@ -188,7 +191,7 @@ static char ibuf[CG_IBUF_SIZE];
 #ifdef SNAFU_CURSES
   #define REJECT_CHAR snafu_reject_char()
   #define SPECIAL_CHAR_FUNC(x) REJECT_CHAR
-  #define CMD_ERROR(x) cmderr(x); exit_snafu(1)
+  #define CMD_ERROR(x) cmderr(x); exit(1)
   #define DISPLAY_CHAR(x) do { waddch(cmdwin.w, (x)?(x):' ');\
 							   ioflags |= IOF_UPDATE; } while (0)
   #define UNDISPLAY_CHAR do { waddch(cmdwin.w, '\b');\

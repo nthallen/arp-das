@@ -2,6 +2,9 @@
   /* trial.cmd
    * $Id$
    * $Log$
+# Revision 1.3  1992/07/15  20:37:45  nort
+# Beta Release
+#
    */
   #include <stdio.h>
   #define DCT_STR 3

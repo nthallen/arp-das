@@ -1,6 +1,9 @@
 /* vunion.c handles generation of the value stack union.
 
  * $Log$
+ * Revision 1.4  1995/05/25  17:20:53  nort
+ * Use standard nortlib compiler functions
+ *
  * Revision 1.3  1993/02/11  15:12:44  nort
  * Skeleton Support
  *

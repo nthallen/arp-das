@@ -1,6 +1,9 @@
 %{
   /* yylex.l Lexical Analyzer for parser generator
    * $Log$
+   * Revision 1.5  1995/05/25  17:19:05  nort
+   * Use standard nortlib compiler functions
+   *
    * Revision 1.4  1993/07/09  19:48:27  nort
    * *** empty log message ***
    *
@@ -104,6 +107,7 @@
 \%l?[dxofws] ret_full_str(TK_VAR_SPEC);
 \(([^\n\)]|\\.)*\) ret_inner(TK_PROMPT);
 \<([^\n\>]|\\.)*\> ret_inner(TK_TYPE_SPEC);
+#.* ;
 [ \t] ;
 [\n] input_linenumber++;
 [:;*] return(yytext[0]);

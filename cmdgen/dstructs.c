@@ -1,6 +1,9 @@
 /* dstructs.c defines routines for creating and manipulating
  * data structures for command parser generator.
  * $Log$
+ * Revision 1.3  1995/05/25  17:19:56  nort
+ * Use standard nortlib compiler functions
+ *
  * Revision 1.2  1993/05/18  13:09:13  nort
  * Client/Server Support
  *

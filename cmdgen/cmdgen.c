@@ -1,5 +1,8 @@
 /* cmdgen.c contains the main program for the Command Parser Generator.
  * $Log$
+ * Revision 1.6  1995/05/25  17:20:06  nort
+ * Use standard nortlib compiler functions
+ *
  * Revision 1.5  1993/05/19  20:32:55  nort
  * Changed version string so it can be picked out by ident
  */

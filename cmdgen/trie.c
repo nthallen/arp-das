@@ -1,6 +1,9 @@
 /* trie.c Defines grand trie structure in output file.
  *
  * $Log$
+ * Revision 1.3  1995/05/25  17:21:02  nort
+ * Use standard nortlib compiler functions
+ *
  * Revision 1.2  1992/10/20  20:29:39  nort
  * Corrected IDs
  *

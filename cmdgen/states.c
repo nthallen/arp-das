@@ -1,6 +1,9 @@
 /* states.c
  *
  * $Log$
+ * Revision 1.4  1995/05/25  17:20:41  nort
+ * Use standard nortlib compiler functions
+ *
  * Revision 1.3  1993/07/09  19:48:42  nort
  * Filled out reduce_state() to make nesting possible.
  *

@@ -24,7 +24,7 @@ HOMEDIR=/usr/local/src/das/cmdgen
 MNC=cmdg
 
 MODEL=c
-OBJMDL=$(MODEL)$(WCC32)
+OBJMDL=OBJ.$(MODEL)
 MODELARGS=-m$(MODEL) -2
 YFLAGS=-d -t -l
 LFLAGS=-i
@@ -35,10 +35,6 @@ LSRC=/usr/local/lib/src
 .INIT :
 	@if [ $(MODEL) = 3r -a "$(MODELARGS)" != "-ms -3" ]; then\
 	  echo Must invoke Model 3r via Makelib >&2;\
-	  exit 1;\
-	fi; :
-	@if [ $(MODEL) = 3r -a -z "$(WCC32)" ]; then\
-	  echo Cannot compile Model 3r without WCC32 >&2;\
 	  exit 1;\
 	fi; :
 	@if [ ! -d $(OBJMDL) ]; then mkdir $(OBJMDL); fi; :\

@@ -1,6 +1,9 @@
 /* rules.c
  *
  * $Log$
+ * Revision 1.7  1997/01/06 00:18:43  nort
+ * Moved default case to top of rule_action() to eliminate warnings.
+ *
  * Revision 1.6  1995/05/25  17:21:24  nort
  * Use standard nortlib compiler functions
  *

@@ -1,5 +1,9 @@
 /* cmdgen.h Definitions for Command Parser Generator
  * $Log$
+ * Revision 1.4  1994/09/08  13:45:54  nort
+ * Removed new_memory() and free_memory() definitions now provided
+ * by nortlib
+ *
  * Revision 1.3  1992/10/27  08:38:20  nort
  * Added command line options
  *

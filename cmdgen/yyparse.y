@@ -1,5 +1,8 @@
 %{
   /* $Log$
+ * Revision 1.3  1995/05/25  17:18:37  nort
+ * Use standard nortlib compiler functions
+ *
  * Revision 1.2  1993/05/18  13:07:37  nort
  * Changes for client/server support
  *
