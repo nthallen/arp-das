@@ -16,7 +16,7 @@ void oui_init_options(int argc, char **argv) {
 
   { int optltr;
 
-	optind = 0;
+	optind = OPTIND_RESET;
 	opterr = 0;
 	while ((optltr = getopt(argc, argv, opt_string)) != -1) {
 	  switch (optltr) {

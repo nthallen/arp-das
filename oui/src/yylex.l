@@ -1,6 +1,10 @@
 %{
   /* yylex.l lexical analyzer for oui
      $Log$
+     Revision 1.3  2001/10/10 20:42:32  nort
+     Compiled under QNX6. Still need to configure with automake
+     and autoconf.
+
      Revision 1.2  2001/10/05 20:44:25  nort
      Totally redone
 
@@ -11,7 +15,7 @@
   #include "nortlib.h"
   #include "compiler.h"
   #include "ouidefs.h"
-  #include "y.tab.h"
+  #include "ouigrmr.h"
   #pragma off (unreferenced)
 	static char rcsid[] =
 	  "$Id$";

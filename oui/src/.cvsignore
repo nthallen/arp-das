@@ -1,2 +1,8 @@
 .deps
-
+Makefile
+Makefile.in
+oui
+ouiraw
+ouigrmr.c
+ouigrmr.h
+yylex.c

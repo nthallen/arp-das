@@ -8,7 +8,7 @@
 %C	[options] file [file ...]
 
 <sort>
-	-u Don't sort the "sort" strings
+	-u Do not sort the "sort" strings
 <include> "ouidefs.h"
 <switch>
   case 'u': sort_output = 0; break;

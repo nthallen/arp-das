@@ -1,5 +1,9 @@
 /* output.c contains output routines for oui
  * $Log$
+ * Revision 1.6  2001/10/10 20:42:31  nort
+ * Compiled under QNX6. Still need to configure with automake
+ * and autoconf.
+ *
  * Revision 1.5  2001/10/05 20:43:24  nort
  * Indentation
  *
@@ -76,7 +80,7 @@ static void output_switch(void) {
 
   fprintf(ofile, "%s", "\n"
 	"  { int optltr;\n\n"
-	"\toptind = 0;\n"
+	"\toptind = OPTIND_RESET;\n"
 	"\topterr = 0;\n"
 	"\twhile ((optltr = getopt(argc, argv, opt_string)) != -1) {\n"
 	"\t  switch (optltr) {\n");
