@@ -2,13 +2,12 @@
 # $Id$
 SRC=yyparse.y yylex.l cmdgen.h dstructs.c cmdgen.c states.c vunion.c
 SRC+=typedefs.skel trie.c functions.skel prompts.c rules.c
-SRC+=cmdgen.skel
 TOOL=Makefile trial.cmd trial2.cmd
 DOC=todo wrtest.c rdtest.c
 OBJ=yyparse.o yylex.o dstructs.o cmdgen.o states.o vunion.o trie.o prompts.o
 OBJ+=rules.o
 INTERMED=y.tab.h yyparse.c yylex.c trial.c trial.o trial
-TEMPORARY=*.err rdtest.o wrtest.o rdtest wrtest
+TEMPORARY=*.err rdtest.o wrtest.o rdtest wrtest setup.dbg
 
 SOURCE=$(SRC) $(TOOL) $(DOC)
 OBJECT=$(OBJ) $(INTERMED) $(TEMPORARY)
@@ -19,7 +18,7 @@ MNC=cmdg
 MODEL=c
 YFLAGS=-d -t -l
 LFLAGS=-i
-CFLAGS=-g -m$(MODEL) -w4 -l nortlib -L /usr/local/lib -I /usr/local/include
+CFLAGS=-g -m$(MODEL) -2 -w4
 
 cmdgen : $(OBJ)
 	$(LINK.c) -o cmdgen $(OBJ) $(LDFLAGS)
@@ -42,5 +41,5 @@ trial : trial.o
 	$(CC) -g -ms -o trial trial.o $(LDFLAGS)
 trial.o : trial.c
 	$(CC) -c -g -ms trial.c
-trial.c : trial.cmd cmdgen cmdgen.skel
+trial.c : trial.cmd cmdgen
 	cmdgen <trial.cmd >trial.c

@@ -1,6 +1,9 @@
 %{
   /* yylex.l Lexical Analyzer for parser generator
    * $Log$
+   * Revision 1.3  1993/05/18  13:08:34  nort
+   * More comments, client/server support
+   *
    * Revision 1.2  1992/10/20  20:31:32  nort
    * *** empty log message ***
    *
@@ -15,8 +18,15 @@
    #include <unistd.h>
    #include "y.tab.h"
    #include "cmdgen.h"
-   static char rcsid[] = "$Id$";
+   #pragma off (unreferenced)
+	 static char rcsid[] =
+	   "$Id$";
+   #pragma on (unreferenced)
 
+   #ifdef yywrap
+	 #undef yywrap
+   #endif
+   int yywrap(void);
    #define ACTBUFSIZE 2048
    #define ret_full_str(x) { yylval.str_val = strdup(yytext);\
 							 return(x); }

@@ -313,21 +313,20 @@ Output {
 	}
   }
   Grand trie {
-	#define T_ROOT 0x80
-	#define node(x) (x|T_ROOT)
-	#define T_TERM node(1)
+	#define T_FLAG 0x80
+	#define T_ROOT 1
+	#define T_CHAR(i) (trie[i].code&0x7F)
+	#define T_MATCH(i,c) (tolower(c)==tolower(T_CHAR(i)))
 	typedef unsigned char token_type;
 	struct {
 	  unsigned char code;
-	  token_type next;
-	  token_type prev;
+	  cg_token_type next;
+	  cg_token_type prev;
 	} trie[];
 	code T_ROOT indicates the beginning of a trie.
-	code T_TERM indicates the end of one chain.
 	Each node consists of a list of characters to match with the
 	last in the list ORed with T_ROOT (e.g. node('z')). If a
-	match is found at position i
-	 (i.e. tolower(trie[i].code & 0x7F) == tolower(c))
+	match is found at position i (i.e. T_MATCH(i,c))
 	the character is accepted and the position is advanced by
 	the offest recorded in the next member
 	 (i.e. i += trie[i].next;)
