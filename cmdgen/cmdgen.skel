@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.15  1993/07/07  22:23:21  nort
+ * Mods for snafu.
+ *
  * Revision 1.14  1993/05/18  13:11:32  nort
  * Client/Server Support
  */
@@ -168,6 +171,12 @@ typedef struct {
 
 static void nterm_shift(cg_nonterm_type nt, unsigned short val, short prev);
 
+static unsigned short unshift_value;
+static short full_reduce;
+static int unshift(void);
+#define CANCEL_LINE do\
+  { while (unshift()); full_reduce=1; unshift_value=0; } while (0)
+
 %typedefs%
 
 #define VSTACK_SIZE 20
@@ -223,8 +232,6 @@ short tsp;
 #define CG_IBUF_SIZE 256
 static char ibuf[CG_IBUF_SIZE];
 static int ibufidx;
-static short full_reduce;
-static unsigned short unshift_value;
 
 #ifndef IOMODE_INIT
   #define IOMODE_INIT (IO_SPACE|IO_BACKSPACE|IO_ALWAYS)
@@ -271,7 +278,7 @@ static unsigned short unshift_value;
 		c = sgetch();
 		if (c == '@') break;
 		else snafu_scan_code(c);
-	  }
+	  } else break;
 	}
 	return(c);
   }
@@ -318,7 +325,6 @@ static unsigned short unshift_value;
 
 #define RUBOUT { UNSTORE_CHAR; UNDISPLAY_CHAR; }
 #define ACCEPT_CHAR(c) { STORE_CHAR(c); DISPLAY_CHAR(c); }
-#define CANCEL_LINE { while (unshift()); full_reduce=1; unshift_value=0; }
 
 #ifdef QNX_CONS
   #include <sys/stat.h>
