@@ -6,4 +6,4 @@ libnort_la_SOURCES = nl_error.c nl_verr.c nldbg.c \
 include_HEADERS = nortlib.h compiler.h ll_of_str.h md5.h mlf.h
 ouidir = $(includedir)/oui
 oui_HEADERS = compiler.oui
-
+bin_SCRIPTS = mlf_find

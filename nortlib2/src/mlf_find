@@ -1,0 +1,47 @@
+#! /bin/sh
+#__USAGE
+#%C	[-f] [base]
+# Script to locate existing log files stored in mlf order.
+#	-f    Report first file found instead of last
+#	base  Specify base directory name. Default is 'DATA'
+#
+# Suffix is fixed as '.dat'.
+# See nortlib mlf functions for more information.
+
+script=`basename $0`
+suffix='[.]dat'
+base='DATA'
+dir='-r'
+
+while getopts "f" option; do
+  case $option in
+	f) dir='';;
+	\?) echo; exit 1;;
+	*) echo Unsupported option: -$option; exit 1;;
+  esac
+done
+let sval=$OPTIND-1
+shift $sval
+[ -n "$1" ] && base=$1
+
+function nl_error {
+  echo "$script: $*" >&2
+  exit 1
+}
+[ -d $base ] || mkdir $base ||
+nl_error Unable to create $base subdirectory
+
+path=$base
+while true; do
+  lastdir=`find $path -type d -level 1 -prune -regex [0-9]+ -printf "%f\n" |
+		  sort $dir -n | head -n1`
+  [ -z "$lastdir" ] && break
+  path="$path/$lastdir"
+  # echo "Extended path to $path"
+done
+
+lastfile=`find $path -type f -level 1 -prune \
+			-regex ".*/[0-9][0-9]$suffix$" -printf "%f\n" |
+		  sort $dir | head -n1`
+path="$path/$lastfile"
+echo "$path"
