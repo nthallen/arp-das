@@ -1,5 +1,9 @@
 /* states.c
  * $Log$
+ * Revision 1.5  1994/08/29  17:42:27  nort
+ * Removed memlib.h to use simple nortlib memory interface
+ * Removed some of the outputs in connection with OUI development
+ *
  * Revision 1.4  1993/09/28  16:15:25  nort
  * Change to support "once" execution of tmc statements within
  * states, time updates at the end of states.
@@ -231,6 +235,7 @@ void output_states(FILE *ofp) {
   }
   if (saw_state) partition++;
   fprintf(ofp, "%%{\n"
+	"  const int tma_n_partitions = %d;\n"
 	"  #ifndef NEED_TIME_FUNCS\n"
 	"\t#define NEED_TIME_FUNCS\n"
 	"  #endif\n"
