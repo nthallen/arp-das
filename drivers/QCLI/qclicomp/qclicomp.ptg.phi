@@ -3,3 +3,4 @@
 #define PTG_OUTPUT_1HEX(f,v) ptg_output_word(f,(short)(v),1)
 #define PTG_OUTPUT_1LHEX(f,v) PTG_OUTPUT_HEX(f,v,1)
 #define PTG_OUTPUT_ICOSHEX(f,v,c) PTG_OUTPUT_HEX(f,(v)^0x001,c)
+#define PTG_OUTPUT_STRING(file,param) OutputLine(file,param)

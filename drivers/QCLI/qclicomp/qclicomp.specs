@@ -9,6 +9,7 @@ qclicomp.head.phi
 qclicomp.ptg.phi
 qclicomp.init.phi
 qclicomp.finl.phi
+linepos.c
 pickres.c
 $/Name/CScope.gnrc:inst
 $/Prop/Unique.gnrc:inst

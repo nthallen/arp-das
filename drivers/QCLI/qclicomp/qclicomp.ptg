@@ -117,6 +117,23 @@ CmdCode:
 CPCIdef:
   "      " $1 int ", " $2 int ", " $3 int ", "
   $4 int ", " $5 int ", " $6 int ", " $7 string
+  ", " $8 long
+
+MFile:
+  "Waves = struct( ...\n"
+  "  'Name', { " $1 " }, ...\n"
+  "  'RawRate', { " $2 " }, ...\n"
+  "  'RawSamples', { " $3 " }, ...\n"
+  "  'NetSamples', { " $4 " }, ...\n"
+  "  'NAverage', { " $5 " }, ...\n"
+  "  'NCoadd', { " $6 " }, ...\n"
+  "  'FTrigger', { " $7 " }, ...\n"
+  "  'ISICOS', { " $8 " }, ...\n"
+  "  'TzSamples', { " $9 " } ...\n"
+  ");\n"
+
+MCommas: $1 { "," [CondMatNL] } $2
+MString: "'" $1 "'"
 
 WaveCmd: "\t: " $1 " { $0 = " $2 int "; }\n"
 

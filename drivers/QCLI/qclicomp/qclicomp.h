@@ -69,4 +69,8 @@ unsigned short aps_to_bits( double aps, CoordPtr pos );
 PTGNode RingdownPTG( double Istart, double Istop, double Istep, int ProgLen,
   CoordPtr pos );
 
+extern void InitCol(void);
+extern void OutputLine(FILE *f, char *s);
+extern void CondMatNL(FILE *f);
+
 #endif

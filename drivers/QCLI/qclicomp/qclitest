@@ -11,5 +11,5 @@ if [ ! -f "$ifile" -a -f "$ifile.qcli" ]; then
 fi
 [ -f "$ifile" ] || nl_error "Cannot locate input file $ifile"
 base=${ifile%.*}
-./qclicomp.exe -o $base.out -c $base.cmd -d $base.tmc -v $base.log $ifile
+./qclicomp.exe -o $base.out -c $base.cmd -d $base.tmc -v $base.log -m $base.m $ifile
 

@@ -361,7 +361,7 @@ END;
 /* Calculate Steps taking SplitCycle into account */
 ATTR SSzi, SSrampi, SSzif, SSrcy: long;
 ATTR SplitFactor: int;
-ATTR ProgLen: int;
+ATTR ProgLen: long;
 SYMBOL ICOSCmds COMPUTE
   SYNT.SplitFactor = IF( THIS.SplitCycle, 2, 1 );
   SYNT.ProgLen = MUL( THIS.SplitFactor, THIS.Scycle );
@@ -470,7 +470,7 @@ END;
 /*-----------------------------------------*/
 /* Produce compiled QCLI output */
 /*-----------------------------------------*/
-ATTR PTG, WaveIndex: PTGNode;
+ATTR PTG, WaveIndex, WaveName: PTGNode;
 SYMBOL SourceFile COMPUTE
   SYNT.PTG = PTGFile(
     PTGHeader( PTGHex( THIS.ProgLen, 1 ), PTGHex( 0, 5 ) ),
@@ -486,15 +486,16 @@ SYMBOL SourceFile COMPUTE
       PTGOut( THIS.PTG) );
 END;
 SYMBOL Wave COMPUTE
+  SYNT.WaveName = PTGId(THIS.Sym);
   SYNT.WaveIndex =
-    PTGWaveIndex( PTGId(THIS.Sym),
+    PTGWaveIndex( THIS.WaveName,
 		  PTGHex(THIS.WaveAddr,1) );
 END;
 SYMBOL ICOSCmds COMPUTE
   SYNT.PTG =
     PTGSeq(
       PTGICOSHdr(THIS.WaveNum,
-	    PTGId(INCLUDING Wave.Sym),
+	    INCLUDING Wave.WaveName,
 	    PTGHex(ICOS_WAVEFORM_CODE,1),
 	    PTGHex(SUB( THIS.Ton, 1),1),
 	    PTGHex(SUB( THIS.Toff, 1),1),
@@ -547,7 +548,7 @@ ATTR TriggerSecs: double;
 SYMBOL ICOSCmds COMPUTE
   SYNT.TriggerSecs = DIV(THIS.Ttrigger,1000000.);
   SYNT.Summary =
-    PTGICOSWave( PTGId(INCLUDING Wave.Sym),
+    PTGICOSWave( INCLUDING Wave.WaveName,
 	  CONSTITUENTS RateDef.Summary
 		WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
 	  PTGSampleRate( THIS.RawRate, THIS.Naverage ),
@@ -665,6 +666,7 @@ SYMBOL RingCmds COMPUTE
   SYNT.Toff = usecs(THIS.ToffD);
   SYNT.Ttrigger = ADD(THIS.Ton,THIS.Toff);
   SYNT.Ftrigger = DIV_UP(1000000,THIS.Ttrigger);
+  SYNT.TzSamples = DIV_UP(MUL(THIS.Tpre,THIS.RawRate),1000000);
 END;
 SYMBOL RingRateDef COMPUTE
   INH.Key = INCLUDING Wave.Key;
@@ -782,7 +784,7 @@ SYMBOL RingCmds COMPUTE
   SYNT.PTG =
     PTGSeq(
       PTGRingHdr(INCLUDING Wave.WaveNum,
-	    PTGId(INCLUDING Wave.Sym),
+	    INCLUDING Wave.WaveName,
 	    PTGHex(RINGDOWN_WAVEFORM_CODE,1),
 	    PTGHex(SUB( THIS.Ton, 1),1),
 	    PTGHex(SUB( THIS.Toff, 1),1),
@@ -816,6 +818,7 @@ END;
 /* Compiled .cmd Output                                      */
 /*-----------------------------------------------------------*/
 ATTR CMDoutput: PTGNode;
+ATTR ISICOS: int;
 SYMBOL SourceFile COMPUTE
   SYNT.CMDoutput = PTGCmdCode(
     CONSTITUENTS (ICOSCmds.CMDoutput,RingCmds.CMDoutput)
@@ -827,19 +830,51 @@ SYMBOL SourceFile COMPUTE
       PTGOutFile( StringTable(GetClpValue(CmdFile,0)), THIS.CMDoutput ));
 END;
 SYMBOL Wave COMPUTE
-  SYNT.CMDoutput = PTGWaveCmd( PTGId(THIS.Sym), THIS.WaveNum );
+  SYNT.CMDoutput = PTGWaveCmd( THIS.WaveName, THIS.WaveNum );
 END;
 SYMBOL ICOSCmds COMPUTE
+  SYNT.ISICOS = 1;
   SYNT.CMDoutput = PTGCPCIdef(
     THIS.RawRate, THIS.RawSamples, THIS.NetSamples,
     THIS.Naverage, INCLUDING(Wave.Ncoadd), THIS.Ftrigger,
-    "CPCI_ICOS" );
+    "CPCI_ICOS", THIS.TzSamples );
 END;
 SYMBOL RingCmds COMPUTE
+  SYNT.Naverage = 1;
+  SYNT.ISICOS = 0;
   SYNT.CMDoutput = PTGCPCIdef(
     THIS.RawRate, THIS.Nsample, THIS.ProgLen,
     1, INCLUDING(Wave.Ncoadd), THIS.Ftrigger,
-    "CPCI_RINGDOWN" );
+    "CPCI_RINGDOWN", THIS.TzSamples );
+END;
+
+/*-----------------------------------------------------------*/
+/* Compiled .m Output                                        */
+/*-----------------------------------------------------------*/
+ATTR Moutput: PTGNode;
+SYMBOL SourceFile COMPUTE
+  SYNT.Moutput = PTGMFile( 
+    CONSTITUENTS Wave.WaveName
+      WITH( PTGNode, PTGMCommas, PTGMString, PTGNULL ),
+    CONSTITUENTS ( ICOSCmds.RawRate, RingCmds.RawRate )
+      WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
+    CONSTITUENTS ( ICOSCmds.RawSamples, RingCmds.Nsample )
+      WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
+    CONSTITUENTS ( ICOSCmds.NetSamples, RingCmds.ProgLen )
+      WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
+    CONSTITUENTS ( ICOSCmds.Naverage, RingCmds.Naverage )
+      WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
+    CONSTITUENTS Wave.Ncoadd
+      WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
+    CONSTITUENTS ( ICOSCmds.Ftrigger, RingCmds.Ftrigger )
+      WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
+    CONSTITUENTS ( ICOSCmds.ISICOS, RingCmds.ISICOS )
+      WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
+    CONSTITUENTS ( ICOSCmds.TzSamples, RingCmds.TzSamples )
+      WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL )
+  );
+  IF( NE(MFile,NoKey),
+      PTGOutFile( StringTable(GetClpValue(MFile,0)), THIS.Moutput ));
 END;
 
 /*-----------------------------------------------------------*/
