@@ -1,11 +1,7 @@
-Makefile
+configure config.log config.cache config.status
+Makefile Makefile.in
 config.h
-stamp-h
+stamp-h stamp-h.in
 libtool
-.deps
-config.log config.cache config.status
 INST
-.nortlib.h.swp
-*.lo *.la
-.libs
 

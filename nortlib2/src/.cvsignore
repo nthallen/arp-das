@@ -1,0 +1,5 @@
+Makefile Makefile.in
+libtool
+.deps .libs
+*.lo *.la
+

@@ -1,0 +1,10 @@
+When installing from the CVS repository, you will need
+to run:
+
+  aclocal
+  automake
+  autoconf
+  ./configure
+  make
+  make install
+
