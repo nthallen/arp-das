@@ -24,14 +24,50 @@ exit(0);
 # What is a pattern?
 # Width \d+ - set the width of a column
 #
-# [addr] - output the current file offset
-# [cCsSlLfdnN][\d+] %[.\w+] - Read that many of that type and
+# A %[.\w+] - output the current file offset using the specified
+#             format.
+# [acCsSlLfdnN][\d+] %[.\w+] - Read that many of that type and
 #   display using the specified format
-# ".*" - output the specified string and a newline
+#   a ASCII chars: displays in specified integer format
+#           and also as text.
+#   c signed char
+#   C unsigned char
+#   s signed short
+#   S unsigned short
+#   l signed long
+#   L unsigned long
+#   f single-precision float
+#   d double-precision float
+#   n unsigned short in "network order"
+#   N unsigned long in "network order"
+#   Z NUL-terminated ASCII string rounded to
+#       what appears to be the appropriate boundary.
+# ".*" - output the specified string
 # $  - output a newline
 # #  - comments
 # REPEAT [\d+]
 # END
+#
+# Things that would be cool:
+#   Output in multiple formats:
+#      DO L2 %d AND S4 %d AND C8 %02X END
+#   Format to suppress output: %!, say?
+#   Variables:
+#     Foo = L1 %3d
+#       If index is 1, its a scalar. If more, an array (unless string type)
+#     $Foo %3d - redisplay variable
+#     $Foo[2] %3d - index into variable
+#   Switch statement:
+#   Switch $Foo
+#     Case 123
+#       L3 %d
+#     Case 255
+#       L4 %d
+#   End
+#
+#  Variables defined within a REPEAT loop are indexed
+#  They can be referenced directly within the loop or
+#  via index outside the loop
 
 sub process_pattern {
   my ( $pat, @fh ) = @_;
@@ -62,6 +98,8 @@ sub do_pattern {
 	  $$width = $1;
 	} elsif ( $line =~ s/^\s*\$// ) {
 	  flush_out( $width, $out );
+	} elsif ( $line =~ s/^\s*"([^"]*)"// ) {
+	  do_quote( $out, $1 );
 	} elsif ( $line =~ s/^\s*Z\*// ) {
 	  do_readZ( $out, @fh );
 	} elsif ( $line =~ s/^\s*([acCsSlLfdnN])(\d+)?\s+(%[.\w]+)// ) {
@@ -86,6 +124,13 @@ sub do_addr {
   for my $i ( 0 .. $#fh ) {
     my $fpos = tell $fh[$i];
     push @{$out->[$i]}, "Addr:", sprintf $fmt, $fpos;
+  }
+}
+
+sub do_quote {
+  my ( $out, $quote ) = @_;
+  for my $col ( @$out ) {
+    push @$col, $quote;
   }
 }
 
