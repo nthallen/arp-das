@@ -1,6 +1,10 @@
 /* output.c contains output routines for oui
  * $Log$
+ * Revision 1.1  1994/09/15  19:45:34  nort
+ * Initial revision
+ *
  */
+#include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>
@@ -137,8 +141,31 @@ void output_includes(void) {
   dump_llos( &prtd, "#include " );
 }
 
+static int compar(const char **a, const char **b) {
+  return(stricmp(*a, *b));
+}
+
 static void output_sorted(void) {
-  dump_llos( &global_defs.sorted, "" );
+  char **sorter;
+  struct llosleaf *lf;
+  int n_strs, i;
+  
+  if (sort_output) {
+	n_strs = 0;
+	for (lf = global_defs.sorted.first; lf != NULL; lf = lf->next)
+	  n_strs++;
+	if (n_strs > 0) {
+	  sorter = new_memory(n_strs * sizeof(char *));
+	  for (i = 0; i < n_strs; i++)
+		sorter[i] = llos_deq(&global_defs.sorted);
+	  qsort(sorter, n_strs, sizeof(char *), compar);
+	  for (i = 0; i < n_strs; i++) {
+		fprintf(ofile, "%s\n", sorter[i]);
+		free_memory(sorter[i]);
+	  }
+	  free_memory(sorter);
+	}
+  } else dump_llos( &global_defs.sorted, "" );
 }
 
 void output_usage(void) {
