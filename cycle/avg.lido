@@ -1,19 +1,33 @@
-CHAIN RegionNumber, RegionIndex : int;
-ATTR N_Regions, CurrRegionNumber, CurrRegion : int;
+CHAIN RegionIndex : int;
+ATTR CurrRegionNumber, CurrRegion, NextRegionNumber : int;
+ATTR AvgKey : DefTableKey;
 
 RULE: Average ::= 'Average' OptRaw AvgVarList 'Over' RegionList ';'
 END;
 
+SYMBOL Average INHERITS RegionRootCount END;
+SYMBOL RegionListElt INHERITS RegionCount END;
+
+SYMBOL Program COMPUTE
+  SYNT.AvgKey = NewKey();
+END;
+
 SYMBOL Average COMPUTE
-  CHAINSTART HEAD.RegionNumber = 1;
-  SYNT.N_Regions = SUB(TAIL.RegionNumber,1);
+  SYNT.AvgKey = INCLUDING Program.AvgKey;
   SYNT.CurrRegionNumber = 1;
-  SYNT.Done = UNTIL GE(SYNT.CurrRegionNumber,SYNT.N_Regions)
-			  ITERATE SYNT.CurrRegionNumber =
-				ADD(SYNT.CurrRegionNumber,1) <- SYNT.CurrRegion;
-  CHAINSTART HEAD.RegionIndex = NoStrIndex
-	<- SYNT.CurrRegionNumber;
+  SYNT.Done =
+	UNTIL GE(SYNT.CurrRegionNumber,	THIS.RegionCountResult)
+	ITERATE SYNT.CurrRegionNumber = SYNT.NextRegionNumber;
+  CHAINSTART HEAD.RegionIndex = NoStrIndex <- SYNT.CurrRegionNumber;
   SYNT.CurrRegion = TAIL.RegionIndex;
+  SYNT.NextRegionNumber = ORDER(
+	printf( "Collecting data for Region %s\n",
+	  StringTable(SYNT.CurrRegion) ),
+	ResetAvgptg(SYNT.AvgKey, PTGSeq( GetAvgptg(SYNT.AvgKey, PTGNULL),
+	  CONSTITUENTS VarListElt.AvgOutput
+	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNULL ))),
+	ADD(SYNT.CurrRegionNumber,1));
+  THIS.AvgOut = SYNT.Done <- THIS.AvgOut;
 END;
 
 RULE: RegionList ::= RegionListPart END;
@@ -27,9 +41,8 @@ RULE: RegionListElt ::= Name END;
 % assigned to the enclosing Average.CurrRegion.
 %----------------------------------------------------------------
 RULE: RegionListElt ::= Name COMPUTE
-  RegionListElt.RegionNumber = ADD(RegionListElt.RegionNumber,1);
   RegionListElt.RegionIndex =
-	IF( EQ(RegionListElt.RegionNumber,
+	IF( EQ(RegionListElt.RegionCount,
 		  INCLUDING	Average.CurrRegionNumber),
 		Name,
 		RegionListElt.RegionIndex );
@@ -40,7 +53,122 @@ RULE: VarListPart ::= VarListElt END;
 RULE: VarListPart ::= VarListPart ',' VarListElt END;
 RULE: VarListElt ::= Name END;
 
+ATTR AvgOutput : PTGNode;
 RULE: VarListElt ::= Name COMPUTE
-  printf( "Var %s Region %s\n", StringTable(Name),
-	StringTable(INCLUDING Average.CurrRegion) );
+  VarListElt.AvgOutput =
+	PTGAverageDef(
+	  PTGId(INCLUDING Average.CurrRegion), PTGId(Name)
+	);
+  printf( "processing Var %s Region %s\n",
+	StringTable(Name), StringTable(INCLUDING Average.CurrRegion)
+	);
+END;
+
+%----------------------------------------------------------------
+% Region Name identification via $/Name/CScope.gnrc
+%----------------------------------------------------------------
+ATTR Sym : int;
+
+SYMBOL Program INHERITS RegionRootScope END;
+SYMBOL RegionListElt INHERITS RegionIdUseEnv, RegionChkIdUse END;
+
+RULE: RegionListElt ::= Name COMPUTE
+  RegionListElt.Sym = Name;
+END;
+
+%----------------------------------------------------------------
+% Trigger Definition Output
+%----------------------------------------------------------------
+ATTR ptg, Startptg, Prestartptg, Nameptg: PTGNode;
+CHAIN TrigOut, RegCollect, RegOut, AvgOut : VOID;
+
+SYMBOL Program COMPUTE
+  CHAINSTART HEAD.TrigOut = 1;
+  CHAINSTART HEAD.RegCollect = TAIL.TrigOut;
+  CHAINSTART HEAD.RegOut = TAIL.RegCollect;
+  CHAINSTART HEAD.AvgOut = TAIL.RegOut;
+  PTGOut(GetAvgptg(THIS.AvgKey,PTGNULL)) <- TAIL.AvgOut;
+END;
+
+RULE: Trigger ::= 'Trigger' Name '{' 'Start:' Expr ';'
+				  Prestart RegionDefs '}' COMPUTE
+  Trigger.Startptg = Expr.ptg;
+  Trigger.Prestartptg = Prestart.ptg;
+  Trigger.Nameptg = PTGId(Name);
+  Trigger.TrigOut = PTGOut(PTGTriggerDef(Trigger.Nameptg,
+		Trigger.Startptg, Trigger.Prestartptg)) <- Trigger.TrigOut;
+END;
+
+%----------------------------------------------------------------
+% Region Definitions
+%----------------------------------------------------------------
+ATTR Inptg, Outptg, Trigptg, Elapsedptg : PTGNode;
+SYMBOL Program INHERITS RegionRangeFirstOcc END;
+SYMBOL RegionDef INHERITS RegionFirstOcc END;
+
+SYMBOL RegionDef INHERITS RegionIdDefScope END;
+RULE: RegionDef ::= 'Region' Name Intervals ';' COMPUTE
+  RegionDef.Sym = Name;
+  RegionDef.Trigptg = INCLUDING Trigger.Nameptg;
+  .Elapsedptg = PTGTrigElapsed(RegionDef.Trigptg);
+  RegionDef.RegCollect =
+	ORDER(
+	  ResetInptg( RegionDef.Key,
+		PTGOrSeq( GetInptg(RegionDef.Key, PTGNULL),
+		  PTGAndSeq( PTGTrigSeen(RegionDef.Trigptg), Intervals.Inptg))
+	  ),
+	  ResetOutptg( RegionDef.Key,
+		PTGAndSeq( GetOutptg(RegionDef.Key,PTGNULL),
+		  PTGOrSeq(PTGNot(PTGTrigSeen(RegionDef.Trigptg)),
+			PTGOrSeq(PTGBinOp(.Elapsedptg,PTGAsIs("<="),TAIL.OutMin),
+			  PTGSeq(.Elapsedptg,TAIL.OutMax)))
+		))) <- RegionDef.RegCollect;
+  RegionDef.RegOut = IF ( RegionDef.IsRegionFirstOcc,
+	  PTGOut(PTGRegionDef( PTGId(Name),
+		GetInptg(RegionDef.Key, PTGNULL),
+		GetOutptg(RegionDef.Key, PTGNULL) ))) <- RegionDef.RegOut;
+END;
+SYMBOL Intervals COMPUTE
+  SYNT.Inptg = CONSTITUENTS Interval.Inptg
+	WITH ( PTGNode, PTGOrSeq, IDENTICAL, PTGNULL );
+END;
+RULE: Interval ::= LeftInterval Number ',' Number RightInterval COMPUTE
+  .Elapsedptg = PTGTrigElapsed(INCLUDING RegionDef.Trigptg);
+  Interval.Inptg =
+	PTGAndSeq(
+	  PTGBinOp( .Elapsedptg, LeftInterval.ptg, Number[1].ptg ),
+	  PTGBinOp( .Elapsedptg, RightInterval.Inptg, Number[2].ptg )
+	);
+END;
+RULE: LeftInterval ::= '(' COMPUTE LeftInterval.ptg = PTGAsIs(">"); END;
+RULE: LeftInterval ::= '[' COMPUTE LeftInterval.ptg = PTGAsIs(">="); END;
+RULE: RightInterval ::= ')' COMPUTE
+  RightInterval.Inptg = PTGAsIs("<");
+  RightInterval.Outptg = PTGAsIs(">=");
+END;
+RULE: RightInterval ::= ']' COMPUTE
+  RightInterval.Inptg = PTGAsIs("<=");
+  RightInterval.Outptg = PTGAsIs(">");
+END;
+RULE: Number ::= Integer  COMPUTE
+  Number.ptg = PTGId(Integer);
+END;
+RULE: Number ::= Float  COMPUTE
+  Number.ptg = PTGId(Float);
+END;
+
+%----------------------------------------------------------------
+% Calculate Outptg...
+%----------------------------------------------------------------
+CHAIN OutMin, OutMax : PTGNode;
+
+SYMBOL RegionDef COMPUTE
+  CHAINSTART HEAD.OutMin = PTGNULL;
+  CHAINSTART HEAD.OutMax = TAIL.OutMin;
+END;
+RULE: Interval ::= LeftInterval Number ',' Number RightInterval COMPUTE
+  Interval.OutMin =
+	IF(EQ(Interval.OutMin,PTGNULL),Number[1].ptg,Interval.OutMin);
+  Interval.OutMax =
+	PTGSeq(RightInterval.Outptg,Number[2].ptg) <- Interval.OutMax;
 END;
