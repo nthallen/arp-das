@@ -1,4 +1,4 @@
-configure config.log config.cache config.status
+configure config.log config.cache config.status aclocal.m4
 Makefile Makefile.in
 config.h
 stamp-h stamp-h.in
