@@ -100,6 +100,7 @@ RingData:
   [ PTG_OUTPUT_1HEX $1 short ] " " $2 double " Amps\n"
 
 Commas: $1 { ",\n" } $2
+Double: $1 double
 
 CmdCode:
   "%{\n"
@@ -129,7 +130,9 @@ MFile:
   "  'NCoadd', { " $6 " }, ...\n"
   "  'FTrigger', { " $7 " }, ...\n"
   "  'ISICOS', { " $8 " }, ...\n"
-  "  'TzSamples', { " $9 " } ...\n"
+  "  'TzSamples', { " $9 " }, ...\n"
+  "  'dIdt', { " $10 " }, ...\n"
+  "  'I0', { " $11 " } ...\n"
   ");\n"
 
 MCommas: $1 { "," [CondMatNL] } $2

@@ -851,6 +851,15 @@ END;
 /*-----------------------------------------------------------*/
 /* Compiled .m Output                                        */
 /*-----------------------------------------------------------*/
+SYMBOL RingCmds COMPUTE
+  SYNT.dIdt = 0.;
+  SYNT.Istart1 = NEG(1.);
+END;
+SYMBOL ICOSCmds COMPUTE
+  SYNT.Istart1 = CONSTITUENTS ICOSRamp.Istart1
+    WITH( double, FIRST, IDENTICAL, ZERO );
+END;
+
 ATTR Moutput: PTGNode;
 SYMBOL SourceFile COMPUTE
   SYNT.Moutput = PTGMFile( 
@@ -871,7 +880,11 @@ SYMBOL SourceFile COMPUTE
     CONSTITUENTS ( ICOSCmds.ISICOS, RingCmds.ISICOS )
       WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
     CONSTITUENTS ( ICOSCmds.TzSamples, RingCmds.TzSamples )
-      WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL )
+      WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
+    CONSTITUENTS ( ICOSCmds.dIdt, RingCmds.dIdt )
+      WITH( PTGNode, PTGMCommas, PTGDouble, PTGNULL ),
+    CONSTITUENTS ( ICOSCmds.Istart1, RingCmds.Istart1 )
+      WITH( PTGNode, PTGMCommas, PTGDouble, PTGNULL )
   );
   IF( NE(MFile,NoKey),
       PTGOutFile( StringTable(GetClpValue(MFile,0)), THIS.Moutput ));
