@@ -90,7 +90,7 @@ int TM_stream( int nbytes, const char *data ) {
 		if ( want == 4 ) {
 		  to_complete = 0;
 		  switch ( ubuf->msg.hdr.tm_type ) {
-			case TMTYPE_INIT: want += sizeof( tm_dac_t ); break;
+			case TMTYPE_INIT: want += sizeof( tm_info_t ); break;
 			case TMTYPE_TSTAMP: want += sizeof( tstamp_t ); break;
 			case TMTYPE_DATA_T1: want += sizeof( tm_data_t1_t ) - 2; break;
 			case TMTYPE_DATA_T2: want += sizeof( tm_data_t2_t ) - 2; break;
@@ -116,7 +116,7 @@ int TM_stream( int nbytes, const char *data ) {
 		} else {
 		  switch ( ubuf->msg.hdr.tm_type ) {
 			case TMTYPE_INIT: 
-			  memcpy( &tm_info, &ubuf->msg.body.init, sizeof(tm_dac_t) );
+			  memcpy( &tm_info, &ubuf->msg.body.init, sizeof(tm_info_t) );
 			  TM_init();
 			  want = 0; buf_offset = 0; break;
 			case TMTYPE_TSTAMP: 

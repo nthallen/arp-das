@@ -19,7 +19,7 @@ typedef struct {
   tm_hdrw_t tm_id; /* 'TM' TMHDR_WORD */
   tm_hdrw_t tm_type;
 } tm_hdr_t;
-#define TMHDR_WORD 0x544D
+#define TMHDR_WORD 0x4D54
 #define TMBUFSIZE 16384
 #define TM_DEV_BASE "/dev/huarp"
 #define TM_DEV_SUFFIX "TM"
@@ -123,7 +123,7 @@ typedef struct tm_msg {
   tm_hdr_t hdr;
   union {
 	tstamp_t ts;
-	tm_dac_t init;
+	tm_info_t init;
 	tm_data_t1_t data1;
 	tm_data_t2_t data2;
 	tm_data_t3_t data3;
