@@ -3,3 +3,8 @@ qclicomp.gla
 qclicomp.lido
 $/Name/CScope.gnrc:inst
 $/Prop/Unique.gnrc:inst
+$/Prop/Unique.gnrc +instance=Iz :inst
+$/Prop/Unique.gnrc +instance=Tz :inst
+$/Prop/Unique.gnrc +instance=Ncoadd :inst
+$/Prop/Unique.gnrc +instance=Sample :inst
+$/Prop/Unique.gnrc +instance=dIdt :inst

@@ -1,4 +1,5 @@
 /* Definition of waveform names. */
+ATTR Key : DefTableKey;
 /* Still have not required that they be unique */
 RULE: ICOSWave ::= 'ICOS' 'Waveform' DefIdent '{' ICOSCmds '}' END;
 RULE: DefIdent ::= Ident COMPUTE DefIdent.Sym = Ident; END;
@@ -6,4 +7,43 @@ SYMBOL DefIdent INHERITS IdDefScope, Unique COMPUTE
   IF (NOT (THIS.Unique),
 	  message (ERROR, CatStrInd ("Waveform is multiply defined: ", THIS.Sym),
 			   0, COORDREF));
+END;
+
+SYMBOL Wave COMPUTE SYNT.Key = CONSTITUENT DefIdent.Key; END;
+
+/* Make sure only one Tz is defined per waveform */
+SYMBOL TzDef INHERITS TzUnique COMPUTE
+  INH.Key = INCLUDING Wave.Key; 
+  IF (NOT (THIS.TzUnique),
+	  message (ERROR, "Tz is multiply defined: ", 0, COORDREF));
+END;
+
+/* Make sure only one Iz is defined per waveform */
+SYMBOL IzDef INHERITS IzUnique COMPUTE
+  INH.Key = INCLUDING Wave.Key; 
+  IF (NOT (THIS.IzUnique),
+	  message (ERROR, "Iz is multiply defined: ", 0, COORDREF));
+END;
+
+/* Make sure only one Ncoadd is defined per waveform */
+SYMBOL NcoaddDef INHERITS NcoaddUnique COMPUTE
+  INH.Key = INCLUDING Wave.Key; 
+  IF (NOT (THIS.NcoaddUnique),
+	  message (ERROR, "Ncoadd is multiply defined: ", 0, COORDREF));
+END;
+
+/* Make sure only one Sample is defined per waveform */
+SYMBOL NsampleDef INHERITS SampleUnique END;
+SYMBOL RateDef INHERITS SampleUnique END;
+CLASS SYMBOL SampleUnique COMPUTE
+  INH.Key = INCLUDING Wave.Key; 
+  IF (NOT (THIS.SampleUnique),
+	  message (ERROR, "Only one definition of Nsample or SampleRate is allowed: ", 0, COORDREF));
+END;
+
+/* Make sure only one dIdt is defined per waveform */
+SYMBOL dIdt INHERITS dIdtUnique COMPUTE
+  INH.Key = INCLUDING Wave.Key; 
+  IF (NOT (THIS.dIdtUnique),
+	  message (ERROR, "dIdt is multiply defined: ", 0, COORDREF));
 END;

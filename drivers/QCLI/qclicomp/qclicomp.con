@@ -3,13 +3,14 @@ Wave : ICOSWave .
 ICOSWave : 'ICOS' 'Waveform' Ident '{' ICOSCmds '}' .
 ICOSCmds : ICOSCmd+ .
 ICOSCmd : ICOSAssign ';' / ICOSRamp .
-ICOSAssign :
- 'Tz' '=' FloatVal TimeUnit /
- 'Iz' '=' FloatVal CurrentUnit /
- 'Ncoadd' '=' Integer /
- 'Nsample' '=' Integer /
- 'SampleRate' '=' Integer '/' TimeUnit Naverage /
- 'dI' '/' 'dt' '=' FloatVal CurrentUnit '/' TimeUnit .
+ICOSAssign : TzDef / IzDef / NcoaddDef / NsampleDef / RateDef / dIdt .
+TzDef : 'Tz' '=' FloatVal TimeUnit .
+IzDef : 'Iz' '=' FloatVal CurrentUnit .
+NcoaddDef : 'Ncoadd' '=' Integer .
+NsampleDef : 'Nsample' '=' Integer .
+RateDef : 'SampleRate' '=' Integer '/' TimeUnit Naverage .
+dIdt : 'dI' '/' 'dt' '=' FloatVal CurrentUnit '/' TimeUnit .
+
 ICOSRamp : 'Ramp' '{' ICOSRampCmds '}' .
 ICOSRampCmds : ( ICOSRampAssign ';' )+ .
 ICOSRampAssign :
