@@ -1,0 +1,34 @@
+#! /usr/bin/perl -w
+use Cwd 'abs_path';
+
+sub my_system {
+  my $command = shift;
+  print "Executing '$command'\n";
+  return system($command);
+}
+
+my @ifiles;
+for my $ifile ( @ARGV ) {
+  $ifile =~ m/\.ps$/ || die "Input file '$ifile' not .ps\n";
+  -f $ifile || die "Cannot find input file '$ifile'\n";
+  my $fullpath = $ifile =~ m,^/, ? $ifile : "./$ifile";
+  $fullpath =~ m,^(.*)/([^/]+)$, || die;
+  $fullpath = abs_path($1) . "/$2";
+  $fullpath = `cygpath --windows $fullpath`;
+  chomp $fullpath;
+  $fullpath =~ s/\\/\\\\/g;
+  push @ifiles, $fullpath;
+}
+
+die "Must specify an input file\n" unless @ifiles;
+
+# my $distcmd = "\"C:\\APPS\\Adobe\\Acrobat 5.0\\Distillr\\Acrodist.exe\"";
+my $distcmd = "/cygdrive/c/Apps/Adobe/Acrobat 5.0/Distillr/Acrodist.exe";
+
+my_system( join ' ', "\"$distcmd\"", "/Q/N", @ifiles )
+  && die "Distiller returned an error\n";
+
+# unlink $ofile;
+
+__END__
+:endofperl
