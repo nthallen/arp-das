@@ -1,5 +1,8 @@
 /* yytype.h
  * $Log$
+ * Revision 1.3  1997/01/16 16:40:41  nort
+ * comments
+ *
  * Revision 1.2  1996/04/19  13:53:06  nort
  * R2 changes
  *
@@ -54,6 +57,7 @@ struct stdef {
   char *name;
   struct cmddef *cmds;
   char *filename;
+  int nolog;
 };
 
 struct prtn {

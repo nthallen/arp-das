@@ -144,6 +144,7 @@ Hold            return(KW_HOLD);
 until           return(KW_UNTIL);
 or              return(KW_OR);
 else            return(KW_ELSE);
+NoLog           return(KW_NOLOG);
 [A-Z][A-Z0-9_]* { yylval.textval = strdup(yytext);
 				  BEGIN statedef;
 				  return(TK_NAME);

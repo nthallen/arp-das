@@ -1,6 +1,9 @@
 %{
   /* grammar.y Grammar for tmcalgo
    * $Log$
+   * Revision 1.6  1997/01/16 16:39:50  nort
+   * All the new syntax
+   *
  * Revision 1.5  1996/04/19  13:51:02  nort
  * Added semicolon after QSTRING
  *
@@ -68,13 +71,15 @@
 	else pl->last = pl->last->next = pg;
   }
   
-  static struct stdef *new_state(char *name, struct cmddef *cmds, char *fname) {
+  static struct stdef *new_state(char *name, struct cmddef *cmds,
+			char *fname, int nolog ) {
 	struct stdef *ns;
 	
 	ns = new_memory(sizeof(struct stdef));
 	ns->name = name;
 	ns->cmds = cmds;
 	ns->filename = fname;
+	ns->nolog = nolog;
 	return(ns);
   }
   
@@ -100,6 +105,7 @@
 %token KW_UNTIL
 %token KW_OR
 %token KW_ELSE
+%token KW_NOLOG
 %token <textval>  TK_TMCSTAT
 %token <textval>  TK_NAME
 %token <textval>  TK_COMMAND
@@ -117,6 +123,7 @@
 %type  <cmdval>   hold_cond
 %type  <cmdval>   else_clause
 %type  <intval>   opt_valid
+%type  <intval>   opt_nolog
 %type  <textval>  opt_state_file
 %type  <textval>  state_name_def
 %type  <stateval> state_def
@@ -155,9 +162,9 @@ partn_def : {
 	  }
 	;
 /* <stateval == struct stdef *> */
-state_def : KW_STATE state_name_def opt_state_file state_cmds {
+state_def : KW_STATE state_name_def opt_state_file opt_nolog state_cmds {
 		nl_error(PARSE_DEBUG, "State Definition %s", $2);
-		$$ = new_state( $2, $4.first, $3 );
+		$$ = new_state( $2, $5.first, $3, $4 );
 	  }
 	;
 /* opt_state_file == textval */
@@ -165,6 +172,13 @@ opt_state_file : { $$ = NULL; }
 	| TK_QSTRING opt_state_list {
 		$$ = $1;
 		nl_error(PARSE_DEBUG, "State file %s", $1 );
+	  }
+	;
+/* opt_nolog == intval */
+opt_nolog : { $$ = 0; }
+	| KW_NOLOG {
+		nl_error(PARSE_DEBUG, "NoLog" );
+		$$ = 1;
 	  }
 	;
 /* state_cmds == cmdsval == struct cmdlst == first/last list of cmddef> */

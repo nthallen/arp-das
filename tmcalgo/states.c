@@ -1,5 +1,8 @@
 /* states.c
  * $Log$
+ * Revision 1.12  1999/12/03 15:28:55  nort
+ * *** empty log message ***
+ *
  * Revision 1.10  1997/01/16 16:40:22  nort
  * New syntax
  *
@@ -478,8 +481,9 @@ static void output_state(FILE *ofp, struct stdef *state ) {
 	fprintf( ofp, "  tma_read_file( %s_filep_ );\n", state->name );
 	gonna_slurp = 1;
   } else {
-	fprintf( ofp, "  tma_init_state( %d, %s_cmds_, \"%s\" );\n",
-			  curr_partition->partno, state->name, state->name );
+	fprintf( ofp, "  tma_init_state( %d, %s_cmds_, \"%s%s\" );\n",
+			  curr_partition->partno, state->name,
+			  state->nolog ? "_" : "",  state->name );
   }
   fprintf( ofp, "  Validate %s;\n}\n", 
 			curr_partition->idle_substate->name );
