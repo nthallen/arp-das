@@ -7,3 +7,9 @@ When installing from the CVS repository, you'll need to run
   make
 
 oui requires libnort to be installed for its compiler module.
+
+To create a distribution, you need to run
+  automake --include-deps
+  ./config.status  # or autoconf, ./configure
+  make dist
+
