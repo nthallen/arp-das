@@ -85,7 +85,28 @@ farchive=""
 for i in "$archive" "ARC/$archive"; do
   [ -f "$i" ] && farchive=$i && break;
 done
+if [ -z "$farchive" -a -n "$arcurl" ]; then
+  case $arcurl in
+    */) arcurl=$arcurl$archive;;
+  esac
+  [ -d ARC ] || mkdir ARC || nl_error Cannot create ARC dir
+  echo Retrieving archive from $arcurl
+  lynx -source -raw $arcurl >ARC/$archive
+  if [ -f "ARC/$archive" ]; then
+    if [ -s "ARC/$archive" ]; then
+      farchive="ARC/$archive"
+    else
+      rm ARC/$archive
+    fi
+  fi
+fi
 [ -z "$farchive" ] && nl_error Cannot locate archive $archive
+if [ -n "$arccksum" ]; then
+  echo Verifying archive cksum
+  mysum=`cksum $farchive | sed -e 's,  *, ,'`
+  [ "$mysum" = "$arccksum" ] || nl_error Archive cksum mismatch
+  echo "cksum verified: $mysum"
+fi
 function find_patch {
   patch=$1
   for path in "" "ARC/" "PAT/"; do
