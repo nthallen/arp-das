@@ -4,7 +4,7 @@
 
 #define MAX_FIELD_WIDTH 150
 
-int ColSpace = 4;
+int ColSpace = 50;
 int BaselineSkip = 15;
 
 static int do_output;
@@ -53,3 +53,27 @@ int DatumHeight(int nrows) {
 }
 
 int RuleThickness = 5;
+
+void preview_window( PTG_OUTPUT_FILE f, char *name, int w, int h ) {
+  if (do_output) window = tbl_window( name, w, h );
+}
+
+void preview_label( PTG_OUTPUT_FILE f, char *str, int r, int c ) {
+  if (do_output) tbl_label( window, str, r, c );
+}
+
+void preview_field( PTG_OUTPUT_FILE f, int fldnum, int r, int c ) {
+  if (do_output) {
+    char buf[10];
+    sprintf(buf, "%d", fldnum);
+    tbl_field( window, buf, r, c );
+  }
+}
+
+void preview_loop( PTG_OUTPUT_FILE f ) {
+  if ( do_output) {
+    PtRealizeWidget(window);
+    PtMainLoop();
+  }
+}
+

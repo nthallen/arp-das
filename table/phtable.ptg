@@ -1,3 +1,7 @@
+# $1: PTGNode StringPrint
+# $2: PTGNode FieldPrint
+File: $1 "}\n" $2 [ preview_loop ]
+
 Seq: $ $
 
 # $1: table name (PTGNode)
@@ -9,30 +13,31 @@ Init:
   "void " $1 "_init( void ) {\n"
   "  PtWidget_t *w;\n"
 
-# $1: table name (PTGNode)
+# $1: table name (string)
 # $2: Rows $3: Cols (int)
 Window:
-  "  w = tbl_window( \"" $1 "\", " $2 int ", " $3 int " );\n"
+  "  w = tbl_window( \"" $1 string "\", " $3 int ", " $2 int " );\n"
+  [ preview_window $1 string $3 int $2 int ]
   
-# $1 text as CString (PTGNode)
-# $2, $3 = row, col (int)
 # $1 $2 row, col
 # $3 attr
 # $4 str
 String:
-  { "  tbl_label( w, \"" } $4 { "\", " $1 int ", " $2 int
+  { "  tbl_label( w, \"" } $4 string { "\", " $2 int ", " $1 int
    " ); /* " $3 int " */\n" }
+  [ preview_label $4 string $2 int $1 int ]
 
 # $1: table name (PTGNode)
 # $2: Field Number (int)
-# $3: Default Text as CString (PTGNode)
+# $3: Default Text (PTGNode)
 # $4, $5: row, col (int)
 FieldDef:
-  "  " $1 "_tbl_fld[" $2 int "] = tbl_field( w, " $3 ", "
-  $4 int ", " $5 int " );\n"
+  "  " $1 "_tbl_fld[" $2 int "] = tbl_field( w, \""
+  $3 "\", " $5 int ", " $4 int " );\n"
+  [ preview_field $2 int $5 int $4 int ]
 
 # $1: table name (PTGNode)
 # $2: Field Number (int)
 # $3: Field Text (PTGNode)
 FieldRef:
-  "  display( " $1 "_tbl_fld[" $2 int "], text(" $3 "));\n"
+  "display( " $1 "_tbl_fld[" $2 int "], text(" $3 "));\n"

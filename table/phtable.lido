@@ -384,10 +384,10 @@ SYMBOL Program COMPUTE
   CHAINSTART HEAD.StringPrint =
     PTGSeq(
 	  PTGInit( PTGAsIs("name"), TAIL.DatumOffset ),
-	  PTGWindow( PTGAsIs("name"),
+	  PTGWindow( "name",
 		ADD(SPACE(THIS.Height),1), ADD(SPACE(THIS.Width),1)));
   CHAINSTART HEAD.FieldPrint = PTGNULL;
-  PTGOut(PTGSeq( TAIL.StringPrint, TAIL.FieldPrint ));
+  PTGOut(PTGFile( TAIL.StringPrint, TAIL.FieldPrint ));
 END;
 
 SYMBOL Table COMPUTE
@@ -425,7 +425,7 @@ SYMBOL HWord COMPUTE
 	IF (SYNT.IsEmpty, THIS.StringPrint,
 	  PTGSeq( THIS.StringPrint,
 		PTGString( THIS.Row, THIS.Col,
-		  THIS.Attr, PTGId(THIS.String))));
+		  THIS.Attr, StringTable(THIS.String))));
 END;
 
 ATTR RulePlace : VOID;
@@ -453,7 +453,6 @@ CHAIN NamedDims : VOID;
 ATTR NamedDimsComplete : VOID;
 ATTR Key : DefTableKey;
 ATTR MinDims : dims_t;
-ATTR ForReal : int;
 
 SYMBOL Program COMPUTE
   CHAINSTART HEAD.NamedDims = 1;
@@ -493,9 +492,24 @@ END;
 
 SYMBOL TableRef INHERITS TableLeaf END;
 
-% This must be done before the *previous* named table can be
-% processed.
-ATTR InstanceRecorded : VOID;
+SYMBOL Program INHERITS TableRootScope END;
+SYMBOL TableNameDef INHERITS TableIdDefScope END;
+SYMBOL TableNameUse INHERITS TableIdUseScope END;
+
+%-----------------------------------------------------------
+% We process the named tables in reverse order of definition
+% since we need to know all their instances
+%-----------------------------------------------------------
+ATTR InstanceReady, InstanceRecorded : VOID;
+RULE: Program ::= NamedTables UnnamedTable COMPUTE
+  NamedTables.InstanceReady = UnnamedTable.InstanceRecorded;
+END;
+RULE: UnnamedTable ::= Table COMPUTE
+  UnnamedTable.InstanceRecorded = Table.InstanceRecorded;
+END;
+SYMBOL Table COMPUTE
+  SYNT.InstanceRecorded = CONSTITUENTS TableRef.InstanceRecorded;
+END;
 SYMBOL TableRef COMPUTE
   SYNT.ForReal =
 	INCLUDING (Program.ForReal, NamedTable.ForReal);
@@ -503,18 +517,6 @@ SYMBOL TableRef COMPUTE
 	IF(THIS.ForReal,
 	  NewInstance(THIS.Key,THIS.Width,THIS.Height,
 			THIS.Row,THIS.Col, 1 ));
-END;
-
-SYMBOL Program INHERITS TableRootScope END;
-SYMBOL TableNameDef INHERITS TableIdDefScope END;
-SYMBOL TableNameUse INHERITS TableIdUseScope END;
-
-ATTR InstanceReady : VOID;
-RULE: Program ::= NamedTables UnnamedTable COMPUTE
-  NamedTables.InstanceReady = UnnamedTable.InstanceRecorded;
-END;
-SYMBOL Table COMPUTE
-  SYNT.InstanceRecorded = CONSTITUENTS TableRef.InstanceRecorded;
 END;
 RULE: NamedTables ::= NamedTables NamedTable COMPUTE
   NamedTable.InstanceReady = NamedTables[1].InstanceReady;
@@ -578,7 +580,6 @@ RULE: UnnamedTable ::= Table COMPUTE
   UnnamedTable.DatumOffset = Table.DatumOffset;
   UnnamedTable.MinWidth = Table.MinWidth;
   UnnamedTable.MinHeight = Table.MinHeight;
-  UnnamedTable.InstanceRecorded = Table.InstanceRecorded;
 END;
 
 ATTR TableOffsetSet : VOID;
