@@ -1,5 +1,8 @@
 /* states.c
  * $Log$
+ * Revision 1.7  1996/04/17  02:51:54  nort
+ * Rev 2 mods, including support for default commands in file slurps.
+ *
  * Revision 1.6  1994/08/29  18:47:56  nort
  * Forgot tma_n_partitions definition
  * Revision 1.1  1993/05/18  20:37:21  nort
@@ -214,6 +217,7 @@ void list_states(FILE *ofp) {
 		list_state(ofp, pi->u.state->name);
 		if ( first_state == 0 )
 		  first_state = pi->u.state->name;
+		get_state_case( pi->u.state->name, 1 );
 		break;
 	  case PRGTYPE_PARTITION:
 		if ( curr_partition != 0 && state_listed )
