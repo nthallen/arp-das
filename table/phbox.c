@@ -18,6 +18,8 @@ typedef struct tblrule {
   int Attr;
   #ifdef NBOX_C
 	unsigned char *rule;
+  #else
+    int x, y, l;
   #endif
 } *TableRule;
 
@@ -107,6 +109,16 @@ void NewRule( int Row, int Col, int Width, int Height,
 	  rule[Length] = '\0';
 	  new->rule = rule;
 	}
+  #else
+    if (new->Vertical ) {
+      new->y = new->Row;
+      new->x = new->Col + new->Width/2 - new->Lines/2;
+      new->l = new->Height;
+    } else {
+      new->x = new->Col;
+      new->l = new->Width;
+      new->y = New->Row + new->Height/2 - new->Lines/2;
+    }
   #endif
 
   new->next = TableRules;
@@ -124,11 +136,30 @@ void NewRule( int Row, int Col, int Width, int Height,
 		S->rule[i] += t * (lines-c);
 	}
   }
+#else
+
+  static int VAbutts( TableRule Below, TableRule Above ) {
+	return ( Above->Row + Above->Height == Below->Row );
+  }
+
+  static int HBrackets( TableRule Outside, TableRule Inside ) {
+	return ( Outside->Col <= Inside->Col &&
+		Outside->Col + Outside->Width >= Inside->Col + Inside->Width );
+  }
+
+  static int HAbutts( TableRule Left, TableRule Right ) {
+	return ( Left->Col + Left->Width == Right->Col );
+  }
+
+  static int VBrackets( TableRule Outside, TableRule Inside ) {
+	return ( Outside->Row <= Inside->Row &&
+		Outside->Row + Outside->Height >= Inside->Row + Inside->Height );
+  }
 #endif
 
 static void connect_rules( void ) {
+  TableRule R, S;
   #ifdef NBOX_C
-	TableRule R, S;
 	unsigned char c, cc;
 	
 	for ( R = TableRules; R != 0; R = R->next ) {
@@ -143,6 +174,24 @@ static void connect_rules( void ) {
 			add_bits( S, R->Row, R->Col-1, RL_RT, R->Lines );
 		  if ( R->postplus )
 			add_bits( S, R->Row, R->Col+R->Width, RL_LT, R->Lines );
+		}
+	  }
+	}
+  #else
+	for ( R = TableRules; R != 0; R = R->next ) {
+	  if ( R->preplus || R->postplus ) {
+		for ( S = TableRules; S != 0; S = S->next ) {
+		  if ( S->Vertical != R->Vertical ) {
+			if ( R->Vertical && HBrackets( S, R ) ) {
+			  if ( R->preplus && VAbutts( R, S ) ) {
+			  } else if ( R->postplus && VAbutts( S, R ) ) {
+			  }
+			} else if ( VBrackets(S,R) ) {
+			  if ( R->preplus && HAbutts( S, R ) ) {
+			  } else if ( R->postplus && HAbutts( R, S ) ) {
+			  }
+			}
+		  }
 		}
 	  }
 	}
