@@ -1,6 +1,17 @@
 <package> tmcalgo
 <include> compiler
 <include> client
+<follow> compiler
+<opts> "D:"
+<sort>
+	-D <filename> Write DOT file
+
+<include> "dot.h"
+<switch>
+	case 'D':
+	  open_dot_file(optarg);
+	  break;
+
 <package> output_ext_init
 <inits>
   output_extension = ".tmc";
