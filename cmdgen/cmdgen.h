@@ -1,5 +1,8 @@
 /* cmdgen.h Definitions for Command Parser Generator
  * $Log$
+ * Revision 1.2  1992/10/22  18:37:14  nort
+ * Removed pipe_tail() prototype
+ *
  * Revision 1.1  1992/10/20  19:55:06  nort
  * Initial revision
  *
@@ -7,6 +10,7 @@
  * Initial revision
  *
  */
+#include <stdio.h>
  
 #define TABSIZE 4
 struct vtyp {
@@ -144,6 +148,6 @@ void output_shifts(void); /* states.c */
 void output_states(void); /* states.c */
 void output_rules(void); /* rules.c */
 
-#define ofile stdout
-#define vfile stdout
+extern FILE *ofile;
+#define vfile ofile
 #define efile stderr

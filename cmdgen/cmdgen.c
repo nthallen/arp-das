@@ -1,6 +1,9 @@
 /* cmdgen.c contains the main program for the Command Parser Generator.
  *
  * $Log$
+ * Revision 1.2  1992/10/20  20:27:07  nort
+ * Added IDs
+ *
  * Revision 1.1  1992/10/20  19:45:08  nort
  * Initial revision
  *
@@ -9,13 +12,17 @@
  *
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <time.h>
+#include <unistd.h>
 #include "cmdgen.h"
 #include "nortlib.h"
 static char rcsid[] = "$Id$";
 
 int (*nl_error)(unsigned int level, char *s, ...) = app_error;
+static int verbose = 0;
+FILE *ofile = NULL;
 
 static void print_word(FILE *fp, struct sub_item_t *si) {
   switch (si->type) {
@@ -103,6 +110,7 @@ static void print_states(void) {
   int i;
   state *st;
   
+  fprintf(vfile, "Total of %d states\n", n_states);
   for (i = 0; i < n_states; i++) {
 	st = states[i];
 	assert(st->state_number == i);
@@ -117,7 +125,9 @@ static void generate_output(void) {
 		  n_states > 255 || max_tokens > 255 ? "short" : "char");
   fprintf(ofile, "typedef unsigned %s cg_nonterm_type;\n",
 		  n_nonterms > 255 ? "short" : "char");
+  Skel_copy(ofile, "typedefs", 1);
   output_vdefs();
+  Skel_copy(ofile, "tstack", 1);
   output_trie();
   output_rules();
   output_prompts();
@@ -125,19 +135,58 @@ static void generate_output(void) {
   output_states();
 }
 
-int main(void) {
-  time_t time_of_day;
+#ifdef __USAGE
+%C	[options] [filename]
+	-h           Print this message
+	-o filename  Write output to this file
+	-V           Include verbose information
+#endif
 
+static void main_args(int argc, char **argv) {
+  int c;
+  extern FILE *yyin;
+
+  while ((c = getopt(argc, argv, "ho:V")) != -1) {
+	switch (c) {
+	  case 'o':
+		ofile = fopen(optarg, "w");
+		if (ofile == NULL)
+		  app_error(3, "Unable to open output file %s", optarg);
+		break;
+	  case 'V':
+		verbose = 1;
+		break;
+	  case 'h':
+		print_usage(argv);
+		exit(0);
+	}
+  }
+  if (optind < argc) {
+	yyin = fopen(argv[optind], "r");
+	if (yyin == NULL)
+	  app_error(3, "Unable to open input file %s", argv[optind]);
+  } else yyin = stdin;
+  if (ofile == NULL) ofile = stdout;
+}
+
+int main(int argc, char **argv) {
+  time_t time_of_day;
+  
+  main_args(argc, argv);
   Skel_open("cmdgen.skel");
   time_of_day = time(NULL);
   fprintf(ofile, "/* cmdgen output.\n * %s */\n", ctime( &time_of_day));
   Skel_copy(ofile, "headers", 1);
   if (yyparse() == 0) {
-	if (vfile == ofile) fprintf(ofile, "#ifdef __DEFINITIONS\n");
-	print_rules();
+	if (verbose) {
+	  if (vfile == ofile) fprintf(ofile, "#ifdef __DEFINITIONS\n");
+	  print_rules();
+	}
 	eval_states();
-	print_states();
-	if (vfile == ofile) fprintf(ofile, "#endif\n");
+	if (verbose) {
+	  print_states();
+	  if (vfile == ofile) fprintf(ofile, "#endif\n");
+	}
 	generate_output();
 	Skel_copy(ofile, NULL, 1);
   } else fprintf(efile, "Parsing failed\n");
