@@ -1,6 +1,10 @@
 /* cmdgen.c contains the main program for the Command Parser Generator.
  *
  * $Log$
+ * Revision 1.4  1993/05/18  13:09:55  nort
+ * Client/Server Support.
+ * Ability to write data structures to separate file.
+ *
  * Revision 1.3  1992/10/27  08:38:20  nort
  * Added command line options
  *
@@ -27,6 +31,7 @@ static char rcsid[] = "$Id$";
 int (*nl_error)(unsigned int level, char *s, ...) = app_error;
 static int verbose = 0;
 FILE *ofile = NULL;
+static char *ofilename = NULL;
 static char data_file[FILENAME_MAX+1] = "";
 static time_t time_of_day;
 
@@ -127,8 +132,10 @@ static void print_states(void) {
 }
 
 static void output_version(void) {
-  fprintf(ofile, "char ci_version[] = __FILE__ \": %24.24s\";\n",
-		  ctime( &time_of_day));
+  fprintf(ofile, "char ci_version[] = \"$CGID: ");
+  if (ofilename != NULL) fprintf(ofile, "%s", ofilename);
+  else fprintf(ofile, "\" __FILE__ \"");
+  fprintf(ofile, ": %24.24s $\";\n", ctime( &time_of_day));
 }
 
 static void generate_output(void) {
@@ -180,6 +187,7 @@ static void main_args(int argc, char **argv) {
 		ofile = fopen(optarg, "w");
 		if (ofile == NULL)
 		  app_error(3, "Unable to open output file %s", optarg);
+		ofilename = optarg;
 		break;
 	  case 'd':
 		strncpy(data_file, optarg, FILENAME_MAX);
