@@ -1,6 +1,9 @@
 %{
   /* grammar.y Grammar for tmcalgo
    * $Log$
+ * Revision 1.4  1996/04/17  02:51:27  nort
+ * Changes to support default commands in file slurps.
+ *
  * Revision 1.2  1993/09/28  16:15:13  nort
  * Cleanup, added some comments
  *
@@ -222,7 +225,7 @@ timed_command : TK_COMMAND {
 		check_command($1);
 		$$ = new_command( CMDTYPE_CMD, $1, NULL );
 	  }
-	| TK_QSTRING {
+	| TK_QSTRING ';' {
 		nl_error(PARSE_DEBUG, "Qstring %s", $1 );
 		$$ = new_command( CMDTYPE_QSTR, $1, NULL );
 	  }
