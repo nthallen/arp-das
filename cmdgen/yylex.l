@@ -1,6 +1,9 @@
 %{
   /* yylex.l Lexical Analyzer for parser generator
    * $Log$
+   * Revision 1.2  1992/10/20  20:31:32  nort
+   * *** empty log message ***
+   *
    * Revision 1.1  1992/10/20  19:45:08  nort
    * Initial revision
    *
@@ -20,6 +23,23 @@
    #define ret_inner(x) { yytext[yyleng-1] = '\0';\
 						  yylval.str_val = strdup(yytext+1);\
 						  return(x); }
+
+   /* This lexical analyzer is designed to accept most english as
+	  words, and hence keywords are kept to an absolute minimum.
+	  Most syntactic elements are provided with punctuation.
+	  The basic elements are:
+			&name		non-terminal
+			&&name		client-specific non-terminal
+			<type>		non-terminal type specification
+			%x			variable input specification
+			(prompt)	prompt text (with inner parens escaped)
+			{ C code }	C code with balanced braces
+			%{ C code %}C code copied directly to output
+
+	  Client-specific non-terminals are denoted internally by
+	  the fact that their names begin with '&'. i.e. all
+	  non-terminals are stored without one leading '&'.
+   */
 %}
 
 %%
@@ -40,6 +60,7 @@
 
   c = input();
   for (;;) {
+	if (c == EOF) app_error(3, "Unexpected EOF in %{");
 	fputc(c, ofile);
 	if (c == '\n') {
 	  app_line++;
@@ -72,7 +93,7 @@
   yylval.str_val = strdup(act);
   return(TK_C_CODE);
 }
-\&[a-z_][a-z_0-9]+ {
+\&\&?[a-z][a-z_0-9]+ {
 	yylval.nt_val = non_terminal(yytext+1);
 	return(TK_NON_TERMINAL);
   }
