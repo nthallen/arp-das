@@ -1,5 +1,8 @@
 /* output.c contains output routines for oui
  * $Log$
+ * Revision 1.2  1994/09/16  15:09:49  nort
+ * Added sorting of sort options
+ *
  * Revision 1.1  1994/09/15  19:45:34  nort
  * Initial revision
  *
@@ -71,7 +74,7 @@ static void output_switch(void) {
 
   /* Dump the switch args */
   for (p = global_defs.packages.first; p != NULL; p = p->next)
-	dump_llos( &p->pkg->switches, "\t\t" );
+	dump_llos( &p->pkg->switches, "\t  " );
 
   fflush(ofile);
 
@@ -106,13 +109,13 @@ void output_inits(void) {
 
   /* Vars */
   for (p = global_defs.packages.first; p != NULL; p = p->next)
-	dump_llos( &p->pkg->vars, "  " );
+	dump_llos( &p->pkg->vars, "" );
 
   if (switch_needed) output_switch();
 
   /* Inits */
   for (p = global_defs.packages.first; p != NULL; p = p->next)
-	dump_llos( &p->pkg->inits, "  " );
+	dump_llos( &p->pkg->inits, "" );
 
   fprintf(ofile, "}\n");
 }
