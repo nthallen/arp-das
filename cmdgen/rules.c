@@ -1,6 +1,9 @@
 /* rules.c
  *
  * $Log$
+ * Revision 1.1  1992/10/20  20:28:46  nort
+ * Initial revision
+ *
  * Revision 1.3  1992/09/03  16:06:44  nort
  * Moved vsp++ before the nterm_shift when generating rules.
  *
@@ -79,6 +82,8 @@ static void output_action(unsigned short rnum) {
 
   act = rules[rnum]->action;
   if (act != NULL) {
+	indent(BASEINDENT);
+	fprintf(ofile, "if (ioflags & IOF_EXECUTE)\n");
 	indent(BASEINDENT);
 	while (*act != '\0') switch(*act) {
 	  case '\n':
