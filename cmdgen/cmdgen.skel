@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.8  1992/10/27  00:33:21  nort
+ * Delayed updates to the screen
+ *
  * Revision 1.7  1992/10/26  18:21:48  nort
  * Fixed compilation problems
  *
@@ -48,7 +51,8 @@ static short iomode;
 #define IOF_UNGOTNL 0x2
 #define IOF_UPDATE 0x4
 #define IOF_EXECUTE 0x8
-static short ioflags = IOF_EXECUTE;
+#define IOF_INTERACTIVE 0x10
+static short ioflags;
 
 %headers%
 
@@ -108,7 +112,7 @@ typedef struct {
    Variables should be treated as some sort of non-terminal
 */
 
-/* KG_ defines are values returned by kgetch() (and hence input())
+/* KG_ defines are values returned by command_getch() (and hence input())
    for the specified keys
 */
 #define KG_RUBOUT 8
@@ -180,7 +184,6 @@ static unsigned short unshift_value;
 #ifndef IOMODE_INIT
   #define IOMODE_INIT 0
 #endif
-static short iomode = IOMODE_INIT;
 
 #define STORE_CHAR(x) do {\
   if (ibufidx==INPUT_BUFFER_SIZE)\
@@ -195,8 +198,8 @@ static short iomode = IOMODE_INIT;
   #define UNDISPLAY_CHAR con_undispc()
   #define CLEAR_DISPLAY_LINE { con_col = con_low = 1;\
 							   con_nchars = 0;\
-							   con_puts(con_clr, 23*80*2, 80*2); }
-  #define DISPLAY_PROMPT(x) con_puts(prmt_text+x, 24*80*2, 80*2)
+							   ioflags |= IOF_UPDATE; }
+  #define DISPLAY_PROMPT(x) con_prompt(prmt_text+x)
   #define UPDATE_OUTPUT con_update();
 #endif
 
@@ -265,6 +268,7 @@ static char con_clr[] = {
 static int con_col, con_high, con_low;
 static char con_buf[INPUT_BUFFER_SIZE*2+2];
 static int con_nchars = 0;
+static char *con_cur_prmt, *con_new_prmt;
 
 static void con_puts(char *buf, int byte_offset, int n) {
   int i;
@@ -279,9 +283,13 @@ static void con_puts(char *buf, int byte_offset, int n) {
 }
 
 static void con_update(void) {
+  if (con_cur_prmt != con_new_prmt && (ioflags & IOF_INTERACTIVE))
+	con_puts(con_cur_prmt = con_new_prmt, 24*80*2, 80*2);
   if (ioflags & IOF_UPDATE) {
 	if (con_col == 79)
 	  con_puts(con_buf+con_nchars-78*2, 23*80*2+2, 78*2);
+	else if (con_col == 1)
+	  con_puts(con_clr, 23*80*2, 2*80);
 	else {
 	  if (con_low < con_col) {
 		int nbytes;
@@ -299,6 +307,10 @@ static void con_update(void) {
   }
 }
 
+static void con_prompt(char *c) {
+  con_new_prmt = c;
+}
+
 static void con_dispc(char c) {
   con_buf[con_nchars++] = c;
   con_buf[con_nchars++] = CMD_ATTR;
@@ -310,6 +322,7 @@ static void con_undispc(void) {
   con_nchars -= 2;
   if (con_nchars < 78*2 && --con_col < con_low)
 	con_low = con_col;
+  ioflags |= IOF_UPDATE;
 }
 
 #endif	/* QNX_CONS */
@@ -330,7 +343,7 @@ static void next_prompt(void) {
 	new_prompt(cur_prompt + prompts[cur_prompt].more);
 }
 
-static unsigned short kgetch(void) {
+unsigned short command_getch(void) {
   unsigned short rv;
   
   UPDATE_OUTPUT
@@ -339,13 +352,18 @@ static unsigned short kgetch(void) {
   return(rv);
 }
 
-static unsigned short input(void) {
+static char *cmd_input;
+
+unsigned short input(void) {
   unsigned short rv;
   
   if (ioflags & IOF_UNGOTNL) {
 	rv = '\n';
 	ioflags &= ~IOF_UNGOTNL;
-  } else rv = kgetch();
+  } else if (cmd_input != NULL) {
+	rv = *cmd_input;
+	if (rv) cmd_input++;
+  } else rv = command_getch();
   return(rv);
 }
 
@@ -422,13 +440,16 @@ static void read_variable(short vartype, unsigned short n_chars) {
   #ifdef VAR_s
 	if (vartype == VAR_s) getword = 0;
   #endif
-  if (n_chars > 0) {
+  if ((ioflags & IOF_INTERACTIVE) && n_chars > 0) {
 	RUBOUT;
 	n_chars--;
   }
   do {
 	c = input();
 	switch (c) {
+	  case 0:
+		unshift_value = n_chars;
+		return;
 	  case KG_RUBOUT:
 	  case KG_DEL:
 		if (n_chars > 0) {
@@ -486,6 +507,7 @@ static void read_variable(short vartype, unsigned short n_chars) {
 			  RUBOUT;
 			  ioflags &= ~IOF_UNGOTNL;
 			  n_chars--;
+			  c = '\b';
 			  continue;
 			}
 	  #endif
@@ -626,9 +648,9 @@ static void read_words(unsigned short trieroot, unsigned short trie_offset) {
   int c, cl;
   
   triepos = trieroot + trie_offset;
-  assert(trie[trieroot].code == T_ROOT &&
-		 (triepos == trieroot || (trie[triepos].code & 0x7F) == '\0'));
-  if (trie[triepos].code != T_ROOT && retreat(&triepos)) return;
+  if ((ioflags & IOF_INTERACTIVE)
+	  && trie[triepos].code != T_ROOT && retreat(&triepos))
+	return;
   
   /* Now triepos points to the previous node. We must
      advance to next to find the first matching character
@@ -647,6 +669,9 @@ static void read_words(unsigned short trieroot, unsigned short trie_offset) {
 	if ((trie[triepos].code & 0x7F) == 0) break;
 	c = input();
 	switch (c) {
+	  case 0:
+		unshift_value = triepos - trieroot;
+		return;
 	  case KG_RUBOUT:
 	  case KG_DEL:
 		if (retreat(&triepos)) return;
@@ -732,6 +757,9 @@ static int reduce_rule(unsigned short rule) {
 
 void command_init(void) {
   Con_init_options(0, NULL);
+  ioflags = IOF_UPDATE | IOF_EXECUTE | IOF_INTERACTIVE;
+  iomode = IOMODE_INIT;
+  cmd_input = NULL;
   tsp = -1;
   #ifdef NEED_VALUES
 	vsp = 0;
@@ -745,8 +773,16 @@ int command_exec(char *cmdtxt) {
   state_type *st;
   tstack_type *stktop;
   cg_token_type cur_state;
+  short old_iomode;
 
-  assert(cmdtxt == NULL);
+  if (cmdtxt != NULL) {
+	assert(ioflags & IOF_INTERACTIVE);
+	assert(cmd_input == NULL);
+	old_iomode = iomode;
+	iomode = 0;
+	cmd_input = cmdtxt;
+	ioflags &= ~IOF_INTERACTIVE;
+  }
   for (;;) {
 	stktop = &tstack[tsp];
 	cur_state = stktop->state;
@@ -758,6 +794,13 @@ int command_exec(char *cmdtxt) {
 		CLEAR_DISPLAY_LINE;
 		ibufidx = 0;
 		full_reduce = 0;
+	  }
+	  if (cmd_input != NULL && *cmd_input == '\0') {
+		iomode = old_iomode;
+		ioflags |= IOF_INTERACTIVE;
+		cmd_input = NULL;
+		UPDATE_OUTPUT;
+		return(0);
 	  }
 	  assert(st->prompt >= 0);
 	  new_prompt(st->prompt);
@@ -778,4 +821,24 @@ int command_exec(char *cmdtxt) {
 command(void) {
   command_init();
   command_exec(NULL);
+}
+
+/* records the current state for comparison during command testing.
+ * Also turns of user action execution if testcmds != 0
+ */
+static cg_token_type record_state;
+static record_value;
+void command_record(int testcmds) {
+  if (testcmds) ioflags &= ~IOF_EXECUTE;
+  else ioflags |= IOF_EXECUTE;
+  record_state = tstack[tsp].state;
+  record_value = unshift_value;
+}
+
+/* returns non-zero if the current state is different from the
+ * state when command_record() was last called.
+ */
+int command_check(void) {
+  return(record_state != tstack[tsp].state
+		|| record_value != unshift_value);
 }
