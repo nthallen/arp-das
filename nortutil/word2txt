@@ -1,0 +1,22 @@
+#! /usr/bin/perl -i.wtxt
+# word to text
+while (<>) {
+  while ( s/^([^\t\n]*)\t/$1 . ' ' x (8 - (length($1) % 8))/e ) {}
+  s/\s*$/\n/;
+  s/\x85/.../g; # …
+  s/\x96/-/g; # –
+  s/\x91/'/g; # ‘
+  s/\xED/'/g; # í
+  s/\x92/'/g; # ’
+  s/\x93/"/g; # “
+  s/\x94/"/g; # ”
+  s/\xEC/"/g; # ì
+  s/\xEE/"/g; # î
+  s|\xBD|1/2|g; # 1/2 ligature
+  s|\xD8|>|g;   # Ø
+  if ( m/([^ -~\n])/ ) {
+	warn "Unprintable char found: '$1' in '$_'\n";
+  }
+  print;
+}
+__END__

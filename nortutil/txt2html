@@ -1,0 +1,24 @@
+#! /usr/bin/perl -w
+# text to HTML
+use CGI;
+my $q = new CGI('');
+
+for my $ifile ( @ARGV ) {
+  my $ofile = $ifile;
+  unless ( $ofile =~ s/\.txt$/.html/i ) {
+	$ofile .= ".html";
+  }
+  open( IFILE, "<$ifile" ) || die "Unable to open input file '$ifile'\n";
+  open( OFILE, ">$ofile" ) || die "Unable to open output file '$ofile'\n";
+  while (<IFILE>) {
+	while ( s/^([^\t\n]*)\t/$1 . ' ' x (8 - (length($1) % 8))/e ) {}
+	print OFILE $q->escapeHTML($_);
+	# s/&/&amp;/g;
+	# s/</&lt;/g;
+	# s/>/&gt;/g;
+	# s/"/&quot;/g;
+	# print;
+  }
+  close OFILE || warn "Error closing output file '$ofile'\n";
+  close IFILE || warn "Error closing input file '$ifile'\n";
+}
