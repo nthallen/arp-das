@@ -1,5 +1,9 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.14  1999/06/18 18:04:05  nort
+ * Added ci_settime (a long time ago?)
+ * Added DigSelect() from dccc.c
+ *
  * Revision 1.13  1996/04/02  19:06:44  nort
  * Put back some tma.h defs to support old version (temporarily)
  *
@@ -58,6 +62,7 @@ void cic_transmit(char *buf, int n_chars, int transmit);
 int ci_sendcmd(const char *cmdtext, int mode);
 int ci_sendfcmd(int mode, char *fmt, ...);
 void ci_settime( long int time );
+const char *ci_time_str( void );
 #define OPT_CIC_INIT "C:p"
 void ci_server(void); /* in nortlib/cis.c */
 void cis_initialize(void); /* in cmdgen.skel or .cmd */
@@ -86,6 +91,13 @@ char *nrtl_strdup(const char *s);
 
 /* dccc.c */
 unsigned short DigSelect( unsigned short cmd, unsigned short val );
+
+/* memo.c */
+int memo_shutdown( nid_t node );
+
+/* getcon.c */
+char *getcon_server_name( pid_t ppid );
+int getcon_release( char *conname );
 
 #ifdef __cplusplus
 };
