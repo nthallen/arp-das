@@ -1,6 +1,9 @@
 /* cmdgen.skel skeleton file
  *
  * $Log$
+ * Revision 1.9  1992/10/29  02:36:15  nort
+ * Added update when command_exec() returns.
+ *
  * Revision 1.8  1992/10/27  00:33:21  nort
  * Delayed updates to the screen
  *
@@ -55,6 +58,8 @@ static short iomode;
 static short ioflags;
 
 %headers%
+
+#define QNX_CONS /* Since that's what we're doing */
 
 #define T_FLAG 0x80
 #define T_ROOT 1
@@ -795,11 +800,12 @@ int command_exec(char *cmdtxt) {
 		ibufidx = 0;
 		full_reduce = 0;
 	  }
-	  if (cmd_input != NULL && *cmd_input == '\0') {
+	  if (!(ioflags & (IOF_INTERACTIVE|IOF_UNGOTNL))
+		  && *cmd_input == '\0') {
+		UPDATE_OUTPUT;
 		iomode = old_iomode;
 		ioflags |= IOF_INTERACTIVE;
 		cmd_input = NULL;
-		UPDATE_OUTPUT;
 		return(0);
 	  }
 	  assert(st->prompt >= 0);
