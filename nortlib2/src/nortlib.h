@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.3  1992/09/24  20:23:10  nort
+ * With Command Queueing
+ *
  * Revision 1.2  1992/09/09  18:45:23  nort
  * Latest version
  *
@@ -34,5 +37,16 @@ int send_dascmd(int type, int value, int dg_ok); /* senddasc.c */
 int reply_byte(pid_t sent_pid, unsigned char msg); /* repbyte.c */
 int Soldrv_set_proxy(unsigned char selector, unsigned char ID, void *msg, int size); /* solprox.c */
 int Soldrv_reset_proxy(unsigned char selector, unsigned char ID); /* solprox.c */
+
+/* Command Interpreter Client (CIC) and Server (CIS) Utilities
+   Message-level definition is in cmdalgo.h
+ */
+void cic_options(int argc, char **argv, char *def_prefix);
+int cic_init(void);
+extern char ci_version[];
+void cic_transmit(char *buf, int n_chars, int transmit);
+int ci_sendcmd(char *cmdtext, int test);
+#define OPT_CIC_INIT "C:"
+void ci_server(void);
 
 #endif
