@@ -13,7 +13,7 @@
 %    $5=Average_Point()s                   PTGAveragePt GetAvgPtPtg
 %----------------------------------------------------------------
 ATTR ptg, Startptg, Prestartptg, Nameptg: PTGNode;
-ATTR TrigDefPtg, ElapsedCalc : PTGNode;
+ATTR TrigDefPtg, ElapsedPtg, ElapsedCalc : PTGNode;
 ATTR AverageDecl, AverageVal, AveragePt : PTGNode;
 CHAIN RegCollect, AvgOut : VOID;
 CHAIN RegCalc, RegDecl : PTGNode;
@@ -146,6 +146,7 @@ RULE: Trigger ::= 'Trigger' Name '{' 'Start:' Expr ';'
   Trigger.Startptg = Expr.ptg;
   Trigger.Prestartptg = Prestart.ptg;
   Trigger.Nameptg = PTGId(Name);
+  Trigger.ElapsedPtg = PTGTrigElapsed(Trigger.Nameptg);
   Trigger.TrigDefPtg = PTGTriggerDef(Trigger.Nameptg,
 		Trigger.Startptg, Trigger.Prestartptg );
   Trigger.ElapsedCalc = PTGElapsedCalc(Trigger.Nameptg);
@@ -154,46 +155,56 @@ END;
 %----------------------------------------------------------------
 % Region Definitions
 %----------------------------------------------------------------
-ATTR Inptg, Outptg, Trigptg, Elapsedptg : PTGNode;
+ATTR Inptg, Outptg : PTGNode;
+ATTR AfterPtg, BeforePtg : PTGNode;
 SYMBOL Program INHERITS RegionRangeFirstOcc END;
 SYMBOL RegionDef INHERITS RegionFirstOcc END;
 
 SYMBOL RegionDef INHERITS RegionIdDefScope END;
-RULE: RegionDef ::= 'Region' Name Intervals ';' COMPUTE
-  RegionDef.Sym = Name;
-  RegionDef.Trigptg = INCLUDING Trigger.Nameptg;
-  .Elapsedptg = PTGTrigElapsed(RegionDef.Trigptg);
-  RegionDef.RegCollect =
+SYMBOL RegionDef COMPUTE
+  THIS.RegCollect =
 	ORDER(
-	  ResetInptg( RegionDef.Key,
-		PTGOrSeq( GetInptg(RegionDef.Key, PTGNULL), Intervals.Inptg)
+	  ResetInptg( THIS.Key,
+		PTGOrSeq(GetInptg(THIS.Key,PTGNULL),THIS.Inptg)
 	  ),
-	  ResetOutptg( RegionDef.Key,
-		PTGAndSeq( GetOutptg(RegionDef.Key,PTGNULL),
-		  PTGOrSeq(PTGBinOp(.Elapsedptg,PTGAsIs("<="),TAIL.OutMin),
-			PTGSeq(.Elapsedptg,TAIL.OutMax))
-		))) <- RegionDef.RegCollect;
-  RegionDef.RegCalc = PTGSeq( RegionDef.RegCalc,
-	  IF ( RegionDef.IsRegionFirstOcc,
-			PTGRegionCalc( PTGId(Name),
-			  GetInptg(RegionDef.Key, PTGNULL),
-			  GetOutptg(RegionDef.Key, PTGNULL) ),
+	  ResetOutptg( THIS.Key,
+		PTGAndSeq( GetOutptg(THIS.Key,PTGNULL),
+		  PTGOrSeq(THIS.BeforePtg,THIS.AfterPtg))
+	  )
+	) <- THIS.RegCollect;
+  THIS.RegCalc = PTGSeq( THIS.RegCalc,
+	  IF ( THIS.IsRegionFirstOcc,
+			PTGRegionCalc( PTGId(THIS.Sym),
+			  GetInptg(THIS.Key, PTGNULL),
+			  GetOutptg(THIS.Key, PTGNULL) ),
 			PTGNULL));
-  RegionDef.RegDecl = PTGSeq( RegionDef.RegDecl,
-	  IF (RegionDef.IsRegionFirstOcc,
-		  PTGRegionDecl( PTGId(Name)),
+  THIS.RegDecl = PTGSeq( THIS.RegDecl,
+	  IF (THIS.IsRegionFirstOcc,
+		  PTGRegionDecl(PTGId(THIS.Sym)),
 		  PTGNULL));
+END;
+RULE: RegionDef ::= 'Region' Name RegionParams ';' COMPUTE
+  RegionDef.Sym = Name;
+  RegionDef.Inptg = RegionParams.Inptg;
+  RegionDef.BeforePtg = RegionParams.BeforePtg;
+  RegionDef.AfterPtg = RegionParams.AfterPtg;
+END;
+RULE: RegionParams ::= Intervals COMPUTE
+  RegionParams.Inptg = Intervals.Inptg;
+  RegionParams.BeforePtg = Intervals.BeforePtg;
+  RegionParams.AfterPtg = Intervals.AfterPtg;
 END;
 SYMBOL Intervals COMPUTE
   SYNT.Inptg = CONSTITUENTS Interval.Inptg
 	WITH ( PTGNode, PTGOrSeq, IDENTICAL, PTGNull );
 END;
 RULE: Interval ::= LeftInterval Number ',' Number RightInterval COMPUTE
-  .Elapsedptg = PTGTrigElapsed(INCLUDING RegionDef.Trigptg);
   Interval.Inptg =
 	PTGAndSeq(
-	  PTGBinOp( .Elapsedptg, LeftInterval.ptg, Number[1].ptg ),
-	  PTGBinOp( .Elapsedptg, RightInterval.Inptg, Number[2].ptg )
+	  PTGBinOp( INCLUDING Trigger.ElapsedPtg, LeftInterval.ptg,
+				Number[1].ptg ),
+	  PTGBinOp( INCLUDING Trigger.ElapsedPtg, RightInterval.Inptg,
+				Number[2].ptg )
 	);
 END;
 RULE: LeftInterval ::= '(' COMPUTE LeftInterval.ptg = PTGAsIs(">"); END;
@@ -218,9 +229,12 @@ END;
 %----------------------------------------------------------------
 CHAIN OutMin, OutMax : PTGNode;
 
-SYMBOL RegionDef COMPUTE
+SYMBOL Intervals COMPUTE
   CHAINSTART HEAD.OutMin = PTGNULL;
   CHAINSTART HEAD.OutMax = TAIL.OutMin;
+  SYNT.BeforePtg =
+	PTGBinOp(INCLUDING Trigger.ElapsedPtg,PTGAsIs("<="),TAIL.OutMin);
+  SYNT.AfterPtg = PTGSeq(INCLUDING Trigger.ElapsedPtg,TAIL.OutMax);
 END;
 RULE: Interval ::= LeftInterval Number ',' Number RightInterval COMPUTE
   Interval.OutMin =
