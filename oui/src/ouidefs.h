@@ -1,5 +1,8 @@
 /* oui.h Data definitions for oui
  * $Log$
+ * Revision 1.1  1994/09/15  19:45:31  nort
+ * Initial revision
+ *
  */
 #ifndef _OUI_H
 #define _OUI_H
@@ -79,5 +82,6 @@ void output_defs(void);
 void output_inits(void);
 void output_usage(void);
 void output_includes(void);
+extern int sort_output;
 
 #endif
