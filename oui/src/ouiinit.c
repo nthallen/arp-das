@@ -2,14 +2,16 @@
    oui
    output_ext_init
    compiler
+   nl_error_init
 */
 char *opt_string = "uqkwvo:";
 #include "oui.h"
 #include "ouidefs.h"
 #include <unistd.h>
 #include "nortlib.h"
+#include <stdio.h>
 #include "compiler.h"
-int (*nl_error)(int level, char *s, ...) = compile_error;
+  int (*nl_error)(int level, char *s, ...) = compile_error;
 
 void oui_init_options(int argc, char **argv) {
   char *output_extension;
@@ -20,11 +22,11 @@ void oui_init_options(int argc, char **argv) {
 	opterr = 0;
 	while ((optltr = getopt(argc, argv, opt_string)) != -1) {
 	  switch (optltr) {
-		case 'u': sort_output = 0; break;
-		case '?':
-		  nl_error(3, "Unrecognized Option -%c", optopt);
-		default:
-		  break;
+		  case 'u': sort_output = 0; break;
+		  case '?':
+			nl_error(3, "Unrecognized Option -%c", optopt);
+		  default:
+			break;
 	  }
 	}
   }
