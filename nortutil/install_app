@@ -85,18 +85,15 @@ fi
 typeset orig=no make=no clean=no typeset unpack=no dump=no
 typeset install=no
 
-suargs=''
 while [ -n "$1" ]; do
-  suarg=$1
   case "$1" in
 	orig) orig=yes;;
 	make) make=yes;;
 	clean) clean=yes;;
 	dump) dump=yes;;
-	install) install=yes; suarg='';;
+	install) install=yes;;
 	*) nl_error "Unknown option '$1'";;
   esac
-  [ -n "$suarg" ] && suargs="$suargs $suarg"
   shift
 done
 
@@ -148,13 +145,25 @@ function dopatches {
 unpack=''
 [ ! -d "ORIG/$pkg" -a "$orig" = "yes" ] && unpack=ORIG
 [ ! -d "BLD/$pkg" -o "$clean" = "yes" ] && unpack="$unpack BLD"
-if [ "$clean" ="yes" -o ! -f BLD/$pkg.made ]; then
-  [ "$install" = "yes" ] && make=yes
+made=no
+[ -f BLD/$pkg.made ] && made=yes
+installed=no
+[ -f BLD/$pkg.installed ] && installed=yes
+[ "$install" = "yes" ] && make=yes
+if [ "$clean" = "yes" ]; then
+  made=no
+  installed=no
 fi
+[ "$made" = "yes" ] && make=no
+[ "$installed" = "yes" ] && install=no
 uid=`id -u`
 if [ -n "$unpack" -o "$make" = "yes" ] &&
 	[ $uid = 0 -a ! "$LOGNAME" = root ]; then
-  su `$LOGNAME` -c "$0 $suargs"
+  suargs=''
+  [ $orig = yes ] && suargs="orig"
+  [ $clean = yes ] && suargs="$suargs clean"
+  [ $make = yes ] && suargs="$suargs make"
+  su $LOGNAME -c "$0 $suargs"
 else
   if [ -n "$unpack" ]; then
 	[ -d BLD ] || mkdir BLD ||
@@ -218,3 +227,4 @@ if [ "$install" = "yes" ]; then
   [ -x ../../QNX.install ] || nl_error "Cannot find QNX.install"
   ../../QNX.install 2>&1 | tee ../$pkg.inst.log
 fi
+:
