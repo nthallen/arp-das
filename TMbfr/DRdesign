@@ -209,7 +209,7 @@ DRbfr.c {
 	  check to make sure this is
 	  the only writer. attr->wcount == 0
 	}
-    probably call iofunc_open_default()
+    call iofunc_open_default()
     release the mutex
   }
   handle opens {
