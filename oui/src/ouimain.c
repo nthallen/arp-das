@@ -10,6 +10,32 @@ int switch_needed = 0, arg_needed = 0;
 int sort_output = 1;
 glbldef global_defs;
 
+/* This stuff is handy when the heap gets corrupted */
+/* #define CHECK_HEAP heap_check(); */
+#ifdef CHECK_HEAP
+  #include <malloc.h>
+  void heap_check( void ) {
+	struct _heapinfo h_info;
+	int heap_status;
+  
+	h_info._pentry = NULL;
+	for (;;) {
+	  heap_status = _heapwalk( &h_info );
+	  if ( heap_status != _HEAPOK ) break;
+	}
+	switch ( heap_status ) {
+	  case _HEAPEND:
+	  case _HEAPEMPTY:
+		break;
+	  default:
+		nl_error( 1, "Internal: Heap is corrupted" );
+		break;
+	}
+  }
+#else
+  #define CHECK_HEAP
+#endif
+
 void main(int argc, char **argv) {
   unsigned int errlevel;
 
@@ -37,8 +63,8 @@ static void check_new_opts(const char *opts, char *pkgname) {
   char *buf, *op;
   const char *o;
   llpkgleaf *p;
-  
-  buf = new_memory(strlen(opts));
+
+  buf = new_memory( strlen(opts) + 1 );
   for (o = opts; isspace(*o); o++); /* skip whitespace */
 
   /* collect the option letters from opts into buf */
