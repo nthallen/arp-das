@@ -1,6 +1,9 @@
 /* states.c
  *
  * $Log$
+ * Revision 1.2  1992/10/27  08:38:20  nort
+ * Removed illegal output
+ *
  * Revision 1.1  1992/10/20  20:25:37  nort
  * Initial revision
  *
@@ -13,7 +16,12 @@
 #include <string.h>
 #include <assert.h>
 #include "cmdgen.h"
-static char rcsid[] = "$Id$";
+#ifdef __WATCOMC__
+  #pragma off (unreferenced)
+	static char rcsid[] =
+	  "$Id$";
+  #pragma on (unreferenced)
+#endif
 
 state **states = NULL;
 unsigned short n_states = 0;
@@ -138,7 +146,50 @@ void add_rule_pos(state *st, unsigned short rnum, unsigned short pos) {
   }
 }
 
-state *reduce_state(state *st) { return(st); }
+/* reduce_state will check to see if the new state is identical
+   to a previously defined state. The states are identical if
+   they have the same set of rule/pos elements.
+*/
+state *reduce_state(state *st) {
+  int i;
+  rulelist *rla, *rlb;
+  state *sta;
+
+  for (i = 0; i < st->state_number; i++) {
+	sta = states[i];
+	for (rla = sta->rules, rlb = st->rules;
+		rla != NULL && rlb != NULL; rla = rla->next, rlb = rlb->next) {
+	  if (rla->rule_number != rlb->rule_number
+		  || rla->position != rlb->position)
+		break;
+	}
+	if (rla == rlb) { /* both must be NULL */
+	  /* states are identical: release new state */
+	  assert(st->state_number == n_states-1);
+	  n_states--;
+	  /* now free the rules, terminals, and non_terminals, then st */
+	  for (rla = st->rules; rla != NULL; rla = rlb) {
+		rlb = rla->next;
+		free_memory(rla);
+	  }
+	  { termlist *tla, *tlb;
+		for (tla = st->terminals; tla != NULL; tla = tlb) {
+		  tlb = tla->next;
+		  free_memory(tla);
+		}
+	  }
+	  { ntermlist *nta, *ntb;
+		for (nta = st->non_terminals; nta != NULL; nta = ntb) {
+		  ntb = nta->next;
+		  free_memory(nta);
+		}
+	  }
+	  free_memory(st);
+	  return(sta);
+	}
+  }
+  return(st);
+}
 
 void eval_states(void) {
   state *st, *nst;
