@@ -9,7 +9,7 @@
 # HOMEDIR \S+ - the directory where we'll find run subdirectories
 # ROWS \d+ - used to decide when to create a new column in the GUI
 # \d+(/\d+)? \w+(:\w+:\d+)? \w+ \w+
-#  <Rate> <Mnemonic>[:<Mnemonic>:<bitnumber>] <group> <plot>
+#  <Rate> <Mnemonic>[:<Mnemonic>:<bitnumber>] <group> <plot> [<legend>]
 
 my %group; # for each grp, list of plots in definition order
 my @group; # list of grps in definition order
@@ -54,13 +54,13 @@ while (<>) {
   } elsif ( m/^ROWS\s+(\d+)/ ) {
     $ui_limit = $1;
   } elsif ( m|^\s*(\d+(?:/\d+)?(?:\#\d+(?:/\d+)?)?) # rate
-	       \s+(\w+(?::\w+:\d+)?) # mnemonic
+	       \s+(\w+(?::\w+:\d+)?)(?::([-+*/]\S+))? # mnemonic
 	       \s+(\w+) # group
 	       \s+(\w+) # plot
 	       (?:\s+(\w+))?
 	       \s*$|x ) {
-    my ( $rate, $mnemonic, $group, $plot, $legend ) =
-      ( $1, $2, $3, $4, $5 );
+    my ( $rate, $mnemonic, $scale, $group, $plot, $legend ) =
+      ( $1, $2, $3, $4, $5, $6 );
     my $datum;
     if ( $mnemonic =~ m/^\w+:(\w+):\d+$/ ) {
       $datum = $1;
@@ -88,9 +88,10 @@ while (<>) {
       $plot{$plt} = [];
       push @{$group{$grp}}, $plt;
     }
-    push @{$plot{$plt}},
-      defined $legend ? { mnc => $mnemonic, legend => $legend } :
-	$mnemonic;
+    $legend = $mnemonic unless defined $legend;
+    $scale = '' unless defined $scale;
+    push @{$plot{$plt}}, { mnc => $mnemonic, legend => $legend,
+      scale => $scale };
   } else {
     chomp;
     warn "Syntax error: '$_'\n";
@@ -155,7 +156,7 @@ for my $grp ( @group ) {
       "% p$experiment$plt( [...] );\n",
       "% $grouptext $plottext\n";
     my @mnemonics =
-      map { ref($_) ? $_->{mnc} : $_ } @{$plot{$plt}};
+      map { ref($_) ? $_->{mnc} . $_->{scale} : $_ } @{$plot{$plt}};
     if ( grep /:/, @mnemonics ) {
       die "Plot $plt mixes analog and digital data\n"
 	if grep !/:/, @mnemonics;
