@@ -9,6 +9,7 @@ When installing from the CVS repository, you will need
 to run:
 
   aclocal
+  libtoolize --automake
   automake
   autoconf
   ./configure
