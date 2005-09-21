@@ -10,7 +10,7 @@ to run:
 
   aclocal
   libtoolize --automake
-  automake
+  automake --add-missing
   autoconf
   ./configure
   make
