@@ -92,6 +92,7 @@ sub dircksum {
 	  }
 	  close FILE;
 	}
+	$sum = 4294967295 if $sum > 4294967295;
 	$cksum = sprintf( "%s %10u: %s\n", $md5->hexdigest, $sum, $dir );
   } else {
 	open2( \*PIPEIN, \*PIPEOUT, "cksum" ) ||
