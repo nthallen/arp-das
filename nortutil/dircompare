@@ -1,5 +1,9 @@
 #! /usr/bin/perl -w
 
+# Written by Norton Allen <allen@huarp.harvard.edu>
+# You may freely distribute this program under the
+# terms of the GNU Public License.
+
 #__USAGE
 #%C	<dir1> <dir2>
 #	Compares all files in dir1 to files in dir2, reporting

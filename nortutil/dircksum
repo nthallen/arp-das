@@ -1,6 +1,10 @@
 #! /usr/bin/perl -w
 use strict;
 
+# Written by Norton Allen <allen@huarp.harvard.edu>
+# You may freely distribute this program under the
+# terms of the GNU Public License.
+
 #__USAGE
 #%C	[ -w ] [ -o outputfile ] [-v] [-c] dir [ dir ... ]
 #	Generates a listing of CRCs of the contents of the directory
