@@ -4,6 +4,11 @@ if [ ! -d newsrc ]; then
   mkdir newsrc
   eli "qclicomp.specs:source >newsrc"
 fi
+for i in src/*; do
+  if [ "$i" != "src/makeqnx" -a -f $i -a ! -f "new$i" ]; then
+    echo new$i does not exist
+  fi
+done
 rm -f newsrc/obstack.[ch]
 for i in newsrc/*; do
   j=${i#new}
