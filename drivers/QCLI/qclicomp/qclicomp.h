@@ -10,8 +10,10 @@ typedef struct {
   int naverage;
 } RateDef, *RateDefP;
 
+#define DIG_CPCI14 0
+#define DIG_CS210 1
 extern RateDefP NewRateDefPtr( double samples, int navg,
-  int specd, CoordPtr pos );
+  int specd, int digitizer, CoordPtr pos );
 
 typedef long *longP;
 extern longP Set_rval( longP rvals, int index, double val );
@@ -29,7 +31,7 @@ extern double dtoa_value( WaveDtoAP wdp, int index );
 extern short dtoa_bits( WaveDtoAP wdb, int index );
 
 extern long round_to_step( double time, long step );
-#define NULLRATE() NewRateDefPtr(0.,1,0,NoPosition)
+#define NULLRATE() NewRateDefPtr(0.,1,0,DIG_CPCI14,NoPosition)
 #define PICKRATE(x,y) (x->samples>0?x:y)
 #define usecs(x) ((long)floor((x)*1e6+.5))
 #define DIV_UP(x,y) (((x)+(y)-1)/(y))

@@ -16,6 +16,26 @@ SYMBOL Wave COMPUTE
 END;
 
 /*-----------------------------------------------*/
+/* Digitizer selection                           */
+/*-----------------------------------------------*/
+ATTR Digitizer : int;
+RULE: Digitizer ::= COMPUTE
+  Digitizer.Digitizer = DIG_CPCI14;
+END;
+RULE: Digitizer ::= 'Digitizer' DigitizerType ';' COMPUTE
+  Digitizer.Digitizer = DigitizerType.Digitizer;
+END;
+RULE: DigitizerType ::= 'CPCI14' COMPUTE
+  DigitizerType.Digitizer = DIG_CPCI14;
+END;
+RULE: DigitizerType ::= 'CS210' COMPUTE
+  DigitizerType.Digitizer = DIG_CS210;
+END;
+SYMBOL SourceFile COMPUTE
+  SYNT.Digitizer = CONSTITUENT Digitizer.Digitizer;
+END;
+
+/*-----------------------------------------------*/
 /* Make sure only one Tz is defined per waveform */
 /*-----------------------------------------------*/
 SYMBOL TzDef INHERITS TzUnique COMPUTE
@@ -209,14 +229,14 @@ SYMBOL ICOSNsampleDef COMPUTE
     NewRateDefPtr( IF(GT(THIS.Tramps,0),
             DIV( THIS.Nsample, THIS.Tramps ),
 	    THIS.Nsample),
-      1, 0, COORDREF );
+      1, 0, INCLUDING SourceFile.Digitizer, COORDREF );
 END;
 RULE: RateDef ::= 'SampleRate' '=' Integer RateUnit Naverage COMPUTE
   RateDef.RawRate = MUL(Integer,RateUnit.Value);
   RateDef.Naverage = Naverage.Naverage;
   RateDef.RateDef =
     NewRateDefPtr( RateDef.RawRate, Naverage.Naverage,
-					1, COORDREF );
+	1, INCLUDING SourceFile.Digitizer, COORDREF );
 END;
 
 SYMBOL ICOSCmds COMPUTE

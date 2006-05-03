@@ -1,4 +1,7 @@
-SourceFile : Wave+ .
+SourceFile : Digitizer Wave+ .
+Digitizer : / 'Digitizer' DigitizerType ';' .
+DigitizerType : 'CPCI14' / 'CS210' .
+
 Wave : ICOSWave / RingWave .
 ICOSWave : 'ICOS' 'Waveform' Ident '{' ICOSCmds '}' .
 ICOSCmds : ( ICOSCmd ';' )+ .
