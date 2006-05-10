@@ -10,8 +10,14 @@ typedef struct {
   int naverage;
 } RateDef, *RateDefP;
 
+/* These are digitizer type codes: */
 #define DIG_CPCI14 0
 #define DIG_CS210 1
+/* These are QCLI configuration codes: */
+#define QCLI_CFG_STANDARD 0
+#define QCLI_CFG_FASTRAMPx10 1
+#define QCLI_CFG_MAX 1
+
 extern RateDefP NewRateDefPtr( double samples, int navg,
   int specd, int digitizer, CoordPtr pos );
 
@@ -26,7 +32,7 @@ typedef struct {
   int n_used;
 } WaveDtoA, *WaveDtoAP;
 extern WaveDtoAP new_wavedtoa( void );
-extern int alloc_dtoa( WaveDtoAP wdp, double delta, CoordPtr pos );
+extern int alloc_dtoa( WaveDtoAP wdp, double delta, int qclicfg, CoordPtr pos );
 extern double dtoa_value( WaveDtoAP wdp, int index );
 extern short dtoa_bits( WaveDtoAP wdb, int index );
 
@@ -75,12 +81,12 @@ extern void ptg_output_name( PTG_OUTPUT_FILE file, char *name );
 #define APS_BIT_OFFSET 32768.
 #define MIN_DAC_BITS 0
 #define MAX_DAC_BITS 65535L
-unsigned short amps_to_bits( double amps, CoordPtr pos );
-unsigned short aps_to_bits( double aps, CoordPtr pos );
+unsigned short amps_to_bits( double amps, int qclicfg, CoordPtr pos );
+unsigned short aps_to_bits( double aps, int qclicfg, CoordPtr pos );
 #define ICOS_WAVEFORM_CODE 0x3331
 #define RINGDOWN_WAVEFORM_CODE 0x3332
 PTGNode RingdownPTG( double Istart, double Istop, double Istep, int ProgLen,
-  CoordPtr pos );
+  int qclicfg, CoordPtr pos );
 
 extern void InitCol(void);
 extern void OutputLine(FILE *f, char *s);

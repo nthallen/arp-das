@@ -23,6 +23,7 @@ static int recurse( int npts, long dT, long *lp, int i,
     long cumerr, int cummult, long *besterr, long *beststep ) {
   long min_m, max_m, m;
   long myerr = cumerr*cummult;
+  if ( minstep < 2 ) minstep = 2;
   if ( maxstep >= 65536L ) maxstep = 65535L;
   if ( minstep > maxstep || (*besterr >= 0 && myerr >= *besterr ) )
     return 0;
@@ -161,13 +162,13 @@ WaveDtoAP new_wavedtoa( void ) {
   return wdp;
 }
 
-int alloc_dtoa( WaveDtoAP wdp, double delta, CoordPtr pos ) {
+int alloc_dtoa( WaveDtoAP wdp, double delta, int qclicfg, CoordPtr pos ) {
   if ( delta != 0 ) {
     if ( wdp->n_used >= N_DTOAS )
       message( ERROR, "Not enough D/As in alloc_dtoa", 0, pos );
     else {
       wdp->value[wdp->n_used] = delta;
-      wdp->bits[wdp->n_used++] = amps_to_bits( delta, pos );
+      wdp->bits[wdp->n_used++] = amps_to_bits( delta, qclicfg, pos );
     }
   }
   return dtoa_strs[wdp->n_used];
@@ -211,29 +212,41 @@ void ptg_output_name( PTG_OUTPUT_FILE file, char *name ) {
   fprintf( file, "  \"%-10.10s\"", name );
 }
 
-unsigned short amps_to_bits( double amps, CoordPtr pos ) {
-  double bits = amps/AMPS_PER_BIT + AMPS_BIT_OFFSET;
-  unsigned short sbits = (unsigned short) bits;
+/* The current configurations use the same scale for A/Bit */
+static double amps_per_bit[QCLI_CFG_MAX+1] = { AMPS_PER_BIT, AMPS_PER_BIT/10 };
+unsigned short amps_to_bits( double amps, int qclicfg, CoordPtr pos ) {
+  double bits;
+  unsigned short sbits;
+  if ( qclicfg < 0 || qclicfg > QCLI_CFG_MAX )
+    message( DEADLY, "QCLI Config Code out of range", 0, pos );
+  bits = amps/amps_per_bit[qclicfg] + AMPS_BIT_OFFSET;
+  sbits = (unsigned short) bits;
   if ( bits < MIN_DAC_BITS || bits > MAX_DAC_BITS )
     message( ERROR, "Offset DAC Value out of range", 0, pos );
   return sbits;
 }
 
-unsigned short aps_to_bits( double aps, CoordPtr pos ) {
-  double bits = aps/APS_PER_BIT + APS_BIT_OFFSET;
-  unsigned short sbits = (unsigned short) bits;
+static double aps_per_bit[QCLI_CFG_MAX+1] = { APS_PER_BIT, .4*APS_PER_BIT };
+unsigned short aps_to_bits( double aps, int qclicfg, CoordPtr pos ) {
+  double bits;
+  unsigned short sbits;
+  if ( qclicfg < 0 || qclicfg > QCLI_CFG_MAX )
+    message( DEADLY, "QCLI Config Code out of range", 0, pos );
+  bits = aps/aps_per_bit[qclicfg] + APS_BIT_OFFSET;
+  sbits = (unsigned short) bits;
   if ( bits < MIN_DAC_BITS || bits > MAX_DAC_BITS )
     message( ERROR, "Ramp DAC Value out of range", 0, pos );
   return sbits;
 }
 
-PTGNode RingdownPTG( double Istart, double Istop, double Istep, int ProgLen, CoordPtr pos ) {
+PTGNode RingdownPTG( double Istart, double Istop, double Istep, int ProgLen,
+      int qclicfg, CoordPtr pos ) {
   PTGNode PTG = PTGNULL;
   int StepCnt;
   for ( StepCnt = 0; StepCnt < ProgLen-1; StepCnt++ ) {
     double StepCrnt = Istart + StepCnt*Istep;
-    PTG = PTGSeq(PTG,PTGRingData(amps_to_bits(StepCrnt,pos),StepCrnt));
+    PTG = PTGSeq(PTG,PTGRingData(amps_to_bits(StepCrnt,qclicfg,pos),StepCrnt));
   }
-  PTG = PTGSeq(PTG,PTGRingData(amps_to_bits(Istop,pos),Istop));
+  PTG = PTGSeq(PTG,PTGRingData(amps_to_bits(Istop,qclicfg,pos),Istop));
   return PTG;
 }

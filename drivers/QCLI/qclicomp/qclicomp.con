@@ -1,4 +1,6 @@
-SourceFile : Digitizer Wave+ .
+SourceFile : QCLIConfig Digitizer Wave+ .
+QCLIConfig : / 'QCLIConfig' QCLIConfigType ';' .
+QCLIConfigType : 'Standard' / 'FastRampx10' .
 Digitizer : / 'Digitizer' DigitizerType ';' .
 DigitizerType : 'CPCI14' / 'CS210' .
 

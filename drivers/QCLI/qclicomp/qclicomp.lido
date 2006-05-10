@@ -16,6 +16,26 @@ SYMBOL Wave COMPUTE
 END;
 
 /*-----------------------------------------------*/
+/* QCLI Configuration selection                  */
+/*-----------------------------------------------*/
+ATTR QCLIConfig : int;
+RULE: QCLIConfig ::= COMPUTE
+  QCLIConfig.QCLIConfig = QCLI_CFG_STANDARD;
+END;
+RULE: QCLIConfig ::= 'QCLIConfig' QCLIConfigType ';' COMPUTE
+  QCLIConfig.QCLIConfig = QCLIConfigType.QCLIConfig;
+END;
+RULE: QCLIConfigType ::= 'Standard' COMPUTE
+  QCLIConfigType.QCLIConfig = QCLI_CFG_STANDARD;
+END;
+RULE: QCLIConfigType ::= 'FastRampx10' COMPUTE
+  QCLIConfigType.QCLIConfig = QCLI_CFG_FASTRAMPx10;
+END;
+SYMBOL SourceFile COMPUTE
+  SYNT.QCLIConfig = CONSTITUENT QCLIConfig.QCLIConfig;
+END;
+
+/*-----------------------------------------------*/
 /* Digitizer selection                           */
 /*-----------------------------------------------*/
 ATTR Digitizer : int;
@@ -130,7 +150,8 @@ SYMBOL ICOSCmds COMPUTE
     message(ERROR, "dI/dt undefined", 0, COORDREF))
       <- THIS.dIdtAssessed;
   SYNT.dIdt = GetdIdt(THIS.Key, 1.) <- THIS.dIdtAssessed;
-  SYNT.dIdt_bits = aps_to_bits( THIS.dIdt, COORDREF );
+  SYNT.dIdt_bits =
+    aps_to_bits( THIS.dIdt, INCLUDING SourceFile.QCLIConfig, COORDREF );
 END;
 
 /*-------------------------------------------------------------------*/
@@ -453,13 +474,15 @@ END;
 SYMBOL ICOSCmds COMPUTE
   INH.Iz = INCLUDING Wave.Iz;
   SYNT.DtoAs = new_wavedtoa();
-  SYNT.DtoA = alloc_dtoa( THIS.DtoAs, THIS.Iz, COORDREF );
+  SYNT.DtoA = alloc_dtoa( THIS.DtoAs, THIS.Iz,
+    INCLUDING SourceFile.QCLIConfig, COORDREF );
   CHAINSTART HEAD.CrntI = THIS.Iz <- THIS.DtoA;
 END;
 SYMBOL ICOSRamp COMPUTE
   INH.DtoAs = INCLUDING ICOSCmds.DtoAs;
   SYNT.DeltaI = SUB( THIS.Istart1, THIS.CrntI );
-  SYNT.DtoA = alloc_dtoa( THIS.DtoAs, THIS.DeltaI, COORDREF );
+  SYNT.DtoA = alloc_dtoa( THIS.DtoAs, THIS.DeltaI,
+    INCLUDING SourceFile.QCLIConfig, COORDREF );
   THIS.CrntI = THIS.Istop1 <- THIS.DtoA;
 END;
 
@@ -816,7 +839,9 @@ SYMBOL RingCmds COMPUTE
 	    PTGDACs(
 	      0, 0.,
 	      0, 0.,
-	      amps_to_bits(THIS.Iz,COORDREF), THIS.Iz,
+	      amps_to_bits(THIS.Iz, INCLUDING
+		SourceFile.QCLIConfig, COORDREF),
+	      THIS.Iz,
 	      0, 0.
 	    ) ),
       CONSTITUENTS ( RingCurrent.PTG, CurrentSteps.PTG )
@@ -824,12 +849,17 @@ SYMBOL RingCmds COMPUTE
 	    );
 END;
 SYMBOL RingCurrent COMPUTE
-  SYNT.PTG = PTGRingData(amps_to_bits(THIS.Value,COORDREF),THIS.Value);
+  SYNT.PTG =
+    PTGRingData(
+      amps_to_bits(THIS.Value, INCLUDING SourceFile.QCLIConfig,
+	COORDREF),
+      THIS.Value);
 END;
 SYMBOL CurrentSteps COMPUTE
   SYNT.PTG =
     RingdownPTG( THIS.Istart, THIS.Istop, THIS.Istep,
-		THIS.ProgLen, COORDREF );
+		THIS.ProgLen, INCLUDING SourceFile.QCLIConfig,
+		COORDREF );
 END;
 
 /*-----------------------------------------------------------*/
