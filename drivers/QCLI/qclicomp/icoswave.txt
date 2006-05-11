@@ -1,7 +1,7 @@
 # icoswave.txt
 # Sample source for ICOS waveform definitions
 
-ICOS Waveform Standard {
+ICOS Waveform Standard1 {
   Nsample = 1500;
   Tz = 25%;
   Ramp from 500 mA to 900 mA in 12 msec;
@@ -52,7 +52,7 @@ ICOS Waveform ThirdRamp {
 ICOS Waveform FourthRamp {
   Iz = .4A;
   dI/dt = 25 A/sec;
-  Ramp to 600mA in 16 msec;
+  Ramp to 1A in 16 msec;
 }
 
 ICOS Waveform TwoRamps {

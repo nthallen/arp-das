@@ -556,25 +556,25 @@ SYMBOL ICOSCmds COMPUTE
       PTGICOSProg(
 	    IF( THIS.SSzi,
 	      PTGICOSFill(
-		ADD(SW_RAMP_OFF_LASER_ON, THIS.DtoA),
+		ADD(WV_RAMP_OFF, THIS.DtoA),
 		THIS.SSzi),
 	      PTGNULL ),
 	    CONSTITUENTS ICOSRamp.PTG
 	      WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
 	    IF( THIS.SSzif,
 	      PTGICOSFill(
-		ADD(SW_RAMP_OFF_LASER_ON, THIS.DtoA),
+		ADD(WV_RAMP_RESET, THIS.DtoA),
 		THIS.SSzif),
 	      PTGNULL ),
 	    PTGICOSFill(
-	      ADD(SW_RAMP_OFF_LASER_ON_T, THIS.DtoA ),
+	      ADD(WV_RAMP_OFF_T, THIS.DtoA ),
 	      THIS.SSrcy)
       ) );
 END;
 SYMBOL ICOSRamp COMPUTE
   SYNT.PTG =
   	PTGICOSFill(
-	  ADD(SW_RAMP_ON_LASER_ON, THIS.DtoA),
+	  ADD(WV_RAMP_ON, THIS.DtoA),
 	  THIS.SSrampi);
 END;
 

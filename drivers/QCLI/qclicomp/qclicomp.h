@@ -56,12 +56,15 @@ extern long round_to_step( double time, long step );
 #define SW_NEG_OUT    0x0080
 #define SW_POS_OUT    0x0100
 #define SW_HSDAC_OUT  0x0200
-#define SW_RAMP_ON    (SW_RAMP_IN|SW_RAMP_OUT)
-#define SW_RAMP_OFF   (SW_RAMP_RESET|SW_RAMP_OUT)
 #define SW_LASER_ON   SW_POS_OUT
-#define SW_RAMP_OFF_LASER_ON (SW_RAMP_OFF|SW_LASER_ON)
-#define SW_RAMP_ON_LASER_ON  (SW_RAMP_ON|SW_LASER_ON)
-#define SW_RAMP_OFF_LASER_ON_T (SW_RAMP_OFF_LASER_ON|SW_TRIGGER)
+#define WV_RAMP_ON    (SW_RAMP_IN|SW_RAMP_OUT|SW_LASER_ON)
+#define WV_RAMP_OFF   (SW_RAMP_IN|SW_RAMP_RESET|SW_RAMP_OUT|SW_LASER_ON)
+#define WV_RAMP_RESET (SW_RAMP_RESET|SW_LASER_ON)
+#define WV_RAMP_OFF_T (WV_RAMP_OFF|SW_TRIGGER)
+
+/* #define SW_RAMP_OFF_LASER_ON (SW_RAMP_OFF|SW_LASER_ON) */
+/* #define SW_RAMP_ON_LASER_ON  (SW_RAMP_ON|SW_LASER_ON) */
+/* #define SW_RAMP_OFF_LASER_ON_T (SW_RAMP_OFF_LASER_ON|SW_TRIGGER) */
 
 extern void ptg_output_short( PTG_OUTPUT_FILE file, short value );
 extern void ptg_output_word( PTG_OUTPUT_FILE file, unsigned short value, int count );
