@@ -1,6 +1,9 @@
 %{
   /* yylex.l Lexical Analyzer for parser generator
    * $Log$
+   * Revision 1.6  2004/10/08 17:07:19  nort
+   * Mostly keyword differences
+   *
    * Revision 1.5  1995/05/25  17:19:05  nort
    * Use standard nortlib compiler functions
    *
@@ -22,8 +25,8 @@
    */
    #include <string.h>
    #include <unistd.h>
-   #include "y.tab.h"
    #include "cmdgen.h"
+   #include "y.tab.h"
    #include "compiler.h"
    #include "nortlib.h"
    #pragma off (unreferenced)

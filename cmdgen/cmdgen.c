@@ -1,5 +1,8 @@
 /* cmdgen.c contains the main program for the Command Parser Generator.
  * $Log$
+ * Revision 1.7  2004/10/08 17:07:08  nort
+ * Mostly keyword differences
+ *
  * Revision 1.6  1995/05/25  17:20:06  nort
  * Use standard nortlib compiler functions
  *
@@ -20,7 +23,7 @@
 	"$Id$";
 #pragma on (unreferenced)
 
-int (*nl_error)(unsigned int level, char *s, ...) = compile_error;
+int (*nl_error)(int level, char *s, ...) = compile_error;
 static int verbose = 0;
 static char data_file[FILENAME_MAX+1] = "";
 static time_t time_of_day;

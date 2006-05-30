@@ -1,6 +1,9 @@
 /* dstructs.c defines routines for creating and manipulating
  * data structures for command parser generator.
  * $Log$
+ * Revision 1.4  2004/10/08 17:07:11  nort
+ * Mostly keyword differences
+ *
  * Revision 1.3  1995/05/25  17:19:56  nort
  * Use standard nortlib compiler functions
  *
@@ -80,7 +83,8 @@ void dmy_non_term(struct sub_t *sub) {
   
   assert(sub->action != NULL);
   dbuf[0] = '_';
-  itoa(dummy_num++, dbuf+1, 10);
+  /* itoa(dummy_num++, dbuf+1, 10); */
+  sprintf( dbuf+1, "%d", dummy_num++ );
   nt = non_terminal(dbuf);
   nt->rules.first = nt->rules.last = new_sub();
   nt->rules.last->action = sub->action;
