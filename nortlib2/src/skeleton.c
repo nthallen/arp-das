@@ -19,8 +19,10 @@ static FILE *skfp = NULL;
 int Skel_open(char *name) {
   char filename[FILENAME_MAX+1];
   
-  _searchenv(name, "SKELETON_PATH", filename);
-  if ( filename[0] == '\0' )
+  #if HAVE__SEARCHENV
+    _searchenv(name, "SKELETON_PATH", filename);
+    if ( filename[0] == '\0' )
+  #endif
 	sprintf( filename, DEF_DIR "/%s", name );
   skfp = fopen(filename, "r");
   if (skfp == NULL) {
