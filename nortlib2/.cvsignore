@@ -5,3 +5,5 @@ stamp-h stamp-h.in
 libtool
 INST
 nortlib-*.tar.gz
+autom4te.cache
+stamp-h1
