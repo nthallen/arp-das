@@ -1,3 +1,7 @@
+nortlib2 consists of the portable elements of the old nortlib. The original
+nortlib can be found at http://forge.abcd.harvard.edu/projects/arp-das/
+as project QNX4/nortlib.
+
 For installation from a distribution tarball, you should be able
 to simply:
 
