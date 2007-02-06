@@ -1,0 +1,55 @@
+#! /usr/bin/perl -w
+# con2html prog.con prog.gla >prog.html
+# Translates a concrete grammar in EBNF to an HTML fragment.
+# Does not add headers or footers.
+
+for my $ifile ( @ARGV ) {
+  my @doc;
+  my %nonterm;
+  my %term;
+  my %word;
+  open( IFILE, "<$ifile" ) ||
+    die "Unable to read input file $ifile\n";
+  while (<IFILE>) {
+	chomp;
+	push @doc, $_;
+	if ( s/^(\w+)\s+:\s*// ) {
+	  $nonterm{$1} = 1;
+	}
+	for my $word ( split( ' ', $_ ) ) {
+	  if ( $word =~ m,^(\w+)[?+*/]*$, ) {
+		$word{$1} = 1;
+	  }
+	}
+  }
+  close IFILE || warn "Error closing $ifile\n";
+  for my $word ( keys %word ) {
+	$term{$word} = 1 unless $nonterm{$word};
+  }
+  print "<pre>\n";
+  for my $line ( @doc ) {
+    my @oline;
+	if ( $line =~ s/^(\w+)\s+:\s*// ) {
+	  push @oline, "<a name=\"$1\">$1</a> :";
+	} else {
+	  push @oline, ' ';
+	}
+	for my $word ( split( ' ', $line ) ) {
+	  if ( $word =~ m/^'(\w+)'$/ ) {
+		push @oline, $1;
+	  } elsif ( $word =~ m/^('[^']+')$/ ) {
+		push @oline, $1;
+	  } elsif ( $word =~ m,^(\w+)([?+*/]*)$, ) {
+		push @oline, "<a href=\"#$1\">$1</a>$2";
+	  } else {
+		push @oline, $word;
+	  }
+	}
+	print join( ' ', @oline ), "\n";
+  }
+  print "</pre>\n<h3>Terminals</h3>\n<pre>\n";
+  for my $word ( keys %term ) {
+    print "<a name=\"$word\">$word</a> :\n";
+  }
+  print "</pre>\n";
+}
