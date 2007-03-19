@@ -213,7 +213,7 @@ void ptg_output_name( PTG_OUTPUT_FILE file, char *name ) {
 }
 
 /* The current configurations use the same scale for A/Bit */
-static double amps_per_bit[QCLI_CFG_MAX+1] = { AMPS_PER_BIT, AMPS_PER_BIT/10 };
+static double amps_per_bit[QCLI_CFG_MAX+1] = { AMPS_PER_BIT, AMPS_PER_BIT/10, AMPS_PER_BIT };
 unsigned short amps_to_bits( double amps, int qclicfg, CoordPtr pos ) {
   double bits;
   unsigned short sbits;
@@ -226,7 +226,7 @@ unsigned short amps_to_bits( double amps, int qclicfg, CoordPtr pos ) {
   return sbits;
 }
 
-static double aps_per_bit[QCLI_CFG_MAX+1] = { APS_PER_BIT, .4*APS_PER_BIT };
+static double aps_per_bit[QCLI_CFG_MAX+1] = { APS_PER_BIT, .4*APS_PER_BIT, 4*APS_PER_BIT };
 unsigned short aps_to_bits( double aps, int qclicfg, CoordPtr pos ) {
   double bits;
   unsigned short sbits;

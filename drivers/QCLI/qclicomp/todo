@@ -3,10 +3,10 @@ Where am I? {
   -Output .cmd codes
   -Ringdown Waveforms are fully specified
   -Generating Ringdown output
-  Generate Display codes
+  -Generate Display codes
 }
 todo {
-  Generate .cmd output {
+  -Generate .cmd output {
     %{
       analogic_setup_t QCLi_Waves[] = {
         FSam, NSam, NRep, NAvg, NCoadd, FTrigger, Options,
