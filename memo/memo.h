@@ -1,11 +1,11 @@
-/* Copyright 2001 by the President and Fellows of Harvard College */
-#ifndef DRBFR_H
-#define DRBFR_H
+#ifndef LGR_H
+#define LGR_H
 
 #define DRBFR_NPARTS_MAX 5
 #define DRBFR_MSG_MAX 16384
 
 #define THREAD_POOL_PARAM_T dispatch_context_t
+struct ocb;
 #define IOFUNC_OCB_T struct ocb
 #include <sys/iofunc.h>
 #include <sys/dispatch.h>
