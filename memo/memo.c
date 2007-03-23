@@ -50,15 +50,13 @@ iofunc_mount_t mountpoint = { 0, 0, 0, 0, &ocb_funcs };
 
 main(int argc, char **argv) {
     /* declare variables we'll be using */
+    int use_threads = 0;
     resmgr_attr_t        resmgr_attr;
     dispatch_t           *dpp;
-    dispatch_context_t   *ctp;
-    thread_pool_attr_t   pool_attr;
-    thread_pool_t        *tpp;
     int                  id;
-    struct sigevent      event;
-    struct _itimer       itime;
-    int                  timer_id;
+    // struct sigevent      event;
+    // struct _itimer       itime;
+    // int                  timer_id;
 
     //oui_init_options( argc, argv );
 
@@ -130,24 +128,40 @@ main(int argc, char **argv) {
     // itime.interval_nsec = 1000000000;
     // TimerSettime(timer_id, 0,  &itime, NULL);
 
-    /* initialize thread pool attributes */
-    memset(&pool_attr, 0, sizeof pool_attr);
-    pool_attr.handle = dpp;
-    pool_attr.context_alloc = dispatch_context_alloc;
-    pool_attr.block_func = dispatch_block;
-    pool_attr.handler_func = dispatch_handler;
-    pool_attr.context_free = dispatch_context_free;
-    pool_attr.lo_water = 2;
-    pool_attr.hi_water = 4;
-    pool_attr.increment = 1;
-    pool_attr.maximum = 50;     /* allocate a thread pool handle */
-    if((tpp = thread_pool_create(&pool_attr,
-                                 POOL_FLAG_EXIT_SELF)) == NULL) {
-        fprintf(stderr, "%s: Unable to initialize thread pool.\n",
-                argv[0]);
-        return EXIT_FAILURE;
-    }     /* start the threads, will not return */
-    thread_pool_start(tpp);
+    if ( use_threads ) {
+      thread_pool_attr_t   pool_attr;
+      thread_pool_t        *tpp;
+
+      /* initialize thread pool attributes */
+      memset(&pool_attr, 0, sizeof pool_attr);
+      pool_attr.handle = dpp;
+      pool_attr.context_alloc = dispatch_context_alloc;
+      pool_attr.block_func = dispatch_block;
+      pool_attr.handler_func = dispatch_handler;
+      pool_attr.context_free = dispatch_context_free;
+      pool_attr.lo_water = 2;
+      pool_attr.hi_water = 4;
+      pool_attr.increment = 1;
+      pool_attr.maximum = 50;     /* allocate a thread pool handle */
+      if((tpp = thread_pool_create(&pool_attr,
+                                   POOL_FLAG_EXIT_SELF)) == NULL) {
+          fprintf(stderr, "%s: Unable to initialize thread pool.\n",
+                  argv[0]);
+          return EXIT_FAILURE;
+      }     /* start the threads, will not return */
+      thread_pool_start(tpp);
+    } else {
+      dispatch_context_t   *ctp;
+      ctp = dispatch_context_alloc(dpp);
+      while (1) {
+	if ((ctp = dispatch_block(ctp)) == NULL) {
+	  fprintf(stderr, "block error\n" );
+	  return EXIT_FAILURE;
+	}
+	printf( "  type = %d  attr.count = %d\n", ctp->resmgr_context.msg->type, attr.count );
+	dispatch_handler(ctp);
+      }
+    }
 }
 
 // int iofunc_open_hook( resmgr_context_t *ctp, io_open_t *msg,
@@ -176,6 +190,8 @@ int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb ) {
   if ( msgsize > LGR_BUF_SIZE ) msgsize = LGR_BUF_SIZE;
   resmgr_msgread( ctp, buf, msgsize, sizeof(msg->i) );
   buf[msgsize] = '\0';
+  if ( msgsize > 0 && buf[msgsize-1] == '\n' )
+    buf[msgsize-1] = '\0';
   printf("lgr: '%s'\n", buf );
 
   if ( msg->i.nbytes > 0)
