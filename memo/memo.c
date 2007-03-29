@@ -80,7 +80,7 @@ main(int argc, char **argv) {
     // connect_funcs.open = iofunc_open_hook;
 
     /* initialize attribute structure used by the device */
-    iofunc_attr_init(&attr, S_IFNAM | 0644, 0, 0);
+    iofunc_attr_init(&attr, S_IFNAM | 0664, 0, 0);
     attr.nbytes = 0;
     attr.mount = &mountpoint;
 
@@ -151,16 +151,23 @@ main(int argc, char **argv) {
       }     /* start the threads, will not return */
       thread_pool_start(tpp);
     } else {
+      int running = 2;
       dispatch_context_t   *ctp;
       ctp = dispatch_context_alloc(dpp);
-      while (1) {
+      printf( "\nStarting:\n" );
+      while ( running ) {
 	if ((ctp = dispatch_block(ctp)) == NULL) {
 	  fprintf(stderr, "block error\n" );
 	  return EXIT_FAILURE;
 	}
-	printf( "  type = %d  attr.count = %d\n", ctp->resmgr_context.msg->type, attr.count );
+	// printf( "  type = %d,%d  attr.count = %d\n",
+	//   ctp->resmgr_context.msg->type,
+	//   ctp->resmgr_context.msg->connect.subtype, attr.count );
 	dispatch_handler(ctp);
+	if ( running > 1 && attr.count > 0 ) running = 1;
+	else if ( running == 1 && attr.count == 0 ) running = 0;
       }
+      printf( "Terminating\n" );
     }
 }
 
