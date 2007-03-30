@@ -6,58 +6,120 @@ TMStream : Header Data*
 Data : DASCmd TMData TimeStamp
 
 Header :
-Header data defining frame dimensions, rate, and
-location of synch and MFCtr (tm.dac) Any newly
-opened stream will begin with this information,
-regardless of the current status of the stream.
+  Header data defining frame dimensions, rate, and
+  location of synch and MFCtr (tm.dac) Any newly
+  opened stream will begin with this information,
+  regardless of the current status of the stream.
 
 DASCmd :
-This might actually be obsolete. The old commands
-consisted of:
-  TM Start
-  TM End
-  Quit
-  TM Clear Errors
-  TM Suspend Logging
-  TM Resume Logging
+  This might actually be obsolete. The old commands
+  consisted of:
+    TM Start
+    TM End
+    Quit
+    TM Clear Errors
+    TM Suspend Logging
+    TM Resume Logging
 
-When looking at a TM Stream, TM Start is implicit. TM End
-has been deprecated for years. Quit is also implicit in
-EOF. TM Clear Errors pertained specifically to error counts
-when receiving bi-phase or serial data, and is hence
-driver-specific. Suspend and Resume Logging are a convenience
-that is focused on the logger. It is probably more appropriate
-for the logger to receive those commands directly somehow.
+  When looking at a TM Stream, TM Start is implicit. TM End
+  has been deprecated for years. Quit is also implicit in
+  EOF. TM Clear Errors pertained specifically to error counts
+  when receiving bi-phase or serial data, and is hence
+  driver-specific. Suspend and Resume Logging are a convenience
+  that is focused on the logger. It is probably more appropriate
+  for the logger to receive those commands directly somehow.
+
+  The takehome is that these traditional DASCmds need not be
+  propogated through TMbfr or included in the TM Stream at all. The
+  question remains how TM-stream-related commanding should be
+  handled. We still need:
+
+    Handled by DG and stripped:
+      TM Start
+      TM Quit
+    Forwarded to DCs:
+      TM Logging Suspend
+      TM Logging Resume
+    Handled by TMbfr only in non-realtime modes
+      Go Slower
+      Go Faster
+      Fast Forward
+      Fast Forward to MFCtr %s
+      Fast Forward to Time %s
+      Play
+      Stop
+      Row Step
+      Restart
+      Rewind to Time %s
+      Rewind to MFCtr %s
+
+  [TM Start and Quit should probably go directly to the DG (data
+  generator) Data regulation commands need to go to TMbfr directly,
+  perhaps using an IOCTL interface. Then again... we could support
+  command forwarding, sending the these commands to the local DG
+  and forwarding them to the TMbfr, but having them stripped out
+  of the stream passed to clients. This makes sense from the
+  standpoint of making the command interface much cleaner, and
+  sticking with only one writer to TMbfr. Of course this begs the
+  question of supporting some commands to DCs, like Logging
+  commands, etc.]
+
+  I well define them in the TM stream format, but I believe all TM
+  commands should be considered logically out-of-band (though not
+  physically) and should be discarded before logging. Commands
+  handled by DG or TMbfr can also be stripped from the stream
+  before forwarding unless there is a compelling reason to pass
+  them on. (The Restart/Rewind commands signal a time
+  discontinuity, which DCs might be able to take advantage of.)
+  
+  Ugh, that won't work at all! If you have stopped playback, you
+  will block the rdr, so then no commands can come through. I
+  think we're going to have to provide dual interfaces and dual
+  streams. Commands will always flow on the command channel. Then
+  the first-order implementation does not require commanding
+  beyond the DG (start, quit) TMbfr could provide read and write
+  on a command interface with a short circular buffer.
 
 TMData :
 
-The historical form of TMData was a variable identifying the
-number of minor frames or rows of data followed by the data.
-The incomplete implementation of multiple rows per minor frame
-negated their benefit. The idea was to save the storage space
-of multiple instances of MFCtr and Synch by not reporting them
-at the highest data rate, but the bfr implementation only delivered
-complete minor frames, so for display and algorithm use data now
-arrived in clumps and the minor frame rate. Hence for most purposes,
-the minor frame had to be pushed to the maximum data rate so display
-and algorithms could maintain time granularity.
+  The historical form of TMData was a variable identifying the
+  number of minor frames or rows of data followed by the data.
+  The incomplete implementation of multiple rows per minor frame
+  negated their benefit. The idea was to save the storage space
+  of multiple instances of MFCtr and Synch by not reporting them
+  at the highest data rate, but the bfr implementation only
+  delivered complete minor frames, so for display and algorithm
+  use data now arrived in clumps and the minor frame rate. Hence
+  for most purposes, the minor frame had to be pushed to the
+  maximum data rate so display and algorithms could maintain time
+  granularity.
 
-There are two possible approaches then. We could implement a bfr
-that can handle rows properly or come up with an alternative. The
-problem with rows in general is that we don't know what to make
-of them in isolation, since they don't necessarily contain the
-MFCtr that places them in the TM frame. One approach would be to
-allow the delivery of isolated rows, but accompany them with
-additional header data identifying the MFCtr and offset of the
-row within the minor frame.
+  There are two possible approaches then. We could implement a
+  bfr that can handle rows properly or come up with an
+  alternative. The problem with rows in general is that we don't
+  know what to make of them in isolation, since they don't
+  necessarily contain the MFCtr that places them in the TM frame.
+  One approach would be to allow the delivery of isolated rows,
+  but accompany them with additional header data identifying the
+  MFCtr and offset of the row within the minor frame.
 
-Another approach is to allow repackaging of minor frames without
-their MFCtr and/or Synch words for the purpose of logging. A
-TMData2 header could accompany them identifying the starting
-MFCtr. This would probably only be practical when the frame was
-laid out with MFCtr at offset 0 and Synch at the end, which is
-the default for 1-row minor frames. It might be desirable to
-include some sort of checksum, at least during logging.
+  Another approach is to allow repackaging of minor frames
+  without their MFCtr and/or Synch words for the purpose of
+  logging. A TMData2 header could accompany them identifying the
+  starting MFCtr. This would probably only be practical when the
+  frame was laid out with MFCtr at offset 0 and Synch at the end,
+  which is the default for 1-row minor frames. It might be
+  desirable to include some sort of checksum, at least during
+  logging.
+  
+  070308: Reviewing this definition of data formats (and the
+  accompanying definitions in tmlib/src/tm.h) it's worth noting
+  the relationship between this stream format and the theoretical
+  underlying telemetry stream. The telemetry stream includes
+  minor frame counters and synch words and a fixed data rate.
+  This stream format adds metadata to assist in data compression,
+  data synchronization, and ground station operation. The stream
+  format will be suitable for logging pretty much as is.
 
 Bfr strategies:
 
@@ -79,6 +141,12 @@ Suppose I ignore DASCmds. Then I need to make sure that:
 
   1: Each client receives Header before any data
   2: Each client receives Time Stamps in the correct location
+  
+Suppose I don't ignore DASCmds. Then I need to also forward the
+DAScmds which haven't been stripped to the clients. However, the
+fact that these are deemed to be out-of-band means I don't have
+to waste effort to guarantee that they go out in any particular
+sequence relative to the data, only that they go out.
 
 Store data in circular queue
 Store metadata in a separate circular queue or linked list
@@ -177,11 +245,18 @@ Modes of Operation {
   Local Realtime {
     spit out data as fast as possible to readers for realtime
     response. Return as soon as there is data to report.
-    Drop rows as necessary
+    Drop rows as necessary. Default if writer is O_NONBLOCK.
   }
   Remote Realtime {
     Regulate output of data for readability for all readers
-    (i.e. synchronize all readers)
+    (i.e. synchronize all readers)[what does this mean?]
+    The basic idea here is to hide bursty network data
+    transmission by locally regulating the playback to the
+    realtime rate. Ideally it would be nice to regulate output to
+    certain clients (display) while feeding others unregulated
+    data (logger). That would allow one to pause the screen
+    update but continue logging all data. Hmmm. Maybe the
+    regulation should be a DC feature
     Drop rows as necessary
   }
   Playback {

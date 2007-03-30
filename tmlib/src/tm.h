@@ -11,6 +11,11 @@
 
 /*
  * Message structures 
+ * I am assuming a short has 16 bits and a long has 32 bits
+ * should probably add:
+ *   assert( sizeof(tm_hdrw_t) == 2 );
+ *   assert( sizeof(tmcks_t) == 4 );
+ * to the initialization somewhere.
  */
 typedef unsigned short mfc_t;
 typedef unsigned short tm_hdrw_t;
@@ -32,6 +37,25 @@ typedef struct {
 #define TMTYPE_DATA_T3 0x0303
 #define TMTYPE_DATA_T4 0x0304
 
+/* These are not TMTYPEs. DASCMDs will be handled
+   on a separate channel
+ */
+#define TMTYPE_DASCMD  0x0400
+#define TMTYPE_DASCMD_START   0x0401
+#define TMTYPE_DASCMD_QUIT    0x0402
+#define TMTYPE_DASCMD_LOGSUS  0x0410
+#define TMTYPE_DASCMD_LOGRES  0x0411
+#define TMTYPE_DASCMD_STOP    0x0420
+#define TMTYPE_DASCMD_PLAY    0x0421
+#define TMTYPE_DASCMD_FASTER  0x0422
+#define TMTYPE_DASCMD_SLOWER  0x0423
+#define TMTYPE_DASCMD_FF      0x0424
+#define TMTYPE_DASCMD_FFMFC   0x0425
+#define TMTYPE_DASCMD_FFTIME  0x0426
+#define TMTYPE_DASCMD_STEP    0x0427
+#define TMTYPE_DASCMD_RESTART 0x0428
+#define TMTYPE_DASCMD_RWMFC   0x0429
+#define TMTYPE_DASCMD_RWTIME  0x042A
 
 /* Time stamp information */
 typedef struct {
@@ -39,9 +63,6 @@ typedef struct {
   time_t secs;
 } __attribute__((packed)) tstamp_t;
 
-/* This will need some tweaking as we learn
-   what RCS and/or MD5 can and can't do for us
-*/
 typedef struct {
   char version[16]; /* 1.0 etc. contents of VERSION */
   char md5[16];     /* MD5 digest of core TM frame definitions */

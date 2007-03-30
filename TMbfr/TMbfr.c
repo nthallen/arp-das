@@ -42,8 +42,8 @@ iofunc_mount_t mountpoint = { 0, 0, 0, 0, &ocb_funcs };
 int
 timer_tick(message_context_t *ctp, int code, unsigned flags, void *handle) {
     /* union sigval value = ctp->msg->pulse.value; */
-	attr.nbytes += 12;
-	run_readq();
+    attr.nbytes += 12;
+    run_readq();
     return 0;
 }
 
@@ -55,11 +55,11 @@ main(int argc, char **argv) {
     thread_pool_attr_t   pool_attr;
     thread_pool_t        *tpp;
     int                  id;
-	struct sigevent      event;
-	struct _itimer       itime;
-	int                  timer_id;
+    struct sigevent      event;
+    struct _itimer       itime;
+    int                  timer_id;
 
-	oui_init_options( argc, argv );
+    oui_init_options( argc, argv );
 
     /* initialize dispatch interface */
     if((dpp = dispatch_create()) == NULL) {
@@ -76,14 +76,14 @@ main(int argc, char **argv) {
     /* initialize functions for handling messages */
     iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &connect_funcs, 
                      _RESMGR_IO_NFUNCS, &io_funcs);
-	/* io_funcs.read = io_read; */
-	/* io_funcs.write = io_write; */
+    /* io_funcs.read = io_read; */
+    /* io_funcs.write = io_write; */
     connect_funcs.open = iofunc_open_hook;
 
     /* initialize attribute structure used by the device */
     iofunc_attr_init(&attr, S_IFNAM | 0644, 0, 0);
     attr.nbytes = 0;
-	attr.mount = &mountpoint;
+    attr.mount = &mountpoint;
 
     /* Check Experiment variable for sanity: \w[\w.]* */
     /* Build device name */
@@ -101,7 +101,7 @@ main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-	/* Initialize an event structure, and attach a pulse to it */
+    /* Initialize an event structure, and attach a pulse to it */
     if((event.sigev_code = pulse_attach(dpp, MSG_FLAG_ALLOC_PULSE, 0, &timer_tick,
                                         NULL)) == -1) {
         fprintf(stderr, "Unable to attach timer pulse.\n");

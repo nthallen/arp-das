@@ -16,11 +16,11 @@ int TM_readfd(void) {
     return 1;
   }
   if ( TM_buf == 0 ) {
-	TM_buf = (char *) malloc( TMBUFSIZE );
-	if ( TM_buf == 0 ) {
-	  nl_error( nl_response, "No memory for TM_buf in TM_open_stream" );
-	  return 1;
-	}
+    TM_buf = (char *) malloc( TMBUFSIZE );
+    if ( TM_buf == 0 ) {
+      nl_error( nl_response, "No memory for TM_buf in TM_open_stream" );
+      return 1;
+    }
   }
   for (;;) {
     ssize_t nbytes = read( TM_fd, TM_buf, TMBUFSIZE );
@@ -70,89 +70,89 @@ int TM_stream( int nbytes, const char *data ) {
     return 0;
   }
   for (;;) {
-	if ( want == 0 ) {
-	  for (;;) {
-		if ( msg_offset >= nbytes ) return 0;
-		if ( buf_offset >= 0 ) {
-		  if ( data[msg_offset++] == hdr_array[buf_offset++] ) {
-			if ( buf_offset == 2 ) {
-			  want = 4;
-			  break;
-			}
-		  } else {
-			nl_error( 2, "Frame error in TM_stream, skipping..." );
-			buf_offset = -1;
-		  }
-		} else if ( data[msg_offset++] == hdr_array[0] )
-		  buf_offset = 1;
-	  }
-	}
-	while ( want && msg_offset < nbytes ) {
-	  int bytes_wanted = want - buf_offset;
-	  int bytes_avail = nbytes - msg_offset;
-	  int bytes_copy = min( bytes_wanted, bytes_avail );
-	  memcpy( &ubuf->raw[buf_offset], &data[msg_offset], bytes_copy );
-	  msg_offset += bytes_copy;
-	  buf_offset += bytes_copy;
-	  if ( buf_offset == want ) {
-		if ( want == 4 ) {
-		  to_complete = 0;
-		  switch ( ubuf->msg.hdr.tm_type ) {
-			case TMTYPE_INIT: want += sizeof( tm_info_t ); break;
-			case TMTYPE_TSTAMP: want += sizeof( tstamp_t ); break;
-			case TMTYPE_DATA_T1: want += sizeof( tm_data_t1_t ) - 2; break;
-			case TMTYPE_DATA_T2: want += sizeof( tm_data_t2_t ) - 2; break;
-			case TMTYPE_DATA_T3: want += sizeof( tm_data_t3_t ) - 2; break;
-			case TMTYPE_DATA_T4: want += sizeof( tm_data_t4_t ) - 2; break;
-			default:
-			  nl_error( 2, "Invalid tmtype in TM_stream, skipping..." );
-			  buf_offset = -1;
-			  want = 0;
-			  break;
-		  }
-		} else if ( to_complete ) {
-		  switch ( ubuf->msg.hdr.tm_type ) {
-			case TMTYPE_DATA_T1:
-			case TMTYPE_DATA_T2:
-			case TMTYPE_DATA_T3:
-			case TMTYPE_DATA_T4:
-			  TM_data( &ubuf->msg, want );
-			  break;
-			default: nl_error( 4, "Invalid tmtype 3" );
-		  }
-		  want = 0; buf_offset = 0;
-		} else {
-		  switch ( ubuf->msg.hdr.tm_type ) {
-			case TMTYPE_INIT: 
-			  memcpy( &tm_info, &ubuf->msg.body.init, sizeof(tm_info_t) );
-			  TM_init();
-			  want = 0; buf_offset = 0; break;
-			case TMTYPE_TSTAMP: 
-			  tm_info.t_stmp = ubuf->msg.body.ts;
-			  TM_tstamp( TMTYPE_TSTAMP, ubuf->msg.body.ts.mfc_num,
-			    ubuf->msg.body.ts.secs );
-			  want = 0; buf_offset = 0; break;
-			case TMTYPE_DATA_T1: 
-			case TMTYPE_DATA_T2:
-			  want += ubuf->msg.body.data1.n_rows * tm_info.tm.nbrow;
-			  break;
-			case TMTYPE_DATA_T3:
-			case TMTYPE_DATA_T4:
-			  want += ubuf->msg.body.data1.n_rows *
-			    ( tm_info.tm.nbrow - 4 );
-			  break;
-			default:
-			  nl_error( 4, "Invalid tmtype after want" );
-		  }
-		  to_complete = 1;
-		  if ( want > TMBUFSIZE ) {
-		    nl_error( 2,
-		       "Invalid data record: specified size too large, skipping..." );
-		    want = 0; buf_offset = -1; break;
-		  }
-	    }
-	  }
-	}
+    if ( want == 0 ) {
+      for (;;) {
+        if ( msg_offset >= nbytes ) return 0;
+        if ( buf_offset >= 0 ) {
+          if ( data[msg_offset++] == hdr_array[buf_offset++] ) {
+            if ( buf_offset == 2 ) {
+              want = 4;
+              break;
+            }
+          } else {
+            nl_error( 2, "Frame error in TM_stream, skipping..." );
+            buf_offset = -1;
+          }
+        } else if ( data[msg_offset++] == hdr_array[0] )
+          buf_offset = 1;
+      }
+    }
+    while ( want && msg_offset < nbytes ) {
+      int bytes_wanted = want - buf_offset;
+      int bytes_avail = nbytes - msg_offset;
+      int bytes_copy = min( bytes_wanted, bytes_avail );
+      memcpy( &ubuf->raw[buf_offset], &data[msg_offset], bytes_copy );
+      msg_offset += bytes_copy;
+      buf_offset += bytes_copy;
+      if ( buf_offset == want ) {
+        if ( want == 4 ) {
+          to_complete = 0;
+          switch ( ubuf->msg.hdr.tm_type ) {
+            case TMTYPE_INIT: want += sizeof( tm_info_t ); break;
+            case TMTYPE_TSTAMP: want += sizeof( tstamp_t ); break;
+            case TMTYPE_DATA_T1: want += sizeof( tm_data_t1_t ) - 2; break;
+            case TMTYPE_DATA_T2: want += sizeof( tm_data_t2_t ) - 2; break;
+            case TMTYPE_DATA_T3: want += sizeof( tm_data_t3_t ) - 2; break;
+            case TMTYPE_DATA_T4: want += sizeof( tm_data_t4_t ) - 2; break;
+            default:
+              nl_error( 2, "Invalid tmtype in TM_stream, skipping..." );
+              buf_offset = -1;
+              want = 0;
+              break;
+          }
+        } else if ( to_complete ) {
+          switch ( ubuf->msg.hdr.tm_type ) {
+            case TMTYPE_DATA_T1:
+            case TMTYPE_DATA_T2:
+            case TMTYPE_DATA_T3:
+            case TMTYPE_DATA_T4:
+              TM_data( &ubuf->msg, want );
+              break;
+            default: nl_error( 4, "Invalid tmtype 3" );
+          }
+          want = 0; buf_offset = 0;
+        } else {
+          switch ( ubuf->msg.hdr.tm_type ) {
+            case TMTYPE_INIT: 
+              memcpy( &tm_info, &ubuf->msg.body.init, sizeof(tm_info_t) );
+              TM_init();
+              want = 0; buf_offset = 0; break;
+            case TMTYPE_TSTAMP: 
+              tm_info.t_stmp = ubuf->msg.body.ts;
+              TM_tstamp( TMTYPE_TSTAMP, ubuf->msg.body.ts.mfc_num,
+                ubuf->msg.body.ts.secs );
+              want = 0; buf_offset = 0; break;
+            case TMTYPE_DATA_T1: 
+            case TMTYPE_DATA_T2:
+              want += ubuf->msg.body.data1.n_rows * tm_info.tm.nbrow;
+              break;
+            case TMTYPE_DATA_T3:
+            case TMTYPE_DATA_T4:
+              want += ubuf->msg.body.data1.n_rows *
+                ( tm_info.tm.nbrow - 4 );
+              break;
+            default:
+              nl_error( 4, "Invalid tmtype after want" );
+          }
+          to_complete = 1;
+          if ( want > TMBUFSIZE ) {
+            nl_error( 2,
+               "Invalid data record: specified size too large, skipping..." );
+            want = 0; buf_offset = -1; break;
+          }
+        }
+      }
+    }
   }
 }
 /*
