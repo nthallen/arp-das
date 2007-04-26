@@ -1,0 +1,37 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ(2.61)
+AC_INIT([cmdgen], [1.1], [allen@huarp.harvard.edu])
+AM_INIT_AUTOMAKE
+
+AC_CONFIG_SRCDIR([cmdalgo.h])
+AC_CONFIG_HEADER([config.h])
+
+# Defined CPPFLAGS and LDFLAGS if they are not already defined
+CPPFLAGS=${CPPFLAGS--I/usr/local/include}
+LDFLAGS=${LDFLAGS--L/usr/local/lib}
+
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_YACC
+AM_PROG_LEX
+
+# Checks for libraries.
+AC_CHECK_LIB(nort,compile_init_options,[],[AC_MSG_ERROR([nortlib is required])])
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([compiler.h nortlib.h],[],[AC_MSG_ERROR([cannot locate required header])])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_TYPE_PID_T
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_CHECK_FUNCS([strdup])
+
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT

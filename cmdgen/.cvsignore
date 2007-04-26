@@ -12,3 +12,9 @@ rdtest
 wrtest
 setup.dbg
 cmdgen
+Makefile.in
+aclocal.m4
+autom4te.cache
+config.h.in
+configure
+yyparse.h
