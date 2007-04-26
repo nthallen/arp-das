@@ -2,10 +2,15 @@ BUILT_SOURCES = yyparse.h
 bin_PROGRAMS = cmdgen
 include_HEADERS = cmdalgo.h
 cmdgen_SOURCES = cmdgen.c dstructs.c prompts.c rules.c \
-  states.c trie.c vunion.c yyparse.y yylex.l
+  states.c trie.c vunion.c yyparse.y yylex.l cmdgen.h
+
 AM_YFLAGS=-d -t -l
 AM_LFLAGS=-i
-# These are set conditionally in configure.in, since they are
-# required for the check for headers and libraries
-# AM_LDFLAGS=-L/usr/local/lib
-# cmdgen_LDADD=-lnort
+
+CVSCLEANFILES=Makefile.in aclocal.m4 autom4te.cache \
+  config.h config.log config.status stamp-h1 \
+  INSTALL depcomp install-sh missing ylwrap configure
+
+.PHONY: cvsclean
+cvsclean : maintainer-clean
+	rm -f $(CVSCLEANFILES)

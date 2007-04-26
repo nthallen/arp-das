@@ -3,6 +3,6 @@ Anderson Group Data Acquisition System.
 
 From a CVS checkout, you should be able to build via:
 
-  autoreconf
+  autoreconf -i
   ./configure
   make
