@@ -18,3 +18,9 @@ autom4te.cache
 config.h.in
 configure
 yyparse.h
+AUTHORS
+Makefile
+config.h
+config.log
+config.status
+stamp-h1

@@ -1,3 +1,8 @@
 cmdgen package for generating command parsers for the
 Anderson Group Data Acquisition System.
 
+From a CVS checkout, you should be able to build via:
+
+  autoreconf
+  ./configure
+  make
