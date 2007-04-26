@@ -1,6 +1,9 @@
 %{
   /* yylex.l Lexical Analyzer for parser generator
    * $Log$
+   * Revision 1.7  2006/05/30 00:17:09  ntallen
+   * Portability (to compile under cygwin)
+   *
    * Revision 1.6  2004/10/08 17:07:19  nort
    * Mostly keyword differences
    *
@@ -26,7 +29,7 @@
    #include <string.h>
    #include <unistd.h>
    #include "cmdgen.h"
-   #include "y.tab.h"
+   #include "yyparse.h"
    #include "compiler.h"
    #include "nortlib.h"
    #pragma off (unreferenced)
