@@ -23,4 +23,5 @@ depcomp
 install-sh
 missing
 ylwrap
+x86
 *.tar.gz
