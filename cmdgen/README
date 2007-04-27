@@ -6,3 +6,10 @@ From a CVS checkout, you should be able to build via:
   autoreconf -i
   ./configure
   make
+
+Note that the version of sed distributed with QNX4 is rather out of
+date and cannot process certain constructs included in the configure
+script. Specifically, it does not recognize semicolons as command
+separators as used in the definition of $as_tr_sh. I have tried
+using a ported version of GNU sed, but am running into another
+problem there that I haven't tracked down yet.

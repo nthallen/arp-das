@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT([cmdgen], [1.1], [allen@huarp.harvard.edu])
+AC_INIT([cmdgen], [1.9], [allen@huarp.harvard.edu])
 AM_INIT_AUTOMAKE
 
 AC_CONFIG_SRCDIR([cmdalgo.h])
@@ -18,7 +18,7 @@ AC_PROG_YACC
 AM_PROG_LEX
 
 # Checks for libraries.
-AC_CHECK_LIB(nort,compile_init_options,[],[AC_MSG_ERROR([nortlib is required])])
+AC_SEARCH_LIBS(compile_init_options,[nort nortlib],[],[AC_MSG_ERROR(nortlib is required)])
 
 # Checks for header files.
 AC_HEADER_STDC
