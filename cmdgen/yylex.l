@@ -1,6 +1,9 @@
 %{
   /* yylex.l Lexical Analyzer for parser generator
    * $Log$
+   * Revision 1.8  2007/04/26 15:50:44  ntallen
+   * Changed the name of the include file for use with automake
+   *
    * Revision 1.7  2006/05/30 00:17:09  ntallen
    * Portability (to compile under cygwin)
    *
@@ -109,6 +112,10 @@
 \&\&?[a-z][a-z_0-9]+ {
 	yylval.nt_val = non_terminal(yytext+1);
 	return(TK_NON_TERMINAL);
+  }
+%INTERFACE {
+    yylval.str_val = "";
+    return( TK_INTERFACE );
   }
 \%l?[dxofws] ret_full_str(TK_VAR_SPEC);
 \(([^\n\)]|\\.)*\) ret_inner(TK_PROMPT);

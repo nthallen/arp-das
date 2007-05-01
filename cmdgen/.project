@@ -23,7 +23,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.environment</key>
-					<value></value>
+					<value>QNX_HOST=/usr/qnx630/host/qnx6/x86/|MAKEFLAGS=-I/usr/qnx630/target/qnx6/usr/include|PATH=/usr/qnx630/host/qnx6/x86/usr/bin:/usr/qnx630/host/qnx6/x86/bin:/usr/qnx630/host/qnx6/x86/usr/sbin:/usr/qnx630/host/qnx6/x86/sbin:/bin:/usr/bin:/usr/photon/bin:/usr/photon/appbuilder:/opt/X11R6/bin:/usr/X11R6/bin:/usr/local/bin:/opt/bin:/usr/qnx630/host/qnx6/x86/usr/bin:/usr/qnx630/host/qnx6/x86/usr/sbin:/usr/qnx630/host/qnx6/x86/sbin:/usr/qnx630/host/qnx6/x86/bin:/usr/qnx630/host/qnx6/x86/usr/photon/appbuilder:/usr/local/bin:/opt/bin:/usr/qnx630/host/qnx6/x86/usr/bin:/usr/qnx630/host/qnx6/x86/usr/sbin:/usr/qnx630/host/qnx6/x86/sbin:/usr/qnx630/host/qnx6/x86/bin:/usr/qnx630/host/qnx6/x86/usr/photon/appbuilder|QNX_TARGET=/usr/qnx630/target/qnx6/|LD_LIBRARY_PATH=/usr/qnx630/host/qnx6/x86/usr/lib:/usr/qnx630/host/qnx6/x86/lib:/usr/qnx630/host/qnx6/x86/lib/dll:/proc/boot:/lib:/usr/lib:/lib/dll:/opt/lib:/usr/photon/lib:/usr/photon/dll:/usr/local/lib:/opt/X11R6/lib:/usr/X11R6/lib|</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.build.target.auto</key>

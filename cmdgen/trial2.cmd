@@ -1,5 +1,6 @@
-&program : &cmds
+&program : &cmds Quit *
 	  ;
+%INTERFACE <indxr>
 &cmds :
 	  : &cmds &cmd
 	  ;

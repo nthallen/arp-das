@@ -1,5 +1,8 @@
 /* cmdgen.c contains the main program for the Command Parser Generator.
  * $Log$
+ * Revision 1.8  2006/05/30 00:17:09  ntallen
+ * Portability (to compile under cygwin)
+ *
  * Revision 1.7  2004/10/08 17:07:08  nort
  * Mostly keyword differences
  *
@@ -136,6 +139,7 @@ static void output_version(void) {
 static void generate_output(void) {
   FILE *ofile_save;
 
+  output_interfaces();
   fprintf(ofile, "typedef unsigned %s cg_token_type;\n",
 		  n_states > 255 || max_tokens > 255 ? "short" : "char");
   fprintf(ofile, "typedef unsigned %s cg_nonterm_type;\n",

@@ -1,5 +1,8 @@
 /* cmdgen.h Definitions for Command Parser Generator
  * $Log$
+ * Revision 1.5  2004/10/08 17:07:09  nort
+ * Mostly keyword differences
+ *
  * Revision 1.4  1994/09/08  13:45:54  nort
  * Removed new_memory() and free_memory() definitions now provided
  * by nortlib
@@ -152,6 +155,8 @@ void output_prompts(void); /* prompts.c */
 void output_shifts(void); /* states.c */
 void output_states(void); /* states.c */
 void output_rules(void); /* rules.c */
+void new_interface( char *int_name );
+void output_interfaces(void);
 
 #define vfile ofile
 #define efile stderr

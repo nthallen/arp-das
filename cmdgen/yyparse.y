@@ -1,5 +1,8 @@
 %{
   /* $Log$
+  /* Revision 1.4  2004/10/08 17:07:20  nort
+  /* Mostly keyword differences
+  /*
  * Revision 1.3  1995/05/25  17:18:37  nort
  * Use standard nortlib compiler functions
  *
@@ -29,6 +32,7 @@
 %token <str_val> TK_VAR_SPEC
 %token <str_val> TK_C_CODE
 %token <str_val> TK_PROMPT
+%token <str_val> TK_INTERFACE
 %type <nt_val> Rule
 %type <nt_val> nt_spec
 %type <type_val> type_spec
@@ -40,6 +44,9 @@ Rules     :
 		  | Rules Rule ';' {
 			  if ($2->rules.first == NULL)
 				compile_error(3, "Non-terminal has no rules");
+			}
+		  | Rules TK_INTERFACE TK_TYPE_SPEC {
+			  new_interface( $3 );
 			}
 		  ;
 Rule	  : nt_spec
