@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include "cis.h"
+#include "tm.h"
 #include "nortlib.h"
 #include "nl_assert.h"
 
@@ -19,6 +20,7 @@ static command_out_t *free_command( command_out_t *cmd );
 static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         rd_io_funcs, wr_io_funcs;
 static IOFUNC_ATTR_T             wr_attr;
+static int                       wr_id;
 static resmgr_attr_t             resmgr_attr;
 static dispatch_t                *dpp;
 static IOFUNC_ATTR_T             *rd_attrs;
@@ -63,10 +65,19 @@ static iofunc_funcs_t ocb_funcs = { /* our ocb allocating & freeing functions */
 /* the mount structure, we have only one so we statically declare it */
 static iofunc_mount_t mountpoint = { 0, 0, 0, 0, &ocb_funcs };
 
+/* rdrs is a linked list of rdr IOFUNC_ATTR_Ts */
+typedef struct rdrs_s {
+  struct rdrs_s *next;
+  int id;
+  IOFUNC_ATTR_T *rdr;
+} rdrs_t;
+static rdrs_t *rdrs;
+
 IOFUNC_ATTR_T *cis_setup_rdr( char *node ) {
   ioattr_t *rd_attr = new_memory(sizeof(ioattr_t));
-  char nodename[80];
+  char nodebase[80], *nodename;
   int id;
+  rdrs_t *rs = new_memory(sizeof(rdrs_t));
 
   /* initialize attribute structure used by the device */
   iofunc_attr_init((iofunc_attr_t *)rd_attr, S_IFNAM | 0444, 0, 0);
@@ -76,7 +87,8 @@ IOFUNC_ATTR_T *cis_setup_rdr( char *node ) {
   
   /* Check Experiment variable for sanity: \w[\w.]* */
   /* Build device name */
-  snprintf( nodename, 80, "/dev/huarp/%s/cmd/%s", "Exp", node );
+  snprintf( nodebase, 80, "cmd/%s", node );
+  nodename = tm_dev_name( nodebase );
   
   rd_attr->first_cmd = rd_attr->last_cmd = new_command();
   rd_attr->next = rd_attrs;
@@ -94,13 +106,66 @@ IOFUNC_ATTR_T *cis_setup_rdr( char *node ) {
   if(id == -1) {
     nl_error( 3, "Unable to attach name: '%s'", nodename );
   }
+  rs->rdr = rd_attr;
+  rs->id = id;
+  rs->next = rdrs;
+  rdrs = rs;
   return rd_attr;
 }
 
+static void cis_shutdown_rdr( rdrs_t **p ) {
+  rdrs_t *cur_rdr = *p;
+  IOFUNC_ATTR_T *attr;
+  int rv;
+
+  assert( cur_rdr != NULL);
+  attr = cur_rdr->rdr;
+  nl_error( 0, "Shutting down reader %s", attr->nodename );
+  rv = resmgr_detach( dpp, cur_rdr->id, _RESMGR_DETACH_ALL );
+  if ( rv < 0 )
+    nl_error( 2, "Error %d from resmgr_detach(%s)",
+      errno, attr->nodename );
+  nl_free_memory( attr->nodename );
+  nl_free_memory( attr );
+  *p = cur_rdr->next;
+  nl_free_memory( cur_rdr );
+}
+
+static void process_quit(void) {
+  rdrs_t *rr;
+  int rv;
+  for ( rr = rdrs; rr != NULL; rr = rr->next ) {
+    cis_turf( rr->rdr, "" );
+  }
+  rv = resmgr_detach( dpp, wr_id, _RESMGR_DETACH_PATHNAME );
+  if ( rv < 0 )
+    nl_error( 2, "Error %d from resmgr_detach(wr_id)", errno );
+  quit_received = 1;
+}
+
+static int all_closed(void) {
+  rdrs_t **cur_rdr_p = &rdrs;
+  rdrs_t *cur_rdr;
+  IOFUNC_ATTR_T *cur_attr;
+  for (;;) {
+    cur_rdr = *cur_rdr_p;
+    if ( cur_rdr == NULL ) break;
+    assert( cur_rdr->rdr != NULL );
+    cur_attr = cur_rdr->rdr;
+    if ( cur_attr.count == 0 )
+      cis_shutdown_rdr( cur_rdr_p );
+    else
+      cur_rdr_p = &(cur_rdr->next);
+  }
+  return rdrs == NULL && wr_attr.count == 0;
+}
+
 //### The old version is at the bottom
+static int quit_received = 0;
+
 void ci_server(void) {
     int use_threads = 0;
-    int id;
+    char *server_name;
 
     cis_initialize();
 
@@ -132,20 +197,20 @@ void ci_server(void) {
     wr_attr.attr.mount = &mountpoint;
     wr_attr.nodename = nl_strdup("writer");
 
+    server_name = nl_strdup( tm_dev_name( CMDSRVR_NAME ) );
     /* Check Experiment variable for sanity: \w[\w.]* */
     /* Build device name */
     /* attach our device name */
-    id = resmgr_attach(dpp,            /* dispatch handle        */
+    wr_id = resmgr_attach(dpp,            /* dispatch handle        */
                        &resmgr_attr,   /* resource manager attrs */
-                       "/dev/huarp/Exp/cmdw",  /* device name            */
+                       server_name,    /* device name            */
                        _FTYPE_ANY,     /* open type              */
                        0,              /* flags                  */
                        &connect_funcs, /* connect routines       */
                        &wr_io_funcs,   /* I/O routines           */
                        &wr_attr);      /* handle                 */
-    if(id == -1) {
-        nl_error( 3, "Unable to attach name");
-    }
+    if( wr_id == -1 )
+      nl_error( 3, "Unable to attach name");
     
     // Call the cmdgen-generated initialization routine
     cis_interfaces();
@@ -173,22 +238,22 @@ void ci_server(void) {
       }     /* start the threads, will not return */
       thread_pool_start(tpp);
     } else {
-      int running = 2;
       dispatch_context_t   *ctp;
       ctp = dispatch_context_alloc(dpp);
       printf( "\nStarting:\n" );
-      while ( running ) {
+      while ( 1 ) {
 	if ((ctp = dispatch_block(ctp)) == NULL) {
-	  fprintf(stderr, "block error\n" );
+	  nl_error( 2, "block error\n" );
 	  return;
 	}
 	// printf( "  type = %d,%d  attr.count = %d\n",
 	//   ctp->resmgr_context.msg->type,
 	//   ctp->resmgr_context.msg->connect.subtype, attr.count );
 	dispatch_handler(ctp);
-	// Need a more sophisticated termination condition here
-	// if ( running > 1 && attr.count > 0 ) running = 1;
-	// else if ( running == 1 && attr.count == 0 ) running = 0;
+	if ( quit_received && ctp->resmgr_context.rcvid == 0
+	      && all_closed() ) {
+	  break;
+	}
       }
       printf( "Terminating\n" );
     }
@@ -251,6 +316,7 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
 	  switch (*s) {
 	    case 'T': testing = 1; s++; break;
 	    case 'Q': quiet = 1; s++; break;
+	    case 'X': process_quit(); return EOK;
 	    case 'V': // handle version command
 	      ver = ++s;
 	      while ( *s != ']' && *s != '\0' ) s++;
@@ -276,6 +342,7 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
     { char *cmd = s;
       int len = 0;
       int rv;
+      int clen;
 
       // Now s points to a command we want to parse.
       // Make sure it's kosher
@@ -288,15 +355,21 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
 	s++;
       }
       if ( len > 0 && cmd[len-1] == '\n' ) len--;
-      nl_error( quiet ? -2 : 0, "%s: %*.*s", 
+      nl_error( quiet ? -2 : 0, "%s: %*.*s",
 	mnemonic, len, len, cmd );
       cmd_init();
       rv = cmd_batch( cmd, testing );
       ocb->hdr.attr->attr.flags |= IOFUNC_ATTR_MTIME | IOFUNC_ATTR_CTIME;
       switch ( CMDREP_TYPE(rv) ) {
 	case 0: return EOK;
-	case 1: return ENOENT;
-	case 2: return EINVAL;
+	case 1: process_quit(); return EOK;
+	case 2: /* Report Syntax Error */
+	  if ( nl_response ) {
+	    nl_error( 2, "%s: Syntax Error", mnemonic );
+	    nl_error( 2, "%*.*s", len, len, cmd);
+	    nl_error( 2, "%*s", rv - CMDREP_SYNERR, "^");
+	  }
+	  return EINVAL;
 	default: return EIO;
       }
     }

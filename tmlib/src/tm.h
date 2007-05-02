@@ -179,4 +179,28 @@ extern tm_info_t tm_info;
 extern int TM_fd;
 extern char *TM_buf;
 
+#include <fcntl.h>
+extern char *tm_dev_name(const char *base);
+extern int tm_open_name(const char *name, const char *node, int flags);
+
+/* Command Interpreter Client (CIC) and Server (CIS) Utilities
+   Message-level definition is in cmdalgo.h
+ */
+void cic_options(int argc, char **argv, const char *def_prefix);
+int cic_init(void);
+extern char ci_version[];
+void cic_transmit(char *buf, int n_chars, int transmit);
+int ci_sendcmd(const char *cmdtext, int mode);
+int ci_sendfcmd(int mode, char *fmt, ...);
+void ci_settime( long int time );
+const char *ci_time_str( void );
+void ci_server(void); /* in nortlib/cis.c */
+void cis_initialize(void); /* in cmdgen.skel or .cmd */
+void cis_terminate(void);  /* in cmdgen.skel of .cmd */
+
+/* tmcalgo (tma) support routines */
+void tma_new_state(unsigned int partition, const char *name);
+void tma_new_time(unsigned int partition, long int t1, const char *next_cmd);
+void tma_hold(int hold);
+
 #endif

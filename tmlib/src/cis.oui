@@ -1,0 +1,8 @@
+<package> cis
+<comment>
+  This is the OUI definition for data acquisition system
+  command server applications, formerly known as server.oui
+
+<package> msghdr_init
+<init>
+  msg_hdr = "Srvr";
