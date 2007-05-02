@@ -22,8 +22,9 @@ void cis_interfaces(void); /* generated */
 
 struct ioattr_s;
 #define IOFUNC_ATTR_T struct ioattr_s
-extern IOFUNC_ATTR_T *cmdsrvr_setup_rdr( char *node );
-extern void cmdsrvr_turf( IOFUNC_ATTR_T *handle, char *format, ... );
+extern IOFUNC_ATTR_T *cis_setup_rdr( char *node );
+extern void cis_turf( IOFUNC_ATTR_T *handle, char *format, ... );
 void ci_server(void); /* in tmlib/cis.c */
+#define CMDSRVR_NAME "cmd/server"
 
 #endif
