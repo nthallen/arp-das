@@ -1,0 +1,11 @@
+tmlib is a utility library for Anderson Group-style telemetry data.
+We are taking advantage of the migration from QNX4 to QNX6 to make
+some modifications to the underlying data formats. As such, the format
+of data under QNX6 will not be directly compatible with QNX4 data,
+although it should not be difficult to translate between the formats.
+
+The new architecture does away with the 'Data Ring,' replacing it with
+a more robust data buffer implemented as a QNX6 resource manager. This
+eliminates the distinction between data buffer clients and data ring
+clients. Relative priority between clients can be controlled via process
+priority levels.

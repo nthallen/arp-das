@@ -1,5 +1,14 @@
-aclocal.m4
 Makefile.in Makefile
 configure config.log config.cache config.status
 libtool
+x86
+COPYING
+INSTALL
+config.guess
+config.sub
+depcomp
+install-sh
+ltmain.sh
+missing
 autom4te.cache
+aclocal.m4
