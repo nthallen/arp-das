@@ -15,7 +15,7 @@ char *tm_dev_name(const char *base) {
   
   assert(base != NULL);
   exp = getenv("Experiment");
-  if (exp != NULL) exp = "none";
+  if (exp == NULL) exp = "none";
   nb = snprintf( name, PATH_MAX, "/dev/%s/%s/%s", COMPANY, exp, base );
   if ( nb >= PATH_MAX ) {
     if (nl_response)

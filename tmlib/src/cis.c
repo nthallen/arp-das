@@ -32,7 +32,6 @@ static IOFUNC_ATTR_T             *rd_attrs;
 
 static struct ocb *ocb_calloc (resmgr_context_t *ctp, IOFUNC_ATTR_T *device) {
   ocb_t *ocb = calloc( 1, sizeof(ocb_t) );
-  printf("ocb_calloc for node %s\n", device->nodename ? device->nodename : "write" );
   if ( ocb == 0 ) return 0;
   /* Initialize any other elements. Currently all zeros is good. */
   /* Increment count on first command */
@@ -46,7 +45,6 @@ static void ocb_free (struct ocb *ocb) {
   /* Be sure to remove this from the blocking list:
      Actually, there really is no way it should be on
      the blocking list. */
-  printf("ocb_free for node %s\n", ocb->hdr.attr->nodename );
   assert( ocb->rcvid == 0 );
   assert( ocb->next_ocb == 0 );
   if ( ocb->next_command ) {
@@ -131,17 +129,7 @@ static void cis_shutdown_rdr( rdrs_t **p ) {
   nl_free_memory( cur_rdr );
 }
 
-static void process_quit(void) {
-  rdrs_t *rr;
-  int rv;
-  for ( rr = rdrs; rr != NULL; rr = rr->next ) {
-    cis_turf( rr->rdr, "" );
-  }
-  rv = resmgr_detach( dpp, wr_id, _RESMGR_DETACH_PATHNAME );
-  if ( rv < 0 )
-    nl_error( 2, "Error %d from resmgr_detach(wr_id)", errno );
-  quit_received = 1;
-}
+static int quit_received = 0;
 
 static int all_closed(void) {
   rdrs_t **cur_rdr_p = &rdrs;
@@ -152,16 +140,27 @@ static int all_closed(void) {
     if ( cur_rdr == NULL ) break;
     assert( cur_rdr->rdr != NULL );
     cur_attr = cur_rdr->rdr;
-    if ( cur_attr.count == 0 )
+    if ( cur_attr->attr.count == 0 )
       cis_shutdown_rdr( cur_rdr_p );
     else
       cur_rdr_p = &(cur_rdr->next);
   }
-  return rdrs == NULL && wr_attr.count == 0;
+  return rdrs == NULL && wr_attr.attr.count == 0;
 }
 
-//### The old version is at the bottom
-static int quit_received = 0;
+static void process_quit(void) {
+  rdrs_t *rr;
+  int rv;
+  nl_error( 0, "Processing Quit" );
+  for ( rr = rdrs; rr != NULL; rr = rr->next ) {
+    cis_turf( rr->rdr, "" );
+  }
+  rv = resmgr_detach( dpp, wr_id, _RESMGR_DETACH_PATHNAME );
+  if ( rv < 0 )
+    nl_error( 2, "Error %d from resmgr_detach(wr_id)", errno );
+  all_closed();
+  quit_received = 1;
+}
 
 void ci_server(void) {
     int use_threads = 0;
@@ -240,7 +239,6 @@ void ci_server(void) {
     } else {
       dispatch_context_t   *ctp;
       ctp = dispatch_context_alloc(dpp);
-      printf( "\nStarting:\n" );
       while ( 1 ) {
 	if ((ctp = dispatch_block(ctp)) == NULL) {
 	  nl_error( 2, "block error\n" );
@@ -255,7 +253,6 @@ void ci_server(void) {
 	  break;
 	}
       }
-      printf( "Terminating\n" );
     }
     return;
 }
@@ -362,7 +359,7 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
       ocb->hdr.attr->attr.flags |= IOFUNC_ATTR_MTIME | IOFUNC_ATTR_CTIME;
       switch ( CMDREP_TYPE(rv) ) {
 	case 0: return EOK;
-	case 1: process_quit(); return EOK;
+	case 1: process_quit(); return ENOENT;
 	case 2: /* Report Syntax Error */
 	  if ( nl_response ) {
 	    nl_error( 2, "%s: Syntax Error", mnemonic );
@@ -486,96 +483,13 @@ void cis_turf( IOFUNC_ATTR_T *handle, char *format, ... ) {
   }
 }
 
-/* ci_server() does all the work for a command server. It does
-   not return until cmd_batch returns a CMDREP_QUIT or it receives
-   a CMDINTERP_QUIT message.
-   It registers the CMDINTERP_NAME
-   Loops to Receive messages. For each received command,
-   calls cmd_init() and cmd_batch. If needed, a hook can
-   be added for other messages.
-*/
-//void ci_server(void) {
-//  name = nl_make_name(CMDINTERP_NAME, 0);
-//  name_id = qnx_name_attach(0, name);
-//  if (name_id == -1)
-//	nl_error(3, "Unable to attach name %s", name);
-//
-//  { /* Set up quit_proxy with cmdctrl if possible */
-//	pid_t cc_pid;
-//	int resp;
-//	
-//	resp = set_response( 0 );
-//	cc_pid = find_CC( 0 );
-//	set_response( resp );
-//	if ( cc_pid == -1 )
-//	  nl_error( -2, "Unable to locate cmdctrl for quit proxy" );
-//	else {
-//	  ccreg_type ccr;
-//	  unsigned char rv;
-//
-//	  ccr.ccreg_byt = CCReg_MSG;
-//	  ccr.min_dasc = ccr.max_dasc = ccr.min_msg = ccr.max_msg = 0;
-//	  ccr.how_to_quit = PROXY_ON_QUIT;
-//	  ccr.how_to_die = NOTHING_ON_DEATH;
-//	  quit_proxy = ccr.proxy = qnx_proxy_attach( 0, NULL, 0, -1 );
-//	  if ( ccr.proxy == -1 )
-//		nl_error( 2, "Unable to create proxy for cmdctrl" );
-//	  else {
-//		if ( Send( cc_pid, &ccr, &rv, sizeof( ccr ), sizeof( rv ) ) != 0 )
-//		  nl_error( 1, "Error Sending to CmdCtrl" );
-//		else if ( rv != DAS_OK )
-//		  nl_error( 1, "Error return from CmdCtrl: %d", rv );
-//	  }
-//	}
-//  }
-//
-//  /* Basic Receive() loop */  
-//  for (;;) {
-//	who = Receive( 0, &cim, sizeof(cim) );
-//	if (who == -1) nl_error(0, "Receive gave errno %d", errno);
-//	else if ( who == quit_proxy ) {
-//	  nl_error( 0, "Received quit proxy from cmdctrl" );
-//	  break;
-//	} else switch (cim.msg_type) {
-//	  case CMDINTERP_QUERY:
-//		v.msg_type = 0;
-//		strncpy(v.version, ci_version, CMD_VERSION_MAX);
-//		v.version[CMD_VERSION_MAX-1] = '\0';
-//		Reply(who, &v, sizeof(v));
-//		continue;
-//	  case CMDINTERP_SEND:
-//	  case CMDINTERP_SEND_QUIET:
-//		{ int len;
-//
-//		  len = strlen(cim.command);
-//		  if (len > 0 && cim.command[len-1] == '\n') len--;
-//		  nl_error(cim.msg_type == CMDINTERP_SEND_QUIET ? -2 : 0,
-//				  "%s: %*.*s", cim.prefix, len, len, cim.command);
-//		}
-//	  case CMDINTERP_TEST:
-//		cmd_init();
-//		rv = cmd_batch(cim.command, cim.msg_type == CMDINTERP_TEST);
-//		Reply(who, &rv, sizeof(rv));
-//		if (rv != CMDREP_QUIT || cim.msg_type == CMDINTERP_TEST)
-//		  continue;
-//		break;
-//	  case CMDINTERP_QUIT:
-//		rv = CMDREP_QUIT;
-//		Reply(who, &rv, sizeof(rv));
-//		break;
-//	}
-//	break;
-//  }
-//  qnx_name_detach(0, name_id);
-//}
-
 /*
 =Name ci_server(): Command Server main loop
 =Subject Command Server and Client
 
 =Synopsis
 
-#include "nortlib.h"
+#include "tm.h"
 void ci_server(void);
 
 =Description

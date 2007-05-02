@@ -3,15 +3,16 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <sys/kernel.h>
-#include <sys/sendmx.h>
 #include "nortlib.h"
 #include "tm.h"
 #include "cmdalgo.h"
+#include "cis.h"
 
+#define CMD_PREFIX_MAX 10
+#define CMD_VERSION_MAX 80
 static char cic_header[CMD_PREFIX_MAX] = "CIC";
 static char *cis_node;
-static int cis_fd;
+static int cis_fd = -1;
 static int playback = 0;
 /* cgc_forwarding is 'cmdgen client forwarding'. It is apparently
    only used when the local command server is a generic forwarder.
@@ -64,15 +65,13 @@ void cic_options(int argcc, char **argvv, const char *def_prefix) {
 int cic_init(void) {
   cis_fd = tm_open_name( tm_dev_name( CMDSRVR_NAME ),
     cis_node, O_WRONLY );
-  if (cis_fd < 0) {
-    cis_fd = 0;
+  if (cis_fd < 0)
     return(1);
-  }
   
   /* If specified, verify version */
   if (ci_version[0] != '\0') {
     char vcheck[CMD_VERSION_MAX];
-	int nb = snprintf( vcheck, CMD_VERSION_MAX, "[%s:%s]\n",
+	int nb = snprintf( vcheck, CMD_VERSION_MAX, "[%s:V%s]\n",
 	  cic_header, ci_version );
 	if ( nb >= CMD_VERSION_MAX )
 	  nl_error( nl_response, "Version string too long" );
@@ -124,74 +123,57 @@ const char *ci_time_str( void ) {
      CMDREP_EXECERR from CIS: Normally warning: return it
 */
 int ci_sendcmd(const char *cmdtext, int mode) {
-  unsigned sparts, clen;
-  int rv;
+  char *cmdopts = NULL;
+  int clen, rv;
+  char buf[CMD_MAX_COMMAND_IN+1];
   
-  if (!playback && cis_pid == 0 && cic_init() != 0) return(1);
+  if (!playback && cis_fd < 0 && cic_init() != 0) return(1);
   if (cmdtext == NULL) {
-    cic_msg_type = CMDINTERP_QUIT;
-    sparts = 2;
-    clen = 0;
+    cmdopts = "X";
+    cmdtext = "";
     nl_error(-3, "Sending Quit to Server");
   } else {
     switch (mode) {
-      case 1: cic_msg_type = CMDINTERP_TEST; break;
-      case 2: cic_msg_type = CMDINTERP_SEND_QUIET; break;
-      default: cic_msg_type = CMDINTERP_SEND; break;
+      case 1: cmdopts = "T"; break;
+      case 2: cmdopts = "Q"; break;
+      default: break;
     }
     clen = strlen(cmdtext);
     { int len = clen;
 
       if (len > 0 && cmdtext[len-1]=='\n') len--;
-      nl_error( cic_msg_type == CMDINTERP_SEND_QUIET ? -4 : -3,
+      nl_error( mode == 2 ? -4 : -3,
           "%s%*.*s", ci_time_str(), len, len, cmdtext);
     }
-    clen++;
-    if (clen > CMD_INTERP_MAX) {
-      if (nl_response)
-        nl_error(nl_response, "Command too long: %s", cmdtext);
-      return(CMDREP_SYNERR + CMD_INTERP_MAX);
-    }
-    _setmx(&cic_msgs[2], cmdtext, clen);
-    sparts = 3;
   }
   if (playback) return(0);
-  rv = Sendmx(cis_pid, sparts, 1, cic_msgs, &cic_reply);
+  clen = snprintf( buf, CMD_MAX_COMMAND_IN+1, "[%s:%s]%s",
+    cic_header, cmdopts, cmdtext );
+  if ( clen > CMD_MAX_COMMAND_IN ) {
+    nl_error( 2, "Command too long" );
+    return CMDREP_SYNERR;
+  }
+  rv = write( cis_fd, buf, clen );
   if (rv == -1) {
     switch (errno) {
-      case EFAULT:
-        nl_error(4, "Ill-formed Sendmx in cic_sendcmd");
-      case EINTR:
-        if (nl_response)
-          nl_error(1, "cic_sendcmd interrupted");
-        break;
-      case ESRCH:
-        if (nl_response)
-          nl_error(nl_response, "Cmd Server Terminated");
-        cis_pid = 0;
-        break;
+      case ENOENT: /* Expected quit condition */
+        close(cis_fd);
+        cis_fd = -1;
+        return CMDREP_QUIT;
+      case E2BIG:
+        nl_error( 4, "Unexpected E2BIG from cis" );
+      case EINVAL:
+        nl_error( 2, "Syntax error from cis" );
+        return 1;
+      case EIO:
+        nl_error( 2, "Execution error from cis" );
+        return 1;
+      default:
+        nl_error( 3, "Unhandled error %d from cis", errno );
     }
     return(1);
   }
-  
-  if (cic_reply_code != 0) {
-    if (cic_reply_code == CMDREP_QUIT) cis_pid = 0;
-    else if (cic_reply_code >= CMDREP_EXECERR) {
-      if (nl_response)
-        nl_error(1, "Execution error %d from Cmd Server",
-                cic_reply_code - CMDREP_EXECERR);
-    } else if (cic_reply_code >= CMDREP_SYNERR) {
-      if (nl_response && clen) {
-        clen--;
-        if (clen > 0 && cmdtext[clen-1]=='\n') clen--;
-        nl_error(2, "Syntax Error in ci_sendcmd:");
-        nl_error(2, "%*.*s", clen, clen, cmdtext);
-        nl_error(2, "%*s", cic_reply_code - CMDREP_SYNERR, "^");
-      }
-    } else nl_error(4, "Unexpected reply %d from Cmd Server",
-                cic_reply_code);
-  }
-  return(cic_reply_code);
+  return 0;
 }
 
 /*
