@@ -14,7 +14,7 @@ char rcsid_skeleton_c[] =
 */
 static FILE *skfp = NULL;
 #define MAX_LABEL 40
-#define DEF_DIR "/usr/local/lib/src"
+#define DEF_DIR "/usr/local/share/huarp"
 
 int Skel_open(char *name) {
   char filename[FILENAME_MAX+1];
