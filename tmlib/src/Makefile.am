@@ -5,4 +5,4 @@ libtm_la_SOURCES = tm_open.c tm_stream.c tm_data.c tm_init.c \
 include_HEADERS = tm.h
 AM_CPPFLAGS = -I /usr/local/include
 ouidir = $(datadir)/oui
-oui_HEADERS = cic.oui cis.oui
+oui_HEADERS = cic.oui cis.oui msghdr.oui

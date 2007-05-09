@@ -1,0 +1,23 @@
+<package> msghdr
+
+<comment>
+  Package to accomodate the fact that both msg_init_options() and
+  cic_init_options() want header information.
+  The actual initialization of the msghdr should take place in a
+  package named "msghdr_init". A default is available in the
+  library, and additional defaults can be layered above that by
+  more specialized packages.
+
+<preceed> msghdr_init
+
+<opts> "h:"
+<sort>
+	-h <msg header>
+<var>
+  char *msg_hdr;
+
+<comment>
+  A default message header. We can usually do better!
+<package> msghdr_init
+<init>
+  msg_hdr = "hdr";
