@@ -12,7 +12,7 @@
 <opts> "C:p"
 <sort>
         -C <node> send commands to server on specified node
-        -p Playback mode: don't send commands to server
+        -p Playback mode: do not send commands to server
 
 <include> "nortlib.h"
 <init>
