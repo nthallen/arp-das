@@ -1,4 +1,5 @@
 <package> cis
+<include> msghdr
 <comment>
   This is the OUI definition for data acquisition system
   command server applications, formerly known as server.oui
