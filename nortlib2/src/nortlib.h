@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.18  2001/12/04 15:06:05  nort
+ * Debugging, etc.
+ *
  * Revision 1.17  2001/10/11 16:34:41  nort
  * Added compiler.oui. Fixed compiler.h.
  *
@@ -50,32 +53,6 @@ int set_response(int newval); /* nlresp.c */
 #define NLRSP_DIE 3
 #define NLRSP_WARN 1
 #define NLRSP_QUIET 0
-
-/* Command Interpreter Client (CIC) and Server (CIS) Utilities
-   Message-level definition is in cmdalgo.h
- */
-void cic_options(int argc, char **argv, const char *def_prefix);
-int cic_init(void);
-int cic_query(char *version);
-extern char ci_version[];
-void cic_transmit(char *buf, int n_chars, int transmit);
-int ci_sendcmd(const char *cmdtext, int mode);
-int ci_sendfcmd(int mode, char *fmt, ...);
-void ci_settime( long int time );
-const char *ci_time_str( void );
-#define OPT_CIC_INIT "C:p"
-void ci_server(void); /* in nortlib/cis.c */
-void cis_initialize(void); /* in cmdgen.skel or .cmd */
-void cis_terminate(void);  /* in cmdgen.skel of .cmd */
-
-/* tmcalgo (tma) support routines */
-void tma_new_state(unsigned int partition, const char *name);
-void tma_new_time(unsigned int partition, long int t1, const char *next_cmd);
-void tma_hold(int hold);
-
-/* R1 routines */
-int tma_time_check(unsigned int partition);
-void tma_sendcmd(const char *cmd);
 
 /* guaranteed memory allocator, memlib.h subset.
  * Include memlib.h to obtain the full definition
