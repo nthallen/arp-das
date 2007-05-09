@@ -1,53 +1,11 @@
-/* cmdgen.skel skeleton file
- *
- * $Log$
- * Revision 1.28  1997/01/06 00:22:54  nort
- * Removed CMD_ERROR_FIX
- *
- * Revision 1.27  1996/06/04  19:13:45  nort
- * Screwed up the value stack!
- *
- * Revision 1.26  1996/03/21  14:23:42  nort
- * Support for really remote clients (Serclt)
- *
- * Revision 1.25  1995/10/03  18:00:21  nort
- * Changes to support screens of varying sizes
- *
- * Revision 1.24  1995/09/07  20:05:22  nort
- * Changes to make termination cleaner.
- *
- * Revision 1.23  1994/09/08  13:49:43  nort
- * *** empty log message ***
- *
- * Revision 1.22  1994/08/29  18:53:15  nort
- * Mods for OUI
- *
- * Revision 1.21  1994/08/10  15:17:20  nort
- * Support for straight text interfaces
- *
- * Revision 1.20  1994/05/02  18:02:02  nort
- * Cleaned up options and documentation of options.
- * Added LL_INTERFACE option to allow straight keyboard input
- * for simple applications.
- *
- * Revision 1.19  1994/04/27  18:26:47  nort
- * Added solp_init() for solenoid proxies.
- *
- * Revision 1.18  1994/02/13  23:09:22  nort
- * SNAFU stuff, I believe
- *
- * Revision 1.15  1993/07/07  22:23:21  nort
- * Mods for snafu.
- *
- * Revision 1.14  1993/05/18  13:11:32  nort
- * Client/Server Support
- */
+/* cmdgen.skel skeleton file */
 #include <stdlib.h>
-#include <assert.h>
 #include <ctype.h>
 #include <unistd.h>
 #include "cmdalgo.h"
+#include "tm.h" /* for ci* library functions */
 #include "nortlib.h" /* Included for cis_init. prototype(), nl_error() */
+#include "nl_assert.h"
                      /* <stdio.h>   Included by nortlib.h */
 #include "oui.h"
 #pragma off (unreferenced)
@@ -115,6 +73,7 @@ static short ioflags;
  I/O options:
    QNX_CONS      uses nortlib nl_cons.h stuff (default)
    SNAFU_CURSES  specific to snafu. Implies SELF_SERVE
+   PHOTON_INTERFACE uses Photon
    LL_INTERFACE  allows for external definition each
 				 interface element, but defaults to a
 				 "Low Level" interface.
@@ -145,12 +104,18 @@ static short ioflags;
   #define CLIENT_ACTIONS
 #endif
 
-#if ! (defined QNX_CONS || defined SNAFU_CURSES || defined LL_INTERFACE)
-  #define QNX_CONS
-#endif
-
 #if ! (defined CMD_INTERACT_MODE || defined CMD_BATCH_MODE)
   #define CMD_INTERACT_MODE
+#endif
+
+#ifdef CMD_INTERACT_MODE
+  #if ! (defined QNX_CONS || defined SNAFU_CURSES || defined PHOTON_INTERFACE || defined LL_INTERFACE)
+    #if __QNXNTO__
+      #define PHOTON_INTERFACE 1
+    #else
+      #define QNX_CONS
+    #endif
+  #endif
 #endif
 
 #if ! (defined CMD_INTERACT_MODE || defined NO_PROMPTS)
@@ -162,6 +127,8 @@ static short ioflags;
 #elif defined SNAFU_CURSES
   #include "curses.h"
   #include "scurses.h"
+#elif defined PHOTON_INTERFACE
+  #include "nlphcmd.h"
 #endif
 
 #define CG_IBUF_SIZE 256
@@ -183,7 +150,7 @@ static char ibuf[CG_IBUF_SIZE];
   #define DISPLAY_CHAR(c) con_dispc(c)
   #define UNDISPLAY_CHAR con_undispc()
   #define CLEAR_DISPLAY_LINE do { con_col = con_low = 1;\
-							      con_nchars = 0;\
+								  con_nchars = 0;\
 								  ioflags |= IOF_UPDATE; } while (0)
   #define DISPLAY_PROMPT(x) con_prompt(prmt_text+x)
   #define UPDATE_OUTPUT con_update()
@@ -223,6 +190,14 @@ static char ibuf[CG_IBUF_SIZE];
 	  ioflags &= ~IOF_UPDATE;
 	}
   }
+#endif
+#ifdef PHOTON_INTERFACE
+  #define GETCH() nlph_getch()
+  #define DISPLAY_CHAR(c) nlph_dispc(c?c:' ')
+  #define UNDISPLAY_CHAR nlph_undispc()
+  #define CLEAR_DISPLAY_LINE nlph_clearline()
+  #define DISPLAY_PROMPT(x) nlph_prompt(prmt_text[x])
+  #define UPDATE_OUTPUT nlph_update()
 #endif
 
 /*----------------------------------------------------------------
@@ -305,7 +280,7 @@ static char ibuf[CG_IBUF_SIZE];
 
 /* GETCH is low-level get character routine for interactive input.
    It is not used if CMD_INTERACT_MODE is not defined. */
-#ifndef GETCH
+#if ! defined(GETCH) && defined(CMD_INTERACT_MODE)
   #include <conio.h>
   #define GETCH() getch()
 #endif
@@ -598,6 +573,44 @@ static void con_cleanup( void ) {
 #define FINAL_CLEANUP con_cleanup();
 
 #endif	/* QNX_CONS */
+
+#if PHOTON_INTERFACE
+  static char nlph_buf[CG_IBUF_SIZE+1];
+  static int nlph_nchars = 0;
+  static char *nlph_cur_prmt, *nlph_new_prmt;
+
+  //define GETCH() nlph_getch() defined in nlphcmdclient
+  static void nlph_dispc(char c) {
+	assert(nlph_nchars <= CG_IBUF_SIZE);
+	nlph_buf[nlph_nchars++] = c;
+	nlph_buf[nlph_nchars] = '\0';
+	ioflags |= IOF_UPDATE;
+  }
+  static void nlph_undispc(void) {
+	assert(nlph_nchars > 0);
+	nlph_buf[--nlph_nchars] = '\0';
+	ioflags |= IOF_UPDATE;
+  }
+  static void nlph_clearline(void) {
+    nlph_nchars = 0;
+    nlph_buf[0] = '\0';
+    ioflags |= IOF_UPDATE;
+  }
+
+  #ifndef NO_PROMPTS
+	static void nlph_prompt(char *c) {
+	  nlph_new_prmt = c;
+	}
+  #endif
+  static void nlph_update(void) {
+	if ( (ioflags & IOF_UPDATE)
+			|| (nlph_cur_prmt != nlph_new_prmt && (ioflags & IOF_INTERACTIVE))
+		) {
+	  nlph_update_cmdtext( nlph_buf, nlph_new_prmt );
+	  ioflags &= ~IOF_UPDATE;
+	}
+  }
+#endif
 
 #ifndef NO_PROMPTS
 static short cur_prompt = -1;
@@ -1294,9 +1307,20 @@ int cmd_check(cmd_state *s) {
 #endif
 
 #if defined (CLIENT) || defined (SERVER)
+
+  #if PHOTON_INTERFACE
+    static void *nlph_interact(void *arg) {
+      do cmd_interact(); while ( cgc_forwarding != 0 );
+      PtEnter(0);
+      PtExit(0);
+    }
+  #endif
+
   static void cmd_exit( void ) {
-	CLEAR_DISPLAY_LINE;
-	UPDATE_OUTPUT;
+	#if ! PHOTON_INTERFACE
+	  CLEAR_DISPLAY_LINE;
+	  UPDATE_OUTPUT;
+	#endif
 	#ifdef FINAL_CLEANUP
 	  FINAL_CLEANUP
 	#endif
@@ -1304,15 +1328,19 @@ int cmd_check(cmd_state *s) {
   }
 
   int main(int argc, char **argv) {
-	oui_init_options(argc, argv);
-	nl_error(0, "task %d: started",getpid());
+    oui_init_options(argc, argv);
+    nl_error(0, "task %d: started",getpid());
 	atexit( cmd_exit );
-	#ifdef CLIENT
-	  do cmd_interact(); while ( cgc_forwarding != 0 );
-	  return cgc_exit_code;
-	#else
-	  ci_server();
-	  return 0;
-	#endif
+    #ifdef CLIENT
+      #if PHOTON_INTERFACE
+        nlph_cmdclt_init( &nlph_interact );
+      #else
+        do cmd_interact(); while ( cgc_forwarding != 0 );
+        return cgc_exit_code;
+      #endif
+    #else
+      ci_server();
+      return 0;
+    #endif
   }
 #endif

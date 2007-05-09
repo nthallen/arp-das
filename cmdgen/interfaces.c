@@ -19,10 +19,11 @@ void new_interface( char *if_name ) {
 
 void output_interfaces(void) {
 	if_list_t *cur_if;
-	fprintf( ofile, "\nvoid cis_interfaces(void) {\n" );
+	fprintf( ofile, "\n#ifdef SERVER\n" );
+	fprintf( ofile, "  void cis_interfaces(void) {\n" );
 	for ( cur_if = if_list; cur_if; cur_if = cur_if->next ) {
-		fprintf( ofile, "  if_%s = cis_setup_rdr(\"%s\");\n",
+		fprintf( ofile, "    if_%s = cis_setup_rdr(\"%s\");\n",
 		  cur_if->if_name, cur_if->if_name );
 	}
-	fprintf( ofile, "}\n\n" );
+	fprintf( ofile, "  }\n#endif\n\n" );
 }
