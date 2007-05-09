@@ -3,7 +3,8 @@ AC_INIT(sample.oui)
 AM_INIT_AUTOMAKE(oui, 2.0)
 
 dnl Checks for programs.
-CPPFLAGS=-I/usr/local/include
+CPPFLAGS=${CPPFLAGS--I/usr/local/include}
+LDFLAGS=${LDFLAGS--L/usr/local/lib}
 AC_PROG_CC
 AC_PROG_YACC
 AM_PROG_LEX
