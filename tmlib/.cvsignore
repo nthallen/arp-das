@@ -2,6 +2,7 @@ Makefile.in Makefile
 configure config.log config.cache config.status
 libtool
 x86
+x86g
 COPYING
 INSTALL
 config.guess
