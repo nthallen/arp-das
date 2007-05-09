@@ -5,7 +5,7 @@ libnort_la_SOURCES = nl_error.c nl_verr.c nldbg.c \
                      mlf.c skeleton.c
 include_HEADERS = nortlib.h compiler.h ll_of_str.h md5.h mlf.h \
 		  nl_assert.h
-ouidir = $(includedir)/oui
+ouidir = $(datadir)/oui
 oui_HEADERS = compiler.oui
 bin_SCRIPTS = mlf_find
 EXTRA_DIST = mlf_find
