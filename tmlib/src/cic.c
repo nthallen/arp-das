@@ -24,7 +24,7 @@ static int playback = 0;
    That was the idea, anyway, but generic forwarding never got past
    the drawing board stage.
  */
-int cgc_forwarding;
+int cgc_forwarding = 0;
 
 void cic_options(int argcc, char **argvv, const char *def_prefix) {
   int c;
@@ -77,12 +77,15 @@ int cic_init(void) {
 	  nl_error( nl_response, "Version string too long" );
 	else {
 	  int rb = write( cis_fd, vcheck, nb+1 );
-	  if ( rb == EINVAL ) {
-        if (nl_response)
-          nl_error(nl_response, "Incorrect Command Server Version");
+	  if ( rb == -1 ) {
+	    if (errno == EINVAL ) {
+		  if (nl_response)
+			nl_error(nl_response, "Incorrect Command Server Version");
+		} else nl_error(nl_response,
+		   "Error %d querying command server version", errno );
         return(1);
       }
-	  if ( rb < nb+2 )
+	  if ( rb < nb+1 )
 		nl_error( 1, "Vcheck rb = %d instead of %d", rb, nb+1 );
 	}
   }
@@ -123,19 +126,19 @@ const char *ci_time_str( void ) {
      CMDREP_EXECERR from CIS: Normally warning: return it
 */
 int ci_sendcmd(const char *cmdtext, int mode) {
-  char *cmdopts = NULL;
+  char *cmdopts = "";
   int clen, rv;
   char buf[CMD_MAX_COMMAND_IN+1];
   
   if (!playback && cis_fd < 0 && cic_init() != 0) return(1);
   if (cmdtext == NULL) {
-    cmdopts = "X";
+    cmdopts = ":X";
     cmdtext = "";
     nl_error(-3, "Sending Quit to Server");
   } else {
     switch (mode) {
-      case 1: cmdopts = "T"; break;
-      case 2: cmdopts = "Q"; break;
+      case 1: cmdopts = ":T"; break;
+      case 2: cmdopts = ":Q"; break;
       default: break;
     }
     clen = strlen(cmdtext);
@@ -147,7 +150,7 @@ int ci_sendcmd(const char *cmdtext, int mode) {
     }
   }
   if (playback) return(0);
-  clen = snprintf( buf, CMD_MAX_COMMAND_IN+1, "[%s:%s]%s",
+  clen = snprintf( buf, CMD_MAX_COMMAND_IN+1, "[%s%s]%s",
     cic_header, cmdopts, cmdtext );
   if ( clen > CMD_MAX_COMMAND_IN ) {
     nl_error( 2, "Command too long" );

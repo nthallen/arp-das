@@ -6,10 +6,11 @@
 #include "nortlib.h"
 
 int tm_open_name( const char * name, const char *node, int flags ) {
-  char fullname[PATH_MAX], *fname;
+  const char *fname;
+  char fullname[PATH_MAX];
   int fd;
   
-  if ( node != NULL ) fname = name;
+  if ( node == NULL ) fname = name;
   else {
 	int nb;
 	nb = snprintf( fullname, PATH_MAX, "/net/%s%s", node, name );
