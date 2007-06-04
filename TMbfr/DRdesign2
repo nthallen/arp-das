@@ -1,0 +1,31 @@
+Basic Requirements for first-order implementation
+  Collection
+    Reads commands from:
+      /dev/huarp/exp/DG or 
+      /dev/name/global/huarp/exp/DG
+    Sends data to
+      /dev/huarp/exp/TM
+    Sends commands to
+      /dev/huarp/exp/TMcmd
+  TMbfr
+    /dev/huarp/exp/TM
+    /dev/huarp/exp/TMcmd
+    in realtime mode
+  Clients without command reception
+    logger (wants suspend/resume)
+    display
+    extraction
+    algorithm
+
+What are the advantages of using resource manager architecture
+for TMbfr rather than GNS and basic send/receive?
+  Know when all clients have quit, so get a more graceful
+  shutdown.
+  Clients can use regular open(), read() and write() calls, which
+  can make them much more portable.
+
+Try implementing the command channel with the goal of testing:
+  Test Command Channel
+    Single writer, multiple readers
+    Multiple writers, multiple readers
+    Clients starting and stopping randomly
