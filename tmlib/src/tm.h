@@ -26,8 +26,6 @@ typedef struct {
 } tm_hdr_t;
 #define TMHDR_WORD 0x4D54
 #define TMBUFSIZE 16384
-#define TM_DEV_BASE "/dev/huarp"
-#define TM_DEV_SUFFIX "TM"
 
 /* Recognized tm_type codes: */
 #define TMTYPE_INIT 0x0100
@@ -92,10 +90,14 @@ typedef struct {
 
 /* tm_data_t1_t applies when tmtype is TMTYPE_DATA_T1
    This structure type can be used when entire minor frames are
-   being. This is true iff nrowminf is a multiple of n_rows and
-   the first row transmitted is the first row (row 0) of the
-   minor frame. MFCtr and Synch can be extracted from the data
-   that follows. data consists of n_rows * nbrow bytes. */
+   being transmitted. This is true iff nrowminf is a multiple
+   of n_rows and the first row transmitted is the first row
+   (row 0) of the minor frame. MFCtr and Synch can be extracted
+   from the data that follows. data consists of n_rows * nbrow
+   bytes.
+   
+   TM data begins at offset 6 of the complete message.
+ */
 typedef struct {
   tm_hdrw_t n_rows;
   unsigned char data[2];
@@ -106,7 +108,10 @@ typedef struct {
    when the whole minor frame is not present since the
    mfctr and rownum of the first row are included in
    the header. Subsequent rows are guaranteed to be
-   consecutive. data consists of n_rows * nbrow bytes. */
+   consecutive. data consists of n_rows * nbrow bytes.
+   
+   TM data begins at offset 10 of the complete message.
+ */
 typedef struct {
   tm_hdrw_t n_rows;
   mfc_t mfctr;
@@ -121,7 +126,10 @@ typedef struct {
    from each minor frame. Hence data consists of
    n_rows * (nbrow-4) bytes. All rows are guaranteed to
    be sequential (since there is no way to determine
-   their sequence without the mfctr). */
+   their sequence without the mfctr).
+   
+   TM data begins at offset 8 of the complete message.
+ */
 typedef struct {
   tm_hdrw_t n_rows;
   mfc_t mfctr;
@@ -133,7 +141,15 @@ typedef struct {
    as tm_data_t3_t. The difference is the inclusion of a
    cksum dword which can be used to verify the data.
    The algorithm for calculating the cksum has yet to be
-   defined. */
+   defined.
+   
+   TM data begins at offset 12 of the complete message buffer.
+   
+   For the time being, we will reserve this type for
+   actual disk storage. TMbfr may support it on input, but
+   will disregard the cksum value. rdr/lgr will be tasked
+   with calculated and checking the values.
+*/
 typedef struct {
   tm_hdrw_t n_rows;
   mfc_t mfctr;
@@ -152,6 +168,28 @@ typedef struct tm_msg {
 	tm_data_t4_t data4;
   } body;
 } __attribute__((packed)) tm_msg_t;
+
+/* tm_hdrs_t is a combination of all the header types,
+   defining the minimum size struct we need to read
+   in to understand the rest of the message. The message
+   layout is best understood in the tm_msg_t structure,
+   but in actual practice, I will use tm_hdrs_t, then
+   access the data directly.
+ */
+typedef union tm_hdrs {
+  char *raw[1];
+  struct {
+    tm_hdr_t hdr;
+    union {
+      tstamp_t ts;
+      struct {
+	tm_hdrw_t n_rows;
+	tm_hdrw_t mfctr;
+	tm_hdrw_t rownum;
+      } dhdr;
+    } u;
+  } s;
+} __attribute__((packed)) tm_hdrs_t;
 
 typedef union {
   tm_msg_t msg;
