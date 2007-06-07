@@ -13,6 +13,8 @@
 typedef struct dataqueue {
   unsigned char *raw;
   unsigned char **row;
+  tm_hdrw_t output_tm_type;
+  int pbuf_size;
   int total_size;
   int total_Qrows;
   int nbQrow; // may differ from nbrow if stripping MFCtr & Synch
@@ -28,6 +30,36 @@ typedef struct tsqueue {
   tstamp_t TS;
 } TS_queue_t;
 
+extern TS_queue_t *TS_Queue;
+
+/* Semantics of the dq_descriptor
+   next points to a later descriptor. A separate descriptor is
+     required when a new TS arrives or a row is skipped.
+   ref_count indicates how many OCBs point to this dqd
+   starting_Qrow is the index into Data_Queue.row for the first data
+     row of this dqd that is still present in the Data_Queue.
+   n_Qrows is the number of Qrows of this dqd still present in the
+     Data_Queue
+   Qrows_expired indicates the number of Qrows belonging to this dqd
+     that have been expired out of the Data_Queue
+   TSq is the TS record our data is tied to
+   MFCtr is the MFCtr for the starting row (possibly expired) of this
+     dqd
+   Row_num is the row number (0 <= Row_num < nrowminf) for the
+     starting row (possibly expired) of this dqd
+
+   n_Qrows + Qrows_expired is the total number of Qrows for this dqd
+   
+   To get the MFCtr and Row_Num for the current first row:
+   XRow_Num = Row_Num + Qrows_expired
+   NMinf = XRow_Num/tm->nrowminf
+   MFCtr_start = MFCtr + NMinf
+   Row_Num_start = XRow_Num % tm->nrowminf
+   
+   If n_Qrows == 0 and Qrows_expired == 0, MFCtr and Row_num can be
+   redefined. After that, progress simply involves updating
+   starting_Qrow, n_Qrows and Qrows_expired.
+*/
 typedef struct dq_descriptor {
   struct dq_descriptor *next;
   int ref_count; // number of OCBs point to this record
@@ -39,8 +71,7 @@ typedef struct dq_descriptor {
   int Row_num;
 } dq_descriptor_t;
 
-extern dq_descriptor_t *dq_desc;
-
+extern dq_descriptor_t *DQD_Queue;
 
 /* I have grouped related members into structs here purely
    to help make clear which members are related.
@@ -66,11 +97,14 @@ typedef struct tm_ocb {
   struct tm_ocb *next_ocb;
   struct {
     tm_hdrs_t hdr;
-    char *buf;
-    int nbhdr, nbdata, off;
+    char *buf; // allocated temp buffer
+    char *dptr; // pointer into other buffers
+    int nbdata; // How many bytes are still expected
+    int off; // How many bytes have already been received
+    // off and dptr are now redundant. Eliminate off?
   } part;
   struct {
-    dq_descriptor_t *dq; // Which dq_desc we reference
+    dq_descriptor_t *dqd; // Which dq_desc we reference
     int n_Qrows; // The number of Qrows in dq we have already processed
   } data;
   struct {

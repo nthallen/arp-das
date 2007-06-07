@@ -13,6 +13,7 @@
 
 static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb);
 static int io_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
+static void process_tm_info( IOFUNC_OCB_T *ocb );
 
 static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         rd_io_funcs, wr_io_funcs;
@@ -22,20 +23,37 @@ static char *                    dg_name, dcf_name, dco_name;
 static resmgr_attr_t             resmgr_attr;
 static dispatch_t                *dpp;
 static pthread_mutex_t           dg_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t           dq_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+data_queue_t Data_Queue;
+TS_queue_t *TS_Queue;
+dq_descriptor_t *DQD_Queue;
+
+static void lock_dq(void) {
+  int rv = pthread_mutex_lock( &dq_mutex );
+  if ( rv != EOK )
+    nl_error( 4, "Error %d locking dq mutex", rv );
+}
+
+static void unlock_dq(void) {
+  int rv = pthread_mutex_unlock( &dq_mutex );
+  if ( rv != EOK )
+    nl_error( 4, "Error %d unlocking dq mutex", rv );
+}
 
 static tm_ocb_t *ocb_calloc(resmgr_context_t *ctp, IOFUNC_ATTR_T *device) {
   tm_ocb_t *ocb = calloc( 1, sizeof(tm_ocb_t) );
   if ( ocb == 0 ) return 0;
-  /* Initialize any other elements. Currently all zeros is good. */
+  /* Initialize any other elements. */
   ocb->next_ocb = 0;
-  ocb->state = TM_STATE_HDR;
   ocb->part.buf = 0;
-  ocb->part.nbhdr = 0;
-  ocb->part.nbdata = 0;
-  ocb->part.off = 0;
-  ocb->data.dq = 0;
+  ocb->data.dqd = 0;
   ocb->data.n_Qrows = 0;
   ocb->read.rows_missing = 0;
+  ocb->state = TM_STATE_HDR; // ### do this in a state init function?
+  ocb->part.nbdata = sizeof(ocb->part.hdr); // ### and this
+  ocb->part.dptr = (char *)&ocb->part.hdr; // ### and this
+  ocb->part.off = 0; // ### and this
   return ocb;
 }
 
@@ -45,7 +63,7 @@ static void ocb_free(struct ocb *ocb) {
      the blocking list. */
   assert( ocb->read.rcvid == 0 );
   assert( ocb->next_ocb == 0 );
-  dq_deref(ocb->data.dq);
+  dq_deref(ocb->data.dqd);
   if ( ocb.part.buf ) free(ocb.part.buf);
   free( ocb );
 }
@@ -216,148 +234,239 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
   _IO_SET_WRITE_NBYTES( ctp, msg->i.nbytes );
   
   while ( msgsize > 0 ) {
-    switch ( ocb->state ) {
-      case TM_STATE_HDR:
-	{
-	  int nbread;
-	  nbread = sizeof(ocb->part.hdr) - ocb->part.off;
-	  if ( msgsize < nbread ) nbread = msgsize;
-	  resmgr_msgread( ctp, ocb->part.hdr.raw + ocb->part.off, nbread, msgoffset );
-	  ocb->part.off += nbread;
-	  msgsize -= nbhdr;
-	  if ( ocb->part.off == sizeof(ocb->part.hdr) ) {
-	    if ( ocb->part.hdr.s.hdr.tm_id != TMHDR_WORD )
-	      return EINVAL;
-	    switch ( ocb->part.hdr.s.hdr.tm_type ) {
-	      case TMTYPE_INIT: ####
-	      case TMTYPE_TSTAMP:
-	      case TMTYPE_DATA_T1:
-	      case TMTYPE_DATA_T2:
-	      case TMTYPE_DATA_T3:
-	      case TMTYPE_DATA_T4:
-	      default:
-	    }
-	  }
-	}
-      case TM_STATE_INFO:
-      case TM_STATE_DATA:
-    }
-  }
-
-  resmgr_msgread( ctp, buf, msgsize, sizeof(msg->i) );
-  buf[msgsize] = '\0';
-
-  // Parse leading options
-  // No spaces, colons or right brackets allowed in mnemonics 
-  { char *mnemonic = "--";
-    int quiet = 0;
-    int testing = 0;
-    char *s = buf;
-
-    if ( *s == '[' ) {
-      s++;
-      if ( isgraph(*s) && *s != ':' && *s != ']' ) {
-	mnemonic = s++;
-	while ( isgraph(*s) && *s != ':' && *s != ']' )
-	  s++;
-      }
-      if ( !isgraph(*s) ) {
-	nl_error( 2, "Invalid mnemonic string" );
-	return EINVAL;
-      }
-      if ( *s == ':' ) {
-	int end_of_opts = 0;
-	char *ver;
-
-	*s++ = '\0'; // terminate the mnemonic
-	// and then handle the options
-	while (!end_of_opts) {
-	  switch (*s) {
-	    case 'T': testing = 1; s++; break;
-	    case 'Q': quiet = 1; s++; break;
-	    case 'X': process_quit(); return EOK;
-	    case 'V': // handle version command
-	      ver = ++s;
-	      while ( *s != ']' && *s != '\0' ) s++;
-	      if ( *s == '\0' ) {
-		nl_error( 2, "Unterminated version string" );
-		return EINVAL;
-	      }
-	      *s = '\0';
-	      if ( strcmp( ver, ci_version ) == 0 )
-		return EOK;
-	      nl_error( 2, "Command Versions don't match" );
-	      return EINVAL;
-	    case ']': end_of_opts = 1; break;
+    int nbread;
+    nbread = msgsize < ocb->part.nbdata ? msgsize : ocb->part.nbdata;
+    resmgr_msgread( ctp, ocb->part.dptr, nbread, msgoffset );
+    ocb->part.off += nbread;
+    ocb->part.dptr += nbread;
+    ocb->part.nbdata -= nbread;
+    msgsize -= nbread;
+    if ( ocb->part.nbdata <= 0 ) {
+      switch ( ocb->state ) {
+	case TM_STATE_HDR:
+	  if ( ocb->part.hdr.s.hdr.tm_id != TMHDR_WORD )
+	    return EINVAL;
+	  switch ( ocb->part.hdr.s.hdr.tm_type ) {
+	    case TMTYPE_INIT:
+	      ocb->part.off = sizeof(tm_hdrs_t)-sizeof(tm_hdr_t)
+	      ocb->part.nbdata = sizeof(tm_info) - ocb->part.off;
+	      ocb->state = TM_STATE_INFO;
+	      ocb->part.dptr = (char *)&tm_info;
+	      memcpy( ocb->part.dptr, &ocb->part.hdr.raw[sizeof(tm_hdr_t)],
+		      ocb->part.off );
+	      ocb->part.dptr += ocb->part.off;
+	      break;
+	    case TMTYPE_TSTAMP: ####
+	    case TMTYPE_DATA_T1:
+	    case TMTYPE_DATA_T2:
+	    case TMTYPE_DATA_T3:
+	    case TMTYPE_DATA_T4:
 	    default:
-	      nl_error( 2, "Invalid option" );
-	      return EINVAL;
 	  }
-	}
-      }
-      // blank out trailing ']' in case it's the end of the mnemonic
-      *s++ = '\0';
-    }
-    { char *cmd = s;
-      int len = 0;
-      int rv;
-      int clen;
-
-      // Now s points to a command we want to parse.
-      // Make sure it's kosher
-      while ( *s ) {
-	if ( ! isprint(*s) && *s != '\n' ) {
-	  nl_error( 2, "Invalid character in command" );
-	  return EINVAL;
-	}
-	len++;
-	s++;
-      }
-      if ( len > 0 && cmd[len-1] == '\n' ) len--;
-      nl_error( quiet ? -2 : 0, "%s: %*.*s",
-	mnemonic, len, len, cmd );
-      cmd_init();
-      rv = cmd_batch( cmd, testing );
-      ocb->hdr.attr->attr.flags |= IOFUNC_ATTR_MTIME | IOFUNC_ATTR_CTIME;
-      switch ( CMDREP_TYPE(rv) ) {
-	case 0: return EOK;
-	case 1: process_quit(); return ENOENT;
-	case 2: /* Report Syntax Error */
-	  if ( nl_response ) {
-	    nl_error( 2, "%s: Syntax Error", mnemonic );
-	    nl_error( 2, "%*.*s", len, len, cmd);
-	    nl_error( 2, "%*s", rv - CMDREP_SYNERR, "^");
-	  }
-	  return EINVAL;
-	default: return EIO;
+	  break;
+	case TM_STATE_INFO:
+	  //### Check tm_info and make initialization decisions
+	  process_tm_info(ocb);
+	  ocb->state = TM_STATE_HDR; //### Use state-init function?
+	  ocb->part.off = 0;
+	  ocb->part.nbdata = sizeof(ocb->part.hdr);
+	  ocb->part.dptr = (char *)&ocb->part.hdr;
+	  break;
+	case TM_STATE_DATA:
+	  //###
       }
     }
   }
 }
 
-static void read_reply( RESMGR_OCB_T *ocb ) {
-  int nb = ocb->nbytes_requested;
-  command_out_t *cmd = ocb->next_command;
-  int cmdbytes = cmd->cmdlen - ocb->hdr.offset;
-  int bytes_returned = nb > cmdbytes ? cmdbytes : nb;
+/* queue_tstamp(): Create a new tstamp record in the Tstamp_Queue
+   and a new dq_descriptor that references it.
+   This currently assumes the dq_mutex is locked.
+*/
+static void queue_tstamp( tstamp_t *ts ) {
+  TS_queue_t *new_TS = new_memory(sizeof(TS_queue_t));
+  dq_descriptor_t *new_dqd = new_memory(sizeof(dq_descriptor_t));
+  TS_queue_t **old_TS;
+  dq_descriptor_t **old_dqd;
+  
+  new_TS->TS = *ts;
+  new_TS->next = 0;
+  new_TS->ref_count = 1;
+  old_TS = &TS_Queue;
+  while ( *old_TS ) old_TS = &(*old_TS)->next;
+  *old_TS = new_TS;
 
-  assert(cmd->ref_count > 0);
-  assert(cmdbytes >= 0);
-  MsgReply( ocb->rcvid, bytes_returned,
-    cmd->command + ocb->hdr.offset, bytes_returned );
-  ocb->rcvid = 0;
-  if ( bytes_returned < cmdbytes ) {
-    ocb->hdr.offset += bytes_returned;
+  // Probably need a separate function
+  new_dqd->next = 0;
+  new_dqd->ref_count = 0;
+  new_dqd->starting_Qrow = Data_Queue.last;
+  new_dqd->n_Qrows = 0;
+  new_dqd->Qrows_expired = 0
+  new_dqd->TSq = new_TS;
+  new_dqd->MFCtr = 0;
+  new_dqd->Row_num = 0;
+  old_dqd = &DQD_Queue;
+  while ( *old_dqd ) old_dqd = &(*old_dqd)->next;
+  *old_dqd = new_dqd;
+}
+
+/* As soon as tm_info has been received, we can decide what
+   data format to output, how much buffer space to allocate
+   and in what configuration. We can then create the first
+   timestamp record (with the TS in the tm_info) and the
+   first dq_descriptor, albeit with no Qrows, but refrencing
+   the the first timestamp. Then we can check to see if any
+   readers are waiting, and initialize them.
+*/
+static int process_tm_info( IOFUNC_OBT_T *ocb ) {
+  tm_dac_t *tm = &tm_info.tm;
+  unsigned char *rowptr;
+  int i;
+
+  // Perform sanity checks
+  if (tm->nbminf == 0 ||
+      tm->nbrow == 0 ||
+      tm->nrowmajf == 0 ||
+      tm->nrowsper == 0 ||
+      tm->nsecsper == 0 ||
+      tm->mfc_lsb == tm->mfc_msb ||
+      tm->mfc_lsb >= tm->nbrow ||
+      tm->mfc_msb >= tm->nbrow ||
+      tm->nbminf < tm->nbrow ||
+      tm->nbminf % tm->nbrow != 0) {
+    nl_error( 2, "Sanity Checks failed on incoming stream" );
+    return EINVAL;
+  }
+
+  // What data format should we output?
+  lock_dq();
+  Data_Queue.nbQrow = tm->nbrow;
+  if ( tm->mfc_lsb == 0 && tm->mfc_msb == 1
+       && tm->nrowminf == 1 ) {
+    Data_Queue.output_tm_type = TMTYPE_DATA_T3;
+    Data_Queue.nbQrow -= 4;
+    Data_Queue.pbuf_size = 8 + Data_Queue.nbQrow;
+  } else if ( tm->nrowminf == 1 ) {
+    Data_Queue.output_tm_type = TMTYPE_DATA_T1;
+    Data_Queue.pbuf_size = 6 + Data_Queue.nbQrow;
   } else {
-    IOFUNC_ATTR_T *handle = ocb->hdr.attr;
-    ocb->hdr.offset = 0;
-    cmd->ref_count--;
-    ocb->next_command = cmd->next;
-    ocb->next_command->ref_count++;
-    if ( handle->first_cmd->ref_count == 0 &&
-	 handle->first_cmd->next != 0 ) {
-      handle->first_cmd = free_command( handle->first_cmd );
+    Data_Queue.output_tm_type = TMTYPE_DATA_T2;
+    Data_Queue.pbuf_size = 10 + Data_Queue.nbQrow;
+  }
+  if ( Data_Queue.pbuf_size < sizeof(tm_hdr_t) + sizeof(tm_info_t) )
+    Data_Queue.pbuf_size = sizeof(tm_hdr_t) + sizeof(tm_info_t);
+
+  // how much buffer space to allocate?
+  // Let's default to one minute's worth
+  Data_Queue.total_Qrows =
+    ( tm->nrowsper * 60 + tm->nsecsper - 1 )
+      / tm->nsecsper;
+  Data_Queue.total_size =
+    Data_Queue.nbQrow * Data_Queue.total_Qrows;
+  Data_Queue.first = Data_Queue.last = 0;
+  Data_Queue.raw = new_memory(Data_Queue.total_size);
+  Data_Queue.row = new_memory(Data_Queue.total_Qrows * sizeof(char *));
+  rowptr = Data_Queue.raw;
+  for ( i = 0; i < Data_Queue.total_Qrows; i++ ) {
+    Data_Queue.row[i] = rowptr;
+    rowptr += Data_Queue.nbQrow;
+  }
+  
+  queue_tstamp( &tm_info.t_stmp );
+
+  // ###
+  Then we can check to see if any
+  readers are waiting, and initialize them.  
+}
+
+
+static void do_read_reply( RESMGR_OCB_T *ocb, int nb,
+			iov_t *iov, int n_parts ) {
+  int nreq = ocb->read.nbytes;
+  if ( nreq < nb ) {
+    int i;
+    char *p;
+    
+    if ( ocb->part.buf == 0 )
+      ocb->part.buf = new_memory(Data_Queue.pbuf_size);
+    assert( nb <= Data_Queue.pbuf_size );
+    p = ocb->part.buf;
+    for ( i = 0; i < n_parts; i++ ) {
+      int len = GETIOVLEN( iov[i] );
+      memcpy( p, GETIOVBASE( iov[i] ), len );
+      p += len;
     }
+    ocb->part.dptr = ocb->part.buf;
+    ocb->part.ndata = nb;
+    ocb->part.off = 0;
+    MsgReply( ocb->read.rcvid, nreq, ocb->part.dptr, nreq );
+    ocb->part.dptr += nreq;
+    ocb->part.ndata -= nreq;
+    ocb->part.off += nreq; //### candidate for deletion
+  } else {
+    MsgReplyv( ocb->read.rcvid, nb, iov, n_parts );
+  }
+}
+
+/* read_reply(ocb) is called when we know we have
+   something to return on an read request.
+   First determine either the largest complete record that is less
+   than the requested size or the smallest complete record. If the
+   smallest record is larger than the request size, allocate the
+   partial buffer and copy the record into it.
+   Partial buffer size, if allocated, should be the larger of the size
+   of the tm_info message or a one-row data message (based on the
+   assumption that if a small request comes in, the smallest full
+   message will be chosen for output)
+
+   It is assumed that ocb has already been removed from whatever wait
+   queue it might have been on.
+*/
+static void read_reply( RESMGR_OCB_T *ocb ) {
+  iov_t iov[3];
+  int nb;
+  
+  if ( ocb->part.nbdata ) {
+    nb = ocb->read.nbytes;
+    if ( ocb->part.nbdata < nb )
+      nb = ocb->part.nbdata;
+    MsgReply( ocb->read.rcvid, nb, ocb->part.dptr, nb );
+    ocb->part.dptr += nb;
+    ocb->nbdata -= nb;
+    ocb->off += nb; //### Candidate for deletion
+    // New state was already defined (or irrelevant)
+  } else if ( ocb->data.dqd == 0 ) {
+    // ### Transmit initialization and setup dqd
+    ocb->data.dqd = DQD_Queue;
+    ocb->data.n_Qrows = 0;
+    
+    ocb->state = TM_STATE_HDR; //### delete
+    ocb->part.hdr.s.hdr.tm_id = TMHDR_WORD;
+    ocb->part.hdr.s.hdr.tm_type = TMTYPE_INIT;
+
+    // Message consists of
+    //   tm_hdr_t (TMHDR_WORD, TMTYPE_INIT)
+    //   tm_info_t with the current timestamp
+    SETIOV( &iov[0], &ocb->part.hdr.s.hdr,
+      sizeof(ocb->part.hdr.s.hdr) );
+    SETIOV( &iov[1], &tm_info, sizeof(tm_info)-sizeof(tstamp_t) );
+    SETIOV( &iov[2], &ocb->data.dqd->TSq->TS, sizeof(tstamp_t) );
+    nb = sizeof(tm_hdr_t) + sizeof(tm_info_t);
+    do_read_reply( ocb, nb, iov, 3 );
+  } else {
+    I've handled ocb->data.n_Qrows
+    dqd = ocb->dqd;
+    DQD has a total of dqd->Qrows_expired + dqd->n_Qrows
+    if ocb->data.n_Qrows < dqd->Qrows_expired
+      then we've missed some data: make a note and set
+      ocb->data.n_Qrows = dqd->Qrows_expired
+    if dqd->n_Qrows > ocb->data.n_Qrows - dqd->Qrows_expired
+      we have some data to transmit, but hold off if dqd is still
+      active and we can handle more rows in this request.
+    else if dqd is no longer active (dqd->next) {
+      if dqd->next->TSq != dqd->TSq
+	Transmit new TS and advance dqd = dqd->next
+    } else keep waiting
   }
 }
 
