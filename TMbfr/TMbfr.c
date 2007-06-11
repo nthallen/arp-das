@@ -26,8 +26,74 @@ static pthread_mutex_t           dg_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t           dq_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 data_queue_t Data_Queue;
-TS_queue_t *TS_Queue;
+// TS_queue_t *TS_Queue;
 dq_descriptor_t *DQD_Queue;
+static tm_ocb_t *blocked_writer;
+
+static struct {
+  tm_ocb_t *first, *last;
+} blocked_readers;
+
+/* enqueue_read() queues the specified ocb.
+   Assumes dq is locked.
+   If nonblock is set, returns error to the client.
+   Should prioritize by some clever scheme including priority, but
+   for starters, I'll just FIFO.
+ */
+static void enqueue_read( IOFUNC_OCB_T *ocb, int nonblock ) {
+  if ( nonblock ) {
+    if ( MsgError( ocb->read.rcvid, EAGAIN ) == -1 )
+      nl_error( 2, "Error %d on MsgError", errno );
+  } else {
+    if ( blocked_readers.first == NULL ) {
+      blocked_readers.first = blocked_readers.last = ocb;
+      ocb->next = 0;
+    } else {
+      assert( blocked_readers.last != NULL );
+      blocked_readers.last->next = ocb;
+      blocked_readers.last = ocb;
+      ocb->next = 0;
+    }
+  }
+}
+
+/* run_read_queue() invokes read_reply() on all the blocked ocbs
+     in the read queue.
+   assumes dq is unlocked (since read_reply() will lock it as
+     needed)
+ */
+static void run_read_queue(void) {
+  tm_ocb_t *rq;
+  lock_dq();
+  rq = blocked_readers.first;
+  blocked_readers.first = blocked_readers.last = NULL;
+  unlock_dq();
+  while ( rq ) {
+    tm_ocb_t *cur_rq = rq;
+    rq = rq->next;
+    cur_rq->next = NULL;
+    read_reply(ocb, 0);
+  }
+}
+
+/* dq_deref() reduces reference count by one, does any work
+   associated with ref count dropping to zero and returns the
+   next dq_descriptor. dq must be locked.
+ */
+static dq_descriptor *dq_deref( dq_descriptor *dqd ) {
+  dq_descriptor *next_dqd = dqd->next;
+  if ( --dqd->ref_count <= 0 && next_dqd != NULL
+       && dqd->n_Qrows == 0 && DQD_Queue == dqd ) {
+    /* Can expire this dqd */
+    if ( --dqd->TSq->ref_count <= 0 ) {
+      // Tsq is no longer referenced
+      free_memory(TSq);
+      free_memory(dqd);
+      DQD_Queue = next_dqd;
+    }
+  }
+  return next_dqd;
+}
 
 static void lock_dq(void) {
   int rv = pthread_mutex_lock( &dq_mutex );
@@ -63,7 +129,9 @@ static void ocb_free(struct ocb *ocb) {
      the blocking list. */
   assert( ocb->read.rcvid == 0 );
   assert( ocb->next_ocb == 0 );
+  lock_dq();
   dq_deref(ocb->data.dqd);
+  unlock_dq();
   if ( ocb.part.buf ) free(ocb.part.buf);
   free( ocb );
 }
@@ -256,8 +324,13 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
 		      ocb->part.off );
 	      ocb->part.dptr += ocb->part.off;
 	      break;
-	    case TMTYPE_TSTAMP: ####
-	    case TMTYPE_DATA_T1:
+	    case TMTYPE_TSTAMP:
+	      lock_dq();
+	      queue_tstamp( &ocb->part.hdr.s.u.TS );
+	      unlock_dq();
+	      run_read_queue();
+	      break;
+	    case TMTYPE_DATA_T1: ###
 	    case TMTYPE_DATA_T2:
 	    case TMTYPE_DATA_T3:
 	    case TMTYPE_DATA_T4:
@@ -265,7 +338,6 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
 	  }
 	  break;
 	case TM_STATE_INFO:
-	  //### Check tm_info and make initialization decisions
 	  process_tm_info(ocb);
 	  ocb->state = TM_STATE_HDR; //### Use state-init function?
 	  ocb->part.off = 0;
@@ -286,15 +358,15 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
 static void queue_tstamp( tstamp_t *ts ) {
   TS_queue_t *new_TS = new_memory(sizeof(TS_queue_t));
   dq_descriptor_t *new_dqd = new_memory(sizeof(dq_descriptor_t));
-  TS_queue_t **old_TS;
+  // TS_queue_t **old_TS;
   dq_descriptor_t **old_dqd;
   
   new_TS->TS = *ts;
-  new_TS->next = 0;
+  // new_TS->next = 0;
   new_TS->ref_count = 1;
-  old_TS = &TS_Queue;
-  while ( *old_TS ) old_TS = &(*old_TS)->next;
-  *old_TS = new_TS;
+  // old_TS = &TS_Queue;
+  // while ( *old_TS ) old_TS = &(*old_TS)->next;
+  // *old_TS = new_TS;
 
   // Probably need a separate function
   new_dqd->next = 0;
@@ -345,14 +417,15 @@ static int process_tm_info( IOFUNC_OBT_T *ocb ) {
        && tm->nrowminf == 1 ) {
     Data_Queue.output_tm_type = TMTYPE_DATA_T3;
     Data_Queue.nbQrow -= 4;
-    Data_Queue.pbuf_size = 8 + Data_Queue.nbQrow;
+    Data_Queue.nbDataHdr = 8;
   } else if ( tm->nrowminf == 1 ) {
     Data_Queue.output_tm_type = TMTYPE_DATA_T1;
-    Data_Queue.pbuf_size = 6 + Data_Queue.nbQrow;
+    Data_Queue.nbDataHdr = 6;
   } else {
     Data_Queue.output_tm_type = TMTYPE_DATA_T2;
-    Data_Queue.pbuf_size = 10 + Data_Queue.nbQrow;
+    Data_Queue.nbDataHdr = 10;
   }
+  Data_Queue.pbuf_size = Data_Queue.nbDataHdr + Data_Queue.nbQrow;
   if ( Data_Queue.pbuf_size < sizeof(tm_hdr_t) + sizeof(tm_info_t) )
     Data_Queue.pbuf_size = sizeof(tm_hdr_t) + sizeof(tm_info_t);
 
@@ -373,13 +446,19 @@ static int process_tm_info( IOFUNC_OBT_T *ocb ) {
   }
   
   queue_tstamp( &tm_info.t_stmp );
-
-  // ###
-  Then we can check to see if any
-  readers are waiting, and initialize them.  
+  unlock_dq();
+  run_read_queue();
 }
 
 
+/* do_read_reply handles the actual reply after the message
+   has been packed into iov_t structs. It may allocate a
+   partial buffer if the request size is smaller than the
+   message size. read_reply() may consult the request size
+   to decide how large a message to return, of course, but
+   the request size may be smaller than the smallest
+   message.
+*/
 static void do_read_reply( RESMGR_OCB_T *ocb, int nb,
 			iov_t *iov, int n_parts ) {
   int nreq = ocb->read.nbytes;
@@ -422,7 +501,7 @@ static void do_read_reply( RESMGR_OCB_T *ocb, int nb,
    It is assumed that ocb has already been removed from whatever wait
    queue it might have been on.
 */
-static void read_reply( RESMGR_OCB_T *ocb ) {
+static void read_reply( RESMGR_OCB_T *ocb, int nonblock ) {
   iov_t iov[3];
   int nb;
   
@@ -436,37 +515,114 @@ static void read_reply( RESMGR_OCB_T *ocb ) {
     ocb->off += nb; //### Candidate for deletion
     // New state was already defined (or irrelevant)
   } else if ( ocb->data.dqd == 0 ) {
-    // ### Transmit initialization and setup dqd
-    ocb->data.dqd = DQD_Queue;
-    ocb->data.n_Qrows = 0;
+    lock_dq();
+    if ( DQD_Queue ) {
+      ocb->data.dqd = DQD_Queue;
+      ocb->data.n_Qrows = 0;
     
-    ocb->state = TM_STATE_HDR; //### delete
-    ocb->part.hdr.s.hdr.tm_id = TMHDR_WORD;
-    ocb->part.hdr.s.hdr.tm_type = TMTYPE_INIT;
+      ocb->state = TM_STATE_HDR; //### delete
+      ocb->part.hdr.s.hdr.tm_id = TMHDR_WORD;
+      ocb->part.hdr.s.hdr.tm_type = TMTYPE_INIT;
 
-    // Message consists of
-    //   tm_hdr_t (TMHDR_WORD, TMTYPE_INIT)
-    //   tm_info_t with the current timestamp
-    SETIOV( &iov[0], &ocb->part.hdr.s.hdr,
-      sizeof(ocb->part.hdr.s.hdr) );
-    SETIOV( &iov[1], &tm_info, sizeof(tm_info)-sizeof(tstamp_t) );
-    SETIOV( &iov[2], &ocb->data.dqd->TSq->TS, sizeof(tstamp_t) );
-    nb = sizeof(tm_hdr_t) + sizeof(tm_info_t);
-    do_read_reply( ocb, nb, iov, 3 );
+      // Message consists of
+      //   tm_hdr_t (TMHDR_WORD, TMTYPE_INIT)
+      //   tm_info_t with the current timestamp
+      SETIOV( &iov[0], &ocb->part.hdr.s.hdr,
+	sizeof(ocb->part.hdr.s.hdr) );
+      SETIOV( &iov[1], &tm_info, sizeof(tm_info)-sizeof(tstamp_t) );
+      SETIOV( &iov[2], &ocb->data.dqd->TSq->TS, sizeof(tstamp_t) );
+      nb = sizeof(tm_hdr_t) + sizeof(tm_info_t);
+      do_read_reply( ocb, nb, iov, 3 );
+    } else enqueue_read( ocb, nonblock );
+    unlock_dq();
   } else {
-    I've handled ocb->data.n_Qrows
-    dqd = ocb->dqd;
-    DQD has a total of dqd->Qrows_expired + dqd->n_Qrows
-    if ocb->data.n_Qrows < dqd->Qrows_expired
-      then we've missed some data: make a note and set
-      ocb->data.n_Qrows = dqd->Qrows_expired
-    if dqd->n_Qrows > ocb->data.n_Qrows - dqd->Qrows_expired
-      we have some data to transmit, but hold off if dqd is still
-      active and we can handle more rows in this request.
-    else if dqd is no longer active (dqd->next) {
-      if dqd->next->TSq != dqd->TSq
-	Transmit new TS and advance dqd = dqd->next
-    } else keep waiting
+    /* I've handled ocb->data.n_Qrows */
+    dq_descriptor *dqd = ocb->data.dqd;
+
+    lock_dq();
+    while (dqd) {
+      int nQrows_ready;
+      
+      /* DQD has a total of dqd->Qrows_expired + dqd->n_Qrows */
+      if ( ocb->data.n_Qrows < dqd->Qrows_expired ) {
+	// then we've missed some data: make a note and set
+	ocb->read.rows_missing +=
+	  dqd->Qrows_expired - ocb->data.n_Qrows;
+	ocb->data.n_Qrows = dqd->Qrows_expired;
+      }
+      nQrows_ready = dqd->n_Qrows + dqd->Qrows_expired
+		      - ocb->data.n_Qrows;
+      assert( nQrows_ready >= 0 );
+      if ( nQrows_ready > 0 ) {
+	if ( dqd->next == 0 && nQrows_ready < ocb->read.maxQrows
+	     && ocb->hdr.attr->node_type == TM_DCo && !nonblock ) {
+	  enqueue_read( ocb, nonblock );
+	} else {
+	  int XRow_Num, NMinf, Row_Num_start, n_iov;
+	  mfc_t MFCtr_start;
+	  int Qrow_start, nQ1, nQ2;
+	  
+	  if ( nQrows_ready > ocb->read.maxQrows )
+	    nQrows_ready = ocb->read.maxQrows;
+	  ocb->part.hdr.s.hdr.tm_id = TMHDR_WORD;
+	  ocb->part.hdr.s.hdr.tm_type = Data_Queue.output_tm_type;
+	  ocb->part.hdr.s.u.dhdr.n_rows = nQrows_ready;
+	  XRow_Num = dqd->Row_num + ocb->data.nQrows;
+	  NMinf = XRow_Num/tmi(nrowminf);
+	  MFCtr_start = dqd->MFCtr + NMinf;
+	  Row_Num_start = XRow_Num % tmi(nrowminf);
+	  switch ( Data_Queue.output_tm_type ) {
+	    case TMTYPE_DATA_T1: break;
+	    case TMTYPE_DATA_T2:
+	      ocb->part.hdr.s.u.dhdr.mfctr = MFCtr_start;
+	      ocb->part.hdr.s.u.dhdr.rownum = Row_Num_start;
+	      break;
+	    case TMTYPE_DATA_T3:
+	      ocb->part.hdr.s.u.dhdr.mfctr = MFCtr_start;
+	      break;
+	    default:
+	      nl_error(4,"Invalid output_tm_type" );
+	  }
+	  SETIOV( &iov[0], &ocb->part.hdr.s.hdr, Data_Queue.nbDataHdr );
+	  Qrow_start = dqd->starting_Qrow + ocb->data.nQrows -
+			  dqd->Qrows_expired;
+	  if ( Qrow_start > Data_Queue.total_Qrows )
+	    Qrow_start -= Data_Queue.total_Qrows;
+	  nQ1 = nQrows_ready;
+	  nQ2 = Qrow_start + nQ1 - Data_Queue.total_Qrows;
+	  if ( nQ2 > 0 ) {
+	    nQ1 -= nQ2;
+	    SETIOV( &iov[2], dqd->row[0], nQ2 * Data_Queue.nbQrow );
+	    n_iov = 3;
+	  } else n_iov = 2;
+	  SETIOV( &iov[1], dqd->row[Qrow_start],
+		      nQ1 * Data_Queue.nbQrow );
+	  do_read_reply( ocb,
+	    Data_Queue.nbDataHdr + nQrows_ready * Data_Queue.nbQrow,
+	    iov, n_iov );
+	}
+	break; // out of while(dqd)
+      } else if ( dqd->next ) {
+	int do_TS = dqd->TSq != dqd->next->TSq;
+	dqd = dq_deref(dqd);
+	dqd->ref_count++;
+	ocb->data.dqd = dqd;
+	ocb->data.n_Qrows = 0;
+	if ( do_TS ) {
+	  ocb->part.hdr.s.hdr.tm_id = TMHDR_WORD;
+	  ocb->part.hdr.s.hdr.tm_type = TMTYPE_TSTAMP;
+	  SETIOV( &iov[0], &ocb->part.hdr.s.hdr, sizeof(tm_hdr_t) );
+	  SETIOV( &iov[1], &dqd->TSq->TS, sizeof(tstamp_t) );
+	  do_read_reply( ocb, sizeof(tm_hdr_t)+sizeof(tstamp_t),
+	    iov, 2 );
+	  break;
+	} // else loop through again
+      } else {
+	enqueue_read( ocb, nonblock );
+	break;
+      }
+    }
+    unlock_dq();
   }
 }
 
@@ -475,147 +631,18 @@ static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb) {
   IOFUNC_ATTR_T *handle = ocb->hdr.attr;
 
   if ((status = iofunc_read_verify( ctp, msg,
-		     (iofunc_ocb_t *)ocb, NULL)) != EOK)
+		     (iofunc_ocb_t *)ocb, &nonblock)) != EOK)
     return (status);
       
   if ((msg->i.xtype & _IO_XTYPE_MASK) != _IO_XTYPE_NONE)
     return (ENOSYS);
 
-  ocb->rcvid = ctp->rcvid;
-  ocb->nbytes_requested = msg->i.nbytes;
-  if ( ocb->next_command->cmdlen > ocb->hdr.offset ) {
-    // we've got something to send now
-    read_reply( ocb );
-  } else if (nonblock) {
-    ocb->rcvid = 0;
-    return EAGAIN;
-  } else {
-    // Nothing at the moment.
-    ocb->next_ocb = handle->blocked;
-    handle->blocked = ocb;
+  ocb->read.rcvid = ctp->rcvid;
+  ocb->read.nbytes = msg->i.nbytes;
+  if ( ocb->data.dqd ) {
+    int nbData = ocb->read.nbytes - Data_Queue.nbDataHdr;
+    ocb->read.maxQrows = nbData < Data_Queue.nbQrow ? 1 : nbData/Data_Queue.nbQrow;
   }
+  read_reply( ocb, nonblock );
   return _RESMGR_NOREPLY;
 }
-
-static command_out_t *free_commands;
-
-static command_out_t *new_command(void) {
-  command_out_t *cmd;
-  if ( free_commands ) {
-    cmd = free_commands;
-    free_commands = cmd->next;
-  } else {
-    cmd = new_memory(sizeof(command_out_t));
-  }
-  cmd->next = NULL;
-  cmd->ref_count = 0;
-  cmd->command[0] = '\0';
-  cmd->cmdlen = 0;
-  return cmd;
-}
-
-// Returns the next command so it's easy to free the
-// first command in a list:
-// list = free_command( list );
-static command_out_t *free_command( command_out_t *cmd ) {
-  command_out_t *nxt;
-  assert( cmd != NULL );
-  assert( cmd->ref_count == 0 );
-  nxt = cmd->next;
-  cmd->next = free_commands;
-  free_commands = cmd;
-  return nxt;
-}
-
-void cis_turf( IOFUNC_ATTR_T *handle, char *format, ... ) {
-  va_list arglist;
-  command_out_t *cmd;
-  int nb;
-
-  assert( handle != NULL );
-  cmd = handle->last_cmd;
-  va_start( arglist, format );
-  nb = vsnprintf( cmd->command, CMD_MAX_COMMAND_OUT, format, arglist );
-  va_end( arglist );
-  if ( nb >= CMD_MAX_COMMAND_OUT ) {
-    nl_error( 2, "Output buffer overflow to node %s", handle->nodename );
-    cmd->command[0] = '\0';
-  } else {
-    cmd->cmdlen = nb;
-    cmd->next = handle->last_cmd = new_command();
-    // Now run the queue
-    while ( handle->blocked ) {
-      IOFUNC_OCB_T *ocb = handle->blocked;
-      handle->blocked = ocb->next_ocb;
-      ocb->next_ocb = NULL;
-      assert(ocb->hdr.offset == 0);
-      read_reply(ocb);
-    }
-  }
-}
-
-/*
-=Name ci_server(): Command Server main loop
-=Subject Command Server and Client
-
-=Synopsis
-
-#include "tm.h"
-void ci_server(void);
-
-=Description
-
-ci_server() does all the work for a command server. It does
-not return until =cmd_batch=() returns a CMDREP_QUIT or it receives
-a CMDINTERP_QUIT message.<P>
-
-It registers the CMDINTERP_NAME with the operating system, then
-loops to Receive messages. For each received command, ci_server()
-calls =cmd_init=() and =cmd_batch=(). If needed, a hook could
-be added to Receive other messages.
-
-=Returns
-Nothing.
-
-=SeeAlso
-=Command Server and Client= functions.
-
-=End
-
-=Name cmd_batch(): Parse a command in batch mode
-=Subject Command Server and Client
-=Name cmd_init(): Initialize command parser
-=Subject Command Server and Client
-=Synopsis
-
-#include "cmdalgo.h"
-int cmd_batch( char *cmd, int test );
-void cmd_init( void );
-void cis_initialize(void);
-void cis_terminate(void);
-void cis_interfaces(void);
-
-=Description
-
-  These functions are all generated by CMDGEN. cmd_init()
-  resets the parser to its start state. cmd_batch() provides an
-  input string that the parser will act on. If test is non-zero,
-  no actions associated with the command will be executed.
-  cis_initialize() is called at the very beginning of ci_server(),
-  and cis_terminate() is called at the very end. These are used
-  by cmdgen and soldrv to handle proxy-based commands in QNX4.
-  It remains to be seen if these will be used in QNX6.
-  cis_interfaces() is called from ci_server() to initialize
-  reader interfaces in QNX6.
-
-=Returns
-
-  cmd_batch() returns the same error codes as =ci_sendcmd=().
-
-=SeeAlso
-
-  =Command Server and Client= functions.
-
-=End
-
-*/

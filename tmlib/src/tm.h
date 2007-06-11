@@ -96,6 +96,9 @@ typedef struct {
    from the data that follows. data consists of n_rows * nbrow
    bytes.
    
+   TMbfr will only output TMTYPE_DATA_T1 records when
+   nrowminf == 1.
+   
    TM data begins at offset 6 of the complete message.
  */
 typedef struct {
@@ -109,6 +112,9 @@ typedef struct {
    mfctr and rownum of the first row are included in
    the header. Subsequent rows are guaranteed to be
    consecutive. data consists of n_rows * nbrow bytes.
+   
+   For practical implementation reasons, TMTYPE_DATA_T2
+   will be legal only when nrowminf > 1.
    
    TM data begins at offset 10 of the complete message.
  */

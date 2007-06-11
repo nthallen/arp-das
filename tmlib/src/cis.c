@@ -409,7 +409,7 @@ static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb) {
   IOFUNC_ATTR_T *handle = ocb->hdr.attr;
 
   if ((status = iofunc_read_verify( ctp, msg,
-		     (iofunc_ocb_t *)ocb, NULL)) != EOK)
+		     (iofunc_ocb_t *)ocb, &nonblock)) != EOK)
     return (status);
       
   if ((msg->i.xtype & _IO_XTYPE_MASK) != _IO_XTYPE_NONE)

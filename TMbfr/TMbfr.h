@@ -14,10 +14,11 @@ typedef struct dataqueue {
   unsigned char *raw;
   unsigned char **row;
   tm_hdrw_t output_tm_type;
-  int pbuf_size;
+  int pbuf_size; // nbQrow+nbDataHdr (or more)
   int total_size;
   int total_Qrows;
   int nbQrow; // may differ from nbrow if stripping MFCtr & Synch
+  int nbDataHdr;
   int first;
   int last;
 } data_queue_t;
@@ -25,19 +26,20 @@ typedef struct dataqueue {
 extern data_queue_t Data_Queue; // There can be only one
 
 typedef struct tsqueue {
-  struct tsqueue *next;
+  // struct tsqueue *next;
   int ref_count;
   tstamp_t TS;
 } TS_queue_t;
 
-extern TS_queue_t *TS_Queue;
+// extern TS_queue_t *TS_Queue;
 
 /* Semantics of the dq_descriptor
    next points to a later descriptor. A separate descriptor is
      required when a new TS arrives or a row is skipped.
    ref_count indicates how many OCBs point to this dqd
    starting_Qrow is the index into Data_Queue.row for the first data
-     row of this dqd that is still present in the Data_Queue.
+     row of this dqd that is still present in the Data_Queue (or the
+     location of the next record if on rows are present)
    n_Qrows is the number of Qrows of this dqd still present in the
      Data_Queue
    Qrows_expired indicates the number of Qrows belonging to this dqd
@@ -62,7 +64,7 @@ extern TS_queue_t *TS_Queue;
 */
 typedef struct dq_descriptor {
   struct dq_descriptor *next;
-  int ref_count; // number of OCBs point to this record
+  int ref_count; // number of OCBs pointing to this record
   int starting_Qrow; // Qrow number in the Data_Queue
   int n_Qrows;
   int Qrows_expired;
@@ -110,7 +112,8 @@ typedef struct tm_ocb {
   struct {
     int rcvid; // Who requested
     int nbytes; // size of request
-    int rows_missing; // TBD
+    int maxQrows; // max number of Qrows to be returned with this request
+    int rows_missing; // cumulative count
   } read;
 } tm_ocb_t;
 
