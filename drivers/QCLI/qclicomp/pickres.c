@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <limits.h>
 #include <time.h>
 #include "qclicomp.h"
@@ -143,6 +144,17 @@ long round_to_step( double time, long step ) {
   return step*divisor;
 }
 
+/* D/A Allocation. This approach is only used for ICOS ramps.
+   The DACs are numbered 0 to 3. DAC1 is the Ramp DAC, and
+   DACs 0, 2 and 3 provide offsets. I handle the ramp DAC
+   separately and allocate the offset DACs dynamically here,
+   so the offset DACs are effectively renumbered 0, 1, 2.
+   
+   In order to support the allocation of DAC3 to an external
+   purpose (e.g. QCL Heater), I will effectively reduce the
+   number of DACs that are available.
+*/
+static int n_dtoas_available = N_DTOAS;
 static int dtoa_strs[N_DTOAS+1] = {
   0,
   SW_DAC0_OUT,
@@ -164,7 +176,7 @@ WaveDtoAP new_wavedtoa( void ) {
 
 int alloc_dtoa( WaveDtoAP wdp, double delta, int qclicfg, CoordPtr pos ) {
   if ( delta != 0 ) {
-    if ( wdp->n_used >= N_DTOAS )
+    if ( wdp->n_used >= n_dtoas_available )
       message( ERROR, "Not enough D/As in alloc_dtoa", 0, pos );
     else {
       wdp->value[wdp->n_used] = delta;
@@ -172,6 +184,30 @@ int alloc_dtoa( WaveDtoAP wdp, double delta, int qclicfg, CoordPtr pos ) {
     }
   }
   return dtoa_strs[wdp->n_used];
+}
+
+static void set_dac3( WaveDtoAP wdp, int bits, double value, CoordPtr pos ) {
+  char buf[80];
+  if ( wdp->n_used )
+    message( ERROR, "n_used > 0 in set_dac3", 0, pos );
+  fprintf( stderr, "set_dac3( %d, %f )\n", bits, value );
+  // message( NOTE, buf, 0, pos );
+  n_dtoas_available = N_DTOAS - 1;
+  wdp->value[2] = value;
+  wdp->bits[2] = (unsigned short) bits;
+}
+
+void set_dac3_bits( WaveDtoAP wdp, int bits, CoordPtr pos ) {
+  double value = (bits + 749.8)/3252.5;
+  set_dac3(wdp, bits, value, pos );
+}
+
+void set_dac3_value( WaveDtoAP wdp, double value, CoordPtr pos ) {
+  double dbits = value * 3252.5 - 749.8;
+  int ibits = (int) dbits;
+  if ( dbits > 65535 || dbits < 0 )
+    message( ERROR, "DAC3 value out of range", 0, pos );
+  set_dac3(wdp, ibits, value, pos );
 }
 
 double dtoa_value( WaveDtoAP wdp, int index ) {

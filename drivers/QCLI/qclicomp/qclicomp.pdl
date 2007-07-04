@@ -1,3 +1,7 @@
+/* properties of a SourceFile */
+QCLIConfig : int;
+Digitizer : int;
+
 /* properties of a Wave */
 dIdt : double;
 dIdtDefined : int; /* 1 if defined once, 2 if defined more than once */

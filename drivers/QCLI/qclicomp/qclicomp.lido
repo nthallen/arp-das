@@ -19,11 +19,18 @@ END;
 /* QCLI Configuration selection                  */
 /*-----------------------------------------------*/
 ATTR QCLIConfig : int;
-RULE: QCLIConfig ::= COMPUTE
-  QCLIConfig.QCLIConfig = QCLI_CFG_STANDARD;
+ATTR QCLIConfigSet : VOID;
+SYMBOL SourceFile COMPUTE
+  SYNT.Key = NewKey();
+  SYNT.QCLIConfig = GetQCLIConfig(THIS.Key, QCLI_CFG_STANDARD )
+    <- CONSTITUENTS QCLIConfigType.QCLIConfigSet;
 END;
-RULE: QCLIConfig ::= 'QCLIConfig' QCLIConfigType ';' COMPUTE
-  QCLIConfig.QCLIConfig = QCLIConfigType.QCLIConfig;
+SYMBOL QCLIConfigType INHERITS QCUnique COMPUTE
+  INH.Key = INCLUDING SourceFile.Key;
+  IF (NOT (THIS.QCUnique),
+    message (ERROR, "QCLIConfig is multiply defined",
+             0, COORDREF));
+  SYNT.QCLIConfigSet = ResetQCLIConfig( THIS.Key, THIS.QCLIConfig );
 END;
 RULE: QCLIConfigType ::= 'Standard' COMPUTE
   QCLIConfigType.QCLIConfig = QCLI_CFG_STANDARD;
@@ -34,28 +41,28 @@ END;
 RULE: QCLIConfigType ::= 'FastRamp' COMPUTE
   QCLIConfigType.QCLIConfig = QCLI_CFG_FASTRAMP;
 END;
-SYMBOL SourceFile COMPUTE
-  SYNT.QCLIConfig = CONSTITUENT QCLIConfig.QCLIConfig;
-END;
 
 /*-----------------------------------------------*/
 /* Digitizer selection                           */
 /*-----------------------------------------------*/
 ATTR Digitizer : int;
-RULE: Digitizer ::= COMPUTE
-  Digitizer.Digitizer = DIG_CPCI14;
+ATTR DigitizerSet : VOID;
+SYMBOL SourceFile COMPUTE
+  SYNT.Digitizer = GetDigitizer(THIS.Key, DIG_CPCI14 )
+    <- CONSTITUENTS DigitizerType.DigitizerSet;
 END;
-RULE: Digitizer ::= 'Digitizer' DigitizerType ';' COMPUTE
-  Digitizer.Digitizer = DigitizerType.Digitizer;
+SYMBOL DigitizerType INHERITS DigUnique COMPUTE
+  INH.Key = INCLUDING SourceFile.Key;
+  IF (NOT (THIS.DigUnique),
+      message (ERROR, "Digitizer is multiply defined",
+               0, COORDREF));
+  SYNT.DigitizerSet = ResetDigitizer(THIS.Key, THIS.Digitizer );
 END;
 RULE: DigitizerType ::= 'CPCI14' COMPUTE
   DigitizerType.Digitizer = DIG_CPCI14;
 END;
 RULE: DigitizerType ::= 'CS210' COMPUTE
   DigitizerType.Digitizer = DIG_CS210;
-END;
-SYMBOL SourceFile COMPUTE
-  SYNT.Digitizer = CONSTITUENT Digitizer.Digitizer;
 END;
 
 /*-----------------------------------------------*/
@@ -465,20 +472,26 @@ ATTR Iz: double;
 ATTR DeltaI: double; /* Current step required */
 ATTR DtoA: int; /* DtoA config string for a Iz or ramp */
 ATTR DtoAs: WaveDtoAP;
+ATTR DAC3set: VOID;
 CHAIN CrntI: double;
 
+SYMBOL SourceFile COMPUTE
+  SYNT.DAC3set = CONSTITUENTS DAC3Value.DAC3set;
+END;
 SYMBOL IzDef COMPUTE
   SYNT.Iz = CONSTITUENT Current.Value;
 END;
 SYMBOL Wave COMPUTE
+  SYNT.DtoAs = new_wavedtoa();
   SYNT.Iz = CONSTITUENTS IzDef.Iz
     WITH( double, ADD, IDENTICAL, ZERO );
 END;
 SYMBOL ICOSCmds COMPUTE
   INH.Iz = INCLUDING Wave.Iz;
-  SYNT.DtoAs = new_wavedtoa();
+  INH.DtoAs = INCLUDING Wave.DtoAs;
   SYNT.DtoA = alloc_dtoa( THIS.DtoAs, THIS.Iz,
-    INCLUDING SourceFile.QCLIConfig, COORDREF );
+    INCLUDING SourceFile.QCLIConfig, COORDREF )
+    <- INCLUDING SourceFile.DAC3set;
   CHAINSTART HEAD.CrntI = THIS.Iz <- THIS.DtoA;
 END;
 SYMBOL ICOSRamp COMPUTE
@@ -487,6 +500,21 @@ SYMBOL ICOSRamp COMPUTE
   SYNT.DtoA = alloc_dtoa( THIS.DtoAs, THIS.DeltaI,
     INCLUDING SourceFile.QCLIConfig, COORDREF );
   THIS.CrntI = THIS.Istop1 <- THIS.DtoA;
+END;
+SYMBOL DAC3Value INHERITS DAC3Unique COMPUTE
+  INH.DtoAs = INCLUDING Wave.DtoAs;
+  INH.Key = INCLUDING Wave.Key;
+  IF (NOT (THIS.DAC3Unique),
+    message (ERROR, "DAC3 is multiply defined in this waveform",
+             0, COORDREF));
+END;
+RULE: DAC3Value ::= Integer COMPUTE
+  DAC3Value.DAC3set =
+    set_dac3_bits( DAC3Value.DtoAs, Integer, COORDREF );
+END;
+RULE: DAC3Value ::= FloatVal 'V' COMPUTE
+  DAC3Value.DAC3set =
+    set_dac3_value( DAC3Value.DtoAs, FloatVal.Value, COORDREF );
 END;
 
 /*------------------------------*/
@@ -679,6 +707,7 @@ ATTR ToffD: double;
 ATTR Tpre, TpreSpec: long;
 ATTR SetTimeParams, SetTon, SetTpre: VOID;
 SYMBOL RingCmds COMPUTE
+  INH.DtoAs = INCLUDING Wave.DtoAs;
   SYNT.ProgLen = CONSTITUENTS RingData.ProgLen
 	WITH( int, ADD, IDENTICAL, ZERO );
   SYNT.SetTimeParams = CONSTITUENTS(
@@ -845,7 +874,7 @@ SYMBOL RingCmds COMPUTE
 	      amps_to_bits(THIS.Iz, INCLUDING
 		SourceFile.QCLIConfig, COORDREF),
 	      THIS.Iz,
-	      0, 0.
+	      dtoa_bits(THIS.DtoAs,3), dtoa_value(THIS.DtoAs,3)
 	    ) ),
       CONSTITUENTS ( RingCurrent.PTG, CurrentSteps.PTG )
 	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull )

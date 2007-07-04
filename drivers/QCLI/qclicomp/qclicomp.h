@@ -10,10 +10,10 @@ typedef struct {
   int naverage;
 } RateDef, *RateDefP;
 
-/* These are digitizer type codes: */
+/* These are digitizer type codes */
 #define DIG_CPCI14 0
 #define DIG_CS210 1
-/* These are QCLI configuration codes: */
+/* These are QCLI configuration codes */
 #define QCLI_CFG_STANDARD 0
 #define QCLI_CFG_FASTRAMPx10 1
 #define QCLI_CFG_FASTRAMP 2
@@ -36,6 +36,8 @@ extern WaveDtoAP new_wavedtoa( void );
 extern int alloc_dtoa( WaveDtoAP wdp, double delta, int qclicfg, CoordPtr pos );
 extern double dtoa_value( WaveDtoAP wdp, int index );
 extern short dtoa_bits( WaveDtoAP wdb, int index );
+extern void set_dac3_bits( WaveDtoAP wdp, int bits, CoordPtr pos );
+extern void set_dac3_value( WaveDtoAP wdp, double value, CoordPtr pos );
 
 extern long round_to_step( double time, long step );
 #define NULLRATE() NewRateDefPtr(0.,1,0,DIG_CPCI14,NoPosition)

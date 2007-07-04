@@ -13,9 +13,12 @@ linepos.c
 pickres.c
 $/Name/CScope.gnrc:inst
 $/Prop/Unique.gnrc:inst
+$/Prop/Unique.gnrc +instance=QC :inst
+$/Prop/Unique.gnrc +instance=Dig :inst
 $/Prop/Unique.gnrc +instance=Iz :inst
 $/Prop/Unique.gnrc +instance=Tz :inst
 $/Prop/Unique.gnrc +instance=Ncoadd :inst
 $/Prop/Unique.gnrc +instance=Sample :inst
+$/Prop/Unique.gnrc +instance=DAC3 :inst
 $/Tech/Counter.gnrc +instance=ICOSRamp :inst
 $/Output/PtgCommon.fw

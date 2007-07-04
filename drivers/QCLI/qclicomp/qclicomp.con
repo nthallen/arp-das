@@ -1,13 +1,16 @@
-SourceFile : QCLIConfig Digitizer Wave+ .
-QCLIConfig : / 'QCLIConfig' QCLIConfigType ';' .
+SourceFile : ConfigCmds Wave+ .
+ConfigCmds : ConfigCmd* .
+ConfigCmd : QCLIConfig / Digitizer .
+QCLIConfig : 'QCLIConfig' QCLIConfigType ';' .
 QCLIConfigType : 'Standard' / 'FastRampx10' / 'FastRamp' .
-Digitizer : / 'Digitizer' DigitizerType ';' .
+Digitizer : 'Digitizer' DigitizerType ';' .
 DigitizerType : 'CPCI14' / 'CS210' .
 
 Wave : ICOSWave / RingWave .
 ICOSWave : 'ICOS' 'Waveform' Ident '{' ICOSCmds '}' .
 ICOSCmds : ( ICOSCmd ';' )+ .
-ICOSCmd : TzDef / IzDef / NcoaddDef / ICOSNsampleDef / ICOSRateDef / dIdt / ICOSRamp .
+ICOSCmd : TzDef / IzDef / NcoaddDef / ICOSNsampleDef /
+          ICOSRateDef / dIdt / ICOSRamp / DAC3def .
 TzDef : 'Tz' '=' TzSpec .
 TzSpec : Time / SampleSpec / Percent .
 SampleSpec : Integer 'Raw' 'Samples' / Integer 'Samples' .
@@ -30,6 +33,9 @@ ICOSRamp :
 Istart : 'from' Current .
 Istop : 'to' Current .
 PrepTime : ( 'in' / 'for' ) Time .
+
+DAC3def : 'DAC3' '=' DAC3Value .
+DAC3Value : Integer / FloatVal 'V' .
 
 Current : FloatVal CurrentUnit .
 Time : FloatVal TimeUnit .
