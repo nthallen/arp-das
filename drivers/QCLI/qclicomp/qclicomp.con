@@ -48,7 +48,7 @@ RateUnit : 'Hz' / 'kHz' / 'MHz' / '/' TimeUnit .
 RingWave : 'Ringdown' 'Waveform' Ident '{' RingCmds '}' .
 RingCmds : ( RingCmd ';' )+ .
 RingCmd : TonDef / ToffDef / TpreDef / IzDef / RingNsampleDef / NcoaddDef /
-          RingRateDef / RingData .
+          RingRateDef / RingData / DAC3def .
 RingNsampleDef : NsampleDef .
 RingRateDef : RateDef .
 TonDef : 'Ton' '=' TonVal .

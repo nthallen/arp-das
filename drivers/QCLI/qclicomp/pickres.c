@@ -190,7 +190,7 @@ static void set_dac3( WaveDtoAP wdp, int bits, double value, CoordPtr pos ) {
   char buf[80];
   if ( wdp->n_used )
     message( ERROR, "n_used > 0 in set_dac3", 0, pos );
-  fprintf( stderr, "set_dac3( %d, %f )\n", bits, value );
+  // fprintf( stderr, "set_dac3( %d, %f )\n", bits, value );
   // message( NOTE, buf, 0, pos );
   n_dtoas_available = N_DTOAS - 1;
   wdp->value[2] = value;
