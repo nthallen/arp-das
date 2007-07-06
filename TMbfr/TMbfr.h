@@ -13,6 +13,7 @@
 typedef struct dataqueue {
   unsigned char *raw;
   unsigned char **row;
+  tm_hdrw_t input_tm_type;
   tm_hdrw_t output_tm_type;
   int pbuf_size; // nbQrow+nbDataHdr (or more)
   int total_size;
@@ -39,7 +40,7 @@ typedef struct tsqueue {
    ref_count indicates how many OCBs point to this dqd
    starting_Qrow is the index into Data_Queue.row for the first data
      row of this dqd that is still present in the Data_Queue (or the
-     location of the next record if on rows are present)
+     location of the next record if no rows are present)
    n_Qrows is the number of Qrows of this dqd still present in the
      Data_Queue
    Qrows_expired indicates the number of Qrows belonging to this dqd
@@ -73,7 +74,12 @@ typedef struct dq_descriptor {
   int Row_num;
 } dq_descriptor_t;
 
-extern dq_descriptor_t *DQD_Queue;
+typedef struct {
+  dq_descriptor_t *first;
+  dq_descriptor_t *last;
+} DQD_Queue_t;
+
+extern DQD_Queue_t DQD_Queue;
 
 /* I have grouped related members into structs here purely
    to help make clear which members are related.
@@ -88,10 +94,12 @@ extern dq_descriptor_t *DQD_Queue;
    most apps will request complete frames.
    
    If a read request for a partial row arrives, we buffer the entire
-   header+1row in the ocb->part.buf and increment ocb->read.n_Qrows
+   header+1row in the ocb->part.buf and increment ocb->data.n_Qrows
    (since we're done with the row held in the dq now that we've copied
    it.)
    
+   ocb->data.n_Qrows is the number of rows from the start of dqd,
+   including expired rows.
 */
 typedef struct tm_ocb {
   iofunc_ocb_t hdr;
@@ -99,22 +107,34 @@ typedef struct tm_ocb {
   struct tm_ocb *next_ocb;
   struct {
     tm_hdrs_t hdr;
-    char *buf; // allocated temp buffer
     char *dptr; // pointer into other buffers
-    int nbdata; // How many bytes are still expected
-    int off; // How many bytes have already been received
-    // off and dptr are now redundant. Eliminate off?
+    int nbdata; // How many bytes are still expected in this sub-transfer
   } part;
   struct {
     dq_descriptor_t *dqd; // Which dq_desc we reference
     int n_Qrows; // The number of Qrows in dq we have already processed
   } data;
-  struct {
-    int rcvid; // Who requested
-    int nbytes; // size of request
-    int maxQrows; // max number of Qrows to be returned with this request
-    int rows_missing; // cumulative count
-  } read;
+  union {
+    struct {
+      char *buf; // allocated temp buffer
+      int rcvid; // Who is writing
+      int nb_rec; // bytes remaining in this record
+      int off_rec; // bytes read in this record
+      int nbrow_rec; // bytes per row in this record
+      int nbhdr_rec; // bytes in the header of this record
+      int nb_msg; // bytes remaining in this write
+      int off_msg; // bytes already read from this write
+      int nb_queue; // bytes remaining in this queue block
+      int off_queue; // bytes already read in this queue block
+    } write;
+    struct {
+      char *buf; // allocated temp buffer
+      int rcvid; // Who requested
+      int nbytes; // size of request
+      int maxQrows; // max number of Qrows to be returned with this request
+      int rows_missing; // cumulative count
+    } read;
+  } rw;
 } tm_ocb_t;
 
 #define TM_STATE_HDR 0
