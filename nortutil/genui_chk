@@ -1,0 +1,45 @@
+#! /usr/bin/perl -w
+
+# check_ui
+#  Read a genui.txt definition file and corresponding TM definitions
+#  Make sure TM rates match, and report any TM channels which are
+#  not mentioned in the genui.txt
+
+# $channel{mnemonic}->{rate}
+# $channel{mnemonic}->{genui}
+# $channel{mnemonic}->{TM}
+my %channel;
+
+# mode is 'genui' or 'TM'
+sub channel_ref {
+  my ( $mnemonic, $rate, $mode ) = @_;
+  $mnemonic =~ s|^[^:]+:([^:]+):[^:]+$|$1|;
+  if ( ! defined $channel{$mnemonic} ) {
+    $channel{$mnemonic}->{rate} = $rate;
+  } elsif ( $channel{$mnemonic}->{rate} ne $rate ) {
+    print "Channel $mnemonic ($mode) rate mismatch\n";
+  }
+  $channel{$mnemonic}->{$mode}++;
+}
+
+while (<>) {
+  if ( m|^\s* TM \s+ (\d+(?:/\d+)?) \s+ Hz \s+ \S+ \s+
+              (\S[^\s;]*) \s* ;|x ) {
+    channel_ref( $2, $1, 'TM' );
+  } elsif ( m|^\s* (\d+(?:/\d+)?) \s+ (\S+) \s |x ) {
+    channel_ref( $2, $1, 'genui' );
+  }
+}
+
+my @mnemonics = sort keys %channel;
+for my $mnemonic ( @mnemonics ) {
+  if ( $channel{$mnemonic}->{genui} &&
+              ! $channel{$mnemonic}->{TM} ) {
+    print "Channel $mnemonic not defined\n";
+  }
+}
+for my $mnemonic ( @mnemonics ) {
+  if ( $channel{$mnemonic}->{TM} && ! $channel{$mnemonic}->{genui} ) {
+    print "Channel $mnemonic not plotted\n";
+  }
+}
