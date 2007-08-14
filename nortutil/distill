@@ -23,7 +23,8 @@ for my $ifile ( @ARGV ) {
 die "Must specify an input file\n" unless @ifiles;
 
 # my $distcmd = "\"C:\\Program Files\\Adobe\\Acrobat 5.0\\Distillr\\Acrodist.exe\"";
-my $distcmd = "/cygdrive/c/Program Files/Adobe/Acrobat 6.0/Distillr/Acrodist.exe";
+# my $distcmd = "/cygdrive/c/Program Files/Adobe/Acrobat 6.0/Distillr/Acrodist.exe";
+my $distcmd = "/cygdrive/c/Program Files/Adobe/Acrobat 8.0/Acrobat/Acrodist.exe";
 
 my_system( join ' ', "\"$distcmd\"", "/Q/N", @ifiles )
   && die "Distiller returned an error\n";
