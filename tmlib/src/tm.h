@@ -220,6 +220,7 @@ extern void TM_quit( void );
 /* Global variables */
 extern tm_info_t tm_info;
 #define tmi(x) tm_info.tm.x
+#define tm_mfctr(mf) (mf[tmi(mfc_lsb)] + (mf[tmi(mfc_msb)]<<8))
 extern int TM_fd;
 extern char *TM_buf;
 
