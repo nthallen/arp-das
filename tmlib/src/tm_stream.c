@@ -5,8 +5,8 @@
 int TM_fd = -1;
 char *TM_buf;
 
-int TM_read_stream( void ) {
-  if ( TM_fd < 0 && TM_open_stream( 0, 0 ) ) return 1;
+int TM_read_stream( int optimal ) {
+  if ( TM_fd < 0 && TM_open_stream( optimal ) ) return 1;
   return TM_readfd();
 }
 
@@ -243,7 +243,7 @@ int TM_readfd( void );
   condition. TM_stream() in turn will call =TM_quit=().
   If the TM stream was opened in blocking mode, TM_readfd()
   will not return until the entire stream has been processed
-  and TM_fd reports EOF. In blocking mode, TM_readfd will return
+  and TM_fd reports EOF. In non-blocking mode, TM_readfd will return
   as soon as the input buffer is drained.
 
 =Returns

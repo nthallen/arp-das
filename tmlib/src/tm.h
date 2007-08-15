@@ -185,8 +185,8 @@ typedef union {
 /* Function prototypes: */
 
 /* Data Client library functions: */
-extern int TM_open_stream( int write, int nonblocking );
-extern int TM_read_stream( void );
+extern int TM_open_stream( int optimal );
+extern int TM_read_stream( int optimal );
 extern int TM_readfd(void);
 extern int TM_stream( int nbytes, const char *data );
 

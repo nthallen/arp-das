@@ -7,19 +7,15 @@
 
 // ### I suspect this needs to be rewritten
 
-int TM_open_stream( int write, int nonblocking ) {
-  char *exp, *devname;
-  int namelen, splen, mode;
+int TM_open_stream( int optimal ) {
+  char *devname;
 
-  devname = tm_dev_name( write ? "TM/DG" :
-      nonblocking ? "TM/DCf" : "TM/DCo" );
+  devname = tm_dev_name( optimal ? "TM/DCo" : "TM/DCf" );
   if ( devname == 0 ) {
     nl_error( nl_response, "No memory in TM_open_stream" );
     return 1;
   }
-  mode = write ? O_WRONLY : O_RDONLY;
-  if ( nonblocking ) mode |= O_NONBLOCK;
-  TM_fd = open( devname, mode );
+  TM_fd = open( devname, O_RDONLY );
   if ( TM_fd < 0 ) {
     nl_error( nl_response, "Error opening '%s': %s",
       devname, strerror(errno) );
@@ -33,14 +29,16 @@ int TM_open_stream( int write, int nonblocking ) {
 =Subject TM Functions
 =Synopsis
 #include "tm.h"
-int TM_open_stream( int write, int nonblocking );
+int TM_open_stream( int optimal );
 
 =Description
 
-  TM_open_stream() opens the TM stream at /dev/huarp/$Exp/TM
+  TM_open_stream() opens the TM stream at /dev/huarp/$Exp/TM/DC*
   for reading, where $Exp is the value of the environment
-  variable 'Experiment'. If nonblocking is non-zero, the file
-  descriptor is set to non-blocking mode. Any errors are fatal
+  variable 'Experiment'. If optimal is non-zero, TM/DCo is
+  opened to signal that replies should fill the request buffers.
+  If optimal is zero, requests will return as soon as there is
+  at least a row of data to report.  Any errors are fatal
   unless =nl_response= is set to a lower level.
 
 =Returns
