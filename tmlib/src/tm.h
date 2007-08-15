@@ -35,26 +35,6 @@ typedef struct {
 #define TMTYPE_DATA_T3 0x0303
 #define TMTYPE_DATA_T4 0x0304
 
-/* These are not TMTYPEs. DASCMDs will be handled
-   on a separate channel
- */
-#define TMTYPE_DASCMD  0x0400
-#define TMTYPE_DASCMD_START   0x0401
-#define TMTYPE_DASCMD_QUIT    0x0402
-#define TMTYPE_DASCMD_LOGSUS  0x0410
-#define TMTYPE_DASCMD_LOGRES  0x0411
-#define TMTYPE_DASCMD_STOP    0x0420
-#define TMTYPE_DASCMD_PLAY    0x0421
-#define TMTYPE_DASCMD_FASTER  0x0422
-#define TMTYPE_DASCMD_SLOWER  0x0423
-#define TMTYPE_DASCMD_FF      0x0424
-#define TMTYPE_DASCMD_FFMFC   0x0425
-#define TMTYPE_DASCMD_FFTIME  0x0426
-#define TMTYPE_DASCMD_STEP    0x0427
-#define TMTYPE_DASCMD_RESTART 0x0428
-#define TMTYPE_DASCMD_RWMFC   0x0429
-#define TMTYPE_DASCMD_RWTIME  0x042A
-
 /* Time stamp information */
 typedef struct {
   mfc_t mfc_num;
