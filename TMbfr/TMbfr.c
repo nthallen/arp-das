@@ -15,6 +15,15 @@ static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb);
 static int io_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
 static void process_tm_info( IOFUNC_OCB_T *ocb );
 static int (*data_state_eval)( IOFUNC_OCB_T *ocb, int nonblock );
+static dq_descriptor_t *new_dq_descriptor( TS_queue_t *TS );
+static dq_descriptor *dq_deref( dq_descriptor *dqd );
+static dq_descriptor *dq_expire_check( dq_descriptor *dqd );
+static void enqueue_read( IOFUNC_OCB_T *ocb, int nonblock );
+static void run_read_queue(void);
+static void lock_dq(void);
+static void unlock_dq(void);
+static int all_closed(void);
+static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock );
 
 static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         rd_io_funcs, wr_io_funcs;
@@ -26,8 +35,8 @@ static dispatch_t                *dpp;
 static pthread_mutex_t           dg_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t           dq_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static int dg_opened = 0;
 data_queue_t Data_Queue;
-// TS_queue_t *TS_Queue;
 DQD_Queue_t DQD_Queue;
 static tm_ocb_t *blocked_writer;
 
@@ -83,15 +92,24 @@ static void run_read_queue(void) {
  */
 static dq_descriptor *dq_deref( dq_descriptor *dqd ) {
   dq_descriptor *next_dqd = dqd->next;
-  if ( --dqd->ref_count <= 0 && next_dqd != NULL
+  assert(dqd->ref_count > 0);
+  if ( --dqd->ref_count == 0 )
+    dq_expire_check(dqd);
+  return next_dqd;
+}
+
+static dq_descriptor *dq_expire_check( dq_descriptor *dqd ) {
+  dq_descriptor *next_dqd = dqd->next;
+  assert(dqd->ref_count >= 0);
+  if ( dqd->ref_count == 0 && next_dqd != NULL
        && dqd->n_Qrows == 0 && DQD_Queue.first == dqd ) {
     /* Can expire this dqd */
-    if ( --dqd->TSq->ref_count <= 0 ) {
-      // Tsq is no longer referenced
+    assert(dqd->TSq->ref_count >= 0);
+    if ( --dqd->TSq->ref_count == 0 ) {
       free_memory(TSq);
-      free_memory(dqd);
-      DQD_Queue.first = next_dqd;
     }
+    free_memory(dqd);
+    DQD_Queue.first = next_dqd;
   }
   return next_dqd;
 }
@@ -174,8 +192,6 @@ static void shutdown_mount( int id, char *name ) {
   if ( rv < 0 )
     nl_error( 2, "Error %d from resmgr_detach(%s)", rv, name );
 }
-
-static int dg_opened = 0;
 
 // all_closed() returns non-zero if all OCBs are closed
 static int all_closed(void) {
@@ -310,6 +326,20 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
   return _RESMGR_NOREPLY;
 }
 
+// ### figure out how to get back into this routine after
+// being blocked.
+// Writer can only be blocked when processing data, since
+// INIT and TSTAMP records can always be processed immediately.
+// The data blocking can occur in either TM_STATE_HDR after
+// we've looked at the header and decided we don't have room
+// for the data or in TM_STATE_DATA after we've read some of
+// the data from a message/record and run out of room.
+// The trickiest part here is in the transition from TM_STATE_HDR
+// to TM_STATE_DATA, we have to copy the surplus header info
+// into the allocated space. If we can get allocate_qrows to
+// do that based on the state (and update the state), then
+// coming out of blocking involves calling data_state_eval,
+// and then calling do_write if space is available.
 static void do_write( IOFUNC_OCB_T *ocb, int nonblock ) {
   int new_rows = 0;
   
@@ -318,6 +348,9 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock ) {
   // However, that means we need to store the total message size
   // Use off_msg for total size.
   
+  // We loop here as long as we have work to do. We can get out
+  // if we've processed all the data in the message (nb_msg == 0)
+  // or exhausted all the available space in the DQ (nbdata == 0)
   while ( ocb->rw.write.nb_msg > 0 && ocb->part.nbdata > 0 ) {
     int nbread;
     nbread = ocb->rw.write.nb_msg < ocb->part.nbdata ?
@@ -344,8 +377,7 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock ) {
     ocb->rw.write.off_msg += nbread;
     if ( ocb->state == TM_STATE_DATA ) {
       ocb->rw.write.nb_rec -= nbread;
-      ocb->rw.write.off_rec += nbread;
-      ocb->rw.write.nb_queue -= nbread;
+      // ocb->rw.write.off_rec += nbread;
       ocb->rw.write.off_queue += nbread;
     }
     assert(ocb->part.nbdata >= 0);
@@ -356,16 +388,19 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock ) {
 	    return EINVAL;
 	  switch ( ocb->part.hdr.s.hdr.tm_type ) {
 	    case TMTYPE_INIT:
-	      //### eliminate use of part.off here
-	      ocb->part.off = sizeof(tm_hdrs_t)-sizeof(tm_hdr_t);
-	      ocb->part.nbdata = sizeof(tm_info) - ocb->part.off;
-	      ocb->state = TM_STATE_INFO;
+	      if ( DQD_Queue.last )
+	        nl_error( 3, "Second TMTYPE_INIT received" );
+	      ocb->part.off_queue = sizeof(tm_hdrs_t)-sizeof(tm_hdr_t);
+	      ocb->part.nbdata = sizeof(tm_info) - ocb->part.off_queue;
 	      ocb->part.dptr = (char *)&tm_info;
 	      memcpy( ocb->part.dptr, &ocb->part.hdr.raw[sizeof(tm_hdr_t)],
-		      ocb->part.off );
-	      ocb->part.dptr += ocb->part.off;
+		      ocb->part.off_queue );
+	      ocb->part.dptr += ocb->part.off_queue;
+	      ocb->state = TM_STATE_INFO;
 	      break;
 	    case TMTYPE_TSTAMP:
+	      if ( DQD_Queue.last == 0 )
+		nl_error( 3, "TMTYPE_TSTAMP received before _INIT" );
 	      lock_dq();
 	      queue_tstamp( &ocb->part.hdr.s.u.TS );
 	      unlock_dq();
@@ -378,15 +413,19 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock ) {
 	    case TMTYPE_DATA_T2:
 	    case TMTYPE_DATA_T3:
 	    case TMTYPE_DATA_T4:
+	      if ( DQD_Queue.last == 0 )
+	        nl_error( 3, "Second TMTYPE_DATA* received before _INIT" );
 	      if ( data_state_eval == 0 )
 	        data_state_init(ocb);
 	      ocb->rw.write.nbrec = ocb->part.hdr.s.u.dhdr.n_rows *
 		ocb->rw.write.nbrow_rec;
-	      ocb->rw.write.off_rec = 0;
-	      ocb->rw.write.nb_queue = 0; // setup in data_state_eval();
 	      ocb->rw.write.off_queue = 0;
 	      new_rows += data_state_eval(ocb, nonblock);
-	      ocb->state = TM_STATE_DATA;
+	      // ### Make sure data_state_eval returns the number
+	      // of rows that have been completely added to DQ
+	      if ( ocb->part.nbdata ) {
+		ocb->state = TM_STATE_DATA;
+	      } // else break out
 	      break;
 	    default:
 	      nl_error( 4, "Invalid state" );
@@ -394,6 +433,7 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock ) {
 	  break;
 	case TM_STATE_INFO:
 	  process_tm_info(ocb);
+	  Data_Queue.nonblocking = 1; // nonblock;
 	  new_rows++;
 	  ocb->state = TM_STATE_HDR; //### Use state-init function?
 	  ocb->part.nbdata = sizeof(ocb->part.hdr);
@@ -418,10 +458,12 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock ) {
     assert(!nonblock);
   }
   if ( new_rows ) run_read_queue();
+  // ### Will run_read_queue() call do_write() if more space
+  // ### is freed up?
 }
 
 // data_state_init() determines nbrow_rec, nbhdr_rec,
-// nbrec, off_rec, nb_queue, off_queue
+// nbrec, off_rec, off_queue
 // Fixup for extra data bytes read with the header
 // is handled in do_write()
 static void data_state_init( IOFUNC_OCB_T *ocb ) {
@@ -462,6 +504,94 @@ static void data_state_init( IOFUNC_OCB_T *ocb ) {
   }
 }
 
+// allocate_qrows() is responsible for finding space in the
+// Data_Queue for incoming data. It returns the number of
+// contiguous rows currently available starting at Data_Queue.last.
+// If nonblock == 0, allocate_qrows is guaranteed to return a
+// non-zero value. If nonblock is non-zero and clients have not
+// finished reading the oldest data in the queue, allocate_qrows
+// will return zero.
+// This routine assumes the dq is locked (lock_dq()).
+static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
+  int nrows_free;
+  dq_descriptor_t *dqd = DQD_Queue.first;
+
+  if ( Data_Queue.last > Data_Queue.first ) {
+    nrows_free = Data_Queue.total_Qrows - Data_Queue.last;
+    // and we're done because any additional rows would be
+    // non-contiguous
+  } else {
+    nrows_free = Data_Queue.first - Data_Queue.last;
+    if ( nrows_free > nrows_req )
+      nrows_free = nrows_req;
+    nrows_req -= nrows_free;
+    // if there is enough room, use it now, otherwise
+    while ( nrows_req > 0 ) {
+      int n_retire;
+      while ( dqd->n_Qrows == 0 && dqd->next )
+	dqd = dqd->next;
+      assert( dqd->starting_Qrow == Data_Queue.first );
+      // ### This is currently the nonblocking case
+      // We can expire the minimum of
+      //   dqd->n_Qrows
+      //   Data_Queue.total_Qrows - dqd->starting_Qrow (largest contiguous)
+      //   dqd->min_reader - dqd->Qrows_expired
+      // The third condition only applies if blocking
+      // The min_reader method must return 0 if any prior dqd has
+      // readers. We won't get here unless the prior dqds are empty,
+      // so the only thing that would prevent the prior dqds from
+      // expiring would be readers, so min_read will return 0 unless
+      // this dqd is the first.
+      n_expire = nrows_req < dqd->n_Qrows ? nrows_req : dqd->n_Qrows;
+      // if ( !Data_Queue.nonblocking && dqd->ref_count ) {
+      //   int n_all_read = dqd->min_reader - dqd->Qrows_expired
+      //   if ( n_all_read < 0 ) n_all_read = 0;
+      //   if ( n_all_read < n_expire ) n_expire = n_all_read;
+      // }
+      if ( Data_Queue.total_Qrows - dqd->starting_Qrow <= n_expire ) {
+	n_expire = Data_Queue.total_Qrows - dqd->starting_Qrow;
+	dqd->starting_Qrow = 0;
+	assert(n_expire > 0);
+	// That's all that is contiguous so break out of while()
+	nrows_req = 0;
+      } else dqd->starting_Qrow += n_expire;
+      dqd->n_Qrows -= n_expire;
+      dqd->Qrows_expired += n_expire;
+      nrows_free += n_expire;
+      if ( dqd->n_Qrows == 0 && dqd->next )
+        dqd = dq_expire_check(dqd);
+      else break;
+    }
+  }
+  assert( dqd->n_Qrows == 0 || dqd->starting_Qrow == Data_Queue.first );
+  ocb->part.nbdata = nrows_free * Data_Queue.nbQrow;
+  ocb->part.dptr = Data_Queue.row[Data_Queue.last];
+  ocb->rw.write.off_queue = 0;
+  if ( nrows_free ) {
+    switch ( ocb->state ) {
+      case TM_STATE_HDR:
+	// ### We need to move hdr data into Data_Queue?
+	// sizeof(tm_hdrs_t) is how much we've read into ocb->part.hdr
+	// ocb->rw.write.nbhdr_rec is how much is actually header
+	// The rest is TM data that needs to be copied into the DQ
+	ocb->part.off_queue = sizeof(tm_hdrs_t) - ocb->rw.write.nbhdr_rec;
+	assert( ocb->part.off_queue <= ocb->part.nbdata );
+	ocb->part.nbdata -= ocb->part.off_queue;
+	memcpy( ocb->part.dptr,
+		&ocb->part.hdr.raw[ocb->rw.write.nbhdr_rec],
+		ocb->part.off_queue );
+	ocb->part.dptr += ocb->part.off_queue;
+	ocb->state = TM_STATE_DATA;
+	break;
+      case TM_STATE_DATA:
+	break;
+      default:
+	nl_error( 4, "Invalid state in allocate_qrows" );
+    }
+  }
+  return nrows_free;
+}
+
 // The job of data_state_eval is to decide how big the next
 // chunk of data should be and where it should go.
 // This involves finding space in the data queue and
@@ -470,7 +600,9 @@ static void data_state_init( IOFUNC_OCB_T *ocb ) {
 // might block to allow the readers to handle what we've already
 // got.
 // data_state_eval() does not transfer any data via ReadMessage,
-// but it will copy any bytes from the hdr if off_rec == 0.
+// but allocate_qrows() will copy any bytes from the hdr if
+// ocb->state == TM_STATE_HDR
+//
 // Returns the number of rows that have been completed in the
 // data queue.
 
@@ -485,120 +617,121 @@ static void data_state_init( IOFUNC_OCB_T *ocb ) {
 //   T1->T2 T2 output does require that frames be consecutive, so we
 // need to read in the rows and then check them to make sure they belong
 // with the previous records.
-//   T1->T3 Data will be copied into the partial buffer one row at a
-// time, then MFCtr and SYNCH will be extracted, and the rest of the row
-// will be copied into the queue. nb_queue and off_queue will need to be
-// fudged before and corrected after each row.
+//   T1->T3 Data will be copied into the partial buffer one minor frame
+// at a time, then MFCtr and SYNCH will be extracted, and the rest of
+// the row will be copied into the queue. off_queue will
+// need to be fudged before and corrected after each row.
 //   T2->T2 Copy straight in, then verify continuity with previous
 // records.
 //   T3->T3 Copy straight in. Verify consecutive, etc.
 
 static int data_state_T1T1( IOFUNC_OCB_T *ocb, int nonblock ) {
-  int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
-  assert(ocb->part.nbdata == 0);
-  if ( nrrecd ) {
-    lock_dq();
-    Data_Queue.last += nrrecd;
-    assert(Data_Queue.last <= Data_Queue.total_Qrows );
-    if ( Data_Queue.last == Data_Queue.total_Qrows )
-      Data_Queue.last = 0;
-    DQD_Queue.last->n_Qrows += nrrecd;
-  }
-  // Now look at what we have yet to move.
-  if ( ocb->rw.write.nb_rec ) {
-    int nminf = ocb->rw.write.nb_rec/tmi(nbminf);
-    if ( nminf == 0 ) nminf++;
-    if ( Data_Queue.last <= Data_Queue.first ) {
-      nrowsfree = Data_Queue.first - Data_Queue.last;
-    } else nrowsfree = Data_Queue.total_Qrows - Data_Queue.last;
-    if there is any room, use it now, otherwise try to retire rows
-    If nonblock, retire as much as we need. Otherwise only retire
-    truly expired rows.
-    // Is there any room?
-    // Do we need to retire rows?
-    // Do we need to move hdr data into Data_Queue?
-  } else {
-    ocb->part.nbdata = 0;
-  }
+  int nrowsfree, tot_nrrecd = 0;
+  lock_dq();
+  do {
+    int nrrecd = ocb->rw.write.off_queue/Data_Queue.nbQrow;
+    nrowsfree = 0;
+    assert(ocb->part.nbdata == 0);
+    assert(ocb->rw.write.off_queue == nrrecd*Data_Queue.nbQrow);
+    if ( nrrecd ) {
+      Data_Queue.last += nrrecd;
+      assert(Data_Queue.last <= Data_Queue.total_Qrows );
+      if ( Data_Queue.last == Data_Queue.total_Qrows )
+	Data_Queue.last = 0;
+      DQD_Queue.last->n_Qrows += nrrecd;
+      ocb->rw.write.off_queue = 0;
+      tot_nrrecd += nrrecd;
+      // Don't need to update dptr (and can't anyway!) because nbdata==0
+      // allocate_qrows will update nbdata, dptr and off_queue.
+    }
+    // Now look at what we have yet to move.
+    if ( ocb->rw.write.nb_rec ) {
+      int nrows = ocb->rw.write.nb_rec/ocb->rw.write.nbrow_rec;
+      if ( nrows == 0 ) nrows++;
+      nrowsfree = allocate_qrows( ocb, nrows, nonblock );
+      // Handle the unlikely case that an entire row arrived in the
+      // 4 bytes of excess header. This can only happen if the row
+      // consisted entirely of MFCtr and Synch.
+      // if/when this happens, nrowsfree will be non-zero, but nbdata
+      // may be zero
+    }
+  } while ( nrowsfree && ocb->part.nbdata == 0 );
+  unlock_dq();
+  return tot_nrrecd;
 }
 
+// ### ###
+// In this case, we know nrominf > 1, and we have setup the
+// Data_Queue to contain only complete minor frames, since
+// we cannot accept an inbound row until the entire MF is
+// present.
 static int data_state_T1T2( IOFUNC_OCB_T *ocb, int nonblock ) {
-  int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
-  assert(ocb->part.nbdata == 0);
-  if ( nrrecd ) {
-    lock_dq();
+  int nrowsfree, nrrecd = 0;
+  dq_descriptor_t *dqd = DQD_Queue.last;
+  lock_dq();
+  do {
+    mfc_t next_mfc; // The one we are expecting
+    int next_row;
+    int nmfrecd = ocb->rw.write.off_queue/(Data_Queue.nbQrow*tmi(nrowminf));
+    nrowsfree = 0;
+    assert(ocb->part.nbdata == 0);
+    assert(ocb->rw.write.off_queue == nmfrecd*Data_Queue.nbQrow*tmi(nrowminf));
+    next_row = dqd->Row_num + dqd->n_Qrows;
+    next_mfc = dqd->MFCtr + next_row/tmi(nrowminf);
+    next_row = next_row % tmi(nrowminf);
+    assert(next_row == 0); // Since we're processing in MF units
+    while ( nmfrecd ) {
+      unsigned char *mf;
+      mfc_t new_mfc; // The one that just arrived
+      
+      // Now I need to pick the MFCtr out of the MF at Data_Queue.last
+      mf = Data_Queue.row[Data_Queue.last];
+      new_mfc = tm_mfctr(mf);
+      if ( new_mfc != next_mfc ) {
+	if ( dqd->n_Qrows || dqd->Qrows_expired )
+	  dqd = new_dq_descriptor( 0 );
+	dqd->MFCtr = new_mfc;
+	dqd->Row_num = 0;
+	next_mfc = new_mfc;
+      }
+      Data_Queue.last += tmi(nrowminf);
+      assert(Data_Queue.last <= Data_Queue.total_Qrows );
+      if ( Data_Queue.last == Data_Queue.total_Qrows )
+	Data_Queue.last = 0;
+      dqd->n_Qrows += tmi(nrowminf);
+      nrrecd += tmi(nrowminf);
+      nmfrecd--;
+      next_mfc++;
+    }
+    ocb->rw.write.off_queue = 0; // guaranteed by assertion above
+    
+    // Now look at what we have yet to move.
+    if ( ocb->rw.write.nb_rec ) {
+      int nminf = ocb->rw.write.nb_rec/(ocb->rw.write.nbrow_rec*tmi(nrowminf));
+      if ( nminf == 0 ) nminf++;
+      nrowsfree = allocate_qrows( ocb, nminf*tmi(nrowminf), nonblock );
+    }
+  } while ( nrowsfree && ocb->part.nbdata == 0 );
+  unlock_dq();
+  return nrrecd;
 }
 
 static int data_state_T1T3( IOFUNC_OCB_T *ocb, int nonblock ) {
   int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
   assert(ocb->part.nbdata == 0);
-  if ( nrrecd ) {
-    lock_dq();
+  nl_error(4, "Not implemented");
 }
 
 static int data_state_T2T2( IOFUNC_OCB_T *ocb, int nonblock ) {
   int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
   assert(ocb->part.nbdata == 0);
-  if ( nrrecd ) {
-    lock_dq();
+  nl_error(4, "Not implemented");
 }
 
 static int data_state_T3T3( IOFUNC_OCB_T *ocb, int nonblock ) {
   int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
   assert(ocb->part.nbdata == 0);
-  if ( nrrecd ) {
-    lock_dq();
-}
-
-static int data_state_eval( IOFUNC_OCB_T *ocb, int nonblock ) {
-  int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
-  assert(ocb->part.nbdata == 0);
-  if ( nrrecd ) {
-    lock_dq();
-    switch ( ocb->part.hdr.s.hdr.tm_type ) {
-      case TMTYPE_DATA_T1:
-	switch ( Data_Queue.output_tm_type ) {
-	  case TMTYPE_DATA_T1:
-	    Data_Queue.last += nrrecd;
-	    assert(Data_Queue.last <= Data_Queue.total_Qrows );
-	    if ( Data_Queue.last == Data_Queue.total_Qrows )
-	      Data_Queue.last = 0;
-	    DQD_Queue.last->n_Qrows += nrrecd;
-	    break;
-	  case TMTYPE_DATA_T2:
-	    assert(nrrecd%tmi(nrowminf) == 0);
-	    dqd = DQD_Queue.last;
-	    assert(dqd->Row_num == 0)
-	    ###
-	    I can add nrrecd to Data_Queue, but I need to check
-	    MFCtr on each mf to make sure it's consecutive with
-	    the current DQD.
-	    break;
-	  case TMTYPE_DATA_T3:
-	    ###
-	    break;
-	  default:
-	    nl_error(4,"Invalid output_tm_type in data_state_eval" );
-	}
-	break;
-      case TMTYPE_DATA_T2:
-	###
-	break;
-      case TMTYPE_DATA_T3:
-	###
-	break;
-      default:
-	nl_error(4, "Invalid output_tm_type in data_state_eval" );
-    }
-    unlock_dq();
-  }
-  ###...
-
-  // Now look at what we have yet to move
-  // Do we need to retire rows?
-  // Do we need to move hdr data into Data_Queue?
-  
-  return nrrecd;
+  nl_error(4, "Not implemented");
 }
 
 /* queue_tstamp(): Create a new tstamp record in the Tstamp_Queue
@@ -607,29 +740,33 @@ static int data_state_eval( IOFUNC_OCB_T *ocb, int nonblock ) {
 */
 static void queue_tstamp( tstamp_t *ts ) {
   TS_queue_t *new_TS = new_memory(sizeof(TS_queue_t));
-  dq_descriptor_t *new_dqd = new_memory(sizeof(dq_descriptor_t));
-  // TS_queue_t **old_TS;
+  dq_descriptor_t *new_dqd;
   
   new_TS->TS = *ts;
-  // new_TS->next = 0;
-  new_TS->ref_count = 1;
-  // old_TS = &TS_Queue;
-  // while ( *old_TS ) old_TS = &(*old_TS)->next;
-  // *old_TS = new_TS;
+  new_TS->ref_count = 0;
 
-  // ### Probably need a separate function
+  new_dqd = new_dq_descriptor( new_TS );
+}
+
+static dq_descriptor_t *new_dq_descriptor( TS_queue_t *TS ) {
+  dq_descriptor_t *new_dqd = new_memory(sizeof(dq_descriptor_t));
+
+  if ( TS == NULL ) TS = Data_Queue.last->TSq;
+  TS->ref_count++;
+
   new_dqd->next = 0;
   new_dqd->ref_count = 0;
   new_dqd->starting_Qrow = Data_Queue.last;
   new_dqd->n_Qrows = 0;
   new_dqd->Qrows_expired = 0
-  new_dqd->TSq = new_TS;
+  new_dqd->TSq = TS;
   new_dqd->MFCtr = 0;
   new_dqd->Row_num = 0;
   if ( DQD_Queue.last )
     DQD_Queue.last->next = new_dqd;
   else DQD_Queue.first = new_dqd;
   DQD_Queue.last = new_dqd;
+  return new_dqd;
 }
 
 /* As soon as tm_info has been received, we can decide what
@@ -670,6 +807,8 @@ static int process_tm_info( IOFUNC_OBT_T *ocb ) {
   } else if ( tmi(nrowminf) == 1 ) {
     Data_Queue.output_tm_type = TMTYPE_DATA_T1;
     Data_Queue.nbDataHdr = 6;
+    if ( tmi(nbrow) <= 4 )
+      nl_error( 3, "TM Frame with no non-synch data not supported" );
   } else {
     Data_Queue.output_tm_type = TMTYPE_DATA_T2;
     Data_Queue.nbDataHdr = 10;
@@ -793,16 +932,18 @@ static void read_reply( RESMGR_OCB_T *ocb, int nonblock ) {
       /* DQD has a total of dqd->Qrows_expired + dqd->n_Qrows */
       if ( ocb->data.n_Qrows < dqd->Qrows_expired ) {
 	// then we've missed some data: make a note and set
-	ocb->rw.read.rows_missing +=
-	  dqd->Qrows_expired - ocb->data.n_Qrows;
+	int n_missed = dqd->Qrows_expired - ocb->data.n_Qrows;
+	ocb->rw.read.rows_missing += n_missed;
 	ocb->data.n_Qrows = dqd->Qrows_expired;
       }
       nQrows_ready = dqd->n_Qrows + dqd->Qrows_expired
 		      - ocb->data.n_Qrows;
       assert( nQrows_ready >= 0 );
       if ( nQrows_ready > 0 ) {
+	// ### make sure rw.read.maxQrows < Data_Queue.total_Qrows
 	if ( dqd->next == 0 && nQrows_ready < ocb->rw.read.maxQrows
 	     && ocb->hdr.attr->node_type == TM_DCo && !nonblock ) {
+	  // We want to wait for more
 	  enqueue_read( ocb, nonblock );
 	} else {
 	  int XRow_Num, NMinf, Row_Num_start, n_iov;

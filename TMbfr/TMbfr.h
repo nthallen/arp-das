@@ -10,6 +10,12 @@
 #include <sys/iofunc.h>
 #include <sys/dispatch.h>
 
+/* Semantics of Data_Queue
+   Data_Queue.first, .last are indices into row and range from
+     [0..total_Qrows)
+   .first is where the next row will be read from
+   .last is where the next row will be written to
+*/
 typedef struct dataqueue {
   unsigned char *raw;
   unsigned char **row;
@@ -22,27 +28,26 @@ typedef struct dataqueue {
   int nbDataHdr;
   int first;
   int last;
+  int nonblocking;
 } data_queue_t;
 
 extern data_queue_t Data_Queue; // There can be only one
 
 typedef struct tsqueue {
-  // struct tsqueue *next;
   int ref_count;
   tstamp_t TS;
 } TS_queue_t;
-
-// extern TS_queue_t *TS_Queue;
 
 /* Semantics of the dq_descriptor
    next points to a later descriptor. A separate descriptor is
      required when a new TS arrives or a row is skipped.
    ref_count indicates how many OCBs point to this dqd
    starting_Qrow is the index into Data_Queue.row for the first data
-     row of this dqd that is still present in the Data_Queue (or the
-     location of the next record if no rows are present)
+     row of this dqd that is still present in the Data_Queue, or that
+     was present before it was expired, or the location of the next
+     record if no rows are present.
    n_Qrows is the number of Qrows of this dqd still present in the
-     Data_Queue
+     Data_Queue, hence must be <= Data_Queue.total_Qrows.
    Qrows_expired indicates the number of Qrows belonging to this dqd
      that have been expired out of the Data_Queue
    TSq is the TS record our data is tied to
@@ -65,8 +70,8 @@ typedef struct tsqueue {
 */
 typedef struct dq_descriptor {
   struct dq_descriptor *next;
-  int ref_count; // number of OCBs pointing to this record
-  int starting_Qrow; // Qrow number in the Data_Queue
+  int ref_count;
+  int starting_Qrow;
   int n_Qrows;
   int Qrows_expired;
   TS_queue_t *TSq;
@@ -100,6 +105,22 @@ extern DQD_Queue_t DQD_Queue;
    
    ocb->data.n_Qrows is the number of rows from the start of dqd,
    including expired rows.
+   
+   On write:
+     nbrow_rec and nbhdr_rec are set when the first data record
+     arrives. It is an error to change source data formats mid-stream.
+     
+     The big challenge on writing is keeping track of where we are
+     with respect to the received message, the current TM record and
+     the destination buffer. The destination buffer is always less
+     than or equal to the TM record size, but the record size may be
+     smaller or larger than the message size.
+     
+     off_queue keeps track of the number of bytes that have been
+     copied into the Data_Queue. When the current transfer is
+     completed (part.nbdata == 0), the Data_Queue and the affected
+     dqds are updated to incorporate the new data.
+     
 */
 typedef struct tm_ocb {
   iofunc_ocb_t hdr;
@@ -118,14 +139,15 @@ typedef struct tm_ocb {
     struct {
       char *buf; // allocated temp buffer
       int rcvid; // Who is writing
-      int nb_rec; // bytes remaining in this record
-      int off_rec; // bytes read in this record
-      int nbrow_rec; // bytes per row in this record
-      int nbhdr_rec; // bytes in the header of this record
+      int nbrow_rec; // bytes per row received
+      int nbhdr_rec; // bytes in the header of data messages
       int nb_msg; // bytes remaining in this write
       int off_msg; // bytes already read from this write
-      int nb_queue; // bytes remaining in this queue block
+      int nb_rec; // bytes remaining in this record
       int off_queue; // bytes already read in this queue block
+      // int off_rec; // bytes read in this record: redundant
+      // int nb_queue; // bytes remaining in this queue block
+      // deemed redundant with part.nbdata
     } write;
     struct {
       char *buf; // allocated temp buffer
