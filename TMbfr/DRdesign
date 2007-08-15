@@ -64,21 +64,21 @@ DASCmd :
   question of supporting some commands to DCs, like Logging
   commands, etc.]
 
-  I well define them in the TM stream format, but I believe all TM
+  [I well define them in the TM stream format, but I believe all TM
   commands should be considered logically out-of-band (though not
   physically) and should be discarded before logging. Commands
   handled by DG or TMbfr can also be stripped from the stream
   before forwarding unless there is a compelling reason to pass
   them on. (The Restart/Rewind commands signal a time
-  discontinuity, which DCs might be able to take advantage of.)
+  discontinuity, which DCs might be able to take advantage of.)]
   
-  Ugh, that won't work at all! If you have stopped playback, you
+  [Ugh, that won't work at all! If you have stopped playback, you
   will block the rdr, so then no commands can come through. I
   think we're going to have to provide dual interfaces and dual
   streams. Commands will always flow on the command channel. Then
   the first-order implementation does not require commanding
   beyond the DG (start, quit) TMbfr could provide read and write
-  on a command interface with a short circular buffer.
+  on a command interface with a short circular buffer.]
 
 TMData :
 
@@ -89,7 +89,7 @@ TMData :
   of multiple instances of MFCtr and Synch by not reporting them
   at the highest data rate, but the bfr implementation only
   delivered complete minor frames, so for display and algorithm
-  use data now arrived in clumps and the minor frame rate. Hence
+  use data now arrived in clumps at the minor frame rate. Hence
   for most purposes, the minor frame had to be pushed to the
   maximum data rate so display and algorithms could maintain time
   granularity.

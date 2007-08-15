@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include "tm.h"
 
+struct tm_ocb;
+struct tm_attr;
 #define THREAD_POOL_PARAM_T dispatch_context_t
 #define IOFUNC_OCB_T struct tm_ocb
 #define IOFUNC_ATTR_T struct tm_attr
@@ -126,17 +128,17 @@ typedef struct tm_ocb {
   iofunc_ocb_t hdr;
   int state;
   struct tm_ocb *next_ocb;
-  struct {
+  struct part_s {
     tm_hdrs_t hdr;
     char *dptr; // pointer into other buffers
     int nbdata; // How many bytes are still expected in this sub-transfer
   } part;
-  struct {
+  struct data_s {
     dq_descriptor_t *dqd; // Which dq_desc we reference
     int n_Qrows; // The number of Qrows in dq we have already processed
   } data;
-  union {
-    struct {
+  union rw_u {
+    struct write_s {
       char *buf; // allocated temp buffer
       int rcvid; // Who is writing
       int nbrow_rec; // bytes per row received
@@ -149,7 +151,7 @@ typedef struct tm_ocb {
       // int nb_queue; // bytes remaining in this queue block
       // deemed redundant with part.nbdata
     } write;
-    struct {
+    struct read_s {
       char *buf; // allocated temp buffer
       int rcvid; // Who requested
       int nbytes; // size of request
