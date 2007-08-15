@@ -5,25 +5,18 @@
 #include "nortlib.h"
 #include "tm.h"
 
+// ### I suspect this needs to be rewritten
+
 int TM_open_stream( int write, int nonblocking ) {
   char *exp, *devname;
   int namelen, splen, mode;
 
-  exp = getenv("Experiment");
-  if ( exp == NULL ) {
-    nl_error( nl_response, "Experiment undefined in TM_open_stream" );
-    return 1;
-  }
-  namelen = strlen(TM_DEV_BASE) + strlen(exp) + strlen(TM_DEV_SUFFIX) + 2;
-  devname = (char *)alloca( namelen+2 );
+  devname = tm_dev_name( write ? "TM/DG" :
+      nonblocking ? "TM/DCf" : "TM/DCo" );
   if ( devname == 0 ) {
     nl_error( nl_response, "No memory in TM_open_stream" );
     return 1;
   }
-  splen = snprintf( devname, namelen+2, "%s/%s/%s",
-                   TM_DEV_BASE, exp, TM_DEV_SUFFIX );
-  if ( splen > namelen )
-    nl_error( 4, "Overrun on snprintf in TM_open_stream" );
   mode = write ? O_WRONLY : O_RDONLY;
   if ( nonblocking ) mode |= O_NONBLOCK;
   TM_fd = open( devname, mode );
