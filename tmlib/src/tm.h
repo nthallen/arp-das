@@ -4,6 +4,7 @@
 #define TM_H
 
 #include <sys/types.h> /* this is for pid_t and nid_t and time_t */
+#include <fcntl.h> /* for arguments to tm_open_name() */
 
 #ifndef __GNUC__
   #define __attribute__(x)
@@ -182,7 +183,17 @@ typedef union {
   char raw[TMBUFSIZE];
 } tm_packet_t;
 
+/* Global variables */
+extern tm_info_t tm_info;
+#define tmi(x) tm_info.tm.x
+#define tm_mfctr(mf) (mf[tmi(mfc_lsb)] + (mf[tmi(mfc_msb)]<<8))
+extern int TM_fd;
+extern char *TM_buf;
+
 /* Function prototypes: */
+#ifdef __cplusplus
+  extern "C" {
+#endif
 
 /* Data Client library functions: */
 extern int TM_open_stream( int optimal );
@@ -197,14 +208,6 @@ extern void TM_row( mfc_t mfctr, int row, const unsigned char *data );
 extern void TM_tstamp( int tstype, mfc_t mfctr, time_t time );
 extern void TM_quit( void );
 
-/* Global variables */
-extern tm_info_t tm_info;
-#define tmi(x) tm_info.tm.x
-#define tm_mfctr(mf) (mf[tmi(mfc_lsb)] + (mf[tmi(mfc_msb)]<<8))
-extern int TM_fd;
-extern char *TM_buf;
-
-#include <fcntl.h>
 extern char *tm_dev_name(const char *base);
 extern int tm_open_name(const char *name, const char *node, int flags);
 
@@ -227,5 +230,9 @@ void cis_terminate(void);  /* in cmdgen.skel of .cmd */
 void tma_new_state(unsigned int partition, const char *name);
 void tma_new_time(unsigned int partition, long int t1, const char *next_cmd);
 void tma_hold(int hold);
+
+#ifdef __cplusplus
+  }
+#endif
 
 #endif
