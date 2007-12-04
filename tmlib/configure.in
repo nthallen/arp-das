@@ -8,6 +8,7 @@ AM_PROG_LIBTOOL
 dnl Checks for libraries.
 
 dnl Checks for header files.
+AC_CHECK_HEADERS([cmdalgo.h],[],[AC_MSG_ERROR([cannot locate required header])])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 
