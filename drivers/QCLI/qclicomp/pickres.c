@@ -64,7 +64,7 @@ long PickRes( int npts, long *lp ) {
   int n;
 
   for ( n = 0; n < npts; n++ ) dT += lp[n];
-  dT /= 100;
+  dT = (dT < 100 ) ? 1 : ( dT / 100 );
   for ( n=1; n < 100; n++ ) {
     maxstep = (lp[0] + dT) / n;
     minstep = DIV_UP(lp[0],n);
