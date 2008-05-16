@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "oui.h"
-#include "lgr.h"
+#include "memo.h"
 
 //int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb);
 int io_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
