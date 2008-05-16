@@ -1,6 +1,6 @@
-LGR_OBJ=lgr.o
+MEMO_OBJ=memo.o
 CFLAGS=-I/usr/local/include
 LDFLAGS=-L/usr/local/lib -lnort "-Wl,-rpath /usr/local/lib"
-lgr : $(LGR_OBJ)
-lgr.o : lgr.c lgr.h
+memo : $(MEMO_OBJ)
+memo.o : memo.c memo.h
 
