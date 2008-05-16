@@ -71,8 +71,8 @@ typedef struct {
 
 /* tm_data_t1_t applies when tmtype is TMTYPE_DATA_T1
    This structure type can be used when entire minor frames are
-   being transmitted. This is true iff nrowminf is a multiple
-   of n_rows and the first row transmitted is the first row
+   being transmitted. This is true iff nrows is a multiple
+   of nrowminf and the first row transmitted is the first row
    (row 0) of the minor frame. MFCtr and Synch can be extracted
    from the data that follows. data consists of n_rows * nbrow
    bytes.
