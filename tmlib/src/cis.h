@@ -43,7 +43,7 @@ typedef struct ioattr_s {
 } ioattr_t;
 
 
-// extern IOFUNC_ATTR_T *cmdsrvr_setup_rdr( char *node );
-// extern void cmdsrvr_turf( IOFUNC_ATTR_T *handle, char *format, ... );
+extern IOFUNC_ATTR_T *cis_setup_rdr( char *node );
+extern void cis_turf( IOFUNC_ATTR_T *handle, char *format, ... );
 
 #endif /* CIS_H_INCLUDED */
