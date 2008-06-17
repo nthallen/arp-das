@@ -14,6 +14,8 @@
 
 static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb);
 static int io_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
+static int io_notify(resmgr_context_t *ctp, io_notify_t *msg, RESMGR_OCB_T *ocb);
+static int io_close_ocb(resmgr_context_t *ctp, void *rsvd, RESMGR_OCB_T *ocb);
 static command_out_t *new_command(void);
 static command_out_t *free_command( command_out_t *cmd );
 
@@ -84,7 +86,8 @@ IOFUNC_ATTR_T *cis_setup_rdr( char *node ) {
   rdrs_t *rs = new_memory(sizeof(rdrs_t));
 
   /* initialize attribute structure used by the device */
-  iofunc_attr_init((iofunc_attr_t *)rd_attr, S_IFNAM | 0444, 0, 0);
+  iofunc_attr_init(&(rd_attr->attr), S_IFNAM | 0444, 0, 0);
+  IOFUNC_NOTIFY_INIT(rd_attr->notify);
   rd_attr->attr.nbytes = 0;
   rd_attr->attr.mount = &mountpoint;
   rd_attr->nodename = nl_strdup( node );
@@ -190,14 +193,16 @@ void ci_server(void) {
                      _RESMGR_IO_NFUNCS, &rd_io_funcs);
     rd_io_funcs.read = io_read;
     /* Will want to handle _IO_NOTIFY at least */
-    // rd_io_funcs.notify = io_notify;
+    rd_io_funcs.notify = io_notify;
+    rd_io_funcs.close_ocb = io_close_ocb;
 
     iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &connect_funcs, 
                      _RESMGR_IO_NFUNCS, &wr_io_funcs);
     wr_io_funcs.write = io_write;
 
     /* initialize attribute structure used by the device */
-    iofunc_attr_init((iofunc_attr_t *)&wr_attr, S_IFNAM | 0664, 0, 0);
+    iofunc_attr_init(&wr_attr.attr, S_IFNAM | 0664, 0, 0);
+    IOFUNC_NOTIFY_INIT(wr_attr.notify);
     wr_attr.attr.nbytes = 0;
     wr_attr.attr.mount = &mountpoint;
     wr_attr.nodename = nl_strdup("writer");
@@ -379,6 +384,20 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
   }
 }
 
+static int io_notify(resmgr_context_t *ctp, io_notify_t *msg, RESMGR_OCB_T *ocb) {
+  IOFUNC_ATTR_T *rd_attr = ocb->hdr.attr;
+  int trig = 0;
+  if ( ocb->next_command->cmdlen > ocb->hdr.offset )
+    trig |= _NOTIFY_COND_INPUT;
+  return(iofunc_notify(ctp, msg, rd_attr->notify, trig, NULL, NULL ));
+}
+
+static int io_close_ocb(resmgr_context_t *ctp, void *rsvd, RESMGR_OCB_T *ocb) {
+  IOFUNC_ATTR_T *rd_attr = ocb->hdr.attr;
+  iofunc_notify_remove(ctp, rd_attr->notify);
+  return(iofunc_close_ocb_default(ctp, rsvd, ocb));
+}
+
 static void read_reply( RESMGR_OCB_T *ocb ) {
   int nb = ocb->nbytes_requested;
   command_out_t *cmd = ocb->next_command;
@@ -478,7 +497,7 @@ void cis_turf( IOFUNC_ATTR_T *handle, char *format, ... ) {
   } else {
     cmd->cmdlen = nb;
     cmd->next = handle->last_cmd = new_command();
-    // Now run the queue
+    // Now run the queue of blocked clients:
     while ( handle->blocked ) {
       IOFUNC_OCB_T *ocb = handle->blocked;
       handle->blocked = ocb->next_ocb;
@@ -486,6 +505,9 @@ void cis_turf( IOFUNC_ATTR_T *handle, char *format, ... ) {
       assert(ocb->hdr.offset == 0);
       read_reply(ocb);
     }
+    // Then notify non-blocking clients:
+    if (IOFUNC_NOTIFY_INPUT_CHECK(handle->notify, 1, 0))
+    	iofunc_notify_trigger(handle->notify, 1, IOFUNC_NOTIFY_INPUT);
   }
 }
 

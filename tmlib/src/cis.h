@@ -6,6 +6,8 @@
 /* These defs must preceed the following includes: */
 struct ocb;
 struct ioattr_s;
+// Define IOFUNC_OCB_T to our local definition.
+// RESMGR_OCB_T gets defined to IOFUNC_OCB_T in <sys/iofunc.h>
 #define IOFUNC_OCB_T struct ocb
 #define IOFUNC_ATTR_T struct ioattr_s
 #define THREAD_POOL_PARAM_T dispatch_context_t
@@ -35,6 +37,7 @@ typedef struct ocb {
    for each mountpoint */
 typedef struct ioattr_s {
   iofunc_attr_t attr;
+  iofunc_notify_t notify[3]; /* notification list used by iofunc_notify*() */
   ocb_t *blocked;
   command_out_t *first_cmd;
   command_out_t *last_cmd;
