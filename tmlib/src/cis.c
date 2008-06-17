@@ -99,13 +99,13 @@ IOFUNC_ATTR_T *cis_setup_rdr( char *node ) {
 
   /* attach our device name */
   id = resmgr_attach(dpp,            /* dispatch handle        */
-		     &resmgr_attr,   /* resource manager attrs */
-		     nodename,       /* device name            */
-		     _FTYPE_ANY,     /* open type              */
-		     0,              /* flags                  */
-		     &connect_funcs, /* connect routines       */
-		     &rd_io_funcs,   /* I/O routines           */
-		     rd_attr);       /* handle                 */
+                     &resmgr_attr,   /* resource manager attrs */
+                     nodename,       /* device name            */
+                     _FTYPE_ANY,     /* open type              */
+                     0,              /* flags                  */
+                     &connect_funcs, /* connect routines       */
+                     &rd_io_funcs,   /* I/O routines           */
+                     rd_attr);       /* handle                 */
   if(id == -1) {
     nl_error( 3, "Unable to attach name: '%s'", nodename );
   }
@@ -245,18 +245,18 @@ void ci_server(void) {
       dispatch_context_t   *ctp;
       ctp = dispatch_context_alloc(dpp);
       while ( 1 ) {
-	if ((ctp = dispatch_block(ctp)) == NULL) {
-	  nl_error( 2, "block error\n" );
-	  return;
-	}
-	// printf( "  type = %d,%d  attr.count = %d\n",
-	//   ctp->resmgr_context.msg->type,
-	//   ctp->resmgr_context.msg->connect.subtype, attr.count );
-	dispatch_handler(ctp);
-	if ( quit_received && ctp->resmgr_context.rcvid == 0
-	      && all_closed() ) {
-	  break;
-	}
+        if ((ctp = dispatch_block(ctp)) == NULL) {
+          nl_error( 2, "block error\n" );
+          return;
+        }
+        // printf( "  type = %d,%d  attr.count = %d\n",
+        //   ctp->resmgr_context.msg->type,
+        //   ctp->resmgr_context.msg->connect.subtype, attr.count );
+        dispatch_handler(ctp);
+        if ( quit_received && ctp->resmgr_context.rcvid == 0
+              && all_closed() ) {
+          break;
+        }
       }
     }
     return;
@@ -300,43 +300,43 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
     if ( *s == '[' ) {
       s++;
       if ( isgraph(*s) && *s != ':' && *s != ']' ) {
-	mnemonic = s++;
-	while ( isgraph(*s) && *s != ':' && *s != ']' )
-	  s++;
+        mnemonic = s++;
+        while ( isgraph(*s) && *s != ':' && *s != ']' )
+          s++;
       }
       if ( !isgraph(*s) ) {
-	nl_error( 2, "Invalid mnemonic string" );
-	return EINVAL;
+        nl_error( 2, "Invalid mnemonic string" );
+        return EINVAL;
       }
       if ( *s == ':' ) {
-	int end_of_opts = 0;
-	char *ver;
+        int end_of_opts = 0;
+        char *ver;
 
-	*s++ = '\0'; // terminate the mnemonic
-	// and then handle the options
-	while (!end_of_opts) {
-	  switch (*s) {
-	    case 'T': testing = 1; s++; break;
-	    case 'Q': quiet = 1; s++; break;
-	    case 'X': process_quit(); return EOK;
-	    case 'V': // handle version command
-	      ver = ++s;
-	      while ( *s != ']' && *s != '\0' ) s++;
-	      if ( *s == '\0' ) {
-		nl_error( 2, "Unterminated version string" );
-		return EINVAL;
-	      }
-	      *s = '\0';
-	      if ( strcmp( ver, ci_version ) == 0 )
-		return EOK;
-	      nl_error( 2, "Command Versions don't match" );
-	      return EINVAL;
-	    case ']': end_of_opts = 1; break;
-	    default:
-	      nl_error( 2, "Invalid option" );
-	      return EINVAL;
-	  }
-	}
+        *s++ = '\0'; // terminate the mnemonic
+        // and then handle the options
+        while (!end_of_opts) {
+          switch (*s) {
+            case 'T': testing = 1; s++; break;
+            case 'Q': quiet = 1; s++; break;
+            case 'X': process_quit(); return EOK;
+            case 'V': // handle version command
+              ver = ++s;
+              while ( *s != ']' && *s != '\0' ) s++;
+              if ( *s == '\0' ) {
+                nl_error( 2, "Unterminated version string" );
+                return EINVAL;
+              }
+              *s = '\0';
+              if ( strcmp( ver, ci_version ) == 0 )
+                return EOK;
+              nl_error( 2, "Command Versions don't match" );
+              return EINVAL;
+            case ']': end_of_opts = 1; break;
+            default:
+              nl_error( 2, "Invalid option" );
+              return EINVAL;
+          }
+        }
       }
       // blank out trailing ']' in case it's the end of the mnemonic
       *s++ = '\0';
@@ -349,30 +349,30 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
       // Now s points to a command we want to parse.
       // Make sure it's kosher
       while ( *s ) {
-	if ( ! isprint(*s) && *s != '\n' ) {
-	  nl_error( 2, "Invalid character in command" );
-	  return EINVAL;
-	}
-	len++;
-	s++;
+        if ( ! isprint(*s) && *s != '\n' ) {
+          nl_error( 2, "Invalid character in command" );
+          return EINVAL;
+        }
+        len++;
+        s++;
       }
       if ( len > 0 && cmd[len-1] == '\n' ) len--;
       nl_error( quiet ? -2 : 0, "%s: %*.*s",
-	mnemonic, len, len, cmd );
+        mnemonic, len, len, cmd );
       cmd_init();
       rv = cmd_batch( cmd, testing );
       ocb->hdr.attr->attr.flags |= IOFUNC_ATTR_MTIME | IOFUNC_ATTR_CTIME;
       switch ( CMDREP_TYPE(rv) ) {
-	case 0: return EOK;
-	case 1: process_quit(); return ENOENT;
-	case 2: /* Report Syntax Error */
-	  if ( nl_response ) {
-	    nl_error( 2, "%s: Syntax Error", mnemonic );
-	    nl_error( 2, "%*.*s", len, len, cmd);
-	    nl_error( 2, "%*s", rv - CMDREP_SYNERR, "^");
-	  }
-	  return EINVAL;
-	default: return EIO;
+        case 0: return EOK;
+        case 1: process_quit(); return ENOENT;
+        case 2: /* Report Syntax Error */
+          if ( nl_response ) {
+            nl_error( 2, "%s: Syntax Error", mnemonic );
+            nl_error( 2, "%*.*s", len, len, cmd);
+            nl_error( 2, "%*s", rv - CMDREP_SYNERR, "^");
+          }
+          return EINVAL;
+        default: return EIO;
       }
     }
   }
@@ -398,7 +398,7 @@ static void read_reply( RESMGR_OCB_T *ocb ) {
     ocb->next_command = cmd->next;
     ocb->next_command->ref_count++;
     if ( handle->first_cmd->ref_count == 0 &&
-	 handle->first_cmd->next != 0 ) {
+         handle->first_cmd->next != 0 ) {
       handle->first_cmd = free_command( handle->first_cmd );
     }
   }
@@ -409,7 +409,7 @@ static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb) {
   IOFUNC_ATTR_T *handle = ocb->hdr.attr;
 
   if ((status = iofunc_read_verify( ctp, msg,
-		     (iofunc_ocb_t *)ocb, &nonblock)) != EOK)
+                     (iofunc_ocb_t *)ocb, &nonblock)) != EOK)
     return (status);
       
   if ((msg->i.xtype & _IO_XTYPE_MASK) != _IO_XTYPE_NONE)

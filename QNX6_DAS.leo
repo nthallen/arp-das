@@ -2,8 +2,8 @@
 <?xml-stylesheet ekr_test?>
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
-<globals body_outline_ratio="0.540098199673">
-	<global_window_position top="39" left="10" height="574" width="982"/>
+<globals body_outline_ratio="0.357400722022">
+	<global_window_position top="39" left="10" height="554" width="982"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
@@ -102,7 +102,7 @@
 <v t="ntallen.20070524163205.11"><vh>Incomplete Data</vh></v>
 </v>
 </v>
-<v t="ntallen.20070319130904.2"><vh>TMbfr</vh>
+<v t="ntallen.20070319130904.2" a="E"><vh>TMbfr</vh>
 <v t="ntallen.20070524163205.8" a="E"><vh>TMbfr Operation</vh>
 <v t="ntallen.20080516131227"><vh>TMbfr Write Modes: O_NONBLOCK</vh></v>
 <v t="ntallen.20080516131227.1"><vh>TMbfr Read Modes: DCo, DCf</vh></v>
@@ -110,7 +110,7 @@
 <v t="ntallen.20070525114357.1"><vh>Delay allocating buffers</vh></v>
 <v t="ntallen.20070525114357.2"><vh>DG initialization</vh></v>
 <v t="ntallen.20070525114357.3"><vh>Store incoming data in circular queue</vh></v>
-<v t="ntallen.20070525114357.4"><vh>Store metadata in linked list</vh>
+<v t="ntallen.20070525114357.4" a="E"><vh>Store metadata in linked list</vh>
 <v t="ntallen.20070706110550"><vh>How to track reader progress</vh></v>
 </v>
 <v t="ntallen.20070525114357.5"><vh>Store TimeStamps in linked list</vh></v>
@@ -153,17 +153,17 @@
 <v t="ntallen.20070319130904.3" a="E"><vh>Data Generators</vh>
 <v t="ntallen.20080516131227"><vh>TMbfr Write Modes: O_NONBLOCK</vh></v>
 <v t="ntallen.20070817133522.5" a="E"><vh>DG API and design issues</vh>
-<v t="ntallen.20070823131008" a="E"><vh>Data Queue (DQ)</vh>
-<v t="ntallen.20070823131008.1" a="E"><vh>Writer operations</vh>
-<v t="ntallen.20070823131008.2"><vh>Allocate Rows</vh></v>
-<v t="ntallen.20070823131008.3"><vh>Commit rows</vh></v>
-<v t="ntallen.20070823131008.4"><vh>Commit tstamp</vh></v>
+<v t="ntallen.20070823131008"><vh>data_queue (DQ)</vh>
+<v t="ntallen.20070823131008.1"><vh>Writer operations</vh>
+<v t="ntallen.20070823131008.2"><vh>allocate_rows(n_rows)</vh></v>
+<v t="ntallen.20070823131008.3"><vh>commit_rows(MFCtr, row_start, n_rows)</vh></v>
+<v t="ntallen.20070823131008.4"><vh>commit_tstamp(MFCtr, time)</vh></v>
 </v>
-<v t="ntallen.20070823131008.5" a="E"><vh>Reader operations</vh>
-<v t="ntallen.20070823131008.6"><vh>Transmit Rows</vh></v>
+<v t="ntallen.20070823131008.5"><vh>Reader operations</vh>
+<v t="ntallen.20070823131008.6"><vh>transmit_rows(n_rows)</vh></v>
 </v>
 </v>
-<v t="ntallen.20070820135203"><vh>Collection</vh></v>
+<v t="ntallen.20070820135203" a="TV"><vh>Collection</vh></v>
 <v t="ntallen.20070822162630"><vh>rdr</vh></v>
 <v t="ntallen.20070822162630.1"><vh>Inetin</vh></v>
 <v t="ntallen.20070820135203.1"><vh>Everything else</vh></v>
@@ -175,7 +175,8 @@
 <v t="ntallen.20070319130904.6"><vh>Inetin</vh></v>
 <v t="ntallen.20080516132543"><vh>TMRelay</vh></v>
 </v>
-<v t="ntallen.20070319130904.7"><vh>Data Clients</vh>
+<v t="ntallen.20070319130904.7" a="E"><vh>Data Clients</vh>
+<v t="ntallen.20080519132626"><vh>DC API</vh></v>
 <v t="ntallen.20080516131227.1"><vh>TMbfr Read Modes: DCo, DCf</vh></v>
 <v t="ntallen.20070319130904.8"><vh>lgr</vh></v>
 <v t="ntallen.20070319130904.9"><vh>display</vh></v>
@@ -271,19 +272,19 @@
 </v>
 <v t="ntallen.20070817133522" a="E"><vh>Documentation</vh>
 <v t="ntallen.20070817133522.1" a="E"><vh>QNX4</vh>
-<v t="ntallen.20070817133522.2" a="TV"><vh>DG</vh></v>
+<v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
-<v t="ntallen.20070817133522.3"><vh>QNX6</vh>
+<v t="ntallen.20070817133522.3" a="E"><vh>QNX6</vh>
 <v t="ntallen.20070817133522.4"><vh>DC</vh></v>
-<v t="ntallen.20070817133522.5"><vh>DG API and design issues</vh>
-<v t="ntallen.20070823131008" a="E"><vh>Data Queue (DQ)</vh>
-<v t="ntallen.20070823131008.1" a="E"><vh>Writer operations</vh>
-<v t="ntallen.20070823131008.2"><vh>Allocate Rows</vh></v>
-<v t="ntallen.20070823131008.3"><vh>Commit rows</vh></v>
-<v t="ntallen.20070823131008.4"><vh>Commit tstamp</vh></v>
+<v t="ntallen.20070817133522.5" a="E"><vh>DG API and design issues</vh>
+<v t="ntallen.20070823131008"><vh>data_queue (DQ)</vh>
+<v t="ntallen.20070823131008.1"><vh>Writer operations</vh>
+<v t="ntallen.20070823131008.2"><vh>allocate_rows(n_rows)</vh></v>
+<v t="ntallen.20070823131008.3"><vh>commit_rows(MFCtr, row_start, n_rows)</vh></v>
+<v t="ntallen.20070823131008.4"><vh>commit_tstamp(MFCtr, time)</vh></v>
 </v>
-<v t="ntallen.20070823131008.5" a="E"><vh>Reader operations</vh>
-<v t="ntallen.20070823131008.6"><vh>Transmit Rows</vh></v>
+<v t="ntallen.20070823131008.5"><vh>Reader operations</vh>
+<v t="ntallen.20070823131008.6"><vh>transmit_rows(n_rows)</vh></v>
 </v>
 </v>
 <v t="ntallen.20070820135203"><vh>Collection</vh></v>
@@ -1062,6 +1063,17 @@ TM_DG_Get_Data(min_rows, max_rows,
     Incoming commands: use ionotify() to have these send a pulse as well
 When the Timing pulse comes in, a row of data is collected and written to TMbfr.
 The library could provide a template and fill in the MFCtr and Synch
+
+Could in fact have the writer and reader in separate threads from ctrl and
+use semaphores to control execution.
+
+First-cut Ctrl thread uses a timer pulse and MsgReceive() to regulate timing.
+
+Second-cut Ctrl thread reads from /dev/huarp/$Experiment/cmd/DG using ionotify()
+to get a pulse delivered as well. Same MsgReceive() loop.
+
+Third-cut Ctrl thread is a resource manager /dev/huarp/$Experiment/DG/$vargroup
+to support input from other processes.
 </t>
 <t tx="ntallen.20070820135203.1">Timing
 
@@ -1072,7 +1084,11 @@ inetin:
 </t>
 <t tx="ntallen.20070822162630">Can operate full throttle (extraction) or time-regulated (playback)</t>
 <t tx="ntallen.20070822162630.1">Generally operates with local time regulation to absorb any network delays. Incoming data would be placed in a circular buffer and then shipped off to the TMbfr according to the appropriate timing.</t>
-<t tx="ntallen.20070823131008">Probably very similar to TMbfr, except with only one writer and one reader</t>
+<t tx="ntallen.20070823131008">Probably very similar to TMbfr, except with only one writer and one reader. This simplifies certain things. We don't have to keep track of how many clients have processed a given row.
+
+I have divided the functionality into writer and reader in order to avoid blocking except under controlled circumstances. Writing data to TMbfr is a potentially time-consuming operation. Collection will certainly use the O_NONBLOCK option, but even so, it would be preferable if collection operations were not held up for all the processing required on the TMbfr end. If we put the DG writer and reader functions in separate threads, the reader thread can tolerate the delay while the writer thread continues to process collection operations.
+
+May actually make more sense to break into three threads: Control, assemble and transmit.</t>
 <t tx="ntallen.20070823131008.1"></t>
 <t tx="ntallen.20070823131008.2">Tell me how much space I can write into. This routine may block pending forwarding data to TMbfr or optionally die or do something else that is drastic in the collection case</t>
 <t tx="ntallen.20070823131008.3">Certify rows that have already been written into allocated rows of the DQ. Will perform basic sanity checks. In the case of optimized output formats (T2,T3), will automatically identify the need for new DQD headers.
@@ -1080,7 +1096,9 @@ inetin:
 Note that for collection, we will never require a new DQD header except when the timestamp changes</t>
 <t tx="ntallen.20070823131008.4"></t>
 <t tx="ntallen.20070823131008.5"></t>
-<t tx="ntallen.20070823131008.6">n_rows specifies the number of rows to transmit. Actual rows transmitted will be the minimum of:
+<t tx="ntallen.20070823131008.6">Who calls this function? What determines the value n_rows?
+
+n_rows specifies the number of rows to transmit. Actual rows transmitted will be the minimum of:
     n_rows
     rows available in DQD if not the current DQD
 timestamps will be transmitted as necessary
@@ -1160,5 +1178,6 @@ When reading from the DCf node, a read() operation will return as soon as there 
 
 When reading from DCo, the reader will block until their request is complete. Assuming the request buffer is large, this should involve fewer context switches. This mode is appropriate for lgr or ext programs which have no realtime requirements.</t>
 <t tx="ntallen.20080516132543">Reads from one TMbfr and writes to another. Might be the recommended way to run display on another node.</t>
+<t tx="ntallen.20080519132626"></t>
 </tnodes>
 </leo_file>
