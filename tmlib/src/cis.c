@@ -437,7 +437,8 @@ static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb) {
 
   ocb->rcvid = ctp->rcvid;
   ocb->nbytes_requested = msg->i.nbytes;
-  if ( ocb->next_command->cmdlen > ocb->hdr.offset ) {
+  if ( ocb->next_command->cmdlen > ocb->hdr.offset ||
+  		ocb->next_command->next ) {
     // we've got something to send now
     read_reply( ocb );
   } else if (nonblock) {
