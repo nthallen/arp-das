@@ -1,0 +1,8 @@
+#! /bin/sh
+if [ `id -u` != 0 ]; then
+  exec /usr/local/bin/sudo $0 $*
+fi
+chown $*
+chmod u+s $*
+ls -l $*
+
