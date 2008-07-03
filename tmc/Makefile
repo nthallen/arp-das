@@ -77,7 +77,7 @@ $(LSRC)/colmain.skel : colmain.skel
 $(LSRC)/extmain.skel : extmain.skel
 	cp extmain.skel $(LSRC)/extmain.skel
 $(LBIN)/$(TMCREV) : tmc
-	ln -f tmc $(LBIN)/$(TMCREV)
+	cp -f tmc $(LBIN)/$(TMCREV)
 
 clean :
 	rm -f $(OBJECT) $(TARGET)
