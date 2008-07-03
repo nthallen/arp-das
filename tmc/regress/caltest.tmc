@@ -1,0 +1,90 @@
+/*
+  Test of conversion and calibration codes.
+  I want to test singly and in combinations:
+
+   The basic classes of conversions:
+     char  -> text
+     int   -> int
+	 float -> fixed
+	 float -> float
+
+   The basic conversion strategies:
+	 No conversion
+	 Explicit Function
+	 Calibration
+	 Inherited Calibrations/conversion
+
+   Implicit generation of functions based on references to 
+   combinations of convert(), iconvert() and text().
+
+   Conversion from two different types to the same target type 
+   but with two different output formats.
+   
+   Calibration out of range...
+*/
+TM typedef double VOLTS { text "%6.4lf"; }
+
+/* Chars converting to fixed float testing implicit rules, etc. */
+TM typedef unsigned char AD8 {
+  text "%3u";
+  Collect x = sbb(x);
+}
+TM typedef AD8 AD8_NC;
+TM typedef AD8 AD8_V { Convert VOLTS; text "%4.2lf"; }
+Calibration ( AD8_V, VOLTS ) { 0,  0, 256, 10 }
+TM typedef AD8_V AD8_VI;
+TM typedef AD8 AD8_F { Convert VOLTS func_ad8_f(); text "%4.2lf"; }
+TM typedef AD8_F AD8_FI;
+
+TM 1 Hz AD8 v_ad8; iconvert(v_ad8); convert(v_ad8); text(v_ad8);
+TM 1 Hz AD8_NC v_ad8_nc; iconvert(v_ad8_nc); convert(v_ad8_nc); text(v_ad8_nc);
+TM 1 Hz AD8_V v_ad8v; iconvert(v_ad8v); convert(v_ad8v); text(v_ad8v);
+TM 1 Hz AD8_VI v_ad8vi; iconvert(v_ad8vi); convert(v_ad8vi); text(v_ad8vi);
+TM 1 Hz AD8_F v_ad8f; iconvert(v_ad8f); convert(v_ad8f); text(v_ad8f);
+TM 1 Hz AD8_FI v_ad8fi; iconvert(v_ad8fi); convert(v_ad8fi); text(v_ad8fi);
+
+/* Test inheritance of parent convert function
+   Strategy is to force AD12_V to be a CVT-type by specifying 
+   floating-point output, then to implicitly reference it's cvt 
+   func through an explicit tcvt of a wholly-compatible child 
+   type (AD12VI1).
+ */
+TM typedef unsigned short AD12 {
+  text "%5u";
+  Collect x = sbw(x);
+}
+TM typedef AD12 AD12_V { Convert VOLTS; text "%9.2le"; }
+Calibration ( AD12_V, VOLTS ) { 0, 0, 65536, 10 }
+TM typedef AD12_V AD12VI1;
+TM typedef AD12_V AD12VI2 { text "%6.4lf"; }
+
+TM 1 Hz AD12VI1 v_ad12vi1; text(v_ad12vi1);
+TM 1 Hz AD12VI2 v_ad12vi2; text(v_ad12vi2);
+
+/* Test double -> double conversions.
+   The calibration has a fixed range, so the intervening types
+   should be integer
+*/
+TM typedef double DBL { Convert VOLTS; text "%6.4lf"; }
+Calibration ( DBL, VOLTS ) {
+  -1, 0,
+   0, 0,
+   1, 1,
+   2, 100,
+   3, 100
+}
+
+TM 1 Hz DBL v_dbl; text(v_dbl);
+
+TM typedef short CELCIUS_SP { text "%3d"; }
+TM typedef unsigned char DUCT_SP {
+  convert CELCIUS_SP;
+  text "%3d";
+}
+Calibration ( DUCT_SP, CELCIUS_SP ) {
+  0, -73,
+  1, -71
+}
+TM 1 Hz DUCT_SP SD1TSP; convert(SD1TSP);
+
+TM 0 Hz unsigned short Synch, MFCtr;

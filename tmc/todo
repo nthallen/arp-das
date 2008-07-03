@@ -1,0 +1,1213 @@
+$Id$
+2004
+Bug {
+  Use of "%04X" format results in internal error.
+}
+2001
+Feature Request {
+  Output addresses to a .h file:
+  Address <name> <intconstant> ';'
+   becomes:
+  #define <name>_Address <intconstant>
+  
+  I think it's just a question of walking through the
+  global_scope and identifying _DATUM or _TMDATUM for
+  which ->address is defined.
+}
+Log status {
+  V1R3 saved 07/31/96 before undertaking significant work
+  Operating descriptions ongoing in file todo.96
+}
+19 shift/reduce conflicts is normal
+20 shift/reduce conflicts is normal since iconvert added
+Conversions {
+  When I generate a CVT() with floor(), I need to
+  #include <math.h>!
+}
+Conversions {
+  Now that I've allowed explicit specification of conversions,
+  there are more implicit things desired:
+  If I specify a convert function, the text conversion should
+  use that function as an intermediate.
+  Double conversions should be handled this way as well:
+  generate the regular double conversion, then reference it
+  in a text generation.
+}
+textfunctions {  done 11/14/95
+  and Convert functions while I'm at it?
+  Need to add a conversion (struct cvtfunc) to the 
+  tmtyperulelist's tmtype. The cflg should be CFLG_TEXT.
+  When the type is resolved, we should go through the
+  conversions which are defined and fill them in.
+  fnpre is strdup of "func("
+  fnpost is just ")" or "]", not strdup'ed or freed
+  cvt_from is what we don't know until later
+  cvt_to also needs to be filled in later.
+  Could pull some of that stuff out of specify_conv()
+}
+Col_send() {
+  Modify skeletons to add COL_send {
+	only requires <stddef.h>
+  }
+}
+Output non-TM declarations and typedefs as they come in.
+Problems {
+  states {
+	Must initialize states somehow: { I believe these are all done
+	  Validate <state>; at top level will be added to initprog. {
+		I placed validate commonly on initprog and program,
+		but only after it was on program. That will cause a
+		problem on printout.
+	  }
+	  This means tmcalgo should produce "validate Begin"
+	  or some such command for each partition (but not for
+	  the substates)
+	}
+	Should prototype state validations before defining them:
+  }
+  tmc.y {
+	declarations : Where does the ';' go?
+  }
+  rational.h {
+	rational is defined in terms of ints. should be short ints.
+	done. try 32-bit compilation?
+  }
+  calibr.c {
+	long conversions: approaches {
+	  if ratio << 1, we can divide first, limiting the range,
+	  then do ratio calculation
+	  Also, can consider multiplying by more than LONG_MAX/imax
+	  as long as (imax-imin)*M < LONG_MAX
+	}
+	Should be getting extrapolation warnings instead
+  }
+}
+Function declaration/definition {
+  Problem leads on to templates in complexity pretty quickly:
+  Extensive grammar expansion
+  Declarators require a semantic output as well as the current
+  baseline information. Implement chain of "pointer to ___",
+  "array of n ___", and "function returning ___". For TMC purposes,
+  don't actually have to include 'n' in semantics of array: I
+  don't care what the dimension is: I've recorded the multiplier.
+  
+  At parse time, declarator needs {
+	sttmnt (from pretext after typeparts)
+	nameref (if used)
+	multiplier from arrays (0 if not OK for TM?)
+	Semantics chain
+  } after combining with typeparts {
+	get typeparts statement, type, size times multiplier
+	tm_type gets linked in during link_declarator (I think)
+	Save semantics
+  }
+  Might as well still use the declrtor struct, adding semantics.
+  Add KW_VOID with size 0. Undimensioned arrays have size 0 also.
+  
+  Since declarator forms not supported for TM variables must be
+  supported for functions, should maintain a flag in declarator
+  which indicates which types of features are included. (i.e.
+  pointers or functions rule out TM usage). On the other hand,
+  you MUST have a function when declaring a function, must not
+  have a name in a cast...
+
+  Leaving declrtor substantially the same, tests above become:
+  To be OK for TM, must show non-zero size (all the no-nos
+  introduce size 0). For function def. the top semantic item
+  must be "function returning ___". declarator used in a cast
+  must have nameref==NULL.
+  
+  struct semantic {
+	struct semantic *next;
+	short int sema_type;
+  };
+  #define SEMA_ARRY 1
+  #define SEMA_PNTR 2
+  #define SEMA_FUNC 3
+}
+State Variables: Issues {
+  non-volatile flag.
+  Syntax {
+	State ( name [, name ...] );
+	validate name;
+	  causes invalidation of the current state, validation of new
+	  state. invalidation of a state is not legal. States always
+	  require validation.
+	| KW_STATE '(' statelist ')' ';'
+	statelist : statename
+		| statelist ',' statename
+	statename : TK_NAME
+  }
+  Need to support:
+    validate state;
+  States always require validation.
+  Validation of a state is slightly different from validation
+  for another datum, since it implies invalidation of another
+  state value. So I must make an invalidation function for each
+  state set. This can be put in a valrec and added to the state's
+  validator.
+  Write prototype algorithm usage of state variables to make sure
+  syntax is adequate. In that context, one possible issue is that
+  users will supply statements which the algorithm compiler will
+  prefix with a state qualification. If the user statement has an
+  explicit dependency, the state dependency should be combined.
+  I think this could be achieved by having simply nested dependencies
+  combine always: {
+	depending on (state1)
+	  depending on (Amb0P) Amb0Pavg += Amb0P;
+	would combine, but not
+	depending on (state1)
+	  { depending on (Amb0P) Amb0Pavg += Amb0P; }
+  }
+}
+Items Done {
+  +calibr.c {
+	Getting warnings about AD12_T10K having insufficient output
+  }
+  +place? {
+	depending on (SX1NG once, SX1FG once) produces validation
+	with the same bit in xohdisp
+  }  
+  +Could use depending on () statement else statement syntax {
+	Not legal at the top level if depending on is strictly
+	positional (i.e. no IF to match with the else)
+	Not legal at any level if doesn't generate an IF.
+  }
+  +Also depending on ( rate ) would be nice {
+	See "on a rate" below.
+	+tmc.y {
+	  +change depname to statval
+	  +Add Depending on () else syntax
+	}
+	+all: +pdecls.c +place.c +tmc.y {
+	  Check when generating code that an if is generated for _ELSE.
+	}
+	+tmcstr.h {
+	  +add rate member to STATPC_DEPEND.
+	  +add else member to STATPC_DEPEND.
+	}
+	+parsfunc.c add newdepend()
+	+When rate is parsed, add it to STATPC_DEPEND.
+	+When interpreting slot dependencies, must translate rate to slot {
+	  +Create a function Get_Rate_Period(rate) {
+		Takes a rate and returns the period.
+		Row_Rate = Rsynch * SynchPer; (Synch Rate * Synch Period)
+		Slot_Per = Row_Rate / Slot_Rate;
+	  }
+	  +split add_sdep() into two functions: one which adds all
+	  the slots for a single datum and one which adds a single
+	  slot.
+	  +At the top level, start with row=0, per defined as per rate.
+	  Lower levels are handled in chk_loosely(). There we want
+	  to actually translate the rate dependence into a slot
+	  dependence.
+	}
+	How/where are slot dependencies handled? {
+	  place.c add_sdep() sorts as added, eliminates simple duplications
+	  prune_slots()
+	}
+  }
+  3/2/93
+  genpcm.c split data not automatically global. Made global only
+	when referenced.
+  genpcm.c get_slot() now returns NULL if per == 0.
+  place.c chkldeps() {
+	A statement which validates a datum cannot be dependent on that
+	datum, or the datum will never be validated. {
+	  Unless explicitly depending on datum, validate x should
+	  REMOVE x from the dependency list.
+	}
+  }
+  tmcstr.h/tmc.y {
+	added struct declrtor member sttmnt valstat for statements
+	associated with non-tm data. Added initialization to tmc.y
+  }
+  I have a split datum which isn't referenced, but it is still
+  made global, requiring copying. Just because it's split,
+  doesn't mean it's global. Addressed 3/2/93.
+  depending on doesn't quite work (check_refs doesn't like VALCHK) {
+	debugging regress/depends.tmc
+	Top level Invalidate shouldn't be made a dependency
+	place_ext->chk_tdeps->get_slot bombs on per==0
+  } addressed 3/8/93
+  spade/oh/oh1ext.c CF1_0 generated but not referenced 3/8/93 {
+	CNDD was being set even though !Collecting
+  }
+  spade/xohdisp.c Using output format %04X on an AD12_T30K {
+	should have been converted to CELCIUS. What's going on?
+  } 3/93 was using ftype, not ttype for error message
+}
+Minor upgrade: things to be done (I think) {
+  Text output will continue to determine fixed point
+  Syntax and Parsing {
+	+Ignore any non-ascii characters outside of quotes
+	+Add null statements
+	+Add calls to functions without arguments
+	+State Variable Syntax {
+	  State [name] ( name [, name ... ] );
+	  The name would be used for defining the actual int-type
+	  variable which would hold the state, but I can make that
+	  up as easily as all the rest. Where else do I make up names? {
+		place.c get_vname for validation status words
+		calibr.c gen_cvt_name for calibrations
+	  }
+	}
+	Add Function Building Syntax {
+	  So that I don't have to support function declaration syntax
+	  (which I don't yet support) I will choose a syntax which
+	  generates the whole function declaration:
+	  KW_BUILD ':' TK_NAME statement
+	}
+  }
+  +Validation fulfillment
+}
+Major upgrade: things under consideration {
+  Review data structures for useability {
+	Make tmdatum a special case of datum.
+	Have all declarations (types included) point
+	to declrtor.
+  }
+  Review syntax for useability {
+	Declaration syntax
+	Redo Group definitions
+	Change collect syntax to eliminate individual datum collection.
+	Add init/term commands
+	Add object generator syntax
+	Allow function specification for members.
+	Do not support conversion to some other type: this is a violation
+	of the type. Coerce to another type if you want another conversion.
+	Hence must support coercion to ancestral types.
+  }
+  Syntax and Parsing {
+	Add static variables
+	Should restructure grammar of declarations: currently is
+	  declaration : typeparts declarators
+	should be:
+	  declaration : typeparts declarator
+		  | declaration ',' declarator
+	TM typedef declaration tmtyperules? {
+	  Should probably associate tmtyperules with each declarator, no?
+	  As with declaration restructuring, should try:
+	  TM typedef tmtddecl
+	  tmtddecl : typeparts declarator tmtyperules
+		  | tmtddecl ',' declarator tmtyperules
+	}
+	Groups have collection rules separate and in addition to members
+	Support On Int, On EIR functionality?
+	General Attributes
+	Templates
+  }
+}
+Review overall design: consider rewrite {
+  Improve modularity, structured design.
+  Think of object orientation to improve modularity.
+  Incorporate noted design improvements.
+  Determine useful syntax for conversions.
+  Now for the TMC method {
+	Data are objects, but {
+	  Reference to a data object is treated as a reference to the value.
+	  While they have many member functions and constant members available
+	  at compile time, they have only the one data member, so
+	  the reference is unambiguous.
+	}
+	Constant members {
+	  X.type translates to the type of X. Useful in generators.
+	  X.rate is a rational defining the reporting rate of X in Hz.
+		In integer applications, should probably refer explicitly
+		to X.rate.num and X.rate.den. e.g.
+		collect { this = sbw(address) * rate.den / rate.num; }
+	  X.address is the address as defined with the "Address X n;"
+		statement.
+	}
+	Member functions {
+	  collect defines how to collect the datum.
+	  convert converts to an appropriate output type.
+		Different types convert to different types.
+		Conversion can be defined either as functions or
+		as calibrations. Any type converts to only one
+		other type, although it is possible to cast to
+		the type of an ancester class using the type(X)
+		syntax.
+	  text converts the datum to text after converting to
+		the appropriate output type. Text can be defined
+		with a format string.
+	  Both convert and text can be generated very efficiently
+	  by the TMC compiler, so replacement by explicit functions
+	  should not be required under most circumstances.
+	}
+	Object generators {
+	  Object generators use the syntax of member functions
+	  to create new objects and supporting code. It does not
+	  generate a new object class, just new objects and new
+	  code.
+	}
+  }
+}
+pdecls.c {
+  adopt approach used in cmdgen for handling indentation.
+  cur_indent specifies the desired indentation in the output.
+  When set, further output is screened and indentation observed.
+  When "real text" is encountered, the actual indentation is compared
+  to the desired indentation and a difference is determined 
+}
+Conversions should be inherited {
+  If no conversion exists to convert from a particular type,
+  look at how that type is declared.
+}
+tmc {
+  If collecting, everybody had better be global. Done in parsfuncs:make_tmd().
+  Why? {
+	Apparently because references aren't checked in collection rules
+	and checking would be difficult.
+  }
+}
+dbr.h {
+  rearrange history to place new stuff at top.
+  add message definition for DGReg
+  minf_row is not required in dbr_info, since clients
+  will always start on minf boundary (minf_row==0) {
+	But check to see that this is true: clients don't get
+	included until minf_row == 0! init_client needs this!
+	Change affects dbr.h, dg.c
+	Change num_clients to seq_num;
+	Add nrowminf
+  }
+}
+dg.c {
+  DG_s_data() {
+	Add two-packet capability; low priority: Check this!
+  }
+  init_client etc. {
+	Make sure clients are not linked in until minf boundary
+  }
+  Establish structure for global runtime info not needed by
+  clients. nrowminf could go in dbr_info (it's useful enough).
+  DG_rows_requested should be adjusted to get to even row
+  boundary before linking new client. {
+	Change affects dbr.h DG_init in dg.c
+  }
+}
+Integrate with DG & DRC {
+  Add syntax to { Not done.
+	specify synch value (default B4AB) (SYNCHVAL, SynchValue)
+	specify inverted synch (default no) (INVSYNCH)
+	specify n seconds slippage before resynch? (default 90) (SECDRIFT, SecondsDrift)
+	specify known variation from true rate (130/125 e.g.)
+  }
+  Determine how much can be made static.
+  What functions are required? {
+	Collect_row() {
+	  Time stamping {
+		Canonical design calls for comparing the collection
+		rate to the system clock. {
+		  Should definitely run tests to compare system
+		  board timers with system timers.
+		}
+		Suppose rows collected at r rows/sec and ts checks
+		occur every t secs (t, r rational). At each check,
+		t*r rows will have been processed. Reduce to lowest
+		terms and represent as trn/trd. Define 'rowlet' s.t.
+		trd rowlets = 1 row. At each check, trn rowlets will
+		have been processed. Maintain a sum of rowlets. As
+		each row is collected, add trd to the sum. When each
+		ts check occurs, subtract trn. Total range of sum
+		under perfect conditions will not exceed [-trn-trd,trn+trd]
+		(and may be even more restricted) Values within this
+		range are perfectly normal and regular variations are
+		expected. Gradual movement of sum out of this range
+		is caused by relative drift between the two timing
+		bases. Some tolerance level (historically 90 seconds)
+		will mark the point at which action needs to be
+		taken. tol seconds maps to tol*r*trd rowlets, so
+		movement of sum beyond [-tol*r*trd, tol*r*trd]
+		will signal significant drift. r*trd == trn/t
+
+		ts_check() {
+		  sum -= trn;
+		  if (sum < lowlim || sum > highlim)
+			new_ts_required = 1;
+		}
+		Collect_row() {
+		  mfc stuff {
+			if (mfc - ts.mfc > TS_MFC_LIMIT)
+			  new_ts_required = 1;
+		  }
+		  synch stuff
+		  appropriate collection function
+		  sum += trd;
+		  if (new_ts_required) {
+			generate new ts
+			attach to current row
+			new_ts_require = 0;
+		  }
+		}
+		New time stamp is required {
+		  When TM is started
+		  When (MFC - ts.mfc > TS_MFC_LIMIT)
+		  When times have drifted apart.
+		}
+		New time stamp {
+		  system time in seconds
+		  current mfc
+		  If higher resolution time is available {
+			f = fraction of a second extra
+			rmfc = rate of mfc Hz
+			f*rmfc = number of minor frames since even second.
+			record floor(seconds) and mfc - f*rmfc
+		  }
+		}
+		implicit mfc {
+		  seconds = floor((mfc - ts.mfc)/rmfc);
+		  ts.seconds += seconds;
+		  ts.mfc += seconds*rmfc;
+		}
+		Slow drift should be noted but not corrected? {
+		  Ideally, predictable drift should be recorded and
+		  used in data reduction. e.g. 8 hz when res. is 10 msecs
+		  Desired interval is 125 msecs, but must use 130 msecs.
+		  Obviously time will drift by 5 msecs/125 msecs or
+		  1 sec/25 sec or 90 sec / 2250 sec = 37.5 min.
+		  Everyone would be better served if we redefined the
+		  row rate as 100 samples / 13 seconds. Of course we'd
+		  be even better served if we got the time right in the
+		  first place. Two approaches:
+			1. Insist on exact timing and die at runtime if
+			slice is incompatable.
+			2. Come up with a scenario whereby deviations from
+			basic rate can be logged along with the data.
+			3. Add simple .TMC specification for known deviation:
+			Drift 130/125; Use in conjunction with 1.
+		  For now, use approach 1, but maybe don't die?
+		}
+	  }
+	}
+  }
+}
+parsing {
+  Change group syntax {
+	Grouping should group the collection actions together, but 
+	should not eliminate the individual member collections. The 
+	group collection (if any) should preceed the individual 
+	collections, and the individual collections should proceed in 
+	group order. This requires changes to tmc.y and place.c.
+
+	Do not include collection rule in group statment
+	group name (namelist);
+	This allows all the collect syntax, including on_int and
+	on_eir. At the same time, restructure structures to
+	allow collection by members in addition to group
+	collection. In fact, we should always tie the
+	individual collections to the group, so on_int n collect grp {}
+	will also trigger all the individual rules at the same time.
+	As such, on_int and on_eir should also allow a ';' for the
+	collection rules.
+  }
+  Soften collection global determination rules, but add
+  compiler switch to force strong globals.
+  Add on_int n collect and on_eir n collect. {
+	Referenced variables must be global and not split
+	across multiple slots.
+  }
+  Currently cannot support static vars in blocks (or elsewhere)
+  or initialization of variables.
+  Initialization of TM variables is ridiculous.
+  Should restructure grammar of declarations: currently is
+   declaration : typeparts declarators
+  should be:
+   declaration : typeparts declarator
+   		| declaration ',' declarator
+  TM typedef declaration tmtyperules? {
+	Should probably associate tmtyperules with each declarator, no?
+	As with declaration restructuring, should try:
+	TM typedef tmtddecl
+	tmtddecl : typeparts declarator tmtyperules
+		| tmtddecl ',' declarator tmtyperules
+  }
+  More discussion: Where are hooks needed? {
+	on_int n {
+	  handler function {
+		Possibly needs to be in another module, but could be pragma'd
+	  }
+	  need to attach proxy and interrupt on TM Start
+	  need to detach proxy and interrupt on TM End/Quit {
+		Both need hooks in DG_DASCmd() where the case already
+		exists.
+	  }
+	  need to perform collection action on proxy {
+		Need extra cases in DG_Other?
+		DG_Other could probably use extra case hooks for
+		other purposes.
+	  }
+	}
+	External data {
+	  Simple shared memory {
+		Need library functions to ease API {
+		  TM_share("x", &v);
+		  TM_unshare("x"); ?
+		}
+		Need extra case in DG_Other to copy pointer
+		Need appropriate syntax to process
+		Use could be valid in extraction for tweaking parameters?
+	  }
+	  Data sent in {
+		Need appropriate syntax to process {
+		  receive x;
+		}
+		Need library functions to ease API {
+		  tmsid = TM_set_supply("x");
+		  TM_supply(dgsid, &v)
+		}
+		Need msg definitions for registration with extra case in DG_Other {
+		  
+		}
+		Need extra case in DG_Other for collection
+		Use could be valid in extraction for tweaking parameters
+	  }
+	  Data timed via proxy {
+		combination of above forms?
+		External registration returning a proxy
+		Extra case in DG_other for collection
+	  }
+	}
+  }
+}
+generate PCM (cont.) {
+  Add option to output pcm definition info for comparison to
+  previous versions {
+	User decides when a version should be checked in.
+	Check-in procedure decides whether mod requires a
+	major rev number or a minor rev number. If pcm's
+	agree, rev is minor, else major.
+  }
+  Tuning {
+	Synchronous will cause problems if I am not more careful {
+	  need bit rate BR to divide 2^20
+	  BR = Rrow * Ncols * 8
+	  if BR | 2^20, then so must Rrow and Ncols (and 8)
+	  This is true for 0 tolerence.
+	}
+  }
+}
+Conversion Generation {
+  optimize {
+	if (dr == 0.0) don't bother to check!
+  }
+  Conversion to [double, text, %w.df]
+  can be treated as conversion to [long, text, %w.df]
+  
+  Whenever long is displayed as %w.df, actual long values ly are related
+  to 'true' double values dy by
+  ly = floor(dy*10^d+.5)
+  
+  If ftype is double, must first perform type conversion (if any), check
+  range, then do ly conversion or output **'s if oorange.
+  
+	    ttype/fmt
+  ftype    *      fudboxc 		    eg
+  char    array
+  int			  int cnv		  full cnv(1)
+  				   urfxd		    spec.
+  flt			  full cnv		  full cnv
+  				 urfxd w/chk		spec.
+  (1) Absolute size of the result is not the issue here, dynamic range
+  and significant digits is. The calibration could be analyzed to
+  determine whether an integer conversion is possible.
+  
+  Adding a full conversion to a text conversion should specify
+  an additional conversion (e.g. the pure type conversion).
+  To do this, specify_conv() in place.c should be broken up
+  to offer a lower-level conversion locator.
+}
+Screen Design {
+  Would like to start with:
+    Mnemonic
+	Units
+	Representation of the output data format (width and precision)
+  Create graph of TM types based on calibrations and functions {
+	Calibration implies two-way
+	<Function implies one-way>
+  }
+  Given Generate command, find shortest path from one to the other {
+	For starters, insist on one hop.
+	Determine the required domain using type information from ftype.
+	(temporarily) Extend calibration data as necessary to cover domain.
+	Determine range of conversion
+	Determine resolution of output based on user specification
+	Type conversions: Binary Look-up
+  }
+}
+Validation {
+  Change declrtor validation storage to sttmnt in order to
+  support actions directly dependent on a single datum.
+  Optimization {
+	Add validation count: in how many places is this datum
+	validated: If only one, fine, otherwise, may want to
+	create a function which is called for validation.
+  }
+}
+How do we depend {
+  A statement which validates a datum cannot be dependent on that
+  datum, or the datum will never be validated. {
+	Unless explicitly depending on datum, validate x should
+	REMOVE x from the dependency list.
+  }
+  summary {
+    Collect actions do not depend.
+	extraction statements depend on variables with possible "once" qual.
+	dependence on a variable can be broken down into zero or more of {
+	  positional dependence
+	  simple slot dependence
+	  explicit dependence (i.e. response to [in]validation commands)
+	}
+	+Dependence on a non-TM variable with no invalidation can be ignored.
+	Simple slot dependence can be ignored if collecting, since no slots
+	will be lost. When not collecting, slot dependence can be relaxed to
+	Minor Frame dependence, since the integrity of the minor frame is
+	guaranteed at a lower level.
+	sub-statement dependence allows the enclosing statement to be
+	independent of references within the substatement except that
+	positional dependence is still an issue. sub-statement positional
+	information should not affect the RATE of the enclosing statement,
+	but it should affect the position to assure validity.
+  }
+  implementation {
+	Ultimately, dependency is recorded as two lists: {
+	  {non-TM variable, 'once' flag}
+	  {position, slots}
+	}
+	When evaluating a dependency, must know whether position is
+	to be added loosely or strictly. {
+	  Need two slot lists and a variable list
+	  in substat, add all slots to 'local' list and apply loosely
+	  to the global list.
+	  at stat level, add all slots to global list and apply strictly
+	  to global list.
+	  Hence, if there is a local list, apply slots there and loosely
+	  to the global, else a
+	  in substat, first prune existing deplst for redundancy, dependence
+	  on unnecessary variables.
+	}
+	'loose' positional dependencies have affected the position but
+	do not appear on the list of slots.
+	If no positional info, then must use 'active' validation,
+	separate function.
+	Assign bits for each element
+	determine type to use for storage {
+	  use only unsigned char and unsigned int.
+	  Use more than one if necessary.
+	}
+	Allocate names for the storage elements
+	Add validation records to slots and variables {
+	  storage element name
+	  bit to set or reset, depending on whether validating or
+	  invalidating
+	  Function name to call for active validation {
+		validate x; would translate to
+		  val123 &= ~0x80;
+		  funcname();
+		The function would have to check for validity, since
+		it might require more than one value:
+		void funcname(void) {
+		  if (val123 == 0 && val124 == 0) {
+		    val123 |= 0x11;
+			block
+		  }
+		}
+	  }
+	}
+  }
+  TM Dependence {
+    Dependence on a TM variable is {
+	  positional dependence on its last slot {
+		strict: affects rate
+		loose: does not affect rate, only fine position
+	  }
+	  and slot dependence on each slot {
+		After the slot position of the action has been defined,
+		dependence on compatable slots can be removed.
+		If collecting, remove slot dependence on all
+		slots with the same or smaller period than the action.
+		If 'First' slot appears in a different 
+		then each slot should validate itself
+	  }
+	}
+	sub-statement dependence {
+	  Evaluate normally
+	  Apply positional dependencies to enclosing statement loosely
+	}
+  }
+  Slot Dependence {
+	Simple slot dependence is brought about by implicit dependence
+	on a TM variable which is located in whole or in part in a slot
+	which is incompatable with that of the action. This is not a
+	"once" dependancy and is only invalidated when the row or mfc
+	containing the variable is skipped for some reason. During
+	collection, there are no skipped rows, hence no invalidation,
+	hence the simple slot dependence can be ignored. (This saves
+	not only the checking before the action, but also the validation
+	whenever the row appears.)
+	
+	Sub-statement dependence on a TM variable produces a more complex
+	slot dependency. 
+	NOT! Not inherently "once" #### Must ask: {
+	  is it ever invalid? {
+		split between multiple slots
+	  }
+	  is the range of that invalidity critical?
+	  In general, do not support this case!
+	}
+  }
+  On derived data (non-TM) {
+	Derived data are assumed always valid unless explicitly invalidated
+	by the user. Hence, if no "invalidate x" statements are present, x
+	is assumed always valid and any dependency on x is ignored.
+	"validate x;" or "invalidate x;" at the top level can define the
+	initial conditions. Only the latter triggers validation however.
+	"invalidate x" at any level triggers validation on x both implicit
+	and explicit. Dependency on derived data cannot be positional,
+	and hence must always be implemented explicitly via validation
+	records.
+	Even with validation triggered, a statement cannot be dependent
+	on a derived datum if it validates that datum or the datum
+	will never get validated. {
+	  I could split hairs on this, but I think the simple solution
+	  is to have a "validate x;" statement remove dependence on x
+	  unless that dependence is explicit (depending on (x){}).
+	  I can't think of a case where this would be desired, but
+	  then again, I'm not writing programs yet.
+	}
+  }
+  On a rate {
+	depending on (4 Hz, x, y, z) {}
+	Rate dependency could be easily translated into a slot dependency,
+	but it is a sort of cross between a true slot dependency and
+	a sub-statement dependency; the actual slot is irrelevant,
+	so it shouldn't be a strict slot dependence. Like a 'loose'
+	dependence, it should define the position but not leave the
+	slot on the validation list. Unlike a loose dependence, it
+	should define the rate, at least downward.
+	
+	Immediately, what I'm looking for is substatement rate
+	dependence:
+	{ stat;
+	  depending on (4 Hz) stat;
+	  else stat;
+	}
+	In this case, the substatement rate is lower than the statement.
+	This is a case where the slot dependence should remain on
+	the validation list: actually, substatement slot dependence
+	does remain on the validation list. So: at the top level, I
+	would want to define the rate of the statement, but not
+	introduce an unnecessary slot dependence. On a substatement
+	level, a slot dependence is required (unless rate is actually
+	greater than the statement's, in which case give warning)
+	so it really doesn't matter on which slot the dependence
+	falls, as long as it has the right rate.
+  }
+}
+Define Documentation Structure {
+  Syntax -> tmc.grammar
+  Semantics (rules in addition to the Syntax)
+  The syntax is one coordinate in a documentation space.
+  Another is area of implementation {
+	strategy
+	data structures
+	code
+	discussion
+  }
+}
+Future updates {
+  Synchronize DASCmds with minor frames
+  Improve error reporting {
+	Make a stab at it in tmc.y
+	Add linenumber records in statements in order to localize
+	reported errors after parsing is complete.
+  }
+  ?Add syntax to add TM type rules for comparing data types. {
+	The default will be (x == y), but this won't work for 3-byte
+	data. Needed only for ".delta" syntax, so it can wait until
+	the .delta is implemented. Meanwhile, .delta could be implemented
+	separately for 24-bit data?
+  }
+  ?Add void data simply for validation uses. State Variables
+  Fill out C syntax for cleaner parser?
+  Hooks for dual-frame processing {
+	First frame is extraction, second is collection?
+  }
+}
+delta: another approach {
+  substitutions {
+	TK_NAME '.' KW_DELTA {
+	  Generate a structure of deltas:
+	  struct {
+	  } delta;
+	  filled with declarations of the same name as the
+	  Creates new global datum with name derived from TK_NAME and
+	  with the same type and declaration as TK_NAME.
+	  Add extraction statement at top level equivalent to {
+		depending on (ref) {
+		  if (delta(ref) != ref) {
+			delta(ref) = ref;
+			validate delta(ref);
+		  }
+		}
+	  }
+	  Since this generates new data and new dependencies, it must
+	  be processed prior to code generation, since code generation
+	  takes place after dependencies have been considered.
+	}
+	KW_SBB '(' expression ')' -> sblb(number) or sbhb(number) {
+	  implementation delayed
+	}
+  }
+  x.delta: must create the datum, must be global
+  Can create struct of name "delta" with member's names matching
+  their "real" names:
+	struct {
+	  xtype x;
+	} delta;
+  But run into trouble with multiple operators:
+	x.integrate.delta
+  x.integrate ==> integrate.x
+  x.integrate.delta ==> delta.integrate.x?
+  struct {
+	struct {
+	  xtype x;
+	} integrate;
+  } delta;
+  operator x.delta = delta.x {
+	invalidate delta.x;
+	depending on (x once) {
+	  if (x != delta.x) {
+		delta.x = x;
+		validate delta.x;
+	  }
+	}
+  }
+  operator x.display = x.delta.convert.text;
+  KW_OPERATOR TK_NAME '.' TK_NAME = expression '{' tl_statements '}'
+}
+Display {
+  Fundamental problems:
+  Initialization
+  Simple Specification {
+	display, row, column, datum, conversion function {
+	  display(con,row,col,dat,func);
+	  init cdisplay(con,row,col,func(0));
+	  { static dat.type sv_; etc...}
+	  Subproblem converion function specification
+	}
+  }
+  Conversion specification {
+	I support conversions from one type to another with an optional
+	conversion to text. i.e. convert(fromtype, totype, textflag);
+	display must always assume text, so we are only concerned with
+	the fromtype and the totype. fromtype is implicit in the datum.
+	If default conversion is specified, totype is implicit also.
+	Problem only when "raw" (unconverted) data is required or when
+	conversion to a non-standard type is desired. These could be
+	considered one in the same:
+	  display(con,row,col,dat); uses default conversion type to text
+	  display(con,row,col,dat,type); uses explicit type to text
+	"raw" is obtained by specifying the type directly.
+	Zero order, don't allow anything but default conversion.
+	Along this line, could also specify explicit conversions functionally:
+	  text(dat);
+	  convert(dat [opt_type] [opt_text]);
+	  display(con,row,col,dat [opt_type]);
+	  tx     t(d)
+	  dt     c(d)
+	  dt tx  c(d,tx)
+	  et	 c(d,ty)
+	  et tx  c(d,ty,tx)
+	This leaves only .address in member syntax. (should really review
+	C++ notation for consistency)
+  }
+}
+Agenda Summary {
+  > TMC Ongoing work
+     See TMC project for more info
+  > Provide states for basic operations: tm_init, tm_start,
+    tm_clear, tm_end, tm_quit
+     what about logging suspend, resume? Where do I stop?
+
+     Require user to explicitly declare states for TM Start, End and
+     Clear. Also Begin... Or maybe not: work on tmc.y to better handle
+     initializations,
+     then I'll declare those internally, together with MFCtr and Synch.
+
+  > Conversions should be inherited to avoid unnecessary
+    duplication of output code
+     Specifically, conversions should not be explicitly inherited at
+     declaration time, but rather resolved through the ancestry at
+     conversion generation time. For example, suppose we have types AD8
+     and AD8_Br:
+
+     TM typedef unsigned char AD8 {
+       convert Volts;
+       collect X = sbw( X.address );
+     }
+
+     TM typedef AD8 AD8_Br {
+       collect X = sbw( X.address ) + sbw( X.address + 1);
+     }
+
+     AD8 X
+     AD8_Br Y;
+
+     convert(X), since X is AD8 and AD8 converts to Volts will use the
+     conversion from AD8 to Volts. convert(Y), Y is AD8_Br which has no
+     conversion specified.
+
+     If conversions were inherited at typedef time, AD8_Br would inherit
+     the specification of conversion to Volts, but at conversion time, a
+     separate calibration for AD8_Br->Volts would be required. I suggest
+     that rather leave conversion uninherited and follow the inheritance
+     at conversion time. Then if conversion is explicitly specified, even
+     to Volts, a calibration will be required. Also, if the first
+     required conversion is for an AD8_Br and it has no conversion
+     defined, change the ftype to the nearest base type and try again.
+     Then the conversion will be stored highest in the type hierarchy and
+     is more likely to be reused. Only die if there is no TM type above.
+
+  > Consider auto-validation
+     The idea is any variable of a tm typedef type (can I distinguish?)
+     will be validated whenever it is assigned. i.e. they will all have
+     validation permanently enforced. This would change code such as:
+
+     ppm O3_MR;
+     invalidate O3_MR;
+     { O3_MR = f(sample, T, P);
+       validate O3_MR;
+     }
+
+     To:
+
+     ppm O3_MR;
+     O3_MR = f(sample, T, P);
+
+
+     I could change the semantics of top-level validators vis:
+
+       invalidate X; /* Essentially a no-op, they would all start out
+     invalid */
+       validate X;   /* Turns validation off (makes X always valid) */
+
+     Challenge is to survey current usage (all mine, of course) and
+     determine what the impact would be.
+
+  > Optimize code generated for dependencies
+     Statements with identical dependencies can use a single conditional
+     check and avoid a lot of separate if(){} statements. On the other
+     hand, if a statement includes a validator, subsequent statements
+     should be rechecked, or possibly a break check
+
+     if (!V3) {
+       statement;
+       statement;
+       validator;
+       if (V3) break;
+       statement;
+       statement;
+     }
+
+     This is better than:
+
+     if (!V3) {
+       statement;
+       validator;
+     }
+     if (!V3) {
+       statement
+     }
+     Since if V3 != 0 at the first, it will still be != 0 at the second.
+
+     This approach requires developing a set data structure...
+  > Assignment of arrays is not correct
+     pfuncs.c: The check for "Can move with a simple assignment" should
+     somehow detect the fact that we are an array and generate the memcpy
+     instruction instead.
+
+     tmcstr.h
+       Change INTTYPE_OTHER to INTTYPE_ARRAY
+
+     tmc.y "^declarators :"
+       if the size of the declarator is not 1, it is an array of some
+     type.
+       I could use this info to set the type to INTTYPE_ARRAY.
+
+     pfuncs.c:
+       use nr_declarator(?) to get struct declrtor. if type is
+       INTTYPE_ARRAY, we can't move it.
+
+     Test cases can be worked out in ~/vector
+
+
+  > TM "named_proxy" var 0;
+     Generate the declaration for
+       pid_t var;
+     as well as the code to initialize it. Follow "receive" example. See
+     if the nortlib routines can share function...
+
+
+
+
+
+  > 960000 Support for Double conversions
+     Cast to appropriate integer type, then do an integer conversion. For
+     e and g modes, use ecvt and gcvt.
+
+     Alternately or in addition, provide a syntax to provide a text
+     conversion function for a type...
+
+     convert <type> [function];
+     text QSTRING;
+     text function;
+
+     I currently combine conversion to another type and then text output
+     into one function. This has pros and cons.
+     Cons:
+       separate function required for output from target type itself
+       If target text conversion is customized, composition of functions
+       is more complicated.
+     Pros:
+       fewer function calls: faster execution
+       Shortcuts are often possible (conversion to an integer type
+       instead of a double type...)
+
+  > TMC colmain.skel for OUI
+     Migrate cc_init_options to oui
+     Move TMINITFUNC (generated by TMC) to oui? probably not:
+       This should be handled by those special states
+     Figure out how to migrate DG_CUSTOM_INIT to oui or elsewhere
+     Figure out if anyone is using DG_CUSTOM_TERM
+
+  > Support for Long conversions
+     If ratio << 1, we can divide first, limiting the range, then do
+     ratio calculation. Also can consider multiplying by more than
+     LONG_MAX/imax as long as (imax-imin)*M < LONG_MAX
+
+  > Col_Send needs to handle larger messages
+     Nav needs to send 333 bytes, which is greater than the max of 100.
+     Generate a Readmsg() in these cases.
+  > Support %TIME field in display programs
+     Would display the run's time using local time. TZ=UTC00 could be
+     used to make this UTC, of course.
+  > Conversion Syntax
+     Try associating the text output format with the source of the
+     conversion, not the target. Hence, all the different 8 or 12 or 16
+     bit things that convert to volts could all convert to VOLTS, but
+     specify different output formats.
+
+     The only real problem with that is that VOLTS isn't volts when it's
+     fixed point, and shouldn't be treated as the same type.
+  > Syntax Cleanup
+     This will probably fall out when templates are supported? Also
+     pertains to Modularization of conversion functions. The syntaxes I
+     want to clean up are mostly to do with conversion generation,
+     although collection is an issue also.
+     I'm torn between providing the richest syntax and being able to
+     implement it in a reasonable length of time.
+
+     The general syntax I'm looking for is var.op. This is resolved by
+     looking for a definition of .op within the scope of var, then within
+     the scope of the type of var, then within the scope of ancestors to
+     the type of var, then for an appropriate template. (I have to assume
+     that operators defined for one type are inherited by derived types
+     unless overridden for the derived type or the derived objects.) Now
+     what remains to be determined is how these operators are defined and
+     implemented
+
+  > General Attributes
+  > Conversion Modularization
+  > Templates
+  > Type Casting should be supported
+  > Modify Syntax to enforce %{ %} at top level only
+  > Better static initialization of states
+     If there is a top-level validation of a state, the static
+     initialization of the dependency variables should reflect that. The
+     runtime initialization may also take effect, but there's no reason
+     the static init shouldn't do what's right. Currently all states are
+     statically identified as invalid until the runtime initialization,
+     but this defeats a case where I wanted to do a depending on - else
+     to eliminate one of three states:
+
+     state (not_scanning, scanning);
+     validate not_scanning;
+     state (peak_idle, peak_ohcell, peak_axis);
+     validate peak_idle;
+
+     depending on (not_scanning once) {
+       depending on (peak_idle) ;
+       else {
+       }
+     }
+
+     In some cases the validate statements may be unnecessary if all
+     states can be left invalid until some action occurs. In this case
+     that would cause a problem pretty quickly.
+
+  > Known limitations
+     Pointer declarations
+     Function declarations
+     structure tags (  struct foobar { int a; } b;  /* foobar is error */
+     )
+
+     convert() and text() operate only on name_ref, not on a full
+     reference, and hence cannot take advantage of deeply nested type
+     information. In fact, array subscripting is treated purely as an
+     operator, not part of a reference. I would have to change the
+     definition of a reference to include array_references. Then I would
+     also have to change the storage of the declarators to include the
+     array stuff (and as I recall that is quite tricky...)
+     Workaround is to assign the desired quantity to a temporary variable
+     of the desired type and convert() or text() it.
+
+  > Design TMC/DAS support for variable data
+     This whole subject is probably obsolete:
+
+     Address more fully when the Bomem is in house and we can play with
+     it
+
+     Goal Support Collection/Logging/Analysis of data which occurs at a
+     variable rate and may be of variable size. Solution must support
+      Time stamping
+      Low-level validation of data
+      Integration with existing architecture
+
+     I propose:
+
+     While the basic TM frame supports many independent variables
+     occurring at different (fixed) rates, I suggest that "variable" data
+     be limited to one record of each type, each record time-stamped
+     separately. The record may of course be a struct of variables, but
+     in this case they all arrive at the same rate.
+
+
+
+     For logging purposes, variable data may be interleaved with "normal"
+     data, although this would require a new log file format. Alterna-
+     tively, variable data could be written to one or more auxiliary file
+     sets. All variable data could be written to one set of auxiliary
+     files or each record type could be written to a different set of
+     auxiliary files.
+
+     For reading purposes, the "reader function" must read from all file
+     sets simultaneously and merge data to report it in time-sorted
+     order. This might be accomplished by one reader as DG or by several
+     readers reporting to one merging DG.
+
+     (One general criticism of the data ring approach in general is the
+     fact that passing the data to all processes incurs a significant
+     cost in time spent moving the data from one buffer to the next.
+     While our data rates are low, this is a cost we can easily afford,
+     and the benefit is a measure of network transparency. As data rates
+     rise, however, we might wish to think about a slicker approach. We
+     could keep the ring logic, but place the data into shared memory for
+     direct access by all processes on the same node. A different ring
+     message would be required to reference the shared memory and
+     transfers off-node would use the existing message formats.)
+
+  > Write Papers on Data Acquisition, TMC, CMDGEN, TMCALGO
+  > Get .pcm to come out in canonical order
+}

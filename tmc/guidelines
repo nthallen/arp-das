@@ -1,0 +1,57 @@
+Accessing other variables during collect actions {
+  As a rule, one should avoid accessing other TM variables during
+  collection, since the relative order of collection is not
+  defined. On the other hand, collection does not have the
+  "partial data" problem that extraction has, so all TM
+  variables will always have "valid" values. (The first
+  value is an obvious exception)
+}
+Depending on TM variables {
+  Explicit dependency on TM variables at a level other than the
+  top level does not provide positional dependency:
+    tm 8 Hz unsigned int count;
+	tm 1 Hz unsigned int temp;
+	unsigned int sum;
+	{
+	  sum += count;
+	  display(count,temp);
+	}
+  As written, implicit dependency on two TM variables. Action is
+  performed at 1 Hz.
+	{
+	  sum = count;
+	  depending on (temp) display(count,temp);
+	}
+  Implicit dependency on count, explicit internal dependency on temp.
+  The entire action is performed at 8 Hz, but the depending on clause
+  will only fire at 1 Hz.
+  
+  Caveat: Explicit dependency, while not affecting the rate of an
+  action must still provide some positional information. In the
+  above example, suppose count is in slot (2,0) and temp is in (16,1).
+  The action should be placed at (2,1), since that is where both
+  have a chance of being valid. This means count must be global,
+  but that's the way it goes.
+}
+Separating Collection and Extraction {
+  Extraction actions must be independent of collection actions,
+  since in many cases, the two will be done at different times
+  and on different machines. All information passed from collection
+  to extraction must be passed in the data stream. As such, it
+  is inadvisable for a collection action to validate a datum on which
+  an extraction action depends.
+  
+  On the other hand, it may be useful to perform extraction actions
+  which feed into the collection stream for one reason or another.
+  So I'd better not get too pedantic about it.
+}
+Validation and Invalidation {
+  Use "validate TK_NAME ';'"
+  and "invalidate..." at the top level to trigger global validation
+  for non-tm data, also defining the initial condition. Explicit
+  validation ("[in]validate" and/or "depending on" at a lower level)
+  should NOT trigger global validation.
+  
+  Validation of TM data is illegal: only TM can do that. Invalidation
+  on the other hand may make some sense but causes problems
+}

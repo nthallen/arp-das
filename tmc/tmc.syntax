@@ -1,0 +1,203 @@
+\nt{program}
+	| [ \nt{program} ... ]
+
+\nt{progitem}
+	| KW_TM \nt{rate} \nt{declaration} ';'
+	| KW_STATE ( TK_NAME [ , TK_NAME ... ] );
+	| KW_TM KW_SYNCHRONOUS ';'
+	| KW_TM KW_SYNCHRONOUS KW_TOLERANCE '=' TK_INTEGER_CONST ';'
+	| KW_TM KW_MAXCOLS '=' TK_INTEGER_CONST ';'
+	| KW_TM TK_STRING_LITERAL TK_NAME TK_INTEGER_CONST ';'
+	| KW_COLLECT TK_NAME \nt{block}
+	| KW_COLLECT TK_NAME '=' \nt{expression} ';'
+	| KW_GROUP TK_NAME '(' \nt{grouplist} ')' \nt{block}
+	| KW_ADDRESS TK_NAME TK_INTEGER_CONST ';'
+	| KW_CALIBRATION '(' TK_TYPE_NAME ',' TK_TYPE_NAME ')' '{' \nt{pairs} '}'
+	| \nt{nontm_decl}
+	| \nt{tl_statement}
+
+\nt{nontm_decl}
+	| \nt{declaration} ';'
+	| KW_TYPEDEF \nt{declaration} ';'
+	| KW_TM KW_TYPEDEF \nt{declaration} \nt{tmtyperules}
+
+\nt{grouplist}
+	| TK_NAME [ ',' TK_NAME ... ]
+
+\nt{tl_statement}
+	| \nt{opt_expr} ';'
+	| \nt{block}
+	| KW_DO \nt{statement} KW_WHILE '(' \nt{expression} ')' ';'
+	| KW_IF '(' \nt{expression} ')' \nt{statement} \nt{opt_else}
+	| KW_SWITCH '(' \nt{expression} ')' \nt{statement}
+	| KW_WHILE '(' \nt{expression} ')' \nt{statement}
+	| KW_FOR '(' \nt{opt_expr} ';' \nt{opt_expr} ';' \nt{opt_expr} ')' \nt{statement}
+	| KW_RETURN \nt{opt_expr} ';'
+	| KW_DEPENDING KW_ON '(' \nt{namelist} ')' \nt{statement} \nt{opt_else}
+	| \nt{validator} TK_NAME ';'
+	| KW_DISPLAY '(' \nt{constant} ',' \nt{constant} ',' \nt{constant} ','
+					 \nt{name_ref} ')' ';'
+
+\nt{statement}
+	| \nt{tl_statement}
+	| TK_NAME ':' \nt{statement}
+	| KW_CASE \nt{expression} ':' \nt{statement}
+	| KW_DEFAULT ':' \nt{statement}
+
+\nt{validator}
+	| KW_VALIDATE
+	| KW_INVALIDATE
+	
+\nt{block}
+	| '{' \nt{declarations} \nt{statements} '}'
+
+\nt{statements}
+	|
+	| \nt{statements} \nt{statement}
+
+\nt{namelist}
+	| \nt{depname}
+	| \nt{namelist} ',' \nt{depname}
+	| \nt{rate}
+	| \nt{namelist} ',' \nt{rate}
+
+\nt{depname}
+	| TK_NAME
+	| TK_NAME KW_ONCE
+
+\nt{opt_else}
+	|
+	| KW_ELSE \nt{statement}
+
+\nt{statedef}
+	| KW_STATE '(' TK_NAME
+	| \nt{statedef} ',' TK_NAME
+
+\nt{opt_expr}
+	|
+	| \nt{expression}
+
+\nt{expression}
+	| \nt{expr_piece}
+	| \nt{expression} \nt{expr_piece}
+	| \nt{expression} '?' \nt{expression} ':' \nt{expression}
+
+\nt{expr_piece}
+	| \nt{constant}
+	| \nt{reference}
+	| \nt{oper_punc}
+	| '(' \nt{opt_expr} ')'
+
+\nt{reference}
+	| \nt{name_ref}
+	| \nt{name_ref} '.' KW_ADDRESS
+	| KW_CONVERT '(' \nt{name_ref} ')'
+	| KW_TEXT '(' \nt{name_ref} ')'
+	| \nt{name_ref} \nt{derefs}
+
+\nt{name_ref}
+	| TK_NAME
+
+\nt{derefs}
+	| \nt{deref}
+	| \nt{derefs} \nt{deref}
+
+\nt{deref}
+	| '.' TK_NAME
+	| TK_DEREF TK_NAME
+	
+\nt{oper_punc}
+	| TK_OPER_PUNC
+	| ']'
+	| '['
+	| ','
+	| '/'
+	| '='
+	| '-'
+	| '+'
+
+\nt{constant}
+	| TK_INTEGER_CONST
+	| TK_REAL_CONST
+	| TK_CHAR_CONST
+	| TK_STRING_LITERAL
+
+\nt{tmtyperules}
+	| ';'
+	| '{' \nt{tmtyperulelist} '}'
+
+\nt{tmtyperulelist}
+	|
+	| \nt{tmtyperulelist} \nt{collect_rule} '{' \nt{declarations} \nt{statements} '}'
+	| \nt{tmtyperulelist} \nt{collect_rule} '=' \nt{expression} ';'
+	| \nt{tmtyperulelist} KW_CONVERT TK_TYPE_NAME ';'
+	| \nt{tmtyperulelist} KW_TEXT TK_STRING_LITERAL ';'
+
+\nt{collect_rule}
+	| KW_COLLECT TK_NAME
+
+\nt{rate}
+	| \nt{rational} UN_SAMPLE '/' \nt{time_unit}
+	| \nt{rational} KW_HZ
+	| \nt{rational} \nt{time_unit} '/' UN_SAMPLE
+
+\nt{time_unit}
+	| UN_SECOND
+	| UN_MINUTE
+	| UN_HOUR
+
+\nt{rational}
+	| TK_INTEGER_CONST
+	| TK_INTEGER_CONST '/' TK_INTEGER_CONST
+
+\nt{declarations}
+	|
+	| \nt{declarations} \nt{declaration} ';'
+
+\nt{declaration}
+	| \nt{declarators}
+
+\nt{declarators}
+	| \nt{typeparts} \nt{declarator}
+	| \nt{declarators} ',' \nt{declarator}
+
+\nt{declarator}
+	| TK_NAME \nt{array_decorations}
+
+\nt{array_decorations}
+	|
+	| \nt{array_decorations} '[' TK_INTEGER_CONST ']'
+
+\nt{typeparts}
+	| \nt{integertypes}
+	| KW_FLOAT
+	| KW_DOUBLE
+	| TK_TYPE_NAME
+	| \nt{struct_union} '{' \nt{declarations} '}'
+
+\nt{struct_union}
+	| KW_STRUCT
+	| KW_UNION
+
+\nt{integertypes}
+	| \nt{integertype}
+	| \nt{integertypes} \nt{integertype}
+
+\nt{integertype}
+	| KW_CHAR
+	| KW_INT
+	| KW_LONG
+	| KW_SHORT
+	| KW_SIGNED
+	| KW_UNSIGNED
+
+\nt{pairs}
+	| \nt{pair_num} ',' \nt{pair_num}
+	| \nt{pairs} ',' \nt{pair_num} ',' \nt{pair_num}
+
+\nt{pair_num}
+	| TK_INTEGER_CONST
+	| TK_REAL_CONST
+	| '-' \nt{pair_num}
+	| '+' \nt{pair_num}
+

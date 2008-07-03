@@ -1,0 +1,87 @@
+typedef unsigned short UINT;
+TM typedef double VOLTS2 { text "%4.2lf"; }
+TM typedef double KELVIN { text "%5.1lf"; }
+
+/* Input types */
+TM typedef unsigned char AD8 {
+  collect x = sbb(x.address);
+  convert VOLTS2;
+  text "%02X";
+}
+TM typedef AD8 AD8_T10K { convert KELVIN; }
+Calibration (AD8_T10K, KELVIN) {
+    0,  400.0000,
+    1,  369.5500,
+    7,  309.2500,
+   13,  294.6400,
+   18,  287.7580,
+   23,  280.8680,
+   28,  274.8560,
+   59,  252.3600,
+  100,  237.2000,
+  162,  220.0338,
+  202,  207.4870,
+  227,  197.5017,
+  236,  191.7188,
+  242,  186.1388,
+  248,  177.3168,
+  252,  166.7280,
+  254,  157.0290,
+  255,  150.7300
+}
+
+TM 4   Hz	 AD8   DiffP;
+TM 1   Hz	 AD8_T10K  Amb0T;
+TM 1   Hz	 AD8_T10K  Amb1T;
+TM 1   Hz	 AD8_T10K  Amb2T;
+TM 1   Hz	 AD8_T10K  CInlT;
+TM 1   Hz	 AD8_T10K  OutlT;
+TM 0   Hz    UINT  MFCtr;
+TM 0   Hz    UINT  Synch;
+
+/* Addresses */
+Address Amb0T 0xC6A;
+Address Amb1T 0xC68;
+Address Amb2T 0xC66;
+Address CInlT 0xC60;
+Address DiffP 0xC6C;
+Address OutlT 0xC6F;
+
+AD8_T10K AmbAvg;
+AD8_T10K Dummy;
+
+Invalidate AmbAvg;
+
+{ AmbAvg = (Amb0T + Amb1T + Amb2T)/3;
+  Validate AmbAvg;
+}
+
+{ Dummy = DiffP;
+  depending on (Amb0T once) {
+    Dummy;
+  }
+}
+
+display(1,2,3,AmbAvg);
+%{
+  #define N_CONSOLES 1
+%}
+
+state ( LampOff, LampOn, LampOut);
+
+depending on (LampOff) {
+  if (Amb0T < 5) send_cmd("Lamp On");
+  else validate LampOut;
+}
+
+depending on (LampOn) {
+  if (Amb0T > 20) {
+	send_cmd("Lamp Off");
+	validate LampOut;
+  }
+}
+
+depending on (LampOut) {
+  send_cmd("Lamp Off");
+  validate LampOff;
+}

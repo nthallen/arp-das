@@ -1,0 +1,4 @@
+grep -E "(^[a-z][a-z_]* *:)|(^	[|;])" tmc.y >tmc.grammar
+tr -cs "[[:lower:]]_" "[\012*250]" <tmc.grammar | sort -u | grep "[a-z]" > tmc.nonterm
+tr -cs "[[:upper:]]_" "[\012*250]" <tmc.grammar | sort -u | grep "[A-Z]" > tmc.term
+awk -f lit.awk tmc.grammar > tmc.lit

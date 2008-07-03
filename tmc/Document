@@ -1,0 +1,76 @@
+Syntax -> tmc.grammar
+Semantics (rules in addition to the Syntax)
+The syntax is one coordinate in a documentation space.
+Another is area of implementation {
+  strategy
+  data structures {
+	extern struct statpc *program; /* parsfunc.c */ {
+	  This contains the whole program after parsing, including
+	  top level declarations and most top level statements. (excluding
+	  things that are easily omitted, e.g. SynchVal)
+	  Collection statements are placed directly with the datum being
+	  collected for placement on the corresponding slot.
+	  This leaves statements of type STATPC_TLDECLS, STATPC_EXTRACT,
+	  STATPC_VALID, and STATPC_INVALID. _EXTRACT statements have
+	  a STATPC_DEPEND as the first element of their list, which
+	  defines the dependencies of that statement.
+	}
+	extern struct nmlst *current_scope, *global_scope; /* parsfunc.c */ {
+	  Namelists define the name spaces. current_scope is only
+	  meaningful during parsing. global_scope lists all top-level
+	  variables.
+	}
+	extern struct slt *sltlist; /* genpcm.c */ {
+	  Defines the slots. Slots are characterized by a period and row
+	  and pointers to the statements which are placed with that slot.
+	  The actual allocation units are the cw's which further specify
+	  column and width and point to an individual datum.
+	  Each slt has many cw's. Each datum may have several cw's also.
+	  Hence, the mapping of slt's to data is a many-to-many mapping
+	  through the cw's. (Of course the ideal is that each datum
+	  has only one cw, so we can map from a datum to a unique slot,
+	  but...)
+	}
+  }
+  code
+  discussion {
+	Home Row {
+	  Data is placed in the home row in order to be shipped out
+	  in the data stream. As such, the home row defines the PCM
+	  format.
+	  
+	  If data is not referenced anywhere in any other rows, it
+	  is possible to eliminate any global storage for that
+	  datum. That is, all references to that datum can be replaced
+	  with direct references to the home row position. This would
+	  be true for a datum which is collected and shipped out
+	  in one row and not referenced anywhere else. Data which is
+	  referenced from another row is considered global.
+	  
+	  Currently, however, I have made the restriction that during
+	  collection, all TM data must be considered global. In fact,
+	  this is an overly conservative approach which arose from an
+	  early attempt to simulate data collection with a collection
+	  rule which simply incremented a counter. Since the counter
+	  wasn't deemed to be global, the increment didn't work.
+	  
+	  A more precise restriction would be as follows: during collection,
+	  a TM datum is to be considered global if its value is referenced
+	  in any collection statement, including its own collection statement.
+	  
+	  I won't begin to attempt all the checks necessary to determine
+	  this, since to do it correctly requires all sorts of sophisticated
+	  aliasing issues, not to mention a much more thorough treatement of
+	  the C syntax. However, it would not be too difficult to add a
+	  compiler switch which would allow some rudimentary checking to
+	  suffice. One such rudimentary rule would be:
+		A TM datum is considered global if referenced during any
+		collection statement except for the explicit assignment to x
+		in statements of the form: collect x = expr; A reference to
+		x in the righthand side of that expression would be considered
+		global.
+	  I should not forget that data collected asynchronously should
+	  also be considered global.
+	}
+  }
+}

@@ -1,0 +1,56 @@
+  > Restructuring                                                        3.00
+     The structure definitions were built somewhat naively: there are two
+     types of structures for data, two structures for data types. I think
+     a lot will be simplified if I recombine those. In particular, any
+     operation on data need not be duplicated for the two different types
+     of data, etc.
+  > Validation Work                                                      1.00
+     Need validation of 0 Hz data to work properly...
+  > General Attributes                                                   1.00
+  > Function Building                                                    1.00
+  > Templates                                                            5.00
+  > Syntax Cleanup
+  > State Variables                                                      1.00
+  > Conversion Modularization                                            3.00
+                                                          TOTAL         15.00
+
+     This will probably fall out when templates are supported? Also
+     pertains to Modularization of conversion functions. The syntaxes I
+     want to clean up are mostly to do with conversion generation,
+     although collection is an issue also.
+     I'm torn between providing the richest syntax and being able to
+     implement it in a reasonable length of time.
+
+     The general syntax I'm looking for is var.op. This is resolved by
+     looking for a definition of .op within the scope of var, then within
+     the scope of the type of var, then within the scope of ancestors to
+     the type of var, then for an appropriate template. (I have to assume
+     that operators defined for one type are inherited by derived types
+     unless overridden for the derived type or the derived objects.) Now
+     what remains to be determined is how these operators are defined and
+     implemented.
+
+	Reference to var.op can have many side-effects:
+	  can be replaced with some other value or none.
+	  Can cause other statements to be created
+	  can cause data to be defined using globbed naming for uniqueness
+
+	Definition
+	  UVMon::address = 0xC10;
+	  UVMon::collect { UVMon = sbb(UVMon.address); }
+
+Current collect syntax:
+  TM typedef unsigned char AD8 {
+    collect X { X = sbb(X.address); }
+    collect X = sbb(X.address);
+  }
+  AD8 UVMon;
+  Collect UVMon = sbb(UVMon.address);
+  Collect UVMon { UVMon = sbb(UVMon.address); }
+Comments: In TM typedef, Use of X is excessive, since "this" is acceptable.
+  Since the X need not be stated in advance, the options reduce to:
+	collect { this = sbb(this.address); }
+	collect this = sbb(this.address);
+  or to "collect statement" where statement can of course be a block.
+
+	  AD8::collect { this = sbb(this.address); }

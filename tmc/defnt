@@ -1,0 +1,2 @@
+grep " :" tmc.y | awk "{print \$1}" - | sort >tmc.nonterm.def
+diff tmc.nonterm tmc.nonterm.def > tmc.diff

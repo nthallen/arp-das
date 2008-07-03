@@ -1,0 +1,319 @@
+Latest 960029
+
+Outstanding {
+}
+
+Calibrations and Conversions
+  960023 unconvert(val,type);
+  960003 Support %TIME field in display programs
+  960010 Support for aggregates w/ convert, text, collection
+  960002 Long conversions where ratio << 1
+
+Major
+  960017 True data flow
+  960028 Produce MFRow TM datum implicitly at row rate
+  960029 Itime and Dtime can be calculate from MFCtr, MFRow
+
+Syntax
+  960021 Better error messages
+  960013 Static and other modifiers
+  960010 Support for aggregates w/ convert, text, collection
+  960019 Support for bit fields
+  960005 Type Casting
+  960007 Pointer declarations
+  960008 Function declarations
+  960009 structure tags (struct foobar { int a; } b; foobar is error
+  960015 Change group syntax
+  960006 Modify Syntax to enforce %{ %} at top level only
+
+Etc.
+  960012 Eliminate rational calculation where unnecessary
+  960016 Large TM "Receive" records
+  960018 depending on (1 Hz) when slower than MFC (Notebook 1/18/96)
+  960020 Fast simulation (Notebook 4/9/96)
+
+960002 Support for Long conversions
+  If ratio << 1, we can divide first, limiting the range, then do
+  ratio calculation. Also can consider multiplying by more than
+  LONG_MAX/imax as long as (imax-imin)*M < LONG_MAX
+
+960003 Support %TIME field in display programs
+  Would display the run's time using local time. TZ=UTC00 could be
+  used to make this UTC, of course. If 960028,29 are implemented, 
+  this could simply be an ITime reference.
+
+960015 Change group syntax
+  Grouping should group the collection actions together, but 
+  should not eliminate the individual member collections. The 
+  group collection (if any) should preceed the individual 
+  collections, and the individual collections should proceed in 
+  group order. This requires changes to tmc.y and place.c.
+
+  Do not include collection rule in group statment
+  group name (namelist);
+  This allows all the collect syntax, including on_int and
+  on_eir. At the same time, restructure structures to
+  allow collection by members in addition to group
+  collection. In fact, we should always tie the
+  individual collections to the group, so on_int n collect grp {}
+  will also trigger all the individual rules at the same time.
+  As such, on_int and on_eir should also allow a ';' for the
+  collection rules.
+
+960017 True data flow {
+  1. Basic assumption about combining data of different rates is 
+  incorrect. The implicit rule should be to use the highest rate 
+  of the implicit inputs. Hence combining a high-rate channel 
+  with a slow-rate channel produces high-rate data, relying on 
+  the assumption that the low-rate data doesn't change quickly 
+  (or else it would be reported at a higher rate!) Explicit 
+  dependency can be used to define lower rates. The lowest rate 
+  among the explicit dependencies will be used.
+  2. Validation is implicit in an assignment statement.
+  3. All variables are actively validated unless declared static
+  4. Validation of a variable in more than one location is an 
+  error.
+  5. Derived data is assigned the rate of it's defining 
+  statement. State variables and static variables are the only 
+  untimed variables.
+  6. Statements with unused outputs will be optimized out.
+  6a. Statements may be demoted to a lower rate if all successor
+      statements are at the lower rate (due to other 
+	  dependencies)
+  7. Statements with no outputs are always executed.
+  7a. Statements with no inputs are initializations.
+  7b. Unless initialized, variables are invalid until assigned.
+  8. Statements with TM frame outputs are deleted when not 
+  collecting.
+  9. Come up with a strategy to avoid duplicating statements 
+  which depend only on state variables.
+  10. Do serious data flow analysis to attempt to minimize the 
+  number of tests for validity by placing statements with the 
+  same dependencies near each other.
+}
+
+960014 Conversions should be inherited {
+  Specifically, conversions should not be explicitly inherited at
+  declaration time, but rather resolved through the ancestry at
+  conversion generation time. For example, suppose we have types AD8
+  and AD8_Br:
+
+  TM typedef unsigned char AD8 {
+	convert Volts;
+	collect X = sbw( X.address );
+  }
+
+  TM typedef AD8 AD8_Br {
+	collect X = sbw( X.address ) + sbw( X.address + 1);
+  }
+
+  AD8 X
+  AD8_Br Y;
+
+  convert(X), since X is AD8 and AD8 converts to Volts will use the
+  conversion from AD8 to Volts. convert(Y), Y is AD8_Br which has no
+  conversion specified.
+
+  If conversions were inherited at typedef time, AD8_Br would inherit
+  the specification of conversion to Volts, but at conversion time, a
+  separate calibration for AD8_Br->Volts would be required. I suggest
+  that rather leave conversion uninherited and follow the inheritance
+  at conversion time. Then if conversion is explicitly specified, even
+  to Volts, a calibration will be required. Also, if the first
+  required conversion is for an AD8_Br and it has no conversion
+  defined, change the ftype to the nearest base type and try again.
+  Then the conversion will be stored highest in the type hierarchy and
+  is more likely to be reused. Only die if there is no TM type above.
+  
+  Or go ahead and inherit the conversion at parse time, but allow 
+  inheritance of calibrations (and/or conversion functions) at 
+  conversion time.
+  
+  Algorithm {
+	1. Explicit Function
+	2. Native Calibration
+	3. Parent's Function (if convert, text format match )
+	4. Parent's Calibration
+  }
+}
+
+960021 Better error messages {
+  Use the yacc error mechanism to better idenify some error 
+  messages.
+  Record filename and linenumber with statements to provide 
+  useful messages after parse time.
+}
+
+960022 Separate Conversion and Text conversion {
+  To reduce duplication of code, there is little reason not to 
+  break these two functions into separate functions.
+
+						  c                      i        t
+                       convert               iconvert    text
+   ix   int -> fixed     (scale*iconvert())    func    iconvert,func
+   cx  char -> fixed       "                    "      array
+   fx float -> fixed     func                convert*  iconvert,func
+   fl   *   -> float     func                  N/A     func,ecvt,gcvt
+
+      ixt --> ixi, tfunc, glue
+	  ixc --> ixi, glue
+	  ixi --> gen
+	  cxt --> gen
+	  cxc --> cxi, glue
+	  cxi --> gen
+	  fxc --> gen
+	  fxi --> fxc, glue
+	  fxt --> fxi, tfunc, glue
+	  fli --> error
+	  flc --> gen
+	  flt --> flc, glue
+
+  conversion functions specified in TM typedef are either 
+  "convert" functions or "iconvert" functions, depending on 
+  whether the target type is integral or float.
+     If from-type is integral and to-fmt is fixed, function is an 
+	 iconvert() function. Otherwise it is a convert() function.
+  If one type  exists, the other can be derived from it. When
+  target is a true float (formats %e and %g), iconvert is undefined.
+  Hence iconvert() is guaranteed to supply an integral value.
+  
+  declare_convs() {
+	for each TM type, call generate_calibrations()
+	(instead of calling based on each calibration
+  }
+  
+  generate_calibrations() {
+	if any calibrations are required {
+	  Categorize type as ix, cx, fx or fl
+	  Based on type, determine which functions are necessary and 
+	  in which order they need to be generated.
+	  cx {
+		if (cxc(ne) && !cxi) add cxi
+		if (cxi(ne)) generate cxi
+		if (cxc(ne)) generate cxc using cxi
+		if (cxt(ne)) generate cxt
+	  }
+	  ix {
+		if (!ixi && (ixc || ixt)) add ixi
+		if (ixt) add tfunc
+		if (ixi) generate ixi
+		if (ixc) generate ixc using ixi
+		if (ixt) generate ixt using ixi, tfunc
+	  }
+	  fx {
+		if (!ixi && ixt) add ixi
+		if (!ixc && ixi) add ixc
+		if (ixt) add tfunc
+		if (ixc) generate ixc
+		if (ixi) generate ixi using ixc
+		if (ixt) generate ixt using ixi, tfunc
+	  }
+	  fl {
+		if (ixi) error
+		if (!ixc && ixt) add ixc
+		if (ixc) generate ixc
+		if (ixt) generate ixt using ixc, ecvt or gcvt
+	  }
+	}
+  }
+}
+
+960024 specify_conv, etc. {
+}
+
+960025 Changes Summary {
+  tmcstr.h {
+	Change struct tmtype.conversions from linked list to array of 
+	types, since we know what the possibilities are. Implications 
+	for calibr.c. Side-effect is to remove cvtfunc next member. 
+	(Other members are also redundant, but may make life easier 
+	in calibr.c)
+  }
+  tmc.y {
+	Forced TM typedef to support a single declarator only {
+		TM typedef unsigned int foo, bar;
+	  is now illegal. This is because the main reason for TM 
+	  typedef is to add tmtyperules, and they need to be different 
+	  for each new type defined and it was difficult to allow the 
+	  syntax to be:
+		TM typedef unsigned int foo {}, bar {};
+	  But since it's MY syntax, I can make it what I want! Regular 
+	  typedef works as before.
+	}
+	Added iconvert
+  }
+}
+
+960026 Additional Robustness? {
+  in gen_int_icvt(), I could return whether I was successful, and 
+  if not, generate_calibrations could call gen_doub_conv() 
+  instead, or better yet, gen_int_icvt() could call it 
+  directly...
+}
+
+960027 Documentation of Changes {
+  Changes have been made to how TMC supports Calibrations and 
+  conversions between types and to text.
+  
+  Output format is specified in the source type, not the 
+  destination. A side effect is that we should require fewer 
+  "dummy" output types. For example, in ClONO2 we have VOLTS2 and 
+  VOLTS4 which both represent volts, but one with a %4.2lf format 
+  and the other with a %6.4lf format. We convert AD8's to VOLTS2 
+  and AD12's to VOLTS4. Now we can specify a single VOLTS type 
+  and specify AD8 { convert VOLTS; text "%4.2lf"; } and
+  AD12 { convert VOLTS; text "%6.4lf"; } and it is quite 
+  reasonable to compare VOLTS to VOLTS despite which type they 
+  originated from.
+  
+  Calibrations and conversions can be inherited
+  
+  New iconvert() function: changes semantics of convert() (for 
+  the better) {
+	iconvert() returns an integer value which is scaled according 
+	to the precision specified by the text format of the source 
+	type. convert() returns a floating point value which has been 
+	properly scaled. Note that this is a significant change from 
+	V1R3 where only the iconvert() functionality was provided, 
+	leading to confusion in extracted values.
+	
+	An explicit convert() function is a conversion from the input 
+	type to the output type. If the output type is an integer 
+	type with a fixed-point output format ( e.g. %4d or %5.1lf ), the
+	output is a fixed-point integer value and the defined 
+	function is categorized as an iconvert() function rather than 
+	a convert() function.
+  }
+  
+  Support for text conversion of floating point types including 
+  %e format for scientific notation.
+  
+  Support for text conversion of data using a supplied explicit 
+  conversion function.
+  
+  Upgrading from V1R3 {
+
+	Check all TM typedefs for appropriate text formats. The text 
+	format now belongs with the source type and reflects how the 
+	data should be scaled/displayed after conversion. May be able 
+	to collapse redundant destination types (VOLTS2 & VOLTS4, for 
+	example)
+	
+	Check all instances of convert() to make sure they are 
+	appropriate. Replace with iconvert() if desired.
+	
+	Remove any explicit scaling from .edf files where it is no 
+	longer required.
+
+  }
+}
+
+960028 Produce MFRow TM datum implicitly at row rate {
+  Allows automatic method to hook to fastest data rate.
+}
+
+960029 Itime and Dtime can be calculate from MFCtr, MFRow {
+  Allows itime() and dtime() to move into mainstream. With true 
+  data flow, this code could be included in all files and 
+  optimized out if not needed.
+}
