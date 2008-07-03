@@ -1,5 +1,8 @@
 /* decls.c Functionality removed from tmc.y for better understanding
  * $Log$
+ * Revision 1.1  2008/07/03 15:11:07  ntallen
+ * Copied from QNX4 version V1R9
+ *
  * Revision 1.2  1993/09/27 19:41:29  nort
  * pragmas, typo.
  *
@@ -14,10 +17,9 @@
 #include "calibr.h"
 #include "yytype.h"
 #include "tmc.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 void int_type(struct typparts *tp, char *text, unsigned int type) {
   initstat(&tp->stat, newstpctext(text));

@@ -1,5 +1,8 @@
 /* tmcmain.c
  * $Log$
+ * Revision 1.1  2008/07/03 15:11:07  ntallen
+ * Copied from QNX4 version V1R9
+ *
  * Revision 1.14  2001/03/14 15:29:22  nort
  * Added processing for #define _Address generation
  *
@@ -22,28 +25,20 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <unistd.h>
 #include "nortlib.h"
+#include "nl_assert.h"
 #include "tmc.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
 
-void (*nl_error)(int level, char *format, ...) = compile_error;
+static char rcsid[] =
+  "$Id$";
+
+int (*nl_error)(int level, char *format, ...) = compile_error;
 
 FILE *vfile = NULL, *dacfile = NULL, *addrfile = NULL;
 
 #define COLLECT_SKELETON "colmain.skel"
 #define EXTRACT_SKELETON "extmain.skel"
-
-#ifndef NDEBUG
-void __assert(int chk, char *txt, char *file, int line) {
-  if (!chk)
-	compile_error(4, "%s:%d - Assert Failed:\n %s\n", file, line, txt);
-}
-#endif
 
 #ifdef __USAGE
 tmc Telemetry Compiler Version 1 Revision 9
@@ -108,7 +103,7 @@ static void main_args(int argc, char **argv) {
   if (vfile == NULL) vfile = stdout;
 }
 
-void main(int argc, char **argv) {
+int main(int argc, char **argv) {
   unsigned int errlevel;
 
   main_args(argc, argv);

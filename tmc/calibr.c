@@ -1,5 +1,8 @@
 /* calibr.c Handles calibration information.
  * $Log$
+ * Revision 1.1  2008/07/03 15:11:07  ntallen
+ * Copied from QNX4 version V1R9
+ *
  * Revision 1.24  2004/12/08 21:28:30  nort
  * Output a useful bit of information when compiling with -C
  *
@@ -72,10 +75,9 @@
 #include "tmcstr.h"
 #include "tmc.h"
 #include "calibr.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 #ifdef __DOCUMENTATION
 
@@ -1190,11 +1192,11 @@ static struct {
   char *type;
   char *abbr;
 } OT_abbr[] = {
-  "unsigned short int", "US",
-  "short int", "SS",
-  "unsigned long int", "UL",
-  "long int", "SL",
-  NULL, NULL
+  { "unsigned short int", "US" },
+  { "short int", "SS" },
+  { "unsigned long int", "UL" },
+  { "long int", "SL" },
+  { NULL, NULL }
 };
 
 typedef struct tcal_s {

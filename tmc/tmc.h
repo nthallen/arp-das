@@ -1,5 +1,8 @@
 /* tmc.h General include file for TM Compiler
    $Log$
+   Revision 1.1  2008/07/03 15:11:07  ntallen
+   Copied from QNX4 version V1R9
+
    Revision 1.18  2001/10/26 18:11:20  nort
    Added md5_sig
 
@@ -61,13 +64,14 @@ void place_col(void); /* place.c */
 void place_valid(void); /* place.c */
 void place_ext(void); /* place.c */
 void place_home(void); /* place.c */
-adjust_indent(int di); /* pdecls.c */
+void adjust_indent(int di); /* pdecls.c */
 void print_indent(char *s); /* pdecls.c */
 void print_pcm(void); /* pdecls.c */
 void post_processing(void); /* postproc.c */
 void add_ptr_proxy(char *type, char *name, int id); /* pointers.c */
 void print_ptr_proxy(void); /* pointers.c */
 void print_states(void); /* states.c */
+struct nm;
 void print_st_valid(struct nm *nr); /* states.c */
 #if defined _STDIO_H_INCLUDED || ! defined __WATCOMC__
   extern FILE *ofile, *vfile, *dacfile, *addrfile;
@@ -117,6 +121,9 @@ void print_st_valid(struct nm *nr); /* states.c */
   extern struct slt *sltlist;
   struct stateset *new_stateset(void); /* states.c */
   void add_state(struct stateset *set, char *name); /* states.c */
+
+  /* yytype.h */
+  struct st_un;
 
   /* decls.c */
   void int_type(struct typparts *tp, char *text, unsigned int type);

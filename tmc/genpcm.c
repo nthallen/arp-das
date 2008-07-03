@@ -1,5 +1,8 @@
 /* genpcm.c Generates PCM from TM data definitions
    $Log$
+   Revision 1.1  2008/07/03 15:11:07  ntallen
+   Copied from QNX4 version V1R9
+
    Revision 1.10  1996/04/18 19:08:05  nort
    Changes to better control frame dimensions:
    TM MINCOLS=<n>; and explicit specification of Synch rate.
@@ -28,10 +31,9 @@
 #include "rational.h"
 #include "tmcstr.h"
 #include "tmc.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 unsigned int show_tm = 0;
 

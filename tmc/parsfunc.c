@@ -1,5 +1,8 @@
 /* parsfunc.c
  * $Log$
+ * Revision 1.1  2008/07/03 15:11:07  ntallen
+ * Copied from QNX4 version V1R9
+ *
  * Revision 1.8  1999/08/30 17:15:14  nort
  * Changes relating to calibrations
  *
@@ -20,10 +23,9 @@
 #include "rational.h"
 #include "tmcstr.h"
 #include "tmc.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 struct statpc *program;
 struct sttmnt initprog = {NULL, NULL};

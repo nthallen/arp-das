@@ -2,6 +2,9 @@
   /* yylex.l lexical analyzer for TMC
      -+/,()[\]{=}:;?  These characters left for individual interpretation
      $Log$
+     Revision 1.1  2008/07/03 15:11:07  ntallen
+     Copied from QNX4 version V1R9
+
      Revision 1.10  2004/10/08 17:35:17  nort
      Uncommitted changes
 
@@ -33,16 +36,23 @@
   #include "yytype.h"
   #include "y.tab.h"
   #include "tmc.h"
-  #pragma off (unreferenced)
-	static char rcsid[] =
-	  "$Id$";
-  #pragma on (unreferenced)
+  static char rcsid[] =
+    "$Id$";
 
   #define STORE store_text(yytext)
   #define NOSTORE store_text(NULL)
   #define ret_tok(x) { STORE; copy_text(); return(x); }
   #define ret_ptxt(x) { NOSTORE; copy_text(); return(x); }
   #define ret_notxt(x) { discard_text(); return(x); }
+
+  static void lex_space( int n );
+  static void store_text(const char *s);
+  #if STORE_COMMENTS
+    static void store_char(char c);
+  #endif
+  static void copy_text(void);
+  static void discard_text(void);
+  static void swallow_comment(void);
 
 %}
 %%
@@ -132,7 +142,6 @@ SECONDS? ret_notxt(UN_SECOND);
 "+=" |
 "--" |
 "-=" |
-"->" |
 "/=" |
 "<<" |
 "<=" |

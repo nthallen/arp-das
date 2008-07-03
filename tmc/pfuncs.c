@@ -1,6 +1,9 @@
 /* pfuncs.c
    Contains routines to output function definitions.
    $Log$
+   Revision 1.1  2008/07/03 15:11:07  ntallen
+   Copied from QNX4 version V1R9
+
    Revision 1.10  1993/09/27 19:38:07  nort
    Cleanup.
 
@@ -8,10 +11,8 @@
  * Corrected bug when printing nested IV functions: printf w/o args
  * One for lint.
 */
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+static char rcsid[] =
+      "$Id$";
 
 #include <stdio.h>
 #include <string.h>

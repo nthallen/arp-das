@@ -1,5 +1,8 @@
 /* pdecls.c
  * $Log$
+ * Revision 1.1  2008/07/03 15:11:07  ntallen
+ * Copied from QNX4 version V1R9
+ *
  * Revision 1.10  2004/10/08 17:33:49  nort
  * MD5 output
  *
@@ -23,10 +26,9 @@
 #include "tmc.h"
 #include "nortlib.h"
 #include "md5.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 static int cur_indent = 0, sw_indent = 0;
 
@@ -36,7 +38,7 @@ static int cur_indent = 0, sw_indent = 0;
    A newline will also be triggered by print_indent(NULL) if no
    newline has been printed since the last call.
 */
-adjust_indent(int di) {
+void adjust_indent(int di) {
   cur_indent += di;
   if (cur_indent < 0) cur_indent = 0;
   sw_indent = 1;
@@ -231,7 +233,7 @@ void print_decls(void) {
 
 static MD5_CTX md5ctx;
 char md5_sig[16];
-static md5_vpf( char *format, ... ) {
+static void md5_vpf( char *format, ... ) {
   static char *md5_buf = NULL;
   static int md5_bufsize = 80;
   va_list arg;

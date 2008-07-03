@@ -1,5 +1,8 @@
 /* place.c
  * $Log$
+ * Revision 1.1  2008/07/03 15:11:07  ntallen
+ * Copied from QNX4 version V1R9
+ *
  * Revision 1.10  1995/10/18 02:03:08  nort
  * *** empty log message ***
  *
@@ -19,10 +22,9 @@
 #include "rational.h"
 #include "tmcstr.h"
 #include "tmc.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 /*
 How do we depend {
@@ -161,6 +163,7 @@ How do we depend {
 */
 
 #define IS_DEPEND(x) ((x) == STATPC_DEPEND)
+static void chk_deps(struct statpc *rule, struct statpc *dep);
 
 static unsigned short get_rate_period(rational *rate) {
   rational v;

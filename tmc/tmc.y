@@ -707,6 +707,7 @@ rate : rational UN_SAMPLE '/' time_unit { rdivide(&$1, &$4, &$$); }
 		rtimes(&$1, &$2, &$$);
 		rdivide(&one, &$$, &$$);
 	  }
+	;
 time_unit : UN_SECOND { $$.num = $$.den = 1; }
 	| UN_MINUTE { $$.num = 60; $$.den = 1; }
 	| UN_HOUR { $$.num = 3600; $$.den = 1; }

@@ -1,5 +1,8 @@
 /* pointers.c handles pointer sharing and proxy sharing.
  * $Log$
+ * Revision 1.1  2008/07/03 15:11:07  ntallen
+ * Copied from QNX4 version V1R9
+ *
  * Revision 1.6  1998/02/17 17:16:31  nort
  * Support for col_send() messages longer than 95 bytes.
  *
@@ -16,10 +19,9 @@
 #include <string.h>
 #include "tmc.h"
 #include "nortlib.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 static struct ppp {
   struct ppp *next;

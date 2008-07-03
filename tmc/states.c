@@ -1,5 +1,8 @@
 /* states.c functions for supporting state variables
  * $Log$
+ * Revision 1.1  2008/07/03 15:11:07  ntallen
+ * Copied from QNX4 version V1R9
+ *
  * Revision 1.3  1995/10/18 02:05:07  nort
  * *** empty log message ***
  *
@@ -15,10 +18,9 @@
 #include "rational.h"
 #include "tmcstr.h"
 #include "tmc.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 static struct stateset *statesets = NULL;
 static unsigned short n_sets = 0;
