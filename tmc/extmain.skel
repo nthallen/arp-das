@@ -1,40 +1,19 @@
 /* extmain.skel include file for extraction
  * $Log$
- * Revision 1.19  1999/11/18 19:30:33  nort
- * Added <math.h> for floor() as generated for conversions
- *
- * Revision 1.18  1995/10/18  02:05:48  nort
- * Changes to nlcon_display()
- *
- * Revision 1.17  1995/10/06  16:40:02  nort
- * Changes to nlcon_disp()
- * Old change to ROWS() and FRACSECS() macros
- *
- * Revision 1.16  1994/08/29  20:29:28  nort
- * Changes for OUI
- *
- * Revision 1.15  1993/09/27  18:55:31  nort
- * Cleaned up RCS log
- * Cleaned up rcsid[] with Watcom pragmas
- * Added #include <string.h> for memcpy prototype.
- *
- * Revision 1.14  1993/05/19  19:04:51  nort
- * Changed OPT_CON_INIT to OPT_CONSOLE_INIT to allow judicious
- * redefinition for TMA.
+ * Revision 1.1  2008/07/03 15:11:07  ntallen
+ * Copied from QNX4 version V1R9
  */
 #include <stdio.h>
 #include <string.h>
-#include <sys/kernel.h>
 #include <unistd.h>
 #include <math.h>
 #include "oui.h"
-#include "dbr.h"
+#include "tm.h"
 #include "globmsg.h"
 #include "msg.h"
-#pragma off (unreferenced)
-  static char emrcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char emrcsid[] =
+      "$Id$";
 
 %headers%
 

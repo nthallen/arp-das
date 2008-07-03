@@ -35,6 +35,9 @@ Calibration ( AD8_V, VOLTS ) { 0,  0, 256, 10 }
 TM typedef AD8_V AD8_VI;
 TM typedef AD8 AD8_F { Convert VOLTS func_ad8_f(); text "%4.2lf"; }
 TM typedef AD8_F AD8_FI;
+%{
+  VOLTS func_ad8_f( AD8_F );
+%}
 
 TM 1 Hz AD8 v_ad8; iconvert(v_ad8); convert(v_ad8); text(v_ad8);
 TM 1 Hz AD8_NC v_ad8_nc; iconvert(v_ad8_nc); convert(v_ad8_nc); text(v_ad8_nc);

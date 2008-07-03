@@ -1,61 +1,28 @@
 /* colmain.skel Skeleton for collection main program
  * $Log$
- * Revision 1.22  1998/02/17 17:16:59  nort
- * Added read_col_send() func to support col_send() messages
- * longer than 95 bytes
- *
- * Revision 1.20  1995/10/18  02:05:30  nort
- * Changes to nlcon_display()
- *
- * Revision 1.19  1995/10/06  16:40:02  nort
- * Changes to nlcon_disp()
- * Old change to ROWS() and FRACSECS() macros
- *
- * Revision 1.18  1994/08/29  20:29:15  nort
- * Added check for obsolete MSG_LABEL
- *
- * Revision 1.17  1994/08/29  20:15:12  nort
- * Mods for OUI: Moved several initializations into oui_init_options()
- * Made OPT_COL_INIT Col_init_options() and CONSOLE_INIT obsolete
- * Changed calls to msg() to nl_error(), making TMC collection independent
- * of the msg module, since nl_error is made to be redefined.
- *
- * Revision 1.16  1994/02/15  05:56:10  nort
- * Added some verbosity to COL_get_pointer()
- * I don't know why seteuid(getuid()) has been commented out:
- * I should try it again later.
- *
- * Revision 1.15  1993/09/27  18:53:20  nort
- * Added seteuid(getuid())
- * Cleaned up RCS log
- * Added cmrcsid[]
- * Added include <string.h> for memcpy prototype
- *
- * Revision 1.14  1993/03/08  18:11:45  nort
- * Added timerbd timing when available
+ * Revision 1.1  2008/07/03 15:11:07  ntallen
+ * Copied from QNX4 version V1R9
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <sys/types.h>
-#include <sys/kernel.h>
 #include <sys/timers.h>
 #include <sys/proxy.h>
 #include <time.h>
 #include <unistd.h>
 #include "nortlib.h"
 #include "oui.h"
-#include "dbr.h"
+#include "tm.h"
 #include "msg.h"
 #include "globmsg.h"
 #include "cc.h"
 #include "collect.h"
 #include "timerbd.h"
-#pragma off (unreferenced)
-  static char cmrcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char cmrcsid[] =
+      "$Id$";
 
 %headers%
 

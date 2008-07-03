@@ -1,6 +1,10 @@
 /* postproc.c Handles output processing after all the crucial code has
    been generated.
    $Log$
+   Revision 1.2  2008/07/03 18:18:48  ntallen
+   To compile under QNX6 with minor blind adaptations to changes between
+   dbr.h and tm.h
+
    Revision 1.1  2008/07/03 15:11:07  ntallen
    Copied from QNX4 version V1R9
 
@@ -147,12 +151,12 @@ void post_processing(void) {
         fprintf( ofile, "\n " );
       }
     }
-    fprintf( ofile, "  /* md5: '%s' */\n ", tmi.tmid.md5 );
+    fprintf( ofile, "  /* md5: */\n " );
     { int i;
       for ( i = 0; i < 16; i += 8 ) {
         int j;
         for (j = 0; j < 8; j++ ) {
-          fprintf( ofile, " %3d,", tmi.tmid.md5[i+j] );
+          fprintf( ofile, " 0x%02X,", tmi.tmid.md5[i+j] );
         }
         fprintf( ofile, "\n " );
       }

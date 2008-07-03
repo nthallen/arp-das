@@ -14,8 +14,9 @@ OBJECT=$(OBJ) $(INTERMED) $(TEMPORARY)
 SUFFIXES= .o .c .tmc
 .SUFFIXES : $(SUFFIXES)
 MODEL=s
-CFLAGS=-m$(MODEL) -w4 -g -I /usr/local/include
-LDFLAGS=-b -l dbr -l das -l eillib -L /usr/local/lib
+CFLAGS=-Wall -g -I /usr/local/include
+LDFLAGS=-L/usr/local/lib
+LIBS=-ltm -lnort
 TMCFLAGS=-s
 TMC=$(DBGR) ../tmc
 
