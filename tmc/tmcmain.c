@@ -1,5 +1,9 @@
 /* tmcmain.c
  * $Log$
+ * Revision 1.2  2008/07/03 18:18:48  ntallen
+ * To compile under QNX6 with minor blind adaptations to changes between
+ * dbr.h and tm.h
+ *
  * Revision 1.1  2008/07/03 15:11:07  ntallen
  * Copied from QNX4 version V1R9
  *
@@ -70,7 +74,7 @@ static void main_args(int argc, char **argv) {
   
   compile_init_options(argc, argv, ".c");
   opterr = 0;
-  optind = 0;
+  optind = OPTIND_RESET;
   while ((c = getopt(argc, argv, opt_string)) != -1) {
 	switch (c) {
 	  case 'c':	compile_options |= CO_COLLECT;	break;
