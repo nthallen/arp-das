@@ -26,7 +26,10 @@ TMC=$(DBGR) ../tmc
 #-----------------------------------------------------------------
 # Targets
 #-----------------------------------------------------------------
+.PHONY : regress clean
 regress : $(OBJ)
 	@echo All tests passed successfully
 depends.c : depends.tmc
 caltest.c : caltest.tmc
+clean :
+	rm -f *.c *.o
