@@ -1,6 +1,9 @@
 /* postproc.c Handles output processing after all the crucial code has
    been generated.
    $Log$
+   Revision 1.3  2008/07/03 20:58:07  ntallen
+   In the process of testing.
+
    Revision 1.2  2008/07/03 18:18:48  ntallen
    To compile under QNX6 with minor blind adaptations to changes between
    dbr.h and tm.h
@@ -75,14 +78,11 @@ void post_processing(void) {
     fprintf(ofile, "#define NSECSPER %d\n#define NROWSPER %d\n",
                 Rval.den, Rval.num);
     mfcsperrow = Nrows/SynchPer;
-    rollover = (USHRT_MAX % mfcsperrow) + 1;
-    if (rollover != mfcsperrow) {
-      rollover = - rollover;
-      fprintf(ofile, "#define ROLLOVER %u\n", rollover);
-    }
+    rollover = USHRT_MAXL + 1 - ( (USHRT_MAXL + 1) % mfcsperrow );
+    fprintf(ofile, "#define ROLLOVER %u\n", rollover);
     fprintf(ofile, "#define SYNCHVAL 0x%02X%02X\n", SynchValue & 0xFF,
                   (SynchValue>>8) & 0xFF);
-    if (SynchInverted) fprintf(ofile, "#define INVSYNCH\n");
+    fprintf(ofile, "#define INVSYNCH %d\n", SynchInverted ? 1 : 0);
     fprintf(ofile, "#define NROWMAJF %d\n", Nrows);
     fprintf(ofile, "#define MFSECNUM %d\n", Rsynch.num);
     fprintf(ofile, "#define MFSECDEN %d\n", Rsynch.den);

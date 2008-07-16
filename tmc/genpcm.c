@@ -1,5 +1,9 @@
 /* genpcm.c Generates PCM from TM data definitions
    $Log$
+   Revision 1.2  2008/07/03 18:18:48  ntallen
+   To compile under QNX6 with minor blind adaptations to changes between
+   dbr.h and tm.h
+
    Revision 1.1  2008/07/03 15:11:07  ntallen
    Copied from QNX4 version V1R9
 
@@ -44,6 +48,7 @@ long int SynchDrift; /* msecs/hour */
 unsigned int SynchValue = 0xB4AB;
 unsigned int SynchInverted = 0;
 unsigned int SecondsDrift = 90;
+int TM_Data_Type = 0;
 rational Rsynch;
 
 /* tmcompare(a,b) returns an integer which is:
@@ -689,6 +694,12 @@ void generate_pcm(void) {
   }
 
   gen_frame(list);
+  
+  /* Determine the output frame type */
+  if (SynchPer == 1) {
+    if (mfrsort->sltcw->slot == 0) TM_Data_Type = 3;
+    else TM_Data_Type = 1;
+  } else TM_Data_Type = 2;
   
   /* If we got here, we generated a frame: */	 
   copy_slots(synsort);

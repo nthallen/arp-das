@@ -1,6 +1,10 @@
 /* pfuncs.c
    Contains routines to output function definitions.
    $Log$
+   Revision 1.2  2008/07/03 18:18:48  ntallen
+   To compile under QNX6 with minor blind adaptations to changes between
+   dbr.h and tm.h
+
    Revision 1.1  2008/07/03 15:11:07  ntallen
    Copied from QNX4 version V1R9
 
@@ -32,6 +36,7 @@ static void moveslots(struct cw *cwl, unsigned int dir) {
   unsigned int offset;
   struct tmalloc *tma;
   
+  assert(TM_Output_Type > 0);
   for (; cwl != NULL; cwl = cwl->next) {
     datum = cwl->datum;
 	if (name_test(datum, NMTEST_TMDATUM)) {
@@ -41,10 +46,12 @@ static void moveslots(struct cw *cwl, unsigned int dir) {
 		cwn = tma->sltcw;
 		if (cwn == cwl && cwl->dnext == NULL) {
 		  /* Can move with simple assignment */
-		  if (dir == MVSLOTS_IN)
-			fprintf(ofile, "\n  %s = %s;", cwl->home_row_text, datum->name);
-		  else
-			fprintf(ofile, "\n  %s = %s;", datum->name, cwl->home_row_text);
+          if ( TM_Output_Type != 3 || ( cwl->col >= 2 && cwl->col < Ncols - 2) ) {
+    		  if (dir == MVSLOTS_IN)
+    			fprintf(ofile, "\n  %s = %s;", cwl->home_row_text, datum->name);
+    		  else
+    			fprintf(ofile, "\n  %s = %s;", datum->name, cwl->home_row_text);
+          }
 		} else {
 		  for (offset = 0; cwn != cwl; cwn = cwn->dnext) {
 			assert(cwn != NULL);

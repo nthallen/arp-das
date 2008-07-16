@@ -1,5 +1,9 @@
 /* tmc.h General include file for TM Compiler
    $Log$
+   Revision 1.2  2008/07/03 18:18:48  ntallen
+   To compile under QNX6 with minor blind adaptations to changes between
+   dbr.h and tm.h
+
    Revision 1.1  2008/07/03 15:11:07  ntallen
    Copied from QNX4 version V1R9
 
@@ -42,6 +46,7 @@ extern unsigned int SynchPer; /* genpcm.c */
 extern long int SynchDrift; /* genpcm.c */
 extern unsigned int SynchValue, SynchInverted; /* genpcm.c */
 extern unsigned int SecondsDrift; /* genpcm.c */
+extern int TM_Data_Type; /* genpcm.c */
 extern char md5_sig[16]; /* pdecls.c */
 #ifdef _RATIONAL_H
   extern rational Rsynch; /* genpcm.c */
