@@ -1,5 +1,8 @@
 /* place.c
  * $Log$
+ * Revision 1.3  2008/07/16 18:55:14  ntallen
+ * Changes to support TM_Data_Type 3
+ *
  * Revision 1.2  2008/07/03 18:18:48  ntallen
  * To compile under QNX6 with minor blind adaptations to changes between
  * dbr.h and tm.h
@@ -887,7 +890,7 @@ void place_home(void) {
   print_indent("union {");
   adjust_indent(2);
   for (;;) {
-    offset = TM_Output_Type == 3 ? 2 : 0;
+    offset = TM_Data_Type == 3 ? 2 : 0;
     for (sla = base.next;
          sla != NULL && (sla->placed != 0 || sla->scw->col < offset);
          sla = sla->next);

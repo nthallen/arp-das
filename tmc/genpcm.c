@@ -1,5 +1,8 @@
 /* genpcm.c Generates PCM from TM data definitions
    $Log$
+   Revision 1.3  2008/07/16 18:55:14  ntallen
+   Changes to support TM_Data_Type 3
+
    Revision 1.2  2008/07/03 18:18:48  ntallen
    To compile under QNX6 with minor blind adaptations to changes between
    dbr.h and tm.h
@@ -697,7 +700,7 @@ void generate_pcm(void) {
   
   /* Determine the output frame type */
   if (SynchPer == 1) {
-    if (mfrsort->sltcw->slot == 0) TM_Data_Type = 3;
+    if (mfrsort->sltcw->col == 0) TM_Data_Type = 3;
     else TM_Data_Type = 1;
   } else TM_Data_Type = 2;
   

@@ -1,6 +1,9 @@
 /* postproc.c Handles output processing after all the crucial code has
    been generated.
    $Log$
+   Revision 1.4  2008/07/16 18:55:14  ntallen
+   Changes to support TM_Data_Type 3
+
    Revision 1.3  2008/07/03 20:58:07  ntallen
    In the process of testing.
 
@@ -62,7 +65,7 @@ static void print_mfcopy(void) {
 void post_processing(void) {
   { /* Output defines for skeleton */
     rational Rval;
-    unsigned int rollover, mfcsperrow;
+    unsigned short int rollover, mfcsperrow;
 
     rtimesint(&Rsynch, SynchPer * 10, &Rval);
     fprintf(ofile, "\n#define TRN %d\n", Rval.num);
@@ -78,7 +81,7 @@ void post_processing(void) {
     fprintf(ofile, "#define NSECSPER %d\n#define NROWSPER %d\n",
                 Rval.den, Rval.num);
     mfcsperrow = Nrows/SynchPer;
-    rollover = USHRT_MAXL + 1 - ( (USHRT_MAXL + 1) % mfcsperrow );
+    rollover = USHRT_MAX + 1L - ( (USHRT_MAX + 1L) % mfcsperrow );
     fprintf(ofile, "#define ROLLOVER %u\n", rollover);
     fprintf(ofile, "#define SYNCHVAL 0x%02X%02X\n", SynchValue & 0xFF,
                   (SynchValue>>8) & 0xFF);
