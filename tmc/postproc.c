@@ -1,6 +1,10 @@
 /* postproc.c Handles output processing after all the crucial code has
    been generated.
    $Log$
+   Revision 1.5  2008/07/16 19:13:40  ntallen
+   Compiling support for TM_Data_Type 3
+   Omit definitions for Synch and MFCtr from home row
+
    Revision 1.4  2008/07/16 18:55:14  ntallen
    Changes to support TM_Data_Type 3
 
@@ -62,10 +66,26 @@ static void print_mfcopy(void) {
     fprintf(ofile, " " MFC_NAME " = %s;", cwl->home_row_text);
 }
 
+static short int lcm( short int ain, short int bin ) {
+  short int t, a, b;
+  // first calculate the gcd via the euclidean algorithm
+  a = ain;
+  b = bin;
+  while ( b != 0 ) {
+    t = b;
+    b = a % b;
+    a = t;
+  }
+  assert(a != 0);
+  a = ain/a;
+  return a * bin;
+}
+
 void post_processing(void) {
   { /* Output defines for skeleton */
     rational Rval;
-    unsigned short int rollover, mfcsperrow;
+    unsigned long int lrollover, lrollover_secs;
+    unsigned short int mfcspermajf, lcmMn, mfwrap;
 
     rtimesint(&Rsynch, SynchPer * 10, &Rval);
     fprintf(ofile, "\n#define TRN %d\n", Rval.num);
@@ -80,9 +100,17 @@ void post_processing(void) {
     rtimesint(&Rsynch, SynchPer, &Rval);
     fprintf(ofile, "#define NSECSPER %d\n#define NROWSPER %d\n",
                 Rval.den, Rval.num);
-    mfcsperrow = Nrows/SynchPer;
-    rollover = USHRT_MAX + 1L - ( (USHRT_MAX + 1L) % mfcsperrow );
-    fprintf(ofile, "#define ROLLOVER %u\n", rollover);
+    mfcspermajf = Nrows/SynchPer;
+    lcmMn = lcm(mfcspermajf,Rsynch.num);
+    //lrollover = (USHRT_MAX+1L)/lcmMn;
+    //lrollover *= lcmMn;
+    //lrollover_secs = lrollover/Rsynch.num;
+    //lrollover_secs *= Rsynch.den;
+    fprintf(ofile, "#define LCMMN %u\n", lcmMn );
+    mfwrap = (USHRT_MAX+1L)%lcmMn;
+    fprintf(ofile, "#define ROLLOVER_MFC %u\n", mfwrap );
+    // fprintf(ofile, "#define ROLLOVER_SECS %luL\n", lrollover_secs );
+    // fprintf(ofile, "#define ROLLOVER %luL\n", lrollover);
     fprintf(ofile, "#define SYNCHVAL 0x%02X%02X\n", SynchValue & 0xFF,
                   (SynchValue>>8) & 0xFF);
     fprintf(ofile, "#define INVSYNCH %d\n", SynchInverted ? 1 : 0);
