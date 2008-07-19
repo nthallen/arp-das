@@ -4,7 +4,7 @@
 -I /usr/local/include
 
 %phflags == <<
-+cc_flags='-I /usr/local/include -I /cygdrive/c/QNX630/target/qnx6/usr/include' +lib=nort ph +lib_sp=(/usr/local/lib)
++cc_flags='-I /usr/local/include' +lib=nort tmph ph +lib_sp=(/usr/local/lib)
 
 phtable == phtable.specs +(%phflags) :exe
 dbphtable == phtable.specs +(%phflags) +debug :exe
