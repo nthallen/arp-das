@@ -15,8 +15,8 @@ File:
 Init:
   "/* phtable output */\n"
   "#include \"tablelib.h\"\n"
-  "PtWidget_t *" $1 "_tbl_fld[" $2 int "];\n"
-  "void " $1 "_init( void ) {\n"
+  "PtWidget_t *" $1 string "_tbl_fld[" $2 int "];\n"
+  "void " $1 string "_init( void ) {\n"
   "  PtWidget_t *w;\n"
 
 # $1: table name (string)
@@ -33,22 +33,22 @@ String:
    " ); /* Attr " $3 int " */\n" 
   [ preview_label $4 string $2 int $1 int ]
 
-# $1: table name (PTGNode)
+# $1: table name (string)
 # $2: Field Number (int)
 # $3: Default Text (PTGNode)
 # $4, $5: row, col (int)
 # $6, $7: width, height (int)
 FieldDef:
-  "  " $1 "_tbl_fld[" $2 int "] = tbl_field( w, \""
+  "  " $1 string "_tbl_fld[" $2 int "] = tbl_field( w, \""
   $3 "\", " $5 int ", " $4 int ", " $6 int ", " $7 int " );\n"
   [ preview_field $2 int $5 int $4 int $6 int $7 int ]
 
-# $1: table name (PTGNode)
+# $1: table name (string)
 # $2: Field Number (int)
 # $3: Field Text (PTGNode)
 # $4: NSpaces (int)
 FieldRef:
-  "phdisplay( " $1 "_tbl_fld[" $2 int "], text(" $3 "));"
+  "phdisplay( " $1 string "_tbl_fld[" $2 int "], text(" $3 "));"
   " /* " $4 int " spaces */\n"
 
 # $1: row $2: col $3: w/h $4: dbl

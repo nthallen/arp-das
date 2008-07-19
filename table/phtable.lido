@@ -1,10 +1,12 @@
 ATTR Dimension, MinWidth, MinHeight: dim_t;
 TERM BareWord, CString, Integer: int;
 ATTR String: int;
+ATTR TableName: int;
 ATTR PhotonSetup : VOID;
 
 SYMBOL Program COMPUTE
   SYNT.PhotonSetup = SetupPhoton(PreviewDisplay);
+  SYNT.TableName = get_table_name();
 END;
 
 %----------------------------------------------------------------
@@ -396,8 +398,8 @@ CHAIN FieldPrint, StringPrint : PTGNode;
 SYMBOL Program COMPUTE
   CHAINSTART HEAD.StringPrint =
     PTGSeq(
-	  PTGInit( PTGAsIs("name"), TAIL.DatumOffset ),
-	  PTGWindow( "name",
+	  PTGInit( StringTable(INCLUDING Program.TableName), TAIL.DatumOffset ),
+	  PTGWindow( StringTable(INCLUDING Program.TableName),
 		ADD(SPACE(THIS.Height),1), ADD(SPACE(THIS.Width),1)));
   CHAINSTART HEAD.FieldPrint = PTGNULL;
   PTGOut(PTGFile( TAIL.StringPrint, THIS.RulePrint, TAIL.FieldPrint ));
@@ -420,14 +422,14 @@ SYMBOL Datum COMPUTE
   THIS.FieldPrint =
 	PTGSeq(THIS.FieldPrint,
 	  PTGFieldRef(
-	    PTGAsIs("name"),
+	    StringTable(INCLUDING Program.TableName),
 	    THIS.DatumNumber,
 		PTGId(THIS.String),
 		THIS.NSpaces));
 
   THIS.StringPrint =
 	PTGSeq(THIS.StringPrint,
-	  PTGFieldDef( PTGAsIs("name"),
+	  PTGFieldDef( StringTable(INCLUDING Program.TableName),
 	      THIS.DatumNumber, PTGAsIs("X"),
 		  THIS.Row, THIS.PrintCol,
 		  SPACE(THIS.Width), SPACE(THIS.Height) ));

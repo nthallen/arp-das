@@ -6,6 +6,7 @@ mod.lido
 ntable.HEAD.phi
 ntable.map
 dim.c
+table_name.c
 phbox.c
 phparam.c
 phtable.pdl

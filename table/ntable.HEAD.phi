@@ -7,3 +7,4 @@
 #include "nbox.h"
 #include "ptg_gen.h"
 #include "param.h"
+#include "table_name.h"
