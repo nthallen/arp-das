@@ -1,5 +1,9 @@
 /* genpcm.c Generates PCM from TM data definitions
    $Log$
+   Revision 1.4  2008/07/16 19:13:40  ntallen
+   Compiling support for TM_Data_Type 3
+   Omit definitions for Synch and MFCtr from home row
+
    Revision 1.3  2008/07/16 18:55:14  ntallen
    Changes to support TM_Data_Type 3
 
@@ -700,8 +704,11 @@ void generate_pcm(void) {
   
   /* Determine the output frame type */
   if (SynchPer == 1) {
-    if (mfrsort->sltcw->col == 0) TM_Data_Type = 3;
-    else TM_Data_Type = 1;
+    if (mfrsort->sltcw->col == 0) {
+      TM_Data_Type = 3;
+      mfrsort->flags &= ~TMDF_HOMEROW;
+      synsort->flags &= ~TMDF_HOMEROW;
+    } else TM_Data_Type = 1;
   } else TM_Data_Type = 2;
   
   /* If we got here, we generated a frame: */	 
