@@ -1,6 +1,10 @@
 /* pfuncs.c
    Contains routines to output function definitions.
    $Log$
+   Revision 1.4  2008/07/16 19:13:40  ntallen
+   Compiling support for TM_Data_Type 3
+   Omit definitions for Synch and MFCtr from home row
+
    Revision 1.3  2008/07/16 18:55:14  ntallen
    Changes to support TM_Data_Type 3
 
@@ -397,14 +401,14 @@ void print_funcs(void) {
   struct slt *slot;
   int need_nfunc;
   
-  /* output tminitfunc if necessary */
+  /* output tminitfunc always */
+  fprintf(ofile, "\nvoid tminitfunc(void) {");
   if (initprog.first != NULL) {
-	fprintf(ofile, "\nstatic void tminitfunc(void) {");
 	adjust_indent(2);
 	print_stat(initprog.first);
 	adjust_indent(-2);
-	print_indent("}\n#define TMINITFUNC tminitfunc()\n");
   }
+  print_indent("}\n");
   
   /* output a null function declaration */
   fprintf(ofile, NULLFUNCDECL ";");
