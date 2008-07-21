@@ -5,7 +5,7 @@ CFLAGS=-g -Wall -I/usr/local/include
 # generated tm.dac is erroneous.
 
 LFLAGS=-i
-LDFLAGS=-L/usr/local/lib
+LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 LIBS=-lnort -lm
 YACC.y=bison -y $(YFLAGS)
 
