@@ -1,5 +1,9 @@
 /* place.c
  * $Log$
+ * Revision 1.4  2008/07/16 19:13:40  ntallen
+ * Compiling support for TM_Data_Type 3
+ * Omit definitions for Synch and MFCtr from home row
+ *
  * Revision 1.3  2008/07/16 18:55:14  ntallen
  * Changes to support TM_Data_Type 3
  *
@@ -887,7 +891,7 @@ void place_home(void) {
         base.next = sort_cw(base.next, cwl, name);
   }
   adjust_indent(0);
-  print_indent("union {");
+  print_indent("union home_row {");
   adjust_indent(2);
   for (;;) {
     offset = TM_Data_Type == 3 ? 2 : 0;
