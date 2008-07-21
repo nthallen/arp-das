@@ -1,6 +1,9 @@
 /* postproc.c Handles output processing after all the crucial code has
    been generated.
    $Log$
+   Revision 1.6  2008/07/17 17:52:29  ntallen
+   Provide some different outputs
+
    Revision 1.5  2008/07/16 19:13:40  ntallen
    Compiling support for TM_Data_Type 3
    Omit definitions for Synch and MFCtr from home row
@@ -84,7 +87,6 @@ static short int lcm( short int ain, short int bin ) {
 void post_processing(void) {
   { /* Output defines for skeleton */
     rational Rval;
-    unsigned long int lrollover, lrollover_secs;
     unsigned short int mfcspermajf, lcmMn, mfwrap;
 
     rtimesint(&Rsynch, SynchPer * 10, &Rval);
@@ -118,7 +120,8 @@ void post_processing(void) {
     fprintf(ofile, "#define MFSECNUM %d\n", Rsynch.num);
     fprintf(ofile, "#define MFSECDEN %d\n", Rsynch.den);
     fprintf(ofile, "#define SECDRIFT %d\n", SecondsDrift);
-    if (!Collecting) print_mfcopy();
+    fprintf(ofile, "#define TM_DATA_TYPE TMTYPE_DATA_T%d\n", TM_Data_Type );
+    if (!Collecting && TM_Data_Type != 3) print_mfcopy();
   }
   Skel_copy(ofile, "data_defs", 1);
   
