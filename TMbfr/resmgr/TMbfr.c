@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <stdarg.h>
 #include <ctype.h>
@@ -40,7 +41,6 @@ static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         rd_io_funcs, wr_io_funcs;
 static IOFUNC_ATTR_T             dg_attr, dcf_attr, dco_attr;
 static int                       dg_id, dcf_id, dco_id;
-static char *                    dg_name, dcf_name, dco_name;
 static resmgr_attr_t             resmgr_attr;
 static dispatch_t                *dpp;
 static pthread_mutex_t           dg_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -156,10 +156,12 @@ static void ocb_free(struct tm_ocb *ocb) {
   /* Be sure to remove this from the blocking list:
      Actually, there really is no way it should be on
      the blocking list. */
-  assert( ocb->rw.read.rcvid == 0 );
+  // assert( ocb->rw.read.rcvid == 0 );
+  // rcvid never gets reset
   assert( ocb->next_ocb == 0 );
   lock_dq();
-  dq_deref(ocb->data.dqd);
+  if ( ocb->data.dqd != 0 )
+    dq_deref(ocb->data.dqd);
   unlock_dq();
   // ### check to make sure the following check is
   // reasonable.
@@ -215,7 +217,6 @@ static int all_closed(void) {
 
 int main(int argc, char **argv ) {
   int use_threads = 0;
-  char *server_name;
 
   /* initialize dispatch interface */
   if((dpp = dispatch_create()) == NULL) {
@@ -270,7 +271,7 @@ int main(int argc, char **argv ) {
     while ( 1 ) {
       if ((ctp = dispatch_block(ctp)) == NULL) {
 	nl_error( 2, "block error\n" );
-	return;
+	return 1;
       }
       // printf( "  type = %d,%d  attr.count = %d\n",
       //   ctp->resmgr_context.msg->type,
@@ -285,7 +286,7 @@ int main(int argc, char **argv ) {
   shutdown_mount( dg_id, "TM/DG" );
   shutdown_mount( dcf_id, "TM/DCf" );
   shutdown_mount( dco_id, "TM/DCo" );
-  return;
+  return 0;
 }
 
 static int io_open( resmgr_context_t *ctp, io_open_t *msg,
