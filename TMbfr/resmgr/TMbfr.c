@@ -19,7 +19,6 @@ static int io_open( resmgr_context_t *ctp, io_open_t *msg,
                     IOFUNC_ATTR_T *attr, void *extra );
 static void read_reply( RESMGR_OCB_T *ocb, int nonblock );
 static int process_tm_info( IOFUNC_OCB_T *ocb );
-static void data_state_init( IOFUNC_OCB_T *ocb );
 static int (*data_state_eval)( IOFUNC_OCB_T *ocb, int nonblock );
 static int data_state_T1( IOFUNC_OCB_T *ocb, int nonblock );
 static int data_state_T2( IOFUNC_OCB_T *ocb, int nonblock );
@@ -637,15 +636,17 @@ static int data_state_T1( IOFUNC_OCB_T *ocb, int nonblock ) {
 }
 
 static int data_state_T2( IOFUNC_OCB_T *ocb, int nonblock ) {
-  int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
+  // int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
   assert(ocb->part.nbdata == 0);
   nl_error(4, "Not implemented");
+  return 0;
 }
 
 static int data_state_T3( IOFUNC_OCB_T *ocb, int nonblock ) {
-  int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
+  // int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
   assert(ocb->part.nbdata == 0);
   nl_error(4, "Not implemented");
+  return 0;
 }
 
 /* queue_tstamp(): Create a new tstamp record in the Tstamp_Queue
@@ -941,7 +942,7 @@ static void read_reply( RESMGR_OCB_T *ocb, int nonblock ) {
 
 static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb) {
   int status, nonblock = 0;
-  IOFUNC_ATTR_T *handle = ocb->hdr.attr;
+  // IOFUNC_ATTR_T *handle = ocb->hdr.attr;
 
   if ((status = iofunc_read_verify( ctp, msg,
                      (iofunc_ocb_t *)ocb, &nonblock)) != EOK)
