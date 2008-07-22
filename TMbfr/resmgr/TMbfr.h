@@ -17,6 +17,7 @@ struct tm_attr;
      [0..total_Qrows)
    .first is where the next row will be read from
    .last is where the next row will be written to
+   first==last is empty unless full is asserted
 */
 typedef struct dataqueue {
   unsigned char *raw;
@@ -29,6 +30,7 @@ typedef struct dataqueue {
   int nbDataHdr;
   int first;
   int last;
+  int full;
   int nonblocking;
 } data_queue_t;
 
@@ -44,13 +46,14 @@ typedef struct tsqueue {
      required when a new TS arrives or a row is skipped.
    ref_count indicates how many OCBs point to this dqd
    starting_Qrow is the index into Data_Queue.row for the first data
-     row of this dqd that is still present in the Data_Queue, or that
-     was present before it was expired, or the location of the next
-     record if no rows are present.
+     row of this dqd that is still present in the Data_Queue, or the location
+     of the next record if no rows are present.
    n_Qrows is the number of Qrows of this dqd still present in the
      Data_Queue, hence must be <= Data_Queue.total_Qrows.
    Qrows_expired indicates the number of Qrows belonging to this dqd
      that have been expired out of the Data_Queue
+    min_reader is the number of rows in this dqd that the slowest
+      reader has processed (including expired rows)
    TSq is the TS record our data is tied to
    MFCtr is the MFCtr for the starting row (possibly expired) of this
      dqd
@@ -75,6 +78,7 @@ typedef struct dq_descriptor {
   int starting_Qrow;
   int n_Qrows;
   int Qrows_expired;
+  int min_reader;
   TS_queue_t *TSq;
   mfc_t MFCtr;
   int Row_num;
@@ -161,6 +165,8 @@ typedef struct tm_ocb {
       int nbytes; // size of request
       int maxQrows; // max number of Qrows to be returned with this request
       int rows_missing; // cumulative count
+      int blocked; // non-zero if we are blocking
+      int ionotify; // non-zero if we want to be notified
     } read;
   } rw;
 } tm_ocb_t;
