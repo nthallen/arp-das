@@ -122,6 +122,11 @@ extern DQD_Queue_t DQD_Queue;
      completed (part.nbdata == 0), the Data_Queue and the affected
      dqds are updated to incorporate the new data.
      
+     ocb->part.nbdata records how many bytes are still expected in this sub-transfer
+     For writes, this means how many bytes we must receive before we can take
+     action. For reads, it means how many bytes are currently ready for transfer
+     at ocb->part.nbdata.
+     
 */
 typedef struct tm_ocb {
   iofunc_ocb_t hdr;

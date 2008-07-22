@@ -144,8 +144,13 @@ static tm_ocb_t *ocb_calloc(resmgr_context_t *ctp, IOFUNC_ATTR_T *device) {
   ocb->data.n_Qrows = 0;
   ocb->rw.read.rows_missing = 0;
   ocb->state = TM_STATE_HDR; // ### do this in a state init function?
-  ocb->part.nbdata = sizeof(ocb->part.hdr); // ### and this
-  ocb->part.dptr = (char *)&ocb->part.hdr; // ### and this
+  if (device->node_type == TM_DG ) {
+    ocb->part.nbdata = sizeof(ocb->part.hdr); // ### and this
+    ocb->part.dptr = (char *)&ocb->part.hdr; // ### and this
+  } else {
+    ocb->part.nbdata = 0;
+    ocb->part.dptr = NULL;
+  }
   return ocb;
 }
 
@@ -489,6 +494,8 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock ) {
 // This routine assumes the dq is locked (lock_dq()).
 static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
   int nrows_free;
+  // dqd is used to find old data to expire, not for appending new data
+  // Hence we start at the front of the queue, not the end.
   dq_descriptor_t *dqd = DQD_Queue.first;
 
   if ( Data_Queue.last > Data_Queue.first ) {
@@ -622,7 +629,7 @@ static int data_state_T1( IOFUNC_OCB_T *ocb, int nonblock ) {
     // Now look at what we have yet to move.
     if ( ocb->rw.write.nb_rec ) {
       int nrows = ocb->rw.write.nb_rec/ocb->rw.write.nbrow_rec;
-      if ( nrows == 0 ) nrows++;
+      if ( nrows == 0 ) ++nrows;
       nrowsfree = allocate_qrows( ocb, nrows, nonblock );
       // Handle the unlikely case that an entire row arrived in the
       // 4 bytes of excess header. This can only happen if the row
@@ -645,8 +652,43 @@ static int data_state_T2( IOFUNC_OCB_T *ocb, int nonblock ) {
 static int data_state_T3( IOFUNC_OCB_T *ocb, int nonblock ) {
   // int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
   assert(ocb->part.nbdata == 0);
-  nl_error(4, "Not implemented");
-  return 0;
+  int nrowsfree, tot_nrrecd = 0;
+  lock_dq();
+  do {
+    int nrrecd = ocb->rw.write.off_queue/Data_Queue.nbQrow;
+    nrowsfree = 0;
+    assert(ocb->part.nbdata == 0);
+    assert(ocb->rw.write.off_queue == nrrecd*Data_Queue.nbQrow);
+    if ( nrrecd ) {
+      Data_Queue.last += nrrecd;
+      assert(Data_Queue.last <= Data_Queue.total_Qrows );
+      if ( Data_Queue.last == Data_Queue.total_Qrows )
+        Data_Queue.last = 0;
+      DQD_Queue.last->n_Qrows += nrrecd;
+      ocb->rw.write.off_queue = 0;
+      tot_nrrecd += nrrecd;
+      // Don't need to update dptr (and can't anyway!) because nbdata==0
+      // allocate_qrows will update nbdata, dptr and off_queue.
+    }
+    // Now look at what we have yet to move.
+    if ( ocb->rw.write.nb_rec ) {
+      int nrows = ocb->rw.write.nb_rec/ocb->rw.write.nbrow_rec;
+      if ( nrows == 0 ) nrows++;
+      if ( nrows == ocb->part.hdr.s.u.dhdr.n_rows ) {
+        dq_descriptor *dqd = DQD_Queue.last;
+        if (dqd->MFCtr + dqd->Qrows_expired + dqd->n_Qrows !=
+            ocb->part.hdr.s.u.dhdr.mfctr) {
+          dqd = new_dq_descriptor(NULL);
+          dqd->MFCtr = ocb->part.hdr.s.u.dhdr.mfctr;
+        }
+      }
+      nrowsfree = allocate_qrows( ocb, nrows, nonblock );
+      // Handle the case that an entire row arrived in the
+      // 2 bytes of excess header. This can happen.
+    }
+  } while ( nrowsfree && ocb->part.nbdata == 0 );
+  unlock_dq();
+  return tot_nrrecd;
 }
 
 /* queue_tstamp(): Create a new tstamp record in the Tstamp_Queue
