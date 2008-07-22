@@ -63,10 +63,10 @@ typedef struct {
 #define TMF_INVERTED 1
 
 typedef struct {
-  tm_dac_t tm;	    /* data info */
+  tm_dac_t tm;      /* data info */
   unsigned short nrowminf;    /* number rows per minor frame */
   unsigned short max_rows;    /* maximum number of rows allowed to be sent in a message */
-  tstamp_t t_stmp;	    /* current time stamp */
+  tstamp_t t_stmp;          /* current time stamp */
 } tm_info_t;
 
 /* tm_data_t1_t applies when tmtype is TMTYPE_DATA_T1
@@ -134,8 +134,8 @@ typedef struct {
    
    For the time being, we will reserve this type for
    actual disk storage. TMbfr may support it on input, but
-   will disregard the cksum value. rdr/lgr will be tasked
-   with calculated and checking the values.
+   will disregard the cksum value. lgr/rdr will be tasked
+   with calculating and checking the values respectively.
 */
 typedef struct {
   tm_hdrw_t n_rows;
@@ -147,12 +147,12 @@ typedef struct {
 typedef struct tm_msg {
   tm_hdr_t hdr;
   union {
-	tstamp_t ts;
-	tm_info_t init;
-	tm_data_t1_t data1;
-	tm_data_t2_t data2;
-	tm_data_t3_t data3;
-	tm_data_t4_t data4;
+    tstamp_t ts;
+    tm_info_t init;
+    tm_data_t1_t data1;
+    tm_data_t2_t data2;
+    tm_data_t3_t data3;
+    tm_data_t4_t data4;
   } body;
 } __attribute__((packed)) tm_msg_t;
 
@@ -164,15 +164,15 @@ typedef struct tm_msg {
    access the data directly.
  */
 typedef union tm_hdrs {
-  char *raw[1];
+  char raw[1];
   struct {
     tm_hdr_t hdr;
     union {
       tstamp_t ts;
       struct {
-	tm_hdrw_t n_rows;
-	tm_hdrw_t mfctr;
-	tm_hdrw_t rownum;
+        tm_hdrw_t n_rows;
+        tm_hdrw_t mfctr;
+        tm_hdrw_t rownum;
       } dhdr;
     } u;
   } s;
