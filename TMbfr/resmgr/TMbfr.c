@@ -675,7 +675,7 @@ static int data_state_T3( IOFUNC_OCB_T *ocb, int nonblock ) {
       int nrows = ocb->rw.write.nb_rec/ocb->rw.write.nbrow_rec;
       if ( nrows == 0 ) nrows++;
       if ( nrows == ocb->part.hdr.s.u.dhdr.n_rows ) {
-        dq_descriptor *dqd = DQD_Queue.last;
+        dq_descriptor_t *dqd = DQD_Queue.last;
         if (dqd->MFCtr + dqd->Qrows_expired + dqd->n_Qrows !=
             ocb->part.hdr.s.u.dhdr.mfctr) {
           dqd = new_dq_descriptor(NULL);
@@ -873,6 +873,7 @@ static void read_reply( RESMGR_OCB_T *ocb, int nonblock ) {
     lock_dq();
     if ( DQD_Queue.first ) {
       ocb->data.dqd = DQD_Queue.first;
+      ++ocb->data.dqd->ref_count;
       ocb->data.n_Qrows = 0;
     
       ocb->state = TM_STATE_HDR; //### delete
