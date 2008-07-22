@@ -21,7 +21,6 @@ struct tm_attr;
 typedef struct dataqueue {
   unsigned char *raw;
   unsigned char **row;
-  tm_hdrw_t input_tm_type;
   tm_hdrw_t output_tm_type;
   int pbuf_size; // nbQrow+nbDataHdr (or more)
   int total_size;

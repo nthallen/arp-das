@@ -21,11 +21,9 @@ static void read_reply( RESMGR_OCB_T *ocb, int nonblock );
 static int process_tm_info( IOFUNC_OCB_T *ocb );
 static void data_state_init( IOFUNC_OCB_T *ocb );
 static int (*data_state_eval)( IOFUNC_OCB_T *ocb, int nonblock );
-static int data_state_T1T1( IOFUNC_OCB_T *ocb, int nonblock );
-static int data_state_T1T2( IOFUNC_OCB_T *ocb, int nonblock );
-static int data_state_T1T3( IOFUNC_OCB_T *ocb, int nonblock );
-static int data_state_T2T2( IOFUNC_OCB_T *ocb, int nonblock );
-static int data_state_T3T3( IOFUNC_OCB_T *ocb, int nonblock );
+static int data_state_T1( IOFUNC_OCB_T *ocb, int nonblock );
+static int data_state_T2( IOFUNC_OCB_T *ocb, int nonblock );
+static int data_state_T3( IOFUNC_OCB_T *ocb, int nonblock );
 static void queue_tstamp( tstamp_t *ts );
 static dq_descriptor_t *new_dq_descriptor( TS_queue_t *TS );
 static dq_descriptor_t *dq_deref( dq_descriptor_t *dqd );
@@ -433,8 +431,8 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock ) {
             case TMTYPE_DATA_T4:
               if ( DQD_Queue.last == 0 )
                 nl_error( 3, "Second TMTYPE_DATA* received before _INIT" );
-              if ( data_state_eval == 0 )
-                data_state_init(ocb);
+              assert( data_state_eval != 0 );
+							assert( ocb->part.hdr.s.hdr.tm_type == Data_Queue.output_tm_type );
               ocb->rw.write.nb_rec = ocb->part.hdr.s.u.dhdr.n_rows *
                 ocb->rw.write.nbrow_rec;
               ocb->rw.write.off_queue = 0;
@@ -481,47 +479,6 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock ) {
   // ### is freed up?
 }
 
-// data_state_init() determines nbrow_rec, nbhdr_rec,
-// nbrec, off_rec, off_queue
-// Fixup for extra data bytes read with the header
-// is handled in do_write()
-static void data_state_init( IOFUNC_OCB_T *ocb ) {
-  ocb->rw.write.buf = NULL;
-  switch ( ocb->part.hdr.s.hdr.tm_type ) {
-    case TMTYPE_DATA_T1:
-      ocb->rw.write.nbrow_rec = tmi(nbrow);
-      ocb->rw.write.nbhdr_rec = 6; //### Could be mnemonic
-      switch ( Data_Queue.output_tm_type ) {
-        case TMTYPE_DATA_T1:
-          data_state_eval = data_state_T1T1;
-          break;
-        case TMTYPE_DATA_T2:
-          data_state_eval = data_state_T1T2;
-          break;
-        case TMTYPE_DATA_T3:
-          ocb->rw.write.buf = new_memory(tmi(nbminf));
-          data_state_eval = data_state_T1T3;
-          break;
-        default:
-          nl_error(4, "Invalid output type in data_state_init_once" );
-      }
-      break;
-    case TMTYPE_DATA_T2:
-      ocb->rw.write.nbrow_rec = tmi(nbrow);
-      ocb->rw.write.nbhdr_rec = 10; //### Could be mnemonic
-      data_state_eval = data_state_T2T2;
-      break;
-    case TMTYPE_DATA_T3:
-      ocb->rw.write.nbrow_rec = tmi(nbrow) - 4;
-      ocb->rw.write.nbhdr_rec = 8; //### Could be mnemonic
-      data_state_eval = data_state_T3T3;
-      break;
-    case TMTYPE_DATA_T4:
-    default:
-      nl_error( 4, "Invalid TMTYPE for data: %d",
-        ocb->part.hdr.s.hdr.tm_type );
-  }
-}
 
 // allocate_qrows() is responsible for finding space in the
 // Data_Queue for incoming data. It returns the number of
@@ -644,7 +601,7 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
 // records.
 //   T3->T3 Copy straight in. Verify consecutive, etc.
 
-static int data_state_T1T1( IOFUNC_OCB_T *ocb, int nonblock ) {
+static int data_state_T1( IOFUNC_OCB_T *ocb, int nonblock ) {
   int nrowsfree, tot_nrrecd = 0;
   lock_dq();
   do {
@@ -679,75 +636,13 @@ static int data_state_T1T1( IOFUNC_OCB_T *ocb, int nonblock ) {
   return tot_nrrecd;
 }
 
-// ### ###
-// In this case, we know nrominf > 1, and we have setup the
-// Data_Queue to contain only complete minor frames, since
-// we cannot accept an inbound row until the entire MF is
-// present.
-static int data_state_T1T2( IOFUNC_OCB_T *ocb, int nonblock ) {
-  int nrowsfree, nrrecd = 0;
-  dq_descriptor_t *dqd = DQD_Queue.last;
-  lock_dq();
-  do {
-    mfc_t next_mfc; // The one we are expecting
-    int next_row;
-    int nmfrecd = ocb->rw.write.off_queue/(Data_Queue.nbQrow*tm_info.nrowminf);
-    nrowsfree = 0;
-    assert(ocb->part.nbdata == 0);
-    assert(ocb->rw.write.off_queue == nmfrecd*Data_Queue.nbQrow*tm_info.nrowminf);
-    next_row = dqd->Row_num + dqd->n_Qrows;
-    next_mfc = dqd->MFCtr + next_row/tm_info.nrowminf;
-    next_row = next_row % tm_info.nrowminf;
-    assert(next_row == 0); // Since we're processing in MF units
-    while ( nmfrecd ) {
-      unsigned char *mf;
-      mfc_t new_mfc; // The one that just arrived
-      
-      // Now I need to pick the MFCtr out of the MF at Data_Queue.last
-      mf = Data_Queue.row[Data_Queue.last];
-      new_mfc = tm_mfctr(mf);
-      if ( new_mfc != next_mfc ) {
-        if ( dqd->n_Qrows || dqd->Qrows_expired )
-          dqd = new_dq_descriptor( 0 );
-        dqd->MFCtr = new_mfc;
-        dqd->Row_num = 0;
-        next_mfc = new_mfc;
-      }
-      Data_Queue.last += tm_info.nrowminf;
-      assert(Data_Queue.last <= Data_Queue.total_Qrows );
-      if ( Data_Queue.last == Data_Queue.total_Qrows )
-        Data_Queue.last = 0;
-      dqd->n_Qrows += tm_info.nrowminf;
-      nrrecd += tm_info.nrowminf;
-      nmfrecd--;
-      next_mfc++;
-    }
-    ocb->rw.write.off_queue = 0; // guaranteed by assertion above
-    
-    // Now look at what we have yet to move.
-    if ( ocb->rw.write.nb_rec ) {
-      int nminf = ocb->rw.write.nb_rec/(ocb->rw.write.nbrow_rec*tm_info.nrowminf);
-      if ( nminf == 0 ) nminf++;
-      nrowsfree = allocate_qrows( ocb, nminf*tm_info.nrowminf, nonblock );
-    }
-  } while ( nrowsfree && ocb->part.nbdata == 0 );
-  unlock_dq();
-  return nrrecd;
-}
-
-static int data_state_T1T3( IOFUNC_OCB_T *ocb, int nonblock ) {
+static int data_state_T2( IOFUNC_OCB_T *ocb, int nonblock ) {
   int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
   assert(ocb->part.nbdata == 0);
   nl_error(4, "Not implemented");
 }
 
-static int data_state_T2T2( IOFUNC_OCB_T *ocb, int nonblock ) {
-  int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
-  assert(ocb->part.nbdata == 0);
-  nl_error(4, "Not implemented");
-}
-
-static int data_state_T3T3( IOFUNC_OCB_T *ocb, int nonblock ) {
+static int data_state_T3( IOFUNC_OCB_T *ocb, int nonblock ) {
   int nrrecd = ocb->rw.write.off_queue/ocb->rw.write.nbrow_rec;
   assert(ocb->part.nbdata == 0);
   nl_error(4, "Not implemented");
@@ -817,20 +712,31 @@ static int process_tm_info( IOFUNC_OCB_T *ocb ) {
 
   // What data format should we output?
   lock_dq();
+  ocb->rw.write.buf = NULL;
   Data_Queue.nbQrow = tmi(nbrow);
   if ( tmi(mfc_lsb) == 0 && tmi(mfc_msb) == 1
        && tm_info.nrowminf == 1 ) {
     Data_Queue.output_tm_type = TMTYPE_DATA_T3;
     Data_Queue.nbQrow -= 4;
     Data_Queue.nbDataHdr = 8;
+		ocb->rw.write.nbrow_rec = tmi(nbrow) - 4;
+		ocb->rw.write.nbhdr_rec = 8; //### Could be mnemonic
+		data_state_eval = data_state_T3;
   } else if ( tm_info.nrowminf == 1 ) {
     Data_Queue.output_tm_type = TMTYPE_DATA_T1;
     Data_Queue.nbDataHdr = 6;
+		data_state_eval = data_state_T1;
     if ( tmi(nbrow) <= 4 )
       nl_error( 3, "TM Frame with no non-synch data not supported" );
+		ocb->rw.write.nbrow_rec = tmi(nbrow);
+		ocb->rw.write.nbhdr_rec = 6; //### Could be mnemonic
+		data_state_eval = data_state_T1;
   } else {
     Data_Queue.output_tm_type = TMTYPE_DATA_T2;
     Data_Queue.nbDataHdr = 10;
+		ocb->rw.write.nbrow_rec = tmi(nbrow);
+		ocb->rw.write.nbhdr_rec = 10; //### Could be mnemonic
+		data_state_eval = data_state_T2;
   }
   Data_Queue.pbuf_size = Data_Queue.nbDataHdr + Data_Queue.nbQrow;
   if ( Data_Queue.pbuf_size < sizeof(tm_hdr_t) + sizeof(tm_info_t) )
