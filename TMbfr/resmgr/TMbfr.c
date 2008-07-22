@@ -748,7 +748,8 @@ static int process_tm_info( IOFUNC_OCB_T *ocb ) {
       tmi(mfc_lsb) >= tmi(nbrow) ||
       tmi(mfc_msb) >= tmi(nbrow) ||
       tmi(nbminf) < tmi(nbrow) ||
-      tmi(nbminf) % tmi(nbrow) != 0) {
+      tmi(nbminf) % tmi(nbrow) != 0 ||
+      tm_info.nrowminf != tmi(nbminf)/tmi(nbrow)) {
     nl_error( 2, "Sanity Checks failed on incoming stream" );
     return EINVAL;
   }
