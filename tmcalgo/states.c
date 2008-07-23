@@ -386,12 +386,20 @@ void list_states(FILE *ofp) {
 		assert( curr_partition != NULL );
 		if ( ! state_listed && dot_fp ) {
 		  fprintf( dot_fp, "  subgraph cluster_%d {\n"
-			"    label \"Partition %d\";\n", partno, partno );
+			"    label=\"Partition %d\";\n", partno, partno+1 );
 		}
 		if ( dot_fp ) {
-		  fprintf( dot_fp, "    %s%s;\n",
-			pi->u.state->name,
-			first_state ? "" : " [style=filled]" );
+		  int isslurp = pi->u.state->filename != 0;
+
+		  fprintf( dot_fp, "    %s", pi->u.state->name );
+		  if ( first_state == 0 ) {
+			fprintf( dot_fp, " [style=filled" );
+			if ( isslurp ) fprintf( dot_fp, ",peripheries=2" );
+			fprintf( dot_fp, "]" );
+		  } else if ( isslurp ) {
+			fprintf( dot_fp, " [peripheries=2]" );
+		  }
+		  fprintf( dot_fp, ";\n" );
 		}
 		list_state(ofp, pi->u.state->name);
 		if ( first_state == 0 )
@@ -499,14 +507,33 @@ static void output_vhold( FILE *ofp, struct cmddef *cmd ) {
 	curr_partition->idle_substate->name );
 }
 
-static void output_edge( char *from, char *to ) {
+#define DO_BACK_LINK
+static void output_edge( char *from, char *to, char *attr ) {
   int partno;
   
   if ( dot_fp == NULL ) return;
-  partno = get_state_partno( to );
-  fprintf( dot_fp, "  %s -> %s%s;\n", from, to,
-	partno == curr_partition->partno ? "" : " [style=solid]"
-	);
+  if ( attr == NULL ) {
+	partno = get_state_partno( to );
+	if ( partno == curr_partition->partno ) {
+	  #ifdef DO_BACK_LINK
+	  int fsc, tsc;
+	  fsc = get_state_case( from, 0, -1 );
+	  tsc = get_state_case( to, 0, -1 );
+	  if ( fsc > tsc ) {
+		char *hold;
+		hold = from;
+		from = to;
+		to = hold;
+		attr = " [dir=back]";
+	  } else attr = "";
+	  #else
+	  attr = "";
+	  #endif
+	} else {
+	  attr = " [color=red]";
+	}
+  }
+  fprintf( dot_fp, "  %s -> %s%s;\n", from, to, attr );
 }
 
 static void check_for_validate( char *from, char *tmccmd ) {
@@ -531,7 +558,7 @@ static void check_for_validate( char *from, char *tmccmd ) {
 		return;
 	  }
 	  to[n] = '\0';
-	  output_edge( from, to );
+	  output_edge( from, to, NULL );
 	  s += n;
 	} else s++;
   }
@@ -547,7 +574,7 @@ static void output_cmd_code( FILE *ofp, struct cmddef *cmd,
 	case CMDTYPE_VAL:
 	  fprintf( ofp, "%8ld, \"#%d\", /* %s */\n", cmd->cmdtime,
 		get_state_case( cmd->cmdtext, 0, -1 ), cmd->cmdtext );
-	  output_edge( state->name, cmd->cmdtext );
+	  output_edge( state->name, cmd->cmdtext, NULL );
 	  break;
 	case CMDTYPE_QSTR:
 	  fprintf( ofp, "%8ld, \"\\%s,\n", cmd->cmdtime, cmd->cmdtext );
@@ -564,7 +591,7 @@ static void output_cmd_code( FILE *ofp, struct cmddef *cmd,
 		  if ( cmd->cmdtext != NULL ) {
 			statecase = get_state_case( cmd->cmdtext, 0, -1 );
 			statetext = cmd->cmdtext;
-			output_edge( state->name, cmd->cmdtext );
+			output_edge( state->name, cmd->cmdtext, NULL );
 			if ( cmd->substate ) {
 			  fprintf( ofp, "%8ld, \"#%d\", /* %s */\n",
 				cmd->cmdtime, cmd->substate->state_case,
@@ -592,6 +619,7 @@ static void output_cmd_code( FILE *ofp, struct cmddef *cmd,
 		get_state_partno( cmd->cmdtext ),
 		get_state_case( cmd->cmdtext, 0, -1 ),
 		cmd->cmdtext );
+	  output_edge( state->name, cmd->cmdtext, " [color=blue]" );
 	  break;
 	case CMDTYPE_SS:
 	  fprintf( ofp, "%8ld, \"#%d\", /* %s */\n",
@@ -639,8 +667,9 @@ static void output_state(FILE *ofp, struct stdef *state ) {
   
   if (state->filename != 0 ) {
 	fprintf( ofp, "  tma_ifile %s_file_ = {\n", state->name );
-	fprintf( ofp, "    %d, %s, \"%s\", NULL, %s_cmds_, -1\n  };\n",
-	  curr_partition->partno, state->filename, state->name, 
+	fprintf( ofp, "    %d, %s, \"%s%s\", NULL, %s_cmds_, -1\n  };\n",
+	  curr_partition->partno, state->filename,
+	  state->nolog ? "_" : "", state->name, 
 	  state->name );
 	fprintf( ofp, "  tma_ifile *%s_filep_ = & %s_file_;\n",
 	  state->name, state->name );

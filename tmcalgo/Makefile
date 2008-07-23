@@ -23,7 +23,7 @@ SUBDIRS4=regress
 YFLAGS=-d -l -t
 # Added the -t above for debugging
 LFLAGS=-i -l
-CFLAGS=-g -ml -2 -w4
+CFLAGS=-g -ms -3 -w4
 LDFLAGS=$(BETALIB)
 LINK.it=$(LINK.c) -o $@ $(LDFLAGS)
 

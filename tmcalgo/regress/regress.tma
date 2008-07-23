@@ -1,0 +1,44 @@
+State P0_State1 {
+  { P0_State1 TMC at time 0 }
+  Hold;
+  Hold or 5;
+  Hold or 5
+  else Validate P0_State2;
+  Hold and Validate P0_State3;
+  Hold and Validate P0_State3 or 5;
+  Hold and Validate P0_State3 or 5
+  else Validate P0_State4;
+  Hold and Validate P0_State3 or 5
+  else Hold and Validate P0_State5;
+  Hold and Validate P0_State3 or 5
+  else Hold and Validate P0_State5 or 6;
+  Hold and Validate P0_State3 or 5
+  else Hold and Validate P0_State5 or 6
+  else { > Send a command }
+}
+
+State P0_State2 {
+  { P0_State2 Top TMC }
+  +10
+  Hold until ( TMC Condition1 );
+  Hold until ( TMC Condition2 ) or 5;
+  Hold until ( TMC Condition3 ) or 5
+  else Validate P0_State3;
+  Hold until ( TMC Condition4 ) or 5
+  else Hold until ( TMC Condition5 );
+  Hold until ( TMC Condition6 ) or 5
+  else Hold until ( TMC Condition7 ) or 7;
+  Hold until ( TMC Condition8 ) or 5
+  else Hold until ( TMC Condition9 ) or 7
+  else > Send a Command
+  Hold until ( TMC Condition10 ) or 5
+  else Hold until ( TMC Condition11 ) or 7
+  else Hold and Validate P1_State1;
+}
+State P0_State3 {}
+State P0_State4 {}
+State P0_State5 {}
+
+Partition
+
+State P1_State1 {}

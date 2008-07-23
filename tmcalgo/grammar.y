@@ -1,6 +1,9 @@
 %{
   /* grammar.y Grammar for tmcalgo
    * $Log$
+   * Revision 1.9  2001/01/23 16:27:45  nort
+   * Added Hold [and Validate], Resume syntaxes
+   *
    * Revision 1.8  2001/01/05 21:55:31  nort
    * Added argument to get_state_case()
    *

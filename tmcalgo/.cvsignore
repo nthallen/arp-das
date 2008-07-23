@@ -1,0 +1,16 @@
+tmcalgo.o
+grammar.o
+yylex.o
+states.o
+commands.o
+tmcalgooui.o
+dot.o
+y.tab.h
+y.tab.c
+grammar.c
+yylex.c
+tmcalgooui.c
+*.err
+tmcalgo.map
+sample.tmc
+tmcalgo
