@@ -361,7 +361,8 @@ int io_notify(resmgr_context_t *ctp, io_notify_t *msg, RESMGR_OCB_T *ocb) {
 
   trig = _NOTIFY_COND_OUTPUT;         /* clients can always give us data */
   lock_dq();
-  if ( ocb->part.nbdata ) trig |= _NOTIFY_COND_INPUT;
+  if ( dg_opened == 2 || ocb->part.nbdata )
+    trig |= _NOTIFY_COND_INPUT;
   else if ( ocb->data.dqd == 0 ) {
     if ( DQD_Queue.first )
       trig |= _NOTIFY_COND_INPUT;
