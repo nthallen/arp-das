@@ -56,7 +56,9 @@ static tm_ocb_t *all_readers;
    for starters, I'll just FIFO.
  */
 static void enqueue_read( IOFUNC_OCB_T *ocb, int nonblock ) {
-  if ( nonblock ) {
+  if ( dq_opened == 2 ) {
+    MsgReply(ocb->rw.read.rcvid, 0, ocb->part.dptr, 0 );
+  } else if ( nonblock ) {
     if ( MsgError( ocb->rw.read.rcvid, EAGAIN ) == -1 )
       nl_error( 2, "Error %d on MsgError", errno );
   } else {
@@ -101,7 +103,10 @@ static void run_read_queue(void) {
   rq = all_readers;
   unlock_dq();
   while ( rq ) {
-    if ( rq->rw.read.blocked ) read_reply(rq, 0);
+    if ( rq->rw.read.blocked ) {
+      rq->rw.read.blocked = 0;
+      read_reply(rq, 0);
+    }
     rq = rq->next_ocb;
   }
   run_write_queue();
@@ -192,7 +197,10 @@ static void ocb_free(struct tm_ocb *ocb) {
   if ( ocb->data.dqd != 0 )
     dq_deref(ocb->data.dqd);
   unlock_dq();
-  if (ocb->hdr.attr->node_type != TM_DG ) {
+  if (ocb->hdr.attr->node_type == TM_DG ) {
+    dg_opened = 2;
+    run_read_queue();
+  } else {
     ocb->rw.read.blocked = 0;
     ocb->rw.read.ionotify = 0;
     if ( ocb->rw.read.buf ) free(ocb->rw.read.buf);
