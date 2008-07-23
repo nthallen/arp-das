@@ -532,6 +532,8 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
   // This should of course never happen!
   if ( !full && Data_Queue.last >= Data_Queue.first ) {
     nrows_free = Data_Queue.total_Qrows - Data_Queue.last;
+    if ( nrows_free > nrows_req )
+      nrows_free = nrows_req;
     // and we're done because any additional rows would be
     // non-contiguous
   } else {
@@ -545,9 +547,7 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
       while ( dqd->n_Qrows == 0 && dqd->next )
         dqd = dqd->next;
       assert( dqd->starting_Qrow == Data_Queue.first );
-      // ### This is currently the nonblocking case
-      // We can expire the minimum of
-      //   nrows_req
+      // We can expire the minimum of, nrows_req,
       //   dqd->n_Qrows == all rows in dqd
       //   Data_Queue.total_Qrows - dqd->starting_Qrow(largest contiguous)
       //   dqd->min_reader - dqd->Qrows_expired
@@ -579,6 +579,7 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
         dqd->n_Qrows -= n_expire;
         dqd->Qrows_expired += n_expire;
         nrows_free += n_expire;
+        nrows_req -= n_expire;
         if ( dqd->n_Qrows == 0 && dqd->next )
           dqd = dq_expire_check(dqd);
         else break;
