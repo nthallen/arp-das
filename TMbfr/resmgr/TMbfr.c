@@ -14,7 +14,7 @@
 
 static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb);
 static int io_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
-static int io_notify(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
+static int io_notify(resmgr_context_t *ctp, io_notify_t *msg, RESMGR_OCB_T *ocb);
 static void do_write( IOFUNC_OCB_T *ocb, int nonblock, int new_rows );
 static int io_open( resmgr_context_t *ctp, io_open_t *msg,
                     IOFUNC_ATTR_T *attr, void *extra );
@@ -57,7 +57,7 @@ static tm_ocb_t *all_readers;
    for starters, I'll just FIFO.
  */
 static void enqueue_read( IOFUNC_OCB_T *ocb, int nonblock ) {
-  if ( dq_opened == 2 ) {
+  if ( dg_opened == 2 ) {
     MsgReply(ocb->rw.read.rcvid, 0, ocb->part.dptr, 0 );
   } else if ( nonblock ) {
     if ( MsgError( ocb->rw.read.rcvid, EAGAIN ) == -1 )
@@ -110,10 +110,10 @@ static void run_read_queue(void) {
     }
     rq = rq->next_ocb;
   }
-  if (IOFUNC_NOTIFY_INPUT_CHECK(DCf.notify, 1, 0))
-    iofunc_notify_trigger(DCf.notify, 1, IOFUNC_NOTIFY_INPUT);
-  if (IOFUNC_NOTIFY_INPUT_CHECK(DCo.notify, 1, 0))
-    iofunc_notify_trigger(DCo.notify, 1, IOFUNC_NOTIFY_INPUT);
+  if (IOFUNC_NOTIFY_INPUT_CHECK(dcf_attr.notify, 1, 0))
+    iofunc_notify_trigger(dcf_attr.notify, 1, IOFUNC_NOTIFY_INPUT);
+  if (IOFUNC_NOTIFY_INPUT_CHECK(dco_attr.notify, 1, 0))
+    iofunc_notify_trigger(dco_attr.notify, 1, IOFUNC_NOTIFY_INPUT);
   run_write_queue();
 }
 
@@ -356,7 +356,7 @@ static int io_open( resmgr_context_t *ctp, io_open_t *msg,
 }
 
 int io_notify(resmgr_context_t *ctp, io_notify_t *msg, RESMGR_OCB_T *ocb) {
-  tm_attr_t *dattr = (tm_attr_t *) ocb->attr;
+  tm_attr_t *dattr = (tm_attr_t *) ocb->hdr.attr;
   int trig;
 
   trig = _NOTIFY_COND_OUTPUT;         /* clients can always give us data */
