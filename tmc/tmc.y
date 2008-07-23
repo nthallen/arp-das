@@ -187,7 +187,8 @@ progitem : nontm_decl {
 		initstat(&$$, NULL);
 	  }
     | KW_TM KW_INITFUNC tl_statement {
-        catstat(&initprog, $3);
+        catstat(&initprog, &$3);
+        initstat(&$$, NULL);
       }
 	| tl_statement {
 		struct statpc *spc;
