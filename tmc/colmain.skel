@@ -1,6 +1,9 @@
 /* Skeleton headers section */
 /* colmain.skel Skeleton for collection main program
  * $Log$
+ * Revision 1.3  2008/07/23 17:08:00  ntallen
+ * First cut at QNX6 collection skeleton
+ *
  * Revision 1.2  2008/07/03 20:58:07  ntallen
  * In the process of testing.
  *
@@ -58,7 +61,7 @@ unsigned short collector::majf_row = 0;
 // ### Make collector a #define and create a subclass
 // ### for subbus that overrides the event(dq_event_stop) and
 // ### Collect_row() methods
-void main(int argc, char **argv) {
+int main(int argc, char **argv) {
   // oui_init_options(argc, argv);
   collector col;
   col.init();
@@ -163,6 +166,7 @@ static void COL_end_proxy(pid_t sent_tid, pid_t *prx, struct colmsg *c) {
 %COL_recv_proxy%
 
 /* Skeleton COL_send section */
+#ifdef COLRECVIMPLEMENTED
 #include <stddef.h>
 
 static void read_col_send( void *dest, size_t length,
@@ -175,13 +179,16 @@ static void read_col_send( void *dest, size_t length,
 	  offsetof( struct colmsg, u.data.data ), dest, trulen );
   }
 }
+#endif
 %COL_send%
 
 /* Skeleton DG_other_decls section */
+#ifdef COLRECVIMPLEMENTED
 %DG_other_decls%
 /* Skeleton DG_other_cases section */
 %DG_other_cases%
 /* Skeleton "rest of the file" section */
+#endif
 
 #ifdef NEED_TIME_FUNCS
   #define ROWS(x) (((unsigned long)(x))*NROWMINF+MINF_ROW)
