@@ -14,6 +14,7 @@
 
 static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb);
 static int io_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
+static int io_notify(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
 static void do_write( IOFUNC_OCB_T *ocb, int nonblock, int new_rows );
 static int io_open( resmgr_context_t *ctp, io_open_t *msg,
                     IOFUNC_ATTR_T *attr, void *extra );
@@ -109,6 +110,10 @@ static void run_read_queue(void) {
     }
     rq = rq->next_ocb;
   }
+  if (IOFUNC_NOTIFY_INPUT_CHECK(DCf.notify, 1, 0))
+    iofunc_notify_trigger(DCf.notify, 1, IOFUNC_NOTIFY_INPUT);
+  if (IOFUNC_NOTIFY_INPUT_CHECK(DCo.notify, 1, 0))
+    iofunc_notify_trigger(DCo.notify, 1, IOFUNC_NOTIFY_INPUT);
   run_write_queue();
 }
 
@@ -227,6 +232,7 @@ static int setup_mount( char *namebase, int node_type, int mode,
   attr->attr.nbytes = 0;
   attr->attr.mount = &mountpoint;
   attr->node_type = node_type;
+  IOFUNC_NOTIFY_INIT(attr->notify);
 
   server_name = tm_dev_name( namebase );
   mnt_id = resmgr_attach(dpp,            /* dispatch handle        */
@@ -273,8 +279,7 @@ int main(int argc, char **argv ) {
   iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &connect_funcs, 
                    _RESMGR_IO_NFUNCS, &rd_io_funcs);
   rd_io_funcs.read = io_read;
-  /* Will want to handle _IO_NOTIFY at least */
-  // rd_io_funcs.notify = io_notify;
+  rd_io_funcs.notify = io_notify;
 
   iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &connect_funcs, 
                    _RESMGR_IO_NFUNCS, &wr_io_funcs);
@@ -350,6 +355,31 @@ static int io_open( resmgr_context_t *ctp, io_open_t *msg,
   return iofunc_open_default( ctp, msg, &attr->attr, extra );
 }
 
+int io_notify(resmgr_context_t *ctp, io_notify_t *msg, RESMGR_OCB_T *ocb) {
+  tm_attr_t *dattr = (tm_attr_t *) ocb->attr;
+  int trig;
+
+  trig = _NOTIFY_COND_OUTPUT;         /* clients can always give us data */
+  lock_dq();
+  if ( ocb->part.nbdata ) trig |= _NOTIFY_COND_INPUT;
+  else if ( ocb->data.dqd == 0 ) {
+    if ( DQD_Queue.first )
+      trig |= _NOTIFY_COND_INPUT;
+  } else {
+    dq_descriptor_t *dqd = ocb->data.dqd;
+    if ( dqd->next != 0)
+      trig |= _NOTIFY_COND_INPUT;
+    else {
+      int nQrows_ready = dqd->n_Qrows;
+      if ( ocb->data.n_Qrows > dqd->Qrows_expired )
+        nQrows_ready -= ocb->data.n_Qrows - dqd->Qrows_expired;
+      if ( nQrows_ready )
+        trig |= _NOTIFY_COND_INPUT;
+    }
+  }
+  unlock_dq();
+  return (iofunc_notify(ctp, msg, dattr->notify, trig, NULL, NULL));
+}
 // This is where data is recieved.
 static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb ) {
   int status, nonblock;

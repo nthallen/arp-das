@@ -179,6 +179,7 @@ typedef struct tm_ocb {
 typedef struct tm_attr {
   iofunc_attr_t attr;
   int node_type;
+  iofunc_notify_t notify[3];  /* notification list used by iofunc_notify*() */
 } tm_attr_t;
 #define TM_DG 1
 #define TM_DCf 2
