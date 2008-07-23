@@ -2,6 +2,10 @@
   /* yylex.l lexical analyzer for TMC
      -+/,()[\]{=}:;?  These characters left for individual interpretation
      $Log$
+     Revision 1.2  2008/07/03 18:18:48  ntallen
+     To compile under QNX6 with minor blind adaptations to changes between
+     dbr.h and tm.h
+
      Revision 1.1  2008/07/03 15:11:07  ntallen
      Copied from QNX4 version V1R9
 
@@ -75,6 +79,7 @@ GROUP ret_notxt(KW_GROUP);
 HZ ret_notxt(KW_HZ);
 IF ret_tok(KW_IF);
 INT ret_tok(KW_INT);
+INITFUNC ret_tok(KW_INITFUNC);
 INVALIDATE ret_notxt(KW_INVALIDATE);
 LONG ret_tok(KW_LONG);
 MAXCOLS ret_notxt(KW_MAXCOLS);

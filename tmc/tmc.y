@@ -34,6 +34,7 @@
 %token KW_GROUP
 %token KW_HZ
 %token <l.pretext> KW_IF
+%token KW_INITFUNC
 %token <l.pretext> KW_INT
 %token KW_INVALIDATE
 %token <l.pretext> KW_LONG
@@ -185,6 +186,9 @@ progitem : nontm_decl {
 		add_ptr_proxy($<l.toktext>2, $<l.toktext>3, $4);
 		initstat(&$$, NULL);
 	  }
+    | KW_TM KW_INITFUNC tl_statement {
+        catstat(&initprog, $3);
+      }
 	| tl_statement {
 		struct statpc *spc;
 		
