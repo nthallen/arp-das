@@ -1,0 +1,33 @@
+%----------------------------------------------------------------
+% Discard calculations
+%  After all the discard rules have been calculated,
+%  Program.DiscardCollected is set. This is a prerequisit for
+%  performing AveragePt calculations (average.lido)
+%----------------------------------------------------------------
+CHAIN DiscardCollect : VOID;
+ATTR DiscardCollected : VOID;
+
+SYMBOL Program COMPUTE
+  CHAINSTART HEAD.DiscardCollect = 1;
+  SYNT.DiscardCollected = TAIL.DiscardCollect;
+END;
+
+ATTR ptg : PTGNode;
+RULE: Discard ::= 'Discard' DiscVarList DiscOp ';' COMPUTE
+  Discard.ptg = PTGSeq(PTGAsIs(" && "),DiscOp.ptg);
+END;
+
+RULE: DiscVar ::= Variable COMPUTE
+  DiscVar.DiscardCollect =
+	IF ( HasDiscardPtg(Variable.Key),
+	  message(ERROR, "Multiple Discards Defined for variable",
+			  0, COORDREF ),
+	  ResetDiscardPtg(Variable.Key, INCLUDING Discard.ptg))
+		<- DiscVar.DiscardCollect;
+END;
+RULE: DiscOp ::= 'if' Expr COMPUTE
+  DiscOp.ptg = PTGNot(Expr.ptg);
+END;
+RULE: DiscOp ::= 'unless' Expr COMPUTE
+  DiscOp.ptg = Expr.ptg;
+END;

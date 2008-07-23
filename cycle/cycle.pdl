@@ -1,0 +1,12 @@
+Inptg : PTGNode; "ptg_gen.h"
+Outptg : PTGNode;
+AvgDeclPtg : PTGNode;
+AvgDecl2Ptg : PTGNode;
+AvgValPtg : PTGNode;
+AvgPtPtg : PTGNode;
+DiscardPtg : PTGNode [Has];
+VarSymPtg : PTGNode [Has];
+
+int Has (DefTableKey key) {
+  return(PRESENT);
+}

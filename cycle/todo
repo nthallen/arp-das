@@ -1,0 +1,74 @@
+Complain if region is multiply defined within a Trigger. (I think
+I *can* use Unique for that)
+
+Require that Numbers listed in intervals within a RegionDef be
+strictly monotonically increasing and >= zero.
+
+Calculate totally outside to reset Trigger_$_Seen
+
+Work on .edf compiler to provide flexibility, cycle averaging...{
+  One diagnostic could report average data at the high data rate
+  On first pass, record first data time(or row) and insert a row
+  for each data value in the region, setting the average value to
+  1. When region is complete, back up to the start and wherever
+  there is a 1, replace the average value. This can be plotted
+  against the raw data to see that the averages are correct.
+}
+
+PDL Stuff {
+  Add "AppSeq", "AppAnd" and "AppOr" methods to PDL as
+  appropriate.
+}
+
+Note on data flow and TMC2 {
+  There are different types of data flow we would like to
+  support. Trying to figure out when each should apply is
+  a bit of a trick:
+  
+	Strong dependence: operation is performed only when this
+	datum is valid, and only once per validation.
+
+	Weak dependence: operation may be performed at a higher rate
+	using the most recent value, but not at a lower rate. Also,
+	within a specific time, operations should be ordered to so
+	inputs are calculated before outputs.
+
+	Static dependence: operation rate is independent of this datum,
+	although within a particular time, operations should be ordered
+	so this datum is calculated before the statement.
+
+  Specifically invalidating a datum or validating it within a
+  conditional context makes for Strong dependence. Also
+  explicitly listed datum in a "depending on ()" clause. Weak
+  dependence is the default.
+
+  Within these constraints the implications for cycle are {
+	elapsed is validated conditionally, yielding strong
+	dependence unless it is static. Since regions may depend on
+	more than one elapsed (and _seen), they cannot have strong
+	dependence on elapsed. There are several possible solutions:
+	1 {
+	  _elapsed = _seen ? dtime() - _time : -1;
+	  Hence weak dependence applies. This works better for TMC1
+	  also since intervals can be evaluated w/o reference to
+	  _seen.
+	}
+  }
+}
+
+Write Test inputs {
+  Verify Simple operation
+  Exercise each syntactic option {
+	Each Rate Syntax
+	Single and multiple occurances in {
+	  VarList
+	  RegionList
+	  Intervals
+	}
+  }
+  Trigger each error message {
+	More than one rate
+	Multiple Discards
+	Region not defined
+  }
+}

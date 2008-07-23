@@ -1,0 +1,21 @@
+HOMEDIR=/usr/local/src/das/cycle
+MNC=cycle
+SUBDIRS=test cyctst
+SOURCE=$(TOOL) $(SRC)
+
+TOOL=Makefile Odinfile
+SRC=cycle.HEAD.phi
+SRC+=cycle.con
+SRC+=regexpr.con
+SRC+=cycle.gla
+SRC+=average.lido
+SRC+=avg.lido
+SRC+=discard.lido
+SRC+=expr.lido
+SRC+=regexpr.lido
+SRC+=region.lido
+SRC+=trigger.lido
+SRC+=cycle.ptg
+SRC+=cycle.specs
+SRC+=cycle.pdl
+SRC+=todo

@@ -1,0 +1,22 @@
+ATTR TrigDefPtg, ElapsedPtg, ElapsedCalc : PTGNode;
+ATTR ptg, Startptg, Prestartptg, Nameptg : PTGNode;
+
+SYMBOL Program COMPUTE
+  SYNT.TrigDefPtg =
+	CONSTITUENTS Trigger.TrigDefPtg
+	WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull );
+  SYNT.ElapsedCalc =
+	CONSTITUENTS Trigger.ElapsedCalc
+	WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull );
+END;
+
+RULE: Trigger ::= 'Trigger' Name '{' 'Start:' Expr ';'
+				  Prestart RegionDefs '}' COMPUTE
+  Trigger.Startptg = Expr.ptg;
+  Trigger.Prestartptg = Prestart.ptg;
+  Trigger.Nameptg = PTGId(Name);
+  Trigger.ElapsedPtg = PTGTrigElapsed(Trigger.Nameptg);
+  Trigger.TrigDefPtg = PTGTriggerDef(Trigger.Nameptg,
+		Trigger.Startptg, Trigger.Prestartptg );
+  Trigger.ElapsedCalc = PTGElapsedCalc(Trigger.Nameptg);
+END;

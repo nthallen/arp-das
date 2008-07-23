@@ -1,0 +1,109 @@
+%----------------------------------------------------------------
+% Region Definitions
+%----------------------------------------------------------------
+ATTR Inptg, Outptg : PTGNode;
+ATTR AfterPtg, BeforePtg : PTGNode;
+SYMBOL Program INHERITS RegionRangeFirstOcc END;
+SYMBOL RegionDef INHERITS RegionFirstOcc END;
+
+CHAIN RegCollect : VOID;
+ATTR RegCollected : VOID;
+ATTR RegCalc, RegDecl : PTGNode;
+
+SYMBOL Program COMPUTE
+  CHAINSTART HEAD.RegCollect = 1;
+  SYNT.RegCollected = TAIL.RegCollect;
+  SYNT.RegCalc =
+	CONSTITUENTS RegionDef.RegCalc
+	WITH (PTGNode, PTGSeq, IDENTICAL, PTGNull);
+  SYNT.RegDecl =
+	CONSTITUENTS RegionDef.RegDecl
+	WITH (PTGNode, PTGSeq, IDENTICAL, PTGNull);
+END;
+
+SYMBOL RegionDef COMPUTE
+  THIS.RegCollect =
+	ORDER(
+	  ResetInptg( THIS.Key,
+		PTGOrSeq(GetInptg(THIS.Key,PTGNULL),THIS.Inptg)
+	  ),
+	  ResetOutptg( THIS.Key,
+		PTGAndSeq( GetOutptg(THIS.Key,PTGNULL),
+		  PTGOrSeq(THIS.BeforePtg,THIS.AfterPtg))
+	  )
+	) <- THIS.RegCollect;
+  SYNT.RegCollected = INCLUDING Program.RegCollected;
+  SYNT.RegCalc =
+	IF (THIS.IsRegionFirstOcc,
+		PTGRegionCalc(
+		  INCLUDING Program.RateSpec,
+		  PTGId(THIS.Sym),
+		  GetInptg(THIS.Key, PTGNULL),
+		  GetOutptg(THIS.Key, PTGNULL),
+		  GetAvgValPtg(THIS.Key,PTGNULL)
+		), PTGNULL)
+	  <- ( SYNT.RegCollected, INCLUDING Program.AvgVisited);
+  SYNT.RegDecl =
+	  IF (THIS.IsRegionFirstOcc,
+		  PTGRegionDecl(PTGId(THIS.Sym)),
+		  PTGNULL) <- SYNT.RegCollected;
+END;
+RULE: RegionDef ::= 'Region' Name RegionParams ';' COMPUTE
+  RegionDef.Sym = Name;
+  RegionDef.Inptg = RegionParams.Inptg;
+  RegionDef.BeforePtg = RegionParams.BeforePtg;
+  RegionDef.AfterPtg = RegionParams.AfterPtg;
+END;
+RULE: RegionParams ::= Intervals COMPUTE
+  RegionParams.Inptg = Intervals.Inptg;
+  RegionParams.BeforePtg = Intervals.BeforePtg;
+  RegionParams.AfterPtg = Intervals.AfterPtg;
+END;
+SYMBOL Intervals COMPUTE
+  SYNT.Inptg = CONSTITUENTS Interval.Inptg
+	WITH ( PTGNode, PTGOrSeq, IDENTICAL, PTGNull );
+END;
+RULE: Interval ::= LeftInterval Number ',' Number RightInterval COMPUTE
+  Interval.Inptg =
+	PTGAndSeq(
+	  PTGBinOp( INCLUDING Trigger.ElapsedPtg, LeftInterval.ptg,
+				Number[1].ptg ),
+	  PTGBinOp( INCLUDING Trigger.ElapsedPtg, RightInterval.Inptg,
+				Number[2].ptg )
+	);
+END;
+RULE: LeftInterval ::= '(' COMPUTE LeftInterval.ptg = PTGAsIs(">"); END;
+RULE: LeftInterval ::= '[' COMPUTE LeftInterval.ptg = PTGAsIs(">="); END;
+RULE: RightInterval ::= ')' COMPUTE
+  RightInterval.Inptg = PTGAsIs("<");
+  RightInterval.Outptg = PTGAsIs(">=");
+END;
+RULE: RightInterval ::= ']' COMPUTE
+  RightInterval.Inptg = PTGAsIs("<=");
+  RightInterval.Outptg = PTGAsIs(">");
+END;
+RULE: Number ::= Integer  COMPUTE
+  Number.ptg = PTGId(Integer);
+END;
+RULE: Number ::= Float  COMPUTE
+  Number.ptg = PTGId(Float);
+END;
+
+%----------------------------------------------------------------
+% Calculate Outptg...
+%----------------------------------------------------------------
+CHAIN OutMin, OutMax : PTGNode;
+
+SYMBOL Intervals COMPUTE
+  CHAINSTART HEAD.OutMin = PTGNULL;
+  CHAINSTART HEAD.OutMax = TAIL.OutMin;
+  SYNT.BeforePtg =
+	PTGBinOp(INCLUDING Trigger.ElapsedPtg,PTGAsIs("<="),TAIL.OutMin);
+  SYNT.AfterPtg = PTGSeq(INCLUDING Trigger.ElapsedPtg,TAIL.OutMax);
+END;
+RULE: Interval ::= LeftInterval Number ',' Number RightInterval COMPUTE
+  Interval.OutMin =
+	IF(EQ(Interval.OutMin,PTGNULL),Number[1].ptg,Interval.OutMin);
+  Interval.OutMax =
+	PTGSeq(RightInterval.Outptg,Number[2].ptg) <- Interval.OutMax;
+END;

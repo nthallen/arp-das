@@ -1,0 +1,20 @@
+cycle.con
+regexpr.con
+cycle.gla
+avg.lido
+regexpr.lido
+average.lido
+discard.lido
+expr.lido
+region.lido
+trigger.lido
+cycle.ptg
+cycle.pdl
+cycle.HEAD.phi
+$elipkg/Output/PtgCommon.fw
+$elipkg/Tech/Counter.gnrc +instance=Region :inst
+$elipkg/Name/CScope.gnrc +instance=Region :inst
+$elipkg/Prop/FirstOcc.gnrc +instance=Region :inst
+$elipkg/Name/CScope.gnrc +instance=Var :inst
+$elipkg/Adt/Stack.gnrc +instance=Var +referto=DefTableKey :inst
+$elipkg/Output/PrettyPrint.fw

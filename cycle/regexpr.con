@@ -1,0 +1,6 @@
+# Additional rules for Exprs in regions
+RegionParams : Exprs3 .
+Exprs3 : [ '=' IExpr [ ':' BExpr [ ':' AExpr ] ] ] .
+IExpr : Expr .
+BExpr : Expr .
+AExpr : Expr .

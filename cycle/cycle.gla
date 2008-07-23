@@ -1,0 +1,6 @@
+Name      : C_IDENTIFIER
+Integer   : C_INTEGER [mkstr]
+Float     : C_FLOAT
+String    : C_STRING_LIT
+CharConst : C_CHAR_CONSTANT [mkstr]
+            C_COMMENT

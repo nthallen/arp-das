@@ -16,7 +16,8 @@ Trigger : 'Trigger' Name '{' 'Start:' Expr ';' Prestart RegionDefs '}' .
 Prestart : [ 'Prestart:' Expr ';' ] .
 
 RegionDefs : RegionDef* .
-RegionDef :	'Region' Name Intervals ';' .
+RegionDef : 'Region' Name RegionParams ';' .
+RegionParams : Intervals .
 Intervals : Interval // ',' .
 Interval : LeftInterval Number ',' Number RightInterval .
 LeftInterval : '(' / '[' .

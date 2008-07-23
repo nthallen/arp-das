@@ -1,0 +1,70 @@
+ATTR AvgKey : DefTableKey;
+ATTR Convert, AverageDecl, AveragePt : PTGNode;
+CHAIN AvgVisit : VOID;
+ATTR AvgVisited : VOID;
+
+SYMBOL Program COMPUTE
+  SYNT.AvgKey = NewKey();
+  CHAINSTART HEAD.AvgVisit = SYNT.AvgKey <- THIS.DiscardCollected;
+  SYNT.AvgVisited = TAIL.AvgVisit;
+  SYNT.AverageDecl =
+		  PTGAverageDecls(
+			GetAvgDeclPtg(THIS.AvgKey,PTGNULL),
+			GetAvgDecl2Ptg(THIS.AvgKey,PTGNULL))
+			 <- SYNT.AvgVisited;
+  SYNT.AveragePt = GetAvgPtPtg(THIS.AvgKey,PTGNULL) <- SYNT.AvgVisited;
+END;
+
+RULE: Average ::= 'Average' OptRaw AvgVarList 'Over' RegionList ';' COMPUTE
+  Average.Convert = OptRaw.Convert;
+END;
+RULE: OptRaw ::= COMPUTE OptRaw.Convert = PTGAsIs("convert"); END;
+RULE: OptRaw ::= 'Raw' COMPUTE OptRaw.Convert = PTGNULL; END;
+
+RULE: AvgVar ::= Variable COMPUTE
+  AvgVar.AvgVisit = ORDER(
+	VarStackPush(Variable.Key),
+	IF (NOT(HasVarSymPtg(Variable.Key)),
+		ResetVarSymPtg(Variable.Key, PTGId(Variable.Sym)))
+  ) <- AvgVar.AvgVisit;
+END;
+
+ATTR VarKey : DefTableKey;
+CHAIN AvgCollect : VOID;
+
+SYMBOL RegionList COMPUTE
+  SYNT.VarKey = VarStackPop <- THIS.AvgVisit;
+  THIS.AvgVisit =
+	UNTIL VarStackEmpty
+	ITERATE SYNT.VarKey = VarStackPop
+	  <- TAIL.AvgCollect;
+  CHAINSTART HEAD.AvgCollect = SYNT.VarKey;
+END;
+
+ATTR VarPtg, RegPtg : PTGNode;
+
+SYMBOL Region COMPUTE
+  SYNT.AvgKey = INCLUDING Program.AvgKey;
+  SYNT.VarKey = INCLUDING RegionList.VarKey;
+  SYNT.VarPtg = GetVarSymPtg(SYNT.VarKey,PTGNULL);
+  SYNT.RegPtg = PTGId(THIS.Sym);
+  THIS.AvgCollect = ORDER(
+	ResetAvgValPtg(THIS.Key,PTGSeq(GetAvgValPtg(THIS.Key,PTGNULL),
+	  PTGAverageVal(SYNT.RegPtg,SYNT.VarPtg))),
+	ResetAvgDeclPtg(SYNT.AvgKey,
+	  PTGSeq(GetAvgDeclPtg(SYNT.AvgKey, PTGNULL),
+		PTGAverageDecl(SYNT.RegPtg,SYNT.VarPtg))),
+	ResetAvgDecl2Ptg(SYNT.AvgKey,
+	  PTGSeq(GetAvgDecl2Ptg(SYNT.AvgKey, PTGNULL),
+		PTGAverageDecl2(SYNT.RegPtg,SYNT.VarPtg))),
+	ResetAvgPtPtg(SYNT.AvgKey,
+	  PTGSeq(
+		GetAvgPtPtg(SYNT.AvgKey, PTGNULL),
+		PTGAveragePt(
+		  SYNT.RegPtg,
+		  SYNT.VarPtg,
+		  INCLUDING Average.Convert,
+		  GetDiscardPtg(SYNT.VarKey,PTGNULL)
+		)))
+	) <- THIS.AvgCollect;
+END;

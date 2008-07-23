@@ -1,270 +1,72 @@
 %----------------------------------------------------------------
-% Overall Output
+% New Strategy
 %  PTGProgram
 %    header
-%    $1=trigger definitions TrigDefPtg
-%    $2=region declarations RegDecl      PTGRegionDecl
-%    $3=average declarations AverageDecl PTGAverageDecl GetAvgDeclPtg
+%    $1=trigger definitions
+%    $2=region declarations RegDecl  PTGRegionDecl
+%    $3=average declarations AverageDecl
+%        (collected globally)
 %    $4=depending on ($1=Rate) {
-%      $2=elapased calculations ElapsedCalc
-%      $3=region calculations  RegCalc    PTGRegionCalc
-%      $4=average completion  AverageVal  PTGAverageVal GetAvgValPtg
+%       $2=elapsed calculations ElpasedCalc
 %    }
-%    $5=Average_Point()s                   PTGAveragePt GetAvgPtPtg
+%    $5=Region Calculations RegCalc PTGRegionCalc
+%    $6=Average_Point()s PTGAveragePt GetAvgPtPtg
+%       (collected globally)
+%
+%  Region Calculations
+%    depending on ($Rate)
+%      Region_$ = I
+%    depending on ($Rate) {
+%      Region_$_Completed = O
+%      if (Region_$_Completed) {
+%        Average_Value()s for this region
+%      }
+%    }
+%
+% Strategy: Chain through AvgVar's pushing names on the stack,
+% then for each Region, loop through the names, adding to
+% AvgDeclPtg, AvgPtPtg (both global) and AvgValPtg (by Region)
+% Then loop back through the AvgVar's to clear the stack before
+% advancing to the next Average. (Or simply ITERATE until the
+% Stack is empty).
 %----------------------------------------------------------------
-ATTR ptg, Startptg, Prestartptg, Nameptg: PTGNode;
+ATTR ptg : PTGNode;
 ATTR TrigDefPtg, ElapsedPtg, ElapsedCalc : PTGNode;
 ATTR AverageDecl, AverageVal, AveragePt : PTGNode;
-CHAIN RegCollect, AvgOut : VOID;
-CHAIN RegCalc, RegDecl : PTGNode;
 
 SYMBOL Program COMPUTE
-  SYNT.TrigDefPtg =
-	CONSTITUENTS Trigger.TrigDefPtg
-	WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull );
-  SYNT.ElapsedCalc =
-	CONSTITUENTS Trigger.ElapsedCalc
-	WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull );
-  CHAINSTART HEAD.RegCollect = SYNT.TrigDefPtg;
-  CHAINSTART HEAD.RegDecl = PTGNULL <- TAIL.RegCollect;
-  CHAINSTART HEAD.RegCalc = PTGNULL <- TAIL.RegDecl;
-  CHAINSTART HEAD.AvgOut = TAIL.RegCalc;
-  SYNT.AverageDecl = GetAvgDeclPtg(THIS.AvgKey,PTGNULL) <- TAIL.AvgOut;
-  SYNT.AverageVal = GetAvgValPtg(THIS.AvgKey,PTGNULL) <- TAIL.AvgOut;
-  SYNT.AveragePt = GetAvgPtPtg(THIS.AvgKey,PTGNULL) <- TAIL.AvgOut;
   IF (NoErrors,
-	PTGOut(
+	PP_Out(
 	  PTGProgram(
 		SYNT.TrigDefPtg,
-		TAIL.RegDecl,
+		THIS.RegDecl,
 		SYNT.AverageDecl,
 		PTGRatedDefs(
 		  THIS.RateSpec,
-		  SYNT.ElapsedCalc,
-		  TAIL.RegCalc,
-		  SYNT.AverageVal
+		  SYNT.ElapsedCalc
 		),
+		THIS.RegCalc,
 		SYNT.AveragePt
 	  )
 	)
   );
 END;
 
-CHAIN RegionIndex : int;
-ATTR CurrRegionNumber, CurrRegion, NextRegionNumber : int;
-ATTR AvgKey : DefTableKey;
-ATTR Convert : PTGNode;
-
-RULE: Average ::= 'Average' OptRaw AvgVarList 'Over' RegionList ';' COMPUTE
-  Average.Convert = OptRaw.Convert;
-END;
-RULE: OptRaw ::= COMPUTE OptRaw.Convert = PTGAsIs("convert"); END;
-RULE: OptRaw ::= 'Raw' COMPUTE OptRaw.Convert = PTGNULL; END;
-
-SYMBOL Average INHERITS RegionRootCount END;
-SYMBOL Region INHERITS RegionCount END;
-
-SYMBOL Program COMPUTE
-  SYNT.AvgKey = NewKey();
-END;
-
-SYMBOL Average COMPUTE
-  SYNT.AvgKey = INCLUDING Program.AvgKey;
-  SYNT.CurrRegionNumber = 1;
-  SYNT.Done =
-	UNTIL GE(SYNT.CurrRegionNumber,	THIS.RegionCountResult)
-	ITERATE SYNT.CurrRegionNumber = SYNT.NextRegionNumber;
-  CHAINSTART HEAD.RegionIndex = NoStrIndex <- SYNT.CurrRegionNumber;
-  SYNT.CurrRegion = TAIL.RegionIndex;
-  SYNT.NextRegionNumber = ORDER(
-	ResetAvgDeclPtg(SYNT.AvgKey,
-	  PTGSeq(GetAvgDeclPtg(SYNT.AvgKey, PTGNULL),
-		CONSTITUENTS AvgVar.AvgDeclPtg
-		WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ))),
-	ResetAvgValPtg(SYNT.AvgKey,
-	  PTGSeq(GetAvgValPtg(SYNT.AvgKey, PTGNULL),
-		CONSTITUENTS AvgVar.AvgValPtg
-		WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ))),
-	ResetAvgPtPtg(SYNT.AvgKey,
-	  PTGSeq(GetAvgPtPtg(SYNT.AvgKey, PTGNULL),
-		CONSTITUENTS AvgVar.AvgPtPtg
-		WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ))),
-	ADD(SYNT.CurrRegionNumber,1));
-  THIS.AvgOut = SYNT.Done <- THIS.AvgOut;
-END;
-
 %----------------------------------------------------------------
-% RegionIndex is a CHAIN to select the (StringTable) index
-% for the current region. Ultimately the selected index is
-% assigned to the enclosing Average.CurrRegion.
+% Scope rules for Variables
 %----------------------------------------------------------------
-RULE: Region ::= Name COMPUTE
-  Region.RegionIndex =
-	IF( EQ(Region.RegionCount,
-		  INCLUDING	Average.CurrRegionNumber),
-		Name,
-		Region.RegionIndex );
-END;
-
-ATTR AvgDeclPtg, AvgValPtg, AvgPtPtg : PTGNode;
 ATTR Sym : int;
 SYMBOL Program INHERITS VarRootScope END;
 SYMBOL Variable INHERITS VarIdDefScope END;
-RULE: Variable ::= Name COMPUTE
-  Variable.Sym = Name;
-END;
-RULE: AvgVar ::= Variable COMPUTE
-  AvgVar.AvgDeclPtg =
-	PTGAverageDecl(
-	  PTGId(INCLUDING Average.CurrRegion), PTGId(Variable.Sym));
-  AvgVar.AvgValPtg =
-	PTGAverageVal(
-	  PTGId(INCLUDING Average.CurrRegion), PTGId(Variable.Sym));
-  AvgVar.AvgPtPtg =
-	PTGAveragePt(
-	  PTGId(INCLUDING Average.CurrRegion),
-	  PTGId(Variable.Sym),
-	  INCLUDING Average.Convert,
-	  GetDiscardPtg(Variable.Key,PTGNULL)
-	);
-END;
+RULE: Variable ::= Name COMPUTE Variable.Sym = Name; END;
 
 %----------------------------------------------------------------
 % Region Name identification via $/Name/CScope.gnrc
 %----------------------------------------------------------------
-ATTR Sym : int;
-
 SYMBOL Program INHERITS RegionRootScope END;
-SYMBOL Region INHERITS RegionIdUseEnv, RegionChkIdUse END;
-
-RULE: Region ::= Name COMPUTE
-  Region.Sym = Name;
-END;
-
-RULE: Trigger ::= 'Trigger' Name '{' 'Start:' Expr ';'
-				  Prestart RegionDefs '}' COMPUTE
-  Trigger.Startptg = Expr.ptg;
-  Trigger.Prestartptg = Prestart.ptg;
-  Trigger.Nameptg = PTGId(Name);
-  Trigger.ElapsedPtg = PTGTrigElapsed(Trigger.Nameptg);
-  Trigger.TrigDefPtg = PTGTriggerDef(Trigger.Nameptg,
-		Trigger.Startptg, Trigger.Prestartptg );
-  Trigger.ElapsedCalc = PTGElapsedCalc(Trigger.Nameptg);
-END;
-
-%----------------------------------------------------------------
-% Region Definitions
-%----------------------------------------------------------------
-ATTR Inptg, Outptg : PTGNode;
-ATTR AfterPtg, BeforePtg : PTGNode;
-SYMBOL Program INHERITS RegionRangeFirstOcc END;
-SYMBOL RegionDef INHERITS RegionFirstOcc END;
-
 SYMBOL RegionDef INHERITS RegionIdDefScope END;
-SYMBOL RegionDef COMPUTE
-  THIS.RegCollect =
-	ORDER(
-	  ResetInptg( THIS.Key,
-		PTGOrSeq(GetInptg(THIS.Key,PTGNULL),THIS.Inptg)
-	  ),
-	  ResetOutptg( THIS.Key,
-		PTGAndSeq( GetOutptg(THIS.Key,PTGNULL),
-		  PTGOrSeq(THIS.BeforePtg,THIS.AfterPtg))
-	  )
-	) <- THIS.RegCollect;
-  THIS.RegCalc = PTGSeq( THIS.RegCalc,
-	  IF ( THIS.IsRegionFirstOcc,
-			PTGRegionCalc( PTGId(THIS.Sym),
-			  GetInptg(THIS.Key, PTGNULL),
-			  GetOutptg(THIS.Key, PTGNULL) ),
-			PTGNULL));
-  THIS.RegDecl = PTGSeq( THIS.RegDecl,
-	  IF (THIS.IsRegionFirstOcc,
-		  PTGRegionDecl(PTGId(THIS.Sym)),
-		  PTGNULL));
-END;
-RULE: RegionDef ::= 'Region' Name RegionParams ';' COMPUTE
-  RegionDef.Sym = Name;
-  RegionDef.Inptg = RegionParams.Inptg;
-  RegionDef.BeforePtg = RegionParams.BeforePtg;
-  RegionDef.AfterPtg = RegionParams.AfterPtg;
-END;
-RULE: RegionParams ::= Intervals COMPUTE
-  RegionParams.Inptg = Intervals.Inptg;
-  RegionParams.BeforePtg = Intervals.BeforePtg;
-  RegionParams.AfterPtg = Intervals.AfterPtg;
-END;
-SYMBOL Intervals COMPUTE
-  SYNT.Inptg = CONSTITUENTS Interval.Inptg
-	WITH ( PTGNode, PTGOrSeq, IDENTICAL, PTGNull );
-END;
-RULE: Interval ::= LeftInterval Number ',' Number RightInterval COMPUTE
-  Interval.Inptg =
-	PTGAndSeq(
-	  PTGBinOp( INCLUDING Trigger.ElapsedPtg, LeftInterval.ptg,
-				Number[1].ptg ),
-	  PTGBinOp( INCLUDING Trigger.ElapsedPtg, RightInterval.Inptg,
-				Number[2].ptg )
-	);
-END;
-RULE: LeftInterval ::= '(' COMPUTE LeftInterval.ptg = PTGAsIs(">"); END;
-RULE: LeftInterval ::= '[' COMPUTE LeftInterval.ptg = PTGAsIs(">="); END;
-RULE: RightInterval ::= ')' COMPUTE
-  RightInterval.Inptg = PTGAsIs("<");
-  RightInterval.Outptg = PTGAsIs(">=");
-END;
-RULE: RightInterval ::= ']' COMPUTE
-  RightInterval.Inptg = PTGAsIs("<=");
-  RightInterval.Outptg = PTGAsIs(">");
-END;
-RULE: Number ::= Integer  COMPUTE
-  Number.ptg = PTGId(Integer);
-END;
-RULE: Number ::= Float  COMPUTE
-  Number.ptg = PTGId(Float);
-END;
-
-%----------------------------------------------------------------
-% Calculate Outptg...
-%----------------------------------------------------------------
-CHAIN OutMin, OutMax : PTGNode;
-
-SYMBOL Intervals COMPUTE
-  CHAINSTART HEAD.OutMin = PTGNULL;
-  CHAINSTART HEAD.OutMax = TAIL.OutMin;
-  SYNT.BeforePtg =
-	PTGBinOp(INCLUDING Trigger.ElapsedPtg,PTGAsIs("<="),TAIL.OutMin);
-  SYNT.AfterPtg = PTGSeq(INCLUDING Trigger.ElapsedPtg,TAIL.OutMax);
-END;
-RULE: Interval ::= LeftInterval Number ',' Number RightInterval COMPUTE
-  Interval.OutMin =
-	IF(EQ(Interval.OutMin,PTGNULL),Number[1].ptg,Interval.OutMin);
-  Interval.OutMax =
-	PTGSeq(RightInterval.Outptg,Number[2].ptg) <- Interval.OutMax;
-END;
-
-%----------------------------------------------------------------
-% Discard calculations
-%----------------------------------------------------------------
-ATTR ptg : PTGNode;
-RULE: Discard ::= 'Discard' DiscVarList DiscOp ';' COMPUTE
-  Discard.ptg = PTGSeq(PTGAsIs(" && "),DiscOp.ptg);
-END;
-
-RULE: DiscVar ::= Variable COMPUTE
-  DiscVar.RegCollect =
-	IF ( HasDiscardPtg(Variable.Key),
-	  message(ERROR, "Multiple Discards Defined for variable",
-			  0, COORDREF ),
-	  ResetDiscardPtg(Variable.Key, INCLUDING Discard.ptg))
-		<- DiscVar.RegCollect;
-END;
-RULE: DiscOp ::= 'if' Expr COMPUTE
-  DiscOp.ptg = PTGNot(Expr.ptg);
-END;
-RULE: DiscOp ::= 'unless' Expr COMPUTE
-  DiscOp.ptg = Expr.ptg;
-END;
+SYMBOL Region INHERITS RegionIdUseEnv, RegionChkIdUse END;
+RULE: Region ::= Name COMPUTE Region.Sym = Name; END;
 
 %----------------------------------------------------------------
 % Rate calculations

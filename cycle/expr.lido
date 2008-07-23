@@ -1,0 +1,100 @@
+TERM Name, Integer, Float, String, CharConst: int;
+ATTR ptg, Startptg, Prestartptg: PTGNode;
+
+RULE: Prestart ::= 'Prestart:' Expr ';' COMPUTE
+  Prestart.ptg = Expr.ptg;
+END;
+RULE: Prestart ::= COMPUTE
+  Prestart.ptg = PTGNot(INCLUDING Trigger.Startptg);
+END;
+
+%----------------------------------------------------------------
+% Expr rules
+%----------------------------------------------------------------
+RULE: Expr ::= Term COMPUTE
+  Expr.ptg = Term.ptg;
+END;
+RULE: Expr ::= Expr BinOp Term COMPUTE
+  Expr[1].ptg = PTGBinOp(Expr[2].ptg, BinOp.ptg, Term.ptg);
+END;
+RULE: Expr ::= UnOp Term COMPUTE
+  Expr.ptg = PTGSeq( UnOp.ptg, Term.ptg );
+END;
+RULE: Expr ::= Expr '?' Expr ':' Term COMPUTE
+  Expr[1].ptg = PTGQ_Colon( Expr[2].ptg, Expr[3].ptg, Term.ptg );
+END;
+
+%----------------------------------------------------------------
+% Term rules
+%----------------------------------------------------------------
+RULE: Term ::= Ref COMPUTE
+  Term.ptg = Ref.ptg;
+END;
+RULE: Term ::= Integer  COMPUTE
+  Term.ptg = PTGId(Integer);
+END;
+RULE: Term ::= Float  COMPUTE
+  Term.ptg = PTGId(Float);
+END;
+RULE: Term ::= String  COMPUTE
+  Term.ptg = PTGCStringId(String);
+END;
+RULE: Term ::= CharConst COMPUTE
+  Term.ptg = PTGId(CharConst);
+END;
+RULE: Term ::= '(' Expr ')' COMPUTE
+  Term.ptg = PTGParen(Expr.ptg);
+END;
+RULE: Term ::= Ref '(' Expr ')' COMPUTE
+  Term.ptg = PTGFuncCall( Ref.ptg, Expr.ptg );
+END;
+RULE: Term ::= Ref '(' ')' COMPUTE
+  Term.ptg = PTGFuncCall( Ref.ptg, PTGNULL );
+END;
+
+%----------------------------------------------------------------
+% Ref rules
+%----------------------------------------------------------------
+RULE: Ref ::= Name COMPUTE
+  Ref.ptg = PTGId(Name);
+END;
+RULE: Ref ::= Ref '[' Expr ']' COMPUTE
+  Ref[1].ptg = PTGArrayRef( Ref[2].ptg, Expr.ptg );
+END;
+RULE: Ref ::= Ref DeRef Name COMPUTE
+  Ref[1].ptg = PTGBinOp( Ref[2].ptg, DeRef.ptg, PTGId(Name) );
+END;
+
+%----------------------------------------------------------------
+% Rules for these things which ought to be terminals somehow
+%----------------------------------------------------------------
+RULE: DeRef ::= '.' COMPUTE DeRef.ptg = PTGAsIs("."); END;
+RULE: DeRef ::= '->' COMPUTE DeRef.ptg = PTGAsIs("->"); END;
+RULE: BinOp ::= '+' COMPUTE BinOp.ptg = PTGAsIs(" + "); END;
+RULE: BinOp ::= '-' COMPUTE BinOp.ptg = PTGAsIs(" - "); END;
+RULE: BinOp ::= '*' COMPUTE BinOp.ptg = PTGAsIs(" * "); END;
+RULE: BinOp ::= '/' COMPUTE BinOp.ptg = PTGAsIs(" / "); END;
+RULE: BinOp ::= '&' COMPUTE BinOp.ptg = PTGAsIs(" & "); END;
+RULE: BinOp ::= '|' COMPUTE BinOp.ptg = PTGAsIs(" | "); END;
+RULE: BinOp ::= '&&' COMPUTE BinOp.ptg = PTGAsIs(" && "); END;
+RULE: BinOp ::= '||' COMPUTE BinOp.ptg = PTGAsIs(" || "); END;
+RULE: BinOp ::= '^' COMPUTE BinOp.ptg = PTGAsIs(" ^ "); END;
+RULE: BinOp ::= '%' COMPUTE BinOp.ptg = PTGAsIs(" % "); END;
+RULE: BinOp ::= '=' COMPUTE BinOp.ptg = PTGAsIs(" = "); END;
+RULE: BinOp ::= '+=' COMPUTE BinOp.ptg = PTGAsIs(" += "); END;
+RULE: BinOp ::= '-=' COMPUTE BinOp.ptg = PTGAsIs(" -= "); END;
+RULE: BinOp ::= '*=' COMPUTE BinOp.ptg = PTGAsIs(" *= "); END;
+RULE: BinOp ::= '/=' COMPUTE BinOp.ptg = PTGAsIs(" /= "); END;
+RULE: BinOp ::= '&=' COMPUTE BinOp.ptg = PTGAsIs(" &= "); END;
+RULE: BinOp ::= '|=' COMPUTE BinOp.ptg = PTGAsIs(" |= "); END;
+RULE: BinOp ::= ',' COMPUTE BinOp.ptg = PTGAsIs(", "); END;
+RULE: BinOp ::= '<' COMPUTE BinOp.ptg = PTGAsIs(" < "); END;
+RULE: BinOp ::= '>' COMPUTE BinOp.ptg = PTGAsIs(" > "); END;
+RULE: BinOp ::= '==' COMPUTE BinOp.ptg = PTGAsIs(" == "); END;
+RULE: BinOp ::= '!=' COMPUTE BinOp.ptg = PTGAsIs(" != "); END;
+RULE: BinOp ::= '<=' COMPUTE BinOp.ptg = PTGAsIs(" <= "); END;
+RULE: BinOp ::= '>=' COMPUTE BinOp.ptg = PTGAsIs(" >= "); END;
+RULE: UnOp ::= '-' COMPUTE UnOp.ptg = PTGAsIs("-"); END;
+RULE: UnOp ::= '+' COMPUTE UnOp.ptg = PTGAsIs("+"); END;
+RULE: UnOp ::= '!' COMPUTE UnOp.ptg = PTGAsIs("!"); END;
+RULE: UnOp ::= '~' COMPUTE UnOp.ptg = PTGAsIs("~"); END;

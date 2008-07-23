@@ -1,0 +1,37 @@
+RULE: RegionParams ::= Exprs3 COMPUTE
+  RegionParams.Inptg = Exprs3.Inptg;
+  RegionParams.BeforePtg = Exprs3.BeforePtg;
+  RegionParams.AfterPtg = Exprs3.AfterPtg;
+END;
+
+ATTR present : int;
+
+RULE: IExpr ::= Expr COMPUTE IExpr.ptg = Expr.ptg; END;
+RULE: BExpr ::= Expr COMPUTE BExpr.ptg = Expr.ptg; BExpr.present = 1; END;
+RULE: AExpr ::= Expr COMPUTE AExpr.ptg = Expr.ptg; END;
+
+ATTR InExpr : PTGNode;
+
+SYMBOL Exprs3 COMPUTE
+  SYNT.InExpr =
+	CONSTITUENTS IExpr.ptg
+	WITH (PTGNode, PTGSeq, IDENTICAL, PTGNull);
+  SYNT.Inptg =
+	PTGAndSeq(PTGTrigSeen(INCLUDING Trigger.Nameptg),SYNT.InExpr);
+  SYNT.BeforePtg =
+	PTGOrSeq(
+	  PTGNot(PTGTrigSeen(INCLUDING Trigger.Nameptg)),
+	  PTGOrSeq(
+		PTGElapsedZero(INCLUDING Trigger.Nameptg),
+		IF (
+		  CONSTITUENTS BExpr.present WITH (int,max,IDENTICAL,ZERO),
+		  CONSTITUENTS BExpr.ptg
+		  WITH (PTGNode, PTGSeq, IDENTICAL, PTGNull),
+		  PTGNot(SYNT.InExpr)
+		)
+	  )
+	);
+  SYNT.AfterPtg =
+	CONSTITUENTS AExpr.ptg
+	WITH (PTGNode, PTGSeq, IDENTICAL, PTGNull);
+END;

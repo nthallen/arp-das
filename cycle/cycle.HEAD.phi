@@ -1,0 +1,4 @@
+#include "csm.h"
+#include "err.h"
+#include "VarStack.h"
+#define NoErrors (ErrorCount[ERROR] == 0)

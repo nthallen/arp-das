@@ -1,0 +1,21 @@
+Rate DetA;
+
+Trigger T {
+  Start: SolSt == 21;
+  Prestart: (SolSt.deref && 0xff) == foo(arg,arg2);
+  Region A [   0, 2.5 );
+  Region B [ 2.5, 3.0 );
+  Region C [ 3.0, 3.5 );
+}
+
+Trigger S {
+  Start: SolSt == 31;
+  Region A [   0, 3.5 );
+  Region B [ 3.5, 4.5 ];
+  Region C ( 4.5, 5.0 );
+  Region D = IExpr;
+}
+
+Average DetA, DetB, DetC Over A, B, C;
+Discard DetA if CtStat & 0x8000;
+Average Raw DetD Over D;
