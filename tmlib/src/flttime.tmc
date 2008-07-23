@@ -1,0 +1,9 @@
+%{
+  #include "tmctime.h"
+%}
+TM typedef long int flttime_t { text "%9d" timetext(); }
+flttime_t flttime; invalidate flttime;
+depending on (1 Hz) {
+  flttime = itime();
+  validate flttime;
+}

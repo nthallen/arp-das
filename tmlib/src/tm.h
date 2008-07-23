@@ -43,8 +43,8 @@ typedef struct {
 } __attribute__((packed)) tstamp_t;
 
 typedef struct {
-  char version[16]; /* 1.0 etc. contents of VERSION */
-  char md5[16];     /* MD5 digest of core TM frame definitions */
+  unsigned char version[16]; /* 1.0 etc. contents of VERSION */
+  unsigned char md5[16];     /* MD5 digest of core TM frame definitions */
 } tmid_t;
 
 /* nrowsper/nsecsper = rows/sec */
