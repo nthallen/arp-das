@@ -1,199 +1,117 @@
 /* extmain.skel include file for extraction
  * $Log$
+ * Revision 1.2  2008/07/03 20:58:07  ntallen
+ * In the process of testing.
+ *
  * Revision 1.1  2008/07/03 15:11:07  ntallen
  * Copied from QNX4 version V1R9
  */
+/* Skeleton headers section */
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
 #include "oui.h"
-#include "tm.h"
-#include "globmsg.h"
-#include "msg.h"
+#include "DC.h"
 
 static char emrcsid[] =
       "$Id$";
 
 %headers%
 
-#ifdef CONSOLE_INIT
-  #error CONSOLE_INIT is obsolete
+/* Skeleton console_functions section */
+#ifdef TABLELIB_H
+  #define phdisplay(x,y) tbl_dispfield(x,y)
 #endif
-#ifdef MSG_LABEL
-  #error MSG_LABEL is obsolete
-#endif
-
-#ifdef N_CONSOLES
-  #include "nl_cons.h"
-  #ifndef DATA_ATTR
-	#define DATA_ATTR 7
-  #endif
-
-  #define cdisplay(d,r,c,s) nlcon_display(d,r,c,s,DATA_ATTR)
-  #define display_(d,r,c,t,v,s) {\
-	static t sv_;\
-	if (v != sv_) { cdisplay(d,r,c,s); sv_ = v; }\
-  }
-#endif
-
 %console_functions%
 
-#ifndef EXTRACTION_INIT
-  #define EXTRACTION_INIT
-#endif
-#ifndef OPT_EXT_INIT
-  #define OPT_EXT_INIT
-#endif
-#ifndef EXTRACTION_TERM
-  #define EXTRACTION_TERM
-#endif
-#ifndef TMINITFUNC
-  #define TMINITFUNC
-#endif
-
-static unsigned int next_minor_frame, majf_row;
-#if (NROWMINF != 1)
-  static unsigned int minf_row = 0;
-#endif
-#ifdef NEED_TIME_FUNCS
-  static unsigned short CurMFC;
-#endif
-
+/* Skeleton data_defs section */
 %data_defs%
 
-void main(int argc, char **argv) {
-  oui_init_options(argc, argv);
+/* Skeleton main_program section */
+#ifdef TABLELIB_H
+  #include "DCph.h"
+  typedef ph_data_client DATA_CLIENT;
+#else
+  typedef data_client DATA_CLIENT;
+#endif
 
-  TMINITFUNC;
-  BEGIN_MSG;
-  EXTRACTION_INIT;
-  DC_operate();
-  EXTRACTION_TERM;
-  DONE_MSG;
+int main(int argc, char **argv) {
+  // oui_init_options(argc, argv);
+  DATA_CLIENT DC(4096, 1, 0);
+  DC.operate();
+  return 0;
 }
 
 %main_program%
 
-#define MKDCTV(x,y) ((x<<8)|y)
-#define DCTV(x,y) MKDCTV(DCT_##x,DCV_##y)
-
-/* The main thing we need to do is reset our row counter on TM START */
-void DC_DASCmd(unsigned char type, unsigned char val) {
-  switch (MKDCTV(type, val)) {
-	case DCTV(TM,TM_START):
-	  next_minor_frame = majf_row = 0;
-	  #if (NROWMINF != 1)
-		minf_row = 0;
-	  #endif
-	  break;
-	case DCTV(TM,TM_END):
-	case DCTV(QUIT,QUIT):
-	default:
-	  break;
-  }
-}
+/* Skeleton rest of the file */
 
 #define incmod(x,y) if (x==((y)-1)) x = 0; else x++
 
-void DC_data(dbr_data_type *dr_data) {
-  unsigned short nrows;
-
-  for (nrows = dr_data->n_rows, home = (void *) &dr_data->data[0];
-	   nrows > 0;
-	   nrows--, home ++) {
-
-	/* First check the minor frame counter if necessary */
-	#if (NROWMINF != 1)
-	if (minf_row == 0) {
-	#endif
-	  COPY_MFCtr /* Needs to be defined by TMC */
-	  #ifdef NEED_TIME_FUNCS
-		CurMFC = MFCtr;
-	  #endif
-	  {
-		unsigned short delta;
-		
-		delta = MFCtr - next_minor_frame;
-		if (delta != 0) {
-		  #ifdef IVFUNCS
-			if (delta > NROWMAJF/NROWMINF) delta = NROWMAJF;
-			else delta *= NROWMINF;
-			/* delta is now the number of rows skipped up to a maximum of
-			  nrowmajf. While invalidating, I don't need to update
-			  minf_row, since the final will be 0, same as before.
-			  MFCtr is already set, and majf_row is updated.
-			*/
-			while (delta-- > 0)
-			  ivfuncs[majf_row]();
-		  #endif
-		  majf_row = (((unsigned short)MFCtr) % (NROWMAJF/NROWMINF))
-							  * NROWMINF;
-		}
-	  }
-	  next_minor_frame = MFCtr+1;
-	#if (NROWMINF != 1)
-	}
-	#endif
-	
-	/* Now process the row */
-	efuncs[majf_row]();
-	incmod(majf_row, NROWMAJF);
-	#if (NROWMINF != 1)
-	  incmod(minf_row, NROWMINF);
-	#endif
-  }
-}
-
-#ifdef __WATCOMC__
-  #pragma off (unreferenced)
+#if (NROWMINF == 1)
+  #define MINF_ROW 0
+  #define MINF_ROW_ZERO
+  #define MINF_ROW_INC
+#else
+  #define MINF_ROW data_client::minf_row
+  #define MINF_ROW_ZERO data_client::minf_row = 0
+  #define MINF_ROW_INC ++data_client::minf_row
 #endif
 
-void DC_tstamp(tstamp_type *tstamp) { /* Nothing to do! */ }
+#define incmod(x,y) if (x==((y)-1)) x = 0; else x++
 
-void DC_other(unsigned char *msg_ptr, int sent_tid) {
-  unsigned char rep_msg = DAS_UNKN;
+#if TM_DATA_TYPE == TMTYPE_DATA_T3
+void data_client::process_data() {
+  tm_data_t3_t *data = &msg->body.data3;
+  unsigned char *raw = &data->data[0];
+  int n_rows = data->n_rows;
+  home = (union home_row *) raw;
+  MFCtr = data->mfctr;
+  #ifdef IVFUNCS
+    unsigned short delta = MFCtr - next_minor_frame;
+    if (delta != 0) {
+        // Because we are TMTYPE_DATA_T3, we know NROWMINF == 1
+        if (delta > NROWMAJF) delta = NROWMAJF;
+        while (delta-- > 0) {
+          ivfuncs[majf_row]();
+          incmod(majf_row, NROWMAJF);
+        }
+    }
+  #endif
+  majf_row = (((unsigned short)MFCtr) % NROWMAJF);
 
-  Reply(sent_tid, &rep_msg, 1);
+  for ( ; n_rows > 0; --n_rows, ++home ) {
+    efuncs[majf_row]();
+    incmod(majf_row, NROWMAJF);
+    ++MFCtr;
+  }
+  next_minor_frame = MFCtr;
 }
-
-#ifdef __WATCOMC__
-  #pragma on (unreferenced)
+#else
+  #error Data types TMTYPE_DATA_T1 and TMTYPE_DATA_T2 not implemented in extmain.skel
 #endif
 
 #ifdef NEED_TIME_FUNCS
-  #if (NROWMINF != 1)
-	#define ROWS(x) (((unsigned long)(x))*NROWMINF+minf_row)
-  #else
-	#define ROWS(x) (x)
-  #endif
-  #if (NSECSPER != 1)
-	#define FRACSECS(x) (((unsigned long)ROWS(x))*NSECSPER)
-  #else
-	#define FRACSECS(x) ROWS(x)
-  #endif
+  #define ROWS(x) (((unsigned long)(x))*NROWMINF+MINF_ROW)
+  #define FRACSECS(x) (((unsigned long)ROWS(x))*NSECSPER)
+
   long itime(void) {
-	  return(dbr_info.t_stmp.secs +
-		FRACSECS(CurMFC-dbr_info.t_stmp.mfc_num)
-	#if (NROWSPER != 1)
-		  / NROWSPER
-	#endif
-		  );
+      return(tm_info.t_stmp.secs +
+        FRACSECS(MFCtr-tm_info.t_stmp.mfc_num) / NROWSPER );
   }
   double dtime(void) {
-	  return(dbr_info.t_stmp.secs +
-		(double) FRACSECS(CurMFC-dbr_info.t_stmp.mfc_num)
-	#if (NROWSPER != 1)
-		  / NROWSPER
-	#endif
-		  );
+      return(tm_info.t_stmp.secs +
+        (double) FRACSECS(MFCtr-tm_info.t_stmp.mfc_num) / NROWSPER );
   }
   double etime(void) {
-	double t;
-	static double t0 = -1e9;
-	
-	t = dtime();
-	if (t0 == -1e9) t0 = t;
-	return(t - t0);
+    double t;
+    static double t0 = -1e9;
+    
+    t = dtime();
+    if (t0 == -1e9) t0 = t;
+    return(t - t0);
   }
 #endif
+
+/* Skeleton End of File */
