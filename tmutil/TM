@@ -1,0 +1,14 @@
+#! /bin/sh
+function nl_error {
+  echo TM: $* >&2
+  exit 1
+}
+
+exp=${Experiment-none}
+case $1 in
+  start) cmd="TM>";;
+  end) cmd="TMe";;
+  quit) cmd="";;
+  *) nl_error Unrecognized command;;
+esac
+echo $cmd >/dev/huarp/$exp/DG/cmd
