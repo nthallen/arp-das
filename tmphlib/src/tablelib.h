@@ -4,6 +4,10 @@
 
 #include <Pt.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern char *tbl_labelfont;
 extern char *tbl_fieldfont;
 void tbl_vert_sep( PtWidget_t *parent, int x, int y, int h, int dbl );
@@ -15,6 +19,10 @@ PtWidget_t *tbl_field( PtWidget_t *window, char *text, int x, int y, int w, int 
 PtWidget_t *tbl_window( char *title, int w, int h );
 void tbl_dispfield( PtWidget_t *field, char *text );
 int tbl_ExtentText( const char *font, const char *str, PhRect_t *extent );
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif
 
