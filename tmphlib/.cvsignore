@@ -5,3 +5,8 @@ configure config.log config.cache config.status
 autom4te.cache
 ltmain.sh
 x86
+config.guess
+config.sub
+depcomp
+install-sh
+missing
