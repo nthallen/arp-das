@@ -1,0 +1,128 @@
+/* colsend.c contains Col_send_init() and Col_send(), since one is
+   useless without the other. Col_send_reset() will probably go in
+   here also because I'm a little lazy, though it should be used
+   together with the other two, it is kinda optional also.
+   
+   See also collect.h for a description of the message-level protocol.
+   
+   My strategy with these functions is to be verbose with the init,
+   but to be quiet with the other functions. i.e. once a connection
+   is established, these functions will not fail in a big way.
+   If the DG were to go away, the Sendmx() would fail and I would
+   return an error code, but I won't be dying due to nl_response
+   for that kind of failure.
+*/
+#include <limits.h>
+#include <string.h>
+#include <errno.h>
+#include "collect.h"
+#include "nortlib.h"
+#include "nl_assert.h"
+char rcsid_colsend_c[] =
+  "$Header$";
+
+/* Establishes connection with collection */
+send_id Col_send_init(const char *name, void *data, unsigned short size, int blocking) {
+  char data_path[PATH_MAX], *dev_path;
+  send_id sender = NULL;
+  int fd;
+  
+  nl_assert( name != 0 && data != 0 );
+  snprintf( data_path, PATH_MAX-1, "DG/data/%s", name );
+  dev_path = tm_dev_name( data_path );
+  fd = open(dev_path, O_WRONLY | (blocking ? 0 : O_NONBLOCK) );
+  if ( fd < 0 ) {
+  	if (nl_response)
+  	  nl_error(nl_response,
+        "Col_send_init(%s) failed on open: %s", name, strerror(errno));
+    }
+    return NULL;
+  }
+  sender = (send_id)new_memory(sizeof(send_id_struct));
+  sender.fd = fd;
+  sender.data = data;
+  sender.data_size = size;
+  sender.rv = 0;
+  return sender;
+}
+
+/* return 0 on success, non-zero otherwise
+   Failure of the send is quiet, but causes an error return.
+ */
+int Col_send(send_id sender) {
+  nl_assert(sender != 0);
+  if ( sender->fd >= 0 ) {
+    int nb = write(sender->fd, sender->data, sender->data_size);
+    if ( nb == -1 ) {
+      sender->errno = errno;
+      return 1;
+    }
+    sender->errno = 0;
+    return 0;
+}
+
+/* returns zero on success, non-zero otherwise. Quiet */
+int Col_send_reset(send_id sender) {
+  if (sender != 0) {
+    if ( close(sender->fd) == -1 ) return 1;
+    free_memory(sender);
+  }
+  return 0;
+}
+
+/*
+=Name Col_send_init(): Initialize communication with collection
+=Subject Data Collection
+=Subject Startup
+=Name Col_send(): Send data to collection
+=Subject Data Collection
+=Name Col_send_reset(): Terminate communication with collection
+=Subject Data Collection
+
+=Synopsis
+
+#include "collect.h"
+send_id Col_send_init(const char *name, void *data, unsigned short size);
+int Col_send(send_id sender);
+int Col_send_reset(send_id sender);
+
+=Description
+
+  These functions define the standard approach for sending data
+  to collection. This is necessary whenever an auxilliary program
+  is generating data which needs to be fed into the telemetry
+  frame.<P>
+  
+  Col_send_init() initializes the connection, creating a data
+  structure to hold all the details. The name string must match the
+  name specified in the corresponding 'TM "Receive"' statement in
+  the collection program. Data points to where the data will be
+  stored, and size specifies the size of the data.<P>
+  
+  Whenever the data is updated, Col_send() should be called to
+  forward the data to collection.<P>
+  
+  On termination, Col_send_reset() may be called to provide an
+  orderly shutdown.
+
+=Returns
+
+  Col_send_init() returns a pointer to a structure which holds
+  the state of the connection. This pointer must be passed to
+  Col_send() or Col_send_reset(). On error, Col_send_init() will
+  return NULL unless =nl_response= indicates a fatal response.<P>
+  
+  Col_send() returns 0 on success, non-zero otherwise.
+  Failure of the send is quiet, but causes an error return.<P>
+  
+  Col_send_reset() returns 0 on success, non-zero otherwise. It
+  does not issue any diagnostic messages, since failure is
+  expected to be fairly common (Collection may quit before we get
+  around to our termination.)
+
+=SeeAlso
+
+  =Data Collection= functions.
+
+=End
+*/
