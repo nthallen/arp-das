@@ -840,24 +840,24 @@ static int process_tm_info( IOFUNC_OCB_T *ocb ) {
        && tm_info.nrowminf == 1 ) {
     Data_Queue.output_tm_type = TMTYPE_DATA_T3;
     Data_Queue.nbQrow -= 4;
-    Data_Queue.nbDataHdr = 8;
+    Data_Queue.nbDataHdr = TM_HDR_SIZE_T3;
+		ocb->rw.write.nbhdr_rec = TM_HDR_SIZE_T3;
 		ocb->rw.write.nbrow_rec = tmi(nbrow) - 4;
-		ocb->rw.write.nbhdr_rec = 8; //### Could be mnemonic
 		data_state_eval = data_state_T3;
   } else if ( tm_info.nrowminf == 1 ) {
     Data_Queue.output_tm_type = TMTYPE_DATA_T1;
-    Data_Queue.nbDataHdr = 6;
+    Data_Queue.nbDataHdr = TM_HDR_SIZE_T1;
+		ocb->rw.write.nbhdr_rec = TM_HDR_SIZE_T1;
 		data_state_eval = data_state_T1;
     if ( tmi(nbrow) <= 4 )
       nl_error( 3, "TM Frame with no non-synch data not supported" );
 		ocb->rw.write.nbrow_rec = tmi(nbrow);
-		ocb->rw.write.nbhdr_rec = 6; //### Could be mnemonic
 		data_state_eval = data_state_T1;
   } else {
     Data_Queue.output_tm_type = TMTYPE_DATA_T2;
-    Data_Queue.nbDataHdr = 10;
+    Data_Queue.nbDataHdr = TM_HDR_SIZE_T2;
+		ocb->rw.write.nbhdr_rec = TM_HDR_SIZE_T2;
 		ocb->rw.write.nbrow_rec = tmi(nbrow);
-		ocb->rw.write.nbhdr_rec = 10; //### Could be mnemonic
 		data_state_eval = data_state_T2;
   }
   Data_Queue.pbuf_size = Data_Queue.nbDataHdr + Data_Queue.nbQrow;
