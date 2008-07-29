@@ -1,6 +1,9 @@
 /* Skeleton headers section */
 /* colmain.skel Skeleton for collection main program
  * $Log$
+ * Revision 1.5  2008/07/29 18:57:10  ntallen
+ * Fixed handling of MFCtr, minf_row and majf_row
+ *
  * Revision 1.4  2008/07/23 17:41:07  ntallen
  * Compilation tweaks
  *
@@ -72,7 +75,7 @@ int main(int argc, char **argv) {
 
 %main_program%
 
-/* Skeleton pre_other section */
+/* Skeleton Collect_Row section */
 /**
  * Called from a slow timer to make sure we aren't drifting.
  */
@@ -144,51 +147,17 @@ void collector::Collect_Row() {
   incmod(collector::majf_row, NROWMAJF);
 }
 
-%pre_other%
+%Collect_Row%
 
-/* Skeleton COL_get_pointer section */
-%COL_get_pointer%
+/* Skeleton init_senders_head */
+void collector::init_senders() {
+%init_senders_head%
 
-/* Skeleton COL_recv_proxy section */
-static void COL_recv_proxy(pid_t sent_tid, pid_t *prx, pid_t proxy) {
-  if (*prx == 0) {
-	*prx = proxy;
-	reply_byte(sent_tid, DAS_OK);
-  } else reply_byte(sent_tid, DAS_UNKN);
+/* Skeleton init_senders_tail section */
 }
+%init_senders_tail%
 
-static void COL_end_proxy(pid_t sent_tid, pid_t *prx, struct colmsg *c) {
-  c->u.proxy = *prx;
-  c->type = *prx == 0 ? DAS_UNKN : DAS_OK;
-  *prx = 0;
-  Reply(sent_tid, c, sizeof(struct colmsg));
-}
-%COL_recv_proxy%
-
-/* Skeleton COL_send section */
-#ifdef COLRECVIMPLEMENTED
-#include <stddef.h>
-
-static void read_col_send( void *dest, size_t length,
-					struct colmsg *cmsg, pid_t sent_tid ) {
-  size_t trulen = min( length, cmsg->u.data.size );
-  if ( trulen <= MAX_COLMSG_SIZE-5 ) {
-	memcpy( dest, cmsg->u.data.data, trulen );
-  } else {
-	Readmsg( sent_tid,
-	  offsetof( struct colmsg, u.data.data ), dest, trulen );
-  }
-}
-#endif
-%COL_send%
-
-/* Skeleton DG_other_decls section */
-#ifdef COLRECVIMPLEMENTED
-%DG_other_decls%
-/* Skeleton DG_other_cases section */
-%DG_other_cases%
 /* Skeleton "rest of the file" section */
-#endif
 
 #ifdef NEED_TIME_FUNCS
   #define ROWS(x) (((unsigned long)(x))*NROWMINF+MINF_ROW)

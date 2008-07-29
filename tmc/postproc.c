@@ -1,6 +1,10 @@
 /* postproc.c Handles output processing after all the crucial code has
    been generated.
    $Log$
+   Revision 1.7  2008/07/21 16:27:05  ntallen
+   Output TM_DATA_TYPE
+   Omit mfcopy for TMTYPE_DATA_T3
+
    Revision 1.6  2008/07/17 17:52:29  ntallen
    Provide some different outputs
 
@@ -129,8 +133,11 @@ void post_processing(void) {
   Skel_copy(ofile, "main_program", !(compile_options & CO_NO_MAIN));
     
   /* Generate pointer and proxy sharing code if necessary */
-  if (Collecting) print_ptr_proxy();
-
+  if (Collecting) {
+    Skel_copy(ofile, "Collect_Row", 1);
+    print_ptr_proxy();
+  }
+  
   /* output remainder of skeleton */
   Skel_copy(ofile, NULL, 1);
 
