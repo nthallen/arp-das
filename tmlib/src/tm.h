@@ -35,6 +35,10 @@ typedef struct {
 #define TMTYPE_DATA_T2 0x0302
 #define TMTYPE_DATA_T3 0x0303
 #define TMTYPE_DATA_T4 0x0304
+#define TM_HDR_SIZE_T1 6
+#define TM_HDR_SIZE_T2 10
+#define TM_HDR_SIZE_T3 8
+ 
 
 /* Time stamp information */
 typedef struct {
