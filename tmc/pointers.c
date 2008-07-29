@@ -1,5 +1,8 @@
 /* pointers.c handles pointer sharing and proxy sharing.
  * $Log$
+ * Revision 1.3  2008/07/29 20:11:22  ntallen
+ * Changes for Col_send
+ *
  * Revision 1.2  2008/07/03 18:18:48  ntallen
  * To compile under QNX6 with minor blind adaptations to changes between
  * dbr.h and tm.h
@@ -41,7 +44,6 @@ static char ppp_has = 0;
 void add_ptr_proxy(char *type, char *name, int id) {
   struct ppp *npp;
   char type_code;
-  static int n_recvs = 0;
   
   if (stricmp(type, "\"pointer\"") == 0) type_code = PPP_PTR;
   else if (stricmp(type, "\"proxy\"") == 0) type_code = PPP_PROXY;
