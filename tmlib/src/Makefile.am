@@ -8,4 +8,4 @@ AM_CPPFLAGS = -I /usr/local/include
 ouidir = $(datadir)/oui
 oui_HEADERS = cic.oui cis.oui msghdr.oui
 tmcdir = $(datadir)/huarp
-tmc_HEADERS = flttime.tmc
+tmc_HEADERS = flttime.tmc root.cmd

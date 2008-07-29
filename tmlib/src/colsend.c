@@ -12,12 +12,14 @@
    return an error code, but I won't be dying due to nl_response
    for that kind of failure.
 */
+#include <unistd.h>
 #include <limits.h>
 #include <string.h>
 #include <errno.h>
 #include "collect.h"
 #include "nortlib.h"
 #include "nl_assert.h"
+#include "tm.h"
 char rcsid_colsend_c[] =
   "$Header$";
 
@@ -32,17 +34,16 @@ send_id Col_send_init(const char *name, void *data, unsigned short size, int blo
   dev_path = tm_dev_name( data_path );
   fd = open(dev_path, O_WRONLY | (blocking ? 0 : O_NONBLOCK) );
   if ( fd < 0 ) {
-  	if (nl_response)
-  	  nl_error(nl_response,
+    if (nl_response)
+      nl_error(nl_response,
         "Col_send_init(%s) failed on open: %s", name, strerror(errno));
-    }
     return NULL;
   }
-  sender = (send_id)new_memory(sizeof(send_id_struct));
-  sender.fd = fd;
-  sender.data = data;
-  sender.data_size = size;
-  sender.rv = 0;
+  sender = (send_id)nl_new_memory(sizeof(send_id_struct));
+  sender->fd = fd;
+  sender->data = data;
+  sender->data_size = size;
+  sender->err_code = 0;
   return sender;
 }
 
@@ -54,18 +55,19 @@ int Col_send(send_id sender) {
   if ( sender->fd >= 0 ) {
     int nb = write(sender->fd, sender->data, sender->data_size);
     if ( nb == -1 ) {
-      sender->errno = errno;
+      sender->err_code = errno;
       return 1;
     }
-    sender->errno = 0;
-    return 0;
+  }
+  sender->err_code = 0;
+  return 0;
 }
 
 /* returns zero on success, non-zero otherwise. Quiet */
 int Col_send_reset(send_id sender) {
   if (sender != 0) {
     if ( close(sender->fd) == -1 ) return 1;
-    free_memory(sender);
+    nl_free_memory(sender);
   }
   return 0;
 }

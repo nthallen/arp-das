@@ -1,6 +1,10 @@
 /* collect.h defines routines applications might use to
    communicate with collection.
    $Log$
+   Revision 1.1  2008/07/25 13:38:03  ntallen
+   Col_send functionality
+   Includes a proposed Col_Send class for C++
+
  * Revision 1.2  1994/11/22  14:53:44  nort
  * New functionality, C++ escapes.
  *
@@ -17,7 +21,7 @@
     public:
       Col_Send(char *name, void *data_in, int size_in, int synch);
       ~Col_Send();
-      send();
+      int send();
       int fd;
       int rv;
     private:
@@ -57,7 +61,7 @@ typedef struct {
   int fd;
   void *data;
   int data_size;
-  int rv;
+  int err_code;
 } send_id_struct, *send_id;
 
 send_id Col_send_init(const char *name, void *data, unsigned short size, int synch);

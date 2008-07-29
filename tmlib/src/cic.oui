@@ -16,7 +16,7 @@
 
 <include> "nortlib.h"
 <init>
-  cic_options(argc, argv, msg_hdr);
+  // cic_options(argc, argv, msg_hdr);
 
 <package> msghdr_init
 <init>
