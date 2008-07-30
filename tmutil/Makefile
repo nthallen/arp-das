@@ -1,11 +1,15 @@
-# QNX6/util
+# QNX6/tmutil
 #  This directory holds general-purpose utilities for
 #  The Anderson Group Data Acquisition System/QNX6
-BIN=TM
+BIN=TM appgen
 SBIN=promote
-.PHONY : install install-sbin install-bin
-install : install-sbin install-bin
+DATA=appgen.mk
+INSTALL=cp -vn
+.PHONY : install install-sbin install-bin install-data
+install : install-sbin install-bin install-data
 install-sbin :
-	cp $(SBIN) /usr/local/sbin
+	$(INSTALL) $(SBIN) /usr/local/sbin
 install-bin :
-	cp $(BIN) /usr/local/bin
+	$(INSTALL) $(BIN) /usr/local/bin
+install-data :
+	$(INSTALL) $(DATA) /usr/local/share/huarp
