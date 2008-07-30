@@ -1,4 +1,4 @@
-#include "Collector.h"
+#include "DGcol.h"
 
 collector::collector() : data_generator(4,1) {
   regulated = true;

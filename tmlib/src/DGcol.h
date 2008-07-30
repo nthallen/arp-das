@@ -1,5 +1,5 @@
-#ifndef COLLECTOR_H_INCLUDED
-#define COLLECTOR_H_INCLUDED
+#ifndef DGCOL_H_INCLUDED
+#define DGCOL_H_INCLUDED
 #include "DG_data.h"
 #include <list>
 
