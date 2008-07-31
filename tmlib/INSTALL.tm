@@ -5,7 +5,8 @@ After downloading from the CVS repository:
                          # May need to copy in ltmain.sh from
                          # /usr/local/share/libtool
   autoconf               # to generate configure
-  ./configure            # to generate Makefile src/Makefile
+                         # to generate Makefile src/Makefile:
+  ./configure CPPFLAGS=-I/usr/local/include
   make
   make install
 

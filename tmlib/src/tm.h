@@ -199,19 +199,6 @@ extern char *TM_buf;
   extern "C" {
 #endif
 
-/* Data Client library functions: */
-extern int TM_open_stream( int optimal );
-extern int TM_read_stream( int optimal );
-extern int TM_readfd(void);
-extern int TM_stream( int nbytes, const char *data );
-
-/*  Data Client application functions: */
-extern void TM_data( tm_msg_t *msg, int n_bytes );
-extern void TM_init( void );
-extern void TM_row( mfc_t mfctr, int row, const unsigned char *data );
-extern void TM_tstamp( int tstype, mfc_t mfctr, time_t time );
-extern void TM_quit( void );
-
 extern char *tm_dev_name(const char *base);
 extern int tm_open_name(const char *name, const char *node, int flags);
 
