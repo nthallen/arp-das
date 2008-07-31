@@ -1,0 +1,6 @@
+.deps
+.libs
+DCph.lo
+Makefile
+Makefile.in
+libdisp.la
