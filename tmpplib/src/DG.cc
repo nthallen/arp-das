@@ -181,7 +181,7 @@ int data_generator::execute(char *cmd) {
       case 'e': tm_stop(); break;
       case 's':
         if (started) tm_stop();
-        else single_step();
+        else service_row_timer(); /* single_step(); */
         break;
       case '>': tm_play(); break; // play
       case '+':

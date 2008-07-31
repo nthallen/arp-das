@@ -15,7 +15,7 @@
 int DG_tmr_pulse_func( message_context_t *ctp, int code,
         unsigned flags, void *handle ) {
   DG_tmr *tmr = (DG_tmr *)handle;
-  tmr->dg->service_timer();
+  tmr->dg->service_row_timer();
   return 0;
 }
 

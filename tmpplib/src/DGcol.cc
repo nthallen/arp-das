@@ -1,5 +1,8 @@
 #include "DGcol.h"
 
+unsigned short collector::majf_row = 0;
+unsigned short collector::minf_row = 0;
+
 collector::collector() : data_generator(4,1) {
   regulated = true;
   regulation_optional = false;
@@ -9,25 +12,12 @@ collector::~collector() {}
 
 void collector::init() {
   data_generator::init( 1 );
-  init_senders();
-  tminitfunc();
-}
-
-void collector::service_timer() {
-  Collect_Row();
-  transmit_data(0);
-}
-
-void collector::single_step() {
-  service_timer();
 }
 
 void collector::event(enum dg_event evt) {
   if ( evt == dg_event_start ) {
-    rowlets = 0;
     next_minor_frame = majf_row = 0;
     minf_row = 0;
-    ts_checks =  TSCHK_RTIME | TSCHK_REQUIRED;
   }
 }
 
