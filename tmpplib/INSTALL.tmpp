@@ -13,3 +13,9 @@
 
 # I used autoscan to get started on configure.ac
 # I used autoheader to generate config.h.in (which may not be necessary)
+
+# To clean totally:
+# make distclean
+# rm -rf autom4te.cache
+# rm aclocal.m4 configure Makefile.in src/Makefile.in
+# find . -type l | xargs rm
