@@ -6,6 +6,8 @@ libtmpp_la_SOURCES = DC.cc DC.h DG.cc DG.h DG_Resmgr.cc \
 include_HEADERS = DC.h DG.h DG_Resmgr.h DG_cmd.h DG_data.h \
   DG_tmr.h DQ.h DGcol.h
 
-AM_CPPFLAGS = -I /usr/local/include
-AM_CXX = cc
+# Need to set CPPFLAGS in configure, so this isn't necessary:
+# AM_CPPFLAGS = -I /usr/local/include
+
+CXX = cc
 AM_CXXFLAGS = -lang-c++
