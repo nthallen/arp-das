@@ -1,16 +1,18 @@
 # $1: PTGNode StringPrint
 # $2: PTGNode RulePrint
-# $2: PTGNode FieldPrint
+# $3: PTGNode FieldPrint
+# $4: table name (string)
 File:
   "%{\n"
   $1
   $2
   "  PtRealizeWidget(w);\n"
   "}\n%}\n\n"
+  "TM INITFUNC " $4 string "_init();\n"
   $3
   [ preview_loop ]
 
-# $1: table name (PTGNode)
+# $1: table name (string)
 # $2: N_Fields (int)
 Init:
   "/* phtable output */\n"

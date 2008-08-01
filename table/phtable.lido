@@ -6,7 +6,7 @@ ATTR PhotonSetup : VOID;
 
 SYMBOL Program COMPUTE
   SYNT.PhotonSetup = SetupPhoton(PreviewDisplay);
-  SYNT.TableName = get_table_name();
+  SYNT.TableName = get_table_name(InputFile);
 END;
 
 %----------------------------------------------------------------
@@ -398,11 +398,12 @@ CHAIN FieldPrint, StringPrint : PTGNode;
 SYMBOL Program COMPUTE
   CHAINSTART HEAD.StringPrint =
     PTGSeq(
-	  PTGInit( StringTable(INCLUDING Program.TableName), TAIL.DatumOffset ),
-	  PTGWindow( StringTable(INCLUDING Program.TableName),
+	  PTGInit( StringTable(THIS.TableName), TAIL.DatumOffset ),
+	  PTGWindow( StringTable(THIS.TableName),
 		ADD(SPACE(THIS.Height),1), ADD(SPACE(THIS.Width),1)));
   CHAINSTART HEAD.FieldPrint = PTGNULL;
-  PTGOut(PTGFile( TAIL.StringPrint, THIS.RulePrint, TAIL.FieldPrint ));
+  PTGOut(PTGFile( TAIL.StringPrint, THIS.RulePrint, TAIL.FieldPrint,
+  			StringTable(THIS.TableName) ));
 END;
 
 SYMBOL Table COMPUTE
