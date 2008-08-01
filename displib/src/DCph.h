@@ -5,6 +5,7 @@
 class ph_data_client : public data_client {
   public:
     ph_data_client( int bufsize_in, int fast = 1, int non_block = 1 );
+    void process_data();
     void operate();
     int read();
 };
