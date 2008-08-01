@@ -3,6 +3,10 @@
 #ifndef CMDALGO_H_INCLUDED
 #define CMDALGO_H_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void cmd_init(void);
 void cmd_interact(void);
 int cmd_batch(char *cmd, int test);
@@ -27,5 +31,9 @@ extern void cis_turf( IOFUNC_ATTR_T *handle, char *format, ... );
 void ci_server(void); /* in tmlib/cis.c */
 #define CMDSRVR_NAME "cmd/server"
 #define CMD_INTERP_MAX 256
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif

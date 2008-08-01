@@ -8,10 +8,9 @@
 #include "nl_assert.h"
                      /* <stdio.h>   Included by nortlib.h */
 #include "oui.h"
-#pragma off (unreferenced)
-  static char cg_rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char cg_rcsid[] =
+      "$Id$";
 
 /* iomode defines determine the mode of input.
    IO_BACKSPACE indicates that backspace should backup
@@ -128,6 +127,7 @@ static short ioflags;
   #include "curses.h"
   #include "scurses.h"
 #elif defined PHOTON_INTERFACE
+  #include <Pt.h>
   #include "nlphcmd.h"
 #endif
 
@@ -1313,6 +1313,7 @@ int cmd_check(cmd_state *s) {
       do cmd_interact(); while ( cgc_forwarding != 0 );
       PtEnter(0);
       PtExit(0);
+      return NULL;
     }
   #endif
 
