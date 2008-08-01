@@ -1,6 +1,9 @@
 /* Skeleton headers section */
 /* colmain.skel Skeleton for collection main program
  * $Log$
+ * Revision 1.6  2008/07/29 20:11:22  ntallen
+ * Changes for Col_send
+ *
  * Revision 1.5  2008/07/29 18:57:10  ntallen
  * Fixed handling of MFCtr, minf_row and majf_row
  *
@@ -25,7 +28,7 @@
 #include "nortlib.h"
 #include "oui.h"
 #include "tm.h"
-#include "Collector.h"
+#include "DGcol.h"
 
 static char cmrcsid[] =
       "$Id$";
@@ -56,8 +59,6 @@ int check_ts = 1;
   #define MINF_ROW collector::minf_row
   #define MINF_ROW_INC incmod(collector::minf_row,NROWMINF)
 #endif
-unsigned short collector::minf_row = 0;
-unsigned short collector::majf_row = 0;
 
 %data_defs%
 
@@ -67,8 +68,10 @@ unsigned short collector::majf_row = 0;
 // ### Collect_row() methods
 int main(int argc, char **argv) {
   // oui_init_options(argc, argv);
-  collector col;
+  tmc_collector col;
   col.init();
+  col.init_senders();
+  tminitfunc();
   col.operate();
   return 0;
 }
@@ -79,16 +82,24 @@ int main(int argc, char **argv) {
 /**
  * Called from a slow timer to make sure we aren't drifting.
  */
-void collector::ts_check() {
+void tmc_collector::ts_check() {
   rowlets -= TRN;
   if (rowlets < LOWLIM || rowlets > HIGHLIM)
     ts_checks = TSCHK_RTIME | TSCHK_CHECK;
 }
 
+void tmc_collector::event(enum dg_event evt) {
+  collector::event(evt);
+  if ( evt == dg_event_start ) {
+    rowlets = 0;
+    ts_checks =  TSCHK_RTIME | TSCHK_REQUIRED;
+  }
+}
+
 /**
  * Should come up with a test to guarantee that the right thing happens in all circumstances. 
  */
-void collector::Collect_Row() {
+void tmc_collector::service_row_timer() {
   time_t rtime;
   long dt;
   
@@ -145,12 +156,13 @@ void collector::Collect_Row() {
   commit_rows(MFCtr, MINF_ROW, 1);
   MINF_ROW_INC;
   incmod(collector::majf_row, NROWMAJF);
+  transmit_data(0);
 }
 
 %Collect_Row%
 
 /* Skeleton init_senders_head */
-void collector::init_senders() {
+void tmc_collector::init_senders() {
 %init_senders_head%
 
 /* Skeleton init_senders_tail section */
