@@ -38,17 +38,15 @@
 #
 # The following target types are supported:
 #   *algo   TMCBASE  dc usage
-#   *col    TMCBASE  dg usage T1 etc.
+#   *col    TMCBASE  dg usage privileged etc.
 #   *ext    TMCBASE  dc usage
 #   *disp   TMCBASE  dc usage
 #   *clt    CMDBASE  nl_cons, client usage
-#   *srvr   CMDBASE  T1
+#   *srvr   CMDBASE  privileged
 #   *doit
 #   *.dccc
 #   *.sft
 # The following source types are supported:
-#   *tmc.prt
-#   *ext.prt
 #   *.edf
 #   *.cfg
 #   *.tbl
@@ -57,19 +55,24 @@
 #   *.cyc
 #   *.tmc
 #	*.tmg
-#   *cmd.prt
 #   *.cmd
 #   *.c
+#   *.cc
 #   *.slp (soldrv proxy) ==> .sol and something else
 #   *.oui
 #   *.doit
 #   *.DR
-typeset subbus=yes cleandist=no
+function nl_error {
+  echo appgen: $* >&2
+  exit 1
+}
+
+typeset subbus=yes cleandist=yes
 while getopts "s" option; do
   case $option in
 	s) subbus=no;;
-	\?) echo; exit 1;;
-	*) echo Unsupported option: -$option; exit 1;;
+	\?) nl_error ;;
+	*) nl_error Unsupported option: -$option;;
   esac
 done
 let sval=$OPTIND-1
@@ -78,31 +81,20 @@ shift $sval
 typeset ifile
 if [ -n "$1" ]; then
   if [ -r $1 ]; then ifile=$1
-  else
-	echo Cannot find or read input file $1 >&2
-	exit 1
+  else nl_error Cannot find or read input file $1
   fi
 else
   for i in *.spec; do
-	if [ -r $i ]; then
-	  if [ -n "$ifile" ]; then
-		echo More than one .spec file found: *.spec >&2
-		exit 1
-	  else ifile=$i
-	  fi
-	fi
+    if [ -r $i ]; then
+      if [ -n "$ifile" ]; then
+	nl_error More than one .spec file found: *.spec
+      else ifile=$i
+      fi
+    fi
   done
 fi
 
-if [ -z "$ifile" ]; then
-  echo No .spec file specified and none found >&2
-  exit 1
-fi
-
-if [ -f Makefile -a Makefile -nt $ifile ]; then
-  echo Makefile is up to date relative to $ifile
-  exit 0
-fi
+[ -z "$ifile" ] && nl_error No .spec file specified and none found
 
 #----------------------------------------------------------------
 # Now redirect standard input and output to process the spec file
@@ -119,9 +111,9 @@ function is_member {
   typeset i set
   eval set=\"\$$1\"
   if [ -n "$set" ]; then
-	for i in $set; do
-	  if [ "$2" = "$i" ]; then return 0; fi
-	done
+    for i in $set; do
+      if [ "$2" = "$i" ]; then return 0; fi
+    done
   fi
   return 1
 }
@@ -131,9 +123,9 @@ function is_member {
 # returns false (1) if member was in set
 function add_member {
   if is_member $1 $2; then
-	return 1
+    return 1
   else
-	eval $1=\"\$$1 \$2\";
+    eval $1=\"\$$1 \$2\";
   fi
   return 0
 }
@@ -148,19 +140,17 @@ function set_depname {
   typeset old prefix suffix
   old=$1
   while :; do
-	prefix=${old%%[./]*}
-	if [ $old = $prefix ]; then break; fi
-	eval suffix=\${old#$prefix[./]}
-	old=${prefix}_$suffix
+    prefix=${old%%[./]*}
+    if [ $old = $prefix ]; then break; fi
+    eval suffix=\${old#$prefix[./]}
+    old=${prefix}_$suffix
   done
   eval prefix=\"\$n_$old\"
   if [ -n "$prefix" ]; then
-	if [ $prefix != $1 ]; then
-	  echo Name kludge conflict between $1 and $prefix >&2
-	  exit 1
-	fi
+    [ $prefix != $1 ] &&
+      nl_error Name kludge conflict between $1 and $prefix
   else
-	eval n_$old=$1
+    eval n_$old=$1
   fi
   depname=d_$old
 }
@@ -170,8 +160,7 @@ function set_depname {
 function in_this_dir {
   typeset bname
   bname=`basename $1`
-  if [ $bname = $1 ]; then return 0
-  fi
+  [ $bname = $1 ] && return 0
   return 1
 }
 
@@ -181,43 +170,36 @@ function def_target {
   tgt=$1; shift
   deps="$*"
   in_this_dir $tgt ||
-	{ echo Target $tgt is in another directory. >&2 &&
-	  exit 1; }
-  if is_member SRC $tgt; then
-	echo Target $tgt conflicts with previous source definition >&2
-	exit 1
-  fi
+    nl_error Target $tgt is in another directory.
+  is_member SRC $tgt &&
+    nl_error Target $tgt conflicts with previous source definition
   if add_member targets $tgt; then
-	if [ -n "$basetargets" ]; then OBJ="$OBJ $tgt"; fi
-	set_depname $tgt
-	eval $depname=\"\$deps\"
-	case $tgt in
-	  *.fld) add_member DISTRIB $tgt;;
-	esac
+    [ -n "$basetargets" ] && OBJ="$OBJ $tgt"
+    set_depname $tgt
+    eval $depname=\"\$deps\"
+    case $tgt in
+      *.fld) add_member DISTRIB $tgt;;
+    esac
   else
-	set_depname $tgt
-	eval dtdeps=\"\$$depname\"
-	if [ "$dtdeps" != "$deps" ]; then
-	  echo Dependencies for target $tgt conflict with previous definition >&2
-	  echo First: \"$dtdeps\" >&2
-	  echo Second: \"$deps\" >&2
-	  exit 1
-	fi
+    set_depname $tgt
+    eval dtdeps=\"\$$depname\"
+    if [ "$dtdeps" != "$deps" ]; then
+      echo Dependencies for target $tgt conflict with previous definition >&2
+      echo First: \"$dtdeps\" >&2
+      echo Second: \"$deps\" >&2
+      exit 1
+    fi
   fi
 }
 
 function def_source {
-  if is_member targets $1; then
-	echo Source File $1 previously identified as target. >&2
-	exit 1
-  fi
-  if in_this_dir $1; then
-	add_member SRC $1
-  fi
+  is_member targets $1 &&
+    nl_error Source File $1 previously identified as target.
+  in_this_dir $1 && add_member SRC $1
   case $1 in
-	*.fld) add_member DISTRIB $1;;
-	*.tma) add_member SRCDIST $1;;
-	*.sol) add_member SRCDIST $1;;
+    *.fld) add_member DISTRIB $1;;
+    *.tma) add_member SRCDIST $1;;
+    *.sol) add_member SRCDIST $1;;
   esac
 }
 
@@ -229,33 +211,33 @@ add_member IDISTRIB VERSION
 #----------------------------------------------------------------
 while read tgt mode deps; do
   case "$tgt" in
-	\#*) mode=#;;
-	NOSUBBUS) subbus=no; mode="";;
-	CLEANDIST) cleandist=yes; mode="";;
-	%%) break;;
+    \#*) mode=#;;
+    NOSUBBUS) subbus=no; mode="";;
+    CLEANDIST) cleandist=yes; mode="";;
+    %%) break;;
   esac
   if [ -n "$mode" ]; then
-	case "$mode" in
-	  \#) : ;;
-	  =) for i in $deps; do add_member $tgt $i; done;;
-	  :) case $tgt in
-		   *algo) deps="$tmcbase $deps";;
-		   *col) deps="$tmcbase $deps";;
-		   *ext) deps="$tmcbase $deps";;
-		   *disp) deps="$tmcbase $deps";;
-		   *clt) deps="$cmdbase $deps";;
-		   *srvr) deps="$cmdbase $deps"; SERVER=$tgt;;
-		   *doit) : ;;
-		   *.dccc) : ;;
-		   *.sft) : ;;
-		   *) : ;;
-		 esac
-		 for i in $deps; do
-		   def_source $i
-		 done
-		 def_target $tgt $deps;;
-	  *) echo Unknown mode $mode >&2 ;;
-	esac
+    case "$mode" in
+      \#) : ;;
+      =) for i in $deps; do add_member $tgt $i; done;;
+      :) case $tgt in
+	   *algo) deps="$tmcbase $deps";;
+	   *col) deps="$tmcbase $deps";;
+	   *ext) deps="$tmcbase $deps";;
+	   *disp) deps="$tmcbase $deps";;
+	   *clt) deps="$cmdbase $deps";;
+	   *srvr) deps="$cmdbase $deps"; SERVER=$tgt;;
+	   *doit) : ;;
+	   *.dccc) : ;;
+	   *.sft) : ;;
+	   *) : ;;
+	 esac
+	 for i in $deps; do
+	   def_source $i
+	 done
+	 def_target $tgt $deps;;
+      *) echo Unknown mode $mode >&2 ;;
+    esac
   fi
 done
 
@@ -273,13 +255,13 @@ fi
 
 if [ -n "$cmdbase" ]; then
   is_member targets ${prefix}clt || {
-	def_target ${prefix}clt $cmdbase
-	for i in $cmdbase; do def_source $i; done
+    def_target ${prefix}clt $cmdbase
+    for i in $cmdbase; do def_source $i; done
   }
   is_member targets ${prefix}srvr || {
-	def_target ${prefix}srvr $cmdbase
-	if [ -z "$SERVER" ]; then SERVER=${prefix}srvr; fi
-	for i in $cmdbase; do def_source $i; done
+    def_target ${prefix}srvr $cmdbase
+    if [ -z "$SERVER" ]; then SERVER=${prefix}srvr; fi
+    for i in $cmdbase; do def_source $i; done
   }
 fi
 
@@ -297,15 +279,15 @@ function replace_each {
   replaced=1
   from=$1; to=$2; rule="$3"; shift; shift; shift
   for rei in $*; do
-	ia=${rei%$from}
-	if [ $ia$from = $rei ]; then
-	  new_i=${ia##*/}$to
-	  if [ -n "$rule" ]; then rei="$rei\n\t$rule $rei"; fi
-	  def_target $new_i " $rei"
-	  rei=$new_i
-	  replaced=0
-	fi
-	redeps="$redeps $rei"
+    ia=${rei%$from}
+    if [ $ia$from = $rei ]; then
+      new_i=${ia##*/}$to
+      if [ -n "$rule" ]; then rei="$rei\n\t$rule $rei"; fi
+      def_target $new_i " $rei"
+      rei=$new_i
+      replaced=0
+    fi
+    redeps="$redeps $rei"
   done
   deps="$redeps"
   return $replaced
@@ -316,6 +298,7 @@ function replace_each {
 #  replace all files ending in the "from" pattern with a file
 #  of the name "to", suffixing the rule to the dependents list
 # Returns TRUE if the substitution was applied.
+# Redefines global variable deps
 #----------------------------------------------------------------
 function replace_all {
   typeset from to rule rai ia ra_deps new_deps replaced
@@ -323,19 +306,19 @@ function replace_all {
   replaced=1
   from=$1; to=$2; rule="$3"; shift; shift; shift
   for rai in $*; do
-	ia=${rai%$from}
-	if [ $ia$from = $rai ]; then
-	  if [ -z "$ra_deps" ]; then
-		new_deps="$new_deps $to"
-	  fi
-	  ra_deps="$ra_deps $rai"
-	else
-	  new_deps="$new_deps $rai"
-	fi
+    ia=${rai%$from}
+    if [ $ia$from = $rai ]; then
+      if [ -z "$ra_deps" ]; then
+	new_deps="$new_deps $to"
+      fi
+      ra_deps="$ra_deps $rai"
+    else
+      new_deps="$new_deps $rai"
+    fi
   done
   if [ -n "$ra_deps" ]; then
-	def_target $to "$ra_deps$rule$ra_deps"
-	replaced=0
+    def_target $to "$ra_deps$rule$ra_deps"
+    replaced=0
   fi
   deps=$new_deps
   return $replaced
@@ -343,23 +326,24 @@ function replace_all {
 
 #----------------------------------------------------------------
 # use_all from to rule dependents
-#  use all files ending in the "from" pattern with a file
+#  use all files ending in the "from" pattern to generate file
 #  of the name "to", suffixing the rule to the dependents list
+#  in the global variable 'deps'
 # Returns TRUE if the substitution was applied.
 #----------------------------------------------------------------
 function use_all {
   typeset from to rule rai ia ra_deps replaced
   
   replaced=1
-  from=$1; to=$2; rule="$3"; shift; shift; shift
+  from=$1; to=$2; rule="$3"; shift 3
   for rai in $*; do
-	ia=${rai%$from}
-	[ $ia$from = $rai ] && ra_deps="$ra_deps $rai"
+    ia=${rai%$from}
+    [ $ia$from = $rai ] && ra_deps="$ra_deps $rai"
   done
   if [ -n "$ra_deps" ]; then
-	def_target $to "$ra_deps$rule$ra_deps"
-	replaced=0
-	deps="$deps $to"
+    def_target $to "$ra_deps$rule$ra_deps"
+    replaced=0
+    deps="$deps $to"
   fi
   return $replaced
 }
@@ -372,72 +356,74 @@ basetargets="$targets"
 
 for i in $basetargets; do
   unset ouis
+  ltmpp='' # will become ' -ltmpp'
+  ltmph='' # will become ' -ltmph -lph'
+  ldisp='' # will become ' -ldisp -ltmph -lph'
+  cxx=''
   add_member TGT $i
   set_depname $i
   eval deps=\"\$$depname\"
-  replace_each tmc.prt .tmc "@\$(PRT2TMC)" $deps
-  replace_each cmd.prt .cmd "@\$(PRT2CMD)" $deps
-  replace_each ext.prt .edf "@\$(PRT2EDF)" $deps
-  # This is a test:
   use_all .edf ${i}edf.oui "\n\t\$(EDF2OUI)" $deps
   replace_each .edf ext.tmc "\$(EDF2EXT)" $deps
-  replace_each .cfg attr.tmc "\$(DATAATTR)" $deps
+  # replace_each .cfg attr.tmc "\$(DATAATTR)" $deps
   replace_each .cyc cyc.tmc  "\$(CYCLE)" $deps
-  replace_each .tbl .fld "\$(TABLE)" $deps
-  replace_all .fld $i.tmc "\n\t\$(FLD2DISP)" $deps &&
-	add_member ouis nl_cons
+  replace_each .tbl tbl.tmc "\$(TABLE)" $deps &&
+    ldisp=' -ldisp -ltmph -lph'
+  # replace_all .fld $i.tmc "\n\t\$(FLD2DISP)" $deps &&
+  #   add_member ouis nl_cons
   replace_all .tmg ${i}tmg.tmc "\n\t\$(TMG2TMC)" $deps &&
 	add_member ouis tmg
   replace_each .DR ${i}DR.tmc 'DR2tmc >$@' $deps &&
 	add_member ouis drext
   if replace_all .tma ${i}a.tmc " $SERVER\n\t\$(SERVER) $SERVER\n\t\$(TMCALGO)" $deps
   then
-	if [ -z "$SERVER" ]; then
-	  echo No command server defined >&2; exit 1
-	fi
-	add_member ouis tma
+    [ -z "$SERVER" ] &&
+      nl_error No command server defined
+    add_member ouis tma
   fi
   case $i in
-	*col)
-	  if replace_all .tmc $i.c "\n\t\$(TMC.col)" $deps; then
-		add_member ouis collect
-		add_member ouis seteuid
-		[ "$subbus" = "yes" ] && add_member ouis subbus_reqd
-		add_member DISTRIB ${i%col}.pcm
-		add_member DISTRIB tm.dac
-		add_member OBJ ${i%col}.pcm
-		add_member OBJ tm.dac
-	  fi;;
-	*)
-	  replace_all .tmc $i.c "\n\t\$(TMC)" $deps &&
-		add_member ouis dc;;
+    *col)
+      if replace_all .tmc $i.cc "\n\t\$(TMC.col)" $deps; then
+	add_member ouis collect
+	add_member ouis seteuid
+	# [ "$subbus" = "yes" ] && add_member ouis subbus_reqd
+	add_member DISTRIB ${i%col}.pcm
+	add_member DISTRIB tm.dac
+	add_member OBJ ${i%col}.pcm
+	add_member OBJ tm.dac
+	ltmpp=' -ltmpp'
+      fi;;
+    *)
+      replace_all .tmc $i.cc "\n\t\$(TMC)" $deps &&
+	add_member ouis dc && ltmpp=' -ltmpp';;
   esac
   case $i in
-	*sft)
-	  replace_each .slp slp.sol "\$(SLP2SOL)" $deps;;
+    *sft)
+      replace_each .slp slp.sol "\$(SLP2SOL)" $deps;;
     *)
-	  replace_all .slp ${prefix}slp.cmd "\n\t\$(SLP2CMD)" $deps;;
+      replace_all .slp ${prefix}slp.cmd "\n\t\$(SLP2CMD)" $deps;;
   esac
   if replace_all .cmd ${prefix}cmd.c "\n\t\$(CMDGEN) -d ${prefix}cmd.dat" $deps
   then
-	add_member OBJ ${prefix}cmd.dat
+    add_member OBJ ${prefix}cmd.dat
   fi
   case $i in
-	*clt)
-	  if replace_all cmd.c $i.o "\n\t\$(COMPILE.clt)" $deps; then
-		add_member ouis kbdclt
-	  else
-		echo Client $i with no cmd.c files >&2; exit 1;
-	  fi;;
-	*srvr)
-	  if replace_all cmd.c $i.o "\n\t\$(COMPILE.srvr)" $deps
-	  then
-		add_member ouis server
-		add_member ouis seteuid
-		[ "$subbus" = "yes" ] && add_member ouis subbus_opt
-	  else
-		echo Server $i with no cmd.c files >&2; exit 1;
-	  fi;;
+    *clt)
+      if replace_all cmd.c $i.o "\n\t\$(COMPILE.clt)" $deps; then
+	add_member ouis kbdclt
+	ltmph=' -ltmph -lph'
+      else
+	nl_error Client $i with no cmd.c files
+      fi;;
+    *srvr)
+      if replace_all cmd.c $i.o "\n\t\$(COMPILE.srvr)" $deps
+      then
+	add_member ouis server
+	add_member ouis seteuid
+	# [ "$subbus" = "yes" ] && add_member ouis subbus_opt
+      else
+	nl_error Server $i with no cmd.c files
+      fi;;
   esac
   #----------------------------------------------------------------
   # We'll delay handling the rest of the .c files (and the .oui files)
@@ -446,35 +432,36 @@ for i in $basetargets; do
 
   unset LINK
   case $i in
-	*col)   LINK=priv;;
-	*clt)   LINK=norm;;
-	*srvr)  LINK=priv;;
-	*.dccc) por="\$(LIBSRC)/dccc.por"
-			deps="$deps $por\n\t@\$(DCCC)$deps";;
-	*.sft)  set -- $deps
-			if [ $# -gt 1 ]; then
-			  deps="$deps\n\t\$(SOLFMT) $deps"
-			else
-			  deps="$deps\n\tsolfmt -o$i $deps"
-			fi;;
-	*doit)	deps="$deps\n\tmkdoit2 -o $i $deps && chmod a+x $i"
-		    add_member IDISTRIB $i;;
-	*)      LINK=norm;;
+    *col)   LINK=priv;;
+    *clt)   LINK=norm;;
+    *srvr)  LINK=priv;;
+    *.dccc) por="\$(LIBSRC)/dccc.por"
+	    deps="$deps $por\n\t@\$(DCCC)$deps";;
+    *.sft)  set -- $deps
+	    if [ $# -gt 1 ]; then
+	      deps="$deps\n\t\$(SOLFMT) $deps"
+	    else
+	      deps="$deps\n\tsolfmt -o$i $deps"
+	    fi;;
+    *doit)	deps="$deps\n\tmkdoit2 -o $i $deps && chmod a+x $i"
+	      add_member IDISTRIB $i;;
+    *)      LINK=norm;;
   esac
 
   if [ -n "$LINK" ]; then
-	unset ouifiles ouiout
-	add_member ouis msg
-	for j in $ouis; do
-	  ouifiles="$ouifiles \$(OUIDIR)/$j.oui"
-	done
-	deps="$deps$ouifiles"
-	replace_all .oui ${i}oui.c "\n\t\$(OUI)" $deps &&
-	  ouiout=${i}oui.c
-	replace_each .c .o "" $deps
-	deps="$deps\n\t\$(LINK.$LINK)$deps"
-	[ -n "$ouiout" ] &&	deps="$deps\n\t\$(OUIUSE) $ouiout"
-	if [ $LINK = priv ]; then deps="$deps\n\tpromote $i"; fi
+    unset ouifiles ouiout
+    add_member ouis msg
+    for j in $ouis; do
+      ouifiles="$ouifiles \$(OUIDIR)/$j.oui"
+    done
+    deps="$deps$ouifiles"
+    replace_all .oui ${i}oui.c "\n\t\$(OUI)" $deps &&
+      ouiout=${i}oui.c
+    replace_each .c .o "" $deps
+    replace_each .cc .o "" $deps && cxx=' -lang-c++'
+    deps="$deps\n\t\$(LINK.$LINK)$deps$ldisp$ltmph$ltmpp -ltm -lnort$cxx"
+    [ -n "$ouiout" ] &&	deps="$deps\n\t\$(OUIUSE) $ouiout"
+    if [ $LINK = priv ]; then deps="$deps\n\t\$(PROMOTE) $i"; fi
   fi
 
   set_depname $i
@@ -495,14 +482,14 @@ function output_macro {
   echo -n "$name="
   width=${#name}+1
   for i in $*; do
-	let width=$width+${#i}+1
-	if [ $width -ge 70 ]; then
-	  echo -n "$line\n$name+="
-	  width=${#name}+2+${#i}
-	  line=$i
-	elif [ -n "$line" ]; then line="$line $i"
-	else line="$i"
-	fi
+    let width=$width+${#i}+1
+    if [ $width -ge 70 ]; then
+      echo -n "$line\n$name+="
+      width=${#name}+2+${#i}
+      line=$i
+    elif [ -n "$line" ]; then line="$line $i"
+    else line="$i"
+    fi
   done
   echo "$line"
 }
@@ -551,10 +538,12 @@ echo 'DSTRB=$(TGT) $(DISTRIB) $(SCRIPT)'
 if [ -n "$TGTNODE" ]; then echo TGTNODE=$TGTNODE; fi
 if [ -n "$TGTDIR" ]; then echo TGTDIR=$TGTDIR; fi
 
-echo "include /usr/local/lib/src/appgen.mk"
+echo 'include /usr/local/share/huarp/appgen.mk'
 echo
-echo 'all : $(TGT)'
-if [ $cleandist = yes ]; then
+echo 'all : Makefile $(TGT)'
+echo "Makefile : $ifile"
+echo "\tappgen $ifile"
+  # This was the cleandist option. No longer optional
   echo 'VERSION=`cat VERSION`'
   echo 'extdistribution : $(DSTRB) $(SRCDIST)'
   echo "\tmkdir -p \$(TGTDIR)/bin/\$(VERSION)/Base"
@@ -562,10 +551,6 @@ if [ $cleandist = yes ]; then
   echo "\tdistribute \$(FORCE) \$(TGTDIR)/bin/\$(VERSION)/Base \$(SRCDIST)"
   echo 'distribution : extdistribution'
   echo "\tdistribute \$(FORCE) \$(TGTDIR) \$(IDISTRIB)"
-else
-  echo 'distribution : $(DSTRB) $(SRCDIST)'
-  echo "\tdistribute \$(FORCE) \$(TGTDIR) \$(DSTRB) \$(SRCDIST); :\n"
-fi
 
 for i in $targets; do
   set_depname $i
