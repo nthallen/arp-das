@@ -37,6 +37,7 @@ static char *mlf_config = NULL;
 #define MSG_HDR_SIZE 8
 static char msg_hdr[MSG_HDR_SIZE];
 static int quit_received = 0;
+ssp_config_t ssp_config;
 
 void sspdrv_init( int argc, char **argv ) {
   int c;
@@ -94,11 +95,23 @@ static void report_invalid( char *head ) {
   nl_error( 2, "Invalid command received: '%s'", head );
 }
 
+static unsigned int limit_range( char *var, unsigned int val,
+   unsigned int low, unsigned int high ) {
+  if ( val < low ) {
+  	val = low;
+    nl_error(2, "Value for '%s' too low: using %d", var, val );
+  } else if ( val > high ) {
+  	val = high;
+    nl_error(2, "Value for '%s' too high: using %d", var, val );
+  }
+  return val;
+}
+
 /** Read a command line from cmd_fd (cmd/SSPn)
  I will accept space-delimited combinations of the following:
  Commands:
    Allowed when not acquiring:
-    EN Enable
+    -EN Enable
     NS:xxxx N_Samples
     NA:xxxx N_Average (Pre-Adder)
     NC:xxxx N_Coadd
@@ -106,7 +119,7 @@ static void report_invalid( char *head ) {
     NE:x 1-7 bit-mapped Specifies which channels are enabled
 
    Allowed anytime:
-    DA Disable
+    -DA Disable
     NU:[-]xxxxx Level Trigger Rising
     ND:[-]xxxxx Level Trigger Falling
     NT:x (0-3) Specifies the trigger source
@@ -123,7 +136,7 @@ static void report_invalid( char *head ) {
 void read_cmd( int cmd_fd ) {
   char buf[CMDEE_BUFSIZE], *head, *tail;
   int nb;
-  nb = read( cmd_fd, buf, CMDEE_BUFSIZE-2 );
+  nb = read( cmd_fd, buf, CMDEE_BUFSIZE-1 );
   if ( nb == -1 )
     nl_error(3, "Error reading from cmd/SSP: %s", strerror(errno) );
   if ( nb == 0 ) {
@@ -133,29 +146,26 @@ void read_cmd( int cmd_fd ) {
     strcpy(buf, "DA");
     nb = strlen(buf);
   }
-  nl_assert(nb < CMDEE_BUFSIZE-1);
-  // Put two NULs at the end of the buffer
-  buf[nb] = buf[nb+1] = '\0';
+  nl_assert(nb < CMDEE_BUFSIZE);
+  buf[nb] = '\0';
   head = buf;
   while ( *head ) {
     while ( isspace(*head) ) ++head;
     tail = head;
-    switch (*tail) {
+    switch (*head) {
       case 'E':
         if ( *++tail != 'N' || !is_eocmd(*++tail) ) {
           report_invalid(head);
           return;
         }
-        *tail = '\0';
         if ( udp_state != FD_IDLE ) {
           nl_error( 2, "EN not valid: Already enabled" );
           return;
         }
-        { int udp_port = udp_create();
+        { ssp_config.NP = udp_create();
           char udp_buf[20];
-          snprintf(udp_buf, 20, "NP:%d", udp_port);
-          tcp_queue(udp_buf);
-          tcp_queue(head);
+          snprintf(udp_buf, 20, "NP:%d", ssp_config.NP);
+          tcp_enqueue(udp_buf);
         }
         break;
       case 'D':
@@ -163,14 +173,81 @@ void read_cmd( int cmd_fd ) {
           report_invalid(head);
           return;
         }
-        *tail = '\0';
         udp_close();
-        tcp_queue(head);
+        break;
+      case 'A':
+        switch (*++tail) {
+          case 'E':
+          case 'D':
+            if ( is_eocmd(*++tail) ) break;
+            // else fall through
+          default:
+            report_invalid(head);
+            return;
+        }
         break;
       case 'N':
-      case 'A':
+        if ( !is_eocmd(*++tail) && *++tail == ':' ) {
+          char *num = ++tail;
+          unsigned int newval;
+          if ( *tail == '-' ) ++tail;
+          if ( !isdigit(*tail) ) {
+            report_invalid(head);
+            return;
+          }
+          while ( isdigit(*tail) ) ++tail;
+          if ( !is_eocmd(*tail) ) {
+            report_invalid(head);
+            return;
+          }
+          newval = atoi(num);
+          switch (head[1]) {
+            case 'S':
+            case 'A':
+            case 'C':
+            case 'F':
+            case 'E':
+              if ( udp_state != FD_IDLE ) {
+                *tail = '\0';
+                nl_error( 2, "Command invalid while SSP is enabled: '%s'", head );
+                return;
+              }
+              break;
+            case 'U':
+            case 'D':
+            case 'T':
+              break;
+            default:
+              report_invalid(head);
+              return;
+          }
+          switch (head[1]) {
+            case 'S': ssp_config.NS = newval; break;
+            case 'A': ssp_config.NA = newval; break;
+            case 'C': ssp_config.NC = newval; break;
+            case 'F': ssp_config.NF = newval; break;
+            case 'E': ssp_config.NE = newval; break;
+            case 'U': break;
+            case 'D': break;
+            case 'T': break;
+            default:
+              nl_error(4,"Impossible");
+          }
+          break;
+        } else {
+          report_invalid(head);
+          return;
+        }
+      default:
+        report_invalid(head);
+        return;
     }
-    head = tail+1;
+    { char save_char = *tail;
+      *tail = '\0';
+      tcp_enqueue(head);
+      *tail = save_char;
+      head = tail;
+    }
   }
 }
 
@@ -183,7 +260,12 @@ int main( int argc, char **argv ) {
   
   oui_init_options(argc, argv);
   // ### initialize connection to memo
+  udp_close(); // Initialize ssp_config and udp_state
   mlf = mlf_init( 3, 60, 1, msg_hdr, "dat", mlf_config );
+  ssp_data.index = mlf->index;
+  ssp_data.ScanNum = 0;
+  ssp_data.Flags = 0;
+  ssp_data.Total_Skip = 0;
   cmd_fd = cmdee_init( msg_hdr );
   tm_data = Col_send_init(msg_hdr, &ssp_data, sizeof(ssp_data), 0);
   tcp_fd = tcp_create(board_id);
@@ -226,7 +308,10 @@ int main( int argc, char **argv ) {
     if ( udp_state == FD_READ && FD_ISSET( udp_fd, &readfds ) )
       udp_recv();
     if ( FD_ISSET(cmd_fd, &readfds) ) read_cmd( cmd_fd );
-    if ( FD_ISSET(tm_data->fd, &writefds ) ) Col_send(tm_data);
+    if ( FD_ISSET(tm_data->fd, &writefds ) ) {
+      Col_send(tm_data);
+      ssp_data.Flags &= ~SSP_OVF_MASK;
+    }
     if ( FD_ISSET(tcp_fd, &readfds ) ) tcp_recv();
     if ( FD_ISSET(tcpfd, &writefds ) ) tcp_send();
   }
