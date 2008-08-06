@@ -3,9 +3,11 @@
 #define SSP_INT_H_INCLUDED
 
 #include "sspdrv.h"
-enum fdstate ( FD_IDLE, FD_READ, RD_WRITE );
+#include "mlf.h"
+enum fdstate { FD_IDLE, FD_READ, FD_WRITE };
 extern enum fdstate tcp_state, udp_state;
 
+extern void sspdrv_init(int argc, char **argv);
 extern int tcp_create( int board_id );
 extern void tcp_enqueue( char *cmd );
 extern int tcp_send(void);

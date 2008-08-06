@@ -1,0 +1,4 @@
+<package> sspdrv
+<include> "sspdrv.h"
+<opts> "b:N:"
+<init> sspdrv_init(argc, argv);

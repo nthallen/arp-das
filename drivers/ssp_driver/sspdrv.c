@@ -313,7 +313,7 @@ int main( int argc, char **argv ) {
       ssp_data.Flags &= ~SSP_OVF_MASK;
     }
     if ( FD_ISSET(tcp_fd, &readfds ) ) tcp_recv();
-    if ( FD_ISSET(tcpfd, &writefds ) ) tcp_send();
+    if ( FD_ISSET(tcp_fd, &writefds ) ) tcp_send();
   }
   // ### Add shutdown stuff
 }

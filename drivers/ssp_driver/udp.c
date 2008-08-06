@@ -1,6 +1,11 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include "nortlib.h"
 #include "nl_assert.h"
 #include "sspint.h"
