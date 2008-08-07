@@ -101,7 +101,7 @@ static void report_invalid( char *head ) {
     NS:xxxx N_Samples
     NA:xxxx N_Average (Pre-Adder)
     NC:xxxx N_Coadd
-    NF:xx      Frequency Divisor
+    NF:xx      Frequency (translate to a divisor)
     NE:x 1-7 bit-mapped Specifies which channels are enabled
 
    Allowed anytime:
@@ -211,7 +211,14 @@ void read_cmd( int cmd_fd ) {
             case 'S': ssp_config.NS = newval; break;
             case 'A': ssp_config.NA = newval; break;
             case 'C': ssp_config.NC = newval; break;
-            case 'F': ssp_config.NF = newval; break;
+            case 'F':
+              { char div_buf[80];
+                ssp_config.NF = 100000000/newval;
+                snprintf(div_buf, 80, "NF:%d", ssp_config.NF );
+                tcp_enqueue(div_buf);
+              }
+              head = tail;
+              continue;
             case 'E': ssp_config.NE = newval; break;
             case 'U': break;
             case 'D': break;
