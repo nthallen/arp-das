@@ -21,10 +21,10 @@
    tcp_fd: ssp TCP: alternately reading and writing: IDLE,WRITE,READ
    udp_fd: ssp UDP: open and closed, always reading: IDLE,READ
  */
-#include <string.h> // For cmdee_init
-#include <errno.h> // For cmdee_init
 #include <fcntl.h> // For cmdee_init
 #include <sys/select.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include "oui.h"
 #include "nortlib.h"
 #include "nl_assert.h"
@@ -38,6 +38,7 @@ static char *mlf_config = NULL;
 static char msg_hdr[MSG_HDR_SIZE];
 static int quit_received = 0;
 ssp_config_t ssp_config;
+ssp_data_t ssp_data;
 
 void sspdrv_init( int argc, char **argv ) {
   int c;
@@ -81,30 +82,15 @@ static int cmdee_init( char *cmd_node ) {
   return fd;
 }
 
-// define ssp_data_t structure in sspdrv.h
-static ssp_data_t ssp_data;
-
 static int is_eocmd( char c ) {
   return c == '\0' || isspace(c);
 }
 
 static void report_invalid( char *head ) {
   char *tail = head;
-  while ( !is_eocmd(tail) ) ++tail;
+  while ( !is_eocmd(*tail) ) ++tail;
   *tail = '\0';
   nl_error( 2, "Invalid command received: '%s'", head );
-}
-
-static unsigned int limit_range( char *var, unsigned int val,
-   unsigned int low, unsigned int high ) {
-  if ( val < low ) {
-  	val = low;
-    nl_error(2, "Value for '%s' too low: using %d", var, val );
-  } else if ( val > high ) {
-  	val = high;
-    nl_error(2, "Value for '%s' too high: using %d", var, val );
-  }
-  return val;
 }
 
 /** Read a command line from cmd_fd (cmd/SSPn)
@@ -306,7 +292,7 @@ int main( int argc, char **argv ) {
     if ( n_ready == -1 ) nl_error( 3, "Error from select: %s", strerror(errno));
     if ( n_ready == 0 ) nl_error( 3, "select() returned zero" );
     if ( udp_state == FD_READ && FD_ISSET( udp_fd, &readfds ) )
-      udp_recv();
+      udp_read(mlf);
     if ( FD_ISSET(cmd_fd, &readfds) ) read_cmd( cmd_fd );
     if ( FD_ISSET(tm_data->fd, &writefds ) ) {
       Col_send(tm_data);
@@ -316,4 +302,5 @@ int main( int argc, char **argv ) {
     if ( FD_ISSET(tcp_fd, &writefds ) ) tcp_send();
   }
   // ### Add shutdown stuff
+  return 0;
 }

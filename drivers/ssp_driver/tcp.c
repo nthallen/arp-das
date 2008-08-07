@@ -1,7 +1,9 @@
+#include <ctype.h>
+#include "nl_assert.h"
 #include "sspint.h"
 
 static int tcp_socket;
-enum fd_state tcp_state = FD_IDLE;
+enum fdstate tcp_state = FD_IDLE;
 
 #define TCP_QSIZE 20
 #define TCP_SEND_SIZE 30
@@ -82,7 +84,7 @@ int tcp_send(void) {
   rv = send( tcp_socket, cmd, cmdlen, 0);
   if ( rv != cmdlen )
     nl_error(3, "Send failed: %d: errno = %d\n", rv, errno );
-  tcp_state = FD_READ );
+  tcp_state = FD_READ;
   return 0;
 }
 
@@ -103,7 +105,8 @@ int tcp_recv() {
     for ( i = 0; i < rv && isdigit(recv_buf[i]); i++ ) {
       rnum = rnum*10 + recv_buf[i] - '0';
     }
-    nl_error( -2, "tcp_send: returning %d, %d from command %s", rv, rnum, cmd );
+    nl_error( -2, "tcp_send: returning %d, %d from command %s",
+	      rv, rnum, tcp_queue.q[tcp_queue.front] );
     rv = rnum;
   }
   tcp_queue.full = 0;

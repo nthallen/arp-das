@@ -2,7 +2,16 @@
 #ifndef SSPINT_H_INCLUDED
 #define SSP_INT_H_INCLUDED
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
 #include "sspdrv.h"
+#include "ssp_ad.h"
 #include "mlf.h"
 enum fdstate { FD_IDLE, FD_READ, FD_WRITE };
 extern enum fdstate tcp_state, udp_state;
@@ -15,6 +24,9 @@ extern int tcp_recv(void);
 extern int udp_create(void);
 extern int udp_receive(long int *scan, size_t length );
 extern void udp_close(void);
+extern void udp_read(mlf_def_t *mlf);
+
+#define RECV_BUF_SIZE SSP_MAX_CTRL_MSG
 
 typedef struct {
 	unsigned short NS, NA, NC;

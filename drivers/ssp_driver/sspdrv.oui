@@ -1,4 +1,16 @@
 <package> sspdrv
-<include> "sspdrv.h"
-<opts> "b:N:"
+<include> "sspint.h"
+
 <init> sspdrv_init(argc, argv);
+
+<opts> "b:N:"
+<sort>
+	-b <board_id> Identify which SSP we are talking to
+	-N <logging config>
+
+<unsort>
+<blank>
+Logging config is a path string identifying the last
+file previously written and implicitly the next file
+to write. This is usually the direct output of the
+mlf_find script: sspdrv -b3 -N `mlf_find SSP3`

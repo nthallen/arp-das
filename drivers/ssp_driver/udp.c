@@ -1,17 +1,10 @@
-#include <string.h>
-#include <errno.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 #include "nortlib.h"
 #include "nl_assert.h"
 #include "sspint.h"
 
 static int udp_socket;
-enum fd_state tcp_state = FD_IDLE;
+enum fdstate udp_state = FD_IDLE;
 
 static long int scan_buf[SSP_CLIENT_BUF_LENGTH];
 static long int scan0 = 6, scan1, scan5 = 0l;
@@ -97,8 +90,8 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
   ssp_scan_header_t *hdr = (ssp_scan_header_t *)scan;
   long int *idata = scan+hdr->NWordsHdr;
   float *fdata = (float *)idata;
-  time_t now;
-  static time_t last_rpt = 0;
+  // time_t now;
+  // static time_t last_rpt = 0;
   float divisor = 1/(hdr->NCoadd * (float)(hdr->NAvg+1));
   int my_scan_length = hdr->NSamples * hdr->NChannels;
 
@@ -154,7 +147,7 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
     nl_error( 1, "%lu: scan[5] = %08lX (not %08lX)\n", mlf->index, scan[5], scan5 );
 }
 
-void udp_read(mlf_def_t mlf) {
+void udp_read(mlf_def_t *mlf) {
   int n = udp_receive(scan_buf+cur_word,
     cur_word ? MAX_UDP_PAYLOAD : SSP_MAX_SCAN_SIZE);
   if ( n < 0 )
