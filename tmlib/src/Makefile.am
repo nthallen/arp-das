@@ -3,7 +3,7 @@ libtm_la_SOURCES = cic.c cictrans.c cis.c cis.h \
    tm_dev_name.c tm_open_name.c company.h cis_stubs.c timetext.c \
    tmctime.h colsend.c collect.h tm_info.c
 
-include_HEADERS = tm.h tmctime.h collect.h
+include_HEADERS = tm.h tmctime.h collect.h hsatod.h
 
 # Need to set CPPFLAGS when running configure (so it can find
 #  cmdalgo.h) Then this is unnecessary
