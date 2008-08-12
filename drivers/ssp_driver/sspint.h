@@ -34,6 +34,7 @@ typedef struct {
 	unsigned short NE;
   unsigned short NF; /* Frequency Divisor */
 	int NP; /* udp port number */
+  int LE; /* logging enabled */
 } ssp_config_t;
 extern ssp_config_t ssp_config;
 extern ssp_data_t ssp_data;

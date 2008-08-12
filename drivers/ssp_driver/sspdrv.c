@@ -111,6 +111,8 @@ static void report_invalid( char *head ) {
     NT:x (0-3) Specifies the trigger source
     AE Autotrig Enable
     AD Autotrig Disable
+    LE Logging Enable
+    LD Logging Disable
 
    Never allowed:
     EX Quit: don't do it!
@@ -169,6 +171,31 @@ void read_cmd( int cmd_fd ) {
           case 'D':
             if ( is_eocmd(*++tail) ) break;
             // else fall through
+          default:
+            report_invalid(head);
+            return;
+        }
+        break;
+      case 'L':
+        switch (*++tail) {
+          case 'E':
+            if ( is_eocmd(*++tail) ) {
+              ssp_config.LE = 1;
+              head = tail;
+              continue;
+            } else {
+              report_invalid(head);
+              return;
+            }
+          case 'D':
+            if ( is_eocmd(*++tail) ) {
+              ssp_config.LE = 0;
+              head = tail;
+              continue;
+            } else {
+              report_invalid(head);
+              return;
+            }
           default:
             report_invalid(head);
             return;
@@ -254,6 +281,7 @@ int main( int argc, char **argv ) {
   fd_set readfds, writefds;
   
   oui_init_options(argc, argv);
+  ssp_config.LE = 1; // Logging enabled by default
   // ### initialize connection to memo
   udp_close(); // Initialize ssp_config and udp_state
   mlf = mlf_init( 3, 60, 1, msg_hdr, "dat", mlf_config );
