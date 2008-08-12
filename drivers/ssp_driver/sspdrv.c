@@ -124,7 +124,6 @@ static char *read_num( char *head, int *newval ) {
   char *tail = head;
   if ( !is_eocmd(*++tail) && *++tail == ':' ) {
     char *num = ++tail;
-    unsigned int newval;
     if ( *tail == '-' ) ++tail;
     if ( isdigit(*tail) ) {
       while ( isdigit(*tail) ) ++tail;
@@ -134,13 +133,13 @@ static char *read_num( char *head, int *newval ) {
       }
     }
   }
-  retport_invalid(head);
+  report_invalid(head);
   return NULL;
 }
 
 void read_cmd( int cmd_fd ) {
   char buf[CMDEE_BUFSIZE], *head, *tail;
-  int nb;
+  int nb, newval;
   nb = read( cmd_fd, buf, CMDEE_BUFSIZE-1 );
   if ( nb == -1 )
     nl_error(3, "Error reading from cmd/SSP: %s", strerror(errno) );
