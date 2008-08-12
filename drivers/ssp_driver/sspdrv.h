@@ -19,6 +19,9 @@ typedef struct {
 } ssp_data_t;
 
 #define SSP_OVF_MASK 0x01FF
+#define SSP_CAOVF(x) ((x)&7)
+#define SSP_PAOVF(x) (((x)>>3)&7)
+#define SSP_ADOOR(x) (((x)>>6)&7)
 
 /*
 It could be that Flags (or something derived from flags) and Total_Skip will be sufficient for telemetry.

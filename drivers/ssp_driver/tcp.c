@@ -23,7 +23,7 @@ int tcp_create( int board_id ) {
   char hostname[40];
 
   nl_assert( board_id >= 0 && board_id < 55 );
-  snprintf( hostname, 40, "10.0.0.%d", 250 + board_id );
+  snprintf( hostname, 40, "10.0.0.%d", 200 + board_id );
   h = gethostbyname(hostname);
   if(h==NULL)
     nl_error( 3, "Unknown host '%s'", hostname);
