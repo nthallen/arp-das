@@ -106,9 +106,9 @@ static void report_invalid( char *head ) {
 
    Allowed anytime:
     -DA Disable
-    NU:[-]xxxxx Level Trigger Rising
-    ND:[-]xxxxx Level Trigger Falling
-    NT:x (0-3) Specifies the trigger source
+    TU:[-]xxxxx Level Trigger Rising
+    TD:[-]xxxxx Level Trigger Falling
+    TS:x (0-3) Specifies the trigger source
     AE Autotrig Enable
     AD Autotrig Disable
     LE Logging Enable
@@ -120,6 +120,23 @@ static void report_invalid( char *head ) {
  
   As before, we will accept triggering commands anytime and other command only when not acquiring.
  */
+static char *read_num( char *head, int *newval ) {
+  char *tail = head;
+  if ( !is_eocmd(*++tail) && *++tail == ':' ) {
+    char *num = ++tail;
+    unsigned int newval;
+    if ( *tail == '-' ) ++tail;
+    if ( isdigit(*tail) ) {
+      while ( isdigit(*tail) ) ++tail;
+      if ( is_eocmd(*tail) ) {
+        *newval = atoi(num);
+        return tail;
+      }
+    }
+  }
+  retport_invalid(head);
+  return NULL;
+}
 
 void read_cmd( int cmd_fd ) {
   char buf[CMDEE_BUFSIZE], *head, *tail;
@@ -202,64 +219,44 @@ void read_cmd( int cmd_fd ) {
         }
         break;
       case 'N':
-        if ( !is_eocmd(*++tail) && *++tail == ':' ) {
-          char *num = ++tail;
-          unsigned int newval;
-          if ( *tail == '-' ) ++tail;
-          if ( !isdigit(*tail) ) {
-            report_invalid(head);
-            return;
-          }
-          while ( isdigit(*tail) ) ++tail;
-          if ( !is_eocmd(*tail) ) {
-            report_invalid(head);
-            return;
-          }
-          newval = atoi(num);
-          switch (head[1]) {
-            case 'S':
-            case 'A':
-            case 'C':
-            case 'F':
-            case 'E':
-              if ( udp_state != FD_IDLE ) {
-                *tail = '\0';
-                nl_error( 2, "Command invalid while SSP is enabled: '%s'", head );
-                return;
-              }
-              break;
-            case 'U':
-            case 'D':
-            case 'T':
-              break;
-            default:
-              report_invalid(head);
-              return;
-          }
-          switch (head[1]) {
-            case 'S': ssp_config.NS = newval; break;
-            case 'A': ssp_config.NA = newval; break;
-            case 'C': ssp_config.NC = newval; break;
-            case 'F':
-              { char div_buf[80];
-                ssp_config.NF = 100000000/newval;
-                snprintf(div_buf, 80, "NF:%d", ssp_config.NF );
-                tcp_enqueue(div_buf);
-              }
-              head = tail;
-              continue;
-            case 'E': ssp_config.NE = newval; break;
-            case 'U': break;
-            case 'D': break;
-            case 'T': break;
-            default:
-              nl_error(4,"Impossible");
-          }
-          break;
-        } else {
-          report_invalid(head);
+        tail = read_num( head, &newval );
+        if ( tail == NULL ) return;
+        if ( udp_state != FD_IDLE ) {
+          *tail = '\0';
+          nl_error( 2, "Command invalid while SSP is enabled: '%s'", head );
           return;
         }
+        switch (head[1]) {
+          case 'S': ssp_config.NS = newval; break;
+          case 'A': ssp_config.NA = newval; break;
+          case 'C': ssp_config.NC = newval; break;
+          case 'F':
+            { char div_buf[80];
+              ssp_config.NF = 100000000/newval;
+              snprintf(div_buf, 80, "NF:%d", ssp_config.NF );
+              tcp_enqueue(div_buf);
+            }
+            head = tail;
+            continue;
+          case 'E': ssp_config.NE = newval; break;
+          default:
+            report_invalid(head);
+            return;
+        }
+        break;
+      case 'T': // Trigger commands
+        tail = read_num( head, &newval );
+        if ( tail == NULL ) return;
+        switch (head[1]) {
+          case 'U':
+          case 'D':
+          case 'S':
+            break;
+          default:
+            report_invalid(head);
+            return;
+        }
+        break;
       default:
         report_invalid(head);
         return;
