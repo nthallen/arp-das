@@ -19,7 +19,7 @@
    cmd_fd: cmd/SSPn: always reading: READ
    tm_data->fd: DG/data/SSPn: always writing: may be synchronized: WRITE
    tcp_fd: ssp TCP: alternately reading and writing: IDLE,WRITE,READ
-   udp_fd: ssp UDP: open and closed, always reading: IDLE,READ
+   udp_socket: ssp UDP: open and closed, always reading: IDLE,READ
  */
 #include <fcntl.h> // For cmdee_init
 #include <sys/select.h>
@@ -134,11 +134,13 @@ void read_cmd( int cmd_fd ) {
   }
   nl_assert(nb < CMDEE_BUFSIZE);
   buf[nb] = '\0';
+  nl_error( 0, "sspdrv cmd received '%s'", buf );
   head = buf;
   while ( *head ) {
     while ( isspace(*head) ) ++head;
     tail = head;
     switch (*head) {
+      case '\0': continue;
       case 'E':
         if ( *++tail != 'N' || !is_eocmd(*++tail) ) {
           report_invalid(head);
@@ -246,7 +248,7 @@ void read_cmd( int cmd_fd ) {
 
 int main( int argc, char **argv ) {
   mlf_def_t *mlf;
-  int cmd_fd, tcp_fd = -1, udp_fd = -1;
+  int cmd_fd, tcp_fd = -1;
   int non_udp_width, udp_width;
   send_id tm_data;
   fd_set readfds, writefds;
@@ -290,23 +292,37 @@ int main( int argc, char **argv ) {
         udp_width = non_udp_width;
         break;
       case FD_READ:
-        FD_SET(udp_fd, &readfds );
-        udp_width = udp_fd >= non_udp_width ? udp_fd + 1 : non_udp_width;
+        nl_assert(udp_socket >= 0 && udp_socket < 32);
+        FD_SET(udp_socket, &readfds );
+        udp_width = udp_socket >= non_udp_width ?
+	   udp_socket + 1 : non_udp_width;
         break;
       default: nl_error(4, "Bad case for udp_state" );
     }
     n_ready = select( udp_width, &readfds, &writefds, NULL, NULL );
     if ( n_ready == -1 ) nl_error( 3, "Error from select: %s", strerror(errno));
     if ( n_ready == 0 ) nl_error( 3, "select() returned zero" );
-    if ( udp_state == FD_READ && FD_ISSET( udp_fd, &readfds ) )
+    if ( udp_state == FD_READ && FD_ISSET( udp_socket, &readfds ) ) {
+      // nl_error( 0, "sspdrv: udp_read()" );
       udp_read(mlf);
-    if ( FD_ISSET(cmd_fd, &readfds) ) read_cmd( cmd_fd );
+    }
+    if ( FD_ISSET(cmd_fd, &readfds) ) {
+      // nl_error( 0, "sspdrv: read_cmd()" );
+      read_cmd( cmd_fd );
+    }
     if ( FD_ISSET(tm_data->fd, &writefds ) ) {
+      // nl_error( 0, "sspdrv: Col_send()" );
       Col_send(tm_data);
       ssp_data.Flags &= ~SSP_OVF_MASK;
     }
-    if ( FD_ISSET(tcp_fd, &readfds ) ) tcp_recv();
-    if ( FD_ISSET(tcp_fd, &writefds ) ) tcp_send();
+    if ( FD_ISSET(tcp_fd, &readfds ) ) {
+      // nl_error( 0, "sspdrv: tcp_recv()" );
+      tcp_recv();
+    }
+    if ( FD_ISSET(tcp_fd, &writefds ) ) {
+      // nl_error( 0, "sspdrv: tcp_send()" );
+      tcp_send();
+    }
   }
   // ### Add shutdown stuff
   return 0;

@@ -22,6 +22,7 @@ extern void tcp_enqueue( char *cmd );
 extern int tcp_send(void);
 extern int tcp_recv(void);
 extern int udp_create(void);
+extern int udp_socket;
 extern int udp_receive(long int *scan, size_t length );
 extern void udp_close(void);
 extern void udp_read(mlf_def_t *mlf);

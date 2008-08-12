@@ -3,7 +3,7 @@
 #include "nl_assert.h"
 #include "sspint.h"
 
-static int udp_socket;
+int udp_socket;
 enum fdstate udp_state = FD_IDLE;
 
 static long int scan_buf[SSP_CLIENT_BUF_LENGTH];
