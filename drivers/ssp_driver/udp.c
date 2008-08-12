@@ -105,12 +105,31 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
       hdr->NSamples, hdr->NChannels, raw_length );
     return;
   }
-  ofp = mlf_next_file(mlf);
 
-  ssp_data.index = mlf->index;
-  ssp_data.Flags |= (unsigned short)(scan[raw_length-1]);
-  ssp_data.Total_Skip += hdr->NSkL + hdr->NSkP;
-  ssp_data.ScanNum = hdr->ScanNum;
+  if ( ssp_config.LE ) {
+    ofp = mlf_next_file(mlf);
+    
+    { unsigned long n_l;
+      n_l = hdr->NSamples;
+      fwrite( &n_l, sizeof(unsigned long), 1, ofp );
+      n_l = hdr->NChannels;
+      fwrite( &n_l, sizeof(unsigned long), 1, ofp );
+    }
+
+    for ( j = my_scan_length-1; j >= 0; j-- ) {
+      fdata[j] = idata[j]*divisor;
+    }
+    { int NCh = hdr->NChannels;
+      for ( j = 0; j <= NCh; j++ ) {
+        int k;
+        for ( k = j; k <= my_scan_length; k += NCh ) {
+          fwrite( fdata+k, sizeof(float), 1, ofp );
+        }
+      }
+    }
+    fclose(ofp);
+  }
+
   // now = time(NULL);
 
   // fprintf( hdr_fp, "%ld %lu %u %u %u %u %u %u %u %u %lu %lu %lu\n",
@@ -119,26 +138,11 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
     // hdr->NSamples, hdr->NCoadd, hdr->NAvg, hdr->NSkL, hdr->NSkP,
     // hdr->ScanNum, hdr->Spare, (unsigned long)scan[raw_length-1] );
   // fflush(hdr_fp);
-  
-  { unsigned long n_l;
-    n_l = hdr->NSamples;
-    fwrite( &n_l, sizeof(unsigned long), 1, ofp );
-    n_l = hdr->NChannels;
-    fwrite( &n_l, sizeof(unsigned long), 1, ofp );
-  }
 
-  for ( j = my_scan_length-1; j >= 0; j-- ) {
-    fdata[j] = idata[j]*divisor;
-  }
-  { int NCh = hdr->NChannels;
-    for ( j = 0; j <= NCh; j++ ) {
-      int k;
-      for ( k = j; k <= my_scan_length; k += NCh ) {
-        fwrite( fdata+k, sizeof(float), 1, ofp );
-      }
-    }
-  }
-  fclose(ofp);
+  ssp_data.index = mlf->index;
+  ssp_data.Flags |= (unsigned short)(scan[raw_length-1]);
+  ssp_data.Total_Skip += hdr->NSkL + hdr->NSkP;
+  ssp_data.ScanNum = hdr->ScanNum;
   
   // Perform some sanity checks on the inbound scan
   if ( scan[1] != scan1 )
