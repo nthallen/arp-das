@@ -60,10 +60,11 @@ static int tcp_empty(void) {
 }
 
 void tcp_enqueue( char *cmd ) {
+  int nb;
   if ( tcp_queue.full )
     nl_error(3, "tcp_queue overflow" );
-  strncpy( tcp_queue.q[tcp_queue.back], cmd, TCP_SEND_SIZE );
-  if ( tcp_queue.q[tcp_queue.back][TCP_SEND_SIZE-1] != '\0' )
+  nb = snprintf( tcp_queue.q[tcp_queue.back], TCP_SEND_SIZE, "%s\r\n", cmd );
+  if ( nb >= TCP_SEND_SIZE )
     nl_error(2, "tcp_enqueue command too long: %s", cmd );
   else {
     if ( ++tcp_queue.back == TCP_QSIZE )
