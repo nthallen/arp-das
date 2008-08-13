@@ -1,5 +1,8 @@
 /* tmcmain.c
  * $Log$
+ * Revision 1.3  2008/07/15 16:54:32  ntallen
+ * Handle optargs reset portably
+ *
  * Revision 1.2  2008/07/03 18:18:48  ntallen
  * To compile under QNX6 with minor blind adaptations to changes between
  * dbr.h and tm.h
@@ -117,6 +120,8 @@ int main(int argc, char **argv) {
   errlevel = yyparse();
   if (error_level < errlevel) error_level = errlevel;
   if (error_level == 0) {
+	if (Collecting) print_recv_objs();
+
 	/* Copy out console functions */
 	Skel_copy(ofile, "console_functions", 1);
   

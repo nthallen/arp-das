@@ -1,5 +1,8 @@
 /* place.c
  * $Log$
+ * Revision 1.5  2008/07/21 16:27:42  ntallen
+ * Add 'home_row' to union defintion
+ *
  * Revision 1.4  2008/07/16 19:13:40  ntallen
  * Compiling support for TM_Data_Type 3
  * Omit definitions for Synch and MFCtr from home row
@@ -910,7 +913,7 @@ void place_home(void) {
     }
     adjust_indent(-2);
     print_indent(NULL);
-    fprintf(ofile, "} U%d;", snum);
+    fprintf(ofile, "} __attribute__((packed)) U%d;", snum);
   }
   adjust_indent(-2);
   print_indent("} *home;\n");

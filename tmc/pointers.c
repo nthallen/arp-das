@@ -1,5 +1,8 @@
 /* pointers.c handles pointer sharing and proxy sharing.
  * $Log$
+ * Revision 1.4  2008/07/29 20:20:24  ntallen
+ * Remove unused var
+ *
  * Revision 1.3  2008/07/29 20:11:22  ntallen
  * Changes for Col_send
  *
@@ -68,6 +71,16 @@ void add_ptr_proxy(char *type, char *name, int id) {
   npp->type = type_code;
   ppp_has |= npp->type;
   pps = npp;
+}
+
+void print_recv_objs(void) {
+  struct ppp *npp;
+  if (ppp_has & PPP_RECV) {
+    fprintf( ofile, "\n\n /* receive objects */\n" );
+    for (npp = pps; npp != NULL; npp = npp->next)
+      if (npp->type == PPP_RECV)
+	fprintf(ofile, " DG_data *%s_obj;\n", npp->name );
+  }
 }
 
 static void print_pp_cases(void) {
@@ -140,11 +153,11 @@ static void print_pp_cases(void) {
     #endif
   }
   if (ppp_has & PPP_RECV) {
-  	for (npp = pps; npp != NULL; npp = npp->next)
-  	  if (npp->type == PPP_RECV) {
-    		fprintf(ofile,
-    		  "  receive(\"%s\", &%s, sizeof(%s), %d);\n",
-          npp->name, npp->name, npp->name, npp->id );
+    for (npp = pps; npp != NULL; npp = npp->next)
+      if (npp->type == PPP_RECV) {
+	fprintf(ofile,
+	  "  %s_obj = receive(\"%s\", &%s, sizeof(%s), %d);\n",
+	  npp->name, npp->name, npp->name, npp->name, npp->id );
       }
   }
 }

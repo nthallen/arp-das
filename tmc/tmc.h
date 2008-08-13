@@ -1,5 +1,8 @@
 /* tmc.h General include file for TM Compiler
    $Log$
+   Revision 1.3  2008/07/16 18:55:14  ntallen
+   Changes to support TM_Output_Type 3
+
    Revision 1.2  2008/07/03 18:18:48  ntallen
    To compile under QNX6 with minor blind adaptations to changes between
    dbr.h and tm.h
@@ -74,6 +77,7 @@ void print_indent(char *s); /* pdecls.c */
 void print_pcm(void); /* pdecls.c */
 void post_processing(void); /* postproc.c */
 void add_ptr_proxy(char *type, char *name, int id); /* pointers.c */
+void print_recv_objs(void); /* pointers.c */
 void print_ptr_proxy(void); /* pointers.c */
 void print_states(void); /* states.c */
 struct nm;
