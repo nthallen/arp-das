@@ -37,6 +37,7 @@ static char *mlf_config = NULL;
 #define MSG_HDR_SIZE 8
 static char msg_hdr[MSG_HDR_SIZE];
 static int quit_received = 0;
+static int trigger_count = 0;
 ssp_config_t ssp_config;
 ssp_data_t ssp_data;
 
@@ -170,11 +171,17 @@ void read_cmd( int cmd_fd ) {
           nl_error( 2, "EN not valid: Already enabled" );
           return;
         }
+        if ( tcp_state == FD_CONNECT ) {
+	  nl_error( 2, "EN suppressed: not connected" );
+	  head = tail;
+	  continue;
+        }
         { ssp_config.NP = udp_create();
           char udp_buf[20];
           snprintf(udp_buf, 20, "NP:%d", ssp_config.NP);
           tcp_enqueue(udp_buf);
         }
+        ssp_data.Status = SSP_STATUS_ARMED;
         break;
       case 'D':
         if ( *++tail != 'A' || !is_eocmd(*++tail) ) {
@@ -182,6 +189,8 @@ void read_cmd( int cmd_fd ) {
           return;
         }
         udp_close();
+        if ( tcp_state != FD_CONNECT )
+	  ssp_data.Status = SSP_STATUS_READY;
         break;
       case 'A':
         switch (*++tail) {
@@ -345,11 +354,17 @@ int main( int argc, char **argv ) {
     n_ready = select( udp_width, &readfds, &writefds, NULL, NULL );
     if ( n_ready == -1 ) nl_error( 3, "Error from select: %s", strerror(errno));
     if ( n_ready == 0 ) nl_error( 3, "select() returned zero" );
-    if ( udp_state == FD_READ && FD_ISSET( udp_socket, &readfds ) )
+    if ( udp_state == FD_READ && FD_ISSET( udp_socket, &readfds ) ) {
       udp_read(mlf);
+      ssp_data.Status = SSP_STATUS_TRIG;
+      trigger_count = 0;
+    }
     if ( FD_ISSET(cmd_fd, &readfds) )
       read_cmd( cmd_fd );
     if ( FD_ISSET(tm_data->fd, &writefds ) ) {
+      if ( ssp_data.Status == SSP_STATUS_TRIG &&
+	   ++trigger_count > 2 )
+	ssp_data.Status = SSP_STATUS_ARMED;
       Col_send(tm_data);
       ssp_data.Flags &= ~SSP_OVF_MASK;
     }
@@ -361,5 +376,7 @@ int main( int argc, char **argv ) {
     }
   }
   // ### Add shutdown stuff
+  ssp_data.Status = SSP_STATUS_GONE;
+  Col_send(tm_data);
   return 0;
 }

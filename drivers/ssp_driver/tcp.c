@@ -54,8 +54,11 @@ int tcp_create( int board_id ) {
   if ( rc < 0 ) nl_error( 3, "Error from ioctl(): %s", strerror(errno));
   rc = connect(tcp_socket, (struct sockaddr *) &servAddr, sizeof(servAddr));
   tcp_state = FD_CONNECT;
-  if ( rc == 0 ) tcp_state = FD_IDLE;
-  else if ( rc < 0 ) {
+  ssp_data.Status = SSP_STATUS_CONNECT;
+  if ( rc == 0 ) {
+    tcp_state = FD_IDLE;
+    ssp_data.Status = SSP_STATUS_READY;
+  } else if ( rc < 0 ) {
     if ( errno != EINPROGRESS )
       nl_error( 2, "Error on connect(): %s", strerror(errno) );
   } else nl_error( 4, "Unknown response from connect: %d", rc );
@@ -75,6 +78,7 @@ void tcp_reset(int board_id) {
 
 void tcp_connected(void) {
   tcp_state = tcp_empty() ? FD_IDLE : FD_WRITE;
+  ssp_data.Status = SSP_STATUS_READY;
 }
 
 void tcp_enqueue( char *cmd ) {
