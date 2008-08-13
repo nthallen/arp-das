@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
 #include "nortlib.h"
 #include "nl_assert.h"
 #include "tm.h"
@@ -25,6 +26,8 @@ DG_data::DG_data(DG_dispatch *dispatch, char *name_in, void *data,
   dptr = data;
   dsize = data_size;
   synched = synch;
+  stale_count = 0;
+  data_attr.written = false;
  
   // This is our write-only command interface
   resmgr_attr_t resmgr_attr;
@@ -39,12 +42,14 @@ DG_data::DG_data(DG_dispatch *dispatch, char *name_in, void *data,
     iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &connect_funcs,
         _RESMGR_IO_NFUNCS, &io_funcs );
     io_funcs.write = DG_data_io_write;
-    //io_funcs.notify = DG_data_io_notify;
+    io_funcs.notify = DG_data_io_notify;
+    io_funcs.close_ocb = DG_data_io_close_ocb;
     //io_funcs.unblock = DG_data_io_unblock;
     funcs_initialized = true;
   }
   
   iofunc_attr_init( &data_attr.attr, S_IFNAM | 0222, 0, 0 ); // write-only
+  IOFUNC_NOTIFY_INIT( data_attr.notify );
   char tbuf[80];
   snprintf(tbuf, 79, "DG/data/%s", name);
   char *wr_devname = tm_dev_name( tbuf );
@@ -61,8 +66,20 @@ DG_data::~DG_data() {}
 int DG_data::io_write( resmgr_context_t *ctp ) {
   int msgsize = resmgr_msgread( ctp, dptr, dsize, sizeof(io_write_t) );
   _IO_SET_WRITE_NBYTES( ctp, msgsize );
-  written = true;
+  data_attr.written = synched;
+  stale_count = 0;
   return EOK;
+}
+
+void DG_data::synch() {
+  data_attr.written = false;
+  if (IOFUNC_NOTIFY_OUTPUT_CHECK( data_attr.notify, 1 ) )
+    iofunc_notify_trigger(data_attr.notify, 1, IOFUNC_NOTIFY_OUTPUT);
+}
+
+int DG_data::stale() {
+  if ( stale_count < SHRT_MAX ) ++stale_count;
+  return stale_count;
 }
 
 int DG_data_io_write( resmgr_context_t *ctp,
@@ -77,6 +94,20 @@ int DG_data_io_write( resmgr_context_t *ctp,
     return ENOSYS;
 
   return ocb->attr->DGd->io_write(ctp);
+}
+
+int DG_data_io_notify( resmgr_context_t *ctp,
+         io_notify_t *msg, RESMGR_OCB_T *ocb ) {
+  IOFUNC_ATTR_T *wr_attr = ocb->attr;
+  int trig = 0;
+  if (!wr_attr->written) trig |= _NOTIFY_COND_OUTPUT;
+  return(iofunc_notify(ctp, msg, wr_attr->notify, trig, NULL, NULL ));
+}
+
+int DG_data_io_close_ocb(resmgr_context_t *ctp, void *rsvd, RESMGR_OCB_T *ocb) {
+  IOFUNC_ATTR_T *wr_attr = ocb->attr;
+  iofunc_notify_remove(ctp, wr_attr->notify);
+  return(iofunc_close_ocb_default(ctp, rsvd, ocb));
 }
 
 /** DG_data::ready_to_quit() returns true if we are ready to terminate. For DG/data, that means all writers

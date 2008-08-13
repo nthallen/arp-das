@@ -12,6 +12,8 @@ class DG_data;
 
 struct data_dev_attr {
   iofunc_attr_t attr;
+  iofunc_notify_t notify[3];
+  bool written;
   DG_data *DGd;
 };
 
@@ -20,9 +22,9 @@ class DG_data : public DG_dispatch_client {
   private:
     int dev_id;
     char *name; // Keep around mostly for debugging
+    short int stale_count;
     void *dptr;
     int dsize;
-    bool written;
     bool synched;
     struct data_dev_attr data_attr;
     static resmgr_connect_funcs_t connect_funcs;
@@ -34,11 +36,17 @@ class DG_data : public DG_dispatch_client {
     ~DG_data();
     int ready_to_quit(); // virtual function of DG_dispatch_client
     int io_write(resmgr_context_t *ctp);
+    void synch();
+    int stale();
 };
 
 extern "C" {
   int DG_data_io_write( resmgr_context_t *ctp,
             io_write_t *msg, RESMGR_OCB_T *ocb );
+  int DG_data_io_notify( resmgr_context_t *ctp,
+	    io_notify_t *msg, RESMGR_OCB_T *ocb );
+  int DG_data_io_close_ocb( resmgr_context_t *ctp,
+	    void *rsvd, RESMGR_OCB_T *ocb );
 }
 
 #endif
