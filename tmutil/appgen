@@ -547,10 +547,10 @@ echo "\tappgen $ifile"
   echo 'VERSION=`cat VERSION`'
   echo 'extdistribution : $(DSTRB) $(SRCDIST)'
   echo "\tmkdir -p \$(TGTDIR)/bin/\$(VERSION)/Base"
-  echo "\tdistribute \$(FORCE) \$(TGTDIR)/bin/\$(VERSION) \$(DSTRB)"
-  echo "\tdistribute \$(FORCE) \$(TGTDIR)/bin/\$(VERSION)/Base \$(SRCDIST)"
+  echo "\t@distribute \$(FORCE) \$(TGTDIR)/bin/\$(VERSION) \$(DSTRB)"
+  echo "\t@distribute \$(FORCE) \$(TGTDIR)/bin/\$(VERSION)/Base \$(SRCDIST)"
   echo 'distribution : extdistribution'
-  echo "\tdistribute \$(FORCE) \$(TGTDIR) \$(IDISTRIB)"
+  echo "\t@distribute \$(FORCE) \$(TGTDIR) \$(IDISTRIB)"
 
 for i in $targets; do
   set_depname $i
@@ -564,8 +564,9 @@ echo ".cvsignore :"
 echo "\t@for i in Makefile '.B4*' \$(OBJECT) \$(TARGET); do echo \"\$\$i\"; done >.cvsignore"
 
 # Output anything beyond the %% in the spec file
-while read i; do
-  echo "$i"
-done
+cat
+#while read i; do
+#  echo "$i"
+#done
 exit 0
 

@@ -1,0 +1,27 @@
+#! /bin/sh
+# script to distribute files into a target directory.
+# I will deem it okay to copy files if the user has write
+# permission in the target directory
+#__USAGE
+#%C	target_dir file [file ...]
+function nl_error {
+  echo distribute: $* >&2
+  exit 1
+}
+typeset tgt ans opts
+if [ `id -u` != 0 ]; then
+  exec /usr/local/bin/sudo /usr/local/bin/distribute $*
+fi
+[ -n "$SUDO_USER" ] || nl_error Cannot determine user
+opts=-vpn
+if [ "x$1" = "x-f" ]; then
+  shift 1
+  opts=-vpf
+fi
+tgt=$1
+shift 1
+[ ! -d "$tgt" ] && nl_error "Target '$tgt' is not a directory"
+ans=`/usr/local/bin/sudo -u $SUDO_USER /bin/ksh -c "if [ -w \"$tgt\" ]; then echo yes; else echo no; fi"`
+[ "$ans" != "yes" ] && nl_error You do not have write permission in $tgt
+/bin/cp $opts $* $tgt
+exit 0
