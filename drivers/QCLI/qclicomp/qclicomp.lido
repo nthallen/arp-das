@@ -64,6 +64,29 @@ END;
 RULE: DigitizerType ::= 'CS210' COMPUTE
   DigitizerType.Digitizer = DIG_CS210;
 END;
+RULE: DigitizerType ::= 'SSP' COMPUTE
+  DigitizerType.Digitizer = DIG_SSP;
+END;
+
+/*-----------------------------------------------*/
+/* Prefix selection                           */
+/*-----------------------------------------------*/
+ATTR Prefix : int;
+ATTR PrefixSet : VOID;
+SYMBOL SourceFile COMPUTE
+  SYNT.Prefix = GetPrefix(THIS.Key, stostr("QCLI",4) )
+    <- CONSTITUENTS Prefix.PrefixSet;
+END;
+SYMBOL Prefix INHERITS PrefixUnique COMPUTE
+  INH.Key = INCLUDING SourceFile.Key;
+  IF (NOT (THIS.PrefixUnique),
+      message (ERROR, "Prefix is multiply defined",
+               0, COORDREF));
+  SYNT.PrefixSet = ResetPrefix(THIS.Key, THIS.Prefix );
+END;
+RULE: Prefix ::= 'Prefix' Ident ';' COMPUTE
+  Prefix.Prefix = Ident;
+END;
 
 /*-----------------------------------------------*/
 /* Make sure only one Tz is defined per waveform */
@@ -395,7 +418,7 @@ SYMBOL ICOSCmds COMPUTE
 			 1000000. ))),
 	  0 );
   SYNT.Trcymin =
-    IF ( GE(THIS.EstSamples, 16384), 200, 50 );
+    IF ( GE(THIS.EstSamples, 16384), 200, 1 );
   SYNT.SplitCycle = LT( MUL(4,THIS.Trcymin), THIS.Stepsize );
   SYNT.Trcypre = IF( THIS.SplitCycle, THIS.Trcymin, 0 );
   SYNT.Srcy = IF( THIS.SplitCycle, 0,
@@ -908,7 +931,8 @@ SYMBOL SourceFile COMPUTE
     CONSTITUENTS (ICOSCmds.CMDoutput,RingCmds.CMDoutput)
       WITH ( PTGNode, PTGCommas, IDENTICAL, PTGNULL ),
     CONSTITUENTS Wave.CMDoutput
-      WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNULL )
+      WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNULL ),
+    StringTable(THIS.Prefix)
   );
   IF( NE(CmdFile,NoKey),
       PTGOutFile( StringTable(GetClpValue(CmdFile,0)), THIS.CMDoutput ));
@@ -982,7 +1006,7 @@ SYMBOL SourceFile COMPUTE
   SYNT.DISPoutput = PTGWaveNames(
     CONSTITUENTS Wave.DISPoutput
       WITH ( PTGNode, PTGCommas, IDENTICAL, PTGNULL ),
-    THIS.NWaves
+    THIS.NWaves, StringTable(THIS.Prefix)
   );
   IF( NE(DispFile,NoKey),
       PTGOutFile( StringTable(GetClpValue(DispFile,0)), THIS.DISPoutput ));

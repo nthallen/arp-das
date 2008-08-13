@@ -81,48 +81,72 @@ RateDefP NewRateDefPtr( double samples, int navg, int specd,
     long truesamples;
     switch ( digitizer ) {
       case DIG_CPCI14:
-	if ( samples > 1e7 ) {
-	  truesamples = 10000000L;
-	  message( WARNING,
-	    "Target sample rate exceeds CPCI14 specs", 0, pos );
-	} else if ( samples < 6.25e5 ) {
-	  navg *= floor(6.25e5/samples);
-	  truesamples = 625000L;
-	} else {
-	  long count = 40000000L/((long)floor( samples ));
-	  truesamples = 40000000L/count;
-	}
-	if ( specd && fabs(samples-truesamples) > .5 ) {
-	  message( WARNING,
-	    "Sample rate adjusted to match hardware",
-	    0, pos );
-	}
-	samples = truesamples;
-	break;
+        if ( samples > 1e7 ) {
+          truesamples = 10000000L;
+          message( WARNING,
+            "Target sample rate exceeds CPCI14 specs", 0, pos );
+        } else if ( samples < 6.25e5 ) {
+          navg *= floor(6.25e5/samples);
+          truesamples = 625000L;
+        } else {
+          long count = 40000000L/((long)floor( samples ));
+          truesamples = 40000000L/count;
+        }
+        if ( specd && fabs(samples-truesamples) > .5 ) {
+          message( WARNING,
+            "Sample rate adjusted to match hardware",
+            0, pos );
+        }
+        samples = truesamples;
+        break;
       case DIG_CS210:
-	if ( samples > 1e7 ) {
-	  truesamples = 10000000L;
-	  message( WARNING,
-	    "Target sample rate exceeds CS210 specs", 0, pos );
-	} else {
-	  long divisor;
-	  if ( samples < 153 ) {
-	    int my_navg = (153+samples-1)/samples;
-	    navg *= my_navg;
-	    samples *= my_navg;
-	  }
-	  divisor = 10000000L/samples;
-	  truesamples = 10000000L/divisor;
-	  if ( specd && fabs(samples-truesamples) > .5 ) {
-	    message( WARNING,
-	      "Sample rate adjusted to match hardware",
-	      0, pos );
-	  }
-	  samples = truesamples;
-	}
-	break;
+        if ( samples > 1e7 ) {
+          truesamples = 10000000L;
+          message( WARNING,
+            "Target sample rate exceeds CS210 specs", 0, pos );
+        } else {
+          long divisor;
+          if ( samples < 153 ) {
+            int my_navg = (153+samples-1)/samples;
+            navg *= my_navg;
+            samples *= my_navg;
+          }
+          divisor = 10000000L/samples;
+          truesamples = 10000000L/divisor;
+          if ( specd && fabs(samples-truesamples) > .5 ) {
+            message( WARNING,
+              "Sample rate adjusted to match hardware",
+              0, pos );
+          }
+          samples = truesamples;
+        }
+        break;
+      case DIG_SSP:
+        if ( samples > 1e8 ) {
+          truesamples = 100000000L;
+          message( WARNING,
+            "Target sample rate exceeds SSP specs", 0, pos );
+        } else if ( samples < 1e8/32 ) {
+          int scale = ceil((1e8/32)/samples);
+          navg *= scale;
+          samples *= scale;
+        }
+        { long count = 100000000L/((long)floor( samples ));
+          truesamples = 100000000L/count;
+        }
+        if ( specd && fabs(samples-truesamples) > .5 ) {
+          message( WARNING,
+            "Sample rate adjusted to match hardware",
+            0, pos );
+        }
+        samples = truesamples;
+        if ( navg > 256 )
+          message( DEADLY,
+            "NAverage (specified or derived) exceeds SSP specifications",
+            0, pos );
+        break;
       default:
-	message( DEADLY, "Unknown digitizer in NewRateDef", 0, pos );
+        message( DEADLY, "Unknown digitizer in NewRateDef", 0, pos );
     }
   }
   newrate = (RateDefP) malloc(sizeof(RateDef));

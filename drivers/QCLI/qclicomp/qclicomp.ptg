@@ -102,16 +102,21 @@ RingData:
 Commas: $1 { ",\n" } $2
 Double: $1 double
 
+/* CmdCode
+  $1 list of numerical definitions
+  $2 list of text definitions
+  $3 prefix (string)
+*/
 CmdCode:
   "%{\n"
   "  #ifdef SERVER\n"
-  "    analogic_setup_t QCLI_Waves[] = {\n"
+  "    hsatod_setup_t " $3 string "_Waves[] = {\n"
   $1 /* CPCIDef */
   "\n"
   "    };\n"
   "  #endif\n"
   "%}\n"
-  "&QCLI_Wave <int>\n"
+  "&" $3 string "_Wave <int>\n"
   $2 /* WaveCmds */
   "\t;\n"
 
@@ -141,16 +146,21 @@ MString: "'" $1 "'"
 WaveCmd: "\t: " $1 " { $0 = " $2 int "; }\n"
 
 WaveName: "  " [ ptg_output_name $1 string ]
+/* WaveNames
+   $1 comma-separated list of wave names
+   $2 Total number of waveforms
+   $3 Prefix
+*/
 WaveNames:
   "%{\n"
-  "  static char *QWt[] = {\n"
+  "  static char *" $3 string "_Wt[] = {\n"
   $1 "\n"
   "  };\n"
   "  #define N_WAVES " $2 int "\n"
   "\n"
-  "  char *QCLI_Wave_text( int n ) {\n"
+  "  char *" $3 string "_Wave_text( int n ) {\n"
   "    if ( n < 0 || n >= N_WAVES )\n"
   "      return \"----------\";\n"
-  "    else return QWt[n];\n"
+  "    else return " $3 string "_Wt[n];\n"
   "  }\n"
   "%}\n"

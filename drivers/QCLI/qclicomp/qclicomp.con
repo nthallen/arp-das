@@ -1,10 +1,11 @@
 SourceFile : ConfigCmds Wave+ .
 ConfigCmds : ConfigCmd* .
-ConfigCmd : QCLIConfig / Digitizer .
+ConfigCmd : QCLIConfig / Digitizer / Prefix .
 QCLIConfig : 'QCLIConfig' QCLIConfigType ';' .
 QCLIConfigType : 'Standard' / 'FastRampx10' / 'FastRamp' .
 Digitizer : 'Digitizer' DigitizerType ';' .
-DigitizerType : 'CPCI14' / 'CS210' .
+DigitizerType : 'CPCI14' / 'CS210' / 'SSP' .
+Prefix : 'Prefix' Ident ';' .
 
 Wave : ICOSWave / RingWave .
 ICOSWave : 'ICOS' 'Waveform' Ident '{' ICOSCmds '}' .

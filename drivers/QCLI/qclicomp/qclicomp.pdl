@@ -1,6 +1,7 @@
 /* properties of a SourceFile */
 QCLIConfig : int;
 Digitizer : int;
+Prefix : int;
 
 /* properties of a Wave */
 dIdt : double;

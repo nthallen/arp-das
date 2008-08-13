@@ -13,6 +13,7 @@ typedef struct {
 /* These are digitizer type codes */
 #define DIG_CPCI14 0
 #define DIG_CS210 1
+#define DIG_SSP 2
 /* These are QCLI configuration codes */
 #define QCLI_CFG_STANDARD 0
 #define QCLI_CFG_FASTRAMPx10 1
