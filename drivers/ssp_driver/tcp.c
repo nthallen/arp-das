@@ -81,7 +81,7 @@ int tcp_send(void) {
   int rv;
   char *cmd = tcp_queue.q[tcp_queue.front];
   int cmdlen = strlen(cmd);
-  nl_error( 0, "tcp_send: '%s'", cmd );
+  // nl_error( 0, "tcp_send: '%s'", cmd );
   nl_assert( tcp_state == FD_WRITE );
   rv = send( tcp_socket, cmd, cmdlen, 0);
   if ( rv != cmdlen )
@@ -96,7 +96,6 @@ int tcp_recv() {
   char recv_buf[RECV_BUF_SIZE];
   int rv, i;
   nl_assert( tcp_state == FD_READ );
-  tcp_state = tcp_empty() ? FD_IDLE : FD_WRITE;
   rv = recv( tcp_socket, recv_buf, RECV_BUF_SIZE, 0 );
   if ( rv <= 0 ) {
     nl_error(2, "Recv returned %d errno %d cmd='%s'\n", rv, errno,
@@ -114,6 +113,7 @@ int tcp_recv() {
   tcp_queue.full = 0;
   if ( ++tcp_queue.front == TCP_QSIZE )
     tcp_queue.front = 0;
+  tcp_state = tcp_empty() ? FD_IDLE : FD_WRITE;
   return rv;
 }
 
