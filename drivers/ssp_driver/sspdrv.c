@@ -18,7 +18,7 @@
  Channels:
    cmd_fd: cmd/SSPn: always reading: READ
    tm_data->fd: DG/data/SSPn: always writing: may be synchronized: WRITE
-   tcp_fd: ssp TCP: alternately reading and writing: IDLE,WRITE,READ
+   tcp_socket: ssp TCP: alternately reading and writing: IDLE,WRITE,READ,CONNECT
    udp_socket: ssp UDP: open and closed, always reading: IDLE,READ
  */
 #include <fcntl.h> // For cmdee_init
@@ -113,6 +113,8 @@ static void report_invalid( char *head ) {
     AD Autotrig Disable
     LE Logging Enable
     LD Logging Disable
+    XR Reset TCP and UDP connections
+    XX Terminate the driver
 
    Never allowed:
     EX Quit: don't do it!
@@ -152,7 +154,7 @@ void read_cmd( int cmd_fd ) {
   }
   nl_assert(nb < CMDEE_BUFSIZE);
   buf[nb] = '\0';
-  nl_error( 0, "sspdrv cmd received '%s'", buf );
+  nl_error( -2, "sspdrv cmd received '%s'", buf );
   head = buf;
   while ( *head ) {
     while ( isspace(*head) ) ++head;
@@ -217,6 +219,23 @@ void read_cmd( int cmd_fd ) {
             return;
         }
         break;
+      case 'X':
+      	switch (*++tail) {
+	  case 'R':
+	    udp_close();
+	    tcp_reset(board_id);
+	    head = ++tail;
+	    continue;
+	  case 'X':
+	    udp_close();
+	    head = ++tail;
+	    quit_received = 1;
+	    continue;
+	  default:
+	    report_invalid(head);
+	    return;
+      	}
+      	break;
       case 'N':
         tail = read_num( head, &newval );
         if ( tail == NULL ) return;
@@ -271,7 +290,7 @@ void read_cmd( int cmd_fd ) {
 
 int main( int argc, char **argv ) {
   mlf_def_t *mlf;
-  int cmd_fd, tcp_fd = -1;
+  int cmd_fd;
   int non_udp_width, udp_width;
   send_id tm_data;
   fd_set readfds, writefds;
@@ -287,13 +306,10 @@ int main( int argc, char **argv ) {
   ssp_data.Total_Skip = 0;
   cmd_fd = cmdee_init( msg_hdr );
   tm_data = Col_send_init(msg_hdr, &ssp_data, sizeof(ssp_data), 0);
-  tcp_fd = tcp_create(board_id);
+  tcp_create(board_id);
   non_udp_width = cmd_fd + 1;
   if ( tm_data->fd >= non_udp_width )
     non_udp_width = tm_data->fd + 1;
-  if ( tcp_fd >= non_udp_width )
-    non_udp_width = tcp_fd + 1;
-  // initialize select fd sets
   while (!quit_received) {
     int n_ready;
     FD_ZERO( &readfds );
@@ -303,11 +319,12 @@ int main( int argc, char **argv ) {
     switch ( tcp_state ) {
       case FD_IDLE:
         break;
+      case FD_CONNECT:
       case FD_WRITE:
-        FD_SET(tcp_fd, &writefds );
+        FD_SET(tcp_socket, &writefds );
         break;
       case FD_READ:
-        FD_SET(tcp_fd, &readfds );
+        FD_SET(tcp_socket, &readfds );
         break;
       default: nl_error(4, "Bad case for tcp_state" );
     }
@@ -323,29 +340,24 @@ int main( int argc, char **argv ) {
         break;
       default: nl_error(4, "Bad case for udp_state" );
     }
+    if ( tcp_socket >= udp_width )
+      udp_width = tcp_socket+1;
     n_ready = select( udp_width, &readfds, &writefds, NULL, NULL );
     if ( n_ready == -1 ) nl_error( 3, "Error from select: %s", strerror(errno));
     if ( n_ready == 0 ) nl_error( 3, "select() returned zero" );
-    if ( udp_state == FD_READ && FD_ISSET( udp_socket, &readfds ) ) {
-      // nl_error( 0, "sspdrv: udp_read()" );
+    if ( udp_state == FD_READ && FD_ISSET( udp_socket, &readfds ) )
       udp_read(mlf);
-    }
-    if ( FD_ISSET(cmd_fd, &readfds) ) {
-      // nl_error( 0, "sspdrv: read_cmd()" );
+    if ( FD_ISSET(cmd_fd, &readfds) )
       read_cmd( cmd_fd );
-    }
     if ( FD_ISSET(tm_data->fd, &writefds ) ) {
-      // nl_error( 0, "sspdrv: Col_send()" );
       Col_send(tm_data);
       ssp_data.Flags &= ~SSP_OVF_MASK;
     }
-    if ( FD_ISSET(tcp_fd, &readfds ) ) {
-      // nl_error( 0, "sspdrv: tcp_recv()" );
+    if ( FD_ISSET(tcp_socket, &readfds ) )
       tcp_recv();
-    }
-    if ( FD_ISSET(tcp_fd, &writefds ) ) {
-      // nl_error( 0, "sspdrv: tcp_send()" );
-      tcp_send();
+    if ( FD_ISSET(tcp_socket, &writefds ) ) {
+      if ( tcp_state == FD_CONNECT ) tcp_connected();
+      else tcp_send();
     }
   }
   // ### Add shutdown stuff

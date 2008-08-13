@@ -13,14 +13,17 @@
 #include "sspdrv.h"
 #include "ssp_ad.h"
 #include "mlf.h"
-enum fdstate { FD_IDLE, FD_READ, FD_WRITE };
+enum fdstate { FD_IDLE, FD_READ, FD_WRITE, FD_CONNECT };
 extern enum fdstate tcp_state, udp_state;
 
+extern int tcp_socket;
 extern void sspdrv_init(int argc, char **argv);
-extern int tcp_create( int board_id );
+extern int tcp_create(int board_id);
+extern void tcp_reset(int board_id);
 extern void tcp_enqueue( char *cmd );
 extern int tcp_send(void);
 extern int tcp_recv(void);
+extern void tcp_connected(void);
 extern int udp_create(void);
 extern int udp_socket;
 extern int udp_receive(long int *scan, size_t length );

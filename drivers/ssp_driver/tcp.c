@@ -1,8 +1,9 @@
 #include <ctype.h>
+#include <sys/ioctl.h>
 #include "nl_assert.h"
 #include "sspint.h"
 
-static int tcp_socket;
+int tcp_socket;
 enum fdstate tcp_state = FD_IDLE;
 
 #define TCP_QSIZE 20
@@ -17,7 +18,7 @@ static struct {
  */
 int tcp_create( int board_id ) {
 
-  int rc;
+  int rc, nonblock = 1;
   struct sockaddr_in localAddr, servAddr;
   struct hostent *h;
   char hostname[40];
@@ -47,16 +48,33 @@ int tcp_create( int board_id ) {
     nl_error( 3, "Cannot bind TCP port %u: %s", SSP_SERVER_PORT, strerror(errno));
         
   /* connect to server */
-  rc = connect(tcp_socket, (struct sockaddr *) &servAddr, sizeof(servAddr));
-  if (rc<0)
-    nl_error( 3, "Cannot connect: %s", strerror(errno) );
   tcp_queue.front = tcp_queue.back = 0;
   tcp_queue.full = 0;
+  rc = ioctl(tcp_socket, FIONBIO, &nonblock);
+  if ( rc < 0 ) nl_error( 3, "Error from ioctl(): %s", strerror(errno));
+  rc = connect(tcp_socket, (struct sockaddr *) &servAddr, sizeof(servAddr));
+  tcp_state = FD_CONNECT;
+  if ( rc == 0 ) tcp_state = FD_IDLE;
+  else if ( rc < 0 ) {
+    if ( errno != EINPROGRESS )
+      nl_error( 2, "Error on connect(): %s", strerror(errno) );
+  } else nl_error( 4, "Unknown response from connect: %d", rc );
   return tcp_socket;
 }
 
 static int tcp_empty(void) {
   return ( !tcp_queue.full && tcp_queue.front == tcp_queue.back );
+}
+
+void tcp_reset(int board_id) {
+  int rc = close(tcp_socket);
+  if ( rc < 0 )
+    nl_error(2, "Error closing tcp_socket: %s", strerror(errno));
+  tcp_create(board_id);
+}
+
+void tcp_connected(void) {
+  tcp_state = tcp_empty() ? FD_IDLE : FD_WRITE;
 }
 
 void tcp_enqueue( char *cmd ) {
