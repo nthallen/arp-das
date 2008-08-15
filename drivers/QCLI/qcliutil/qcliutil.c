@@ -1,5 +1,5 @@
 #include <time.h>
-#include <i86.h>
+// #include <i86.h>
 #include "nortlib.h"
 #include "qcliutil.h"
 

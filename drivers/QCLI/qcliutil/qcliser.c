@@ -1,4 +1,4 @@
-#include <sys/dev.h>
+// #include <sys/dev.h> // need for dev_read() in QNX4
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
