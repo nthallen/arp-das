@@ -1,0 +1,12 @@
+<package> qcliprog
+<include> "qcliprog.h"
+
+<opts> "wv"
+<sort>
+	-w Write the data to the QCLI
+	-v Verify the contents of the QCLI
+<synopsis>
+%C	[options] <filename>
+
+<init>
+	qcliprog_init( argc, argv );
