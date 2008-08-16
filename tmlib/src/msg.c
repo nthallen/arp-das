@@ -1,5 +1,7 @@
 /* msg.c */
+#include <unistd.h>
 #include "oui.h"
+#include "nortlib.h"
 
 /** Handle -h option
  */
