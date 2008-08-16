@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
+#include <errno.h>
+#include "nortlib.h"
+#include "nl_assert.h"
 #include "tm.h"
 
 /**
