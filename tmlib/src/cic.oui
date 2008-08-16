@@ -1,9 +1,10 @@
 <package> cic
 
 <comment>
-  oui package for command server clients,
+  oui package for command server clients: applications that wish to
+  send commands to the server.
   formerly known as client.oui
-  application must provide msg_hdr definition
+  applications must provide appropriate msghdr_init definition
 
 <include> msghdr
 
@@ -14,7 +15,7 @@
         -C <node> send commands to server on specified node
         -p Playback mode: do not send commands to server
 
-<include> "nortlib.h"
+<include> "tm.h"
 <init>
   // cic_options(argc, argv, msg_hdr);
 
