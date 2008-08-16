@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.19  2007/05/09 17:14:47  ntallen
+ * Delete functions from another library
+ *
  * Revision 1.18  2001/12/04 15:06:05  nort
  * Debugging, etc.
  *
@@ -47,6 +50,19 @@ int nl_err(int level, char *s, ...); /* nl_error.c */
 #ifdef va_start
   int nl_verror(FILE *ef, int level, const char *fmt, va_list args); /* nl_verr.c */
 #endif
+
+/* These codes are taken from the old msg.h */
+#define MSG_DEBUG -2
+#define MSG_EXIT -1
+#define MSG_EXIT_NORM MSG_EXIT
+#define MSG 0
+#define MSG_PASS MSG
+#define MSG_WARN 1
+#define MSG_FAIL 2
+#define MSG_FATAL 3
+#define MSG_EXIT_ABNORM 4
+#define MSG_DBG(X) (MSG_DEBUG-(X))
+
 extern int nl_debug_level; /* nldbg.c */
 extern int nl_response; /* nlresp.c */
 int set_response(int newval); /* nlresp.c */
