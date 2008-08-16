@@ -1,0 +1,46 @@
+<package> msg
+
+<comment>
+  package for msg clients
+  Application must provide default msg_hdr
+  I will include nortlib and I will always define nl_error.
+  The cost is small (one pointer) if I don't use it.
+  (not strictly true with shared libs, but nortlib is likely
+  to be widely used anyway)
+  I have changed the options. The default without options is
+  to write to memo. Specifying -o and/or -V will disable the
+  write to memo, but it can be explicitly re-enabled with -m.
+  One can get no output at all via -o /dev/null.
+  If memo is not found, output will go to stderr.
+  
+  Timestamping will be performed by the msg() function so it
+  will appear in all forms of output. memo should add a timestamp
+  if none is present.
+  
+  msg() will use the nl_debug_level variable, updating it via
+  the -v variable. This allows programs to interactively update
+  their verbosity level.
+
+<include> msghdr
+<follow>  msghdr msghdr_init
+
+<opts> "vo:mVs"
+
+<sort>
+  -v add a level of verbosity
+  -o <error filename> Write to specified file
+  -m write to memo [default]
+  -V write to stderr
+	-s no message sounds
+
+<include> "msg.h"
+<init>
+  msg_init_options(msg_hdr, argc, argv);
+
+<comment>-------------------------------------------------
+  This definition can be overridden:
+  --------------------------------------------------------
+<package> nl_error_init
+<include> "nortlib.h"
+<def>
+  // int (*nl_error)(int level, char *s, ...) = msg;
