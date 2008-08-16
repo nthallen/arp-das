@@ -1,0 +1,20 @@
+<package> qclid
+<include> msg
+<include> "qclid.h"
+<follow> msghdr
+
+<comment>
+  We will use the message header defined in package msghdr and selected
+  with the command-line argument -h. That name will be used to determine
+  the command interface [tm_dev_name( "cmd/msg_hdr" )] and the object
+  name for collection.
+  
+  We also need either qclisb.oui or qcliser.oui and their associated
+  options, but that will be specified at the build level
+
+<init>
+  qclid_init_options(msg_hdr, argc, argv );
+  
+<package> msghdr_init
+<init>
+  msg_hdr = "QCLI";

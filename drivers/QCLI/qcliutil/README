@@ -1,0 +1,31 @@
+qcli server modification for QNX6
+
+QNX4 implementation attached a name and accepted commands and status requests from clients directly. It also requested a quit proxy from the command server.
+
+QNX6 implementation will take advantage of the existing command architecture. It will read commands from cmd/QCLIn (where QCLIn can be set by commandline option) and it will write data to collection via synchronized Col_send(). Since both connections use file descriptors, the loop can be driven by select().
+
+These are the commands I need to support:
+#define qcli_select(n) qcliclt_send(QCLISRVR_SELECT, n, 0)
+#define qcli_run() qcliclt_send(QCLISRVR_RUN, 0, 0)
+#define qcli_stop() qcliclt_send(QCLISRVR_STOP, 0, 0)
+#define qcli_clear() qcliclt_send(QCLISRVR_CLEAR, 0, 0)
+#define qcli_set_ton(v) qcliclt_send(QCLISRVR_SET_PARAM, v, QCLISRVR_P_TON)
+#define qcli_set_toff(v) qcliclt_send(QCLISRVR_SET_PARAM, v, QCLISRVR_P_TOFF)
+#define qcli_set_tpre(v) qcliclt_send(QCLISRVR_SET_PARAM, v, QCLISRVR_P_TPRE)
+
+SW:n select waveform n
+RW run the currently selected waveform
+ST stop running the waveform
+CE clear errors
+TN:v set Ton to v
+TF:v set Toff to v
+TP:v set Tpre to v
+D0:v set DAC0 to v
+D1:v
+D2:v
+D3:v
+QU
+
+Here we need a function that will read one command of the format above
+and return the command and the optional value. In this case, the value is
+always numeric, so doing the conversion while parsing makes some sense.
