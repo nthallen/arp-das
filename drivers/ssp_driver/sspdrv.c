@@ -63,26 +63,6 @@ void sspdrv_init( int argc, char **argv ) {
   snprintf(msg_hdr, MSG_HDR_SIZE, "SSP%d", board_id );
 }
 
-/**
- * Initializes a read-only connection to the command server. This should be moved into
- * tmlib
- */
-#define CMDEE_BUFSIZE 160
-static int cmdee_init( char *cmd_node ) {
-  char buf[CMDEE_BUFSIZE];
-  int fd;
-
-  nl_assert(cmd_node != NULL);
-  snprintf(buf, CMDEE_BUFSIZE, "cmd/%s", cmd_node );
-  fd = open( tm_dev_name(buf), O_RDONLY );
-  if ( fd == -1 ) {
-    if (nl_response)
-      nl_error( nl_response, "Unable to open tm device %s: %s",
-        buf, strerror(errno) );
-  }
-  return fd;
-}
-
 static int is_eocmd( char c ) {
   return c == '\0' || isspace(c);
 }
@@ -313,7 +293,7 @@ int main( int argc, char **argv ) {
   ssp_data.ScanNum = 0;
   ssp_data.Flags = 0;
   ssp_data.Total_Skip = 0;
-  cmd_fd = cmdee_init( msg_hdr );
+  cmd_fd = ci_cmdee_init( msg_hdr );
   tm_data = Col_send_init(msg_hdr, &ssp_data, sizeof(ssp_data), 0);
   tcp_create(board_id);
   non_udp_width = cmd_fd + 1;
