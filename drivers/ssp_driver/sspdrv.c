@@ -120,6 +120,7 @@ static char *read_num( char *head, int *newval ) {
   return NULL;
 }
 
+#define CMDEE_BUFSIZE 160
 void read_cmd( int cmd_fd ) {
   char buf[CMDEE_BUFSIZE], *head, *tail;
   int nb, newval;
