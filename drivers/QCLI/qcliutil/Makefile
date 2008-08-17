@@ -11,13 +11,13 @@ qclid : $(SRVROBJ)
 	$(LINK.priv) $(SRVROBJ) $(LIBS)
 	usemsg qclid qclidoui.c
 	promote qclid
-qclisrvr.o : qclisrvr.c qcliutil.h /usr/local/include/qcliclt.h
+qclisrvr.o : qclisrvr.c qcliutil.h
 qclidoui.c : qclid.oui qclisb.oui
 	$(OUI) qclid.oui qclisb.oui
 
 SSRVROBJ= qclisrvr.o qclisdoui.o qcliutil.o qcliser.o
 qclisd : $(SSRVROBJ)
-	$(LINK.norm) $(SSRVROBJ) $(LIBS)
+	$(LINK.norm) $(SSRVROBJ) $(LIBS) -ltm
 	usemsg qclisd qclisdoui.c
 qclisdoui.c : qclid.oui qcliser.oui
 	$(OUI) qclid.oui qcliser.oui

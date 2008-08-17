@@ -7,8 +7,11 @@
 #include <stdlib.h>
 #include <sys/select.h>
 #include "nortlib.h"
+#include "nl_assert.h"
 #include "qcliutil.h"
 #include "oui.h"
+#include "qclid.h"
+#include "collect.h"
 
 /* Use msg_hdr for the name. */
 static char *qcli_name = "QCLI";
@@ -16,10 +19,10 @@ static char *qcli_name = "QCLI";
 enum qcli_cmd { SW, RW, ST, CE, TN, TF, TP, D0, D1, D2, D3, QU, XX };
 
 typedef struct {
-  enum qcli_cmd index,
-  char *cmd,
-  int takes_arg,
-  int value
+  enum qcli_cmd index;
+  char *cmd;
+  int takes_arg;
+  int value;
 } qcli_cmd_def, *qcli_cmd_defp;
 
 qcli_cmd_def qcli_cmds[] = {

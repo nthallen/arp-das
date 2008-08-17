@@ -12,6 +12,13 @@
   We also need either qclisb.oui or qcliser.oui and their associated
   options, but that will be specified at the build level
 
+<unsort>
+<blank>
+The message header specified with -h serves three purposes.
+It provides the usual message prefix for the memo log, it
+specifies the command interface, and it specifies the telemetry
+collection interface.
+
 <init>
   qclid_init_options(msg_hdr, argc, argv );
   
