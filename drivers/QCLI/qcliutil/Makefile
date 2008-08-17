@@ -59,7 +59,14 @@ qcliread.o : qcliread.c qcliutil.h
 icoswave.out : icoswave.qcli
 	qclicomp icoswave.qcli >icoswave.out
 
+.PHONY : clean all install install-include
 clean :
 	rm -f $(TARGET) *.o
 
 all : $(TARGET)
+
+install : $(TARGET) install-include
+	@cp -vn $(TARGET) /usr/local/bin
+
+install-include :
+	@cp -vn $(INCLUDE) /usr/local/include
