@@ -78,8 +78,9 @@ void DG_data::synch() {
 }
 
 int DG_data::stale() {
+  int rv = stale_count;
   if ( stale_count < SHRT_MAX ) ++stale_count;
-  return stale_count;
+  return rv;
 }
 
 int DG_data_io_write( resmgr_context_t *ctp,
