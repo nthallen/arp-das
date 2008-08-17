@@ -1,5 +1,6 @@
 #include <time.h>
 // #include <i86.h>
+#include <unistd.h>
 #include "nortlib.h"
 #include "qcliutil.h"
 
@@ -12,19 +13,19 @@ typedef struct {
   char *text;
 } bitdef;
 bitdef qcli_bits[] = {
-  QCLI_S_BUSY, "BUSY",
-  QCLI_S_CHKSUM, "CHKSUM",
-  QCLI_S_CMDERR, "CMDERR",
-  QCLI_S_LASEROFF, "LASERON",
-  QCLI_S_CORDTE, "CORDTE",
-  QCLI_S_READY, "READY",
-  QCLI_S_WAVEERR, "WAVEERR",
+  { QCLI_S_BUSY, "BUSY" },
+  { QCLI_S_CHKSUM, "CHKSUM" },
+  { QCLI_S_CMDERR, "CMDERR" },
+  { QCLI_S_LASEROFF, "LASERON" },
+  { QCLI_S_CORDTE, "CORDTE" },
+  { QCLI_S_READY, "READY" },
+  { QCLI_S_WAVEERR, "WAVEERR" },
   /* QCLI_S_FLSHDATA, "FLSHDATA", */
   /* QCLI_S_FLSHTGL, "FLSHTGL", */
-  QCLI_S_DOT, "DOT",
-  QCLI_S_LOT, "LOT",
-  QCLI_S_LOC, "LOC",
-  0, 0
+  { QCLI_S_DOT, "DOT" },
+  { QCLI_S_LOT, "LOT" },
+  { QCLI_S_LOC, "LOC" },
+  { 0, 0 }
 };
 
 void report_status( unsigned short status, char *str ) {

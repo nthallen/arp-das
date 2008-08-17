@@ -2,9 +2,13 @@ SRC=qclitest.c qcliutil.c qcliutil.h
 TOOL=Makefile todo
 #TARGET=qclid qcliprog qclitest chktime qcliread icoswave.out
 TARGET=qclisd qclisprog qclistest
+INCLUDE_HEADERS=qclid.h
+CFLAGS=-Wall -g
 
 include /usr/local/share/huarp/appgen.mk
 LIBS=-lnort
+
+all : $(TARGET)
 
 SRVROBJ=qclisrvr.o qclidoui.o qcliutil.o qclisb.o
 qclid : $(SRVROBJ)
@@ -61,12 +65,11 @@ icoswave.out : icoswave.qcli
 
 .PHONY : clean all install install-include
 clean :
-	rm -f $(TARGET) *.o
+	rm -f $(TARGET) *.o *oui.c
 
-all : $(TARGET)
 
 install : $(TARGET) install-include
 	@cp -vn $(TARGET) /usr/local/bin
 
 install-include :
-	@cp -vn $(INCLUDE) /usr/local/include
+	@cp -vn $(INCLUDE_HEADERS) /usr/local/include

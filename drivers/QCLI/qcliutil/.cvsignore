@@ -2,3 +2,5 @@ qclisprog
 qclisprogoui.c
 qclistest
 qclistestoui.c
+qclisdoui.c
+qclisd

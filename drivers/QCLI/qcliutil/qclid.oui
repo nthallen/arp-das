@@ -22,6 +22,6 @@ collection interface.
 <init>
   qclid_init_options(msg_hdr, argc, argv );
   
-<package> msghdr_init
-<init>
-  msg_hdr = "QCLI";
+<package> msghdr_default
+<var>
+  char *msg_hdr_default = "QCLI";

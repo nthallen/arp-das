@@ -5,6 +5,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <sys/select.h>
 #include "nortlib.h"
 #include "nl_assert.h"
@@ -12,6 +13,7 @@
 #include "oui.h"
 #include "qclid.h"
 #include "collect.h"
+#include "tm.h"
 
 /* Use msg_hdr for the name. */
 static char *qcli_name = "QCLI";
@@ -168,7 +170,7 @@ int main( int argc, char **argv ) {
   
   oui_init_options(argc, argv);
   if ( qcli_diags( 0 )) /* for now, ignore the result, just log */
-    msg(0,"QCLI Passed Diagnostics");
+    nl_error(0,"QCLI Passed Diagnostics");
 
   // open connections to cmd server and collection
   cmd_fd = ci_cmdee_init( qcli_name );
@@ -192,4 +194,6 @@ int main( int argc, char **argv ) {
       Col_send(tm_data);
     }
   }
+  nl_error( 0, "Terminating" );
+  return 0;
 }
