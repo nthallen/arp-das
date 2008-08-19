@@ -282,8 +282,8 @@ static void list_substates( FILE *ofp, struct stdef *state ) {
   search through the else clauses to assign substates as
   necessary. We also need at insert an _SS to _idle_ after any
   _*HOLD*. This could be optimized out if the following group
-  immediately defines a new substate, but I'll wait to see how
-  that might work out. I think I won't search first for
+  immediately defines a new substate, but I'll wait to see how'
+  that might work out. I think I won't search first for'
   needs_substate(), since that leads me into trouble with
   _HOLDV, which doesn't. Instead, I'll identify every command
   group, searching for the last statement, then take a second
