@@ -1,5 +1,8 @@
 /* yytype.h
  * $Log$
+ * Revision 1.6  2001/01/23 16:30:44  nort
+ * Added additionall CMDTYPE_'s and documentation
+ *
  * Revision 1.5  2001/01/05 21:55:16  nort
  * Added argument to get_state_case()
  *
@@ -124,6 +127,7 @@ void output_states(FILE *ofp); /* states.c */
 extern struct prg *program; /* grammar.y */
 void check_command(const char *command); /* commands.c */
 void get_version(FILE *ofp); /* commands.c */
+void set_version(char *ver); /* commands.c */
 struct substate *new_substate( FILE *ofp, char *name, int once, int mkcase );
 int get_state_case( char *statename, int slurp, int partno );
 void output_mainloop( FILE *ofp ); /* states.c */
