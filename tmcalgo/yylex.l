@@ -7,8 +7,8 @@
   #include <unistd.h> /* for read */
   #include "compiler.h"
   #include "nortlib.h"
-  #include "y.tab.h"
   #include "yytype.h"
+  #include "y.tab.h"
   #pragma off (unreferenced)
 	static char rcsid[] =
 	  "$Id$";
