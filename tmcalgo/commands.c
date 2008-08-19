@@ -50,15 +50,24 @@ void check_command(const char *command) {
   }
 }
 
-void get_version(FILE *ofp) {
-  int old_response, rv;
+void set_version(char *ver) {
+  strncpy(ci_version, ver, CMD_VERSION_MAX);
+  ci_version[CMD_VERSION_MAX-1] = '\0';
+}
 
-  old_response = set_response(0);
-  rv = cic_query(ci_version);
-  set_response(old_response);
-  if (rv) {
-	compile_error(1, "Command Server not found: No version info.");
-  }
+void get_version(FILE *ofp) {
+  #ifndef __QNXNTO__
+    int old_response, rv;
+
+    old_response = set_response(0);
+    rv = cic_query(ci_version);
+    set_response(old_response);
+    if (rv) {
+	  compile_error(1, "Command Server not found: %s",
+	    ci_version[0] ? "Using specified version." :
+	    "No version info.");
+    }
+  #endif
   fprintf(ofp, "%%{\n"
 	"  #include \"nortlib.h\"\n"
 	"  #include \"tma.h\"\n"
