@@ -1,15 +1,21 @@
 <package> tmcalgo
 <include> compiler
-<include> client
+<include> cic
+<include> "yytype.h"
+
 <follow> compiler
-<opts> "D:"
+<opts> "D:V:"
 <sort>
 	-D <filename> Write DOT file
+	-V <ci_versions> Specify command server version string
 
 <include> "dot.h"
 <switch>
 	case 'D':
 	  open_dot_file(optarg);
+	  break;
+	case 'V':
+	  set_version(optarg);
 	  break;
 
 <package> output_ext_init
