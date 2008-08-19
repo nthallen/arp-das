@@ -1,7 +1,9 @@
 <package> sspdrv
 <include> "sspint.h"
+<include> msghdr
+<follow> msghdr
 
-<init> sspdrv_init(argc, argv);
+<init> sspdrv_init(msg_hdr, argc, argv);
 
 <opts> "b:N:"
 <sort>
@@ -14,3 +16,7 @@ Logging config is a path string identifying the last
 file previously written and implicitly the next file
 to write. This is usually the direct output of the
 mlf_find script: sspdrv -b3 -N `mlf_find SSP3`
+
+<package> msghdr_default
+<var>
+  char *msg_hdr_default = "SSP";

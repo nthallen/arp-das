@@ -34,16 +34,16 @@
 
 static int board_id = 0;
 static char *mlf_config = NULL;
-#define MSG_HDR_SIZE 8
-static char msg_hdr[MSG_HDR_SIZE];
+static char *ssp_name;
 static int quit_received = 0;
 static int trigger_count = 0;
 ssp_config_t ssp_config;
 ssp_data_t ssp_data;
 
-void sspdrv_init( int argc, char **argv ) {
+void sspdrv_init( char *name, int argc, char **argv ) {
   int c;
 
+  ssp_name = name;
   optind = OPTIND_RESET; /* start from the beginning */
   opterr = 0; /* disable default error message */
   while ((c = getopt(argc, argv, opt_string)) != -1) {
@@ -60,7 +60,6 @@ void sspdrv_init( int argc, char **argv ) {
         nl_error(3, "Unrecognized Option -%c", optopt);
     }
   }
-  snprintf(msg_hdr, MSG_HDR_SIZE, "SSP%d", board_id );
 }
 
 static int is_eocmd( char c ) {
@@ -289,13 +288,13 @@ int main( int argc, char **argv ) {
   ssp_config.LE = 1; // Logging enabled by default
   // ### initialize connection to memo
   udp_close(); // Initialize ssp_config and udp_state
-  mlf = mlf_init( 3, 60, 1, msg_hdr, "dat", mlf_config );
+  mlf = mlf_init( 3, 60, 1, ssp_name, "dat", mlf_config );
   ssp_data.index = mlf->index;
   ssp_data.ScanNum = 0;
   ssp_data.Flags = 0;
   ssp_data.Total_Skip = 0;
-  cmd_fd = ci_cmdee_init( msg_hdr );
-  tm_data = Col_send_init(msg_hdr, &ssp_data, sizeof(ssp_data), 0);
+  cmd_fd = ci_cmdee_init( ssp_name );
+  tm_data = Col_send_init(ssp_name, &ssp_data, sizeof(ssp_data), 0);
   tcp_create(board_id);
   non_udp_width = cmd_fd + 1;
   if ( tm_data->fd >= non_udp_width )
