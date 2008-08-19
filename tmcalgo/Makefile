@@ -23,12 +23,14 @@ SUBDIRS4=regress
 YFLAGS=-d -l -t
 # Added the -t above for debugging
 LFLAGS=-i -l
-CFLAGS=-g -ms -3 -w4
-LDFLAGS=$(BETALIB)
+CFLAGS=-I/usr/local/include -Wall -g
+LDFLAGS=-Wl,-rpath -Wl,/usr/local/lib -L/usr/local/lib
 LINK.it=$(LINK.c) -o $@ $(LDFLAGS)
+LIBS=-lnort -ltm
+YACC.y=bison -y $(YFLAGS)
 
 tmcalgo : $(TA_OBJS)
-	$(LINK.it) $(TA_OBJS)
+	$(LINK.it) $(TA_OBJS) $(LIBS)
 	usemsg tmcalgo tmcalgooui.c
 	# ln -f tmcalgo /usr/local/bin/tmcalgo2
 tmcalgo.o : tmcalgo.c yytype.h
