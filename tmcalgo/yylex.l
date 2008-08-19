@@ -13,6 +13,51 @@
 	static char rcsid[] =
 	  "$Id$";
   #pragma on (unreferenced)
+  static void qstat( int op, int cl, int store );
+  static void pipe_code(void);
+%}
+%start statedef
+%%
+State			{ BEGIN statedef; return(KW_STATE); }
+Partition		return(KW_PARTITION);
+depending       return(KW_DEPENDING);
+on              return(KW_ON);
+Validate        return(KW_VALIDATE);
+valid           return(KW_VALID);
+Hold            return(KW_HOLD);
+until           return(KW_UNTIL);
+or              return(KW_OR);
+else            return(KW_ELSE);
+NoLog           return(KW_NOLOG);
+Resume          return(KW_RESUME);
+and             return(KW_AND);
+[A-Z][A-Z0-9_]* { yylval.textval = strdup(yytext);
+				  return(TK_NAME);
+				}
+[0-9]+			{ yylval.intval = atoi(yytext);
+				  return(TK_INTEGER);
+				}
+">".*			{ int i;
+
+				  /* ! isspace handles the end of the string also
+					 since '\0' is not a space char.
+				   */
+				  for (i = 1; isspace(yytext[i]); i++);
+				  yylval.textval = strdup(&yytext[i]);
+				  return(TK_COMMAND);
+				}
+<statedef>[()]  { return yytext[0]; }
+<statedef>"{"   { BEGIN 0; return yytext[0]; }
+"("				{ qstat( '(', ')', 0 ); return TK_PARENSTAT; }
+"{"				{ qstat( '{', '}', 0 ); return TK_TMCSTAT; }
+"\""			{ qstat( '"', '"', 1 ); return TK_QSTRING; }
+^"%{"           { pipe_code(); }
+[+:;},]	    	{ BEGIN 0; return(yytext[0]); }
+[ \t\f]       	;
+"#".*			;
+\n          	input_linenumber++;
+.           	compile_error(2, "Illegal Character");
+%%
   
   int ta_input_line = 0;
   
@@ -131,45 +176,4 @@
 	fprintf( ofile, "%%}\n" );
 	input_linenumber = ta_input_line;
   }
-%}
-%start statedef
-%%
-State			{ BEGIN statedef; return(KW_STATE); }
-Partition		return(KW_PARTITION);
-depending       return(KW_DEPENDING);
-on              return(KW_ON);
-Validate        return(KW_VALIDATE);
-valid           return(KW_VALID);
-Hold            return(KW_HOLD);
-until           return(KW_UNTIL);
-or              return(KW_OR);
-else            return(KW_ELSE);
-NoLog           return(KW_NOLOG);
-Resume          return(KW_RESUME);
-and             return(KW_AND);
-[A-Z][A-Z0-9_]* { yylval.textval = strdup(yytext);
-				  return(TK_NAME);
-				}
-[0-9]+			{ yylval.intval = atoi(yytext);
-				  return(TK_INTEGER);
-				}
-">".*			{ int i;
 
-				  /* ! isspace handles the end of the string also
-					 since '\0' is not a space char.
-				   */
-				  for (i = 1; isspace(yytext[i]); i++);
-				  yylval.textval = strdup(&yytext[i]);
-				  return(TK_COMMAND);
-				}
-<statedef>[()]  { return yytext[0]; }
-<statedef>"{"   { BEGIN 0; return yytext[0]; }
-"("				{ qstat( '(', ')', 0 ); return TK_PARENSTAT; }
-"{"				{ qstat( '{', '}', 0 ); return TK_TMCSTAT; }
-"\""			{ qstat( '"', '"', 1 ); return TK_QSTRING; }
-^"%{"           { pipe_code(); }
-[+:;},]	    	{ BEGIN 0; return(yytext[0]); }
-[ \t\f]       	;
-"#".*			;
-\n          	input_linenumber++;
-.           	compile_error(2, "Illegal Character");
