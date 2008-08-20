@@ -375,7 +375,7 @@ for i in $basetargets; do
 	add_member ouis tmg
   replace_each .DR ${i}DR.tmc 'DR2tmc >$@' $deps &&
 	add_member ouis drext
-  if replace_all .tma ${i}a.tmc " $SERVER\n\t\$(SERVER) $SERVER\n\t\$(TMCALGO)" $deps
+  if replace_all .tma ${i}a.tmc " $SERVER\n\t\$(SERVER) ./$SERVER\n\t\$(TMCALGO) -V \"\`./$SERVER -R\`\"" $deps
   then
     [ -z "$SERVER" ] &&
       nl_error No command server defined
@@ -418,7 +418,7 @@ for i in $basetargets; do
     *srvr)
       if replace_all cmd.c $i.o "\n\t\$(COMPILE.srvr)" $deps
       then
-	add_member ouis server
+	add_member ouis cis
 	add_member ouis seteuid
 	# [ "$subbus" = "yes" ] && add_member ouis subbus_opt
       else
