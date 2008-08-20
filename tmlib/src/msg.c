@@ -96,7 +96,8 @@ int msg( int level, char *fmt, ... ) {
   char *lvlmsg;
   char msgbuf[MSG_MAX_INTERNAL+2];
   time_t now = time(NULL);
-  char *tbuf = asctime(gmtime(&now));
+  struct tm *tm = gmtime(&now);
+  char *tbuf = asctime(tm);
   int nb;
 
   switch ( level ) {
