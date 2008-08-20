@@ -1,0 +1,9 @@
+<package> civ
+<preceed> msghdr
+<opts> "R"
+<sort>
+	-R Report version string to stdout and quit
+
+<switch>
+  case 'R':
+    ci_report_version();

@@ -30,18 +30,17 @@ void cic_options(int argcc, char **argvv, const char *def_prefix) {
   int c;
   extern char *opt_string;
 
-  if (def_prefix != NULL)
-	snprintf( cic_header, CMD_PREFIX_MAX, "%s", def_prefix );
-  optind = 0;
-  opterr = OPTIND_RESET;
+  if (def_prefix != NULL) {
+    strncpy( cic_header, def_prefix, CMD_PREFIX_MAX );
+    cic_header[CMD_PREFIX_MAX-1] = '\0';
+  }
+  optind = OPTIND_RESET;
+  opterr = 0;
   if (argcc > 0) do {
     c=getopt(argcc,argvv,opt_string);
     switch (c) {
       case 'C':
         cis_node = optarg;
-        break;
-      case 'h':
-		snprintf( cic_header, CMD_PREFIX_MAX, "%s", optarg );
         break;
       case 'p':
         playback = 1;
@@ -166,11 +165,13 @@ int ci_sendcmd(const char *cmdtext, int mode) {
       case E2BIG:
         nl_error( 4, "Unexpected E2BIG from cis" );
       case EINVAL:
-        nl_error( 2, "Syntax error from cis" );
-        return 1;
+	if ( nl_response )
+	  nl_error( 2, "Syntax error from cis" );
+        return CMDREP_SYNERR;
       case EIO:
-        nl_error( 2, "Execution error from cis" );
-        return 1;
+        if ( nl_response )
+	  nl_error( 2, "Execution error from cis" );
+        return CMDREP_EXECERR;
       default:
         nl_error( 3, "Unhandled error %d from cis", errno );
     }

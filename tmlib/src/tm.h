@@ -217,6 +217,7 @@ void ci_server(void); /* in nortlib/cis.c */
 void cis_initialize(void); /* in cmdgen.skel or .cmd */
 void cis_terminate(void);  /* in cmdgen.skel of .cmd */
 int ci_cmdee_init( char *name );
+void ci_report_version(void);
 
 /* tmcalgo (tma) support routines */
 void tma_new_state(unsigned int partition, const char *name);

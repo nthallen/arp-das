@@ -1,0 +1,8 @@
+<package> kbdclt
+<comment>
+  This package is for use by keyboard clients. It might take
+  care of graceful termination, and it might provide a version
+  output function..
+
+<include> cic
+<follow> msg

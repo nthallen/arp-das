@@ -9,6 +9,7 @@
   passed to other initialization routines as necessary provided
   they follow msghdr.
 
+<include> "msg.h"
 <follow> msghdr_default
 
 <opts> "h:"

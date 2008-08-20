@@ -1,9 +1,11 @@
 <package> cis
 <include> msghdr
+<include> civ
+<follow> civ
 <comment>
   This is the OUI definition for data acquisition system
   command server applications, formerly known as server.oui
 
-<package> msghdr_init
-<init>
-  msg_hdr = "Srvr";
+<package> msghdr_default
+<var>
+  char *msg_hdr_default = "Srvr";

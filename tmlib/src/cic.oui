@@ -1,4 +1,6 @@
 <package> cic
+<include> civ
+<follow> civ
 
 <comment>
   oui package for command server clients: applications that wish to
@@ -12,13 +14,13 @@
 
 <opts> "C:p"
 <sort>
-        -C <node> send commands to server on specified node
-        -p Playback mode: do not send commands to server
+	-C <node> send commands to server on specified node
+	-p Playback mode: do not send commands to server
 
 <include> "tm.h"
 <init>
-  // cic_options(argc, argv, msg_hdr);
+  cic_options(argc, argv, msg_hdr);
 
-<package> msghdr_init
-<init>
-  msg_hdr = "Clt";
+<package> msghdr_default
+<var>
+  char *msg_hdr_default = "Clt";

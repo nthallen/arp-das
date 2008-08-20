@@ -387,7 +387,8 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
 static int io_notify(resmgr_context_t *ctp, io_notify_t *msg, RESMGR_OCB_T *ocb) {
   IOFUNC_ATTR_T *rd_attr = ocb->hdr.attr;
   int trig = 0;
-  if ( ocb->next_command->cmdlen > ocb->hdr.offset )
+  if ( ocb->next_command->cmdlen > ocb->hdr.offset ||
+       ocb->next_command->next )
     trig |= _NOTIFY_COND_INPUT;
   return(iofunc_notify(ctp, msg, rd_attr->notify, trig, NULL, NULL ));
 }

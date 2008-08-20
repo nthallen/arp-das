@@ -27,10 +27,10 @@
 <opts> "vo:mVs"
 
 <sort>
-  -v add a level of verbosity
-  -o <error filename> Write to specified file
-  -m write to memo [default]
-  -V write to stderr
+	-v add a level of verbosity
+	-o <error filename> Write to specified file
+	-m write to memo [default]
+	-V write to stderr
 	-s no message sounds
 
 <include> "msg.h"
@@ -43,4 +43,4 @@
 <package> nl_error_init
 <include> "nortlib.h"
 <def>
-  // int (*nl_error)(int level, char *s, ...) = msg;
+  int (*nl_error)(int level, char *s, ...) = msg;

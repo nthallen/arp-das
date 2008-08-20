@@ -1,0 +1,16 @@
+<package> tma
+
+<comment>
+  Package for tmcalgo algos
+  There are currently no options supported, but we'll
+  redefine the header default and include the
+  appropriate command client packages
+
+<include> cic msghdr
+
+<init>
+  tma_init_options( argc, argv );
+
+<package> msghdr_default
+<var>
+  char *msg_hdr_default = "TMA";
