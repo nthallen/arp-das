@@ -1,5 +1,5 @@
-#ifndef LGR_H
-#define LGR_H
+#ifndef MEMO_H
+#define MEMO_H
 
 #define DRBFR_NPARTS_MAX 5
 #define DRBFR_MSG_MAX 16384
@@ -27,5 +27,8 @@ typedef struct ocb {
   int rows_missing;
   int hold_index;
 } ocb_t;
+
+void memo_init_options( int argc, char **argv );
+
 #endif
 

@@ -3,9 +3,12 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
+#include <string.h>
 #include "oui.h"
 #include "memo.h"
 #include "tm.h"
+#include "nortlib.h"
 
 //int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb);
 int io_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
@@ -13,6 +16,7 @@ int io_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
 static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         io_funcs;
 static iofunc_attr_t             attr;
+static FILE *ofp;
 
 static struct ocb *ocb_calloc (resmgr_context_t *ctp, IOFUNC_ATTR_T *device) {
   ocb_t *ocb = calloc( 1, sizeof(ocb_t) );
@@ -39,16 +43,39 @@ static iofunc_funcs_t ocb_funcs = { /* our ocb allocating & freeing functions */
 /* the mount structure, we have only one so we statically declare it */
 iofunc_mount_t mountpoint = { 0, 0, 0, 0, &ocb_funcs };
 
-main(int argc, char **argv) {
+void memo_init_options( int argc, char **argv ) {
+  int c;
+  ofp = stdout;
+  optind = OPTIND_RESET;
+  opterr = 0;
+  while ((c = getopt(argc, argv, opt_string)) != -1 ) {
+    switch (c) {
+      case 'o':
+	ofp = fopen( optarg, "a" );
+	if ( ofp == NULL )
+	  nl_error( 3, "Unable to open output file '%s'", optarg );
+	break;
+      case '?':
+      	nl_error( 3, "Unrecognized commandline option -%c", optopt );
+      	break;
+      default:
+	break;
+    }
+  }
+}
+
+int main(int argc, char **argv) {
     /* declare variables we'll be using */
     resmgr_attr_t        resmgr_attr;
     dispatch_t           *dpp;
     int                  id;
 
-    //oui_init_options( argc, argv );
+    oui_init_options( argc, argv );
 
     /* initialize dispatch interface */
     if((dpp = dispatch_create()) == NULL) {
+        fprintf(ofp, "%s: Unable to allocate dispatch handle.\n",
+                argv[0]);
         fprintf(stderr, "%s: Unable to allocate dispatch handle.\n",
                 argv[0]);
         return EXIT_FAILURE;
@@ -83,6 +110,7 @@ main(int argc, char **argv) {
                        &io_funcs,      /* I/O routines           */
                        &attr);         /* handle                 */
     if(id == -1) {
+        fprintf(ofp, "%s: Unable to attach name.\n", argv[0]);
         fprintf(stderr, "%s: Unable to attach name.\n", argv[0]);
         return EXIT_FAILURE;
     }
@@ -95,20 +123,23 @@ main(int argc, char **argv) {
     int running = 2;
     dispatch_context_t   *ctp;
     ctp = dispatch_context_alloc(dpp);
-    printf( "\nStarting:\n" );
-    while ( running ) {
-			if ((ctp = dispatch_block(ctp)) == NULL) {
-			  fprintf(stderr, "block error\n" );
-			  return EXIT_FAILURE;
-			}
-			dispatch_handler(ctp);
-			if ( running > 1 && attr.count > 0 ) running = 1;
-			else if ( running == 1 && attr.count == 0 ) running = 0;
+    { time_t now = time(NULL);
+      fprintf( ofp, "Memo Starting: %s", asctime(gmtime(&now)) );
     }
-    printf( "Terminating\n" );
+    while ( running ) {
+      if ((ctp = dispatch_block(ctp)) == NULL) {
+	fprintf( ofp, "Memo internal: block error\n" );
+	return EXIT_FAILURE;
+      }
+      dispatch_handler(ctp);
+      if ( running > 1 && attr.count > 0 ) running = 1;
+      else if ( running == 1 && attr.count == 0 ) running = 0;
+    }
+    fprintf( ofp, "Terminating\n" );
+    return 0;
 }
 
-#define LGR_BUF_SIZE 70
+#define LGR_BUF_SIZE 250
 
 int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb ) {
   int status, msgsize;
@@ -131,7 +162,11 @@ int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb ) {
   buf[msgsize] = '\0';
   if ( msgsize > 0 && buf[msgsize-1] == '\n' )
     buf[msgsize-1] = '\0';
-  printf("lgr: '%s'\n", buf );
+  // parse message to identify:
+  //  timestamp severity appmnc message
+  //  create timestamp if missing
+  //  output result
+  fprintf(ofp, "%s\n", buf );
 
   if ( msg->i.nbytes > 0)
     ocb->hdr.attr->flags |= IOFUNC_ATTR_MTIME | IOFUNC_ATTR_CTIME;

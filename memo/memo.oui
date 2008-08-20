@@ -1,0 +1,8 @@
+<package> memo
+<opts> "o:"
+<include> "memo.h"
+<sort>
+	-o <filename> Output file
+
+<init>
+	memo_init_options(argc, argv);
