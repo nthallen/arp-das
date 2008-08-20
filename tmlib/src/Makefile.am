@@ -12,7 +12,7 @@ include_HEADERS = tm.h tmctime.h collect.h hsatod.h msg.h tma.h
 
 ouidir = $(datadir)/oui
 oui_HEADERS = cic.oui cis.oui msghdr.oui msg.oui kbdclt.oui civ.oui \
-  tma.oui
+  tma.oui collect.oui
 
 tmcdir = $(datadir)/huarp
 tmc_HEADERS = flttime.tmc root.cmd

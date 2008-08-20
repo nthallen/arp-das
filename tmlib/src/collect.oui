@@ -1,0 +1,10 @@
+<package> collect
+
+<comment>
+  This package exists mostly for bookkeeping and to
+  get the msghdr right. The old version included dg,
+  which had archaic options.
+
+<package> msghdr_default
+<vars>
+  char *msg_hdr_default = "Col";
