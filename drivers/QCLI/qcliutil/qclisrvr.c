@@ -178,6 +178,7 @@ int main( int argc, char **argv ) {
   fd_set readfds, writefds;
   
   oui_init_options(argc, argv);
+  nl_error( 0, "Startup" );
   if ( qcli_diags( 0 )) /* for now, ignore the result, just log */
     nl_error(0,"QCLI Passed Diagnostics");
 
@@ -211,6 +212,6 @@ int main( int argc, char **argv ) {
       mark_status('t');
     }
   }
-  nl_error( 0, "Terminating" );
+  nl_error( 0, "Shutdown" );
   return 0;
 }
