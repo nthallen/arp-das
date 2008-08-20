@@ -30,6 +30,14 @@ class data_client {
     void init(int bufsize_in, int non_block, char *srcfile);
 };
 
+class ext_data_client : public data_client {
+  public:
+    inline ext_data_client(int bufsize_in, int fast = 0, int non_block = 0) :
+      data_client(bufsize_in, fast, non_block) {}
+  protected:
+    void process_data();
+};
+
 void tminitfunc();
 
 
