@@ -1,5 +1,8 @@
 /* extmain.skel include file for extraction
  * $Log$
+ * Revision 1.4  2008/08/01 15:06:21  ntallen
+ * Changes required while moving functionality into libraries
+ *
  * Revision 1.3  2008/07/23 17:53:15  ntallen
  * First cut at QNX6 skeleton
  *
@@ -36,11 +39,11 @@ static char emrcsid[] =
   #include "DCph.h"
   typedef ph_data_client DATA_CLIENT;
 #else
-  typedef data_client DATA_CLIENT;
+  typedef ext_data_client DATA_CLIENT;
 #endif
 
 int main(int argc, char **argv) {
-  // oui_init_options(argc, argv);
+  oui_init_options(argc, argv);
   DATA_CLIENT DC(4096, 1, 0);
   DC.operate();
   return 0;
