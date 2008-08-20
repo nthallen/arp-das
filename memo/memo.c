@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
     dispatch_context_t   *ctp;
     ctp = dispatch_context_alloc(dpp);
     { time_t now = time(NULL);
-      fprintf( ofp, "Memo Starting: %s", asctime(gmtime(&now)) );
+      fprintf( ofp, "\nMemo Starting: %s", asctime(gmtime(&now)) );
     }
     while ( running ) {
       if ((ctp = dispatch_block(ctp)) == NULL) {
@@ -139,11 +139,11 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-#define LGR_BUF_SIZE 250
+#define MEMO_BUF_SIZE 256
 
 int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb ) {
   int status, msgsize;
-  char buf[LGR_BUF_SIZE+1];
+  char buf[MEMO_BUF_SIZE+1];
 
   status = iofunc_write_verify(ctp, msg, (iofunc_ocb_t *)ocb, NULL);
   if ( status != EOK )
@@ -154,10 +154,10 @@ int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb ) {
 
   _IO_SET_WRITE_NBYTES( ctp, msg->i.nbytes );
 
-  /* My strategy for the moment will be to only write the first LGR_BUF_SIZE
+  /* My strategy for the moment will be to only write the first MEMO_BUF_SIZE
      characters. Later, I will loop somehow */
   msgsize = msg->i.nbytes;
-  if ( msgsize > LGR_BUF_SIZE ) msgsize = LGR_BUF_SIZE;
+  if ( msgsize > MEMO_BUF_SIZE ) msgsize = MEMO_BUF_SIZE;
   resmgr_msgread( ctp, buf, msgsize, sizeof(msg->i) );
   buf[msgsize] = '\0';
   if ( msgsize > 0 && buf[msgsize-1] == '\n' )
@@ -167,6 +167,7 @@ int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb ) {
   //  create timestamp if missing
   //  output result
   fprintf(ofp, "%s\n", buf );
+  fflush(ofp);
 
   if ( msg->i.nbytes > 0)
     ocb->hdr.attr->flags |= IOFUNC_ATTR_MTIME | IOFUNC_ATTR_CTIME;

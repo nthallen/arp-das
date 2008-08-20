@@ -13,6 +13,6 @@ memooui.c : memo.oui
 .PHONY : install clean all
 all : memo
 install : memo
-	cp memo /usr/local/bin
+	@cp -vp memo /usr/local/bin
 clean :
 	rm -f $(MEMO_OBJ) memo
