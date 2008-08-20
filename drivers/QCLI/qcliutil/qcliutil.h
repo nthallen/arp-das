@@ -49,7 +49,7 @@
 #define QCLI_WRITE_TPRE 0x0F00
 #define QCLI_BAD_CMD 0x1000
 
-void report_status( unsigned short status, char *str );
+void report_status( unsigned short status );
 int check_status( unsigned short status, unsigned short mask,
 		unsigned short value, char *text, int dump );
 unsigned short read_qcli( int fresh );

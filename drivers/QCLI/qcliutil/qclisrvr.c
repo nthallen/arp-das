@@ -161,6 +161,15 @@ int read_cmd( int cmd_fd ) {
   return 0;
 }
 
+#ifdef DEBUG
+static void mark_status( char c ) {
+  fputchar(c);
+  fflush(stdout);
+}
+#else
+  #define mark_status(x)
+#endif
+
 int main( int argc, char **argv ) {
   int done = 0;
   int sel_width;
@@ -184,14 +193,22 @@ int main( int argc, char **argv ) {
     FD_SET( cmd_fd, &readfds );
     FD_SET( tm_data->fd, &writefds );
 
+    mark_status('S');
     n_ready = select( sel_width, &readfds, &writefds, NULL, NULL );
+    mark_status('s');
     if ( n_ready == -1 ) nl_error( 3, "Error from select: %s", strerror(errno));
     if ( n_ready == 0 ) nl_error( 3, "select() returned zero" );
-    if ( FD_ISSET(cmd_fd, &readfds) && read_cmd( cmd_fd ) )
-      done = 1;
+    if ( FD_ISSET(cmd_fd, &readfds) ) {
+      mark_status('R');
+      if ( read_cmd( cmd_fd ) )
+	done = 1;
+      mark_status('r');
+    }
     if ( FD_ISSET(tm_data->fd, &writefds ) ) {
-		  qcli_data.status = read_qcli(0);
+      qcli_data.status = read_qcli(0);
+      mark_status('T');
       Col_send(tm_data);
+      mark_status('t');
     }
   }
   nl_error( 0, "Terminating" );

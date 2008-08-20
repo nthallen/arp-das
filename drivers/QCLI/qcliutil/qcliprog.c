@@ -170,7 +170,7 @@ void write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
   if ( qcli_status & QCLI_S_CHKSUM )
 	nl_error( 3, "%04X - CHKSUM bit set", addr );
   if ( qcli_status & QCLI_S_FWERR ) {
-	report_status( qcli_status, NULL );
+	report_status( qcli_status );
 	nl_error( 3, "Firmware error reported" );
   }
   write_qcli( QCLI_PROGRAM_SECTOR );
@@ -180,7 +180,7 @@ void write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
 	qcli_status = read_qcli(1);
   }
   if ( (qcli_status & QCLI_S_MODE) != QCLI_PROGRAM_MODE ) {
-	report_status( qcli_status, NULL );
+	report_status( qcli_status );
 	nl_error( 3, "Expected PROGRAM Mode" );
   }
   { int nreads = 10;
@@ -190,10 +190,10 @@ void write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
 			(qcli_status & QCLI_S_FWERR) == 0 )
 	  qcli_status = read_qcli(1);
 	if ( nreads < 0 ) {
-	  report_status( qcli_status, NULL );
+	  report_status( qcli_status );
 	  nl_error( 3, "%04X: Valid data never observed", addr );
 	} else if ( qcli_status & QCLI_S_FWERR ) {
-	  report_status( qcli_status, NULL );
+	  report_status( qcli_status );
 	  nl_error( 3, "Firmware error detected" );
 	  /* Should probably signal a retry */
 	}
