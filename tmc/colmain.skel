@@ -1,6 +1,9 @@
 /* Skeleton headers section */
 /* colmain.skel Skeleton for collection main program
  * $Log$
+ * Revision 1.7  2008/08/01 15:06:21  ntallen
+ * Changes required while moving functionality into libraries
+ *
  * Revision 1.6  2008/07/29 20:11:22  ntallen
  * Changes for Col_send
  *
@@ -67,7 +70,7 @@ int check_ts = 1;
 // ### for subbus that overrides the event(dq_event_stop) and
 // ### Collect_row() methods
 int main(int argc, char **argv) {
-  // oui_init_options(argc, argv);
+  oui_init_options(argc, argv);
   tmc_collector col;
   col.init();
   col.init_senders();
