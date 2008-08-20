@@ -1,6 +1,6 @@
 <package> sspdrv
 <include> "sspint.h"
-<include> msghdr
+<include> msg msghdr
 <follow> msghdr
 
 <init> sspdrv_init(msg_hdr, argc, argv);

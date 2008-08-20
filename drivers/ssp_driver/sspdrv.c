@@ -286,7 +286,7 @@ int main( int argc, char **argv ) {
   
   oui_init_options(argc, argv);
   ssp_config.LE = 1; // Logging enabled by default
-  // ### initialize connection to memo
+  nl_error( 0, "Startup" );
   udp_close(); // Initialize ssp_config and udp_state
   mlf = mlf_init( 3, 60, 1, ssp_name, "dat", mlf_config );
   ssp_data.index = mlf->index;
@@ -355,6 +355,7 @@ int main( int argc, char **argv ) {
       else tcp_send();
     }
   }
+  nl_error( 0, "Shutdown" );
   // ### Add shutdown stuff
   ssp_data.Status = SSP_STATUS_GONE;
   Col_send(tm_data);
