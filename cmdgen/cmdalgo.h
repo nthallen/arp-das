@@ -1,4 +1,5 @@
 /* cmdalgo.h defines entry points into the cmdgen-based algorithms
+ * Part of the cmdgen distribution
  */
 #ifndef CMDALGO_H_INCLUDED
 #define CMDALGO_H_INCLUDED
@@ -31,6 +32,7 @@ extern void cis_turf( IOFUNC_ATTR_T *handle, char *format, ... );
 void ci_server(void); /* in tmlib/cis.c */
 #define CMDSRVR_NAME "cmd/server"
 #define CMD_INTERP_MAX 256
+#define CMD_VERSION_MAX 80
 
 #ifdef __cplusplus
 };
