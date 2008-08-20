@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
       if ( running > 1 && attr.count > 0 ) running = 1;
       else if ( running == 1 && attr.count == 0 ) running = 0;
     }
-    fprintf( ofp, "Terminating\n" );
+    fprintf( ofp, "Memo Terminating\n" );
     return 0;
 }
 
