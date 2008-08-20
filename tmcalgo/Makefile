@@ -15,9 +15,6 @@ TEMPORARY=*.err tmcalgo.map sample.tmc
 SOURCE=$(SRC) $(TOOL) $(DOC)
 OBJECT=$(OBJ) $(INTERMED) $(TEMPORARY)
 TARGET=tmcalgo
-HOMEDIR=/usr/local/src/das/tmcalgo
-MNC=tmca
-SUBDIRS4=regress
 
 # Compilation options
 YFLAGS=-d -l -t
@@ -40,3 +37,10 @@ tmcalgooui.c : tmcalgo.oui
 y.output : grammar.y
 	$(YACC.y) -v grammar.y
 dot.o : dot.c dot.h
+
+.PHONY : all clean install
+all : $(TARGET)
+clean :
+	rm -f $(OBJ) $(INTERMED) $(TARGET)
+install : $(TARGET)
+	@cp -vn $(TARGET) /usr/local/bin

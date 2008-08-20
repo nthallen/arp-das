@@ -5,6 +5,10 @@
 #include "compiler.h"
 #include "cmdalgo.h"
 #include "yytype.h"
+#ifdef __QNXNTO__
+  /* For ci_sendcmd() definition */
+  #include "tm.h"
+#endif
 #pragma off (unreferenced)
   static char rcsid[] =
 	"$Id$";
