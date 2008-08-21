@@ -19,13 +19,18 @@
       nl_error( 2, "Error %d from DG/cmd", errno );
       close(DG_fd);
       DG_fd = -1;
-    } else if (nb != len)
+    } else if (nb != len) {
       nl_error( 2, "write returned %d, expected %d", nb, len );
+    } else if (nb == 0) {
+      close(DG_fd);
+      DG_fd = -1;
+    }
   }
 
 %}
 
-%INTERFACE <lgr>
+# %INTERFACE <lgr>
+%INTERFACE <Quit>
 
 &start
 	: &commands Quit * { DG_turf( "" ); }

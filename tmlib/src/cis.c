@@ -127,7 +127,7 @@ static void cis_shutdown_rdr( rdrs_t **p ) {
 
   assert( cur_rdr != NULL);
   attr = cur_rdr->rdr;
-  nl_error( 0, "Shutting down reader %s", attr->nodename );
+  nl_error( -2, "Shutting down reader %s", attr->nodename );
   rv = resmgr_detach( dpp, cur_rdr->id, _RESMGR_DETACH_ALL );
   if ( rv < 0 )
     nl_error( 2, "Error %d from resmgr_detach(%s)",
@@ -160,7 +160,7 @@ static int all_closed(void) {
 static void process_quit(void) {
   rdrs_t *rr;
   int rv;
-  nl_error( 0, "Processing Quit" );
+  nl_error( -2, "Processing Quit" );
   for ( rr = rdrs; rr != NULL; rr = rr->next ) {
     cis_turf( rr->rdr, "" );
   }
