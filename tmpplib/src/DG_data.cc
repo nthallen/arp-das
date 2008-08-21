@@ -122,5 +122,7 @@ int DG_data::ready_to_quit() {
       nl_error( 2, "Error returned from resmgr_detach: %d", errno );
     dev_id = -1;
   }
+  if ( data_attr.attr.count )
+    nl_error( -2, "Still waiting for DG/data/%s", name );
   return data_attr.attr.count == 0;
 }

@@ -1318,20 +1318,20 @@ int cmd_check(cmd_state *s) {
   #endif
 
   static void cmd_exit( void ) {
-	#if ! PHOTON_INTERFACE
-	  CLEAR_DISPLAY_LINE;
-	  UPDATE_OUTPUT;
-	#endif
-	#ifdef FINAL_CLEANUP
-	  FINAL_CLEANUP
-	#endif
-	nl_error(0, "task %d: completed", getpid());
+    #if ! PHOTON_INTERFACE
+      CLEAR_DISPLAY_LINE;
+      UPDATE_OUTPUT;
+    #endif
+    #ifdef FINAL_CLEANUP
+      FINAL_CLEANUP
+    #endif
+    nl_error(0, "Shutdown" );
   }
 
   int main(int argc, char **argv) {
     oui_init_options(argc, argv);
-    nl_error(0, "task %d: started",getpid());
-	atexit( cmd_exit );
+    nl_error(0, "Startup" );
+    atexit( cmd_exit );
     #ifdef CLIENT
       #if PHOTON_INTERFACE
         nlph_cmdclt_init( &nlph_interact );

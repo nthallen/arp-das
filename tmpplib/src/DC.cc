@@ -59,9 +59,11 @@ void data_client::read() {
  */
 void data_client::operate() {
   tminitfunc();
+  nl_error( 0, "Startup" );
   while ( !quit ) {
     read();
   }
+  nl_error( 0, "Shutdown" );
 }
 
 void data_client::process_init() {

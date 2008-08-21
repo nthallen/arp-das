@@ -106,8 +106,10 @@ void data_generator::check_writev( int rc, int wr_size, char *where ) {
  * This is how 
  */
 void data_generator::operate() {
+  nl_error( 0, "Startup" );
   if ( autostart ) tm_start(1);
   dispatch->Loop();
+  nl_error( 0, "Shutdown" );
 }
 
 /**
@@ -172,6 +174,7 @@ int data_generator::execute(char *cmd) {
     quit = true;
     unlock();
     tmr->settime(0);
+    nl_error( -2, "Received Quit" );
     event(dg_event_quit);
     return 1;
   }

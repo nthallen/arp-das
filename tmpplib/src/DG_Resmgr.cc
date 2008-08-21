@@ -62,14 +62,17 @@ void DG_dispatch::Loop() {
 
 int DG_dispatch::all_closed() {
   int ready = 1;
+  int not_ready = 0;
   std::list<DG_dispatch_client *>::iterator pos;
   for ( pos = clients.begin(); pos != clients.end(); ) {
     if ( (*pos)->ready_to_quit() ) clients.remove(*pos++);
     else {
       ready = 0;
+      not_ready++;
       ++pos;
     }
   }
+  if ( not_ready ) nl_error( -2, "Waiting on %d clients", not_ready );
   return ready;
 }
 
