@@ -11,6 +11,7 @@
 #include "TMbfr.h"
 #include "nortlib.h"
 #include "nl_assert.h"
+#include "oui.h"
 
 static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb);
 static int io_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
@@ -264,6 +265,8 @@ static int all_closed(void) {
 int main(int argc, char **argv ) {
   int use_threads = 0;
 
+  oui_init_options( argc, argv );
+  nl_error( 0, "Startup" );
   /* initialize dispatch interface */
   if((dpp = dispatch_create()) == NULL) {
       nl_error(3, "Unable to allocate dispatch handle.");
@@ -331,6 +334,7 @@ int main(int argc, char **argv ) {
   shutdown_mount( dg_id, "TM/DG" );
   shutdown_mount( dcf_id, "TM/DCf" );
   shutdown_mount( dco_id, "TM/DCo" );
+  nl_error( 0, "Shutdown" );
   return 0;
 }
 

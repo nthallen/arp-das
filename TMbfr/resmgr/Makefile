@@ -2,12 +2,16 @@ CPPFLAGS=-I /usr/local/include -Wall
 CFLAGS=-g
 LDFLAGS=-g -L /usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 LDLIBS=-l nort -l tm
-TMBFR_OBJ=TMbfr.o
+TMBFR_OBJ=TMbfr.o TMbfroui.o
 TMbfr : $(TMBFR_OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o TMbfr $(TMBFR_OBJ) $(LDLIBS)
 	/usr/local/sbin/promote TMbfr
 TMbfr.o : TMbfr.c TMbfr.h
+TMbfroui.c : TMbfr.oui
+	oui -o TMbfroui.c TMbfr.oui
 
 .PHONY : clean
 clean :
-	rm TMbfr TMbfr.o
+	rm TMbfr TMbfr.o TMbfroui.o TMbfroui.c
+install :
+	@cp -vp TMbfr /usr/local/bin
