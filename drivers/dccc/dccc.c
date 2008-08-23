@@ -1,6 +1,9 @@
 /*
  * Discrete command card controller program.
  * $Log$
+ * Revision 1.1  2008/08/23 02:45:40  ntallen
+ * QNX6 mods
+ *
  * Revision 1.11  2002/05/23 15:42:31  eil
  * Eileen's changes
  *
@@ -58,15 +61,14 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/kernel.h>
-#include <sys/name.h>
-#include <sys/types.h>
 #include <errno.h>
+#include <ctype.h>
+#include <hw/inout.h>
 #include "subbus.h"
 #include "disc_cmd.h"
-#include "port_types.h"
 #include "nortlib.h"
 #include "oui.h"
+#include "nl_assert.h"
 #include "tm.h"
 static char rcsid[] = "$Id$";
 
@@ -75,6 +77,7 @@ static char rcsid[] = "$Id$";
 /* functions */
 void init_cards(void);
 void set_line(int port, int mask), reset_line(int port, int mask);
+void sel_line(int port, int mask, int value);
 void read_commands(void);
 int get_type(char *buf, int *type), get_line(FILE *fp, char *buf);
 
@@ -97,8 +100,8 @@ struct cmd {
 } *cmds;
 
 int init_fail = 0;
-static sb_syscon = 0;
-static use_cmdstrobe = 0;
+static int sb_syscon = 0;
+static int use_cmdstrobe = 0;
 static char cmdfile[FILENAME_MAX] = "dccc_cmd.txt";
 static int n_cfgcmds = 0, n_ports = 0, n_cmds = 0;
 static int strobe_set = 0;
@@ -144,7 +147,7 @@ typedef struct {
  
 
 static void skip_space( char *buf, int *idx ) {
-  i = *idx;
+  int i = *idx;
   while ( isspace(buf[i]) ) ++i;
   *idx = i;
 }
@@ -175,6 +178,7 @@ static int readunum( char *buf, int *idx, unsigned int *val ) {
   return 0;
 }
 
+#define DCCC_MAX_CMD_BUF 250
 void receive_cmd( int cmd_fd, cmd_t *pcmd ) {
   char tbuf[DCCC_MAX_CMD_BUF+1];
   
@@ -209,14 +213,14 @@ void receive_cmd( int cmd_fd, cmd_t *pcmd ) {
       for (;;) {
         unsigned int val;
         if ( readunum(tbuf, &i, &val) ) { cmd_ok = 0; break; }
-        pcmd->cmd[pcmd->n_cmds].cmd = val;
+        pcmd->cmds[pcmd->n_cmds].cmd = val;
         if ( val > n_cmds ) {
           nl_error( 2, "Invalid command number" );
           cmd_ok = 0;
           break;
         }
         if ( pcmd->n_cmds == 0 ) {
-          cmd_variety = cmd[val].type;
+          cmd_variety = cmds[val].type;
           switch (cmd_variety) {
             case STEP:
             case STRB:
@@ -235,7 +239,7 @@ void receive_cmd( int cmd_fd, cmd_t *pcmd ) {
           }
           if ( ! cmd_ok ) break;
         } else {
-          if ( cmd[val].type != cmd_variety ) {
+          if ( cmds[val].type != cmd_variety ) {
             nl_error( 2, "Mismatched command in multi" );
             cmd_ok = 0;
             break;
@@ -278,8 +282,7 @@ void receive_cmd( int cmd_fd, cmd_t *pcmd ) {
   }
 }
 
-void main(int argc, char **argv) {
-  reply_type replycode;
+int main(int argc, char **argv) {
   int i,mult,inc;
   int cmd_idx, value, num_mult_cmds;
   int cmd_fd;
@@ -287,7 +290,7 @@ void main(int argc, char **argv) {
   oui_init_options( argc, argv );
   nl_error( 0, "Startup" );
 
-  cmd_fd = tm_open_name( tm_dev_name("cmd/dccc", NULL, O_RDONLY );
+  cmd_fd = tm_open_name( tm_dev_name("cmd/dccc"), NULL, O_RDONLY );
 
   /* subbus */
   if (subbus_subfunction == SB_SYSCON || 
@@ -304,7 +307,7 @@ void main(int argc, char **argv) {
     mult = 0;
     num_mult_cmds = 0;
     in_strobe_cmd = 0;
-    replycode = DAS_OK;
+    int cmd_ok = 1;
     inc = 1;
     value = 0;
     cmd_t pcmd;
@@ -328,7 +331,7 @@ void main(int argc, char **argv) {
         for (i = 1; i < num_mult_cmds; ++i) {
           if (cmds[pcmd.cmds[i].cmd].type != cmds[cmd_idx].type) {
             nl_error(MSG_WARN, "Bad DC_MULTCMD command recieved" );
-            reply_code = DAS_UNKN;
+            cmd_ok = 0;
             break;
           }
         }
@@ -336,10 +339,10 @@ void main(int argc, char **argv) {
         mult = 1;
         break;
       default:
-        nl_error(4,"unknown DASCMD type %d received",buf[1]);
+        nl_error(4,"unknown command type returned from receive_cmd" );
     }
     
-    if ( reply_code != DAS_OK ) continue;
+    if ( !cmd_ok ) continue;
 
 
     /* reset the strobe if necessary or define str_cmd
@@ -351,7 +354,7 @@ void main(int argc, char **argv) {
       if (strobe_set) {
         if (sb_syscon) {
           if (use_cmdstrobe) set_cmdstrobe(0);
-          else out16(0x30E, 2);
+          else out8(0x30E, 2);
         } else reset_line(cmds[n_cmds-1].port,cmds[n_cmds-1].mask);
         if (cmd_idx != str_cmd) nl_error(MSG_WARN, "Bad strobe sequence");
       } else str_cmd = cmd_idx;
@@ -387,10 +390,10 @@ void main(int argc, char **argv) {
           ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask, value, cmd_idx);
         sel_line(cmds[cmd_idx].port, cmds[cmd_idx].mask, value);
         break;
-      case SPARE: replycode = DAS_UNKN;
+      case SPARE: cmd_ok = 0;
         nl_error(MSG_WARN,"command type SPARE received");
         break;
-      default: replycode = DAS_UNKN;
+      default: cmd_ok = 0;
         nl_error(MSG_WARN,"unknown command type %d received",cmds[cmd_idx].type);
       }			/* switch */
 
@@ -403,14 +406,14 @@ void main(int argc, char **argv) {
           value = pcmd.cmds[i].value;
         }
       }
-    }	/* do */ while ( mult && replycode==DAS_OK);
+    }	/* do */ while ( mult && cmd_ok );
 
     if (in_strobe_cmd) {
       if (strobe_set) strobe_set = 0;
       else {
         if (sb_syscon) {
           if (use_cmdstrobe) set_cmdstrobe(1);
-          else outp(0x30E, 3);
+          else out8(0x30E, 3);
         }
         else set_line(cmds[n_cmds-1].port, cmds[n_cmds-1].mask);
         strobe_set = 1;
@@ -426,15 +429,15 @@ void main(int argc, char **argv) {
 void init_cards(void) {
   int i;
   for (i = 0; i < n_cfgcmds; i++)
-    if (!write_ack(0,cfg_cmds[i].address, cfg_cmds[i].data))
+    if (!write_ack(cfg_cmds[i].address, cfg_cmds[i].data))
       nl_error(init_fail ? MSG_EXIT_ABNORM : MSG_WARN,"No ack for configuration command at address %#X",cfg_cmds[i].address);
   for (i = 0; i < n_ports; i++)
-    if (!write_ack(0,ports[i].sub_addr, ports[i].defalt))
+    if (!write_ack(ports[i].sub_addr, ports[i].defalt))
       nl_error(init_fail ? MSG_EXIT_ABNORM : MSG_WARN,"No ack at port address %#X",ports[i].sub_addr);
   /* Set Command Strobe Inactive */
   if (sb_syscon) {
     if (use_cmdstrobe) set_cmdstrobe(0);
-    else outp(0x30E, 2);
+    else out8(0x30E, 2);
   }
   else reset_line(cmds[n_cmds-1].port,cmds[n_cmds-1].mask);
   /* Enable Commands */
@@ -443,22 +446,22 @@ void init_cards(void) {
 
 void set_line(int port, int mask) {
   ports[port].value |= mask;
-  write_subbus(0,ports[port].sub_addr, ports[port].value);
+  write_subbus(ports[port].sub_addr, ports[port].value);
 }
 
 void old_line(int port) {
-  ports[port].value = read_subbus(0,ports[port].sub_addr);
+  ports[port].value = read_subbus(ports[port].sub_addr);
 }
 
 void sel_line(int port, int mask, int value) {
   ports[port].value &= ~mask;
   ports[port].value |= (mask & ~value);
-  write_subbus(0,ports[port].sub_addr, ports[port].value);
+  write_subbus(ports[port].sub_addr, ports[port].value);
 }
 
 void reset_line(int port, int mask) {
   ports[port].value &= ~mask;
-  write_subbus(0,ports[port].sub_addr, ports[port].value);
+  write_subbus(ports[port].sub_addr, ports[port].value);
 }
 
 /* No special commands for the time being */
@@ -466,7 +469,7 @@ void reset_line(int port, int mask) {
 void read_commands(void) {
   FILE *fp;
   char buf[128], *p;
-  int i,e;
+  int i;
 
   if ((fp = fopen(cmdfile, "r")) == NULL)
     nl_error(MSG_EXIT_ABNORM,"error opening %s",cmdfile);
