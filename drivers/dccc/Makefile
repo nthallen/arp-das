@@ -1,0 +1,21 @@
+SRCS = $(BASE).c dc_read.c dcccoui.c
+OBJS = $(SRCS:.c=.o)
+LDFLAGS = -L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
+LIBS = -ltm -lsubbus -lnort
+CFLAGS=-Wall -g
+
+all : dccc
+dccc : $(OBJS)
+	$(LINK.priv) $(OBJS) $(LIBS)
+	usemsg dccc dcccoui.c
+	/usr/local/sbin/promote dccc
+dc_read.o: dc_read.c disc_cmd.h
+dccc.o: dccc.c disc_cmd.h
+dcccoui.c : dccc.oui
+	oui -o dcccoui.c dccc.oui
+
+.PHONY : clean install all
+clean :
+	rm -f *.o dcccoui.c dccc
+install : dccc
+	@cp -vp dccc /usr/local/bin

@@ -1,0 +1,14 @@
+<package> dccc
+<include> msg
+<include> subbus
+<include> "disc_cmd.h"
+<opts> "if:"
+<sort>
+	-f <cmdfile>
+	-i fail if Card initialisation or command configuration error occurs
+<init>
+  dccc_init_options( argc, argv );
+  
+<package> msghdr_default
+<vars>
+  char *msg_hdr_default = "DCCC";
