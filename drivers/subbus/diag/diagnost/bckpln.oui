@@ -1,0 +1,20 @@
+<package> bckpln
+<include> "bckpln.h"
+<opts> "V:B"
+<switch>
+  case 'V':
+	if ( *optarg == 'p' ) ver = VER_PCICC;
+	else if ( *optarg == 'c' ) ver = VER_REVC;
+	else nl_error( 3, "Unknown version switch, %s", optarg );
+	break;
+  case 'B':
+	enable_sc104_bufs = 1;
+	break;
+<sort>
+	-Vc  Hardware is System Controller Rev. C
+	-Vp  Hardware is PCICC
+	-B   Force Enable of SC104 Buffers (Dangerous!)
+<unsort>
+Bckpln provides a very low-level diagnostic for verifying the
+performance of the various Subbus Interface cards, including
+the PCICC and the entire System Controller line.
