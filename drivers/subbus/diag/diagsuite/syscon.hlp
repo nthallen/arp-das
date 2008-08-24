@@ -1,0 +1,34 @@
+               INSTRUCTIONS FOR USING SYSCON
+               
+OPTIONS:
+    +/- enables/disables that option.
+        con - the specified tests are continuously applied in a loop.
+        man - manual mode debugging.
+        aut - automatic mode debugging.
+        end - the program is exited after automatic mode.
+        <mmm> - three code mnemonic for a test.
+    Default operation is for all tests in diagmenu.h to be applied in
+    automatic mode and then manual mode is entered.        
+        
+QUALIFIERS:                          
+        log=<filename> - specifies a file where failures/warnings are logged.
+        lim=<limit> - specifies the maximum limit on number of failures/
+             warnings that are logged. Default is 100.
+        
+USAGE:
+        <progname> ? - shows usage of the command and diagnostics that are
+        included for that executable.
+
+ADDING DIAGNOSTICS:
+    The diagnostic tests are implemented in the file suite.c.
+    Functions placed here have the form:
+        int <function_name> (int mode)
+    The function can execute depending on the mode which can be one of
+    AUTO_MODE, MAN_MODE or CON_MODE. A function returns SCD_PASS or
+    SCD_FAIL. The function affects the screen display by use of the
+    function diag_status(attribute, string). Attribute can be ATTR_PASS,
+    ATTR_FAIL, or ATTR_WARN.
+    The functions are declared in scdiag.h.
+    To build an executable, include the tests you want in diagmenu.h
+    and type 'lmk'.
+

@@ -1,0 +1,22 @@
+%C [?] [/QUAL=<id>]...[+\-OPTION]...
+   where QUAL is in {log lim}
+   and OPTION is in {aut man con end} or a code mnemonic of a test, SEE USAGE.
+
+OPTIONS:
+    +/- enables/disables that option.
+        con - the specified tests are continuously applied in a loop.
+        man - manual mode debugging.
+        aut - automatic mode debugging.
+        end - the program is exited after automatic mode.
+        <mmm> - three code mnemonic for a test.
+    Default operation is for all tests in diagmenu.h to be applied in
+    automatic mode and then manual mode is entered.        
+        
+QUALIFIERS:                          
+        log=<filename> - specifies a file where failures/warnings are logged.
+        lim=<limit> - specifies the maximum limit on number of failures/
+             warnings that are logged. Default is 100.
+        
+USAGE:
+        <progname> ? - shows usage of the command and diagnostics that are
+        included for that executable.
