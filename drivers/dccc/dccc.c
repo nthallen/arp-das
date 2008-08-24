@@ -1,6 +1,9 @@
 /*
  * Discrete command card controller program.
  * $Log$
+ * Revision 1.3  2008/08/24 15:14:30  ntallen
+ * Restructure to handle strobe commands without separate scdc app
+ *
  * Revision 1.2  2008/08/23 16:19:21  ntallen
  * Compiling
  *
@@ -31,12 +34,23 @@ static char rcsid[] = "$Id$";
 
 /* defines */
 
+#define MAX_CMDS 20
+typedef struct {
+  char cmd_type; // D, M, Q
+  int n_cmds;
+  struct {
+    int cmd;
+    unsigned short value;
+  } cmds[MAX_CMDS];
+} cmd_t;
+
 /* functions */
 void init_cards(void);
 void set_line(int port, int mask), reset_line(int port, int mask);
 void sel_line(int port, int mask, int value);
 void read_commands(void);
 int get_type(char *buf, int *type), get_line(FILE *fp, char *buf);
+void execute_pcmd( cmd_t *pcmd, int clr_strobe );
 
 /* global variables */
 struct cfgcmd {
@@ -79,16 +93,6 @@ void dccc_init_options( int argc, char **argv ) {
     }
   } while (i!=-1);
 }
-
-#define MAX_CMDS 20
-typedef struct {
-  char cmd_type; // D, M, Q
-  int n_cmds;
-  struct {
-    int cmd;
-    unsigned short value;
-  } cmds[MAX_CMDS];
-} cmd_t;
 
 /**
   * Syntax for commands will be:
@@ -148,7 +152,7 @@ void receive_cmd( int cmd_fd, cmd_t *pcmd ) {
       int i = 0;
       int need_vals = 0;
       int multi = 0;
-      int cmd_variety, cmd0_variety;
+      int cmd_variety;
       pcmd->n_cmds = 0;
       nl_assert( nb <= DCCC_MAX_CMD_BUF );
       tbuf[nb] = '\0';
@@ -237,8 +241,6 @@ void receive_cmd( int cmd_fd, cmd_t *pcmd ) {
 }
 
 int main(int argc, char **argv) {
-  int i,mult,inc;
-  int cmd_idx, value, num_mult_cmds;
   int cmd_fd;
 
   oui_init_options( argc, argv );
@@ -280,11 +282,9 @@ void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
   int dccc_cmd_type = cmds[cmd_idx].type;
   int cmd_ok = 1;
   static int str_cmd;
+  int i;
   
-   /* reset the strobe if necessary or define str_cmd
-         Don't reset strobe_set here, because we need to
-         check it's value again after the do loop.
-         */
+   /* reset the strobe if necessary or define str_cmd */
   if (dccc_cmd_type == STRB) {
     if (clr_strobe) {
       if (sb_syscon) {
@@ -295,9 +295,9 @@ void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
     } else str_cmd = cmd_idx;
   }
 
-  for ( i = 0; cmd_ok && i < pcmds->n_cmds; i++ ) {
-    cmd_idx = pcmd.cmds[i].cmd;
-    value = pcmd.cmds[i].value;
+  for ( i = 0; cmd_ok && i < pcmd->n_cmds; i++ ) {
+    cmd_idx = pcmd->cmds[i].cmd;
+    value = pcmd->cmds[i].value;
 
     switch (dccc_cmd_type) {
     case STRB:
