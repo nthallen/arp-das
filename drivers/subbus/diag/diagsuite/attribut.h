@@ -1,5 +1,5 @@
 /* attribut.h defines the attributes */
-extern unsigned char attributes[];
+extern int attributes[];
 #define CFG_FILE "scdiag.cfg"
 #define MAX_ATTRS 10
 #define ATTR_MAIN attributes[0]

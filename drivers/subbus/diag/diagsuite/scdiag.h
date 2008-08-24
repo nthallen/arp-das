@@ -4,7 +4,7 @@
 */
 extern unsigned int inpw(unsigned int);
 extern void outpw(unsigned int, unsigned int);
-extern void diag_name(char *name);
+extern void diag_name(int dnum);
 extern void diag_status(unsigned char attr, char *fmt, ...);
 extern int disp_addrs(int,int,int,int,int *,int, int *, int);
 

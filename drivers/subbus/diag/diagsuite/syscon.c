@@ -10,11 +10,15 @@
 #undef getch
 #include <stdio.h>
 #ifdef DOS
-#include <dos.h>
+  #include <dos.h>
 #endif
-#ifdef __QNX__
-#include "lat.h"
-#define poserr perror
+#if defined( __QNX__ )
+  #if defined(__QNXNTO__)
+    #include "port.h"
+  #else
+    #include "lat.h"
+  #endif
+  #define poserr perror
 #endif
 #include <stdlib.h>
 #include <assert.h>
@@ -22,21 +26,28 @@
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
-#include <cfg.h>
+#include "cfg.h"
 #include "attribut.h"
 #include "syscon.h"
 #include "scdiag.h"
 #include "define.h"
+#include "subbus.h"
 
-unsigned char attributes[MAX_ATTRS];
+int attributes[MAX_ATTRS];
 
-void mvWrtNAttr(WINDOW *mw, int attr, int n, int y, int x) {
-  int i;
-  char *cp;
+/* This function is supposed to change attributes on the screen
+   without re-writing the data (i.e. without knowing the data)
+   This may not be possible portably.
+*/
+#if defined(__QNX__) && ! defined(__QNXNTO__)
+  void mvWrtNAttr(WINDOW *mw, int attr, int n, int y, int x) {
+    int i;
+    char *cp;
 
-  cp = mw->scr_image + y*mw->_bufwidth*2 + x*2 + 1;
-  for (i = n; i > 0; i--, cp += 2) *cp = attr;
-}
+    cp = mw->scr_image + y*mw->_bufwidth*2 + x*2 + 1;
+    for (i = n; i > 0; i--, cp += 2) *cp = attr;
+  }
+#endif
 
 static char logo_str[] =
   "System Controller Diagnostics v2.0, January 7, 1996";
@@ -55,7 +66,7 @@ char *progname;
 FILE *logfd=NULL;    
 int loglimit=DEFAULT_LIMIT, logcnt=0;
 int status;    
-long t;
+time_t t;
 
 diagdef diag_list[] = {
 #include "diagmenu.h"
@@ -68,16 +79,22 @@ static int diag_number;
 #define NAME_WIDTH 20
 #define STATUS_COL (NAME_COL+NAME_WIDTH+2)
 
-void diag_name(char *name) {
-  attrset(ATTR_NAME);
-  mvaddstr(FIRST_NAME_ROW+diag_number, NAME_COL, name);
+void diag_name_attr( int dnum, int attr ) {
+  attrset(attr);
+  mvaddstr(FIRST_NAME_ROW+dnum, NAME_COL, diag_list[dnum].name);
+}
+
+void diag_name(int dnum) {
+  diag_name_attr( dnum, ATTR_NAME );
+  // attrset(ATTR_NAME);
+  // mvaddstr(FIRST_NAME_ROW+diag_number, NAME_COL, name);
 }
 
 void diag_status(unsigned char attr, char *text, ...) {
   char buf[100], *offstr, *p1, which[5];
   int i;
   va_list ap;
-  long t1;
+  time_t t1;
   
   /* puts diagnostic status string in status attribute to screen,
   logs to logfile if needed and sets the global status variable */
@@ -93,12 +110,13 @@ void diag_status(unsigned char attr, char *text, ...) {
   mvaddstr(FIRST_NAME_ROW+diag_number, STATUS_COL, buf);
   if (attr==ATTR_FAIL) status=1;
   else if (status==ATTR_WARN&&status<1) status=-1;   
-  if (logfd)
+  if (logfd) {
      if (logcnt<loglimit) {
         if (attr==ATTR_FAIL || attr==ATTR_WARN) {
            strcpy(which,(attr==ATTR_WARN) ? "warn" : "fail");     
            time(&t1); offstr=ctime(&t1); p1=offstr+11; *(offstr+19)=NULCHR;
-           fprintf(logfd,"%s: %s: %s: %s %s\n",progname,p1,which,diag_list[diag_number].name,buf);
+           fprintf(logfd,"%s: %s: %s: %s %s\n",progname,p1,which,
+		     diag_list[diag_number].name,buf);
            logcnt++;
         }
     }
@@ -106,11 +124,14 @@ void diag_status(unsigned char attr, char *text, ...) {
         fprintf(logfd,"%s: maximum log limit of %d reached\n",progname,loglimit);
         logend++;
     }
+  }
 }
 
 void diag_test(int diag_number) {
   wmove(stdscr, FIRST_NAME_ROW+diag_number, STATUS_COL);
-  mvWrtNAttr(stdscr, ATTR_EXEC, NAME_WIDTH, FIRST_NAME_ROW+diag_number, NAME_COL);
+  // mvWrtNAttr(stdscr, ATTR_EXEC, NAME_WIDTH,
+  //   FIRST_NAME_ROW+diag_number, NAME_COL);
+  diag_name_attr(diag_number, ATTR_EXEC);
   refresh();
   diag_list[diag_number].func(mode);
 }
@@ -157,7 +178,7 @@ int main(int argc,char *argv[]) {
   
   /* set up the screen */
   init_attrs(CFG_FILE,attributes,MAX_ATTRS);
-  if (initscr() == ERR) printf("Cannot initscr()");
+  if (((int)initscr()) == ERR) printf("Cannot initscr()");
   cbreak();
   noecho();
   attrset(ATTR_MAIN);
@@ -175,7 +196,7 @@ int main(int argc,char *argv[]) {
 
   /* display the function names */
   for (diag_number = 0; diag_number < N_DIAGS; diag_number++)
-    diag_name(diag_list[diag_number].name);
+    diag_name(diag_number);
   nodelay(stdscr,TRUE);    
   refresh();
 
@@ -183,10 +204,14 @@ int main(int argc,char *argv[]) {
   if (mode!=MAN_MODE)
     do {
       for (diag_number = 0; diag_number < N_DIAGS; diag_number++) {
-        mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH, FIRST_NAME_ROW+diag_number, NAME_COL);  
+        // mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH,
+	//   FIRST_NAME_ROW+diag_number, NAME_COL);  
+	diag_name_attr(diag_number, ATTR_NAME);
         if (diag_ok(diag_number)) {
            diag_test(diag_number);
-           mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH, FIRST_NAME_ROW+diag_number, NAME_COL);  
+           // mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH,
+	   //    FIRST_NAME_ROW+diag_number, NAME_COL);  
+	   diag_name_attr(diag_number, ATTR_NAME);
            refresh();
          }
       }
@@ -202,10 +227,14 @@ int main(int argc,char *argv[]) {
   /* manual mode loop */
   if (!ender) {
     for (diag_number = 0; diag_number < N_DIAGS; diag_number++)
-      mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH, FIRST_NAME_ROW+diag_number, NAME_COL);
+      // mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH,
+      //   FIRST_NAME_ROW+diag_number, NAME_COL);
+      diag_name(diag_number);
     diag_number=0;
     while(!diag_ok(diag_number)&&diag_number<N_DIAGS) diag_number++;  
-    mvWrtNAttr(stdscr, ATTR_HILT, NAME_WIDTH, FIRST_NAME_ROW+diag_number, NAME_COL);
+    // mvWrtNAttr(stdscr, ATTR_HILT, NAME_WIDTH,
+    //    FIRST_NAME_ROW+diag_number, NAME_COL);
+    diag_name_attr( diag_number, ATTR_HILT );
     keypad(stdscr,TRUE);
     refresh();
     while(1) {
@@ -224,8 +253,12 @@ int main(int argc,char *argv[]) {
        }
        if (c==ESCAPE) break;
        if (last_diag != diag_number)
-         mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH, FIRST_NAME_ROW+last_diag, NAME_COL);
-       mvWrtNAttr(stdscr, ATTR_HILT, NAME_WIDTH, FIRST_NAME_ROW+diag_number, NAME_COL);
+         // mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH,
+	 //    FIRST_NAME_ROW+last_diag, NAME_COL);
+	 diag_name(last_diag);
+       // mvWrtNAttr(stdscr, ATTR_HILT, NAME_WIDTH,
+       //   FIRST_NAME_ROW+diag_number, NAME_COL);
+       diag_name_attr(diag_number, ATTR_HILT);
        refresh();
     } 
   }

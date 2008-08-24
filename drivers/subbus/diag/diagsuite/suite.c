@@ -14,25 +14,35 @@
 #include <curses.h>
 #undef getch
 #ifdef DOS
-#include <dos.h>
-#include "reslib.h"
+  #include <dos.h>
+  #include "reslib.h"
 #endif
 #include <assert.h>
 #include <time.h>
 #include <stdlib.h>
-#include <cfg.h>
+#include "cfg.h"
 #include "syscon.h"
 #include "scdiag.h"
 #include "attribut.h"
 #include "define.h"
 #include "subbus.h"
+#ifdef __QNXNTO__
+  #include <hw/inout.h>
+  #define outp(x,y) out8(x,y)
+  #define outpw(x,y) out16(x,y)
+  #define inp(x) in8(x)
+  #define inpw(x) in16(x)
+  #define FAR_PTR
+#else
+  #define FAR_PTR far
+#endif
 
 unsigned int sb_data[] = {0, 0xFFFF, 0x00FF, 0x0055, 0xFE01, 0xFD02,
 		 0xFB04, 0xF708, 0xEF10, 0xDF20, 0xBF40, 0x7F80};
 #define N_WORDS (sizeof(sb_data)/sizeof(int))
 
 int is_syscon104( void ) {
-  static isit = -1;
+  static int isit = -1;
   
   if ( isit == -1 ) {
 	unsigned short pattern=0x5555, readback;
@@ -111,12 +121,13 @@ int dtoa(int addr1, int addr2, int addr3, int addr4, int mode) {
 
 #if defined(card) || defined(ana104)
 int subbus_debug(int from, int to) {
-  int i, fail=0, failall=0, data;
+  int i, fail=0, failall=0;
+  unsigned short data;
   char stat[40];
 
   if (load_sublib()) {
      for (i=from;i<=to;i++)
-       if (!read_ack(0,i,(unsigned far *)(&data))) {
+       if (!read_ack(i,(unsigned short FAR_PTR *)(&data))) {
          fail=i; failall++;
        }
      if (failall==(to-from+1)) {
@@ -128,7 +139,7 @@ int subbus_debug(int from, int to) {
        diag_status(ATTR_FAIL,stat);
        return(0);
      }
-     if (read_ack(0,0,(unsigned far *)(&data))) {
+     if (read_ack(0,(unsigned short FAR_PTR *)(&data))) {
         diag_status(ATTR_WARN,"Permanent Ack Detected");
         return(1);
      }

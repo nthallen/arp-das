@@ -29,12 +29,18 @@
 #define l 108
 #define PLUS 43
 #define MINUS 45
-#ifdef __QNX__
-#define CR K_ENTER
-#define ESCAPE K_ESC
+#if defined( __QNX__ ) && ! defined(__QNXNTO__)
+  #define CR K_ENTER
+  #define ESCAPE K_ESC
 #else
-#define CR 10
-#define ESCAPE 27
+  #define CR 10
+  #define ESCAPE 27
+#endif
+#ifdef __QNXNTO__
+  #define VERT_SINGLE ACS_VLINE
+  #define VERT_DOUBLE ACS_VLINE
+  #define HORIZ_SINGLE ACS_HLINE
+  #define HORIZ_DOUBLE ACS_HLINE
 #endif
 #define CTRLL 12
 #define CTRLR 18

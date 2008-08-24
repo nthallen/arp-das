@@ -1,7 +1,12 @@
 #include <curses.h>
 #undef getch
 #ifdef DOS
-#include <dos.h>
+  #include <dos.h>
+#endif
+#if defined(__QNX__) && ! defined(__QNXNTO__)
+  #define FAR_PTR far
+#else
+  #define FAR_PTR
 #endif
 #include <stdio.h>
 #include <stdarg.h>
@@ -12,9 +17,10 @@
 #include "subbus.h"
 #include "attribut.h"
 #include <ctype.h>
-#include <cfg.h>
+#include "cfg.h"
+#include "port.h"
 
-char *to_str(char *out, int dat, int radix, int res) {
+char *to_str(char *out, unsigned short dat, int radix, int res) {
 /* returns a string of 'dat' in specified radix and resolution */    
 
 #define HIGH(x) (((x) >> 8) & 0xFF)
@@ -98,7 +104,8 @@ int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, in
                    noecho(); nodelay(dispwin,TRUE);\
                    break;
     
-    int c, dat=0,  i, j, k, kk, numcols, ok=0, cycle=0, step=1;
+    int c, i, j, k, kk, numcols, ok=0, cycle=0, step=1;
+    unsigned short dat=0;
     float lines,cols,numaddr;
     WINDOW *dispwin, *statwin;
     char out[19], statbuf[30];
@@ -168,9 +175,11 @@ int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, in
     /* handle user commands, first check if it is an enabled command */
     while ((c=wgetch(dispwin))!=ESCAPE) {
        proceed=0; i=0;
-       if (c!=ERR)
-          while (!proceed && i<numcmds)
+       if (c!=ERR) {
+          while (!proceed && i<numcmds) {
              if (c==cmds[i]) proceed++; else i++;
+	 }
+       }
        if ((ok>2||cycle) &&proceed && (c!=CR&&c!=M&&c!=m&&c!=B&&c!=b))proceed=0;
        if (!proceed&&cycle) { c=CTRLC; proceed++; }
        if (!proceed&&ok==99) { c=CTRLW; proceed++; }
@@ -192,7 +201,10 @@ int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, in
                    UNSET_REC(0);
             case D: case d:
                    SETUP_REC(DATASTAT,1,FIELD_ADDR+2,1);
-                   stch_i(out,&dat);
+                   { int tmp;
+		     stch_i(out,&tmp);
+		     dat = (unsigned short)tmp;
+		   }
                    if (dat>maxlim) dat=minlim;
                    if (dat<minlim) dat=maxlim;
                    UNSET_REC(1);
@@ -255,9 +267,9 @@ int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, in
                   /* put output at j lines, i cols+FIELD_ADDR+1 */
                   CLRDATA(j+1,i*COL_WIDTH+FIELD_ADDR+2);
                   if (c==CTRLW || c==W || c==w)
-                     stat=write_ack(0,from,dat);
+                     stat=write_ack(from,dat);
                   else   
-                     stat=read_ack(0,from+((i*MAXLINES)+j)*2,(unsigned far *)&dat);
+                     stat=read_ack(from+((i*MAXLINES)+j)*2,(unsigned short FAR_PTR *)&dat);
                   mvwaddstr(dispwin,j+1,i*COL_WIDTH+FIELD_ADDR+2,to_str(out,dat,radix,res));
                   if (i*j>=numaddr) break;
                }
