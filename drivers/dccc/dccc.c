@@ -1,58 +1,15 @@
 /*
  * Discrete command card controller program.
  * $Log$
+ * Revision 1.2  2008/08/23 16:19:21  ntallen
+ * Compiling
+ *
  * Revision 1.1  2008/08/23 02:45:40  ntallen
  * QNX6 mods
  *
- * Revision 1.11  2002/05/23 15:42:31  eil
- * Eileen's changes
- *
- * Revision 1.10  1998/03/04 16:28:43  eil
- * fixed MULTCMD
- *
- * Revision 1.9  1998/02/14 23:13:46  eil
- * added SELECT capability
- *
- * Revision 1.8  1997/02/05  15:56:30  eil
- * uses new set_cmdenbl available with new subbus
- *
- * Revision 1.7  1996/04/25  20:32:02  eil
- * latest and greatest
- *
- * Revision 1.6  1995/06/14  14:56:16  eil
- * last version before set_cmdstrobe function and new subbus104.
- *
- * Revision 1.5  1993/04/28  15:56:31  eil
- * added MSG_DEBUG's, tabs and check error return of Reply
- *
- * Revision 1.4  1993/03/26  18:16:59  eil
- * before cepex
- *
- * Revision 1.5  1992/10/27  17:29:31  nort
- * Changed to reset cmd_idx not str_cmd in do loop for mult_cmds.
- * Eliminated *inc in one calculation. What is the format anyway?
- *
- * Revision 1.4  1992/10/27  17:13:30  nort
- * Moved to Nort's system.
- * Changed our includes to "" from <>
- * Eliminated unused j, included conio.h for outp prototype.
- * Converted to 4 space tabs
- *
- * Revision 1.3	 1992/08/13	 21:32:37  nort
- * Add revision log.
- *
- * revision 1.2 locked by: nort;
- * date: 1992/08/13 21:29:08;  author: nort;  state: Exp;  lines: +151 -142
- * Altered strobing sequence to reset strobe before command lines.
- * Also strobe once for all MULT_CMDS.
- * Also changed tabs to 4
- *
- * revision 1.1
- * date: 1992/08/13 21:02:12;  author: nort;  state: Exp;
- * Initial revision
- *
  * Modified by Eil July 1991 for QNX.
  * Ported to QNX 4 by Eil 4/15/92.
+ * Ported to QNX 6 by Nort 8/23/08.
  */
 
 /* header files */
@@ -104,9 +61,6 @@ static int sb_syscon = 0;
 static int use_cmdstrobe = 0;
 static char cmdfile[FILENAME_MAX] = "dccc_cmd.txt";
 static int n_cfgcmds = 0, n_ports = 0, n_cmds = 0;
-static int strobe_set = 0;
-static int in_strobe_cmd = 0;
-static int str_cmd;
 
 
 void dccc_init_options( int argc, char **argv ) {
@@ -194,7 +148,7 @@ void receive_cmd( int cmd_fd, cmd_t *pcmd ) {
       int i = 0;
       int need_vals = 0;
       int multi = 0;
-      int cmd_variety;
+      int cmd_variety, cmd0_variety;
       pcmd->n_cmds = 0;
       nl_assert( nb <= DCCC_MAX_CMD_BUF );
       tbuf[nb] = '\0';
@@ -303,124 +257,94 @@ int main(int argc, char **argv) {
   init_cards();
 
   while (1) {
-    /* loop initialisation */
-    mult = 0;
-    num_mult_cmds = 0;
-    in_strobe_cmd = 0;
-    int cmd_ok = 1;
-    inc = 1;
-    value = 0;
     cmd_t pcmd;
+    int dccc_cmd_type;
 
     receive_cmd(cmd_fd, &pcmd );
 
     /* check out msg structure */
-    switch (pcmd.cmd_type) {
-      case 'D':
-        cmd_idx = pcmd.cmds[0].cmd; 
-        value = pcmd.cmds[0].value;
-        break;
-      case 'Q':
-        nl_error( -1, "Shutdown" );
-      case 'M':
-        /* check commands are all of same type */
-        cmd_idx = pcmd.cmds[0].cmd; 
-        num_mult_cmds = pcmd.n_cmds;
-        inc = 1;
-        value = pcmd.cmds[0].value;
-        for (i = 1; i < num_mult_cmds; ++i) {
-          if (cmds[pcmd.cmds[i].cmd].type != cmds[cmd_idx].type) {
-            nl_error(MSG_WARN, "Bad DC_MULTCMD command recieved" );
-            cmd_ok = 0;
-            break;
-          }
-        }
-        i = 0;
-        mult = 1;
-        break;
-      default:
-        nl_error(4,"unknown command type returned from receive_cmd" );
+    if ( pcmd.cmd_type == 'Q')
+      nl_error( -1, "Shutdown" );
+    dccc_cmd_type = cmds[pcmd.cmds[0].cmd].type;
+    execute_pcmd( &pcmd, 0 );
+    if (dccc_cmd_type == STRB) {
+      /* optionally add a delay here */
+      execute_pcmd( &pcmd, 1 );
     }
-    
-    if ( !cmd_ok ) continue;
+  }
+}
 
-
-    /* reset the strobe if necessary or define str_cmd
+void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
+  int cmd_idx = pcmd->cmds[0].cmd;
+  unsigned short value;
+  int dccc_cmd_type = cmds[cmd_idx].type;
+  int cmd_ok = 1;
+  static int str_cmd;
+  
+   /* reset the strobe if necessary or define str_cmd
          Don't reset strobe_set here, because we need to
          check it's value again after the do loop.
          */
-    if (cmds[cmd_idx].type == STRB) {
-      in_strobe_cmd++;
-      if (strobe_set) {
-        if (sb_syscon) {
-          if (use_cmdstrobe) set_cmdstrobe(0);
-          else out8(0x30E, 2);
-        } else reset_line(cmds[n_cmds-1].port,cmds[n_cmds-1].mask);
-        if (cmd_idx != str_cmd) nl_error(MSG_WARN, "Bad strobe sequence");
-      } else str_cmd = cmd_idx;
-    }
+  if (dccc_cmd_type == STRB) {
+    if (clr_strobe) {
+      if (sb_syscon) {
+        if (use_cmdstrobe) set_cmdstrobe(0);
+        else out8(0x30E, 2);
+      } else reset_line(cmds[n_cmds-1].port,cmds[n_cmds-1].mask);
+      if (cmd_idx != str_cmd) nl_error(MSG_WARN, "Bad strobe sequence");
+    } else str_cmd = cmd_idx;
+  }
 
-    do {
-      switch (cmds[cmd_idx].type) {
-      case STRB:
-        if (strobe_set) {
-          nl_error(MSG_DEBUG, "STRB reset: PORT %03X mask %04X command index %d",
-            ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask, cmd_idx);
-          reset_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
-        } else {
-          nl_error(MSG_DEBUG,"STRB set: port %03X mask %04X command index %d",
-            ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask,cmd_idx);
-          set_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
-        }
-        break;
-      case STEP:
-        set_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
+  for ( i = 0; cmd_ok && i < pcmds->n_cmds; i++ ) {
+    cmd_idx = pcmd.cmds[i].cmd;
+    value = pcmd.cmds[i].value;
+
+    switch (dccc_cmd_type) {
+    case STRB:
+      if (clr_strobe) {
+        nl_error(MSG_DEBUG, "STRB reset: PORT %03X mask %04X command index %d",
+          ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask, cmd_idx);
         reset_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
-        break;
-      case SET:
-        nl_error(MSG_DEBUG,"SET: PORT %d, mask %04X, value %04X, command index %d",
-          ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask, value, cmd_idx);
-        if (cmds[cmd_idx].mask)
-          if (value) set_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
-          else reset_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
-        else set_line(cmds[cmd_idx].port, value);
-        break;
-      case SELECT:
-        nl_error(MSG_DEBUG,"SELECT: PORT %d, mask %04X, value %04X, command index %d",
-          ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask, value, cmd_idx);
-        sel_line(cmds[cmd_idx].port, cmds[cmd_idx].mask, value);
-        break;
-      case SPARE: cmd_ok = 0;
-        nl_error(MSG_WARN,"command type SPARE received");
-        break;
-      default: cmd_ok = 0;
-        nl_error(MSG_WARN,"unknown command type %d received",cmds[cmd_idx].type);
-      }			/* switch */
-
-      /* update command and value */
-      if (mult) {
-        ++i;
-        if ( i >= num_mult_cmds ) mult = 0;
-        else {
-          cmd_idx = pcmd.cmds[i].cmd;
-          value = pcmd.cmds[i].value;
-        }
+      } else {
+        nl_error(MSG_DEBUG,"STRB set: port %03X mask %04X command index %d",
+          ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask,cmd_idx);
+        set_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
       }
-    }	/* do */ while ( mult && cmd_ok );
+      break;
+    case STEP:
+      set_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
+      reset_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
+      break;
+    case SET:
+      nl_error(MSG_DEBUG,"SET: PORT %d, mask %04X, value %04X, command index %d",
+        ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask, value, cmd_idx);
+      if (cmds[cmd_idx].mask)
+        if (value) set_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
+        else reset_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
+      else set_line(cmds[cmd_idx].port, value);
+      break;
+    case SELECT:
+      nl_error(MSG_DEBUG,"SELECT: PORT %d, mask %04X, value %04X, command index %d",
+        ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask, value, cmd_idx);
+      sel_line(cmds[cmd_idx].port, cmds[cmd_idx].mask, value);
+      break;
+    case SPARE: cmd_ok = 0;
+      nl_error(MSG_WARN,"command type SPARE received");
+      break;
+    default: cmd_ok = 0;
+      nl_error(MSG_WARN,"unknown command type %d received",cmds[cmd_idx].type);
+    }			/* switch */
+  }
 
-    if (in_strobe_cmd) {
-      if (strobe_set) strobe_set = 0;
-      else {
-        if (sb_syscon) {
-          if (use_cmdstrobe) set_cmdstrobe(1);
-          else out8(0x30E, 3);
-        }
-        else set_line(cmds[n_cmds-1].port, cmds[n_cmds-1].mask);
-        strobe_set = 1;
-      }
+  if (dccc_cmd_type == STRB) {
+    if (!clr_strobe) {
+      if (sb_syscon) {
+        if (use_cmdstrobe) set_cmdstrobe(1);
+        else out8(0x30E, 3);
+      } else set_line(cmds[n_cmds-1].port, cmds[n_cmds-1].mask);
     }
-  }	/* while */
-}	/* main */
+  }
+}	/*execute_pcmd */
 
 
 /* functions */
