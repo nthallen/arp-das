@@ -8,6 +8,6 @@
     dc_set_srcnode(optarg);
     break;
 
-<package> msghdr_init
+<package> msghdr_default
 <vars>
-  char *msg_hdr_init = "DC";
+  char *msg_hdr_default = "DC";
