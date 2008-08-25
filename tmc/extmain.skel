@@ -1,5 +1,8 @@
 /* extmain.skel include file for extraction
  * $Log$
+ * Revision 1.7  2008/08/25 14:37:25  ntallen
+ * Need nortlib.h
+ *
  * Revision 1.6  2008/08/25 14:36:06  ntallen
  * Add startup and shutdown messages
  *
@@ -21,6 +24,7 @@
  */
 /* Skeleton headers section */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
@@ -50,12 +54,16 @@ static char emrcsid[] =
   typedef ext_data_client DATA_CLIENT;
 #endif
 
+extern "C" {
+  void dc_exit(void) { nl_error( 0, "Shutdown" ); }
+};
+
 int main(int argc, char **argv) {
   oui_init_options(argc, argv);
   nl_error( 0, "Startup" );
+  atexit(dc_exit);
   DATA_CLIENT DC(4096, 1, 0);
   DC.operate();
-  nl_error( 0, "Shutdown" );
   return 0;
 }
 
