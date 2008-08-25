@@ -1,6 +1,9 @@
 /* Skeleton headers section */
 /* colmain.skel Skeleton for collection main program
  * $Log$
+ * Revision 1.8  2008/08/20 18:39:21  ntallen
+ * Enable oui_init_options()
+ *
  * Revision 1.7  2008/08/01 15:06:21  ntallen
  * Changes required while moving functionality into libraries
  *
@@ -71,11 +74,13 @@ int check_ts = 1;
 // ### Collect_row() methods
 int main(int argc, char **argv) {
   oui_init_options(argc, argv);
+  nl_error( 0, "Startup");
   tmc_collector col;
   col.init();
   col.init_senders();
   tminitfunc();
   col.operate();
+  nl_error( 0, "Shutdown" );
   return 0;
 }
 

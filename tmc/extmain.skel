@@ -1,5 +1,9 @@
 /* extmain.skel include file for extraction
  * $Log$
+ * Revision 1.5  2008/08/20 18:08:50  ntallen
+ * enable oui_init_options()
+ * refer to ext_data_client instead of data_client
+ *
  * Revision 1.4  2008/08/01 15:06:21  ntallen
  * Changes required while moving functionality into libraries
  *
@@ -44,8 +48,10 @@ static char emrcsid[] =
 
 int main(int argc, char **argv) {
   oui_init_options(argc, argv);
+  nl_error( 0, "Startup" );
   DATA_CLIENT DC(4096, 1, 0);
   DC.operate();
+  nl_error( 0, "Shutdown" );
   return 0;
 }
 
