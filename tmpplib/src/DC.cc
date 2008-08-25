@@ -7,6 +7,11 @@
 unsigned int data_client::next_minor_frame;
 unsigned int data_client::minf_row;
 unsigned int data_client::majf_row;
+char *data_client::srcnode = NULL;
+
+void dc_set_srcnode(char *nodename) {
+  data_client::srcnode = nodename;
+}
 
 void data_client::init(int bufsize_in, int non_block, char *srcfile) {
   bufsize = bufsize_in;
@@ -22,9 +27,10 @@ void data_client::init(int bufsize_in, int non_block, char *srcfile) {
     nl_error( 3, "Memory allocation failure in data_client::data_client");
   msg = (tm_msg_t *)buf;
   non_block = non_block ? O_NONBLOCK : 0;
-  bfr_fd = open( srcfile, O_RDONLY | non_block );
-  if ( bfr_fd == -1 )
-    nl_error( 3, "Unable to contact TMbfr: %d", errno );
+  bfr_fd = tm_open_name( srcfile, srcnode, O_RDONLY | non_block );
+  // bfr_fd = open( srcfile, O_RDONLY | non_block );
+  // if ( bfr_fd == -1 )
+  //   nl_error( 3, "Unable to contact TMbfr: %d", errno );
 }
 
 data_client::data_client(int bufsize_in, int non_block, char *srcfile) {

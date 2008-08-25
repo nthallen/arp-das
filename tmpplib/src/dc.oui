@@ -1,0 +1,13 @@
+<package> dc
+<include> "DC.h"
+<opts> "t:"
+<sort>
+	-t <TMbfr node>
+<switch>
+  case 't':
+    dc_set_srcnode(optarg);
+    break;
+
+<package> msghdr_init
+<vars>
+  char *msg_hdr_init = "DC";

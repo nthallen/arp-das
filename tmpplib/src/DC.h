@@ -2,12 +2,15 @@
 #define DC_H_INCLUDED
 #include "tm.h"
 
+#ifdef __cplusplus
+
 class data_client {
   public:
     data_client(int bufsize_in, int fast = 0, int non_block = 0);
     data_client(int bufsize_in, int non_block, char *srcfile);
     void operate(); // event loop
     static unsigned int next_minor_frame, majf_row, minf_row;
+    static char *srcnode;
   protected:
     virtual void process_data() = 0;
     virtual void process_init();
@@ -40,5 +43,14 @@ class ext_data_client : public data_client {
 
 void tminitfunc();
 
+extern "C" {
+#endif
+
+/* This is all that is exposed to a C module */
+extern void dc_set_srcnode(char *nodename);
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif
