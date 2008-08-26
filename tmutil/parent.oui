@@ -1,0 +1,11 @@
+<package> parent
+<include> <stdlib.h>
+<include> "parent.h"
+<opts> "qt:"
+<sort>
+	-q Quit when childless
+	-t <seconds> Send HUP to children after specified delay
+
+<switch>
+  case 'q': quit_when_childless = 1; break;
+  case 't': parent_timeout = atoi(optarg); break;
