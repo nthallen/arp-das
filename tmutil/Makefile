@@ -8,7 +8,8 @@ INSTALL=cp -vn
 CFLAGS=-Wall -g -I/usr/local/include
 LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 
-.PHONY : install install-sbin install-bin install-data
+.PHONY : all install install-sbin install-bin install-data
+all : parent
 install : install-sbin install-bin install-data
 install-sbin :
 	@$(INSTALL) $(SBIN) /usr/local/sbin

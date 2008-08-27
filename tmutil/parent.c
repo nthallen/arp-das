@@ -7,10 +7,12 @@
 #include <unistd.h>
 #include "nortlib.h"
 #include "parent.h"
+#include "oui.h"
 
 static int check_children = 1;
 static int saw_timeout = 0;
 static int saw_HUP = 0;
+static int saw_INT = 0;
 int quit_when_childless = 0;
 int parent_timeout = 0;
 
@@ -24,12 +26,20 @@ void AlarmHandler(int sig) {
 void HUPHandler(int sig) {
   saw_HUP = 1;
 }
+void INTHandler(int sig) {
+  saw_INT = 1;
+}
 
 #define MSGSIZE 64
 
 int main( int argc, char **argv ) {
   int have_children = 1;
   int chid = ChannelCreate(0);
+  int handled_INT = 0;
+  int handled_timeout = 0;
+
+  oui_init_options(argc, argv);
+  signal(SIGINT, INTHandler);
   signal(SIGCHLD, ChildHandler);
   signal(SIGALRM, AlarmHandler);
   signal(SIGHUP, HUPHandler);
@@ -42,7 +52,7 @@ int main( int argc, char **argv ) {
       int rv = MsgReceive(chid, msg, MSGSIZE, NULL);
       if ( rv == -1 ) {
 	if (errno != EINTR) {
-	  nl_error( 2, "Got a message!" );
+	  nl_error( 2, "parent: Got a message!" );
 	}
       }
     }
@@ -53,39 +63,57 @@ int main( int argc, char **argv ) {
       pid = waitpid( -1, &status, WNOHANG );
       switch (pid) {
 	case 0:
-	  nl_error( 0, "Still have children: none have died" );
+	  // nl_error( 0, "Still have children: none have died" );
 	  break;
 	case -1:
 	  switch (errno) {
 	    case ECHILD:
 	      have_children = 0;
-	      nl_error( 0, "No more children" );
+	      nl_error( 0, "parent: No more children" );
 	      break;
 	    case EINTR:
-	      nl_error( 0, "SIGCHLD in waitpid()" );
+	      nl_error( 0, "parent: SIGCHLD in waitpid()" );
 	      break;
 	    default:
-	      nl_error( 2, "Unexpected error from waitpid(): %s",
+	      nl_error( 2, "parent: Unexpected error from waitpid(): %s",
 		strerror(errno));
 	  }
 	  break;
 	default:
-	  nl_error( 0, "Process %d terminated", pid );
+	  nl_error( 0, "parent: Process %d terminated", pid );
 	  check_children = 1;
 	  break;
       }
     }
     if ( saw_timeout ) {
       saw_timeout = 0;
-      nl_error( 0, "Received timeout, calling killpg()" );
+      if ( handled_INT )
+	nl_error( 3, "parent: Timed out waiting for children after INT" );
+      if ( handled_timeout )
+	nl_error( 3, "parent: Timed out waiting for children after timeout" );
+      nl_error( 0, "parent: Received timeout, calling killpg()" );
+      handled_timeout = 1;
       killpg(getpgid(getpid()), SIGHUP);
     }
     if ( saw_HUP) {
       saw_HUP = 0;
-      nl_error( 0, "I saw my own HUP" );
+      // nl_error( 0, "parent: I saw my own HUP" );
+    }
+    if ( saw_INT ) {
+      saw_INT = 0;
+      handled_INT = 1;
+      quit_when_childless = 1;
+      if ( have_children ) {
+	nl_error( 0, "parent: Received SIGINT, signaling children" );
+	check_children = 1;
+	killpg(getpgid(getpid()), SIGHUP);
+	alarm(3);
+      } else {
+	nl_error( 0, "parent: Received SIGINT" );
+      }
     }
   }
-  nl_error(0, "Shutdown" );
+  nl_error(0, "parent: Shutdown" );
   return 0;
 }
 
