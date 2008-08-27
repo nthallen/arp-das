@@ -2,12 +2,9 @@
 # Flight instrument script
 #__USAGE
 #%C
-export PATH=:/bin32:/bin:/usr/bin:/usr/local/bin
+export PATH=:/bin:/usr/bin:/usr/local/bin
 echo "\nRunning flight.sh: \c"; date
-#----------------------------------------------------------------
-# Make the console readable so we can ditto it easily if necessary
-#----------------------------------------------------------------
-chmod a+r `tty` 2> /dev/null
+
 #----------------------------------------------------------------
 # This is where we will decide what experiment we are
 #----------------------------------------------------------------
@@ -36,47 +33,50 @@ function Launch {
   [ -n "$launch_error" ] && return 1
   [ -n "$VERBOSE" ] && echo "Launch: $*"
   if { $* & }; then
-	if [ "$name" != "-" ]; then
-	  [ -n "$VERBOSE" ] && echo "Launch: Waiting for $!:$name"
-	  namewait -p $! -t 20 $name || {
-		echo "Launch namewait failure: $*" >&2
-		launch_error=yes
-		return 1
-	  }
-	fi
+    if [ "$name" != "-" ]; then
+      [ "${name#/}" = "$name" ] && name="/dev/huarp/$Experiment/$name"
+      [ -n "$VERBOSE" ] && echo "Launch: Waiting for $!:$name"
+      waitfor $name 10 || {
+        echo "Launch namewait failure: $*" >&2
+        launch_error=yes
+        return 1
+      }
+    fi
   else
-	echo "Launch Error: $*" >&2
-	launch_error=yes
-	return 1
+    echo "Launch Error: $*" >&2
+    launch_error=yes
+    return 1
   fi
   return 0
 }
 
 umask g+w
-[ -n "$FlightNode" ] && namewait -n0 pick_file
+# [ -n "$FlightNode" ] && namewait -n0 pick_file
 VERSION=1.0
 [ -f VERSION ] && VERSION=`cat VERSION`
 if [ -d bin/$VERSION/ ]; then
   TMBINDIR=`fullpath -t bin/$VERSION/`
   PATH=$TMBINDIR:$PATH
-  script=`cd $TMBINDIR; pick_file -C`
-  case $script in
-    /*) :;;
-    *) script="$TMBINDIR/$script";;
-  esac
 else
   TMBINDIR='.'
-  script=`pick_file -C`
 fi
 export TMBINDIR
+if [ -n "$SCRIPT_OVERRIDE" -a -r $SCRIPT_OVERRIDE ]; then
+  script=`cat $SCRIPT_OVERRIDE`
+elif [ -n "$PICKFILE" ]; then
+  script=`cd $TMBINDIR; $PICKFILE`
+else
+  script=${RUNFILE:-runfile.dflt}
+fi
+[ ${script#/} = $script ] && script=$TMBINDIR/$script
 if [ -r $script ]; then
   echo flight.sh: `id`: Experiment=$Experiment script=$script
   . $script
 else
   echo flight.sh: Specified script $script not found >&2
 fi
-[ -z "$launch_error" ] && pick_file -q
+# [ -z "$launch_error" ] && pick_file -q
 
 typeset qoc
 [ -n "$FlightNode" ] && qoc="-q"
-exec parent -sy $qoc
+exec parent $qoc

@@ -2,7 +2,7 @@
 #  This directory holds general-purpose utilities for
 #  The Anderson Group Data Acquisition System/QNX6
 BIN=TM appgen distribute parent
-SBIN=promote
+SBIN=promote flight.sh
 DATA=appgen.mk
 INSTALL=cp -vn
 CFLAGS=-Wall -g -I/usr/local/include
