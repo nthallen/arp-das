@@ -61,7 +61,7 @@ else
   TMBINDIR='.'
 fi
 export TMBINDIR
-if [ -n "$SCRIPT_OVERRIDE" -a -r $SCRIPT_OVERRIDE ]; then
+if [ -n "$SCRIPT_OVERRIDE" -a -r "$SCRIPT_OVERRIDE" ]; then
   script=`cat $SCRIPT_OVERRIDE`
 elif [ -n "$PICKFILE" ]; then
   script=`cd $TMBINDIR; $PICKFILE`
