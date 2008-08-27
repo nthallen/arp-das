@@ -18,5 +18,6 @@ install-data :
 	@$(INSTALL) $(DATA) /usr/local/share/huarp
 parent : parent.o parentoui.o
 	$(LINK.c) -o parent parent.o parentoui.o -lnort
+	usemsg parent parentoui.c
 parentoui.c : parent.oui
 	oui -o parentoui.c parent.oui
