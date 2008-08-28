@@ -17,6 +17,7 @@ static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         io_funcs;
 static iofunc_attr_t             attr;
 static FILE *ofp;
+static char *output_filename;
 
 static struct ocb *ocb_calloc (resmgr_context_t *ctp, IOFUNC_ATTR_T *device) {
   ocb_t *ocb = calloc( 1, sizeof(ocb_t) );
@@ -51,9 +52,7 @@ void memo_init_options( int argc, char **argv ) {
   while ((c = getopt(argc, argv, opt_string)) != -1 ) {
     switch (c) {
       case 'o':
-	ofp = fopen( optarg, "a" );
-	if ( ofp == NULL )
-	  nl_error( 3, "Unable to open output file '%s'", optarg );
+	output_filename = optarg;
 	break;
       case '?':
       	nl_error( 3, "Unrecognized commandline option -%c", optopt );
@@ -74,11 +73,8 @@ int main(int argc, char **argv) {
 
     /* initialize dispatch interface */
     if((dpp = dispatch_create()) == NULL) {
-        fprintf(ofp, "%s: Unable to allocate dispatch handle.\n",
+        nl_error(3, "%s: Unable to allocate dispatch handle.\n",
                 argv[0]);
-        fprintf(stderr, "%s: Unable to allocate dispatch handle.\n",
-                argv[0]);
-        return EXIT_FAILURE;
     }
 
     /* initialize resource manager attributes */
@@ -110,9 +106,7 @@ int main(int argc, char **argv) {
                        &io_funcs,      /* I/O routines           */
                        &attr);         /* handle                 */
     if(id == -1) {
-        fprintf(ofp, "%s: Unable to attach name.\n", argv[0]);
-        fprintf(stderr, "%s: Unable to attach name.\n", argv[0]);
-        return EXIT_FAILURE;
+        nl_error(3, "%s: Unable to attach name.\n", argv[0]);
     }
 
 		// running starts at 2. When the first client opens a connection,
@@ -123,6 +117,14 @@ int main(int argc, char **argv) {
     int running = 2;
     dispatch_context_t   *ctp;
     ctp = dispatch_context_alloc(dpp);
+
+    seteuid(getuid()); // become unprivileged
+    if ( output_filename ) {
+      ofp = fopen( output_filename, "a" );
+      if ( ofp == NULL )
+	nl_error( 3, "Unable to open output file '%s'",
+	   output_filename );
+    }
     { time_t now = time(NULL);
       fprintf( ofp, "\nMemo Starting: %s", asctime(gmtime(&now)) );
     }
