@@ -1,4 +1,5 @@
 <package> bckpln
+<include> "nortlib.h"
 <include> "bckpln.h"
 <opts> "V:B"
 <switch>

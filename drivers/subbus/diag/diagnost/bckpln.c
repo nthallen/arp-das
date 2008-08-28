@@ -1,5 +1,8 @@
 /* BCKPLN.C Interactive testbed for new ICC Backplanes.
  * $Log$
+ * Revision 1.1  2008/08/24 15:35:38  ntallen
+ * Diagnostics I want to port
+ *
  * Revision 1.4  2008/07/23 13:07:43  nort
  * Uncommitted changes and imports
  *
@@ -16,7 +19,11 @@
   modify sc104_signals.
 */
 #ifdef __QNX__
-  #include <conio.h>
+  #ifdef __QNXNTO__
+    #include <sys/neutrino.h>
+  #else
+    #include <conio.h>
+  #endif
 #endif
 #include <curses.h>
 #include <stdlib.h>
@@ -35,18 +42,38 @@ int enable_sc104_bufs = 0;
 unsigned short SC_SB_LOWCTRL, SC_CMDENBL;
 unsigned short SB104_Ctrl = 2;
 
-#ifdef __QNX__
-  #include <i86.h>
-  #define outword(x,y) outpw(x,y)
-  #define outbyte(x,y) outp(x,y)
-  #define inword(x) inpw(x)
-  #define inbyte(x) inp(x)
+#ifdef __QNXNTO__
+  #include <hw/inout.h>
+  #define outword(x,y) out16(x,y)
+  #define outbyte(x,y) out8(x,y)
+  #define inword(x) in16(x)
+  #define inbyte(x) in8(x)
+  #define KEY_F1 0x109
+  #define KEY_F2 0x10A
+  #define KEY_F3 0x10B
+  #define KEY_F4 0x10C
+  #define KEY_F5 0x10D
+  #define KEY_F6 0x10E
+  #define KEY_F7 0x10F
+  #define KEY_F8 0x110
+  #define KEY_F9 0x111
+  #define KEY_F10 0x112
+  #define KEY_PGUP 0x153
+  #define KEY_PGDN 0x152
 #else
-  #include <os2dev.h>
-  void outword(unsigned int addr, unsigned int val);
-  void outbyte(unsigned int addr, unsigned int val);
-  unsigned int inword(unsigned int addr);
-  unsigned int inbyte(unsigned int addr);
+  #ifdef __QNX__
+    #include <i86.h>
+    #define outword(x,y) outpw(x,y)
+    #define outbyte(x,y) outp(x,y)
+    #define inword(x) inpw(x)
+    #define inbyte(x) inp(x)
+  #else
+    #include <os2dev.h>
+    void outword(unsigned int addr, unsigned int val);
+    void outbyte(unsigned int addr, unsigned int val);
+    unsigned int inword(unsigned int addr);
+    unsigned int inbyte(unsigned int addr);
+  #endif
 #endif
 
 void sb_addr( unsigned short x ) {
@@ -170,8 +197,12 @@ unsigned int beep_dur = 80;
 #define LOW_FREQ 220
 
 #ifdef __QNX__
-  #define DosBeep(x,y) do { \
-	sound(x); delay(y); sound(NORM_FREQ); nosound(); } while (0)
+  #ifdef __QNXNTO__
+    #define DosBeep(x,y)
+  #else
+    #define DosBeep(x,y) do { \
+	  sound(x); delay(y); sound(NORM_FREQ); nosound(); } while (0)
+  #endif
 #endif
 
 struct {
@@ -180,36 +211,36 @@ struct {
   unsigned char attr;
   char *text;
 } bckgrnd[] = {
-  TL_ROW, 28, BG_ATTR, "ARP Backplane Diagnostic",
-  SG_ROW-2, 12, BG_ATTR, "Signal",
-  SG_ROW-2, 37, BG_ATTR, "Pin",
-  SG_ROW-2, 58, BG_ATTR, "State",
-  SG_ROW-1,  8, BG_ATTR, "ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿",
-  SG_ROW-1, 33, BG_ATTR, "ÚÄÄÄÄÄÄÄÄÄÄ¿",
-  SG_ROW-1, 55, BG_ATTR, "ÚÄÄÄÄÄÄÄÄÄÄ¿",
-  SG_ROW,    8, BG_ATTR, "³   >>>>>>>>   ³",
-  SG_ROW,   33, BG_ATTR, "³   >>>>   ³",
-  SG_ROW,   55, BG_ATTR, "³   >>>>   ³",
-  SG_ROW+1,  8, BG_ATTR, "ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ",
-  SG_ROW+1, 33, BG_ATTR, "ÀÄÄÄÄÄÄÄÄÄÄÙ",
-  SG_ROW+1, 55, BG_ATTR, "ÀÄÄÄÄÄÄÄÄÄÄÙ",
-  SCL_ROW-1, 3, BG_ATTR, "ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿",
-  SCL_ROW,   3, BG_ATTR, "³ >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ÆÍ»",
-  SCL_ROW+1, 3, BG_ATTR, "ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ º",
-  SCL_ROW+2, 12, BG_ATTR,         "ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼  Backplane Rev. E",
-  BPL_ROW-1, 12, BG_ATTR,         "º  ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿",
-  BPL_ROW,  12, BG_ATTR,          "ÈÍÍµ >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ³",
-  BPL_ROW+1, 15, BG_ATTR,            "ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ",
-  F1_ROW, FT_COL, BG_ATTR, "F1  Audio",
-  F2_ROW, FT_COL, BG_ATTR, "F2  Pause before each toggle",
-  F3_ROW, FT_COL, BG_ATTR, "F3  Pause before each line",
-  F4_ROW, FT_COL, BG_ATTR, "F4  Auto Advance",
-  SP_ROW, FT_COL-6, BG_ATTR, "+ -       Speed",
-  F7_ROW, HLP_COL, BG_ATTR, "<pgup>  F7  Previous Bus",
-  F8_ROW, HLP_COL, BG_ATTR, "<pgdn>  F8  Next Bus",
-  F9_ROW, HLP_COL, BG_ATTR, "<up>    F9  Previous Signal",
-  F10_ROW, HLP_COL, BG_ATTR, "<dn>    F10 Next Signal",
-  0, 0, 0, NULL
+  { TL_ROW, 28, BG_ATTR, "ARP Backplane Diagnostic"},
+  { SG_ROW-2, 12, BG_ATTR, "Signal"},
+  { SG_ROW-2, 37, BG_ATTR, "Pin"},
+  { SG_ROW-2, 58, BG_ATTR, "State"},
+  { SG_ROW-1,  8, BG_ATTR, "ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿"},
+  { SG_ROW-1, 33, BG_ATTR, "ÚÄÄÄÄÄÄÄÄÄÄ¿"},
+  { SG_ROW-1, 55, BG_ATTR, "ÚÄÄÄÄÄÄÄÄÄÄ¿"},
+  { SG_ROW,    8, BG_ATTR, "³   >>>>>>>>   ³"},
+  { SG_ROW,   33, BG_ATTR, "³   >>>>   ³"},
+  { SG_ROW,   55, BG_ATTR, "³   >>>>   ³"},
+  { SG_ROW+1,  8, BG_ATTR, "ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ"},
+  { SG_ROW+1, 33, BG_ATTR, "ÀÄÄÄÄÄÄÄÄÄÄÙ"},
+  { SG_ROW+1, 55, BG_ATTR, "ÀÄÄÄÄÄÄÄÄÄÄÙ"},
+  { SCL_ROW-1, 3, BG_ATTR, "ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿"},
+  { SCL_ROW,   3, BG_ATTR, "³ >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ÆÍ»"},
+  { SCL_ROW+1, 3, BG_ATTR, "ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ º"},
+  { SCL_ROW+2, 12, BG_ATTR,         "ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼  Backplane Rev. E"},
+  { BPL_ROW-1, 12, BG_ATTR,         "º  ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿"},
+  { BPL_ROW,  12, BG_ATTR,          "ÈÍÍµ >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ³"},
+  { BPL_ROW+1, 15, BG_ATTR,            "ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ"},
+  { F1_ROW, FT_COL, BG_ATTR, "F1  Audio"},
+  { F2_ROW, FT_COL, BG_ATTR, "F2  Pause before each toggle"},
+  { F3_ROW, FT_COL, BG_ATTR, "F3  Pause before each line"},
+  { F4_ROW, FT_COL, BG_ATTR, "F4  Auto Advance"},
+  { SP_ROW, FT_COL-6, BG_ATTR, "+ -       Speed"},
+  { F7_ROW, HLP_COL, BG_ATTR, "<pgup>  F7  Previous Bus"},
+  { F8_ROW, HLP_COL, BG_ATTR, "<pgdn>  F8  Next Bus"},
+  { F9_ROW, HLP_COL, BG_ATTR, "<up>    F9  Previous Signal"},
+  { F10_ROW, HLP_COL, BG_ATTR, "<dn>    F10 Next Signal"},
+  { 0, 0, 0, NULL }
 };
 
 #define SPEED0 5
@@ -225,17 +256,17 @@ struct {
   unsigned int state; /* optional, may be useful to the bitwise fields */
   char *stext[2]; /* If a toggle field, we can do it automatically */
 } fields[N_FIELDS] = {
-  SG_ROW, 12, 8, 0, NULL, NULL,
-  SG_ROW, 37, 4, 0, NULL, NULL,
-  SG_ROW, 59, 4, 0, "LOW", "HIGH",
-  SCL_ROW, 5, 46, 0, NULL, NULL,
-  BPL_ROW, 17, 48, 0, NULL, NULL,
-  F1_ROW, TG_COL, 3, 0, "OFF", " ON",
-  F2_ROW, TG_COL, 3, 1, " NO", "YES",
-  F3_ROW, TG_COL, 3, 1, " NO", "YES",
-  F4_ROW, TG_COL, 3, 0, " NO", "YES",
-  SP_ROW, TG_COL+1, 1, SPEED0, NULL, NULL,
-  SCL_ROW+2, 30, 2, 0, NULL, NULL
+  { SG_ROW, 12, 8, 0, { NULL, NULL }},
+  { SG_ROW, 37, 4, 0, { NULL, NULL }},
+  { SG_ROW, 59, 4, 0, { "LOW", "HIGH"}},
+  { SCL_ROW, 5, 46, 0, { NULL, NULL }},
+  { BPL_ROW, 17, 48, 0, { NULL, NULL }},
+  { F1_ROW, TG_COL, 3, 0, { "OFF", " ON"}},
+  { F2_ROW, TG_COL, 3, 1, { " NO", "YES"}},
+  { F3_ROW, TG_COL, 3, 1, { " NO", "YES"}},
+  { F4_ROW, TG_COL, 3, 0, { " NO", "YES"}},
+  { SP_ROW, TG_COL+1, 1, SPEED0, { NULL, NULL }},
+  { SCL_ROW+2, 30, 2, 0, { NULL, NULL }}
 };
 
 #define ADDR_BUS 0
@@ -265,171 +296,171 @@ typedef struct {
 siginfo (*signals)[];
 
 siginfo revc_signals[] = {
-  ADDR_BUS, 0x0001, "ADDR0\\", "/U8-18 /U3-9 ³ U3-11 RN2-9 J2-13", "J15-13 RN1-2 U1-2 ³ U1-18 J1-14", "14", "13",
-  ADDR_BUS, 0x0002, "ADDR1\\", "/U8-19 /U3-8 ³ U3-12 RN2-8 J2-11", "J15-11 RN1-3 U1-4 ³ U1-16 J1-59", "59", "11",
-  ADDR_BUS, 0x0004, "ADDR2\\", "/U8-20 /U3-7 ³ U3-13 RN2-7 J2-12", "J15-12 RN1-4 U1-6 ³ U1-14 J1-15", "15", "12",
-  ADDR_BUS, 0x0008, "ADDR3\\", "/U8-21 /U3-6 ³ U3-14 RN2-6 J2-9", "J15-9 RN1-5 U1-8 ³ U1-12 J1-60", "60", "Í9",
-  ADDR_BUS, 0x0010, "ADDR4\\", "/U8-22 /U3-5 ³ U3-15 RN2-5 J2-10", "J15-10 RN1-6 U1-11 ³ U1-9 J1-16", "16", "10",
-  ADDR_BUS, 0x0020, "ADDR5\\", "/U8-23 /U3-4 ³ U3-16 RN2-4 J2-7", "J15-7 RN1-7 U1-13 ³ U1-7 J1-61", "61", "Í7",
-  ADDR_BUS, 0x0040, "ADDR6\\", "/U8-24 /U3-3 ³ U3-17 RN2-3 J2-8", "J15-8 RN1-8 U1-15 ³ U1-5 J1-17", "17", "Í8",
-  ADDR_BUS, 0x0080, "ADDR7\\", "/U8-25 /U3-2 ³ U3-18 RN2-2 J2-5", "J15-5 RN1-9 U1-17 ³ U1-3 J1-62", "62", "Í5",
-  ADDR_BUS, 0x0100, "ADDR8\\", "/U18-18 /U24-9 ³ U24-11 RN5-9 J2-30", "J15-30 RN2-2 U2-2 ³ U2-18 J1-18", "18", "30",
-  ADDR_BUS, 0x0200, "ADDR9\\", "/U18-19 /U24-8 ³ U24-12 RN5-8 J2-29", "J15-29 RN2-3 U2-4 ³ U2-16 J1-63", "63", "29",
-  ADDR_BUS, 0x0400, "ADDRA\\", "/U18-20 /U24-7 ³ U24-13 RN5-7 J2-28", "J15-28 RN2-4 U2-6 ³ U2-14 J1-19", "19", "28",
-  ADDR_BUS, 0x0800, "ADDRB\\", "/U18-21 /U24-6 ³ U24-14 RN5-6 J2-23", "J15-23 RN2-5 U2-8 ³ U2-12 J1-64", "64", "23",
-  ADDR_BUS, 0x1000, "ADDRC\\", "/U18-22 /U24-5 ³ U24-15 RN5-5 J2-24", "J15-24 RN2-6 U2-11 ³ U2-9 J1-20", "20", "24",
-  ADDR_BUS, 0x2000, "ADDRD\\", "/U18-23 /U24-4 ³ U24-16 RN5-4 J2-25", "J15-25 RN2-7 U2-13 ³ U2-7 J1-65", "65", "25",
-  ADDR_BUS, 0x4000, "ADDRE\\", "/U18-24 /U24-3 ³ U24-17 RN5-3 J2-26", "J15-26 RN2-8 U2-15 ³ U2-5 J1-21", "21", "26",
-  ADDR_BUS, 0x8000, "ADDRF\\", "/U18-25 /U24-2 ³ U24-18 RN5-2 J2-27", "J15-27 RN2-9 U2-17 ³ U2-3 J1-66", "66", "27",
-  DATA_BUS, 0x0001, "DATA0\\", "/U8-4 /U10-9 ³ U10-11 RN3-9 J2-21", "J15-21 RN3-2 U3-9 ³ U3-11 J1-5", "5", "21",
-  DATA_BUS, 0x0002, "DATA1\\", "/U8-3 /U10-8 ³ U10-12 RN3-8 J2-20", "J15-20 RN3-3 U3-8 ³ U3-12 J1-50", "50", "20",
-  DATA_BUS, 0x0004, "DATA2\\", "/U8-2 /U10-7 ³ U10-13 RN3-7 J2-19", "J15-19 RN3-4 U3-7 ³ U3-13 J1-6", "6", "19",
-  DATA_BUS, 0x0008, "DATA3\\", "/U8-1 /U10-6 ³ U10-14 RN3-6 J2-18", "J15-18 RN3-5 U3-6 ³ U3-14 J1-51", "51", "18",
-  DATA_BUS, 0x0010, "DATA4\\", "/U8-40 /U10-5 ³ U10-15 RN3-5 J2-17", "J15-17 RN3-6 U3-5 ³ U3-15 J1-7", "7", "17",
-  DATA_BUS, 0x0020, "DATA5\\", "/U8-39 /U10-4 ³ U10-16 RN3-4 J2-16", "J15-16 RN3-7 U3-4 ³ U3-16 J1-52", "52", "16",
-  DATA_BUS, 0x0040, "DATA6\\", "/U8-38 /U10-3 ³ U10-17 RN3-3 J2-15", "J15-15 RN3-8 U3-3 ³ U3-17 J1-8", "8", "15",
-  DATA_BUS, 0x0080, "DATA7\\", "/U8-37 /U10-2 ³ U10-18 RN3-2 J2-14", "J15-14 RN3-9 U3-2 ³ U3-18 J1-53", "53", "14",
-  DATA_BUS, 0x0100, "DATA8\\",  "/U18-4 /U23-9 ³ U23-11 RN6-9 J2-39", "J15-39 RN4-2 U4-9 ³ U4-11 J1-9", "9", "39",
-  DATA_BUS, 0x0200, "DATA9\\",  "/U18-3 /U23-8 ³ U23-12 RN6-8 J2-40", "J15-40 RN4-3 U4-8 ³ U4-12 J1-54", "54", "40",
-  DATA_BUS, 0x0400, "DATAA\\",  "/U18-2 /U23-7 ³ U23-13 RN6-7 J2-41", "J15-41 RN4-4 U4-7 ³ U4-13 J1-10", "10", "41",
-  DATA_BUS, 0x0800, "DATAB\\",  "/U18-1 /U23-6 ³ U23-14 RN6-6 J2-42", "J15-42 RN4-5 U4-6 ³ U4-14 J1-55", "55", "42",
-  DATA_BUS, 0x1000, "DATAC\\", "/U18-40 /U23-5 ³ U23-15 RN6-5 J2-43", "J15-43 RN4-6 U4-5 ³ U4-15 J1-11", "11", "43",
-  DATA_BUS, 0x2000, "DATAD\\", "/U18-39 /U23-4 ³ U23-16 RN6-4 J2-44", "J15-44 RN4-7 U4-4 ³ U4-16 J1-56", "56", "44",
-  DATA_BUS, 0x4000, "DATAE\\", "/U18-38 /U23-3 ³ U23-17 RN6-3 J2-45", "J15-45 RN4-8 U4-3 ³ U4-17 J1-12", "12", "45",
-  DATA_BUS, 0x8000, "DATAF\\", "/U18-37 /U23-2 ³ U23-18 RN6-2 J2-46", "J15-46 RN4-9 U4-2 ³ U4-18 J1-57", "57", "46",
-  CTRL_BUS, CTRL_RD, "EXPRD\\", "/U8-14 .. U9-8 U14-7 ³ U14-13 RN4-7 J2-48", "J15-48 RN5-6 U6-15 ³ U6-5 J1-71", "71", "48",
-  CTRL_BUS, CTRL_WR, "EXPWR\\", "/U8-16 .. U9-11 U14-8 ³ U14-12 RN4-8 J2-49", "J15-49 RN5-7 U6-17 ³ U6-3 J1-25", "25", "49",
-  CTRL_BUS, CTRL_CE, "CMDENBL\\", "/U5-8 E3 U14-6 ³ U14-14 RN4-6 J2-47", "J15-47 RN5-2 U6-6 ³ U6-14 J1-34", "34", "47",
-  CTRL_BUS, CTRL_CS, "CMDSTRB\\", "/U8-15 E2 U14-9 ³ U14-11 RN4-9 J2-50", "J15-50 RN5-3 U6-8 ³ U6-12 J1-42", "42", "50",
-  EXPN_BUS, 0x0000, "EXPEN0\\", "(U28-6 J2-31)",  "(J15-31 RN6-2 JP3) U7-7 U5-2 ³ U5-18 J1-30", "30", "31",
-  EXPN_BUS, 0x0200, "EXPEN1\\", "(U28-7 J2-32)",  "(J15-32 RN6-3 JP4) U7-9 U5-4 ³ U5-16 J1-75", "75", "32",
-  EXPN_BUS, 0x0400, "EXPEN2\\", "(U28-8 J2-33)",  "(J15-33 RN6-4 JP5) U7-10 U5-6 ³ U5-14 J1-31", "31", "33",
-  EXPN_BUS, 0x0600, "EXPEN3\\", "(U28-9 J2-34)",  "(J15-34 RN6-5 JP6) U7-11 U5-8 ³ U5-12 J1-76", "76", "34",
-  EXPN_BUS, 0x0800, "EXPEN4\\", "(U28-11 J2-35)", "(J15-35 RN6-6 JP7) U7-12 U5-11 ³ U5-9 J1-32", "32", "35",
-  EXPN_BUS, 0x0A00, "EXPEN5\\", "(U28-12 J2-36)", "(J15-36 RN6-7 JP8) U7-13 U5-13 ³ U5-7 J1-77", "77", "36",
-  EXPN_BUS, 0x0C00, "EXPEN6\\", "(U28-13 J2-37)", "(J15-37 RN6-8 JP9) U7-14 U5-15 ³ U5-5 J1-33", "33", "37",
-  EXPN_BUS, 0x0E00, "EXPEN7\\", "(U28-14 J2-38)", "(J15-38 RN6-9 JP10) U7-15 U5-17 ³ U5-3 J1-78", "78", "38",
-  POWR_BUS, 0x0000, "DIGGND", "J2-3,4,6,53,55,56", "J15-3,4,6,53,55,56 J1-1,24,44,46,67,70", "1", "Í3",
-  POWR_BUS, 0x0001, "+5V", "J2-1,2", "J15-1,2 (JP1) J1-45,90", "45", "Í1",
-  POWR_BUS, 0x0000, "ANAGND", "", "J1-4,49", "4", "ÍÍ",
-  POWR_BUS, 0x0001, "+15V", "", "J1-3,48", "3", "ÍÍ",
-  POWR_BUS, 0x0001, "-15V", "", "J1-2,47", "2", "ÍÍ",
-  POWR_BUS, 0x0000, "+28V.RTN", "J2-52", "J15-52 J1-58", "58", "52",
-  POWR_BUS, 0x0001, "+28V", "J2-54", "J15-54 (JP2) J1-13", "13", "54",
-  POWR_BUS, 0x0001, "28V.BATT", "", "J1-88", "88", "ÍÍ",
-  END_BUS, 0, NULL, NULL, NULL, NULL, NULL
+  { ADDR_BUS, 0x0001, "ADDR0\\", "/U8-18 /U3-9 ³ U3-11 RN2-9 J2-13", "J15-13 RN1-2 U1-2 ³ U1-18 J1-14", "14", "13"},
+  { ADDR_BUS, 0x0002, "ADDR1\\", "/U8-19 /U3-8 ³ U3-12 RN2-8 J2-11", "J15-11 RN1-3 U1-4 ³ U1-16 J1-59", "59", "11"},
+  { ADDR_BUS, 0x0004, "ADDR2\\", "/U8-20 /U3-7 ³ U3-13 RN2-7 J2-12", "J15-12 RN1-4 U1-6 ³ U1-14 J1-15", "15", "12"},
+  { ADDR_BUS, 0x0008, "ADDR3\\", "/U8-21 /U3-6 ³ U3-14 RN2-6 J2-9", "J15-9 RN1-5 U1-8 ³ U1-12 J1-60", "60", "Í9"},
+  { ADDR_BUS, 0x0010, "ADDR4\\", "/U8-22 /U3-5 ³ U3-15 RN2-5 J2-10", "J15-10 RN1-6 U1-11 ³ U1-9 J1-16", "16", "10"},
+  { ADDR_BUS, 0x0020, "ADDR5\\", "/U8-23 /U3-4 ³ U3-16 RN2-4 J2-7", "J15-7 RN1-7 U1-13 ³ U1-7 J1-61", "61", "Í7"},
+  { ADDR_BUS, 0x0040, "ADDR6\\", "/U8-24 /U3-3 ³ U3-17 RN2-3 J2-8", "J15-8 RN1-8 U1-15 ³ U1-5 J1-17", "17", "Í8"},
+  { ADDR_BUS, 0x0080, "ADDR7\\", "/U8-25 /U3-2 ³ U3-18 RN2-2 J2-5", "J15-5 RN1-9 U1-17 ³ U1-3 J1-62", "62", "Í5"},
+  { ADDR_BUS, 0x0100, "ADDR8\\", "/U18-18 /U24-9 ³ U24-11 RN5-9 J2-30", "J15-30 RN2-2 U2-2 ³ U2-18 J1-18", "18", "30"},
+  { ADDR_BUS, 0x0200, "ADDR9\\", "/U18-19 /U24-8 ³ U24-12 RN5-8 J2-29", "J15-29 RN2-3 U2-4 ³ U2-16 J1-63", "63", "29"},
+  { ADDR_BUS, 0x0400, "ADDRA\\", "/U18-20 /U24-7 ³ U24-13 RN5-7 J2-28", "J15-28 RN2-4 U2-6 ³ U2-14 J1-19", "19", "28"},
+  { ADDR_BUS, 0x0800, "ADDRB\\", "/U18-21 /U24-6 ³ U24-14 RN5-6 J2-23", "J15-23 RN2-5 U2-8 ³ U2-12 J1-64", "64", "23"},
+  { ADDR_BUS, 0x1000, "ADDRC\\", "/U18-22 /U24-5 ³ U24-15 RN5-5 J2-24", "J15-24 RN2-6 U2-11 ³ U2-9 J1-20", "20", "24"},
+  { ADDR_BUS, 0x2000, "ADDRD\\", "/U18-23 /U24-4 ³ U24-16 RN5-4 J2-25", "J15-25 RN2-7 U2-13 ³ U2-7 J1-65", "65", "25"},
+  { ADDR_BUS, 0x4000, "ADDRE\\", "/U18-24 /U24-3 ³ U24-17 RN5-3 J2-26", "J15-26 RN2-8 U2-15 ³ U2-5 J1-21", "21", "26"},
+  { ADDR_BUS, 0x8000, "ADDRF\\", "/U18-25 /U24-2 ³ U24-18 RN5-2 J2-27", "J15-27 RN2-9 U2-17 ³ U2-3 J1-66", "66", "27"},
+  { DATA_BUS, 0x0001, "DATA0\\", "/U8-4 /U10-9 ³ U10-11 RN3-9 J2-21", "J15-21 RN3-2 U3-9 ³ U3-11 J1-5", "5", "21"},
+  { DATA_BUS, 0x0002, "DATA1\\", "/U8-3 /U10-8 ³ U10-12 RN3-8 J2-20", "J15-20 RN3-3 U3-8 ³ U3-12 J1-50", "50", "20"},
+  { DATA_BUS, 0x0004, "DATA2\\", "/U8-2 /U10-7 ³ U10-13 RN3-7 J2-19", "J15-19 RN3-4 U3-7 ³ U3-13 J1-6", "6", "19"},
+  { DATA_BUS, 0x0008, "DATA3\\", "/U8-1 /U10-6 ³ U10-14 RN3-6 J2-18", "J15-18 RN3-5 U3-6 ³ U3-14 J1-51", "51", "18"},
+  { DATA_BUS, 0x0010, "DATA4\\", "/U8-40 /U10-5 ³ U10-15 RN3-5 J2-17", "J15-17 RN3-6 U3-5 ³ U3-15 J1-7", "7", "17"},
+  { DATA_BUS, 0x0020, "DATA5\\", "/U8-39 /U10-4 ³ U10-16 RN3-4 J2-16", "J15-16 RN3-7 U3-4 ³ U3-16 J1-52", "52", "16"},
+  { DATA_BUS, 0x0040, "DATA6\\", "/U8-38 /U10-3 ³ U10-17 RN3-3 J2-15", "J15-15 RN3-8 U3-3 ³ U3-17 J1-8", "8", "15"},
+  { DATA_BUS, 0x0080, "DATA7\\", "/U8-37 /U10-2 ³ U10-18 RN3-2 J2-14", "J15-14 RN3-9 U3-2 ³ U3-18 J1-53", "53", "14"},
+  { DATA_BUS, 0x0100, "DATA8\\",  "/U18-4 /U23-9 ³ U23-11 RN6-9 J2-39", "J15-39 RN4-2 U4-9 ³ U4-11 J1-9", "9", "39"},
+  { DATA_BUS, 0x0200, "DATA9\\",  "/U18-3 /U23-8 ³ U23-12 RN6-8 J2-40", "J15-40 RN4-3 U4-8 ³ U4-12 J1-54", "54", "40"},
+  { DATA_BUS, 0x0400, "DATAA\\",  "/U18-2 /U23-7 ³ U23-13 RN6-7 J2-41", "J15-41 RN4-4 U4-7 ³ U4-13 J1-10", "10", "41"},
+  { DATA_BUS, 0x0800, "DATAB\\",  "/U18-1 /U23-6 ³ U23-14 RN6-6 J2-42", "J15-42 RN4-5 U4-6 ³ U4-14 J1-55", "55", "42"},
+  { DATA_BUS, 0x1000, "DATAC\\", "/U18-40 /U23-5 ³ U23-15 RN6-5 J2-43", "J15-43 RN4-6 U4-5 ³ U4-15 J1-11", "11", "43"},
+  { DATA_BUS, 0x2000, "DATAD\\", "/U18-39 /U23-4 ³ U23-16 RN6-4 J2-44", "J15-44 RN4-7 U4-4 ³ U4-16 J1-56", "56", "44"},
+  { DATA_BUS, 0x4000, "DATAE\\", "/U18-38 /U23-3 ³ U23-17 RN6-3 J2-45", "J15-45 RN4-8 U4-3 ³ U4-17 J1-12", "12", "45"},
+  { DATA_BUS, 0x8000, "DATAF\\", "/U18-37 /U23-2 ³ U23-18 RN6-2 J2-46", "J15-46 RN4-9 U4-2 ³ U4-18 J1-57", "57", "46"},
+  { CTRL_BUS, CTRL_RD, "EXPRD\\", "/U8-14 .. U9-8 U14-7 ³ U14-13 RN4-7 J2-48", "J15-48 RN5-6 U6-15 ³ U6-5 J1-71", "71", "48"},
+  { CTRL_BUS, CTRL_WR, "EXPWR\\", "/U8-16 .. U9-11 U14-8 ³ U14-12 RN4-8 J2-49", "J15-49 RN5-7 U6-17 ³ U6-3 J1-25", "25", "49"},
+  { CTRL_BUS, CTRL_CE, "CMDENBL\\", "/U5-8 E3 U14-6 ³ U14-14 RN4-6 J2-47", "J15-47 RN5-2 U6-6 ³ U6-14 J1-34", "34", "47"},
+  { CTRL_BUS, CTRL_CS, "CMDSTRB\\", "/U8-15 E2 U14-9 ³ U14-11 RN4-9 J2-50", "J15-50 RN5-3 U6-8 ³ U6-12 J1-42", "42", "50"},
+  { EXPN_BUS, 0x0000, "EXPEN0\\", "(U28-6 J2-31)",  "(J15-31 RN6-2 JP3) U7-7 U5-2 ³ U5-18 J1-30", "30", "31"},
+  { EXPN_BUS, 0x0200, "EXPEN1\\", "(U28-7 J2-32)",  "(J15-32 RN6-3 JP4) U7-9 U5-4 ³ U5-16 J1-75", "75", "32"},
+  { EXPN_BUS, 0x0400, "EXPEN2\\", "(U28-8 J2-33)",  "(J15-33 RN6-4 JP5) U7-10 U5-6 ³ U5-14 J1-31", "31", "33"},
+  { EXPN_BUS, 0x0600, "EXPEN3\\", "(U28-9 J2-34)",  "(J15-34 RN6-5 JP6) U7-11 U5-8 ³ U5-12 J1-76", "76", "34"},
+  { EXPN_BUS, 0x0800, "EXPEN4\\", "(U28-11 J2-35)", "(J15-35 RN6-6 JP7) U7-12 U5-11 ³ U5-9 J1-32", "32", "35"},
+  { EXPN_BUS, 0x0A00, "EXPEN5\\", "(U28-12 J2-36)", "(J15-36 RN6-7 JP8) U7-13 U5-13 ³ U5-7 J1-77", "77", "36"},
+  { EXPN_BUS, 0x0C00, "EXPEN6\\", "(U28-13 J2-37)", "(J15-37 RN6-8 JP9) U7-14 U5-15 ³ U5-5 J1-33", "33", "37"},
+  { EXPN_BUS, 0x0E00, "EXPEN7\\", "(U28-14 J2-38)", "(J15-38 RN6-9 JP10) U7-15 U5-17 ³ U5-3 J1-78", "78", "38"},
+  { POWR_BUS, 0x0000, "DIGGND", "J2-3,4,6,53,55,56", "J15-3,4,6,53,55,56 J1-1,24,44,46,67,70", "1", "Í3"},
+  { POWR_BUS, 0x0001, "+5V", "J2-1,2", "J15-1,2 (JP1) J1-45,90", "45", "Í1"},
+  { POWR_BUS, 0x0000, "ANAGND", "", "J1-4,49", "4", "ÍÍ"},
+  { POWR_BUS, 0x0001, "+15V", "", "J1-3,48", "3", "ÍÍ"},
+  { POWR_BUS, 0x0001, "-15V", "", "J1-2,47", "2", "ÍÍ"},
+  { POWR_BUS, 0x0000, "+28V.RTN", "J2-52", "J15-52 J1-58", "58", "52"},
+  { POWR_BUS, 0x0001, "+28V", "J2-54", "J15-54 (JP2) J1-13", "13", "54"},
+  { POWR_BUS, 0x0001, "28V.BATT", "", "J1-88", "88", "ÍÍ"},
+  { END_BUS, 0, NULL, NULL, NULL, NULL, NULL}
 };
 
 siginfo revd_signals[] = {
-  ADDR_BUS, 0x0001, "ADDR0\\", "/U8-18 /U3-9 ³ U3-11 RN2-9 J2-1", "J15-1 RN1-3 U1-17 ³ U1-3 J1-14", "14", "Í1",
-  ADDR_BUS, 0x0002, "ADDR1\\", "/U8-19 /U3-8 ³ U3-12 RN2-8 J2-2", "J15-2 RN1-2 U1-2 ³ U1-18 J1-59", "59", "Í2",
-  ADDR_BUS, 0x0004, "ADDR2\\", "/U8-20 /U3-7 ³ U3-13 RN2-7 J2-3", "J15-3 RN1-5 U1-15 ³ U1-5 J1-15", "15", "Í3",
-  ADDR_BUS, 0x0008, "ADDR3\\", "/U8-21 /U3-6 ³ U3-14 RN2-6 J2-4", "J15-4 RN1-4 U1-4 ³ U1-16 J1-60", "60", "Í4",
-  ADDR_BUS, 0x0010, "ADDR4\\", "/U8-22 /U3-5 ³ U3-15 RN2-5 J2-5", "J15-5 RN1-7 U1-13 ³ U1-7 J1-16", "16", "Í5",
-  ADDR_BUS, 0x0020, "ADDR5\\", "/U8-23 /U3-4 ³ U3-16 RN2-4 J2-6", "J15-6 RN1-6 U1-6 ³ U1-14 J1-61", "61", "Í6",
-  ADDR_BUS, 0x0040, "ADDR6\\", "/U8-24 /U3-3 ³ U3-17 RN2-3 J2-7", "J15-7 RN1-9 U1-11 ³ U1-9 J1-17", "17", "Í7",
-  ADDR_BUS, 0x0080, "ADDR7\\", "/U8-25 /U3-2 ³ U3-18 RN2-2 J2-8", "J15-8 RN1-8 U1-8 ³ U1-12 J1-62", "62", "Í8",
-  ADDR_BUS, 0x0100, "ADDR8\\", "/U18-18 /U24-9 ³ U24-11 RN5-9 J2-9", "J15-9 RN2-3 U2-17 ³ U2-3 J1-18", "18", "Í9",
-  ADDR_BUS, 0x0200, "ADDR9\\", "/U18-19 /U24-8 ³ U24-12 RN5-8 J2-10", "J15-10 RN2-2 U2-2 ³ U2-18 J1-63", "63", "10",
-  ADDR_BUS, 0x0400, "ADDRA\\", "/U18-20 /U24-7 ³ U24-13 RN5-7 J2-11", "J15-11 RN2-5 U2-15 ³ U2-5 J1-19", "19", "11",
-  ADDR_BUS, 0x0800, "ADDRB\\", "/U18-21 /U24-6 ³ U24-14 RN5-6 J2-12", "J15-12 RN2-4 U2-4 ³ U2-17 J1-64", "64", "12",
-  ADDR_BUS, 0x1000, "ADDRC\\", "/U18-22 /U24-5 ³ U24-15 RN5-5 J2-13", "J15-13 RN2-7 U2-13 ³ U2-7 J1-20", "20", "13",
-  ADDR_BUS, 0x2000, "ADDRD\\", "/U18-23 /U24-4 ³ U24-16 RN5-4 J2-14", "J15-14 RN2-6 U2-6 ³ U2-14 J1-65", "65", "14",
-  ADDR_BUS, 0x4000, "ADDRE\\", "/U18-24 /U24-3 ³ U24-17 RN5-3 J2-15", "J15-15 RN2-9 U2-11 ³ U2-9 J1-21", "21", "15",
-  ADDR_BUS, 0x8000, "ADDRF\\", "/U18-25 /U24-2 ³ U24-18 RN5-2 J2-16", "J15-16 RN2-8 U2-8 ³ U2-12 J1-66", "66", "16",
-  DATA_BUS, 0x0001, "DATA0\\", "/U8-4 /U10-9 ³ U10-11 RN3-9 J2-21", "J15-21 RN3-9 U3-9 ³ U3-11 J1-5", "5", "21",
-  DATA_BUS, 0x0002, "DATA1\\", "/U8-3 /U10-8 ³ U10-12 RN3-8 J2-22", "J15-22 RN3-8 U3-8 ³ U3-12 J1-50", "50", "22",
-  DATA_BUS, 0x0004, "DATA2\\", "/U8-2 /U10-7 ³ U10-13 RN3-7 J2-23", "J15-23 RN3-7 U3-7 ³ U3-13 J1-6", "6", "23",
-  DATA_BUS, 0x0008, "DATA3\\", "/U8-1 /U10-6 ³ U10-14 RN3-6 J2-24", "J15-24 RN3-6 U3-6 ³ U3-14 J1-51", "51", "24",
-  DATA_BUS, 0x0010, "DATA4\\", "/U8-40 /U10-5 ³ U10-15 RN3-5 J2-25", "J15-25 RN3-5 U3-5 ³ U3-15 J1-7", "7", "25",
-  DATA_BUS, 0x0020, "DATA5\\", "/U8-39 /U10-4 ³ U10-16 RN3-4 J2-26", "J15-26 RN3-4 U3-4 ³ U3-16 J1-52", "52", "26",
-  DATA_BUS, 0x0040, "DATA6\\", "/U8-38 /U10-3 ³ U10-17 RN3-3 J2-27", "J15-27 RN3-3 U3-3 ³ U3-17 J1-8", "8", "27",
-  DATA_BUS, 0x0080, "DATA7\\", "/U8-37 /U10-2 ³ U10-18 RN3-2 J2-28", "J15-28 RN3-2 U3-2 ³ U3-18 J1-53", "53", "28",
-  DATA_BUS, 0x0100, "DATA8\\",  "/U18-4 /U23-9 ³ U23-11 RN6-9 J2-29", "J15-29 RN4-9 U4-9 ³ U4-11 J1-9", "9", "29",
-  DATA_BUS, 0x0200, "DATA9\\",  "/U18-3 /U23-8 ³ U23-12 RN6-8 J2-30", "J15-30 RN4-8 U4-8 ³ U4-12 J1-54", "54", "30",
-  DATA_BUS, 0x0400, "DATAA\\",  "/U18-2 /U23-7 ³ U23-13 RN6-7 J2-31", "J15-31 RN4-7 U4-7 ³ U4-13 J1-10", "10", "31",
-  DATA_BUS, 0x0800, "DATAB\\",  "/U18-1 /U23-6 ³ U23-14 RN6-6 J2-32", "J15-32 RN4-6 U4-6 ³ U4-14 J1-55", "55", "32",
-  DATA_BUS, 0x1000, "DATAC\\", "/U18-40 /U23-5 ³ U23-15 RN6-5 J2-33", "J15-33 RN4-5 U4-5 ³ U4-15 J1-11", "11", "33",
-  DATA_BUS, 0x2000, "DATAD\\", "/U18-39 /U23-4 ³ U23-16 RN6-4 J2-34", "J15-34 RN4-4 U4-4 ³ U4-16 J1-56", "56", "34",
-  DATA_BUS, 0x4000, "DATAE\\", "/U18-38 /U23-3 ³ U23-17 RN6-3 J2-35", "J15-35 RN4-3 U4-3 ³ U4-17 J1-12", "12", "35",
-  DATA_BUS, 0x8000, "DATAF\\", "/U18-37 /U23-2 ³ U23-18 RN6-2 J2-36", "J15-36 RN4-2 U4-2 ³ U4-18 J1-57", "57", "36",
-  CTRL_BUS, CTRL_RD, "EXPRD\\", "/U8-14 .. U9-8 U14-6 ³ U14-14 RN4-7 J2-46", "J15-46 RN5-9 U6-15 ³ U6-5 J1-71", "71", "46",
-  CTRL_BUS, CTRL_WR, "EXPWR\\", "/U8-16 .. U9-11 U14-4 ³ U14-16 RN4-8 J2-48", "J15-48 RN5-7 U6-17 ³ U6-3 J1-25", "25", "48",
-  CTRL_BUS, CTRL_CE, "CMDENBL\\", "/U5-8 E3 U14-8 ³ U14-12 RN4-6 J2-52", "J15-52 RN5-4 U6-6 ³ U6-14 J1-34", "34", "52",
-  CTRL_BUS, CTRL_CS, "CMDSTRB\\", "/U8-15 E2 U14-2 ³ U14-18 RN4-9 J2-50", "J15-50 RN5-5 U6-8 ³ U6-12 J1-42", "42", "50",
-  EXPN_BUS, 0x0000, "EXPEN0\\", "",  "U7-7 U5-17 ³ U5-3 J1-30", "30", "ÍÍ",
-  EXPN_BUS, 0x0200, "EXPEN1\\", "",  "U7-9 U5-2 ³ U5-18 J1-75", "75", "ÍÍ",
-  EXPN_BUS, 0x0400, "EXPEN2\\", "",  "U7-10 U5-15 ³ U5-5 J1-31", "31", "ÍÍ",
-  EXPN_BUS, 0x0600, "EXPEN3\\", "",  "U7-11 U5-4 ³ U5-16 J1-76", "76", "ÍÍ",
-  EXPN_BUS, 0x0800, "EXPEN4\\", "", "U7-12 U5-13 ³ U5-7 J1-32", "32", "ÍÍ",
-  EXPN_BUS, 0x0A00, "EXPEN5\\", "", "U7-13 U5-6 ³ U5-14 J1-77", "77", "ÍÍ",
-  EXPN_BUS, 0x0C00, "EXPEN6\\", "", "U7-14 U5-11 ³ U5-9 J1-33", "33", "ÍÍ",
-  EXPN_BUS, 0x0E00, "EXPEN7\\", "", "U7-15 U5-8 ³ U5-12 J1-78", "78", "ÍÍ",
-  POWR_BUS, 0x0000, "DIGGND", "J2-45,47,49,51,53,55", "J15-45,47,49,51,53,55 J1-1,24,44,46,67,70", "1", "45",
-  POWR_BUS, 0x0001, "+5V", "(J2-17,18)", "(J15-17,18) (JP1) J1-45,90", "45", "17",
-  POWR_BUS, 0x0000, "ANAGND", "", "J1-4,49", "4", "ÍÍ",
-  POWR_BUS, 0x0001, "+15V", "", "J1-3,48", "3", "ÍÍ",
-  POWR_BUS, 0x0001, "-15V", "", "J1-2,47", "2", "ÍÍ",
-  POWR_BUS, 0x0000, "+28V.RTN", "J2-19", "J15-19 J1-58", "58", "19",
-  POWR_BUS, 0x0001, "+28V", "J2-20", "J15-20 (JP2) J1-13", "13", "20",
-  POWR_BUS, 0x0001, "28V.BATT", "", "J1-88", "88", "ÍÍ",
-  END_BUS, 0, NULL, NULL, NULL, NULL, NULL
+  { ADDR_BUS, 0x0001, "ADDR0\\", "/U8-18 /U3-9 ³ U3-11 RN2-9 J2-1", "J15-1 RN1-3 U1-17 ³ U1-3 J1-14", "14", "Í1"},
+  { ADDR_BUS, 0x0002, "ADDR1\\", "/U8-19 /U3-8 ³ U3-12 RN2-8 J2-2", "J15-2 RN1-2 U1-2 ³ U1-18 J1-59", "59", "Í2"},
+  { ADDR_BUS, 0x0004, "ADDR2\\", "/U8-20 /U3-7 ³ U3-13 RN2-7 J2-3", "J15-3 RN1-5 U1-15 ³ U1-5 J1-15", "15", "Í3"},
+  { ADDR_BUS, 0x0008, "ADDR3\\", "/U8-21 /U3-6 ³ U3-14 RN2-6 J2-4", "J15-4 RN1-4 U1-4 ³ U1-16 J1-60", "60", "Í4"},
+  { ADDR_BUS, 0x0010, "ADDR4\\", "/U8-22 /U3-5 ³ U3-15 RN2-5 J2-5", "J15-5 RN1-7 U1-13 ³ U1-7 J1-16", "16", "Í5"},
+  { ADDR_BUS, 0x0020, "ADDR5\\", "/U8-23 /U3-4 ³ U3-16 RN2-4 J2-6", "J15-6 RN1-6 U1-6 ³ U1-14 J1-61", "61", "Í6"},
+  { ADDR_BUS, 0x0040, "ADDR6\\", "/U8-24 /U3-3 ³ U3-17 RN2-3 J2-7", "J15-7 RN1-9 U1-11 ³ U1-9 J1-17", "17", "Í7"},
+  { ADDR_BUS, 0x0080, "ADDR7\\", "/U8-25 /U3-2 ³ U3-18 RN2-2 J2-8", "J15-8 RN1-8 U1-8 ³ U1-12 J1-62", "62", "Í8"},
+  { ADDR_BUS, 0x0100, "ADDR8\\", "/U18-18 /U24-9 ³ U24-11 RN5-9 J2-9", "J15-9 RN2-3 U2-17 ³ U2-3 J1-18", "18", "Í9"},
+  { ADDR_BUS, 0x0200, "ADDR9\\", "/U18-19 /U24-8 ³ U24-12 RN5-8 J2-10", "J15-10 RN2-2 U2-2 ³ U2-18 J1-63", "63", "10"},
+  { ADDR_BUS, 0x0400, "ADDRA\\", "/U18-20 /U24-7 ³ U24-13 RN5-7 J2-11", "J15-11 RN2-5 U2-15 ³ U2-5 J1-19", "19", "11"},
+  { ADDR_BUS, 0x0800, "ADDRB\\", "/U18-21 /U24-6 ³ U24-14 RN5-6 J2-12", "J15-12 RN2-4 U2-4 ³ U2-17 J1-64", "64", "12"},
+  { ADDR_BUS, 0x1000, "ADDRC\\", "/U18-22 /U24-5 ³ U24-15 RN5-5 J2-13", "J15-13 RN2-7 U2-13 ³ U2-7 J1-20", "20", "13"},
+  { ADDR_BUS, 0x2000, "ADDRD\\", "/U18-23 /U24-4 ³ U24-16 RN5-4 J2-14", "J15-14 RN2-6 U2-6 ³ U2-14 J1-65", "65", "14"},
+  { ADDR_BUS, 0x4000, "ADDRE\\", "/U18-24 /U24-3 ³ U24-17 RN5-3 J2-15", "J15-15 RN2-9 U2-11 ³ U2-9 J1-21", "21", "15"},
+  { ADDR_BUS, 0x8000, "ADDRF\\", "/U18-25 /U24-2 ³ U24-18 RN5-2 J2-16", "J15-16 RN2-8 U2-8 ³ U2-12 J1-66", "66", "16"},
+  { DATA_BUS, 0x0001, "DATA0\\", "/U8-4 /U10-9 ³ U10-11 RN3-9 J2-21", "J15-21 RN3-9 U3-9 ³ U3-11 J1-5", "5", "21"},
+  { DATA_BUS, 0x0002, "DATA1\\", "/U8-3 /U10-8 ³ U10-12 RN3-8 J2-22", "J15-22 RN3-8 U3-8 ³ U3-12 J1-50", "50", "22"},
+  { DATA_BUS, 0x0004, "DATA2\\", "/U8-2 /U10-7 ³ U10-13 RN3-7 J2-23", "J15-23 RN3-7 U3-7 ³ U3-13 J1-6", "6", "23"},
+  { DATA_BUS, 0x0008, "DATA3\\", "/U8-1 /U10-6 ³ U10-14 RN3-6 J2-24", "J15-24 RN3-6 U3-6 ³ U3-14 J1-51", "51", "24"},
+  { DATA_BUS, 0x0010, "DATA4\\", "/U8-40 /U10-5 ³ U10-15 RN3-5 J2-25", "J15-25 RN3-5 U3-5 ³ U3-15 J1-7", "7", "25"},
+  { DATA_BUS, 0x0020, "DATA5\\", "/U8-39 /U10-4 ³ U10-16 RN3-4 J2-26", "J15-26 RN3-4 U3-4 ³ U3-16 J1-52", "52", "26"},
+  { DATA_BUS, 0x0040, "DATA6\\", "/U8-38 /U10-3 ³ U10-17 RN3-3 J2-27", "J15-27 RN3-3 U3-3 ³ U3-17 J1-8", "8", "27"},
+  { DATA_BUS, 0x0080, "DATA7\\", "/U8-37 /U10-2 ³ U10-18 RN3-2 J2-28", "J15-28 RN3-2 U3-2 ³ U3-18 J1-53", "53", "28"},
+  { DATA_BUS, 0x0100, "DATA8\\",  "/U18-4 /U23-9 ³ U23-11 RN6-9 J2-29", "J15-29 RN4-9 U4-9 ³ U4-11 J1-9", "9", "29"},
+  { DATA_BUS, 0x0200, "DATA9\\",  "/U18-3 /U23-8 ³ U23-12 RN6-8 J2-30", "J15-30 RN4-8 U4-8 ³ U4-12 J1-54", "54", "30"},
+  { DATA_BUS, 0x0400, "DATAA\\",  "/U18-2 /U23-7 ³ U23-13 RN6-7 J2-31", "J15-31 RN4-7 U4-7 ³ U4-13 J1-10", "10", "31"},
+  { DATA_BUS, 0x0800, "DATAB\\",  "/U18-1 /U23-6 ³ U23-14 RN6-6 J2-32", "J15-32 RN4-6 U4-6 ³ U4-14 J1-55", "55", "32"},
+  { DATA_BUS, 0x1000, "DATAC\\", "/U18-40 /U23-5 ³ U23-15 RN6-5 J2-33", "J15-33 RN4-5 U4-5 ³ U4-15 J1-11", "11", "33"},
+  { DATA_BUS, 0x2000, "DATAD\\", "/U18-39 /U23-4 ³ U23-16 RN6-4 J2-34", "J15-34 RN4-4 U4-4 ³ U4-16 J1-56", "56", "34"},
+  { DATA_BUS, 0x4000, "DATAE\\", "/U18-38 /U23-3 ³ U23-17 RN6-3 J2-35", "J15-35 RN4-3 U4-3 ³ U4-17 J1-12", "12", "35"},
+  { DATA_BUS, 0x8000, "DATAF\\", "/U18-37 /U23-2 ³ U23-18 RN6-2 J2-36", "J15-36 RN4-2 U4-2 ³ U4-18 J1-57", "57", "36"},
+  { CTRL_BUS, CTRL_RD, "EXPRD\\", "/U8-14 .. U9-8 U14-6 ³ U14-14 RN4-7 J2-46", "J15-46 RN5-9 U6-15 ³ U6-5 J1-71", "71", "46"},
+  { CTRL_BUS, CTRL_WR, "EXPWR\\", "/U8-16 .. U9-11 U14-4 ³ U14-16 RN4-8 J2-48", "J15-48 RN5-7 U6-17 ³ U6-3 J1-25", "25", "48"},
+  { CTRL_BUS, CTRL_CE, "CMDENBL\\", "/U5-8 E3 U14-8 ³ U14-12 RN4-6 J2-52", "J15-52 RN5-4 U6-6 ³ U6-14 J1-34", "34", "52"},
+  { CTRL_BUS, CTRL_CS, "CMDSTRB\\", "/U8-15 E2 U14-2 ³ U14-18 RN4-9 J2-50", "J15-50 RN5-5 U6-8 ³ U6-12 J1-42", "42", "50"},
+  { EXPN_BUS, 0x0000, "EXPEN0\\", "",  "U7-7 U5-17 ³ U5-3 J1-30", "30", "ÍÍ"},
+  { EXPN_BUS, 0x0200, "EXPEN1\\", "",  "U7-9 U5-2 ³ U5-18 J1-75", "75", "ÍÍ"},
+  { EXPN_BUS, 0x0400, "EXPEN2\\", "",  "U7-10 U5-15 ³ U5-5 J1-31", "31", "ÍÍ"},
+  { EXPN_BUS, 0x0600, "EXPEN3\\", "",  "U7-11 U5-4 ³ U5-16 J1-76", "76", "ÍÍ"},
+  { EXPN_BUS, 0x0800, "EXPEN4\\", "", "U7-12 U5-13 ³ U5-7 J1-32", "32", "ÍÍ"},
+  { EXPN_BUS, 0x0A00, "EXPEN5\\", "", "U7-13 U5-6 ³ U5-14 J1-77", "77", "ÍÍ"},
+  { EXPN_BUS, 0x0C00, "EXPEN6\\", "", "U7-14 U5-11 ³ U5-9 J1-33", "33", "ÍÍ"},
+  { EXPN_BUS, 0x0E00, "EXPEN7\\", "", "U7-15 U5-8 ³ U5-12 J1-78", "78", "ÍÍ"},
+  { POWR_BUS, 0x0000, "DIGGND", "J2-45,47,49,51,53,55", "J15-45,47,49,51,53,55 J1-1,24,44,46,67,70", "1", "45"},
+  { POWR_BUS, 0x0001, "+5V", "(J2-17,18)", "(J15-17,18) (JP1) J1-45,90", "45", "17"},
+  { POWR_BUS, 0x0000, "ANAGND", "", "J1-4,49", "4", "ÍÍ"},
+  { POWR_BUS, 0x0001, "+15V", "", "J1-3,48", "3", "ÍÍ"},
+  { POWR_BUS, 0x0001, "-15V", "", "J1-2,47", "2", "ÍÍ"},
+  { POWR_BUS, 0x0000, "+28V.RTN", "J2-19", "J15-19 J1-58", "58", "19"},
+  { POWR_BUS, 0x0001, "+28V", "J2-20", "J15-20 (JP2) J1-13", "13", "20"},
+  { POWR_BUS, 0x0001, "28V.BATT", "", "J1-88", "88", "ÍÍ"},
+  { END_BUS, 0, NULL, NULL, NULL, NULL, NULL}
 };
 
 siginfo sc104_signals[] = {
-  ADDR_BUS, 0x0001, "ADDR0\\", "/U8-18 /U3-9 ³ U3-11 RN2-9 J2-1", "J15-1 RN1-3 U1-17 ³ U1-3 J1-14", "14", "Í1",
-  ADDR_BUS, 0x0002, "ADDR1\\", "/U8-19 /U3-8 ³ U3-12 RN2-8 J2-2", "J15-2 RN1-2 U1-2 ³ U1-18 J1-59", "59", "Í2",
-  ADDR_BUS, 0x0004, "ADDR2\\", "/U8-20 /U3-7 ³ U3-13 RN2-7 J2-3", "J15-3 RN1-5 U1-15 ³ U1-5 J1-15", "15", "Í3",
-  ADDR_BUS, 0x0008, "ADDR3\\", "/U8-21 /U3-6 ³ U3-14 RN2-6 J2-4", "J15-4 RN1-4 U1-4 ³ U1-16 J1-60", "60", "Í4",
-  ADDR_BUS, 0x0010, "ADDR4\\", "/U8-22 /U3-5 ³ U3-15 RN2-5 J2-5", "J15-5 RN1-7 U1-13 ³ U1-7 J1-16", "16", "Í5",
-  ADDR_BUS, 0x0020, "ADDR5\\", "/U8-23 /U3-4 ³ U3-16 RN2-4 J2-6", "J15-6 RN1-6 U1-6 ³ U1-14 J1-61", "61", "Í6",
-  ADDR_BUS, 0x0040, "ADDR6\\", "/U8-24 /U3-3 ³ U3-17 RN2-3 J2-7", "J15-7 RN1-9 U1-11 ³ U1-9 J1-17", "17", "Í7",
-  ADDR_BUS, 0x0080, "ADDR7\\", "/U8-25 /U3-2 ³ U3-18 RN2-2 J2-8", "J15-8 RN1-8 U1-8 ³ U1-12 J1-62", "62", "Í8",
-  ADDR_BUS, 0x0100, "ADDR8\\", "/U18-18 /U24-9 ³ U24-11 RN5-9 J2-9", "J15-9 RN2-3 U2-17 ³ U2-3 J1-18", "18", "Í9",
-  ADDR_BUS, 0x0200, "ADDR9\\", "/U18-19 /U24-8 ³ U24-12 RN5-8 J2-10", "J15-10 RN2-2 U2-2 ³ U2-18 J1-63", "63", "10",
-  ADDR_BUS, 0x0400, "ADDRA\\", "/U18-20 /U24-7 ³ U24-13 RN5-7 J2-11", "J15-11 RN2-5 U2-15 ³ U2-5 J1-19", "19", "11",
-  ADDR_BUS, 0x0800, "ADDRB\\", "/U18-21 /U24-6 ³ U24-14 RN5-6 J2-12", "J15-12 RN2-4 U2-4 ³ U2-17 J1-64", "64", "12",
-  ADDR_BUS, 0x1000, "ADDRC\\", "/U18-22 /U24-5 ³ U24-15 RN5-5 J2-13", "J15-13 RN2-7 U2-13 ³ U2-7 J1-20", "20", "13",
-  ADDR_BUS, 0x2000, "ADDRD\\", "/U18-23 /U24-4 ³ U24-16 RN5-4 J2-14", "J15-14 RN2-6 U2-6 ³ U2-14 J1-65", "65", "14",
-  ADDR_BUS, 0x4000, "ADDRE\\", "/U18-24 /U24-3 ³ U24-17 RN5-3 J2-15", "J15-15 RN2-9 U2-11 ³ U2-9 J1-21", "21", "15",
-  ADDR_BUS, 0x8000, "ADDRF\\", "/U18-25 /U24-2 ³ U24-18 RN5-2 J2-16", "J15-16 RN2-8 U2-8 ³ U2-12 J1-66", "66", "16",
-  DATA_BUS, 0x0001, "DATA0\\", "/U8-4 /U10-9 ³ U10-11 RN3-9 J2-21", "J15-21 RN3-9 U3-9 ³ U3-11 J1-5", "5", "21",
-  DATA_BUS, 0x0002, "DATA1\\", "/U8-3 /U10-8 ³ U10-12 RN3-8 J2-22", "J15-22 RN3-8 U3-8 ³ U3-12 J1-50", "50", "22",
-  DATA_BUS, 0x0004, "DATA2\\", "/U8-2 /U10-7 ³ U10-13 RN3-7 J2-23", "J15-23 RN3-7 U3-7 ³ U3-13 J1-6", "6", "23",
-  DATA_BUS, 0x0008, "DATA3\\", "/U8-1 /U10-6 ³ U10-14 RN3-6 J2-24", "J15-24 RN3-6 U3-6 ³ U3-14 J1-51", "51", "24",
-  DATA_BUS, 0x0010, "DATA4\\", "/U8-40 /U10-5 ³ U10-15 RN3-5 J2-25", "J15-25 RN3-5 U3-5 ³ U3-15 J1-7", "7", "25",
-  DATA_BUS, 0x0020, "DATA5\\", "/U8-39 /U10-4 ³ U10-16 RN3-4 J2-26", "J15-26 RN3-4 U3-4 ³ U3-16 J1-52", "52", "26",
-  DATA_BUS, 0x0040, "DATA6\\", "/U8-38 /U10-3 ³ U10-17 RN3-3 J2-27", "J15-27 RN3-3 U3-3 ³ U3-17 J1-8", "8", "27",
-  DATA_BUS, 0x0080, "DATA7\\", "/U8-37 /U10-2 ³ U10-18 RN3-2 J2-28", "J15-28 RN3-2 U3-2 ³ U3-18 J1-53", "53", "28",
-  DATA_BUS, 0x0100, "DATA8\\",  "/U18-4 /U23-9 ³ U23-11 RN6-9 J2-29", "J15-29 RN4-9 U4-9 ³ U4-11 J1-9", "9", "29",
-  DATA_BUS, 0x0200, "DATA9\\",  "/U18-3 /U23-8 ³ U23-12 RN6-8 J2-30", "J15-30 RN4-8 U4-8 ³ U4-12 J1-54", "54", "30",
-  DATA_BUS, 0x0400, "DATAA\\",  "/U18-2 /U23-7 ³ U23-13 RN6-7 J2-31", "J15-31 RN4-7 U4-7 ³ U4-13 J1-10", "10", "31",
-  DATA_BUS, 0x0800, "DATAB\\",  "/U18-1 /U23-6 ³ U23-14 RN6-6 J2-32", "J15-32 RN4-6 U4-6 ³ U4-14 J1-55", "55", "32",
-  DATA_BUS, 0x1000, "DATAC\\", "/U18-40 /U23-5 ³ U23-15 RN6-5 J2-33", "J15-33 RN4-5 U4-5 ³ U4-15 J1-11", "11", "33",
-  DATA_BUS, 0x2000, "DATAD\\", "/U18-39 /U23-4 ³ U23-16 RN6-4 J2-34", "J15-34 RN4-4 U4-4 ³ U4-16 J1-56", "56", "34",
-  DATA_BUS, 0x4000, "DATAE\\", "/U18-38 /U23-3 ³ U23-17 RN6-3 J2-35", "J15-35 RN4-3 U4-3 ³ U4-17 J1-12", "12", "35",
-  DATA_BUS, 0x8000, "DATAF\\", "/U18-37 /U23-2 ³ U23-18 RN6-2 J2-36", "J15-36 RN4-2 U4-2 ³ U4-18 J1-57", "57", "36",
-  CTRL_BUS, CTRL_RD, "EXPRD\\", "/U8-14 .. U9-8 U14-6 ³ U14-14 RN4-7 J2-46", "J15-46 RN5-9 U6-15 ³ U6-5 J1-71", "71", "46",
-  CTRL_BUS, CTRL_WR, "EXPWR\\", "/U8-16 .. U9-11 U14-4 ³ U14-16 RN4-8 J2-48", "J15-48 RN5-7 U6-17 ³ U6-3 J1-25", "25", "48",
-  CTRL_BUS, CTRL_CE, "CMDENBL\\", "/U5-8 E3 U14-8 ³ U14-12 RN4-6 J2-52", "J15-52 RN5-4 U6-6 ³ U6-14 J1-34", "34", "52",
-  CTRL_BUS, CTRL_CS, "CMDSTRB\\", "/U8-15 E2 U14-2 ³ U14-18 RN4-9 J2-50", "J15-50 RN5-5 U6-8 ³ U6-12 J1-42", "42", "50",
-  EXPN_BUS, 0x0000, "EXPEN0\\", "",  "U7-7 U5-17 ³ U5-3 J1-30", "30", "ÍÍ",
-  EXPN_BUS, 0x0200, "EXPEN1\\", "",  "U7-9 U5-2 ³ U5-18 J1-75", "75", "ÍÍ",
-  EXPN_BUS, 0x0400, "EXPEN2\\", "",  "U7-10 U5-15 ³ U5-5 J1-31", "31", "ÍÍ",
-  EXPN_BUS, 0x0600, "EXPEN3\\", "",  "U7-11 U5-4 ³ U5-16 J1-76", "76", "ÍÍ",
-  EXPN_BUS, 0x0800, "EXPEN4\\", "", "U7-12 U5-13 ³ U5-7 J1-32", "32", "ÍÍ",
-  EXPN_BUS, 0x0A00, "EXPEN5\\", "", "U7-13 U5-6 ³ U5-14 J1-77", "77", "ÍÍ",
-  EXPN_BUS, 0x0C00, "EXPEN6\\", "", "U7-14 U5-11 ³ U5-9 J1-33", "33", "ÍÍ",
-  EXPN_BUS, 0x0E00, "EXPEN7\\", "", "U7-15 U5-8 ³ U5-12 J1-78", "78", "ÍÍ",
-  POWR_BUS, 0x0000, "DIGGND", "J2-45,47,49,51,53,55", "J15-45,47,49,51,53,55 J1-1,24,44,46,67,70", "1", "45",
-  POWR_BUS, 0x0001, "+5V", "(J2-17,18)", "(J15-17,18) (JP1) J1-45,90", "45", "17",
-  POWR_BUS, 0x0000, "ANAGND", "", "J1-4,49", "4", "ÍÍ",
-  POWR_BUS, 0x0001, "+15V", "", "J1-3,48", "3", "ÍÍ",
-  POWR_BUS, 0x0001, "-15V", "", "J1-2,47", "2", "ÍÍ",
-  POWR_BUS, 0x0000, "+28V.RTN", "J2-19", "J15-19 J1-58", "58", "19",
-  POWR_BUS, 0x0001, "+28V", "J2-20", "J15-20 (JP2) J1-13", "13", "20",
-  POWR_BUS, 0x0001, "28V.BATT", "", "J1-88", "88", "ÍÍ",
-  END_BUS, 0, NULL, NULL, NULL, NULL, NULL
+  { ADDR_BUS, 0x0001, "ADDR0\\", "/U8-18 /U3-9 ³ U3-11 RN2-9 J2-1", "J15-1 RN1-3 U1-17 ³ U1-3 J1-14", "14", "Í1"},
+  { ADDR_BUS, 0x0002, "ADDR1\\", "/U8-19 /U3-8 ³ U3-12 RN2-8 J2-2", "J15-2 RN1-2 U1-2 ³ U1-18 J1-59", "59", "Í2"},
+  { ADDR_BUS, 0x0004, "ADDR2\\", "/U8-20 /U3-7 ³ U3-13 RN2-7 J2-3", "J15-3 RN1-5 U1-15 ³ U1-5 J1-15", "15", "Í3"},
+  { ADDR_BUS, 0x0008, "ADDR3\\", "/U8-21 /U3-6 ³ U3-14 RN2-6 J2-4", "J15-4 RN1-4 U1-4 ³ U1-16 J1-60", "60", "Í4"},
+  { ADDR_BUS, 0x0010, "ADDR4\\", "/U8-22 /U3-5 ³ U3-15 RN2-5 J2-5", "J15-5 RN1-7 U1-13 ³ U1-7 J1-16", "16", "Í5"},
+  { ADDR_BUS, 0x0020, "ADDR5\\", "/U8-23 /U3-4 ³ U3-16 RN2-4 J2-6", "J15-6 RN1-6 U1-6 ³ U1-14 J1-61", "61", "Í6"},
+  { ADDR_BUS, 0x0040, "ADDR6\\", "/U8-24 /U3-3 ³ U3-17 RN2-3 J2-7", "J15-7 RN1-9 U1-11 ³ U1-9 J1-17", "17", "Í7"},
+  { ADDR_BUS, 0x0080, "ADDR7\\", "/U8-25 /U3-2 ³ U3-18 RN2-2 J2-8", "J15-8 RN1-8 U1-8 ³ U1-12 J1-62", "62", "Í8"},
+  { ADDR_BUS, 0x0100, "ADDR8\\", "/U18-18 /U24-9 ³ U24-11 RN5-9 J2-9", "J15-9 RN2-3 U2-17 ³ U2-3 J1-18", "18", "Í9"},
+  { ADDR_BUS, 0x0200, "ADDR9\\", "/U18-19 /U24-8 ³ U24-12 RN5-8 J2-10", "J15-10 RN2-2 U2-2 ³ U2-18 J1-63", "63", "10"},
+  { ADDR_BUS, 0x0400, "ADDRA\\", "/U18-20 /U24-7 ³ U24-13 RN5-7 J2-11", "J15-11 RN2-5 U2-15 ³ U2-5 J1-19", "19", "11"},
+  { ADDR_BUS, 0x0800, "ADDRB\\", "/U18-21 /U24-6 ³ U24-14 RN5-6 J2-12", "J15-12 RN2-4 U2-4 ³ U2-17 J1-64", "64", "12"},
+  { ADDR_BUS, 0x1000, "ADDRC\\", "/U18-22 /U24-5 ³ U24-15 RN5-5 J2-13", "J15-13 RN2-7 U2-13 ³ U2-7 J1-20", "20", "13"},
+  { ADDR_BUS, 0x2000, "ADDRD\\", "/U18-23 /U24-4 ³ U24-16 RN5-4 J2-14", "J15-14 RN2-6 U2-6 ³ U2-14 J1-65", "65", "14"},
+  { ADDR_BUS, 0x4000, "ADDRE\\", "/U18-24 /U24-3 ³ U24-17 RN5-3 J2-15", "J15-15 RN2-9 U2-11 ³ U2-9 J1-21", "21", "15"},
+  { ADDR_BUS, 0x8000, "ADDRF\\", "/U18-25 /U24-2 ³ U24-18 RN5-2 J2-16", "J15-16 RN2-8 U2-8 ³ U2-12 J1-66", "66", "16"},
+  { DATA_BUS, 0x0001, "DATA0\\", "/U8-4 /U10-9 ³ U10-11 RN3-9 J2-21", "J15-21 RN3-9 U3-9 ³ U3-11 J1-5", "5", "21"},
+  { DATA_BUS, 0x0002, "DATA1\\", "/U8-3 /U10-8 ³ U10-12 RN3-8 J2-22", "J15-22 RN3-8 U3-8 ³ U3-12 J1-50", "50", "22"},
+  { DATA_BUS, 0x0004, "DATA2\\", "/U8-2 /U10-7 ³ U10-13 RN3-7 J2-23", "J15-23 RN3-7 U3-7 ³ U3-13 J1-6", "6", "23"},
+  { DATA_BUS, 0x0008, "DATA3\\", "/U8-1 /U10-6 ³ U10-14 RN3-6 J2-24", "J15-24 RN3-6 U3-6 ³ U3-14 J1-51", "51", "24"},
+  { DATA_BUS, 0x0010, "DATA4\\", "/U8-40 /U10-5 ³ U10-15 RN3-5 J2-25", "J15-25 RN3-5 U3-5 ³ U3-15 J1-7", "7", "25"},
+  { DATA_BUS, 0x0020, "DATA5\\", "/U8-39 /U10-4 ³ U10-16 RN3-4 J2-26", "J15-26 RN3-4 U3-4 ³ U3-16 J1-52", "52", "26"},
+  { DATA_BUS, 0x0040, "DATA6\\", "/U8-38 /U10-3 ³ U10-17 RN3-3 J2-27", "J15-27 RN3-3 U3-3 ³ U3-17 J1-8", "8", "27"},
+  { DATA_BUS, 0x0080, "DATA7\\", "/U8-37 /U10-2 ³ U10-18 RN3-2 J2-28", "J15-28 RN3-2 U3-2 ³ U3-18 J1-53", "53", "28"},
+  { DATA_BUS, 0x0100, "DATA8\\",  "/U18-4 /U23-9 ³ U23-11 RN6-9 J2-29", "J15-29 RN4-9 U4-9 ³ U4-11 J1-9", "9", "29"},
+  { DATA_BUS, 0x0200, "DATA9\\",  "/U18-3 /U23-8 ³ U23-12 RN6-8 J2-30", "J15-30 RN4-8 U4-8 ³ U4-12 J1-54", "54", "30"},
+  { DATA_BUS, 0x0400, "DATAA\\",  "/U18-2 /U23-7 ³ U23-13 RN6-7 J2-31", "J15-31 RN4-7 U4-7 ³ U4-13 J1-10", "10", "31"},
+  { DATA_BUS, 0x0800, "DATAB\\",  "/U18-1 /U23-6 ³ U23-14 RN6-6 J2-32", "J15-32 RN4-6 U4-6 ³ U4-14 J1-55", "55", "32"},
+  { DATA_BUS, 0x1000, "DATAC\\", "/U18-40 /U23-5 ³ U23-15 RN6-5 J2-33", "J15-33 RN4-5 U4-5 ³ U4-15 J1-11", "11", "33"},
+  { DATA_BUS, 0x2000, "DATAD\\", "/U18-39 /U23-4 ³ U23-16 RN6-4 J2-34", "J15-34 RN4-4 U4-4 ³ U4-16 J1-56", "56", "34"},
+  { DATA_BUS, 0x4000, "DATAE\\", "/U18-38 /U23-3 ³ U23-17 RN6-3 J2-35", "J15-35 RN4-3 U4-3 ³ U4-17 J1-12", "12", "35"},
+  { DATA_BUS, 0x8000, "DATAF\\", "/U18-37 /U23-2 ³ U23-18 RN6-2 J2-36", "J15-36 RN4-2 U4-2 ³ U4-18 J1-57", "57", "36"},
+  { CTRL_BUS, CTRL_RD, "EXPRD\\", "/U8-14 .. U9-8 U14-6 ³ U14-14 RN4-7 J2-46", "J15-46 RN5-9 U6-15 ³ U6-5 J1-71", "71", "46"},
+  { CTRL_BUS, CTRL_WR, "EXPWR\\", "/U8-16 .. U9-11 U14-4 ³ U14-16 RN4-8 J2-48", "J15-48 RN5-7 U6-17 ³ U6-3 J1-25", "25", "48"},
+  { CTRL_BUS, CTRL_CE, "CMDENBL\\", "/U5-8 E3 U14-8 ³ U14-12 RN4-6 J2-52", "J15-52 RN5-4 U6-6 ³ U6-14 J1-34", "34", "52"},
+  { CTRL_BUS, CTRL_CS, "CMDSTRB\\", "/U8-15 E2 U14-2 ³ U14-18 RN4-9 J2-50", "J15-50 RN5-5 U6-8 ³ U6-12 J1-42", "42", "50"},
+  { EXPN_BUS, 0x0000, "EXPEN0\\", "",  "U7-7 U5-17 ³ U5-3 J1-30", "30", "ÍÍ"},
+  { EXPN_BUS, 0x0200, "EXPEN1\\", "",  "U7-9 U5-2 ³ U5-18 J1-75", "75", "ÍÍ"},
+  { EXPN_BUS, 0x0400, "EXPEN2\\", "",  "U7-10 U5-15 ³ U5-5 J1-31", "31", "ÍÍ"},
+  { EXPN_BUS, 0x0600, "EXPEN3\\", "",  "U7-11 U5-4 ³ U5-16 J1-76", "76", "ÍÍ"},
+  { EXPN_BUS, 0x0800, "EXPEN4\\", "", "U7-12 U5-13 ³ U5-7 J1-32", "32", "ÍÍ"},
+  { EXPN_BUS, 0x0A00, "EXPEN5\\", "", "U7-13 U5-6 ³ U5-14 J1-77", "77", "ÍÍ"},
+  { EXPN_BUS, 0x0C00, "EXPEN6\\", "", "U7-14 U5-11 ³ U5-9 J1-33", "33", "ÍÍ"},
+  { EXPN_BUS, 0x0E00, "EXPEN7\\", "", "U7-15 U5-8 ³ U5-12 J1-78", "78", "ÍÍ"},
+  { POWR_BUS, 0x0000, "DIGGND", "J2-45,47,49,51,53,55", "J15-45,47,49,51,53,55 J1-1,24,44,46,67,70", "1", "45"},
+  { POWR_BUS, 0x0001, "+5V", "(J2-17,18)", "(J15-17,18) (JP1) J1-45,90", "45", "17"},
+  { POWR_BUS, 0x0000, "ANAGND", "", "J1-4,49", "4", "ÍÍ"},
+  { POWR_BUS, 0x0001, "+15V", "", "J1-3,48", "3", "ÍÍ"},
+  { POWR_BUS, 0x0001, "-15V", "", "J1-2,47", "2", "ÍÍ"},
+  { POWR_BUS, 0x0000, "+28V.RTN", "J2-19", "J15-19 J1-58", "58", "19"},
+  { POWR_BUS, 0x0001, "+28V", "J2-20", "J15-20 (JP2) J1-13", "13", "20"},
+  { POWR_BUS, 0x0001, "28V.BATT", "", "J1-88", "88", "ÍÍ"},
+  { END_BUS, 0, NULL, NULL, NULL, NULL, NULL}
 };
 
 #define beeping() fields[AUDFLD].state
@@ -687,6 +718,13 @@ void make_noise(int signo) {
 
 void init_subbus( void ) {  
 
+  #ifdef __QNXNTO__
+    if ( ThreadCtl(_NTO_TCTL_IO, 0) == -1 ) {
+      fprintf(stderr,
+	"Unable to gain I/O privileges. Perhaps not root?\n" );
+      exit(1);
+    }
+  #endif
   /* Initialize the subbus */
   outbyte(0x310, 0);
   if ( ver == VER_PCICC ) {
