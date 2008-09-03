@@ -1,0 +1,20 @@
+<package> lgr
+<include> dc msg
+<include> "lgr.h"
+
+<init> lgr_init(argc, argv);
+
+<opts> "N:"
+<sort>
+	-N <logging config>
+
+<unsort>
+<blank>
+Logging config is a path string identifying the last
+file previously written and implicitly the next file
+to write. This is usually the direct output of the
+mlf_find script: lgr -N `mlf_find LOG`
+
+<package> msghdr_default
+<vars>
+  char *msg_hdr_default = "lgr";
