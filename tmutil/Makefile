@@ -6,6 +6,8 @@ SBIN=promote flight.sh
 DATA=appgen.mk
 INSTALL=cp -vn
 CFLAGS=-Wall -g -I/usr/local/include
+CXX=cc
+CXXFLAGS=-Wall -g -I/usr/local/include -lang-c++
 LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 
 .PHONY : all install install-sbin install-bin install-data
@@ -22,3 +24,6 @@ parent : parent.o parentoui.o
 	usemsg parent parentoui.c
 parentoui.c : parent.oui
 	oui -o parentoui.c parent.oui
+DCtap : DCtap.o
+	$(LINK.c) -o DCtap DCtap.o -ltmpp -ltm -lnort -lang-c++
+DCtap.o : DCtap.cc
