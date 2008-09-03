@@ -24,10 +24,11 @@ void lgr_init( int argc, char **argv ) {
 }
 
 char *DClgr::mlf_config;
-int DClgr::file_limit = 4096*3;
+unsigned int DClgr::file_limit = 4096*3;
 
-DClgr::DClgr() : data_client( DClgr::file_limit, 0, 0 ) {
+DClgr::DClgr() : data_client( 100, 0, 0 ) {
   mlf = mlf_init( 3, 60, 1, "LOG", "dat", mlf_config );
+  ofp = NULL;
 }
 
 // Since we accept data from any frame, we need to copy the incoming
@@ -54,6 +55,7 @@ void DClgr::process_tstamp() {
 void DClgr::lgr_write(void *buf, int nb, char *where ) {
   if ( fwrite( buf, nb, 1, ofp ) < 1 )
     nl_error( 3, "Error %s: %s", where, strerror(errno) );
+  fflush(ofp);
   nb_out += nb;
 }
 
@@ -80,7 +82,6 @@ void DClgr::process_data_t3() {
   int n_rows = data->n_rows;
   unsigned short mfctr = data->mfctr;
   unsigned char *wdata = &data->data[0];
-  int i, k;
   tm_msg_t wmsg;
 
   wmsg.hdr.tm_id = TMHDR_WORD;
@@ -95,7 +96,7 @@ void DClgr::process_data_t3() {
     if ( rows_fit < 1 ) {
       next_file();
     } else {
-      if ( rows_fit < n_rows )
+      if ( rows_fit > n_rows )
 	rows_fit = n_rows;
       wmsg.body.data3.n_rows = rows_fit;
       wmsg.body.data3.mfctr = mfctr;

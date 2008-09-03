@@ -10,7 +10,7 @@
     public:
       DClgr();
       static char *mlf_config;
-      static int file_limit;
+      static unsigned int file_limit;
     protected:
       void process_data_t1();
       void process_data_t2();
