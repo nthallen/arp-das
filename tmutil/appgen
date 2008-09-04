@@ -159,6 +159,9 @@ function set_depname {
 # returns true (0) if file is in this directory
 function in_this_dir {
   typeset bname
+  case x$1 in
+    x-l*) return 1;;
+  esac
   bname=`basename $1`
   [ $bname = $1 ] && return 0
   return 1
@@ -425,6 +428,8 @@ for i in $basetargets; do
 	nl_error Server $i with no cmd.c files
       fi;;
   esac
+  is_member deps -lsubbus && add_member ouis subbus
+
   #----------------------------------------------------------------
   # We'll delay handling the rest of the .c files (and the .oui files)
   # until we decide if these are really executable.
@@ -459,7 +464,15 @@ for i in $basetargets; do
       ouiout=${i}oui.c
     replace_each .c .o "" $deps
     replace_each .cc .o "" $deps && cxx=' -lang-c++'
-    deps="$deps\n\t\$(LINK.$LINK)$deps$ldisp$ltmph$ltmpp -ltm -lnort$cxx"
+    unset libs odeps
+    for dep in $deps; do
+      case "x$dep" in
+	x-l*) libs="$libs $dep";;
+	*.o) odeps="$odeps $dep";;
+	*) nl_error Unrecognized dependent $dep;;
+      esac
+    done
+    deps="$odeps\n\t\$(LINK.$LINK)$odeps$libs$ldisp$ltmph$ltmpp -ltm -lnort$cxx"
     [ -n "$ouiout" ] &&	deps="$deps\n\t\$(OUIUSE) $ouiout"
     if [ $LINK = priv ]; then deps="$deps\n\t\$(PROMOTE) $i"; fi
   fi
