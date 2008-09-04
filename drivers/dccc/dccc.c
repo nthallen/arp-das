@@ -1,6 +1,9 @@
 /*
  * Discrete command card controller program.
  * $Log$
+ * Revision 1.4  2008/08/24 15:20:19  ntallen
+ * Compile clean
+ *
  * Revision 1.3  2008/08/24 15:14:30  ntallen
  * Restructure to handle strobe commands without separate scdc app
  *
@@ -271,6 +274,7 @@ int main(int argc, char **argv) {
     execute_pcmd( &pcmd, 0 );
     if (dccc_cmd_type == STRB) {
       /* optionally add a delay here */
+      delay(10);
       execute_pcmd( &pcmd, 1 );
     }
   }

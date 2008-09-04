@@ -20,4 +20,4 @@ dcccoui.c : dccc.oui
 clean :
 	rm -f *.o dcccoui.c dccc
 install : dccc
-	@cp -vp dccc /usr/local/bin
+	@cp -vp dccc $(TGTNODE)/usr/local/bin
