@@ -4,6 +4,7 @@ TOOL=Makefile todo
 TARGET=qclisd qclisprog qclistest
 INCLUDE_HEADERS=qclid.h
 CFLAGS=-Wall -g
+LDFLAGS=-L/usr/local/lib
 
 include /usr/local/share/huarp/appgen.mk
 LIBS=-lnort
@@ -63,13 +64,18 @@ qcliread.o : qcliread.c qcliutil.h
 icoswave.out : icoswave.qcli
 	qclicomp icoswave.qcli >icoswave.out
 
-.PHONY : clean all install install-include
+testread : testread.o
+	$(LINK.norm) testread.o $(LIBS)
+
+.PHONY : clean all install install-bin install-include
 clean :
 	rm -f $(TARGET) *.o *oui.c
 
 
-install : $(TARGET) install-include
-	@cp -vn $(TARGET) /usr/local/bin
+install : install-bin install-include
+
+install-bin : $(TARGET)
+	@cp -vn $(TARGET) $(TGTNODE)/usr/local/bin
 
 install-include :
-	@cp -vn $(INCLUDE_HEADERS) /usr/local/include
+	@cp -vn $(INCLUDE_HEADERS) $(TGTNODE)/usr/local/include

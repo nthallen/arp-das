@@ -40,30 +40,30 @@ unsigned short read_qcli( int fresh ) {
      has a delay */
   if ( fresh ) delay3msec();
   while ( 1 ) {
-	write_qcli( QCLI_NOOP );
-	rv = readcond( qcli_fd, buf, SBUFSIZE, SBUFSIZE, 1, 2 );
-	if ( rv == 0 ) {
-	  if ( responding ) {
-		nl_error( 2, "QCLI is not responding" );
-		responding = 0;
-	  }
-	  return 0;
-	} else if ( rv == -1 ) {
-	  nl_error( 1, "readcond(qcli_fd) returned error %d: %s",
-		errno, strerror(errno) );
-	  return 0;
-	} else if ( rv & 1 ) {
-	  nl_error( 2, "QCLI returned an odd number of bytes (%d)", rv );
-	  continue;
-	} else {
+    write_qcli( QCLI_NOOP );
+    rv = readcond( qcli_fd, buf, SBUFSIZE, SBUFSIZE, 1, 4 );
+    if ( rv == 0 || (rv == -1 && errno == EAGAIN) ) {
+      if ( responding ) {
+	nl_error( 2, "QCLI is not responding" );
+	responding = 0;
+      }
+      return 0;
+    } else if ( rv == -1 ) {
+      nl_error( 1, "readcond(qcli_fd) returned error %d: %s",
+	    errno, strerror(errno) );
+      return 0;
+    } else if ( rv & 1 ) {
+      nl_error( 2, "QCLI returned an odd number of bytes (%d)", rv );
+      continue;
+    } else {
       if ( rv == SBUFSIZE )
-		nl_error( 1, "Input buffer is full" );
-	  if ( !responding )
-		nl_error( 0, "QCLI is responding" );
-	  responding = 1;
-	  status = (buf[rv-2]<<8) + buf[rv-1];
+	nl_error( 1, "Input buffer is full" );
+      if ( !responding )
+	nl_error( 0, "QCLI is responding" );
+      responding = 1;
+      status = (buf[rv-2]<<8) + buf[rv-1];
       return status;
-	}
+    }
   }
 }
 
@@ -75,10 +75,10 @@ void write_qcli( unsigned short value ) {
   buf[1] = value & 0xFF;
   rv = write( qcli_fd, buf, 2 );
   if ( rv == -1 )
-	nl_error( 1, "write(qcli_fd,2) returned error %d: %s",
-	  errno, strerror(errno) );
+    nl_error( 1, "write(qcli_fd,2) returned error %d: %s",
+      errno, strerror(errno) );
   else if ( rv != 2 )
-	nl_error( 1, "write(qcli_fd,2) returned %d", rv );
+    nl_error( 1, "write(qcli_fd,2) returned %d", rv );
   /* This delay is intended to prevent the FIFO from
      overflowing */
   /* delay3msec(); */
@@ -100,7 +100,7 @@ void qclisrvr_init( int argc, char **argv ) {
   int c;
   char *port = "/dev/ser1";
 
-  optind = 0; /* start from the beginning */
+  optind = OPTIND_RESET; /* start from the beginning */
   opterr = 0; /* disable default error message */
   while ((c = getopt(argc, argv, opt_string)) != -1) {
 	switch (c) {
