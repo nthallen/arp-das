@@ -1,0 +1,263 @@
+#! /bin/sh
+#__USAGE
+#%C
+#	Saves data files, log files and other pertinent info in
+#	a new directory named after the current date and the run
+#	number and optionally located under a runtype-specific
+#	subdirectory.
+#
+#	Saverun must be able to read the experiment configuration
+#	file Experiment.config, usually located in the GSE and
+#	flight directories.
+#
+#	If the variable "FixDisk" is defined to "yes", fixdisk is
+#	run on the disk before the new directory is created.
+#
+#	Also references configuration variables LogDirs,
+#	LogFiles, SaveFiles, RunLog, Dircksum, SaverunHook and
+#	RunType.
+#
+#	For more information, see:
+#	  http://www.arp.harvard.edu/eng/das/manuals/exconfig.html
+
+# Saverun locates the flight directory and does its work
+# there, then returns to the current directory. Care is taken
+# to perturb the environment as little as possible so saverun
+# can be dot-executed with minimal side-effects. Saverun will
+# exit on certain error conditions (no config file, insufficient
+# permissions in flight directory, no log files) and if it is
+# being dot-executed, the calling script will exit also.
+# I use the not-well-documented feature that "cd -" takes you
+# to the previous directory.
+#
+# If saverun completes successfully, (and is dot-executed)
+# the variables Experiment, HomeDir and FlightDir and RunDir
+# will be defined. The newly created directory is
+# $FlightDir/$RunDir
+
+function sv_error {
+  echo "saverun: $*" >&2
+  exit 1
+}
+
+#----------------------------------------------------------------
+# Locate the configuration file and read it
+#----------------------------------------------------------------
+cfile=Experiment.config
+[ -f "$cfile" ] || sv_error "Cannot locate $cfile"
+unset Experiment HomeDir FlightNode SaverunHook RunType
+unset FixDisk Dircksum
+. $cfile
+[ -z "$Experiment" -o -z "$HomeDir" ] &&
+  sv_error "Experiment or HomeDir not defined in $cfile"
+unset zbase cfile
+export Experiment
+
+#----------------------------------------------------------------
+# saverun isn't legal when DG is running:
+#----------------------------------------------------------------
+namewait -n0 -t0 dg 2>/dev/null &&
+  sv_error dg for Experiment $Experiment currently active
+
+#----------------------------------------------------------------
+# Look for the flight node
+#----------------------------------------------------------------
+typeset FN=$FlightNode date run
+unset FlightDir
+if [ -z "$FN" ]; then
+  FlightNode=`namewait -n0 -t0 -G parent 2>/dev/null`
+  FN="$FlightNode"
+else
+  [ ! -d //$FN/ ] && FN=""
+fi
+if [ -z "$FN" ]; then
+  if [ -d "$AltDir" ]; then
+	FlightDir=$AltDir
+  else
+	#----------------------------------------------------------------
+	# Wait for the flight node
+	#----------------------------------------------------------------
+	echo "saverun: Waiting for flight computer to boot"
+	if [ -z "$FlightNode" ]; then
+	  pick_file /dev/null
+	  FlightNode=`namewait -n0 -G parent 2>/dev/null`
+	  [ -z "$FlightNode" ] &&
+		sv_error Unable to locate flight node for experiment $Experiment
+	else
+	  [ "$FlightNode" = "$NODE" ] || namewait -n $FlightNode qnx/net
+	fi
+  fi
+fi
+unset FN
+[ -z "$FlightDir" ] && FlightDir=//$FlightNode$HomeDir
+
+[ -d $FlightDir ] ||
+  sv_error Unable to locate flight directory $FlightDir
+
+if [ ! -w $FlightDir -o ! -x $FlightDir ]; then
+  echo "saverun: Insufficient permissions for flight directory $FlightDir" >&2
+  ls -ld $FlightDir >&2
+  exit 1
+fi
+cd $FlightDir
+OLDDIR=~-
+
+#----------------------------------------------------------------
+# Fix the disk if required
+#----------------------------------------------------------------
+[ "$FixDisk" = "yes" ] && fixdisk $FlightDir
+
+#----------------------------------------------------------------
+# Check to see if there are any log directories
+#----------------------------------------------------------------
+logdirs=''
+hascrntrun=no
+if [ -d CrntRun ]; then
+  hascrntrun=yes
+  cd CrntRun
+fi
+[ -n "$LogDirs" ] || LogDirs="log*"
+for i in $LogDirs; do
+  [ -d "$i" ] && logdirs="$logdirs $i"
+done
+[ -z "$logdirs" ] &&
+  sv_error "No log directories ($LogDirs) found in $PWD."
+
+if [ -n "SaverunHook" ]; then
+  eval $SaverunHook
+fi
+
+# Ask about RunType [FPCJ]
+if [ -n "$RunType" ]; then
+  case "$RunType" in
+	raw/flight) : ;;
+	raw/preflt) : ;;
+	raw/cal) : ;;
+	raw/data) : ;;
+	raw/junk) : ;;
+	*) RunType='ask';;
+  esac
+  if [ "$RunType" = "ask" ]; then
+	echo "Run Type (Flight/Preflight/Calibration/Data/Junk) [Data]: \\c"
+	read j
+	case $j in
+	  [Ff]*) RunType='raw/flight'
+	         [ "$Dircksum" = no ] || Dircksum=yes;;
+	  [Pp]*) RunType='raw/preflt';;
+	  [Cc]*) RunType='raw/cal';;
+	  [Jj]*) RunType='raw/junk';;
+	  *) RunType='raw/data';;
+	esac
+  fi
+  [ -d $RunType ] || mkdir -p $RunType ||
+	nl_error "Unable to create directory '$RunType'"
+  unset j
+else
+  RunType='.'
+fi
+
+[ $hascrntrun = yes ] && cd ..
+date=`date +%y%m%d`
+run=1
+if [ -r .crntrun ]; then
+  read lastrun <.crntrun
+  lastdate=${lastrun%.*}
+  [ "$lastdate" = "$date" ] && let run=${lastrun#*.}+1
+fi
+
+# The following check should be expanded if going into
+# subdirectories
+while true; do
+  found=no
+  for dir in . raw/flt raw/preflt raw/cal raw/data raw/junk; do
+	[ -d $dir/$date.$run ] && found=yes
+  done
+  [ $found = no ] && break;
+  let run=$run+1
+done
+# while [ -d $date.$run ]; do
+#  let run=$run+1
+# done
+echo $date.$run >.crntrun
+
+# Here we define the actual new directory name
+RunDir=$RunType/$date.$run
+echo saverun: Making directory $RunDir
+if [ $hascrntrun = yes ]; then
+  mv -v CrntRun $RunDir
+else
+  mkdir $RunDir
+  mv -v $logdirs $RunDir
+  [ -n "$LogFiles" ] || LogFiles="*.log"
+  for i in $LogFiles; do
+	[ -f $i ] && mv -v $i $RunDir
+  done
+fi
+unset tocopy
+# Old source file location in the run dir:
+for i in *.tmc *.prt *.tma *.sol; do
+  [ -f $i ] && tocopy="$tocopy $i"
+done
+# Take the first one found
+VERSION=1.0
+[ -f VERSION ] && VERSION=`cat VERSION`
+[ ! -d "bin/$VERSION/" ] && VERSION=crnt
+for i in '*.pcm' tm.dac VERSION; do
+  for j in $i bin/$VERSION/$i; do
+	[ -f $j ] && tocopy="$tocopy $j" && break;
+  done
+done
+if [ -n "$SaveFiles" ]; then
+  for i in $SaveFiles; do
+	if [ -f $i ]; then
+	  tocopy="$tocopy $i"
+	else
+	  echo saverun: Unable to locate SaveFiles $i >&2
+	fi
+  done
+fi
+if [ -n "$tocopy" ]; then
+  cp -v $tocopy $RunDir
+fi
+unset tocopy i
+
+# Source files: two possible locations. Probably only one will
+# be used.
+[ -d SaveSrc ] && cp -crv SaveSrc $RunDir/SaveSrc
+[ -d bin/$VERSION/Base ] && cp -crv bin/$VERSION/Base $RunDir/Base
+
+# Handle RunLog
+if [ -n "$RunLog" ]; then
+  if [ -f "$RunDir/$RunLog" ]; then
+	RunDesc=`cat $RunDir/$RunLog`
+  else
+	echo "\nPlease enter a description of this run/flight,"
+	echo "terminated with a single '.' or end of file:"
+	RunDesc=''
+	echo ">> \c"
+	while read j; do
+	  [ "$j" = "." ] && break
+	  RunDesc="$RunDesc$j\n"
+	  echo ">> \c"
+	done
+	echo "\n"
+	echo "$RunDesc\c" >$RunDir/$RunLog
+  fi
+  if [ "$WebLog" = "yes" ]; then
+	RunLog newrun $RunDir $RunDesc
+  fi
+fi
+
+case $Dircksum in
+  maybe)
+	echo "Should we run dircksum? [n/y]: \\c"
+	read j
+	case $j in
+	  [yY]*) Dircksum=yes;;
+	esac;;
+esac
+[ "$Dircksum" = "yes" ] && dircksum -wv $RunDir
+
+cd $OLDDIR
+unset OLDDIR hascrntrun date run
+unset -f sv_error
