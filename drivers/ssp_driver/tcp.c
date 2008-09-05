@@ -103,7 +103,7 @@ int tcp_send(void) {
   int rv;
   char *cmd = tcp_queue.q[tcp_queue.front];
   int cmdlen = strlen(cmd);
-  // nl_error( 0, "tcp_send: '%s'", cmd );
+  nl_error( -3, "tcp_send: '%s'", cmd );
   nl_assert( tcp_state == FD_WRITE );
   rv = send( tcp_socket, cmd, cmdlen, 0);
   if ( rv != cmdlen )
