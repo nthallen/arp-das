@@ -1335,6 +1335,7 @@ int cmd_check(cmd_state *s) {
     #ifdef CLIENT
       #if PHOTON_INTERFACE
         nlph_cmdclt_init( &nlph_interact );
+        return 0;
       #else
         do cmd_interact(); while ( cgc_forwarding != 0 );
         return cgc_exit_code;
