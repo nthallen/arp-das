@@ -121,9 +121,9 @@ CmdCode:
   "\t;\n"
 
 CPCIdef:
-  "      " $1 int ", " $2 int ", " $3 int ", "
-  $4 int ", " $5 int ", " $6 int ", " $7 string
-  ", " $8 long
+  "      {" $1 int ", " $2 int ", " $3 int ", "
+  $4 int ", " $5 int ", " $6 int ", " $9 string "_" $7 string
+  ", " $8 long "}"
 
 MFile:
   "WaveSpecs = struct( ...\n"

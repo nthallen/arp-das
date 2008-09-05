@@ -945,7 +945,8 @@ SYMBOL ICOSCmds COMPUTE
   SYNT.CMDoutput = PTGCPCIdef(
     THIS.RawRate, THIS.RawSamples, THIS.NetSamples,
     THIS.Naverage, INCLUDING(Wave.Ncoadd), THIS.Ftrigger,
-    "CPCI_ICOS", THIS.TzSamples );
+    "ICOS", THIS.TzSamples,
+    StringTable(INCLUDING SourceFile.Prefix));
 END;
 SYMBOL RingCmds COMPUTE
   SYNT.Naverage = 1;
@@ -953,7 +954,8 @@ SYMBOL RingCmds COMPUTE
   SYNT.CMDoutput = PTGCPCIdef(
     THIS.RawRate, THIS.Nsample, THIS.ProgLen,
     1, INCLUDING(Wave.Ncoadd), THIS.Ftrigger,
-    "CPCI_RINGDOWN", THIS.TzSamples );
+    "RINGDOWN", THIS.TzSamples,
+    StringTable(INCLUDING SourceFile.Prefix) );
 END;
 
 /*-----------------------------------------------------------*/
