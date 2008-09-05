@@ -9,6 +9,8 @@ class data_client {
     data_client(int bufsize_in, int fast = 0, int non_block = 0);
     data_client(int bufsize_in, int non_block, char *srcfile);
     void operate(); // event loop
+    void resize_buffer(int bufsize_in);
+    void load_tmdac( char *path );
     static unsigned int next_minor_frame, majf_row, minf_row;
     static char *srcnode;
   protected:
@@ -31,6 +33,7 @@ class data_client {
     unsigned int toread; /// number of bytes needed before next action
     char *buf;
     void init(int bufsize_in, int non_block, char *srcfile);
+    FILE *open_path( char *path, char *fname );
 };
 
 class ext_data_client : public data_client {

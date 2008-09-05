@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <limits.h>
 #include "DC.h"
 #include "nortlib.h"
 
@@ -54,8 +55,6 @@ void data_client::read() {
       strerror(errno) );
   }
   bytes_read += nb;
-  //nl_error( 0, "data_client::read: %d bytes (%d/%d toread)",
-//	nb, bytes_read, toread );
   if ( bytes_read >= toread )
     process_message();
 }
@@ -137,6 +136,39 @@ void data_client::process_message() {
     } else if ( bytes_read == toread ) {
       bytes_read = 0;
       toread = sizeof(tm_hdr_t);
+    }
+  }
+}
+
+void data_client::resize_buffer( int bufsize_in ) {
+  delete buf;
+  bufsize = bufsize_in;
+  buf = new char[bufsize];
+  if ( buf == 0)
+    nl_error( 3,
+       "Memory allocation failure in data_client::resize_buffer");
+}
+
+FILE *data_client::open_path( char *path, char *fname ) {
+  char filename[MAXPATHLEN];
+  if ( snprintf( filename, MAXPATHLEN, "%s/%s", path, fname )
+	 >= MAXPATHLEN )
+    nl_error( 3, "Pathname overflow for file '%s'", fname );
+  FILE *tmd = fopen( filename, "r" );
+  return tmd;
+}
+
+void data_client::load_tmdac( char *path ) {
+  if ( path == NULL || path[0] == '\0' ) path = ".";
+  FILE *tmd = open_path( path, "tm.dac" );
+  if ( tmd == NULL ) {
+    char version[40];
+    char dacpath[80];
+    FILE *ver = open_path( path, "VERSION" );
+    if ( ver != NULL ) {
+      fgets( version, ###
+    } else {
+      nl_error( 1, "VERSION not found: assuming 1.0" );
     }
   }
 }
