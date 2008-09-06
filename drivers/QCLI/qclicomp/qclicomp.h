@@ -18,7 +18,8 @@ typedef struct {
 #define QCLI_CFG_STANDARD 0
 #define QCLI_CFG_FASTRAMPx10 1
 #define QCLI_CFG_FASTRAMP 2
-#define QCLI_CFG_MAX 2
+#define QCLI_CFG_FASTRAMPx25 3
+#define QCLI_CFG_MAX 3
 
 extern RateDefP NewRateDefPtr( double samples, int navg,
   int specd, int digitizer, CoordPtr pos );

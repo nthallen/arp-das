@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <time.h>
+#include <stdarg.h>
 #include "qclicomp.h"
 
 
@@ -273,7 +274,19 @@ void ptg_output_name( PTG_OUTPUT_FILE file, char *name ) {
 }
 
 /* The current configurations use the same scale for A/Bit */
-static double amps_per_bit[QCLI_CFG_MAX+1] = { AMPS_PER_BIT, AMPS_PER_BIT/10, AMPS_PER_BIT };
+static double amps_per_bit[QCLI_CFG_MAX+1] =
+  { AMPS_PER_BIT, AMPS_PER_BIT/10, AMPS_PER_BIT, AMPS_PER_BIT/25 };
+
+#define MFBUFSIZE 80
+void messagef( int severity, CoordPtr pos, char *fmt, ... ) {
+  char buf[MFBUFSIZE];
+  va_list arg;
+  va_start(arg, fmt);
+  vsnprintf( buf, MFBUFSIZE, fmt, arg );
+  va_end(arg);
+  message( severity, buf, 0, pos );
+}
+
 unsigned short amps_to_bits( double amps, int qclicfg, CoordPtr pos ) {
   double bits;
   unsigned short sbits;
@@ -281,12 +294,19 @@ unsigned short amps_to_bits( double amps, int qclicfg, CoordPtr pos ) {
     message( DEADLY, "QCLI Config Code out of range", 0, pos );
   bits = amps/amps_per_bit[qclicfg] + AMPS_BIT_OFFSET;
   sbits = (unsigned short) bits;
-  if ( bits < MIN_DAC_BITS || bits > MAX_DAC_BITS )
-    message( ERROR, "Offset DAC Value out of range", 0, pos );
+  if ( bits < MIN_DAC_BITS )
+    messagef( ERROR, pos, "Offset DAC Value (%.3lf A) is below min (%.3lf A)",
+      amps, (MIN_DAC_BITS-AMPS_BIT_OFFSET)*amps_per_bit[qclicfg] );
+  if ( bits > MAX_DAC_BITS )
+    messagef( ERROR, pos, "Offset DAC Value (%.3lf A) is above max (%.3lf A)",
+      amps, (MAX_DAC_BITS-AMPS_BIT_OFFSET)*amps_per_bit[qclicfg] );
+  //if ( bits < MIN_DAC_BITS || bits > MAX_DAC_BITS )
+  //  message( ERROR, "Offset DAC Value out of range", 0, pos );
   return sbits;
 }
 
-static double aps_per_bit[QCLI_CFG_MAX+1] = { APS_PER_BIT, .4*APS_PER_BIT, 4*APS_PER_BIT };
+static double aps_per_bit[QCLI_CFG_MAX+1] =
+  { APS_PER_BIT, .4*APS_PER_BIT, 4*APS_PER_BIT, 4*APS_PER_BIT/25. };
 unsigned short aps_to_bits( double aps, int qclicfg, CoordPtr pos ) {
   double bits;
   unsigned short sbits;
@@ -294,8 +314,14 @@ unsigned short aps_to_bits( double aps, int qclicfg, CoordPtr pos ) {
     message( DEADLY, "QCLI Config Code out of range", 0, pos );
   bits = aps/aps_per_bit[qclicfg] + APS_BIT_OFFSET;
   sbits = (unsigned short) bits;
-  if ( bits < MIN_DAC_BITS || bits > MAX_DAC_BITS )
-    message( ERROR, "Ramp DAC Value out of range", 0, pos );
+  if ( bits < MIN_DAC_BITS )
+    messagef( ERROR, pos, "Ramp DAC Value (%.1lf A/sec) below min (%.1lf A/sec)",
+        aps, (MIN_DAC_BITS-APS_BIT_OFFSET)*aps_per_bit[qclicfg]);
+  if ( bits > MAX_DAC_BITS )
+    messagef( ERROR, pos, "Ramp DAC Value (%.1lf A/sec) above max (%.1lf A/sec)",
+        aps, (MAX_DAC_BITS-APS_BIT_OFFSET)*aps_per_bit[qclicfg]);
+  //if ( bits < MIN_DAC_BITS || bits > MAX_DAC_BITS )
+  //  message( ERROR, "Ramp DAC Value out of range", 0, pos );
   return sbits;
 }
 
