@@ -1,5 +1,6 @@
 <package> civ
 <preceed> msghdr
+<include> "tm.h"
 <opts> "R"
 <sort>
 	-R Report version string to stdout and quit

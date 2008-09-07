@@ -1,4 +1,5 @@
 <package> tma
+<include> "tma.h"
 
 <comment>
   Package for tmcalgo algos
