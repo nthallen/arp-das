@@ -1,5 +1,9 @@
 /* states.c functions for supporting state variables
  * $Log$
+ * Revision 1.2  2008/07/03 18:18:48  ntallen
+ * To compile under QNX6 with minor blind adaptations to changes between
+ * dbr.h and tm.h
+ *
  * Revision 1.1  2008/07/03 15:11:07  ntallen
  * Copied from QNX4 version V1R9
  *
@@ -94,6 +98,11 @@ void print_states(void) {
   struct stateset *set;
   
   adjust_indent(-80);
+  fprintf(ofile, "\n");
+  for (set = statesets; set != NULL; set = set->next) {
+    fprintf(ofile, "static void %s(unsigned short newstate);\n",
+		    set->funcname);
+  }
   for (set = statesets; set != NULL; set = set->next) {
 	print_indent(NULL);
 	fprintf(ofile, "static void %s(unsigned short newstate) {",

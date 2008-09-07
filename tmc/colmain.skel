@@ -1,6 +1,9 @@
 /* Skeleton headers section */
 /* colmain.skel Skeleton for collection main program
  * $Log$
+ * Revision 1.9  2008/08/25 14:36:06  ntallen
+ * Add startup and shutdown messages
+ *
  * Revision 1.8  2008/08/20 18:39:21  ntallen
  * Enable oui_init_options()
  *
@@ -101,6 +104,10 @@ void tmc_collector::event(enum dg_event evt) {
   if ( evt == dg_event_start ) {
     rowlets = 0;
     ts_checks =  TSCHK_RTIME | TSCHK_REQUIRED;
+  #ifdef SUBBUS_H_INCLUDED
+    } else if ( evt == dg_event_stop ) {
+      disarm_sic();
+  #endif
   }
 }
 
@@ -111,8 +118,8 @@ void tmc_collector::service_row_timer() {
   time_t rtime;
   long dt;
   
-  #ifdef _SUBBUS_H
-    tick_sic(); // probably implement this through inheritance
+  #ifdef SUBBUS_H_INCLUDED
+    tick_sic();
   #endif
   if (ts_checks & TSCHK_RTIME) {
     rtime = time(NULL);
