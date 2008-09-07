@@ -370,7 +370,10 @@ static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb )
       ocb->hdr.attr->attr.flags |= IOFUNC_ATTR_MTIME | IOFUNC_ATTR_CTIME;
       switch ( CMDREP_TYPE(rv) ) {
         case 0: return EOK;
-        case 1: process_quit(); return ENOENT;
+        case 1:
+	  if (testing) return EOK;
+	  process_quit();
+	  return ENOENT;
         case 2: /* Report Syntax Error */
           if ( nl_response ) {
             nl_error( 2, "%s: Syntax Error", mnemonic );
