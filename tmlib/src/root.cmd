@@ -26,6 +26,9 @@
       DG_fd = -1;
     }
   }
+  #ifndef ON_QUIT_CMD
+    #define ON_QUIT_CMD
+  #endif
 
 %}
 
@@ -33,7 +36,7 @@
 %INTERFACE <Quit>
 
 &start
-	: &commands Quit * { DG_turf( "" ); }
+	: &commands Quit * { DG_turf( "" ); ON_QUIT_CMD }
 	: &commands &&Exit
 	;
 &&Exit
