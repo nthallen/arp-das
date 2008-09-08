@@ -11,6 +11,7 @@
 #include "nortlib.h"
 #include "tablelib.h"
 #include "nlphcmd.h"
+#include "tm.h"
 
 
 static sem_t char_sem;
@@ -25,6 +26,7 @@ static queue_t queue;
 static int my_key_event( PtWidget_t *widget, void *apinfo,
           PtCallbackInfo_t *cbinfo );
 
+static int cmd_quit_fd;
 static PtWidget_t *cmd_window;
 static PtWidget_t *cmd_text;
 static PtWidget_t *cmd_prompt;
@@ -81,6 +83,13 @@ static PtWidget_t *new_text_widget( PtWidget_t *window, char *text,
 #define WINDOW_WIDTH (LABEL_FULL_WIDTH  + 2*LABEL_SPACE)
 #define LOGO_WIDTH 20
 
+static int cic_cmd_quit_func( int fd, void *data, unsigned mode ) {
+  cic_reset();
+  PtEnter(0);
+  PtExit(0);
+  return Pt_END;
+}
+
 void nlph_cmdclt_init( void *(*cmd_thread)(void*)) {
   pthread_attr_t attr;
   PhDim_t dim;
@@ -103,6 +112,11 @@ void nlph_cmdclt_init( void *(*cmd_thread)(void*)) {
   // PgDrawPolygon();
   // Wrong: need to create a PtPolygon widget.
   PtAddFilterCallback( cmd_window, Ph_EV_KEY, my_key_event, NULL );
+
+  if ( cic_cmd_quit_fd != -1 ||
+       PtAppAddFd( NULL, cic_cmd_quit_fd, Pt_FD_READ,
+	       cic_cmd_quit_func, NULL) )
+    nl_error( 1, "Unable to initialize cmd/Quit link" ); 
 
   if ( sem_init( &char_sem, 0, 0 ) )
     nl_error( 4, "sem_init failed" );

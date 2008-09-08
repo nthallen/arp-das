@@ -85,7 +85,7 @@ PtWidget_t *tbl_window( char *title, int width, int height ) {
   return PtCreateWidget( PtWindow, Pt_NO_PARENT, 8, args );
 }
 
-void tbl_dispfield( PtWidget_t *field, char *text ) {
+void tbl_dispfield( PtWidget_t *field, const char *text ) {
   PtSetResource( field, Pt_ARG_TEXT_STRING, text, 0 );
 }
 
