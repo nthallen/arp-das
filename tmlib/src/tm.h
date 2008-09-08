@@ -212,6 +212,7 @@ void cic_transmit(char *buf, int n_chars, int transmit);
 int ci_sendcmd(const char *cmdtext, int mode);
 int ci_sendfcmd(int mode, char *fmt, ...);
 void ci_settime( long int time );
+extern int cic_cmd_quit_fd;
 const char *ci_time_str( void );
 void ci_server(void); /* in nortlib/cis.c */
 void cis_initialize(void); /* in cmdgen.skel or .cmd */

@@ -51,7 +51,7 @@ send_id Col_send_init(const char *name, void *data, unsigned short size, int blo
    Failure of the send is quiet, but causes an error return.
  */
 int Col_send(send_id sender) {
-  nl_assert(sender != 0);
+  if ( sender == 0 ) return 1;
   if ( sender->fd >= 0 ) {
     int nb = write(sender->fd, sender->data, sender->data_size);
     if ( nb == -1 ) {

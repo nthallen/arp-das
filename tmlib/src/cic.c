@@ -12,6 +12,7 @@
 #define CMD_VERSION_MAX 80
 static char cic_header[CMD_PREFIX_MAX] = "CIC";
 static char *cis_node;
+static int sent_quit = 0;
 static int cis_fd = -1;
 static int playback = 0;
 /* cgc_forwarding is 'cmdgen client forwarding'. It is apparently
@@ -62,10 +63,15 @@ void cic_options(int argcc, char **argvv, const char *def_prefix) {
    response is required. Returns zero on success.
 */
 int cic_init(void) {
+  int nlrsave;
   cis_fd = tm_open_name( tm_dev_name( CMDSRVR_NAME ),
     cis_node, O_WRONLY );
   if (cis_fd < 0)
     return(1);
+  nlrsave = set_response(NLRSP_WARN);
+  cic_cmd_quit_fd = tm_open_name( tm_dev_name( "cmd/Quit" ),
+    cis_node, O_RDONLY );
+  set_response(nlrsave);
   
   /* If specified, verify version */
   if (ci_version[0] != '\0') {
@@ -120,7 +126,7 @@ const char *ci_time_str( void ) {
     mode == 2 ==> CMDINTERP_SEND_QUIET
    Possible errors:
      Unable to locate CIS: Normally fatal: return 1
-     CMDREP_QUIT from CIS: Reset cis_pid: return it
+     CMDREP_QUIT from CIS: Reset cis_fd: return it
      CMDREP_SYNERR from CIS: Normally error: return it
      CMDREP_EXECERR from CIS: Normally warning: return it
 */
@@ -129,6 +135,7 @@ int ci_sendcmd(const char *cmdtext, int mode) {
   int clen, rv;
   char buf[CMD_MAX_COMMAND_IN+1];
   
+  if (sent_quit) return(1);
   if (!playback && cis_fd < 0 && cic_init() != 0) return(1);
   if (cmdtext == NULL) {
     cmdopts = ":X";
@@ -162,6 +169,7 @@ int ci_sendcmd(const char *cmdtext, int mode) {
       case ENOENT: /* Expected quit condition */
         close(cis_fd);
         cis_fd = -1;
+        sent_quit = 1;
         return CMDREP_QUIT;
       case E2BIG:
         nl_error( 4, "Unexpected E2BIG from cis" );
