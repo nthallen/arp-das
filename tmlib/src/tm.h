@@ -207,6 +207,7 @@ extern int tm_open_name(const char *name, const char *node, int flags);
  */
 void cic_options(int argc, char **argv, const char *def_prefix);
 int cic_init(void);
+void cic_reset(void);
 extern char ci_version[];
 void cic_transmit(char *buf, int n_chars, int transmit);
 int ci_sendcmd(const char *cmdtext, int mode);

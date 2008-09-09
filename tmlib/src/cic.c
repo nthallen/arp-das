@@ -15,6 +15,7 @@ static char *cis_node;
 static int sent_quit = 0;
 static int cis_fd = -1;
 static int playback = 0;
+int cic_cmd_quit_fd = -1;
 /* cgc_forwarding is 'cmdgen client forwarding'. It is apparently
    only used when the local command server is a generic forwarder.
    This is supposed to address the ambiguity about who should quit
@@ -64,6 +65,7 @@ void cic_options(int argcc, char **argvv, const char *def_prefix) {
 */
 int cic_init(void) {
   int nlrsave;
+  if (cis_fd != -1) return 0;
   cis_fd = tm_open_name( tm_dev_name( CMDSRVR_NAME ),
     cis_node, O_WRONLY );
   if (cis_fd < 0)
@@ -96,6 +98,17 @@ int cic_init(void) {
   }
 
   return(0);
+}
+
+void cic_reset(void) {
+  if ( cis_fd != -1 ) {
+    close(cis_fd);
+    cis_fd = -1;
+  }
+  if ( cic_cmd_quit_fd != -1 ) {
+    close(cic_cmd_quit_fd);
+    cic_cmd_quit_fd = -1;
+  }
 }
 
 static long int ci_time = 0L;
