@@ -26,6 +26,9 @@
       DG_fd = -1;
     }
   }
+  #ifndef QUIT_CMD_CLEANUP
+    #define QUIT_CMD_CLEANUP
+  #endif
 
 %}
 
@@ -33,7 +36,7 @@
 %INTERFACE <Quit>
 
 &start
-	: &commands Quit * { DG_turf( "" ); }
+	: &commands Quit * { DG_turf( "" ); QUIT_CMD_CLEANUP }
 	: &commands &&Exit
 	;
 &&Exit
