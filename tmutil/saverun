@@ -43,20 +43,20 @@ function sv_error {
 #----------------------------------------------------------------
 # Locate the configuration file and read it
 #----------------------------------------------------------------
-cfile=Experiment.config
+cfile=./Experiment.config
 [ -f "$cfile" ] || sv_error "Cannot locate $cfile"
 unset Experiment HomeDir FlightNode SaverunHook RunType
 unset FixDisk Dircksum
 . $cfile
-[ -z "$Experiment" -o -z "$HomeDir" ] &&
-  sv_error "Experiment or HomeDir not defined in $cfile"
+[ -z "$Experiment" -o -z "$HomeDir" -o -z "$FlightNode" ] &&
+  sv_error "Experiment, HomeDir or FlightNode not defined in $cfile"
 unset zbase cfile
 export Experiment
 
 #----------------------------------------------------------------
 # saverun isn't legal when DG is running:
 #----------------------------------------------------------------
-namewait -n0 -t0 dg 2>/dev/null &&
+[ -e /net/$FlightNode/dev/huarp/$Experiment/DG/cmd ] &&
   sv_error dg for Experiment $Experiment currently active
 
 #----------------------------------------------------------------
@@ -64,32 +64,22 @@ namewait -n0 -t0 dg 2>/dev/null &&
 #----------------------------------------------------------------
 typeset FN=$FlightNode date run
 unset FlightDir
-if [ -z "$FN" ]; then
-  FlightNode=`namewait -n0 -t0 -G parent 2>/dev/null`
-  FN="$FlightNode"
-else
-  [ ! -d //$FN/ ] && FN=""
-fi
+[ ! -d /net/$FN/ ] && FN=""
 if [ -z "$FN" ]; then
   if [ -d "$AltDir" ]; then
-	FlightDir=$AltDir
+    FlightDir=$AltDir
   else
-	#----------------------------------------------------------------
-	# Wait for the flight node
-	#----------------------------------------------------------------
-	echo "saverun: Waiting for flight computer to boot"
-	if [ -z "$FlightNode" ]; then
-	  pick_file /dev/null
-	  FlightNode=`namewait -n0 -G parent 2>/dev/null`
-	  [ -z "$FlightNode" ] &&
-		sv_error Unable to locate flight node for experiment $Experiment
-	else
-	  [ "$FlightNode" = "$NODE" ] || namewait -n $FlightNode qnx/net
-	fi
+    #----------------------------------------------------------------
+    # Wait for the flight node
+    #----------------------------------------------------------------
+    echo "saverun: Waiting for flight computer '$FlightNode' to boot"
+    while [ ! -d /net/$FlightNode/ ]; do
+      waitfor /net/$FlightNode/ 2>/dev/null
+    done
   fi
 fi
 unset FN
-[ -z "$FlightDir" ] && FlightDir=//$FlightNode$HomeDir
+[ -z "$FlightDir" ] && FlightDir=/net/$FlightNode$HomeDir
 
 [ -d $FlightDir ] ||
   sv_error Unable to locate flight directory $FlightDir
@@ -116,7 +106,7 @@ if [ -d CrntRun ]; then
   hascrntrun=yes
   cd CrntRun
 fi
-[ -n "$LogDirs" ] || LogDirs="log*"
+[ -n "$LogDirs" ] || LogDirs="LOG"
 for i in $LogDirs; do
   [ -d "$i" ] && logdirs="$logdirs $i"
 done
@@ -165,8 +155,6 @@ if [ -r .crntrun ]; then
   [ "$lastdate" = "$date" ] && let run=${lastrun#*.}+1
 fi
 
-# The following check should be expanded if going into
-# subdirectories
 while true; do
   found=no
   for dir in . raw/flt raw/preflt raw/cal raw/data raw/junk; do
@@ -175,9 +163,6 @@ while true; do
   [ $found = no ] && break;
   let run=$run+1
 done
-# while [ -d $date.$run ]; do
-#  let run=$run+1
-# done
 echo $date.$run >.crntrun
 
 # Here we define the actual new directory name

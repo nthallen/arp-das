@@ -559,7 +559,9 @@ echo "\tappgen $ifile"
   # This was the cleandist option. No longer optional
   echo 'VERSION=`cat VERSION`'
   echo 'extdistribution : $(DSTRB) $(SRCDIST)'
-  echo "\tmkdir -p \$(TGTDIR)/bin/\$(VERSION)/Base"
+  echo "\t@[ -d \$(TGTDIR)/bin ] || mkdir \$(TGTDIR)/bin"
+  echo "\t@[ -d \$(TGTDIR)/bin/\$(VERSION) ] || mkdir \$(TGTDIR)/bin/\$(VERSION)"
+  echo "\t@[ -d  \$(TGTDIR)/bin/\$(VERSION)/Base ] || mkdir \$(TGTDIR)/bin/\$(VERSION)/Base"
   echo "\t@distribute \$(FORCE) \$(TGTDIR)/bin/\$(VERSION) \$(DSTRB)"
   echo "\t@distribute \$(FORCE) \$(TGTDIR)/bin/\$(VERSION)/Base \$(SRCDIST)"
   echo 'distribution : extdistribution'
