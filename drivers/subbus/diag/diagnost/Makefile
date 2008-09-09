@@ -1,4 +1,7 @@
 # $Log$
+# Revision 1.2  2008/08/28 15:09:19  ntallen
+# Compiled and running
+#
 # Revision 1.1  2008/08/24 15:35:38  ntallen
 # Diagnostics I want to port
 #
@@ -35,14 +38,14 @@ scdebug : scdebug.o $(LLIB)/diaglibs.lib
 scdebug.o : scdebug.c
 
 failtest : failtest.o
-	$(LINK.priv) failtest -l diaglib
+	$(LINK.priv) failtest.o -l nort
 	usemsg failtest failtest.c
 	/usr/local/sbin/promote failtest
 failtest.o : failtest.c
 
 sbswitch.o : sbswitch.c
 sbswitch : sbswitch.o
-	$(LINK.priv) sbswitch
+	$(LINK.priv) sbswitch.o -lsubbus -lnort
 	usemsg sbswitch sbswitch.c
 	/usr/local/sbin/promote sbswitch
 
