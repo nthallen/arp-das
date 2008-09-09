@@ -28,10 +28,10 @@ void data_client::init(int bufsize_in, int non_block, char *srcfile) {
     nl_error( 3, "Memory allocation failure in data_client::data_client");
   msg = (tm_msg_t *)buf;
   non_block = non_block ? O_NONBLOCK : 0;
-  bfr_fd = tm_open_name( srcfile, srcnode, O_RDONLY | non_block );
-  // bfr_fd = open( srcfile, O_RDONLY | non_block );
-  // if ( bfr_fd == -1 )
-  //   nl_error( 3, "Unable to contact TMbfr: %d", errno );
+  bfr_fd =
+    srcfile ?
+    tm_open_name( srcfile, srcnode, O_RDONLY | non_block ) :
+    -1;
 }
 
 data_client::data_client(int bufsize_in, int non_block, char *srcfile) {
@@ -42,13 +42,18 @@ data_client::data_client(int bufsize_in, int fast, int non_block) {
   init(bufsize_in, non_block, tm_dev_name( fast ? "TM/DCf" : "TM/DCo" ));
 }
 
+void data_client::process_eof() {
+  quit = true;
+}
+
 void data_client::read() {
   int nb;
-  nb = ::read( bfr_fd, buf + bytes_read, bufsize-bytes_read);
-  if (nb == 0) {
-    quit = true;
-    return;
-  }
+  do {
+    nb = (bfr_fd == -1) ? 0 :
+	::read( bfr_fd, buf + bytes_read, bufsize-bytes_read);
+    if (nb == 0) process_eof();
+    if (quit) return;
+  } while (nb == 0 );
   if ( nb == -1 ) {
     if (errno == EAGAIN) return; // must be non-blocking
     else nl_error( 4, "data_client::read error from read(): %s",
@@ -150,9 +155,9 @@ void data_client::resize_buffer( int bufsize_in ) {
 }
 
 FILE *data_client::open_path( char *path, char *fname ) {
-  char filename[MAXPATHLEN];
-  if ( snprintf( filename, MAXPATHLEN, "%s/%s", path, fname )
-	 >= MAXPATHLEN )
+  char filename[PATH_MAX];
+  if ( snprintf( filename, PATH_MAX, "%s/%s", path, fname )
+	 >= PATH_MAX )
     nl_error( 3, "Pathname overflow for file '%s'", fname );
   FILE *tmd = fopen( filename, "r" );
   return tmd;
@@ -160,15 +165,32 @@ FILE *data_client::open_path( char *path, char *fname ) {
 
 void data_client::load_tmdac( char *path ) {
   if ( path == NULL || path[0] == '\0' ) path = ".";
-  FILE *tmd = open_path( path, "tm.dac" );
-  if ( tmd == NULL ) {
+  FILE *dacfile = open_path( path, "tm.dac" );
+  if ( dacfile == NULL ) {
     char version[40];
     char dacpath[80];
+
+    version[0] = '\0';
     FILE *ver = open_path( path, "VERSION" );
     if ( ver != NULL ) {
-      fgets( version, ###
+      int len;
+      if ( fgets( version, 40, ver ) == NULL )
+	nl_error(3,"Error reading VERSION: %s",
+	  strerror(errno));
+      len = strlen(version);
+      while ( len > 0 && isspace(version[len-1]) )
+	version[--len] = '\0';
+      if ( len == 0 )
+	nl_error( 1, "VERSION was empty: assuming 1.0" );
     } else {
       nl_error( 1, "VERSION not found: assuming 1.0" );
     }
+    if ( version[0] == '\0' ) strcpy( version, "1.0" );
+    snprintf( dacpath, 80, "bin/%s/tm.dac" );
+    dacfile = open_path( path, dacpath );
   }
+  if ( dacfile == NULL ) nl_error( 3, "Unable to locate tm.dac" );
+  if ( fread(&tm_info.tm, sizeof(tm_dac_t), 1, dacfile) != 1 )
+    nl_error( 3, "Error reading tm.dac" );
+  fclose(dacfile);
 }

@@ -40,6 +40,7 @@ void data_generator::init(int collection) {
 
 void data_generator::transmit_data( int single_row ) {
   // We can read from the queue without locking
+  // But we need to lock when we reference bfr_fd
   dq_tstamp_ref *dqts;
   dq_data_ref *dqdr;
   // nl_error( 0, "transmit_data(%s)", single_row ? "single" : "all" );
@@ -54,7 +55,9 @@ void data_generator::transmit_data( int single_row ) {
         hdrs.s.hdr.tm_type = TMTYPE_TSTAMP;
         SETIOV(&iov[0], &hdrs, sizeof(tm_hdr_t));
         SETIOV(&iov[1], &dqts->TS, sizeof(dqts->TS));
-        rc = writev(bfr_fd, iov, 2);
+        lock();
+        if ( bfr_fd != -1 ) rc = writev(bfr_fd, iov, 2);
+        unlock();
         check_writev( rc, sizeof(tm_hdr_t)+sizeof(dqts->TS),
 	   "transmitting tstamp" );
         retire_tstamp(dqts);
@@ -82,7 +85,10 @@ void data_generator::transmit_data( int single_row ) {
             SETIOV(&iov[2], row[0], n_rows2 * nbQrow );
             n_iov = 3;
           }
-          rc = writev(bfr_fd, iov, n_iov);
+          lock();
+          if ( bfr_fd != -1 )
+	    rc = writev(bfr_fd, iov, n_iov);
+	  unlock();
           check_writev( rc, nbDataHdr + n_rows * nbQrow,
 	     "trasmitting data" );
           retire_rows(dqdr, n_rows);
@@ -169,11 +175,15 @@ Command Summary:
  */
 int data_generator::execute(char *cmd) {
   if (cmd[0] == '\0') {
+    tmr->settime(0);
     lock();
     started = false;
     quit = true;
+    if ( bfr_fd != -1 ) {
+      close(bfr_fd);
+      bfr_fd = -1;
+    }
     unlock();
-    tmr->settime(0);
     nl_error( -2, "Received Quit" );
     event(dg_event_quit);
     return 1;

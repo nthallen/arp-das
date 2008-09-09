@@ -21,7 +21,7 @@ iofunc_attr_t DG_cmd::cmd_attr;
  * We will strip any trailing newlines before forwarding to dg->execute()
  */
 int DG_cmd::execute(char *buf) {
-    assert(buf != 0);
+  assert(buf != 0);
   int len = strlen(buf);
   while ( len > 0 && isspace(buf[len-1]) )
     buf[--len] = '\0';
@@ -29,7 +29,7 @@ int DG_cmd::execute(char *buf) {
     dispatch->ready_to_quit();
     return 1;
   }
-    return 0;
+  return 0;
 }
 
 /* return non-zero if a quit command is received */

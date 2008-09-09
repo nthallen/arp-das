@@ -2,15 +2,18 @@
 #define DQ_H_INCLUDED
 #include "tm.h"
 
-// I prefer not ot allocate and free these structures routinely, but I'll start that way.
-// It makes sense to keep a free list for the basic types: tstamp_q, dq_tstamp_ref and dq_data_ref
-// Actually, I guess that can be optimized via definition of new and delete operators.
+// I prefer not to allocate and free these structures routinely, but
+// I'll start that way. It makes sense to keep a free list for the
+// basic types: tstamp_q, dq_tstamp_ref and dq_data_ref. Actually,
+// I guess that can be optimized via definition of new and delete
+// operators.
 
 // Define a hierarchy here. A dq_descriptor can either hold
 // a timestamp or reference data rows in the DQ.
 // This works within DG because we don't have readers starting
 // and stopping. We have exactly one reader that will go
 // through all the data.
+
 enum dqtype { dq_tstamp, dq_data  };
 
 class dq_ref {
@@ -51,8 +54,6 @@ class data_queue {
   public:
     data_queue( int n_Qrows, int low_water );
     void init(); // allocate space for the queue
-    //void operate(); // event loop
-    //void tminitfunc();
 
   protected:
     int allocate_rows(unsigned char **rowp);

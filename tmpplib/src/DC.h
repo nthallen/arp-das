@@ -1,5 +1,6 @@
 #ifndef DC_H_INCLUDED
 #define DC_H_INCLUDED
+#include <stdio.h>
 #include "tm.h"
 
 #ifdef __cplusplus
@@ -17,6 +18,7 @@ class data_client {
     virtual void process_data() = 0;
     virtual void process_init();
     virtual void process_tstamp();
+    virtual void process_eof();
     int bfr_fd;
     void read();
     bool quit;
