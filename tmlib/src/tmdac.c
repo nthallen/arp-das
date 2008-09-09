@@ -6,22 +6,25 @@
 
 static FILE *open_path( char *path, char *fname ) {
   char filename[PATH_MAX];
+  FILE *tmd;
   if ( snprintf( filename, PATH_MAX, "%s/%s", path, fname )
           >= PATH_MAX )
     nl_error( 3, "Pathname overflow for file '%s'", fname );
-  FILE *tmd = fopen( filename, "r" );
+  tmd = fopen( filename, "r" );
   return tmd;
 }
 
 void load_tmdac( char *path ) {
+  FILE *dacfile;
   if ( path == NULL || path[0] == '\0' ) path = ".";
-  FILE *dacfile = open_path( path, "tm.dac" );
+  dacfile = open_path( path, "tm.dac" );
   if ( dacfile == NULL ) {
     char version[40];
     char dacpath[80];
+    FILE *ver;
 
     version[0] = '\0';
-    FILE *ver = open_path( path, "VERSION" );
+    ver = open_path( path, "VERSION" );
     if ( ver != NULL ) {
       int len;
       if ( fgets( version, 40, ver ) == NULL )
