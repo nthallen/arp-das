@@ -1,0 +1,8 @@
+#! /bin/sh
+#ifdef __USAGE
+#%C node
+#  Send SIGINT to parent on the specified node
+#endif
+FlightNode=$1
+echo Signaling parent on node $FlightNode
+slay -n $FlightNode -s INT parent 2>/dev/null

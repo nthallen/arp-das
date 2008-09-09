@@ -1,0 +1,58 @@
+#! /bin/sh
+
+#__USAGE
+#%C	<node name>
+#%C	<directory>
+#	Runs chkfsys on the designated node's root or the designated
+#	filesystem
+function nl_error {
+  echo fixdisk: $* >&2
+  exit 1
+}
+
+typeset response=y fsys node
+[ -z "$1" ] && nl_error No arguments specified
+fsys=$1
+case $fsys in
+  /*) ;;
+  */) ;;
+  *) [ ! -d $fsys ] && fsys=/net/$fsys/;;
+esac
+[ ! -d $fsys ] && nl_error Unable to locate filesystem for $1
+# fsys=`/usr/bin/fullpath -t $fsys`
+
+if [ `id -u` != 0 ]; then
+  echo exec /usr/local/bin/sudo $0 $*
+  exec /usr/local/bin/sudo $0 $*
+  exit 1
+fi
+
+case $fsys in
+  /net/*/*) fsys=${fsys#/net/}; node=${fsys%%/*}; fsys=${fsys#$node};;
+  *) node='';;
+esac
+
+while [ "$response" = "y" ]; do
+  if [ -n "$node" ]; then
+    /bin/on -f $node /sbin/chkfsys -ru $fsys
+  else
+    /sbin/chkfsys -ru $fsys
+  fi
+  /bin/stty +echo +edit
+  if [ `id -run` = tfh ]; then
+	echo "Wanna run it again, HUH? Wanna?: [n/y] \\c"
+  else
+	echo "Should we run chkfsys again? [n/y] \\c"
+  fi
+  read j
+  response=n
+  case $j in
+    [yY]*)
+	  if [ `id -run` = tfh ]; then
+		echo "\n\nHA HA HA! NO you fool! The answer is NO!\n\a"
+		sleep 2
+	  else
+	    response=y
+	  fi;;
+  esac
+done
