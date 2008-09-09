@@ -1,0 +1,22 @@
+DG Challenge:
+  More notes in the leo documentation.
+
+  We need to close bfr_fd as soon as possible after receiving a quit
+  command. I need to sort out exactly how this should play out in
+  the single and dual-thread cases.
+
+  Collection is single-threaded, but there is a reasonable chance that
+  a timer pulse will come in after the quit command before the DG_tmr
+  object gets the message. In this single-threaded case, it is sufficient
+  to set bfr_fd = -1 after closing it, and checking bfr_fd in
+  transmit_data, simply returning if it's already closed.
+
+  In the multi-threaded playback case, it's a bit more complicated.
+  It's not unreasonable to close bfr_fd immediately on receipt of a
+  command, but now we need to be thread safe. As I have currently
+  implemented it, that requires the DQ to be locked throughout the
+  write operation in transmit_data, which rather defeats the purpose
+  of multi-threading.
+
+  I guess this is where the event() thing is supposed to come into
+  play
