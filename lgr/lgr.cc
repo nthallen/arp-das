@@ -26,7 +26,7 @@ void lgr_init( int argc, char **argv ) {
 char *DClgr::mlf_config;
 unsigned int DClgr::file_limit = 4096*3;
 
-DClgr::DClgr() : data_client( 100, 0, 0 ) {
+DClgr::DClgr() : data_client( 4096, 0, 0 ) {
   mlf = mlf_init( 3, 60, 1, "LOG", "dat", mlf_config );
   ofp = NULL;
 }
