@@ -17,7 +17,7 @@ FILE *ifile;
 void qcliprog_init( int argc, char **argv ) {
   int c;
 
-  optind = 0; /* start from the beginning */
+  optind = OPTIND_RESET; /* start from the beginning */
   opterr = 0; /* disable default error message */
   while ((c = getopt(argc, argv, opt_string)) != -1) {
 	switch (c) {
