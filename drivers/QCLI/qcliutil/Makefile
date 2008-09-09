@@ -64,9 +64,6 @@ qcliread.o : qcliread.c qcliutil.h
 icoswave.out : icoswave.qcli
 	qclicomp icoswave.qcli >icoswave.out
 
-testread : testread.o
-	$(LINK.norm) testread.o $(LIBS)
-
 .PHONY : clean all install install-bin install-include
 clean :
 	rm -f $(TARGET) *.o *oui.c
