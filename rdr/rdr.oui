@@ -3,6 +3,7 @@
 <include> "rdr.h"
 <follow> msg dc
 
+<opts> "aAP:"
 <init>
   rdr_init(argc, argv);
 

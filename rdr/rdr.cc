@@ -7,19 +7,50 @@
 
 #define RDR_BUFSIZE 16384
 
-static char *basepath = ".";
+static char *opt_basepath = ".";
+static int opt_autostart = 0;
+static int opt_regulate = 0;
 
+//  opt_basepath = "/home/tilde/raw/flight/080908.4";
+
+/** Options we need to support:
+  -A autostart without regulation
+  -a autostart with regulation
+  -F <file> Starting log file. Second invocation is ending file
+  -T <time> Starting time/Ending time
+  -P <path> path to log directories
+ */
 void rdr_init( int argc, char **argv ) {
-  basepath = "/home/tilde/raw/flight/080908.4";
+  int c;
+
+  optind = OPTIND_RESET; /* start from the beginning */
+  opterr = 0; /* disable default error message */
+  while ((c = getopt(argc, argv, opt_string)) != -1) {
+    switch (c) {
+      case 'A':
+	opt_autostart = 1;
+        opt_regulate = 0;
+        break;
+      case 'a':
+	opt_autostart = 1;
+	opt_regulate = 1;
+	break;
+      case 'P':
+	opt_basepath = optarg;
+	break;
+      case '?':
+        nl_error(3, "Unrecognized Option -%c", optopt);
+    }
+  }
 }
 
 int main( int argc, char **argv ) {
   oui_init_options( argc, argv );
   nl_error(0, "Startup");
-  load_tmdac(basepath);
+  load_tmdac(opt_basepath);
   int nQrows = RDR_BUFSIZE/tmi(nbrow);
   if (nQrows < 2) nQrows = 2;
-  Reader rdr(nQrows, nQrows/2, RDR_BUFSIZE, basepath );
+  Reader rdr(nQrows, nQrows/2, RDR_BUFSIZE, opt_basepath );
   rdr.data_generator::init(0);
   rdr.control_loop();
   nl_error(0, "Shutdown");
@@ -39,7 +70,9 @@ Reader::Reader(int nQrows, int low_water, int bufsize, char *path) :
   nl_assert(input_tm_type == TMTYPE_DATA_T3);
   char mlf_base[PATH_MAX];
   snprintf(mlf_base, PATH_MAX, "%s/LOG", path );
-  mlf = mlf_init( 3, 60, 0, "mlf_base", "dat", NULL );
+  mlf = mlf_init( 3, 60, 0, mlf_base, "dat", NULL );
+  regulated = opt_regulate;
+  autostart = opt_autostart;
 }
 
 static void pt_create( void *(*func)(void *), void *arg ) {
@@ -58,14 +91,14 @@ void Reader::lock() {
   int rv = pthread_mutex_lock(&dq_mutex);
   if (rv)
     nl_error( 3, "Mutex lock failed: %s",
-            strerror(errno));
+            strerror(rv));
 }
 
 void Reader::unlock() {
   int rv = pthread_mutex_unlock(&dq_mutex);
   if (rv)
     nl_error( 3, "Mutex unlock failed: %s",
-            strerror(errno));
+            strerror(rv));
 }
 
 void Reader::service_row_timer() {
@@ -134,7 +167,7 @@ void *output_thread(void *Reader_ptr ) {
 void *Reader::output_thread() {
   for (;;) {
     lock();
-    if ( quit ) {
+    if ( quit || dc_quit ) {
       unlock();
       break;
     }
@@ -150,7 +183,7 @@ void *Reader::output_thread() {
           unlock();
           sem_wait(&ot_sem);
           lock();
-          int breakout = !started || !regulated;
+          int breakout = !started || !regulated || dc_quit;
           unlock();
           if (breakout) break;
           transmit_data(1); // only one row
@@ -167,7 +200,7 @@ void *Reader::output_thread() {
       } else {
         // untimed loop
         for (;;) {
-          int breakout = !started || regulated;
+          int breakout = !started || dc_quit || regulated;
           if ( it_blocked == IT_BLOCKED_DATA ) {
             it_blocked = 0;
             sem_post(&it_sem);
