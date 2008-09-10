@@ -112,10 +112,10 @@ void data_generator::check_writev( int rc, int wr_size, char *where ) {
  * This is how 
  */
 void data_generator::operate() {
-  nl_error( 0, "Startup" );
+  nl_error( 0, "Startup [deprecated]" );
   if ( autostart ) tm_start(1);
   dispatch->Loop();
-  nl_error( 0, "Shutdown" );
+  nl_error( 0, "Shutdown [deprecated]" );
 }
 
 /**
