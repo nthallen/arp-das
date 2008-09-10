@@ -2,6 +2,7 @@
 #define MLF_H_INCLUDED
 #include <stdio.h>
 #include <limits.h>
+#include <fcntl.h>
 
 typedef struct {
   int index;
@@ -34,6 +35,7 @@ extern "C" {
 #endif
 
 FILE *mlf_next_file( mlf_def_t *mlf );
+int mlf_next_fd( mlf_def_t *mlf );
 int mlf_next_dir( mlf_def_t *mlf );
 mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
 	const char *fbase, const char *fsuffix, const char *config );
