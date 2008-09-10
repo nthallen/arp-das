@@ -20,12 +20,13 @@ int main( int argc, char **argv ) {
   int nQrows = RDR_BUFSIZE/tmi(nbrow);
   if (nQrows < 2) nQrows = 2;
   Reader rdr(nQrows, nQrows/2, RDR_BUFSIZE, basepath );
+  rdr.data_generator::init(0);
   rdr.control_loop();
   nl_error(0, "Shutdown");
 }
 
 Reader::Reader(int nQrows, int low_water, int bufsize, char *path) :
-    data_generator(nQrows, low_water), data_client( bufsize, 0, NULL ) {
+    data_generator(nQrows, low_water), data_client( bufsize, 0, (char *)0 ) {
   it_blocked = 0;
   ot_blocked = 0;
   if ( sem_init( &it_sem, 0, 0) || sem_init( &ot_sem, 0, 0 ) )
@@ -184,15 +185,12 @@ void *Reader::output_thread() {
 }
 
 void Reader::process_tstamp() {
-  if ( have_tstamp &&
-       tm_info.t_stmp.mfc_num == msg->body.ts.mfc_num &&
+  if ( tm_info.t_stmp.mfc_num == msg->body.ts.mfc_num &&
        tm_info.t_stmp.secs == msg->body.ts.secs )
     return; // redundant tstamp (beginning of each new file)
   tm_info.t_stmp = msg->body.ts;
-  if (!have_tstamp) {
-    data_generator::init(0); // DG initialization
-    have_tstamp = true;
-  } else commit_tstamp( tm_info.t_stmp.mfc_num, tm_info.t_stmp.secs );
+  have_tstamp = true;
+  commit_tstamp( tm_info.t_stmp.mfc_num, tm_info.t_stmp.secs );
 }
 
 void Reader::process_data() {

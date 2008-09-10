@@ -1,0 +1,11 @@
+<package> rdr
+<include> msg dc
+<include> "rdr.h"
+<follow> msg dc
+
+<init>
+  rdr_init(argc, argv);
+
+<package> msghdr_default
+<vars>
+  char *msg_hdr_default = "rdr";
