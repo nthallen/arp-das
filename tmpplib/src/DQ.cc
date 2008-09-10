@@ -101,15 +101,14 @@ void data_queue::unlock() {}
 /**
   no longer a blocking function. Returns the largest number of contiguous rows currently free.
   Caller can decide whether that is adequate.
+  Assumes the DQ is locked.
   */
 int data_queue::allocate_rows(unsigned char **rowp) {
   int na;
-  lock();
   if ( full ) na = 0;
   else if ( first > last ) {
     na = first - last;
   } else na = total_Qrows - last;
-  unlock();
   if ( rowp != NULL) *rowp = row[last];
   return na;
 }
