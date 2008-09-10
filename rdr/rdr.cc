@@ -1,23 +1,30 @@
+#include <errno.h>
+#include <string.h>
 #include "rdr.h"
 #include "nortlib.h"
 #include "oui.h"
 #include "nl_assert.h"
-#include "mlf.h"
 
 #define RDR_BUFSIZE 16384
+
+static char *basepath = ".";
+
+void rdr_init( int argc, char **argv ) {
+  basepath = "/home/tilde/raw/flight/080908.4";
+}
 
 int main( int argc, char **argv ) {
   oui_init_options( argc, argv );
   nl_error(0, "Startup");
-  load_tmdac(NULL);
+  load_tmdac(basepath);
   int nQrows = RDR_BUFSIZE/tmi(nbrow);
   if (nQrows < 2) nQrows = 2;
-  Reader rdr(nQrows, nQrows/2, RDR_BUFSIZE );
+  Reader rdr(nQrows, nQrows/2, RDR_BUFSIZE, basepath );
   rdr.control_loop();
   nl_error(0, "Shutdown");
 }
 
-Reader::Reader(int nQrows, int low_water, int bufsize) :
+Reader::Reader(int nQrows, int low_water, int bufsize, char *path) :
     data_generator(nQrows, low_water), data_client( bufsize, 0, NULL ) {
   it_blocked = 0;
   ot_blocked = 0;
@@ -29,19 +36,21 @@ Reader::Reader(int nQrows, int low_water, int bufsize) :
             strerror(errno));
   init_tm_type();
   nl_assert(input_tm_type == TMTYPE_DATA_T3);
-  mlf = mlf_init( 3, 60, 0, "./LOG", "dat", NULL );
+  char mlf_base[PATH_MAX];
+  snprintf(mlf_base, PATH_MAX, "%s/LOG", path );
+  mlf = mlf_init( 3, 60, 0, "mlf_base", "dat", NULL );
 }
 
-static void pt_create( void (*func)(void *), void *arg ) {
+static void pt_create( void *(*func)(void *), void *arg ) {
   int rv = pthread_create( NULL, NULL, func, arg );
   if ( rv != EOK )
     nl_error(3,"pthread_create failed: %s", strerror(errno));
 }
 
 void Reader::control_loop() {
-  pt_create( output_thread, this );
-  pt_create( input_thread, this );
-  rdr::data_generator.operate();
+  pt_create( ::output_thread, this );
+  pt_create( ::input_thread, this );
+  data_generator::operate();
 }
 
 void Reader::lock() {
@@ -62,7 +71,7 @@ void Reader::service_row_timer() {
   lock();
   if ( ot_blocked == OT_BLOCKED_TIME ) {
     ot_blocked = 0;
-    post(&ot_sem);
+    sem_post(&ot_sem);
   }
   unlock();
 }
@@ -73,30 +82,30 @@ void Reader::event(enum dg_event evt) {
     case dg_event_start:
       if (ot_blocked == OT_BLOCKED_STOPPED) {
         ot_blocked = 0;
-        post(&ot_sem);
+        sem_post(&ot_sem);
       }
       break;
     case dg_event_stop:
       if (ot_blocked == OT_BLOCKED_TIME || ot_blocked == OT_BLOCKED_DATA) {
         ot_blocked = 0;
-        post(&ot_sem);
+        sem_post(&ot_sem);
       }
       break;
     case dg_event_quit:
       dc_quit = true;
       if ( ot_blocked ) {
         ot_blocked = 0;
-        post(&ot_sem);
+        sem_post(&ot_sem);
       }
       if ( it_blocked ) {
         it_blocked = 0;
-        post(&it_sem);
+        sem_post(&it_sem);
       }
       break;
     case dg_event_fast:
       if ( ot_blocked == OT_BLOCKED_TIME || ot_blocked == OT_BLOCKED_STOPPED ) {
         ot_blocked = 0;
-        post(&ot_sem);
+        sem_post(&ot_sem);
       }
       break;
     default:
@@ -133,7 +142,6 @@ void *Reader::output_thread() {
       unlock();
       sem_wait(&ot_sem);
     } else {
-      ot_stopped = false;
       if ( regulated ) {
         // timed loop
         for (;;) {
@@ -165,14 +173,14 @@ void *Reader::output_thread() {
           }
           unlock();
           if (breakout) break;
-          get_data();
           transmit_data(0);
           lock();
         }
       }
     }
   }
-  signal parent thread that we are quitting
+  // signal parent thread that we are quitting
+  return NULL;
 }
 
 void Reader::process_tstamp() {
@@ -183,7 +191,7 @@ void Reader::process_tstamp() {
   tm_info.t_stmp = msg->body.ts;
   if (!have_tstamp) {
     data_generator::init(0); // DG initialization
-    have_stamp = true;
+    have_tstamp = true;
   } else commit_tstamp( tm_info.t_stmp.mfc_num, tm_info.t_stmp.secs );
 }
 
@@ -195,23 +203,23 @@ void Reader::process_data() {
   tm_data_t3_t *data = &msg->body.data3;
   unsigned char *raw = &data->data[0];
   int n_rows = data->n_rows;
-  MFCtr = data->mfctr;
+  unsigned short MFCtr = data->mfctr;
   // Can check here for time limits
   while ( n_rows && !dc_quit ) {
-    char *dest;
+    unsigned char *dest;
     lock();
     int n_room = allocate_rows(&dest);
     if ( n_room ) {
       unlock();
       if ( n_room > n_rows ) n_room = n_rows;
-      int rawsize = n_room*nbQrow;
+      int rawsize = n_room*data_client::nbQrow;
       memcpy( dest, raw, rawsize );
-      commit_rows( MFCtr, 0, int n_room );
+      commit_rows( MFCtr, 0, n_room );
       raw += rawsize;
       n_rows -= n_room;
       MFCtr += n_room;
     } else {
-      it_blocked = IT_DATA_BLOCKED;
+      it_blocked = IT_BLOCKED_DATA;
       unlock();
       sem_wait(&it_sem);
     }
@@ -222,13 +230,15 @@ void Reader::process_data() {
 // This is absolutely a first cut. It will stop at the first sign of trouble (i.e. a missing file)
 // What I will want is a record of first file and last file and/or first time/last time
 int Reader::process_eof() {
-  if ( bfr_fd != -1 ) close(bfr_fd);
+  if ( data_client::bfr_fd != -1 ) close(data_client::bfr_fd);
   int nlrl = set_response(0);
-  bfr_fd = mlf_next_fd( mlf );
+  data_client::bfr_fd = mlf_next_fd( mlf );
   set_response(nlrl);
-  if ( bfr_fd == -1 ) {
+  if ( data_client::bfr_fd == -1 ) {
     dc_quit = true;
     return 1;
   }
   return 0;
 }
+
+void tminitfunc() {}

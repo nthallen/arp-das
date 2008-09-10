@@ -3,13 +3,17 @@
 
 #include <pthread.h>
 #include <semaphore.h>
-#include "DG_col.h"
+#include "mlf.h"
+
+#ifdef __cplusplus
+#include "DGcol.h"
+#include "DC.h"
 
 class DG_rdr;
 
 class Reader : public data_generator, public data_client {
   public:
-    Reader(int nQrows, int low_water, int bufsize);
+    Reader(int nQrows, int low_water, int bufsize, char *path);
     void event(enum dg_event evt);
     void *input_thread();
     void *output_thread();
@@ -18,7 +22,7 @@ class Reader : public data_generator, public data_client {
   protected:
     void process_tstamp();
     void process_data();
-    void process_eof();
+    int  process_eof();
     void lock();
     void unlock();
     int it_blocked;
@@ -32,9 +36,13 @@ class Reader : public data_generator, public data_client {
 };
 
 extern "C" {
+#endif
   void *input_thread(void *Reader_ptr);
   void *output_thread(void *Reader_ptr);
+  void rdr_init( int argc, char **argv );
+#ifdef __cplusplus
 };
+#endif
 
 #define OT_BLOCKED_STOPPED 1
 #define OT_BLOCKED_TIME 2
