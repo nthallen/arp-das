@@ -55,7 +55,7 @@ void data_client::read() {
     if ( nb == -1 ) {
       if ( errno == EAGAIN ) return; // must be non-blocking
       else nl_error( 1, "data_client::read error from read(): %s",
-        strerror(errno);
+        strerror(errno));
     }
     if (nb <= 0) {
       bytes_read = 0;
