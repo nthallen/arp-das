@@ -46,4 +46,5 @@ void load_tmdac( char *path ) {
   if ( fread(&tm_info.tm, sizeof(tm_dac_t), 1, dacfile) != 1 )
     nl_error( 3, "Error reading tm.dac" );
   fclose(dacfile);
+  tm_info.nrowminf = tmi(nbminf)/tmi(nbrow);
 }
