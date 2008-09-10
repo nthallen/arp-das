@@ -13,18 +13,22 @@ class Reader : public data_generator, public data_client {
     void event(enum dg_event evt);
     void *input_thread();
     void *output_thread();
-    void it_operate();
+    void control_loop();
+    void service_row_timer();
   protected:
     void process_tstamp();
     void process_data();
-    virtual void lock();
-    virtual void unlock();
+    void process_eof();
+    void lock();
+    void unlock();
     int it_blocked;
     sem_t it_sem;
     int ot_blocked;
     sem_t ot_sem;
     pthread_mutex_t dq_mutex;
     bool have_tstamp;
+  private:
+    mlf_def_t *mlf;
 };
 
 extern "C" {
