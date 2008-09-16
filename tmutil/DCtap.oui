@@ -1,0 +1,7 @@
+<package> DCtap
+<include> msg
+<include> dc
+
+<package> msghdr_default
+<vars>
+  char *msg_hdr_default = "DCtap";

@@ -2,10 +2,12 @@
 #include <time.h>
 #include "DC.h"
 #include "nortlib.h"
+#include "oui.h"
 
 class DCtap : public data_client {
   public:
     DCtap(char *srcfile);
+    DCtap();
   protected:
     void process_data_t1();
     void process_data_t2();
@@ -15,6 +17,7 @@ class DCtap : public data_client {
     void process_tstamp();
 };
 
+DCtap::DCtap() : data_client( 4096, 1, 0 ) {}
 DCtap::DCtap( char *srcfile ) : data_client( 4096, 0, srcfile ) {}
 
 void DCtap::process_init() {
@@ -25,7 +28,8 @@ void DCtap::process_init() {
 
 void DCtap::process_tstamp() {
   struct tm *tm = gmtime( &msg->body.ts.secs );
-  char *ttext = asctime(tm);
+  char ttext[30];
+  asctime_r(tm, ttext);
   int tlen = strlen(ttext);
   ttext[tlen-1] = '\0';
   nl_error( 0, "process_tstamp(%s, %5d)", ttext, msg->body.ts.mfc_num );
@@ -57,7 +61,7 @@ void DCtap::process_data_t3() {
 void DCtap::process_data() {
   //data_client::process_data();
   //nl_error( 0, "DCtap::process_data()" );
-  switch ( output_tm_type ) {
+  switch ( input_tm_type ) {
     case TMTYPE_DATA_T1:
     case TMTYPE_DATA_T2:
       nl_error(3,"Data type not implemented" );
@@ -74,10 +78,11 @@ void data_client::process_data() {
 void tminitfunc() {}
 
 int main( int argc, char **argv ) {
-  char *srcfile;
-  srcfile = argc > 1 ? argv[1] : tm_dev_name("TM/DCf");
-  DCtap DC( srcfile );
+  oui_init_options(argc, argv);
+  nl_error( 0, "Startup" );
+  DCtap DC;
   DC.operate();
+  nl_error( 0, "Shutdown" );
   return 0;
 }
 

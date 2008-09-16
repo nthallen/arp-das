@@ -24,6 +24,9 @@ parent : parent.o parentoui.o
 	usemsg parent parentoui.c
 parentoui.c : parent.oui
 	oui -o parentoui.c parent.oui
-DCtap : DCtap.o
-	$(LINK.c) -o DCtap DCtap.o -ltmpp -ltm -lnort -lang-c++
+DCtap : DCtap.o DCtapoui.o
+	$(LINK.c) -o DCtap DCtap.o DCtapoui.o -ltmpp -ltm -lnort -lang-c++
+	usemsg DCtap DCtapoui.c
 DCtap.o : DCtap.cc
+DCtapoui.c : DCtap.oui
+	oui -o DCtapoui.c DCtap.oui
