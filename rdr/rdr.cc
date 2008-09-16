@@ -103,7 +103,8 @@ void Reader::unlock() {
 
 void Reader::service_row_timer() {
   lock();
-  if ( ot_blocked == OT_BLOCKED_TIME ) {
+  if ( ot_blocked == OT_BLOCKED_TIME ||
+       (!started && ot_blocked == OT_BLOCKED_STOPPED)) {
     ot_blocked = 0;
     sem_post(&ot_sem);
   }

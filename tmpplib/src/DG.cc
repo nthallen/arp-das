@@ -193,28 +193,39 @@ int data_generator::execute(char *cmd) {
       case 'c': tm_start(1); break;
       case 'e': tm_stop(); break;
       case 's':
-        if (started) tm_stop();
-        else service_row_timer(); /* single_step(); */
+        lock();
+        if (!started) {
+	  regulated = true;
+	  row_period_nsec_current = 0;
+	  tm_start(0);
+        } else {
+	  regulated = true;
+	  if ( row_period_nsec_current ) {
+	    row_period_nsec_current = 0;
+	    tmr->settime(0);
+	  }
+	  unlock();
+        }
+        service_row_timer(); /* single_step(); */
         break;
       case '>': tm_play(); break; // play
       case '+':
         if (regulation_optional) {
           lock();
-          if (!started) tm_play(0);
-          else {
-            if ( regulated ) {
-              row_period_nsec_current = row_period_nsec_current * 2 / 3;
-              if ( row_period_nsec_current < tmr->timer_resolution_nsec ) {
-                regulated = false;
-                tmr->settime(0);
-                unlock();
-                event(dg_event_fast);
-              } else {
-                tmr->settime(row_period_nsec_current);
-                unlock();
-              }
-            } else unlock();
-          }
+          if (!started || ( regulated && row_period_nsec_current == 0) )
+	    tm_play(0);
+          else if ( regulated ) {
+	    row_period_nsec_current = row_period_nsec_current * 2 / 3;
+	    if ( row_period_nsec_current < tmr->timer_resolution_nsec ) {
+	      regulated = false;
+	      tmr->settime(0);
+	      unlock();
+	      event(dg_event_fast);
+	    } else {
+	      tmr->settime(row_period_nsec_current);
+	      unlock();
+	    }
+	  } else unlock();
         }
         break;
       case '-': // slower
