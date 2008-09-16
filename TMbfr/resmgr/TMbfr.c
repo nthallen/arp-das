@@ -121,6 +121,7 @@ static void run_read_queue(void) {
 // Return the minimum number of rows processed by any reader that is currently
 // referencing the specified dqd.  Assumes dq is locked.
 int min_reader( dq_descriptor_t *dqd ) {
+  if ( dqd != DQD_Queue.first ) return 0;
   int min = dqd->Qrows_expired + dqd->n_Qrows;
   IOFUNC_OCB_T *ocb;
   for ( ocb = all_readers; ocb != 0; ocb = ocb->next_ocb ) {
@@ -627,7 +628,7 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
         if ( dqd->n_Qrows == 0 && dqd->next )
           dqd = dq_expire_check(dqd);
         else break;
-      }
+      } else break;
     }
   }
   assert( dqd->n_Qrows == 0 || dqd->starting_Qrow == Data_Queue.first );
