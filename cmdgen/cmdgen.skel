@@ -161,7 +161,7 @@ static char ibuf[CG_IBUF_SIZE];
   #define CMD_ERROR(x) cmderr(x); exit(1)
   #define DISPLAY_CHAR(x) do { waddch(cmdwin.w, (x)?(x):' ');\
 							   ioflags |= IOF_UPDATE; } while (0)
-  #define UNDISPLAY_CHAR do { waddch(cmdwin.w, '\b');\
+  #define UNDISPLAY_CHAR do { waddstr(cmdwin.w, "\b \b");\
 							  ioflags |= IOF_UPDATE; } while (0)
   #define CLEAR_DISPLAY_LINE do { wclear(cmdwin.w);\
   								  wmove(cmdwin.w, 0, 0);\
