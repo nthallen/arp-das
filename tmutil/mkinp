@@ -1,0 +1,27 @@
+#! /usr/pkg/bin/perl
+#__USAGE
+#%C	<extraction> [<extraction> ...]
+
+foreach my $ext (@ARGV) {
+  print "Processing $ext\n";
+  open IFILE, "use $ext |" || die "Unable to use $ext\n";
+
+  while (<IFILE>) {
+	next unless /^Spreadsheet (\w+), (\d+) columns/;
+	my $root = $1;
+	my $totcols = $2;
+	my $ncols = 1;
+	open OFILE, ">$root.inp" || die "Unable to open $root.inp\n";
+	print OFILE "+$root\n0\nT$root\n";
+	while (<IFILE>) {
+	  last unless /^\s*\w+\s+\[\s*(\d+)\] = (\w+)$/;
+	  print OFILE "$1\n$2\n";
+	  $ncols++;
+	}
+	print OFILE "\n" unless $ncols >= $totcols;
+	print OFILE "$root\nAll\n";
+	close OFILE || warn "Error closing $root.inp\n";
+	print "  Created $root.inp\n";
+  }
+  close IFILE || warn "Error closing pipe from use $ext\n";
+}

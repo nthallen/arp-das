@@ -1,0 +1,100 @@
+#! /bin/sh
+#__USAGE
+#%C	[-d <directory>] [-k] src [ src ... ]
+#	Converts SNAFU spreadsheets in src to .mat format.
+#	src may be either directories or .sps files. For each
+#	.sps file in src, tomat will check for a corresponding
+#	.inp file in the directory where tomat is located.
+#	If a .inp file is found, the spreadsheet is converted.
+#
+#	If -d is specified, a subdirectory is created under the
+#	specified target directory of the same name as the
+#	directory in which the .sps file is located, and the
+#	.mat file is moved to the new subdirectory.
+#
+#	If -k is specified, the .sps file is deleted after
+#	conversion to .mat.
+#
+#	Example:
+#	  tomat -d /dos/d/home/ClN -k 000111.2
+#	Will convert all qualifying .sps files in 000111.2, then
+#	move the resulting .mat files to /dos/d/home/ClN/000111.2
+#	and delete the source .sps files.
+
+sdir=`dirname $0`
+echo "sdir is '$sdir'"
+
+function nl_error {
+  echo $* >&2
+  exit 1
+}
+
+destdir=''
+delsps='no'
+#----------------------------------------------------------------
+# Process command line options (-d)
+#----------------------------------------------------------------
+while getopts "d:k" option; do
+  case $option in
+	d) destdir=$OPTARG;;
+	k) delsps=yes;;
+	\?) echo; exit 1;;
+	*) echo reduce: Unsupported option: -$option; exit 1;;
+  esac
+done
+let sval=$OPTIND-1
+shift $sval
+
+[ -n "$destdir" -a ! -d "$destdir" ] &&
+  nl_error "Destination directory '$destdir' not found"
+
+summary=''
+
+function getdest {
+  if [ -n "$destdir" ]; then
+	file=`fullpath -t $1`
+	spsdir=`dirname $file`
+	run=`basename $spsdir`
+	dest="$destdir/$run"
+	[ ! -d "$dest" ] && mkdir $dest
+	[ -d "$dest" ] ||
+	  nl_error "Unable to create destination directory '$dest'"
+	echo $dest
+  fi
+}
+
+function convert {
+  for sps in; do
+	if [ -f $sps ]; then
+	  spsdir=`dirname $sps`
+	  spsbase=`basename $sps`
+	  spsroot=${spsbase%.sps}
+	  dest=`getdest $sps`
+	  if [ -f $sdir/$spsroot.inp ]; then
+		cd $spsdir
+		sps2mat -b$sdir/$spsroot.inp
+		if [ -n "$dest" ]; then
+		  mv $spsroot.mat $dest
+		  summary="${summary}Processed $sps: moved to $dest\n"
+		else
+		  summary="${summary}Processed $sps\n";
+		fi
+		[ $delsps = 'yes' ] && rm $spsbase
+		cd -
+	  else
+		summary="${summary}No .inp for $spsbase\n";
+	  fi
+	else
+	  summary="${summary}File not found: $sps\n";
+	fi
+  done
+}
+
+for file in; do
+  if [ -d "$file" ]; then
+	convert $file/*.sps
+  else
+	convert $file
+  fi
+done
+echo $summary

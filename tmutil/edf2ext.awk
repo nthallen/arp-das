@@ -1,5 +1,8 @@
 # edf2ext.awk Converts .edf files to .ext for TMC input.
 # $Log$
+# Revision 1.1  2008/09/22 13:36:29  ntallen
+# edf tools for QNX6
+#
 # Revision 1.6  1998/01/08 21:59:27  nort
 # To eliminate an errant difference
 # .,
@@ -25,7 +28,9 @@ BEGIN { rv = 0 }
   else {
 	print "%{ /* edf2ext.awk reading " FILENAME " */"
 	print "  #include <stdlib.h>"
+	print "  #include <errno.h>"
 	print "  #include \"ssp.h\""
+	print "  #include \"msg.h\""
 	print "  #include \"tmctime.h\""
 	printf "\n"
 	print "  #define Ct24_Long(x) (0xFFFFFF & *(TMLONG *)&x)"

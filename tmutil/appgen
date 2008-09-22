@@ -362,12 +362,14 @@ for i in $basetargets; do
   ltmpp='' # will become ' -ltmpp'
   ltmph='' # will become ' -ltmph -lph'
   ldisp='' # will become ' -ldisp -ltmph -lph'
+  lssp='' # will become ' -lssp -lmem -lm'
   cxx=''
   add_member TGT $i
   set_depname $i
   eval deps=\"\$$depname\"
   use_all .edf ${i}edf.oui "\n\t\$(EDF2OUI)" $deps
-  replace_each .edf ext.tmc "\$(EDF2EXT)" $deps
+  replace_each .edf ext.tmc "\$(EDF2EXT)" $deps &&
+    lssp=' -lssp -lmem -lm'
   # replace_each .cfg attr.tmc "\$(DATAATTR)" $deps
   replace_each .cyc cyc.tmc  "\$(CYCLE)" $deps
   replace_each .tbl tbl.tmc "\$(TABLE)" $deps &&
@@ -472,7 +474,7 @@ for i in $basetargets; do
 	*) nl_error Unrecognized dependent $dep;;
       esac
     done
-    deps="$odeps\n\t\$(LINK.$LINK)$odeps$libs$ldisp$ltmph$ltmpp -ltm -lnort$cxx"
+    deps="$odeps\n\t\$(LINK.$LINK)$odeps$libs$ldisp$ltmph$ltmpp -ltm$lssp -lnort$cxx"
     [ -n "$ouiout" ] &&	deps="$deps\n\t\$(OUIUSE) $ouiout"
     if [ $LINK = priv ]; then deps="$deps\n\t\$(PROMOTE) $i"; fi
   fi

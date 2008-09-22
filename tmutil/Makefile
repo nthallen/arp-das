@@ -1,7 +1,7 @@
 # QNX6/tmutil
 #  This directory holds general-purpose utilities for
 #  The Anderson Group Data Acquisition System/QNX6
-BIN=TM appgen distribute parent saverun fixdisk
+BIN=TM appgen distribute parent saverun fixdisk mkinp tomat
 SBIN=promote flight.sh signal_parent
 DATA=appgen.mk edf2ext.awk edf2oui.awk
 INSTALL=cp -vn
