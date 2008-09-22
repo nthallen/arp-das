@@ -1,6 +1,7 @@
 #include <string.h>
 #include <time.h>
 #include "DC.h"
+#include "DCtap.h"
 #include "nortlib.h"
 #include "oui.h"
 
@@ -8,6 +9,8 @@ class DCtap : public data_client {
   public:
     DCtap(char *srcfile);
     DCtap();
+    static char *dacfile;
+    static char *srcfile;
   protected:
     void process_data_t1();
     void process_data_t2();
@@ -17,6 +20,8 @@ class DCtap : public data_client {
     void process_tstamp();
 };
 
+char *DCtap::dacfile;
+char *DCtap::srcfile;
 DCtap::DCtap() : data_client( 4096, 1, 0 ) {}
 DCtap::DCtap( char *srcfile ) : data_client( 4096, 0, srcfile ) {}
 
@@ -80,9 +85,32 @@ void tminitfunc() {}
 int main( int argc, char **argv ) {
   oui_init_options(argc, argv);
   nl_error( 0, "Startup" );
-  DCtap DC;
-  DC.operate();
+  DCtap *DC;
+  if ( DCtap::srcfile ) {
+    DC = new DCtap( DCtap::srcfile );
+  } else {
+    DC = new DCtap;
+  }
+  if ( DCtap::dacfile )
+    DC->load_tmdac(DCtap::dacfile);
+  DC->operate();
   nl_error( 0, "Shutdown" );
   return 0;
 }
 
+void DCtap_init_options(int argc, char **argv) {
+  int optltr;
+
+  optind = OPTIND_RESET;
+  opterr = 0;
+  while ((optltr = getopt(argc, argv, opt_string)) != -1) {
+    switch (optltr) {
+      case 'S': DCtap::srcfile = optarg; break;
+      case 'T': DCtap::dacfile = optarg; break;
+      case '?':
+	nl_error(3, "Unrecognized Option -%c", optopt);
+      default:
+	break;
+    }
+  }
+}

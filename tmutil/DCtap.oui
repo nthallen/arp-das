@@ -1,6 +1,23 @@
 <package> DCtap
 <include> msg
 <include> dc
+<include> "DCtap.h"
+
+<opts> "S:T:"
+<sort>
+	-S <srcfile> Read from the specified file
+	-T <tm.dac file> Read frame info from tm.dac
+<unsort>
+DCtap provides a low-level report of the telemetry
+frame data. By default, it connects to TMbfr like
+any other data client. The -S and -T options can
+be used to read from a raw log file. Raw log files
+do not include the necessary initialization record,
+so it is necessary to get the frame definition from
+another source, hence the -T option.
+
+<init>
+  DCtap_init_options(argc, argv);
 
 <package> msghdr_default
 <vars>
