@@ -3,7 +3,7 @@
 #  The Anderson Group Data Acquisition System/QNX6
 BIN=TM appgen distribute parent saverun fixdisk
 SBIN=promote flight.sh signal_parent
-DATA=appgen.mk
+DATA=appgen.mk edf2ext.awk edf2oui.awk
 INSTALL=cp -vn
 CFLAGS=-Wall -g -I/usr/local/include
 CXX=cc
