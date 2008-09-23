@@ -5,7 +5,7 @@
 
 data_generator::data_generator(int nQrows, int low_water)
     : data_queue(nQrows,low_water) {
-  bfr_fd = -1;
+  dg_bfr_fd = -1;
   quit = false;
   started = false;
   regulated = false;
@@ -20,14 +20,13 @@ data_generator::~data_generator() {}
  */
 void data_generator::init(int collection) {
   data_queue::init();
-  bfr_fd = open(tm_dev_name("TM/DG"), collection ? O_WRONLY|O_NONBLOCK : O_WRONLY );
-  // bfr_fd = open("TM_DG.log", O_WRONLY|O_CREAT );
-  if (bfr_fd < 0) nl_error(3, "Unable to open TM/DG: %d", errno );
+  dg_bfr_fd = open(tm_dev_name("TM/DG"), collection ? O_WRONLY|O_NONBLOCK : O_WRONLY );
+  if (dg_bfr_fd < 0) nl_error(3, "Unable to open TM/DG: %d", errno );
   tm_hdr_t hdr = { TMHDR_WORD, TMTYPE_INIT };
   iov_t iov[2];
   SETIOV(&iov[0], &hdr, sizeof(hdr));
   SETIOV(&iov[1], &tm_info, sizeof(tm_info));
-  int rc = writev( bfr_fd, iov, 2);
+  int rc = writev( dg_bfr_fd, iov, 2);
   check_writev( rc, sizeof(tm_info)+sizeof(hdr), "sending TMTYPE_INIT" );
   dispatch = new DG_dispatch();
   cmd = new DG_cmd(this);
@@ -40,7 +39,7 @@ void data_generator::init(int collection) {
 
 void data_generator::transmit_data( int single_row ) {
   // We can read from the queue without locking
-  // But we need to lock when we reference bfr_fd
+  // But we need to lock when we reference dg_bfr_fd
   dq_tstamp_ref *dqts;
   dq_data_ref *dqdr;
   // nl_error( 0, "transmit_data(%s)", single_row ? "single" : "all" );
@@ -56,7 +55,7 @@ void data_generator::transmit_data( int single_row ) {
         SETIOV(&iov[0], &hdrs, sizeof(tm_hdr_t));
         SETIOV(&iov[1], &dqts->TS, sizeof(dqts->TS));
         lock();
-        if ( bfr_fd != -1 ) rc = writev(bfr_fd, iov, 2);
+        if ( dg_bfr_fd != -1 ) rc = writev(dg_bfr_fd, iov, 2);
         unlock();
         check_writev( rc, sizeof(tm_hdr_t)+sizeof(dqts->TS),
 	   "transmitting tstamp" );
@@ -86,11 +85,12 @@ void data_generator::transmit_data( int single_row ) {
             n_iov = 3;
           }
           lock();
-          if ( bfr_fd != -1 )
-	    rc = writev(bfr_fd, iov, n_iov);
-	  unlock();
-          check_writev( rc, nbDataHdr + n_rows * nbQrow,
-	     "trasmitting data" );
+          if ( dg_bfr_fd != -1 ) {
+	    rc = writev(dg_bfr_fd, iov, n_iov);
+	    unlock();
+	    check_writev( rc, nbDataHdr + n_rows * nbQrow,
+	       "transmitting data" );
+	  } else unlock();
           retire_rows(dqdr, n_rows);
           if ( single_row ) return;
         }
@@ -112,10 +112,8 @@ void data_generator::check_writev( int rc, int wr_size, char *where ) {
  * This is how 
  */
 void data_generator::operate() {
-  nl_error( 0, "Startup [deprecated]" );
   if ( autostart ) tm_start(1);
   dispatch->Loop();
-  nl_error( 0, "Shutdown [deprecated]" );
 }
 
 /**
@@ -179,9 +177,9 @@ int data_generator::execute(char *cmd) {
     lock();
     started = false;
     quit = true;
-    if ( bfr_fd != -1 ) {
-      close(bfr_fd);
-      bfr_fd = -1;
+    if ( dg_bfr_fd != -1 ) {
+      close(dg_bfr_fd);
+      dg_bfr_fd = -1;
     }
     unlock();
     nl_error( -2, "Received Quit" );

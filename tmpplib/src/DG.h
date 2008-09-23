@@ -31,7 +31,7 @@ class data_generator : public data_queue {
 
     // virtual void single_step() = 0;
     void transmit_data( int single_row );
-    int bfr_fd;
+    int dg_bfr_fd;
     DG_cmd *cmd;
     DG_tmr *tmr;
   private:
