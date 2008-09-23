@@ -3,7 +3,13 @@
 <include> "rdr.h"
 <follow> msg dc
 
-<opts> "aAP:"
+<opts> "aAP:kq"
+<sort>
+	-A autostart fast forward
+	-a autostart regulated
+	-P <path> specify base path for data files
+	-k Invoke kluge to work around lgr bug
+	-q quit when end of data is reached
 <init>
   rdr_init(argc, argv);
 

@@ -8,8 +8,10 @@
 #define RDR_BUFSIZE 16384
 
 static char *opt_basepath = ".";
-static int opt_autostart = 0;
-static int opt_regulate = 0;
+static int opt_autostart;
+static int opt_regulate;
+static int opt_kluge_a;
+static int opt_autoquit;
 
 //  opt_basepath = "/home/tilde/raw/flight/080908.4";
 
@@ -19,6 +21,8 @@ static int opt_regulate = 0;
   -F <file> Starting log file. Second invocation is ending file
   -T <time> Starting time/Ending time
   -P <path> path to log directories
+  -k invoke kluge to work around lgr bug
+  -q autoquit
  */
 void rdr_init( int argc, char **argv ) {
   int c;
@@ -38,6 +42,12 @@ void rdr_init( int argc, char **argv ) {
       case 'P':
 	opt_basepath = optarg;
 	break;
+      case 'k':
+      	opt_kluge_a = 1;
+      	break;
+      case 'q':
+      	opt_autoquit = 1;
+      	break;
       case '?':
         nl_error(3, "Unrecognized Option -%c", optopt);
     }
@@ -75,16 +85,34 @@ Reader::Reader(int nQrows, int low_water, int bufsize, char *path) :
   autostart = opt_autostart;
 }
 
-static void pt_create( void *(*func)(void *), void *arg ) {
-  int rv = pthread_create( NULL, NULL, func, arg );
+static void pt_create( void *(*func)(void *), pthread_t *thread, void *arg ) {
+  int rv = pthread_create( thread, NULL, func, arg );
   if ( rv != EOK )
     nl_error(3,"pthread_create failed: %s", strerror(errno));
 }
 
+static void pt_join( pthread_t thread, char *which ) {
+  void *value;
+  int rv = pthread_join(thread, &value);
+  if ( rv != EOK )
+    nl_error( 2, "pthread_join(%d, %s) returned %d: %s",
+       thread, which, rv, strerror(rv) );
+  else if ( value != 0 )
+    nl_error( 2, "pthread_join(%s) returned non-zero value", which );
+  else nl_error( -2, "%s shutdown", which );
+}
+
 void Reader::control_loop() {
-  pt_create( ::output_thread, this );
-  pt_create( ::input_thread, this );
+  pthread_t ot, it;
+  if ( opt_autoquit ) {
+    RQP = new Rdr_quit_pulse(this);
+    RQP->attach();
+  }
+  pt_create( ::output_thread, &ot, this );
+  pt_create( ::input_thread, &it, this );
   data_generator::operate();
+  pt_join( it, "input_thread" );
+  pt_join( ot, "output_thread" );
 }
 
 void Reader::lock() {
@@ -127,6 +155,7 @@ void Reader::event(enum dg_event evt) {
       }
       break;
     case dg_event_quit:
+      nl_error( 0, "Quit event" );
       dc_quit = true;
       if ( ot_blocked ) {
         ot_blocked = 0;
@@ -228,6 +257,10 @@ void Reader::process_tstamp() {
 }
 
 void Reader::process_data() {
+  static int nrows_full_rec = 0;
+  static int last_rec_full = 1;
+  static unsigned short frac_MFCtr;
+
   if ( ! have_tstamp ) {
     nl_error(1, "process_data() without initialization" );
     return;
@@ -236,10 +269,36 @@ void Reader::process_data() {
   unsigned char *raw = &data->data[0];
   int n_rows = data->n_rows;
   unsigned short MFCtr = data->mfctr;
+  if ( opt_kluge_a ) {
+    if ( nrows_full_rec == 0 )
+      nrows_full_rec = n_rows;
+    if ( n_rows == nrows_full_rec ) {
+      last_rec_full = 1;
+    } else {
+      if ( n_rows * 2 < nrows_full_rec ||
+	  (!last_rec_full) && n_rows*2 == nrows_full_rec ) {
+	// We won't use this record, but we might record
+	// the MFCtr
+	if ( last_rec_full ) frac_MFCtr = MFCtr;
+	last_rec_full = 0;
+	return;
+      } else {
+	// We'll use this record, but may need to get
+	// MFCtr from the previous fragment
+	if ( !last_rec_full ) MFCtr = frac_MFCtr;
+	last_rec_full = 0;
+      }
+    }
+  }
+
   // Can check here for time limits
-  while ( n_rows && !dc_quit ) {
+  while ( n_rows ) {
     unsigned char *dest;
     lock();
+    if ( dc_quit ) {
+      unlock();
+      return;
+    }
     int n_room = allocate_rows(&dest);
     if ( n_room ) {
       unlock();
@@ -267,7 +326,14 @@ int Reader::process_eof() {
   data_client::bfr_fd = mlf_next_fd( mlf );
   set_response(nlrl);
   if ( data_client::bfr_fd == -1 ) {
-    dc_quit = true;
+    if ( opt_autoquit )
+      RQP->pulse();
+    lock();
+    if ( !dc_quit ) {
+      it_blocked = IT_BLOCKED_EOF;
+      unlock();
+      sem_wait(&it_sem);
+    } else unlock();
     return 1;
   }
   return 0;

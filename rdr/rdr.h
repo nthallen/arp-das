@@ -9,7 +9,7 @@
 #include "DGcol.h"
 #include "DC.h"
 
-class DG_rdr;
+class Rdr_quit_pulse;
 
 class Reader : public data_generator, public data_client {
   public:
@@ -33,13 +33,29 @@ class Reader : public data_generator, public data_client {
     bool have_tstamp;
   private:
     mlf_def_t *mlf;
+    Rdr_quit_pulse *RQP;
+};
+
+class Rdr_quit_pulse : public DG_dispatch_client {
+  public:
+    Rdr_quit_pulse(Reader *rdr_ptr);
+    ~Rdr_quit_pulse();
+    void pulse();
+    void attach();
+    int ready_to_quit();
+    Reader *rdr;
+  private:
+    int pulse_code;
+    int coid;
 };
 
 extern "C" {
 #endif
+
   void *input_thread(void *Reader_ptr);
   void *output_thread(void *Reader_ptr);
   void rdr_init( int argc, char **argv );
+
 #ifdef __cplusplus
 };
 #endif
@@ -48,5 +64,6 @@ extern "C" {
 #define OT_BLOCKED_TIME 2
 #define OT_BLOCKED_DATA 3
 #define IT_BLOCKED_DATA 1
+#define IT_BLOCKED_EOF 2
 
 #endif
