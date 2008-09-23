@@ -1,6 +1,6 @@
 #! /bin/sh
 #__USAGE
-#%C	[-d <directory>] [-k] src [ src ... ]
+#%C	[-d <directory>] [-k] srcdir src [ src ... ]
 #	Converts SNAFU spreadsheets in src to .mat format.
 #	src may be either directories or .sps files. For each
 #	.sps file in src, tomat will check for a corresponding
@@ -21,11 +21,8 @@
 #	move the resulting .mat files to /dos/d/home/ClN/000111.2
 #	and delete the source .sps files.
 
-sdir=`dirname $0`
-echo "sdir is '$sdir'"
-
 function nl_error {
-  echo $* >&2
+  echo extract: $* >&2
   exit 1
 }
 
@@ -44,6 +41,11 @@ while getopts "d:k" option; do
 done
 let sval=$OPTIND-1
 shift $sval
+
+[ -d "$1" ] || nl_error Must specify source dir as first argument
+sdir=`fullpath $1`
+echo "sdir is '$sdir'"
+shift
 
 [ -n "$destdir" -a ! -d "$destdir" ] &&
   nl_error "Destination directory '$destdir' not found"

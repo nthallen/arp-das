@@ -1,0 +1,247 @@
+#! /bin/sh
+#__USAGE
+#%C	[-g <time>] [-z <time>] <directory> [prog ...]
+#	-r Don't recurse
+#	-g <time> specify start time (see "use rdr")
+#	-z <time> specify end time (see "use rdr")
+#	-F <no> specify the first data file number
+#	-L <no> specify the last data file number
+#
+#Run extraction programs on data in specified directory
+#
+#By default, extract expects to find extraction programs in
+#the current directory. If a file named "VERSION" exists in
+#the specified directory, its contents are used to locate
+#additional directories which are added to the PATH.
+#
+#For example, given the command "extract 970503.1 fooext",
+#suppose 970503.1/VERSION contains "1.1". extract will first
+#look for fooext in the current directory if ./VERSION also
+#contains "1.1" and if ./tm.dac is identical to 970503.1/tm.dac.
+#Next extract will look in ./bin/1.1, again checking that
+#the tm.dac file there is identical to 970503.1/tm.dac. Last,
+#extract will look in 970503.1/../bin/1.1. In this case, that
+#is the same as ./bin/1.1, but if a longer path were specified
+#(to extract from an archive disk, for example) the extractions
+#could be located there also.
+#
+#extract looks for an executable script named "extract" in 
+#the specified directory and executes it. That script takes a 
+#single argument, the source directory, and relies on the 
+#environment variable $Extractions to pass extractions. 
+#(extract will define $Extractions from its command-line 
+#arguments if necessary). This directory-specific version of 
+#extract may in turn call this version of extract with 
+#impunity if it specifies the -r option.
+#
+#Environment variable RDR_OPTS may be used to pass options 
+#directly to the rdr command line.
+#
+#Extract will perform the specified extractions in an empty
+#directory. Any files created by the extractions in that
+#directory will be moved into the analysis subdirectory 
+#anal/$run where $run is the last component of the extraction 
+#directory path. e.g. "extract //1/od1/home/abc/951127.1" 
+#will place products in anal/951127.1 relative to the current 
+#directory.
+#
+#If the environment variable EXTRACT_DIR is defined, the
+#extractions will be run there and none of the resulting files
+#will be moved. Otherwise a process-specified subdirectory will
+#be created and then removed after the results have been
+#moved to the analysis directory.
+#
+#Use of the ExtProducts environment variable is now obsolete.
+#
+#Values for the environment variables Extractions and RDR_OPTS
+#which appear in Experiment.config 
+#are ignored here, but will be used by the script "reduce" 
+#when invoking extract. This allows custom extractions to 
+#override values in Experiment.config gracefully.
+
+typeset appname=`basename $0`
+function nl_error {
+  echo $appname: $* >&2
+  exit 1
+}
+
+#----------------------------------------------------------------
+# Handle arguments
+#----------------------------------------------------------------
+typeset time_opts=""
+while getopts "rg:z:F:L:" option; do
+  case $option in
+	r) EXTRACT_DEPTH=1;;
+	g) time_opts="$time_opts -g $OPTARG";;
+	z) time_opts="$time_opts -z $OPTARG";;
+	F) time_opts="$time_opts -F $OPTARG";;
+	L) time_opts="$time_opts -L $OPTARG";;
+	\?) echo; exit 1;;
+	*) echo Unsupported option: -$option; exit 1;;
+  esac
+done
+let sval=$OPTIND-1
+shift $sval
+
+dir=$1
+shift
+dir=`fullpath -t $dir`
+[ -d "$dir" ] || {
+  echo Unable to locate directory "$dir" >&2
+  exit 1
+}
+
+#----------------------------------------------------------------
+# Look for an extract script in the directory, but avoid 
+# recursion.
+#----------------------------------------------------------------
+if [ -z "EXTRACT_DEPTH" -a -x $dir/extract ]; then
+  #--------------------------------------------------------------
+  # If we have args, build up Extractions
+  #--------------------------------------------------------------
+  export RDR_OPTS="$RDR_OPTS $time_opts"
+  export EXTRACT_DEPTH=1
+  if [ $# -gt 0 ]; then
+	export Extractions=""
+	for i in; do Extractions="$Extractions '$i'"; done
+  fi
+  exec $dir/extract $dir
+fi
+
+#----------------------------------------------------------------
+# Modified to modify Experiment only if it is defined. Add .r
+# instead of the whole .node.pid. Only one rdr allowed per
+# experiment per node.
+# Now require the existence of Experiment.config
+#----------------------------------------------------------------
+typeset Ex_sav="$Extractions"
+typeset Prod_sav="$ExtProducts"
+typeset Ropt_sav="$RDR_OPTS"
+
+cfile=./Experiment.config
+if [ ! -f "$cfile" ]; then
+  echo extract: Unable to locate configuration file $cfile >&2
+  exit 1
+fi
+. $cfile
+[ -z "$Experiment" ] && {
+  echo extract: Experiment undefined in $cfile >&2
+  exit 1
+}
+export Experiment
+Experiment=${Experiment}.r
+
+Extractions="$Ex_sav"
+ExtProducts="$Prod_sav"
+RDR_OPTS="$Ropt_sav"
+unset Ex_sav Prod_sav Ropt_sav
+
+[ $# = 0 ] && eval set -- $Extractions
+
+#----------------------------------------------------------------
+# Now look for VERSION file and build a path for executables
+#----------------------------------------------------------------
+typeset VERSION MYPATH
+[ -f "$dir/VERSION" ] && VERSION=`cat $dir/VERSION`
+[ -z "$VERSION" ] && VERSION="1.0"
+[ -f "$dir/tm.dac" ] || nl_error Unable to locate $dir/tm.dac
+
+typeset cur_version
+[ -f VERSION ] && cur_version=`cat VERSION`
+[ -z "$cur_version" ] && cur_version="1.0"
+if [ -f tm.dac -a "$VERSION" = "$cur_version" ]; then
+  if cmp -s $dir/tm.dac tm.dac; then
+	MYPATH="$PWD:"
+  else
+	echo $appname: WARNING!: $PWD/tm.dac differs but VERSIONs do not >&2
+  fi
+fi
+function eval_dir {
+  typeset bin=$1
+  if [ -d $bin ]; then
+	bin=`fullpath -t $bin`
+	[ -f $bin/tm.dac ] ||
+	  nl_error Unable to locate $bin/tm.dac
+	cmp -s $dir/tm.dac $bin/tm.dac ||
+	  nl_error $bin/tm.dac differs but VERSIONs do not
+	MYPATH="$MYPATH$bin:"
+  fi
+}
+eval_dir bin/$VERSION
+[ $dir/../bin/$VERSION -ef bin/$VERSION ] ||
+  eval_dir $dir/../bin/$VERSION
+
+[ -z "$MYPATH" ] &&
+  nl_error Unable to locate valid bin directory for version $VERSION
+PATH=$MYPATH${PATH#:}
+
+typeset rv='' wext hasext=''
+
+for i in; do
+  # I'll use a for loop to get the first element of $i. I break at
+  # the end of the loop rather than loop, since later elements within
+  # $i are arguments to the program, not another program.
+  for j in $i; do
+	wext=`which $j`
+	[ -x "$wext" ] || rv="$rv '$j'"
+	hasext=yes
+	break;
+  done
+done
+[ -n "$rv" ] && nl_error "Unable to locate extraction(s):$rv"
+[ -n "$hasext" ] || nl_error "No extractions specified"
+
+#----------------------------------------------------------------
+# Create an empty directory in which to run the extractions
+# This eliminates the use of ExtProducts and makes it easier
+# to deal with non-standard extractions (i.e. ones that produce
+# something other than .sps files). Any and all output into the
+# current directory will be moved into the anal directory.
+#
+# If EXTRACT_DIR is defined, it is used and the results are not
+# moved into the anal directory. Otherwise a process-specific
+# directory is created and removed after the contents are moved.
+#
+# An extract script which requires two passes through extract
+# could set up its own EXTRACT_DIR and then do the final moving
+# itself.
+#----------------------------------------------------------------
+typeset extdir=$EXTRACT_DIR
+[ -z "$extdir" ] && extdir=anal/Ext.$$
+[ -z "$extdir" ] && nl_error Empty extdir
+[ -d $extdir ] || mkdir -p $extdir
+[ -d $extdir ] || nl_error Unable to create directory $extdir
+typeset rootdir=$PWD
+
+cd $extdir
+export TMLOGDIR=$dir
+export TMBINPATH=$MYPATH
+rv=0
+memo -o extract.log &
+waitfor /dev/huarp/$Experiment/memo || exit 1
+TMbfr &
+waitfor /dev/huarp/$Experiment/TM/DCo || exit 1
+for ext in ; do
+  # echo "ext: $ext"
+  $ext -h "$ext" &
+  shift
+done
+echo "extract: rdr -AkqP $dir" >/dev/huarp/$Experiment/memo
+rdr -AkqP $dir || rv=1
+
+# rdr -v -c0 -n $# -Q $RDR_OPTS $time_opts -d $dir -f $dir/tm.dac &
+cd $rootdir
+[ $rv != 0 ] && nl_error Partial result may be in $extdir
+
+if [ -z "$EXTRACT_DIR" ]; then
+  analdir=`basename $dir`
+  echo extract: Moving products to subdirectory anal/$analdir
+  [ -d anal/$analdir ] || mkdir -p anal/$analdir
+  mv -v $extdir/* anal/$analdir
+  rmdir $extdir
+else
+  echo extract: Results located in $extdir
+fi
+
+echo extract: Extraction Complete
+exit $rv
