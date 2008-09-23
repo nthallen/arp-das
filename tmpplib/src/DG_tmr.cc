@@ -19,7 +19,7 @@ int DG_tmr_pulse_func( message_context_t *ctp, int code,
   return 0;
 }
 
-DG_tmr::DG_tmr(data_generator *data_gen) {
+DG_tmr::DG_tmr(data_generator *data_gen) : DG_dispatch_client() {
   timerid = -1;
   dg = data_gen;
   struct timespec ts;
