@@ -25,11 +25,7 @@ int DG_cmd::execute(char *buf) {
   int len = strlen(buf);
   while ( len > 0 && isspace(buf[len-1]) )
     buf[--len] = '\0';
-  if ( dg->execute(buf) ) {
-    dispatch->ready_to_quit();
-    return 1;
-  }
-  return 0;
+  return dg->execute(buf);
 }
 
 /* return non-zero if a quit command is received */

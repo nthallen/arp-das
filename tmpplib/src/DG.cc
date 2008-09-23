@@ -183,6 +183,7 @@ int data_generator::execute(char *cmd) {
     }
     unlock();
     nl_error( -2, "Received Quit" );
+    dispatch->ready_to_quit();
     event(dg_event_quit);
     return 1;
   }
