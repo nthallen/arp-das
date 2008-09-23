@@ -20,6 +20,7 @@ void data_client::init(int bufsize_in, int non_block, char *srcfile) {
   next_minor_frame = 0;
   majf_row = 0;
   minf_row = 0;
+  dc_state = DC_STATE_HDR;
   toread = sizeof(tm_hdr_t);
   buf = new char[bufsize];
   tm_info_ready = false;
@@ -74,11 +75,9 @@ void data_client::read() {
  */
 void data_client::operate() {
   tminitfunc();
-  nl_error( 0, "Startup [deprecated]" );
   while ( !dc_quit ) {
     read();
   }
-  nl_error( 0, "Shutdown [deprecated]" );
 }
 
 /* *
@@ -113,46 +112,65 @@ void data_client::process_init() {
 
 void data_client::process_tstamp() {
   tm_info.t_stmp = msg->body.ts;
-  //nl_error( 0, "data_client::process_tstamp" );
 }
 
 void data_client::process_message() {
-  while ( bytes_read >= sizeof(tm_hdr_t) ) {
-    if ( msg->hdr.tm_id != TMHDR_WORD )
-      nl_error( 3, "Invalid data from TMbfr" );
-    if ( !tm_info_ready ) {
-      if ( msg->hdr.tm_type != TMTYPE_INIT )
-        nl_error( 3, "Expected TMTYPE_INIT" );
-      toread = sizeof(tm_hdr_t)+sizeof(tm_info_t);
-      if ( bytes_read >= toread )
-        process_init();
-    } else {
-      switch ( msg->hdr.tm_type ) {
-        case TMTYPE_INIT: nl_error( 3, "Unexpected TMTYPE_INIT" ); break;
-        case TMTYPE_TSTAMP:
-          toread += sizeof(tstamp_t);
-          if ( bytes_read >= toread )
-            process_tstamp();
-          break;
-        case TMTYPE_DATA_T1:
-        case TMTYPE_DATA_T2:
-        case TMTYPE_DATA_T3:
-        case TMTYPE_DATA_T4:
-          if ( msg->hdr.tm_type != input_tm_type )
-            nl_error(3, "Invalid data type: %04X", msg->hdr.tm_type );
-          toread = nbDataHdr + nbQrow * msg->body.data1.n_rows;
-          if ( bytes_read >= toread ) process_data();
-          break;
-        default: nl_error( 3, "Invalid TMTYPE: %04X", msg->hdr.tm_type );
-      }
-    }
-    if ( bytes_read > toread ) {
-      memmove(buf, buf+toread, bytes_read - toread);
-      bytes_read -= toread;
-      toread = sizeof(tm_hdr_t);
-    } else if ( bytes_read == toread ) {
-      bytes_read = 0;
-      toread = sizeof(tm_hdr_t);
+  while ( bytes_read >= toread ) {
+    switch ( dc_state ) {
+      case DC_STATE_HDR:
+	switch ( msg->hdr.tm_type ) {
+	  case TMTYPE_INIT:
+	    if ( tm_info_ready )
+	      nl_error( 3, "Received redundant TMTYPE_INIT" );
+	    toread += sizeof(tm_info);
+	    break;
+	  case TMTYPE_TSTAMP:
+	    if ( !tm_info_ready )
+	      nl_error( 3, "Expected TMTYPE_INIT, received TMTYPE_TSTAMP" );
+	    toread += sizeof(tstamp_t);
+	    break;
+	  case TMTYPE_DATA_T1:
+	  case TMTYPE_DATA_T2:
+	  case TMTYPE_DATA_T3:
+	  case TMTYPE_DATA_T4:
+	    if ( !tm_info_ready )
+	      nl_error( 3, "Expected TMTYPE_INIT, received TMTYPE_DATA_Tn" );
+	    if ( msg->hdr.tm_type != input_tm_type )
+	      nl_error(3, "Invalid data type: %04X", msg->hdr.tm_type );
+	    toread = nbDataHdr + nbQrow * msg->body.data1.n_rows;
+	    break;
+	  default: nl_error( 3, "Invalid TMTYPE: %04X", msg->hdr.tm_type );
+	}
+	dc_state = DC_STATE_DATA;
+	if ( toread > bufsize )
+	  nl_error( 3, "Record size %d exceeds allocated buffer size %d",
+	    toread, bufsize );
+	break;
+      case DC_STATE_DATA:
+	switch ( msg->hdr.tm_type ) {
+	  case TMTYPE_INIT:
+	    process_init();
+	    break;
+	  case TMTYPE_TSTAMP:
+	    process_tstamp();
+	    break;
+	  case TMTYPE_DATA_T1:
+	  case TMTYPE_DATA_T2:
+	  case TMTYPE_DATA_T3:
+	  case TMTYPE_DATA_T4:
+	    process_data();
+	    break;
+	}
+	if ( bytes_read > toread ) {
+	  memmove(buf, buf+toread, bytes_read - toread);
+	  bytes_read -= toread;
+	} else if ( bytes_read == toread ) {
+	  bytes_read = 0;
+	}
+	toread = sizeof(tm_hdr_t);
+	dc_state = DC_STATE_HDR;
+	break;
+      default: nl_error( 4, "Invalid dc_state" );
     }
   }
 }
@@ -164,4 +182,9 @@ void data_client::resize_buffer( int bufsize_in ) {
   if ( buf == 0)
     nl_error( 3,
        "Memory allocation failure in data_client::resize_buffer");
+}
+
+void data_client::load_tmdac(char *path) {
+  ::load_tmdac(path);
+  init_tm_type();
 }
