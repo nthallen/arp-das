@@ -129,7 +129,8 @@ int msg( int level, char *fmt, ... ) {
   if ( write_to_memo ) write_msg( msgbuf, nb, memo_fp, "memo" );
   if ( write_to_file ) write_msg( msgbuf, nb, file_fp, "file" );
   if ( write_to_stderr ) write_msg( msgbuf, nb, stderr, "stderr" );
-  if ( level >= 3 ) exit(1);
+  if ( level >= 4 ) abort();
+  if ( level == 3 ) exit(1);
   if ( level == -1 ) exit(0);
   return level;
 }
