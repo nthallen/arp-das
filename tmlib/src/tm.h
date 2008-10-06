@@ -230,7 +230,7 @@ void tma_hold(int hold);
 void load_tmdac( char *path );
 
 #ifdef __cplusplus
-  }
+  };
 #endif
 
 #endif

@@ -6,6 +6,7 @@
 #include <time.h>
 #include "oui.h"
 #include "nortlib.h"
+#include "msg.h"
 
 /** Handle -h option
  */
