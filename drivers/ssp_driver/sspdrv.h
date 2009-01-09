@@ -10,13 +10,14 @@ typedef struct {
   unsigned long Total_Skip;
   unsigned short Flags;
   unsigned char Status;
+  signed short T_FPGA;
+  signed short T_HtSink;
   // unsigned short NChannels;
   // unsigned short NSamples;
   // unsigned short NCoadd;
   // unsigned short NAvg;
   // unsigned short NSkL;
   // unsigned short NSkP;
-  // unsigned long Spare;
 } __attribute__((packed)) ssp_data_t;
 
 #define SSP_OVF_MASK 0x01FF

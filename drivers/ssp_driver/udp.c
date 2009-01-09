@@ -100,6 +100,10 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
     nl_error( 2, "NWordsHdr(%u) != %u", hdr->NWordsHdr, scan0 );
     return;
   }
+  if ( hdr->FormatVersion > 1 ) {
+    nl_error( 2, "Unsupported FormatVersion: %u", hdr->FormatVersion );
+    return;
+  }
   if ( my_scan_length + 7 != raw_length ) {
     nl_error( 2, "Header reports NS:%u NC:%u -- raw_length is %d",
       hdr->NSamples, hdr->NChannels, raw_length );
@@ -143,11 +147,15 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
   ssp_data.Flags |= (unsigned short)(scan[raw_length-1]);
   ssp_data.Total_Skip += hdr->NSkL + hdr->NSkP;
   ssp_data.ScanNum = hdr->ScanNum;
+  if ( hdr->FormatVersion > 0 ) {
+    ssp_data.T_FPGA = hdr.T_FPGA;
+    ssp_data.T_HtSink = hdr.T_HtSink;
+  }
   
   // Perform some sanity checks on the inbound scan
-  if ( scan[1] != scan1 )
+  if ( (scan[1] & 0xFFFF00FF) != scan1 )
     nl_error( 1, "%lu: scan[1] = %08lX (not %08lX)\n", mlf->index, scan[1], scan1 );
-  if ( scan[5] != scan5 )
+  if ( hdr->FormatVersion == 0 && scan[5] != scan5 )
     nl_error( 1, "%lu: scan[5] = %08lX (not %08lX)\n", mlf->index, scan[5], scan5 );
 }
 

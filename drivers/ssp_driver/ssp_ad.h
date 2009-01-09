@@ -26,15 +26,17 @@
 typedef struct {
   unsigned short NWordsHdr;
   unsigned short FormatVersion;
-  unsigned short NChannels;
+  unsigned char  NChannels;
+  unsigned char  NF;
   unsigned short NSamples;
   unsigned short NCoadd;
   unsigned short NAvg;
   unsigned short NSkL;
   unsigned short NSkP;
   unsigned long  ScanNum;
-  unsigned long  Spare;
-} ssp_scan_header_t;
+  signed short T_HtSink;
+  signed short T_FPGA;
+} __attribute__((packed)) ssp_scan_header_t;
 
 #define MAX_UDP_PAYLOAD 1472
 #define SSP_MAX_FRAG_PAYLOAD (MAX_UDP_PAYLOAD-sizeof(long int))
