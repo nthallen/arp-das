@@ -148,8 +148,8 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
   ssp_data.Total_Skip += hdr->NSkL + hdr->NSkP;
   ssp_data.ScanNum = hdr->ScanNum;
   if ( hdr->FormatVersion > 0 ) {
-    ssp_data.T_FPGA = hdr.T_FPGA;
-    ssp_data.T_HtSink = hdr.T_HtSink;
+    ssp_data.T_FPGA = hdr->T_FPGA;
+    ssp_data.T_HtSink = hdr->T_HtSink;
   }
   
   // Perform some sanity checks on the inbound scan
