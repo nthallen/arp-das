@@ -1,0 +1,107 @@
+no_yes_t QCLI1_busy; invalidate QCLI1_busy;
+ { QCLI1_busy = (QCLI1_s & 0x8000) ? 1 : 0;
+   validate QCLI1_busy; }
+onebit_t QCLI1_cksum; invalidate QCLI1_cksum;
+ { QCLI1_cksum = (QCLI1_s & 0x4000) ? 1 : 0;
+   validate QCLI1_cksum; }
+ok_fail_t QCLI1_cmderr; invalidate QCLI1_cmderr;
+ { QCLI1_cmderr = (QCLI1_s & 0x2000) ? 1 : 0;
+   validate QCLI1_cmderr; }
+off_on_t QCLI1_laser; invalidate QCLI1_laser;
+ { QCLI1_laser = (QCLI1_s & 0x1000) ? 0 : 1;
+   validate QCLI1_laser; }
+ok_fail_t QCLI1_cordte; invalidate QCLI1_cordte;
+ { QCLI1_cordte = (QCLI1_s & 0x0800) ? 1 : 0;
+   validate QCLI1_cordte; }
+no_yes_t QCLI1_ready; invalidate QCLI1_ready;
+ { QCLI1_ready = (QCLI1_s & 0x0200) ? 1 : 0;
+   validate QCLI1_ready; }
+ok_fail_t QCLI1_waveerr; invalidate QCLI1_waveerr;
+ { QCLI1_waveerr = (QCLI1_s & 0x0100) ? 1 : 0;
+   validate QCLI1_waveerr; }
+twobits_t QCLI1_flash; invalidate QCLI1_flash;
+ { QCLI1_flash = (QCLI1_s & 0x00C0) >> 6;
+   validate QCLI1_flash; }
+ok_fail_t QCLI1_dot; invalidate QCLI1_dot;
+ { QCLI1_dot = (QCLI1_s & 0x0020) ? 1 : 0;
+   validate QCLI1_dot; }
+ok_fail_t QCLI1_lot; invalidate QCLI1_lot;
+ { QCLI1_lot = (QCLI1_s & 0x0010) ? 1 : 0;
+   validate QCLI1_lot; }
+ok_fail_t QCLI1_loc; invalidate QCLI1_loc;
+ { QCLI1_loc = (QCLI1_s & 0x0008) ? 1 : 0;
+   validate QCLI1_loc; }
+qclimode_t QCLI1_mode; invalidate QCLI1_mode;
+ { QCLI1_mode = QCLI1_s & 0x7; validate QCLI1_mode; }
+
+no_yes_t QCLI2_busy; invalidate QCLI2_busy;
+ { QCLI2_busy = (QCLI2_s & 0x8000) ? 1 : 0;
+   validate QCLI2_busy; }
+onebit_t QCLI2_cksum; invalidate QCLI2_cksum;
+ { QCLI2_cksum = (QCLI2_s & 0x4000) ? 1 : 0;
+   validate QCLI2_cksum; }
+ok_fail_t QCLI2_cmderr; invalidate QCLI2_cmderr;
+ { QCLI2_cmderr = (QCLI2_s & 0x2000) ? 1 : 0;
+   validate QCLI2_cmderr; }
+off_on_t QCLI2_laser; invalidate QCLI2_laser;
+ { QCLI2_laser = (QCLI2_s & 0x1000) ? 0 : 1;
+   validate QCLI2_laser; }
+ok_fail_t QCLI2_cordte; invalidate QCLI2_cordte;
+ { QCLI2_cordte = (QCLI2_s & 0x0800) ? 1 : 0;
+   validate QCLI2_cordte; }
+no_yes_t QCLI2_ready; invalidate QCLI2_ready;
+ { QCLI2_ready = (QCLI2_s & 0x0200) ? 1 : 0;
+   validate QCLI2_ready; }
+ok_fail_t QCLI2_waveerr; invalidate QCLI2_waveerr;
+ { QCLI2_waveerr = (QCLI2_s & 0x0100) ? 1 : 0;
+   validate QCLI2_waveerr; }
+twobits_t QCLI2_flash; invalidate QCLI2_flash;
+ { QCLI2_flash = (QCLI2_s & 0x00C0) >> 6;
+   validate QCLI2_flash; }
+ok_fail_t QCLI2_dot; invalidate QCLI2_dot;
+ { QCLI2_dot = (QCLI2_s & 0x0020) ? 1 : 0;
+   validate QCLI2_dot; }
+ok_fail_t QCLI2_lot; invalidate QCLI2_lot;
+ { QCLI2_lot = (QCLI2_s & 0x0010) ? 1 : 0;
+   validate QCLI2_lot; }
+ok_fail_t QCLI2_loc; invalidate QCLI2_loc;
+ { QCLI2_loc = (QCLI2_s & 0x0008) ? 1 : 0;
+   validate QCLI2_loc; }
+qclimode_t QCLI2_mode; invalidate QCLI2_mode;
+ { QCLI2_mode = QCLI2_s & 0x7; validate QCLI2_mode; }
+
+no_yes_t QCLI3_busy; invalidate QCLI3_busy;
+ { QCLI3_busy = (QCLI3_s & 0x8000) ? 1 : 0;
+   validate QCLI3_busy; }
+onebit_t QCLI3_cksum; invalidate QCLI3_cksum;
+ { QCLI3_cksum = (QCLI3_s & 0x4000) ? 1 : 0;
+   validate QCLI3_cksum; }
+ok_fail_t QCLI3_cmderr; invalidate QCLI3_cmderr;
+ { QCLI3_cmderr = (QCLI3_s & 0x2000) ? 1 : 0;
+   validate QCLI3_cmderr; }
+off_on_t QCLI3_laser; invalidate QCLI3_laser;
+ { QCLI3_laser = (QCLI3_s & 0x1000) ? 0 : 1;
+   validate QCLI3_laser; }
+ok_fail_t QCLI3_cordte; invalidate QCLI3_cordte;
+ { QCLI3_cordte = (QCLI3_s & 0x0800) ? 1 : 0;
+   validate QCLI3_cordte; }
+no_yes_t QCLI3_ready; invalidate QCLI3_ready;
+ { QCLI3_ready = (QCLI3_s & 0x0200) ? 1 : 0;
+   validate QCLI3_ready; }
+ok_fail_t QCLI3_waveerr; invalidate QCLI3_waveerr;
+ { QCLI3_waveerr = (QCLI3_s & 0x0100) ? 1 : 0;
+   validate QCLI3_waveerr; }
+twobits_t QCLI3_flash; invalidate QCLI3_flash;
+ { QCLI3_flash = (QCLI3_s & 0x00C0) >> 6;
+   validate QCLI3_flash; }
+ok_fail_t QCLI3_dot; invalidate QCLI3_dot;
+ { QCLI3_dot = (QCLI3_s & 0x0020) ? 1 : 0;
+   validate QCLI3_dot; }
+ok_fail_t QCLI3_lot; invalidate QCLI3_lot;
+ { QCLI3_lot = (QCLI3_s & 0x0010) ? 1 : 0;
+   validate QCLI3_lot; }
+ok_fail_t QCLI3_loc; invalidate QCLI3_loc;
+ { QCLI3_loc = (QCLI3_s & 0x0008) ? 1 : 0;
+   validate QCLI3_loc; }
+qclimode_t QCLI3_mode; invalidate QCLI3_mode;
+ { QCLI3_mode = QCLI3_s & 0x7; validate QCLI3_mode; }

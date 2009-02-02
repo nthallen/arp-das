@@ -1,0 +1,7 @@
+%{
+  #include "subbus.h"
+  ssp_data_t SSP1;
+  /* qcli_data_t QCLI1, QCLI2, QCLI3; */
+%}
+
+

@@ -1,0 +1,185 @@
+%{
+  #include "sspdrv.h"
+  char * SSP_Status(unsigned char stat) {
+    switch (stat) {
+      case SSP_STATUS_GONE:    return "   Gone";
+      case SSP_STATUS_CONNECT: return "Connect";
+      case SSP_STATUS_READY:   return "  Ready";
+      case SSP_STATUS_ARMED:   return "  Armed";
+      case SSP_STATUS_TRIG:    return "Trigger";
+      default:                 return "*******";
+    }
+  }
+  
+  #include "qclid.h"
+  #include "subbus.h"
+%}
+TM typedef unsigned char SSP_Status_t { text "%7d" SSP_Status(); }
+TM typedef unsigned short UINT { text "%5u"; }
+TM typedef unsigned long ULONG { text "%8lu"; }
+TM typedef unsigned short XLONG { text "%5d"; }
+TM typedef double AMPS;
+TM typedef double VOLTS;
+TM typedef double CELCIUS;
+TM typedef double KELVIN;
+TM typedef double TORR;
+TM typedef double PSI;
+TM typedef double SCCM;
+TM typedef double SLM;
+
+TM typedef unsigned short AD12 {
+  collect x = sbwa(x.address) & 0x0FFF;
+  convert VOLTS;
+  text "%5.3lf";
+}
+Calibration ( AD12, VOLTS ) {
+  0, 0,
+  4096, 4.096
+}
+TM typedef unsigned char UCHAR { text "%3u"; }
+TM typedef UCHAR DStat {
+  collect x = sbba(x.address);
+  text "%08b";
+}
+
+TM typedef UINT DASPt {
+  collect x = sbwa(x.address) & 0xFFF;
+  text "%4u";
+}
+
+TM typedef AD12 AD12_T30K75KU { text "%6.2lf"; convert CELCIUS; }
+TM typedef AD12 AD12_T10K75KU { text "%6.2lf"; convert CELCIUS; }
+TM typedef AD12 AD12_T10K1MU { text "%6.2lf"; convert CELCIUS; }
+TM typedef AD12 AD12_T30K1MU { text "%6.2lf"; convert CELCIUS; }
+
+/* Sensym SCC15A Pressure Sensor. Calibrated in flight
+   010525 against Tommy Thompson's PT Static Pressure. */
+TM typedef AD12 AD12_SCC15A { convert TORR; text "%5.1lf"; }
+Calibration ( AD12_SCC15A, TORR ) {
+     0, 128.0764,
+  3000, 729.1343
+}
+
+/* PSI for high pressure Entran uncalibrated
+   1-5V = 0 to 4096
+   0-5V = 0 to 5000 psi
+ */
+TM typedef AD12 AD12_HP { convert PSI; text "%4d"; }
+Calibration ( AD12_HP, PSI ) {
+   819.2,  14.7,
+  4096,  5014.7
+}
+
+/* PSI for low pressure Entran uncalibrated
+   1-5V = 0 to 4096
+   0-5V = 0 to 50 PSI
+ */
+TM typedef AD12 AD12_LP { convert PSI; text "%4.1lf"; }
+Calibration ( AD12_LP, PSI ) {
+   819.2,  14.7,
+  4096, 64.7
+}
+
+/* Amb2P Calibrated against CellP between 0 and 100 Torr 050620.3 */
+TM typedef AD12 AD12_Amb2P { convert TORR; text "%5.1lf"; }
+Calibration ( AD12_Amb2P, TORR ) {
+   215.5,  0,
+  4095,  804.9
+}
+
+TM typedef double HUMIDITY;
+TM typedef AD12 AD12_Rel_H { convert HUMIDITY; text "%5.1lf"; }
+/* ICOS had 4096=100% */
+Calibration ( AD12_Rel_H, HUMIDITY ) { 0, 0, 5000, 100 }
+
+/* QCLI Calibration from Marco's notes plus compensation for
+   60 Ohms in-line with the 30K input impedance
+   6/9/04: Removed /.60 compensation for old duty cycle.   
+*/
+TM typedef AD12 AD12_QCLI { convert AMPS; text "%6.3lf"; }
+Calibration ( AD12_QCLI, AMPS ) {
+  0, 0,
+  3433, 1
+}
+
+TM typedef AD12 AD12_1000Torr { convert TORR; text "%6.2lf"; }
+Calibration ( AD12_1000Torr, TORR ) {
+     0,    0,
+  5000, 1000
+}
+
+TM typedef AD12 AD12_100Torr { convert TORR; text "%6.3lf"; }
+Calibration ( AD12_100Torr, TORR ) {
+     0,    0,
+  1250,  100
+}
+
+TM typedef AD12 AD12_SH_TV { convert CELCIUS; text "%5.1lf"; }
+TM typedef AD12 AD12_T1M { text "%6.2lf"; convert CELCIUS; }
+Calibration ( AD12_T1M, CELCIUS ) { 0, 0, 4096, 40.96 }
+TM typedef AD12_T1M AD12_SH1MT;
+%{
+  /* Status bit definitions: referenced in dstat.tmc */
+  #define StBit_text(x) ((x)?" On":"Off")
+  // #define S3Way_text(x) ((x)?" Calib":"Sample")
+  #define Clsd_text(x)  ((x)?"  Open":"Closed")
+  #define Clsdv_text(x)  ((x)?"O":"X")
+%}
+TM typedef UCHAR StBit { text "%3d" StBit_text(); }
+TM typedef UCHAR S3Way { text "%6d" S3Way_text(); }
+TM typedef UCHAR Clsd_t { text "%6d" Clsd_text(); }
+TM typedef UCHAR Clsdv_t { text "%1d" Clsdv_text(); }
+
+/* SSP Type definitions */
+/* T_FPGA_t: MAX6628 output, resolution 1/16 degree
+ *   reported as 128 bits per degree celcius */
+TM typdef signed short T_FPGA_t { convert CELCIUS; text "%6.2lf"; }
+Calibration ( T_FPGA_t, CELCIUS ) { 0, 0, 128, 1 }
+/* T_HtSink_t: MAX6661 output. resolution 1/8 degree
+ *  reported as 256 bits per degree */
+TM typedef signed short T_HtSink_t { convert CELCIUS; text "%6.2lf"; }
+Calibration ( T_HtSink_t, CELCIUS ) { 0, 0, 256, 1 }
+
+/*-----------------------------------------------------------------*/
+TM 1 Hz UINT MFCtr, Synch;
+TM MAXCOLS = 128;
+
+TM "Receive" SSP1 1;
+
+TM 1 Hz UINT SSP1_Num;
+TM 1 Hz ULONG SSP1_SN;
+TM 1 Hz ULONG SSP1_TS;
+TM 1 Hz XLONG SSP1_Flags;
+TM 1 Hz SSP_Status_t SSP1_Status;
+TM 1 Hz UINT SSP1_Stale;
+TM 1 Hz T_FPGA_t SSP1_T_FPGA;
+TM 1 Hz T_HtSink_t SSP1_T_HtSink;
+
+Group SSP1_grp ( SSP1_Num, SSP1_SN, SSP1_TS, SSP1_Flags,
+                 SSP1_T_FPGA, SSP1_T_HtSink ) {
+  SSP1_Num = SSP1.index;
+  SSP1_SN = SSP1.ScanNum;
+  SSP1_TS = SSP1.Total_Skip;
+  SSP1_Flags = SSP1.Flags;
+  SSP1_Status = SSP1.Status;
+  SSP1_T_FPGA = SSP1.T_FPGA & 0xFFF8;
+  SSP1_T_HtSink = SSP1.T_HtSink & 0xFFE0;
+  SSP1_Stale = SSP1_obj->stale();
+  SSP1_obj->synch();
+}
+
+/*
+TM "Receive" QCLI1 1;
+
+TM typedef unsigned short QCLI1_Wave_t { text "%10d" QCLI1_Wave_text(); }
+TM 1 Hz QCLI1_Wave_t QCLI1_Wave;
+TM 1 Hz UINT QCLI1_s;
+TM 1 Hz UINT QCLI1_Stale;
+
+Group QCLI1_grp ( QCLI1_Wave, QCLI1_s ) {
+  QCLI1_Wave = QCLI1.qcli_wave;
+  QCLI1_s = QCLI1.status;
+  QCLI1_Stale = QCLI1_obj->stale();
+  QCLI1_obj->synch();
+}
+*/

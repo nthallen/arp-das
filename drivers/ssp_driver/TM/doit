@@ -1,0 +1,102 @@
+#! /bin/ksh
+#ifdef __USAGE
+#%C
+#  Starts Instrument operation
+#%C not
+#  Shuts down any straggling processes after system has stopped
+#%C wait
+#  Does not interact with instrument until it is up and operating
+#endif
+
+umask 2
+. ./Experiment.config
+[ -z "$Experiment" ] && Experiment=none
+export Experiment
+VERSION=`cat VERSION`
+export PATH=$PWD/bin/$VERSION:$PATH
+
+function nl_error {
+  echo doit: $* >&2
+  exit 1
+}
+
+if [ -n "$FlightNode" ]; then
+  FltNd=/net/$FlightNode
+else
+  FlightNode=`hostname`
+  FltNd=""
+fi
+
+option=${1:-start}
+
+[ -z "$SCRIPT_OVERRIDE" ] && SCRIPT_OVERRIDE=/dev/null
+cmdsrvr=$FltNd/dev/huarp/$Experiment/cmd/server 
+
+if [ ! -d $FltNd/ ]; then
+  echo "Waiting for Flight Node $FlightNode"
+  while [ ! -d $FltNd/ ]; do
+    waitfor $FltNd/ 2>/dev/null
+  done
+fi
+echo "Node $FlightNode is on the network"
+
+np=`pidin -n $FlightNode -p parent -fa 2>/dev/null | wc -l`
+if [ $np -lt 2 ]; then
+  echo Waiting for parent on node $FlightNode
+  while [ $np -lt 2 ]; do
+    sleep 2
+    np=`pidin -n $FlightNode -p parent -fa 2>/dev/null | wc -l`
+  done
+fi
+echo "I see Flight Node's parent"
+
+case $option in
+  not)
+    [ -e $cmdsrvr ] && nl_error "Instrument is in operation: quit first"
+    echo /dev/null >$SCRIPT_OVERRIDE
+    echo signaling parent
+    sudo /usr/local/sbin/signal_parent $FlightNode
+    exit 0 ;;
+  stop)
+    if [ -e $cmdsrvr ]; then
+      echo "Quit" >$cmdsrvr
+    else
+      nl_error "Could not locate $Experiment's command server"
+    fi
+    exit 0;;
+  start)
+    if [ ! -e $cmdsrvr ]; then
+      [ -n "$RUNFILE" ] && echo $RUNFILE > $SCRIPT_OVERRIDE
+      echo signaling parent
+      sudo /usr/local/sbin/signal_parent $FlightNode
+    fi;;
+  wait) ;;
+  *) nl_error "Unrecognized option '$option'";;
+esac
+
+logfile=$FltNd$HomeDir/$Experiment.log
+[ -f $logfile ] || touch $logfile
+if [ -r $logfile ]; then
+  pterm -t $Experiment.log less +F $logfile &
+  pterm_pid=$!
+fi
+
+if [ ! -e $cmdsrvr ]; then
+  echo "doit: Waiting for cmd/server" 
+  while [ ! -e $cmdsrvr ]; do 
+    waitfor $cmdsrvr 2>/dev/null || sleep 2
+  done
+  echo "doit: Continuing"
+fi
+
+memo -o ${Experiment}clt.log &
+waitfor /dev/huarp/$Experiment/memo
+sspdisp -t $FlightNode &
+
+# tildealgo &
+ssptestclt ${FlightNode:+-C$FlightNode}
+# kill -sINT $pterm_pid
+# Leave the log up for a few seconds to view shutdown status
+echo "doit: Invoking parent for cleanup"
+exec parent -qt3
+

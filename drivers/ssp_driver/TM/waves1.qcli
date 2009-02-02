@@ -1,0 +1,15 @@
+# waves1.qcli
+# HHH Waveforms
+QCLIConfig FastRampx25;
+#QCLIConfig Standard;
+Digitizer SSP;
+Prefix QCLI1;
+
+ICOS Waveform HHH {
+  # Nsample = 900;
+  Ncoadd = 900;
+  SampleRate = 50 MHz/50;
+  Tz = 5%;
+  Ramp from 60 mA to 90 mA in 1 msec;
+  # Ramp from 1500 mA to 2250 mA in 5000 usec;
+}

@@ -1,0 +1,19 @@
+%{
+  char *ovf_text[] = {
+    " | | ",
+    "*| | ",
+    " |*| ",
+    "*|*| ",
+    " | |*",
+    "*| |*",
+    " |*|*",
+    "*|*|*" };
+%}
+
+TM typedef int SSP_OVF { text "%5d" ovf_text[]; }
+SSP_OVF SSP1_CA; Invalidate SSP1_CA;
+SSP_OVF SSP1_PA; Invalidate SSP1_PA;
+SSP_OVF SSP1_AD; Invalidate SSP1_AD;
+{ SSP1_CA = SSP_CAOVF(SSP1_Flags); Validate SSP1_CA; }
+{ SSP1_PA = SSP_PAOVF(SSP1_Flags); Validate SSP1_PA; }
+{ SSP1_AD = SSP_ADOOR(SSP1_Flags); Validate SSP1_AD; }
