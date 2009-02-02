@@ -1,125 +1,27 @@
-QCLI1_Exec { # Executive Summary
-  HBox { +-; Title: "QCLI1"; -+ };
-  Wave: (QCLI1_Wave,10);
-  Mode: { (QCLI1_mode,7) (QCLI1_laser,3); };
-  Stale: (QCLI1_Stale,5);
-  SSP1 { (SSP1_Num,5) (SSP1_Status,7); }
-}
-QCLI1_Status {
-  HBox { +-; Title: "QCLI1 Status"; -+ };
-  HBox {
-    {
-      Ready:         (QCLI1_ready,3);
-      Busy:          (QCLI1_busy,3);
-      Flash:         (QCLI1_flash,2);
-      Cksum:         (QCLI1_cksum,1);
-    }; |; {
-      "QCLI T:"      (QCLI1_dot,4);
-      "Laser T:"     (QCLI1_lot,4);
-      "Laser I:"     (QCLI1_loc,4);
-      "Inv Cmd:"     (QCLI1_cordte,4);
-      "SelWave:"     (QCLI1_waveerr,4);
-      "Cmd Err:"     (QCLI1_cmderr,4);
-    }
-  }
-}
-
 SSP1 {
   HBox { +-; Title: "SSP 1"; -+ };
-  File: (SSP1_Num,5);
-  Scan: (SSP1_SN,8);
-  Skip: (SSP1_TS,8);
-  Status: (SSP1_Status,7);
-  ""  >"1|2|3 ";
-  AD: (SSP1_AD,5);
-  PA: (SSP1_PA,5);
-  CA: (SSP1_CA,5);
-  Stale: (SSP1_Stale,5);
-}
-
-QCLI2_Exec { # Executive Summary
-  HBox { +-; Title: "QCLI2"; -+ };
-  Wave: (QCLI2_Wave,10);
-  Mode: { (QCLI2_mode,7) (QCLI2_laser,3); };
-  Stale: (QCLI2_Stale,5);
-  SSP2: { (SSP2_Num,5) (SSP2_Status,7); }
-}
-QCLI2_Status {
-  HBox { +-; Title: "QCLI2 Status"; -+ };
   HBox {
-    {
-      Ready:         (QCLI2_ready,3);
-      Busy:          (QCLI2_busy,3);
-      Flash:         (QCLI2_flash,2);
-      Cksum:         (QCLI2_cksum,1);
+    { File: (SSP1_Num,5);
+      Scan: (SSP1_SN,8);
+      Skip: (SSP1_TS,8);
+      Status: (SSP1_Status,7);
+      Stale: (SSP1_Stale,5);
     }; |; {
-      "QCLI T:"      (QCLI2_dot,4);
-      "Laser T:"     (QCLI2_lot,4);
-      "Laser I:"     (QCLI2_loc,4);
-      "Inv Cmd:"     (QCLI2_cordte,4);
-      "SelWave:"     (QCLI2_waveerr,4);
-      "Cmd Err:"     (QCLI2_cmderr,4);
+      ""  >"1|2|3 ";
+      AD: (SSP1_AD,5);
+      PA: (SSP1_PA,5);
+      CA: (SSP1_CA,5);
     }
+  };
+  { HBox { +-; Title: "SSP1 Temps"; -+ };
+    FPGA: (SSP1_T_FPGA,6) C;
+    HtSink: (SSP1_T_HtSink,6) C;
   }
 }
 
-SSP2 {
-  HBox { +-; Title: "SSP 2"; -+ };
-  File: (SSP2_Num,5);
-  Scan: (SSP2_SN,8);
-  Skip: (SSP2_TS,8);
-  Status: (SSP2_Status,7);
-  ""  >"1|2|3 ";
-  AD: (SSP2_AD,5);
-  PA: (SSP2_PA,5);
-  CA: (SSP2_CA,5);
-  Stale: (SSP2_Stale,5);
-}
 
-QCLI3_Exec { # Executive Summary
-  HBox { +-; Title: "QCLI3"; -+ };
-  Wave: (QCLI3_Wave,10);
-  Mode: { (QCLI3_mode,7) (QCLI3_laser,3); };
-  Stale: (QCLI3_Stale,5);
-  SSP3: { (SSP3_Num,5) (SSP3_Status,7); }
-}
-QCLI3_Status {
-  HBox { +-; Title: "QCLI3 Status"; -+ };
-  HBox {
-    {
-      Ready:         (QCLI3_ready,3);
-      Busy:          (QCLI3_busy,3);
-      Flash:         (QCLI3_flash,2);
-      Cksum:         (QCLI3_cksum,1);
-    }; |; {
-      "QCLI T:"      (QCLI3_dot,4);
-      "Laser T:"     (QCLI3_lot,4);
-      "Laser I:"     (QCLI3_loc,4);
-      "Inv Cmd:"     (QCLI3_cordte,4);
-      "SelWave:"     (QCLI3_waveerr,4);
-      "Cmd Err:"     (QCLI3_cmderr,4);
-    }
-  }
-}
-
-SSP3 {
-  HBox { +-; Title: "SSP 3"; -+ };
-  File: (SSP3_Num,5);
-  Scan: (SSP3_SN,8);
-  Skip: (SSP3_TS,8);
-  Status: (SSP3_Status,7);
-  ""  >"1|2|3 ";
-  AD: (SSP3_AD,5);
-  PA: (SSP3_PA,5);
-  CA: (SSP3_CA,5);
-  Stale: (SSP3_Stale,5);
-}
-
-
-{ HBox{ -; "Tilde Prototype"; - };
-  HBox{ +|+; { [QCLI1_Exec]; [QCLI1_Status]; [SSP1] }; |+;
-              { [QCLI2_Exec]; [QCLI2_Status]; [SSP2] }; |+;
-              { [QCLI3_Exec]; [QCLI3_Status]; [SSP3] }; +|+ };
+{ HBox{ -; "SSP Testbed"; - };
+  HBox{ +|+; [SSP1]; |+;
   -;
   HBox{ +|+; HGlue 0+1; { MFCtr: (MFCtr,5) }; +|+ };
   -;
