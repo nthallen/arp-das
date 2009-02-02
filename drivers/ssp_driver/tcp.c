@@ -16,15 +16,12 @@ static struct {
 /**
  * returns socket fd or dies
  */
-int tcp_create( int board_id ) {
+int tcp_create( const char *hostname ) {
 
   int rc, nonblock = 1;
   struct sockaddr_in localAddr, servAddr;
   struct hostent *h;
-  char hostname[40];
 
-  nl_assert( board_id >= 0 && board_id < 55 );
-  snprintf( hostname, 40, "10.0.0.%d", 200 + board_id );
   h = gethostbyname(hostname);
   if(h==NULL)
     nl_error( 3, "Unknown host '%s'", hostname);
@@ -69,11 +66,11 @@ static int tcp_empty(void) {
   return ( !tcp_queue.full && tcp_queue.front == tcp_queue.back );
 }
 
-void tcp_reset(int board_id) {
+void tcp_reset(const char *hostname) {
   int rc = close(tcp_socket);
   if ( rc < 0 )
     nl_error(2, "Error closing tcp_socket: %s", strerror(errno));
-  tcp_create(board_id);
+  tcp_create(hostname);
 }
 
 void tcp_connected(void) {

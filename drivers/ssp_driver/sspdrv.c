@@ -32,7 +32,7 @@
 #include "collect.h"
 #include "sspint.h"
 
-static int board_id = 0;
+static char board_hostname[40] = "10.0.0.200";
 static char *mlf_config = NULL;
 static char *ssp_name;
 static int quit_received = 0;
@@ -41,7 +41,7 @@ ssp_config_t ssp_config;
 ssp_data_t ssp_data;
 
 void sspdrv_init( char *name, int argc, char **argv ) {
-  int c;
+  int c, board_id;
 
   ssp_name = name;
   optind = OPTIND_RESET; /* start from the beginning */
@@ -52,6 +52,10 @@ void sspdrv_init( char *name, int argc, char **argv ) {
         board_id = atoi(optarg);
         if ( board_id < 0 || board_id > 54 )
           nl_error( 3, "Invalid board_id: %d", board_id );
+        snprintf( board_hostname, 40, "10.0.0.%d", 200 + board_id );
+        break;
+      case 'H':
+        snprintf( board_hostname, 40, "%s", optarg );
         break;
       case 'N':
         mlf_config = optarg;
@@ -212,7 +216,7 @@ void read_cmd( int cmd_fd ) {
       	switch (*++tail) {
 	  case 'R':
 	    udp_close();
-	    tcp_reset(board_id);
+	    tcp_reset(board_hostname);
 	    head = ++tail;
 	    continue;
 	  case 'X':
@@ -295,7 +299,7 @@ int main( int argc, char **argv ) {
   ssp_data.Total_Skip = 0;
   cmd_fd = ci_cmdee_init( ssp_name );
   tm_data = Col_send_init(ssp_name, &ssp_data, sizeof(ssp_data), 0);
-  tcp_create(board_id);
+  tcp_create(board_hostname);
   non_udp_width = cmd_fd + 1;
   if ( tm_data->fd >= non_udp_width )
     non_udp_width = tm_data->fd + 1;

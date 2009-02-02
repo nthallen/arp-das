@@ -18,8 +18,8 @@ extern enum fdstate tcp_state, udp_state;
 
 extern int tcp_socket;
 extern void sspdrv_init(char *name, int argc, char **argv);
-extern int tcp_create(int board_id);
-extern void tcp_reset(int board_id);
+extern int tcp_create(const char *hostname);
+extern void tcp_reset(const char *hostname);
 extern void tcp_enqueue( char *cmd );
 extern int tcp_send(void);
 extern int tcp_recv(void);
