@@ -21,7 +21,7 @@ SSP1 {
 
 
 { HBox{ -; "SSP Testbed"; - };
-  HBox{ +|+; [SSP1]; |+;
+  HBox{ +|+; [SSP1]; |+; };
   -;
   HBox{ +|+; HGlue 0+1; { MFCtr: (MFCtr,5) }; +|+ };
   -;

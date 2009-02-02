@@ -12,7 +12,6 @@
   }
   
   #include "qclid.h"
-  #include "subbus.h"
 %}
 TM typedef unsigned char SSP_Status_t { text "%7d" SSP_Status(); }
 TM typedef unsigned short UINT { text "%5u"; }
@@ -133,7 +132,7 @@ TM typedef UCHAR Clsdv_t { text "%1d" Clsdv_text(); }
 /* SSP Type definitions */
 /* T_FPGA_t: MAX6628 output, resolution 1/16 degree
  *   reported as 128 bits per degree celcius */
-TM typdef signed short T_FPGA_t { convert CELCIUS; text "%6.2lf"; }
+TM typedef signed short T_FPGA_t { convert CELCIUS; text "%6.2lf"; }
 Calibration ( T_FPGA_t, CELCIUS ) { 0, 0, 128, 1 }
 /* T_HtSink_t: MAX6661 output. resolution 1/8 degree
  *  reported as 256 bits per degree */

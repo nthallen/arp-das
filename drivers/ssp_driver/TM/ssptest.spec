@@ -1,6 +1,6 @@
 tmcbase = base.tmc waves1.tmc
 cmdbase = /usr/local/share/huarp/root.cmd
-cmdbase = ssp.cmd
+cmdbase = ssp.cmd qcli.cmd
 cmdbase = waves1.cmd
 
 OBJ = waves1.cmd waves1.out waves1.tmc waves1.m waves1.log

@@ -18,7 +18,7 @@ echo "Running script interact" >$memo
  Launch - lgr -N `mlf_find LOG`
 #Launch - dccc -f $TMBINDIR/dccc.dccc
  Launch DG/cmd ssptestcol
- Launch - sspdrv -b1 -hSSP1 -N `mlf_find SSP1`
+ Launch - sspdrv -H 10.0.0.205 -hSSP1 -N `mlf_find SSP1`
 #Launch - sspdrv -b2 -hSSP2 -N `mlf_find SSP2`
 #Launch - sspdrv -b3 -hSSP3 -N `mlf_find SSP3`
 #Launch - qclisd -h QCLI1 -d /dev/ser2
