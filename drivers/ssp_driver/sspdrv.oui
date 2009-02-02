@@ -5,12 +5,17 @@
 
 <init> sspdrv_init(msg_hdr, argc, argv);
 
-<opts> "b:N:"
+<opts> "b:N:H:"
 <sort>
-	-b <board_id> Identify which SSP we are talking to
+	-b <board_id> (deprecated) Identify which SSP we are talking to
+	-H <ssp_hostname>
 	-N <logging config>
 
 <unsort>
+<blank>
+The -b option identifies the SSP using the IP address
+10.0.0.200+board_id. This is too limiting in most cases,
+so the -H option in preferred.
 <blank>
 Logging config is a path string identifying the last
 file previously written and implicitly the next file
