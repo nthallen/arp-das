@@ -308,12 +308,75 @@
 </v>
 <v t="ntallen.20070404221945.3" a="E"><vh>Graphics</vh>
 <v t="ntallen.20090203160910" a="E"><vh>plot</vh>
+<v t="ntallen.20090211110324"><vh>Todo</vh>
+<v t="ntallen.20090211110418.1"><vh>Drag and Drop test programs</vh></v>
+<v t="ntallen.20090211110324.1"><vh>Done: PtDivider test program</vh></v>
+<v t="ntallen.20090211110418"><vh>Done: PtTree test program</vh></v>
+</v>
 <v t="ntallen.20090203160910.1" a="E"><vh>Object hierarchy</vh>
+<v t="ntallen.20090218163512" a="E"><vh>Variable</vh>
+<v t="ntallen.20090204093154"><vh>Data Feed</vh></v>
+</v>
+<v t="ntallen.20090218164400"><vh>Figure Window</vh>
+<v t="ntallen.20090219084511"><vh>Figure Properties</vh></v>
+</v>
+<v t="ntallen.20090219084511.1"><vh>Window Pane</vh>
+<v t="ntallen.20090219084511.2"><vh>Pane Properties</vh></v>
+</v>
 <v t="ntallen.20090203162108" a="E"><vh>Axes</vh>
 <v t="ntallen.20090203160910.2"><vh>Axes scenarios</vh></v>
+<v t="ntallen.20090219084511.3"><vh>Axis properties</vh></v>
+</v>
+<v t="ntallen.20090218163512.1"><vh>Data</vh>
+<v t="ntallen.20090219084511.4"><vh>Data Properties</vh></v>
+</v>
+<v t="ntallen.20090218164400.1"><vh>Line</vh>
+<v t="ntallen.20090219084511.5"><vh>Line Properties</vh></v>
 </v>
 </v>
-<v t="ntallen.20090203162108.1" a="TV"><vh>Photon Issues</vh></v>
+<v t="ntallen.20090203162108.1"><vh>Photon Issues</vh>
+<v t="ntallen.20090204093154"><vh>Data Feed</vh></v>
+</v>
+<v t="ntallen.20090210131028" a="E"><vh>UI</vh>
+<v t="ntallen.20090210131028.1" a="E"><vh>Windows</vh>
+<v t="ntallen.20090210131028.3" a="E"><vh>Console</vh>
+<v t="ntallen.20090224121203"><vh>Drag and Drop</vh></v>
+<v t="ntallen.20090223110548"><vh>Menu</vh></v>
+<v t="ntallen.20090224102255"><vh>Variables Tab</vh></v>
+<v t="ntallen.20090224102255.1"><vh>Graphs Tab</vh></v>
+<v t="ntallen.20090218161257.1" a="E"><vh>Window Tab</vh>
+<v t="ntallen.20090219084511"><vh>Figure Properties</vh></v>
+</v>
+<v t="ntallen.20090224110843" a="E"><vh>X,Y Tabs</vh>
+<v t="ntallen.20090219084511.6"><vh>Pane Properties</vh>
+<v t="ntallen.20090219084511.2"><vh>Pane Properties</vh></v>
+</v>
+<v t="ntallen.20090218161257.2"><vh>Axes Properties</vh>
+<v t="ntallen.20090219084511.3"><vh>Axis properties</vh></v>
+</v>
+<v t="ntallen.20090219085744" a="E"><vh>Data Properties</vh>
+<v t="ntallen.20090219084511.4"><vh>Data Properties</vh></v>
+</v>
+</v>
+<v t="ntallen.20090219085744.1" a="ETV"><vh>Line Properties</vh>
+<v t="ntallen.20090219084511.5"><vh>Line Properties</vh></v>
+</v>
+</v>
+<v t="ntallen.20090210131028.2" a="E"><vh>GraphWindow</vh></v>
+</v>
+<v t="ntallen.20090210131028.4"><vh>Operations</vh>
+<v t="ntallen.20090210131028.5"><vh>Startup</vh></v>
+<v t="ntallen.20090210131028.6"><vh>Define a variable</vh></v>
+<v t="ntallen.20090210131028.7"><vh>Create a new Graph Window</vh></v>
+<v t="ntallen.20090210131028.8"><vh>Create a new Graph</vh></v>
+<v t="ntallen.20090210131028.9"><vh>Create new axes</vh></v>
+<v t="ntallen.20090210131028.10"><vh>Control graph options</vh>
+<v t="ntallen.20090210131028.11"><vh>Window Properties</vh></v>
+<v t="ntallen.20090210131028.12"><vh>Axes Properties</vh></v>
+<v t="ntallen.20090210131028.13"><vh>Line Properties</vh></v>
+</v>
+</v>
+</v>
 </v>
 </v>
 <v t="ntallen.20070404221945.4" a="E"><vh>Drivers</vh>
@@ -2058,14 +2121,44 @@ stop:
     If instrument is operational, send "Quit" to cmdsrvr
     else complain
 </t>
-<t tx="ntallen.20090203160910">I want to start from this prototype to develop a widget or something like a widget to provide a graph that can be included within some other application.
+<t tx="ntallen.20090203160910">Priorities:
+    Auto Update
+    Support for multiple windows, multiple SSPs
+    Hide some lines
+    Axis labeling
+    Zoom (ability to fix scaling)
+    FFT
+    Detrend
 
-Features:
-    One or more data sets (x,y)
-    Selectable line styles, markers
-    Axis Labels
-    Autoscaling, zoom, fixed</t>
-<t tx="ntallen.20090203160910.1">plot_obj : polymorphic superclass
+SSP data comes in matrices, e.g. 1024 x 2 or 1024 x 3. By default, when you display SSP1, you get all three channels on top of each other. What we want to do is be able to deselect specific lines.</t>
+<t tx="ntallen.20090203160910.1">variable
+plot_obj
+  figure
+  axes
+  line (rename to 'data')
+  polyline (rename to 'line')
+
+plot_obj's can form an arbitrary tree hierarchy, but there are some rules.
+The root of a hierarchy should be a figure
+Axes are the only allowed as direct children of figure, but that could be augmented
+with other containers, such as panels.
+Axes have one or more line children
+Lines have one or more polyline children
+polylines have one or more polyline widgets
+
+Extensions:
+    line object contains x,y for a single variable (may include multiple lines of same length)
+    currently does not include a variable name
+    currently does not allow display on more than one set of axes
+    
+    inasmuch as a line is associate with graphing, we can expect that it will come to include
+    information about how to graph the line (line type, symbol type, whether to suppress display
+     of an individual column) and this should be different if the data is displayed in more
+     than one set of axes, there should be a separation. Actually, most of that info should
+     live in the polyline objects, but the line still refers to the axes pair where the data
+     is displayed, so I think ...
+
+plot_obj : polymorphic superclass
     Attributes:
         type  (po_figure, po_axes, po_line, po_poly, po_text, po_zoom, po_max)
         first, last, next: children
@@ -2108,42 +2201,497 @@ axes : public plot_obj
 
 line : public plot_obj
   A line actually supports multiple lines as specified by one or two matrix objects (matlab-style).
-  As such, it has one or more polyline objects as children.
+  As such, it has one or more polyline objects as children
+    Attributes:
+        Axes
+        xdata
+        ydata
 
 polyline : public plot_obj
   Polyline object supports a single graphical line, but it may be implemented by patching together
   multiple polyline widgets if necessary.</t>
-<t tx="ntallen.20090203160910.2">1. Single XY axis pair. Basic labeling options:
-    Draw axis 0
-    Draw ticks 0
-    Draw tick Labels 0
-    Label axis 0
-    Reserve tick space 0
-    Reserve label space 0
-    Axis color
-    Tick Label Style
-    Axis Label Style
-    Tick Length
-    Label Length
-
-    This representation allows for left, right, or both positioning of axis labels and ticks.
-    In practice, a subset of options would probably apply. For example, I could decide that
-    if you are going to draw one axis, you draw both. If you add tick marks, you add them
-    to both. Or I could support drawing axis and tick marks together with tick labels or on
-    both axes, but not say only on the opposite axis. Decoupling the 'Reserve Space' options
-    from the 'Draw' options allows support for overlays
+<t tx="ntallen.20090203160910.2">1. Single XY axis pair.
 
 2. Overlaying multiple axes in the same space
     We want the graphing area to end up the same, and perhaps we want either the x or y axes
-    to be locked together. In this case, we would want to reserve space for axis tick marks
+    to be synched together. In this case, we would want to reserve space for axis tick marks
     and/or labels but not actually draw them.
 </t>
-<t tx="ntallen.20090203162108">Axes currently fill their parent's area which is currently a figure which corresponds directly to a window widget.
+<t tx="ntallen.20090203162108">Parent is a Window Pane
+Axes currently fill their parent's area which is currently a figure which corresponds directly to a window widget.
 Since any non-trivial application will require additional controls on the window, it makes sense to allow axes to use a subset of the parent's area. Possible approaches include:
     1. axes can be created with their (fixed) outer box specified (i.e. on a TM data display)
     2. axes can be created inside a panel object, which could be resized independently of the window</t>
 <t tx="ntallen.20090203162108.1">Current design is missing many dynamic features.
 Objects are created and displayed, but never destroyed, erased or redrawn.
-What needs to be done in order to redraw</t>
+When does some sort of redraw need to take place?
+    When new "active" data arrives (data that is being displayed)
+    When some user interaction requires a change in display
+        Window/axes resize
+        Zoom/change in scaling
+        Select/Deselect what is displayed
+        Change in color, line style
+
+What needs to be done in order to redraw?
+    Cause: Change in data
+</t>
+<t tx="ntallen.20090204093154">Take 2:
+    Data feed defines a variable, not any graphics.
+    We may use drag &amp; drop to establish certain data feeds, particularly for trend plots, but for right now and SSP, I will read from the standard command interface. Command format could be:
+        Var SSP1 MLF &lt;path&gt; &lt;n&gt;
+    The window configuration, etc. is handled interactively and/or via a configuration file.
+
+Take 1:
+Need to define a data stream syntax. For starters, I will go with lines of the format:
+    'FILE' &lt;path&gt; '#' &lt;number&gt;
+To indicate that the specified file should be read and displayed.
+
+OK, this is crude. This assumes a single figure with a single set of axes, but the general case is more complicated.
+I think what we want to do is to define data sets or variables, associate those data sets with specific graphs,
+then provide commands to modify the data sets.
+
+&lt;variable name="SSP1" source="SSP1#17" /&gt;
+&lt;figure name="F"&gt;
+  &lt;axes&gt;
+    &lt;plot variable="SSP1"/&gt;
+  &lt;/axes&gt;
+&lt;/figure&gt;
+&lt;variable name="SSP1" source="SSP1#18" /&gt;
+&lt;variable name="P" append_value="1777777, 760" /&gt;
+
+Probably a good idea. I could either use libxml2, libexpat or XSD/e to process the input.
+
+That said, for the immediate need, making the assumption of one figure and one pair of axes is OK.</t>
+<t tx="ntallen.20090210131028"></t>
+<t tx="ntallen.20090210131028.1">On startup, open the console window:
+    Empty Variables and Windows trees
+    When a variable is defined, it will appear in the variable tree.
+    Then it can be selected and a graph created via the menus
+
+Console and Dialogs *could* be panes of a single window, either optionally minimized
+
+Note that graphs, console and dialogs cannot have a window/subwindow relationship. They must be independent.
+
+PtTree/PtDivider/PtButton
+  Anchor flags apparently need to be 0 or strange things happen to the last button when the PtTree is resized
+PtDivider/PtPane
+  Anchor flags can be 0. left_left, right_right, top_top, bottom_bottom also works
+
+From within PhAB, Console should be the base window. New graph windows should be created with:
+    ApModuleParent(ABM_Graph, AB_NO_PARENT, NULL);
+    ApCreateModule(ABM_Graph, NULL, NULL);
+
+However, it may not make sense to use PhAB at all for the graphing windows. The graph window will consist of:
+    Base Window
+      PtDivider
+        PtPane+
+
+I will need to directly identify the PtPane widgets. I could play games by walking the widget hierarchy, but the fact is, I will need to explicitly create other PtPanes and other graph windows, so the only work I would save would be creating the PtDivider.
+</t>
+<t tx="ntallen.20090210131028.2">What about controls?
+  Zoom on/x/y/off
+  Detrend
+  FFT
+These can be handled via menus, either on the window or context menus.</t>
+<t tx="ntallen.20090210131028.3">Console consists of several tabs covering all the properties
+Actual tabs will be:
+    Variables
+    Graphs
+    Window
+    X (includes Pane Properties, data properties?)
+    Y (includes Pane Properties, data properties?)
+    Line
+
+Pt_CB_PG_PANEL_SWITCHING
+  Update new panel with current selection values
+  Prevent switching to panels that are not relevant
+Pt_ARG_PG_FLAGS-&gt;Pt_PG_DND
+  Allow dragging panels to new windows! Love it.
+
+Keep track of current variable
+Use menu to select where a new graph goes
+How to specify which?
+    Menus:
+        graph current variable in new window
+        graph current variable in new pane of current window
+        graph current variable overlaying current axes
+        graph current variable on selected axes
+    Drag and Drop:
+        Use ctrl, alt, shift on drop to indicate what to do?
+
+Properties dialog has tabs for:
+    Window
+    Pane
+    Axes(maybe X,Y separately?)
+    Data
+    Line
+
+Adding variable to window creates a new pane
+Adding variable to pane creates new axes overlaying existing axes with independent Y (and/or X)
+Adding variable to axes uses the same scale
+
+Should probably develop icons for:
+    Variables
+        Variable
+    Windows
+        Window
+        Axes
+        Data
+        Line
+
+Top Level Create items 'Variables' and 'Windows'
+Top level items should not have 'visible' or 'properties' image displayed
+Also can override the color scheme so these items don't change when selected
+  That probably means I need both an image selector function and a
+  column selector function. image selector returns -1 for the top
+  level items, 0 or 1 for the 'Visible' column, 0 for Properties
+  
+  Column selector needs to actually take action on visibility changes
+  and properties requests
+</t>
+<t tx="ntallen.20090210131028.4"></t>
+<t tx="ntallen.20090210131028.5">On startup without preconfiguration, the console and one graph window will open. The graph will include a single pair of axes, but no data plotted. The console will show that hierarchy and presumably no variables.
+
+If an existing configuration is stored, it will be read in, and the necessary graphs will be created.
+</t>
+<t tx="ntallen.20090210131028.6">This should happen behind the scenes via IPC. A data source will connect to the application and identify the data it has to offer. I could have some internal variables available (cpu usage, disk space) or I could write separate utilities to provide these via the usual mechanism. The latter probably makes sense.</t>
+<t tx="ntallen.20090210131028.7">By command on the console. New Windows are created with one pair of axes</t>
+<t tx="ntallen.20090210131028.8">Drag and Drop from variable list to an axes pair.
+Use ctrl-drop or something to indicate that you want new disjoint axes created.
+Use something to indicate you want new overlapping axes created (defaulting to locked x-axes, separately scaled y-axes)
+</t>
+<t tx="ntallen.20090210131028.9">Either overlapping the current axes or underneath.
+There is an obvious concept of current axes. Axes can be selected by clicking inside the axes or select the axes in the console. (selecting in the graph should select in the console)
+</t>
+<t tx="ntallen.20090210131028.10">Separate dialog windows for:
+    Window properties
+    Axes properties
+    Line properties
+    </t>
+<t tx="ntallen.20090210131028.11">lock x (to lock all x-axes)
+Window location and size (set by dragging, but will need to record for stored configuration)
+  win_x
+  win_y
+  win_dx
+  win_dy
+</t>
+<t tx="ntallen.20090210131028.12">This set applies to X and Y independently:
+    Draw axis
+    Draw ticks
+    Draw tick Labels
+    Label axis
+    Reserve tick space
+    Reserve label space
+    Axis color
+    Tick Label Style (precision, font, size, color)
+    Axis Label Style (precision, font, size, color)
+    Major Tick Length (positive is outward, negative inward)
+    Minor Tick Length (i.e. unlabeled ticks. Same units)
+    Label Length (same units. Label is vertically centered in the space?)
+    Label
+    autoscale [on|off]
+    min
+    max
+    log [on|off]
+    grid [on|off]
+    tickmode [auto|manual]
+    ticks
+    lock scale to overlapping axes [on|off]
+    weight (used to decide how to </t>
+<t tx="ntallen.20090210131028.13">Display [on|off]
+Line Color
+Line Thickness
+Marker
+Marker Color
+Marker Size</t>
+<t tx="ntallen.20090211110324"></t>
+<t tx="ntallen.20090211110324.1">Figure out how to control PtDivider from code and UI
+Specifically:
+    How can I set the dimensions of PtDivider children from a stored configuration?
+        Try setting dimensions of child panes
+    How can I override the results of a window resize?
+        Default appears to have resize affect only last child. I would like something more proportional
+        Test program should record the order of resize callbacks for:
+            PtWindow
+            PtDivider
+            PtPane
+
+Pt_CB_DIVIDER_DRAG
+    Gets called with subtype 0 (Ph_EV_DRAG_INIT? Ph_EV_DRAG_START?)
+    Gets called with subtype 1 (ph_EV_DRAG_MOVE? Ph_EV_DRAG_MOTION_EVENT?)
+    Gets called with subtype 2 at the end</t>
+<t tx="ntallen.20090211110418">Just figure out how it works</t>
+<t tx="ntallen.20090211110418.1">Try out intra and interprocess drag and drop.</t>
+<t tx="ntallen.20090218161257.1">aka graph window
+Options include:
+    Name: String
+    Display_Menu: Boolean
+    Visible: Boolean
+    Display_Name: Boolean
+    [other window display functions: allow resize, minimize, maximize]
+
+</t>
+<t tx="ntallen.20090218161257.2"></t>
+<t tx="ntallen.20090218163512">Data that comes into phrtg should come in with either a timestamp or an implicit x-coordinate (e.g. sample number)
+The x unit options are:
+    sample number
+    unix time
+
+Hence a variable can be an NxM matrix with an optional Nx1 x-coordinate
+
+We can have display options for unix time such as:
+    seconds since midnight
+    seconds before now (for trending)
+    etc.
+[but that information belongs elsewhere.]
+
+Will need a list of Data objects that reference this variable. When
+the data changes, the Data objects need to be notified.
+</t>
+<t tx="ntallen.20090218163512.1">Data associates variable data with axes.
+The prototype implementation stores the data in the line object.
+The new implementation will store the data in variable objects.
+The data object will provide the mapping between the variables and the axes.
+One variable can be displayed in one or more data objects in one or more axes.
+
+The simplest data objects will display a single variable using the variable's x-coordinate.
+    Updates to the variable will trigger updates to the data object.
+
+Other options:
+    X/Y plots with two variables
+    Detrending
+    FFT
+    Arbitrary Functions of arbitrary variables?
+</t>
+<t tx="ntallen.20090218164400">aka graph window
+</t>
+<t tx="ntallen.20090218164400.1">Line has a Data object as parent and displays on the parent's axes.
+Scaling is defined in the axes.
+
+Actually display only if parent line is visible and Line_Visible or Symbol_Visible</t>
+<t tx="ntallen.20090219084511">Options include:
+    Name: String
+    *Display_Name: Boolean
+    Visible: Boolean
+    Area: x,y,height,width (controlled by dragging, not dialog, but should be saved with configuration)
+    [Pane Orientation: Vertical]
+    [other window display functions: allow resize, minimize, maximize]
+    [[*Background_Color: Color Should be a Pane Property]]
+</t>
+<t tx="ntallen.20090219084511.1">Immediate child of Window
+Parent of Axes
+At least one Pane per Window</t>
+<t tx="ntallen.20090219084511.2">Could probably be incorporated into the Axes properties
+
+The Title belongs with the Pane, since we can't display two titles for overlayed axes.
+We may default to not displaying the pane title, instead displaying the window title.
+
+Pane Properties:
+    Synch_Axis_Range([XY]): Boolean
+    Background_Color: PtColorWell (or some other selector)
+    *Axes_Background_Color: PtColorWell
+    Height: Maintained via drag, but needs to be recorded in saved config
+
+    Pane_Title: The actual text (for listing on console) default to first variable name
+    *Pane_Title_Height: Space to allocate (hide for now.)
+    *Pane_Title_Font_Settings: whatever
+    *Reserve_Pane_Title_Height: Boolean
+    *Display_Pane_Title: Boolean
+
+*May never want to display pane title on the graph</t>
+<t tx="ntallen.20090219084511.3">
+Axes Properties:
+    Axes_Name: String Just for graphs tab. Default to first variable name
+    Axes_Visible: Boolean
+
+Axis Properties:
+    Draw axis(0,1): Boolean
+    Reserve axis tick space(0,1): Boolean
+    Draw axis ticks(0,1): Boolean
+    Reserve axis tick label space(0,1): Boolean
+    Draw axis tick Labels(0,1): Boolean
+    Label:
+      *Reserve axis label space(0,1): Boolean
+      *Draw axis label(0,1): Boolean
+    
+    *Axis color: color
+    *Axis Tick Label Style: *use defaults for now
+    *Axis Label Style: *use defaults for now
+    *Axis Major Tick Length: int (positive is outward, negative inward)
+    *Axis Minor Tick Length: int (i.e. unlabeled ticks. Same units)
+    *Axis Label Height: int (same units. Label is vertically centered in the space?)
+    Axis_Limit_Auto: Boolean
+    Axis_Limits: float[2] min, max
+    Axis_Log: Boolean (Logarithmic Scale)
+    *Axis_Reverse: Boolean (Reverse the direction)
+
+(0,1) indicates either (left,right) or (bottom,top)
+    This representation allows for left, right, or both positioning of axis labels and ticks.
+    In practice, a subset of options would probably apply. For example, I could decide that
+    if you are going to draw one axis, you draw both. If you add tick marks, you add them
+    to both. Or I could support drawing axis and tick marks together with tick labels or on
+    both axes, but not say only on the opposite axis. Decoupling the 'Reserve Space' options
+    from the 'Draw' options allows support for overlays, but it is probably reasonable to
+    require that we only draw ticks and labels if we have reserved space for them.
+</t>
+<t tx="ntallen.20090219084511.4">Data Options:
+    Variable: (should be fixed, defined at creation)
+    Name: Default to variable's name, but may be changed
+    Visible: Boolean
+
+Other data processing possibilities may be properties of the data object
+    Detrend: Boolean
+    FFT (need to define the source range, probably using the current x limits)
+    XY (this needs to be defined at creation somehow)
+</t>
+<t tx="ntallen.20090219084511.5">
+Options:
+    Line_Color: color (default via algorithm)
+    Symbol: char? int?
+    Symbol_Color: color (default via algorithm, same as Line_Color)
+    Symbol_Size: int?
+    Line_Visible: boolean
+    Symbol_Visible: boolean
+</t>
+<t tx="ntallen.20090219084511.6">May not require a separate tab for these. They could be hidden inside axes properties.
+</t>
+<t tx="ntallen.20090219085744">Tab could be disabled if a graph is not selected
+Alternately, this dialog could include a selection box to indicate which graph to edit
+In which case, selecting a graph should change the selection in the console as well</t>
+<t tx="ntallen.20090219085744.1">Tab could be disabled if a graph is not selected
+Alternately, this dialog could include a selection box to indicate which line to edit
+In which case, selecting a line should change the selection in the console as well
+
+
+Options:
+    Visible: boolean (inhibits display while saving configuration)
+    Line_Style: select from list including none, solid [, dashed, dotted]
+    Line_Color: PtColorWell color (default via algorithm)
+    *Symbol: select from list including none, ., *, +
+    *Symbol_Color: color (default via algorithm, same as Line_Color)
+    *Symbol_Size: int?
+</t>
+<t tx="ntallen.20090223110548">Menus:
+    graph current variable in new window
+    graph current variable in new pane of current window
+    graph current variable overlaying current axes
+    graph current variable on selected axes
+    Drag and Drop:
+        Use ctrl, alt, shift on drop to indicate what to do?
+
+  Zoom
+    on Excl_Toggle
+    x
+    y
+    off
+
+  Data
+    Detrend  toggle
+    FFT      toggle
+</t>
+<t tx="ntallen.20090224102255">PtTree of variables
+Hierarchy created by the connecting source
+Plan is to use this tab to select current variable for creating graphs,
+ultimately using drag and drop
+
+Pt_CB_TREE_SELECTION
+  Update current variable
+</t>
+<t tx="ntallen.20090224102255.1">PtTree
+  PtDivider
+    PtButton Name
+    PtButton Visibility
+
+Window_name
+  Pane_name
+    axes_name
+      data_name
+        line_name
+
+We maintain:
+    current_window
+    current_pane
+    current_axes
+    current_data
+    current_line
+
+Selecting an item updates the entire hierarchy
+    ancestors are unambiguous
+    select first child for all descendants
+
+Visibility keyed off one of the status bits: Pt_LIST_ITEM_FLAG_USER1
+Pt_CB_TREE_COLUMN_SEL function
+  If visibility is selected, notify whoever needs notifying
+  If name is selected, update the list of current objects:
+      set ancestors
+      clear descendent types unless there is only a single child
+
+
+Advanced Feature: Do this later...
+Hide intermediate levels if only one child: e.g.
+    Windows
+      SSP1
+        SSP1(:,1)
+        SSP1(:,2)
+        SSP1(:,3)
+        
+Selecting Properties for SSP1 brings up tabbed dialog with access to
+all the ancestry. But how do I specify where I want a new graph to
+be created?
+    Dropping variable on 'Windows' creates a new window
+    Dropping variable on top of SSP1 could:
+        Create a new pane
+        Create new axes overlay in existing pane
+        Add to existing axes
+        
+</t>
+<t tx="ntallen.20090224110843">I think these will be identical, possibly using the same container
+Each Panel in the PtPanelGroup contains a PtPane. The PtPane's title is the tab's label
+Try using PtReparentWidget() to switch.
+Embed a second PtPane inside one of these tabs and reparent it when X or Y is selected
+
+Pane Properties
+    Pane_Title: String (for Window tab, default to first variable)
+    Visible: Boolean
+    Background_Color: PtColorWell (or some other selector)
+    Synch_Axis_Range([XY]): Boolean
+    [Height: Maintained via drag, but needs to be recorded in saved config]
+    *Axes_Background_Color: PtColorWell
+
+Axes Properties:
+    Axes_Name: String Just for graphs tab. Default to first variable name
+    Axes_Visible: Boolean
+
+Axis Properties:
+    Draw axis(0,1): Boolean
+    Reserve axis tick space(0,1): Boolean
+    Draw axis ticks(0,1): Boolean
+    Reserve axis tick label space(0,1): Boolean
+    Draw axis tick Labels(0,1): Boolean
+    Label:
+      *Reserve axis label space(0,1): Boolean
+      *Draw axis label(0,1): Boolean
+    
+    *Axis color: color
+    *Axis Tick Label Style: *use defaults for now
+    *Axis Label Style: *use defaults for now
+    *Axis Major Tick Length: int (positive is outward, negative inward)
+    *Axis Minor Tick Length: int (i.e. unlabeled ticks. Same units)
+    *Axis Label Height: int (same units. Label is vertically centered in the space?)
+    Axis_Limit_Auto: Boolean
+    Axis_Limits: float[2] min, max
+    Axis_Log: Boolean (Logarithmic Scale)
+    *Axis_Reverse: Boolean (Reverse the direction)
+
+Data Properties: These should probably only apply to the y-axis
+    Detrend: Boolean
+    FFT: Boolean (need to define the source range, probably using the current x limits)
+        FFT_X_Range: float[2]
+</t>
+<t tx="ntallen.20090224121203">    
+How does dnd work for lists?
+Can I drag a list item to another app?
+    I think what I'll need to do is create a widget that will be the actual drag item
+</t>
 </tnodes>
 </leo_file>
