@@ -8,6 +8,5 @@ config.h.in
 config.log
 config.status
 configure
-configure.ac
 libtool
 stamp-h1
