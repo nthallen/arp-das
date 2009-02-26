@@ -33,7 +33,7 @@ class dq_tstamp_ref : public dq_ref {
 class dq_data_ref : public dq_ref {
   public:
     dq_data_ref(mfc_t MFCtr, int mfrow, int Qrow_in, int nrows_in );
-    void dq_data_ref::append_rows( int nrows );
+    void append_rows( int nrows );
     mfc_t MFCtr_start, MFCtr_next;
     int row_start, row_next;
     int Qrow;
