@@ -17,7 +17,7 @@ int DCPH_fd_handler( int fd, void *data, unsigned mode) {
 int ph_data_client::read() {
   data_client::read();
   PtFlush();
-  if ( quit ) PtExit(0);
+  if ( dc_quit ) PtExit(0);
   return Pt_CONTINUE;
 }
 
