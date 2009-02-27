@@ -64,7 +64,6 @@ void msg_init_options(char *hdr, int argc, char **argv) {
 	break;
       case 'm': write_to_memo = 2; break;
       case 'V': write_to_stderr = 1; break;
-      case 's': break;
       case '?':
         fprintf( stderr, "Unrecognized option: '-%c'\n", optopt );
         exit(1);

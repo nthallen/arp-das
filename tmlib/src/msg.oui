@@ -24,14 +24,13 @@
 <include> msghdr
 <follow>  msghdr msghdr_init
 
-<opts> "vo:mVs"
+<opts> "vo:mV"
 
 <sort>
 	-v add a level of verbosity
 	-o <error filename> Write to specified file
 	-m write to memo [default]
 	-V write to stderr
-	-s no message sounds
 
 <include> "msg.h"
 <init>
