@@ -1,0 +1,27 @@
+#! /bin/sh
+#__USAGE
+#%C	suspend
+#%C	wakeup
+#
+#%C suspend
+#  This does not actually perform the suspend operation, but it does what we
+#  want to do before suspending, namely shut down the network.
+#%C wakeup
+#  Handles resetting the clock and acquiring an IP address
+
+if [ `id -u` != 0 ]; then
+  exec /usr/pkg/bin/sudo $0 $*
+fi
+
+case $1 in
+  suspend)
+    slay dhcp.client;;
+  wakeup)
+    /sbin/rtc hw
+    /usr/sbin/dhcp.client -m
+    /sbin/ifconfig -a;;
+  *)
+    echo Unrecognized option >&1
+    exit 1;
+esac
+
