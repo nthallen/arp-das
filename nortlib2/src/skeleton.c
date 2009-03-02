@@ -16,7 +16,7 @@ static FILE *skfp = NULL;
 #define MAX_LABEL 40
 #define DEF_DIR "/usr/local/share/huarp"
 
-int Skel_open(char *name) {
+int Skel_open(const char *name) {
   char filename[FILENAME_MAX+1];
   
   #if HAVE__SEARCHENV
@@ -48,7 +48,7 @@ int Skel_open(char *name) {
    Specific label format is "^%[a-zA-Z0-9_]*%". Anything failing
    to match is deemed not a label and is processed as text.
 */
-int Skel_copy(FILE *ofp, char *label, int copyout) {
+int Skel_copy(FILE *ofp, const char *label, int copyout) {
   char lbuf[MAX_LABEL];
   int c, i;
 

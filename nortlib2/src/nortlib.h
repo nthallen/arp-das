@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.20  2008/08/16 14:44:26  ntallen
+ * MSG codes from msg.h
+ *
  * Revision 1.19  2007/05/09 17:14:47  ntallen
  * Delete functions from another library
  *
@@ -42,11 +45,11 @@
 extern "C" {
 #endif
 
-int Skel_open(char *name);
-int Skel_copy(FILE *ofp, char *label, int copyout);
+int Skel_open(const char *name);
+int Skel_copy(FILE *ofp, const char *label, int copyout);
 
-extern int (*nl_error)(int level, char *s, ...); /* nl_error.c */
-int nl_err(int level, char *s, ...); /* nl_error.c */
+extern int (*nl_error)(int level, const char *s, ...); /* nl_error.c */
+int nl_err(int level, const char *s, ...); /* nl_error.c */
 #ifdef va_start
   int nl_verror(FILE *ef, int level, const char *fmt, va_list args); /* nl_verr.c */
 #endif

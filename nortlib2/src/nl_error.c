@@ -7,7 +7,7 @@
 char rcsid_nl_error_c[] =
   "$Header$";
 
-int nl_err(int level, char *s, ...) {
+int nl_err(int level, const char *s, ...) {
   va_list arg;
 
   va_start(arg, s);
@@ -16,7 +16,7 @@ int nl_err(int level, char *s, ...) {
   return(level);
 }
 
-int (*nl_error)(int level, char *s, ...) = nl_err;
+int (*nl_error)(int level, const char *s, ...) = nl_err;
 /*
 =Name nl_error(): Standard error message function
 =Subject Nortlib
