@@ -52,13 +52,13 @@ void memo_init_options( int argc, char **argv ) {
   while ((c = getopt(argc, argv, opt_string)) != -1 ) {
     switch (c) {
       case 'o':
-	output_filename = optarg;
-	break;
+        output_filename = optarg;
+        break;
       case '?':
-      	nl_error( 3, "Unrecognized commandline option -%c", optopt );
-      	break;
+              nl_error( 3, "Unrecognized commandline option -%c", optopt );
+              break;
       default:
-	break;
+        break;
     }
   }
 }
@@ -109,11 +109,11 @@ int main(int argc, char **argv) {
         nl_error(3, "%s: Unable to attach name.\n", argv[0]);
     }
 
-		// running starts at 2. When the first client opens a connection,
-	  // we change to 1. When all connections are closed, we go to 0.
-	  // In this way, we don't require any additional commanding, but
-	  // we do require that there be some continuity in how the clients
-	  // use the resource.
+                // running starts at 2. When the first client opens a connection,
+          // we change to 1. When all connections are closed, we go to 0.
+          // In this way, we don't require any additional commanding, but
+          // we do require that there be some continuity in how the clients
+          // use the resource.
     int running = 2;
     dispatch_context_t   *ctp;
     ctp = dispatch_context_alloc(dpp);
@@ -122,8 +122,8 @@ int main(int argc, char **argv) {
     if ( output_filename ) {
       ofp = fopen( output_filename, "a" );
       if ( ofp == NULL )
-	nl_error( 3, "Unable to open output file '%s'",
-	   output_filename );
+        nl_error( 3, "Unable to open output file '%s'",
+           output_filename );
     }
     { time_t now = time(NULL);
       fprintf( ofp, "\nMemo Starting: %s", asctime(gmtime(&now)) );
@@ -131,8 +131,8 @@ int main(int argc, char **argv) {
     signal(SIGHUP, SIG_IGN);
     while ( running ) {
       if ((ctp = dispatch_block(ctp)) == NULL) {
-	fprintf( ofp, "Memo internal: block error\n" );
-	return EXIT_FAILURE;
+        fprintf( ofp, "Memo internal: block error\n" );
+        return EXIT_FAILURE;
       }
       dispatch_handler(ctp);
       if ( running > 1 && attr.count > 0 ) running = 1;
