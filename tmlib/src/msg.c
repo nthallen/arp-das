@@ -10,7 +10,7 @@
 
 /** Handle -h option
  */
-char *msghdr_init(char *hdr_default, int argc, char **argv) {
+char *msghdr_init(const char *hdr_default, int argc, char **argv) {
   char *hdr = hdr_default;
   int c;
 
@@ -30,7 +30,7 @@ static char msg_app_hdr[MSG_MAX_HDR_LEN+1];
 static int write_to_memo = 1, write_to_stderr = 0, write_to_file = 0;
 FILE *memo_fp, *file_fp;
 
-void msg_set_hdr(char *hdr) {
+void msg_set_hdr(const char *hdr) {
   strncpy( msg_app_hdr, hdr, MSG_MAX_HDR_LEN );
   msg_app_hdr[MSG_MAX_HDR_LEN] = '\0';
 }
@@ -45,7 +45,7 @@ void msg_set_hdr(char *hdr) {
   -V write to stderr
 	-s no message sounds
 */
-void msg_init_options(char *hdr, int argc, char **argv) {
+void msg_init_options(const char *hdr, int argc, char **argv) {
   int c;
 
   msg_set_hdr(hdr);
@@ -91,7 +91,7 @@ static void write_msg( char *buf, int nb, FILE *fp, char *dest ) {
 }
 
 #define MSG_MAX_INTERNAL 250
-int msg( int level, char *fmt, ... ) {
+int msg( int level, const char *fmt, ... ) {
   va_list args;
   char *lvlmsg;
   char msgbuf[MSG_MAX_INTERNAL+2];
