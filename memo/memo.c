@@ -128,6 +128,7 @@ int main(int argc, char **argv) {
     { time_t now = time(NULL);
       fprintf( ofp, "\nMemo Starting: %s", asctime(gmtime(&now)) );
     }
+    signal(SIGHUP, SIG_IGN);
     while ( running ) {
       if ((ctp = dispatch_block(ctp)) == NULL) {
 	fprintf( ofp, "Memo internal: block error\n" );
