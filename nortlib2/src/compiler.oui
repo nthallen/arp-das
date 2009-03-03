@@ -32,7 +32,7 @@
 <package> nl_error_init
 <include> "nortlib.h"
 <defs>
-  int (*nl_error)(int level, char *s, ...) = compile_error;
+  int (*nl_error)(int level, const char *s, ...) = compile_error;
 
 <comment>------------------------------------------------------
   Here is the definition of the output file extension.
