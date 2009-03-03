@@ -42,4 +42,4 @@
 <package> nl_error_init
 <include> "nortlib.h"
 <def>
-  int (*nl_error)(int level, char *s, ...) = msg;
+  int (*nl_error)(int level, const char *s, ...) = msg;
