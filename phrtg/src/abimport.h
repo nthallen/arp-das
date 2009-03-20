@@ -14,6 +14,7 @@ extern ApWidget_t AbWidgets[ 41 ];
 
 extern ApMenuLink_t File_Menu;
 extern ApMenuLink_t Variable_Menu;
+extern ApMenuLink_t plot_context_menu;
 
 #if defined(__cplusplus)
 }
@@ -22,6 +23,7 @@ extern ApMenuLink_t Variable_Menu;
 
 #ifdef __cplusplus
 int phrtg_init( int argc, char **argv );
+int console_setup( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int menu_open_cmd( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int menu_close_cmd( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int menu_quit( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );

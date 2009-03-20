@@ -160,20 +160,23 @@ console_destroyed( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinf
 	}
 
 
-int
-PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo )
-
-	{
-
+int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo ) {
 	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
-	PtPanelGroupCallback_t *PGCallback = (PtPanelGroupCallback_t *)cbinfo->cbdata;
-	if (strcmp(PGCallback->new_panel, "Variables") &&
-		strcmp(PGCallback->new_panel, "Window"))
-	  return(Pt_END);
-	return( Pt_CONTINUE );
-
+	widget = widget, apinfo = apinfo;
+	PtPanelGroupCallback_t *PGCallback =
+		(PtPanelGroupCallback_t *)cbinfo->cbdata;
+	if (strcmp(PGCallback->new_panel, "Window") == 0) {
+	  if (All_Figures == NULL) return Pt_END;
+	} else if (strcmp(PGCallback->new_panel, "X") == 0) {
+	  // Check for axes
+	  return Pt_END;
+	} else if (strcmp(PGCallback->new_panel, "Y") == 0) {
+	  return Pt_END;
+	} else if (strcmp(PGCallback->new_panel, "Line") == 0) {
+	  return Pt_END;
 	}
+	return Pt_CONTINUE;
+}
 
 
 int
@@ -244,4 +247,18 @@ menu_file_report( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo
 	return( Pt_CONTINUE );
 
 	}
+
+
+int console_setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+	PtTreeColumnAttributes_t col_attrs[] = {
+		{ NULL, 0, 0, 0 },
+		{ NULL, 0, 0, 0 }
+	};
+	/* eliminate 'unreferenced' warnings */
+	link_instance = link_instance, apinfo = apinfo, cbinfo = cbinfo;
+	PtWidget_t *graphs = ApGetWidgetPtr(link_instance, ABN_Graphs_Tab);
+	PtSetResource(graphs, Pt_ARG_TREE_COLUMN_ATTR, col_attrs, 2 );
+	return( Pt_CONTINUE );
+}
 

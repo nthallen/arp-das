@@ -6,6 +6,7 @@ extern "C" {
 
 /* Internal Module Links */
 const int ABI_Figure = 0;
+const int ABI_plot_context_menu = 1;
 
 /* 'Console' Window link */
 const int ABN_Console = 0;
@@ -65,6 +66,11 @@ const int ABN_vg_curaxes = 47;
 const int ABN_vg_overlay = 48;
 const int ABN_vg_newpane = 49;
 const int ABN_vg_newwin = 50;
+
+/* 'plot_context_menu' Menu link */
+const int ABN_plot_context_menu = 51;
+const int ABN_PlotVisible = 52;
+const int ABN_PlotObjDelete = 53;
 
 
 #if defined(__cplusplus)

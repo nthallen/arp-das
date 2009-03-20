@@ -9,6 +9,7 @@
 class RTG_Variable_Node;
 class RTG_Variable_MLF;
 enum RTG_Variable_Type { Var_Node, Var_MLF };
+const int DIV_BEVEL_WIDTHS = 2;
 
 class RTG_Variable {
   public:
@@ -58,33 +59,57 @@ class RTG_Variable_MLF : public RTG_Variable_Data {
     char *path;
 };
 
-enum plot_obj_type { po_root, po_figure, po_pane, po_axes, po_data,
+enum plot_obj_type { po_figure, po_pane, po_axes, po_data,
 		po_line, po_text, po_zoom, po_max };
 
+class plot_pane;
+class plot_figure;
 class plot_obj {
   public:
 	plot_obj_type type;
-	plot_obj *first;
-	plot_obj *last;
-	plot_obj *next;
-	plot_obj *parent;
-	static plot_obj root;
-
-	plot_obj( plot_obj_type po_type, plot_obj *parent_in = NULL );
+	char *name;
+    PtTreeItem_t *TreeItem;
+	plot_obj( plot_obj_type po_type, const char *name_in);
+	void TreeAllocItem();
+	const char *typetext();
+	static int TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
+	static int ToggleVisible( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
+	static int Delete( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
+	static int context_menu_setup( PtWidget_t *link_instance,
+			ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo );
+	static int TreeColSelect( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
+	static int TreeInput( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
 };
 
 class plot_figure : public plot_obj {
   public:
 	plot_figure( const char *name_in );
+	plot_pane *first;
+	plot_pane *last;
+	plot_figure *next;
 	static int Setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
-	static int Realized( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo );
+	static int Realized( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
+	static int divider_resized( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
+	static int divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
 	static void Report();
-	char *name;
+	int Resized(PtContainerCallback_t *cb);
+	void Change_min_dim(int dw, int dh);
 	bool display_name;
 	bool visible;
 	PtWidget_t *module;
-	int total_weight;
+	PtWidget_t *window;
+  private:
+	bool saw_first_resize;
+	PhDim_t dim, min_dim;
 	// Area: x,y,height,width (controlled by dragging, not dialog, but should be saved with configuration)
 	// [Pane Orientation: Vertical]
 	// [other window display functions: allow resize, minimize, maximize]
@@ -95,9 +120,14 @@ class plot_figure : public plot_obj {
 class plot_pane : public plot_obj {
   public:
 	plot_pane( const char *name_in, plot_figure *parent, PtWidget_t *pane = NULL);
-	char *name;
+	void resized( PhDim_t *newdim );
+	//plot_axes *first;
+	//plot_axes *last;
+	plot_pane *next;
+	plot_figure *parent;
 	PtWidget_t *widget;
-	int weight;
+	int full_height;
+	int min_height;
 };
 
 extern plot_figure *Cur_Figure, *All_Figures;

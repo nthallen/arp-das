@@ -7,6 +7,8 @@ extern "C" {
 /* Internal Module Links */
 extern const int ABI_Figure;
 #define ABM_Figure                           &AbInternalLinks[ABI_Figure]
+extern const int ABI_plot_context_menu;
+#define ABM_plot_context_menu                &AbInternalLinks[ABI_plot_context_menu]
 
 /* 'Console' Window link */
 extern const int ABN_Console;
@@ -109,6 +111,11 @@ extern const int ABN_vg_curaxes;
 extern const int ABN_vg_overlay;
 extern const int ABN_vg_newpane;
 extern const int ABN_vg_newwin;
+
+/* 'plot_context_menu' Menu link */
+extern const int ABN_plot_context_menu;
+extern const int ABN_PlotVisible;
+extern const int ABN_PlotObjDelete;
 
 #define AB_OPTIONS "s:x:y:h:w:S:"
 
