@@ -69,14 +69,17 @@ class plot_obj {
 	plot_obj_type type;
 	char *name;
     PtTreeItem_t *TreeItem;
+    bool destroying;
 	plot_obj( plot_obj_type po_type, const char *name_in);
+	virtual ~plot_obj();
+	virtual void got_focus();
 	void TreeAllocItem();
 	const char *typetext();
 	static int TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
-	static int ToggleVisible( PtWidget_t *widget, ApInfo_t *apinfo,
+	static int menu_ToggleVisible( PtWidget_t *widget, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
-	static int Delete( PtWidget_t *widget, ApInfo_t *apinfo,
+	static int menu_Delete( PtWidget_t *widget, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
 	static int context_menu_setup( PtWidget_t *link_instance,
 			ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo );
@@ -84,14 +87,29 @@ class plot_obj {
 			PtCallbackInfo_t *cbinfo );
 	static int TreeInput( PtWidget_t *widget, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
+	static int pt_got_focus( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
 };
 
 class plot_figure : public plot_obj {
   public:
-	plot_figure( const char *name_in );
 	plot_pane *first;
 	plot_pane *last;
 	plot_figure *next;
+	bool resizing;
+	bool display_name;
+	bool visible;
+	PtWidget_t *module;
+	PtWidget_t *window;
+
+	plot_figure( const char *name_in );
+	~plot_figure();
+	void AddChild(plot_pane *p);
+	void RemoveChild(plot_pane *p);
+	int resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force);
+	void Change_min_dim(int dw, int dh);
+	void got_focus();
+
 	static int Setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
 	static int Realized( PtWidget_t *widget, ApInfo_t *apinfo,
@@ -100,13 +118,13 @@ class plot_figure : public plot_obj {
 			PtCallbackInfo_t *cbinfo );
 	static int divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
+	static int unrealized( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
+	static int destroyed( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
+	static int wmevent( PtWidget_t *widget, ApInfo_t *apinfo,
+			PtCallbackInfo_t *cbinfo );
 	static void Report();
-	int Resized(PtContainerCallback_t *cb);
-	void Change_min_dim(int dw, int dh);
-	bool display_name;
-	bool visible;
-	PtWidget_t *module;
-	PtWidget_t *window;
   private:
 	bool saw_first_resize;
 	PhDim_t dim, min_dim;
@@ -120,7 +138,9 @@ class plot_figure : public plot_obj {
 class plot_pane : public plot_obj {
   public:
 	plot_pane( const char *name_in, plot_figure *parent, PtWidget_t *pane = NULL);
+	~plot_pane();
 	void resized( PhDim_t *newdim );
+	void got_focus();
 	//plot_axes *first;
 	//plot_axes *last;
 	plot_pane *next;
@@ -128,6 +148,13 @@ class plot_pane : public plot_obj {
 	PtWidget_t *widget;
 	int full_height;
 	int min_height;
+};
+
+class Current {
+  public:
+    static plot_figure *Figure;
+    static plot_pane *Pane;
+    static plot_obj *Menu_obj;
 };
 
 extern plot_figure *Cur_Figure, *All_Figures;

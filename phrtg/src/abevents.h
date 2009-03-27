@@ -29,8 +29,13 @@ static const ApEventLink_t AbLinks_Console[] = {
 
 static const ApEventLink_t AbLinks_Figure[] = {
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 1012, plot_figure::Realized, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 1013, plot_figure::unrealized, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 1009, plot_figure::destroyed, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 18017, plot_figure::wmevent, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 2010, plot_obj::pt_got_focus, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure_Div", 10003, plot_figure::divider_resized, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure_Div", 44003, plot_figure::divider_drag, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure_Pane", 2010, plot_obj::pt_got_focus, 0, 0, 0, 0, },
 	{ 0 }
 	};
 
@@ -51,8 +56,8 @@ static const ApEventLink_t AbLinks_Variable_Menu[] = {
 	};
 
 static const ApEventLink_t AbLinks_plot_context_menu[] = {
-	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "PlotVisible", 2009, plot_obj::ToggleVisible, 0, 0, 0, 0, },
-	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "PlotObjDelete", 2009, plot_obj::Delete, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "PlotVisible", 2009, plot_obj::menu_ToggleVisible, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "PlotObjDelete", 2009, plot_obj::menu_Delete, 0, 0, 0, 0, },
 	{ 0 }
 	};
 

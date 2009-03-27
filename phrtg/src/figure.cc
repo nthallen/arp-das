@@ -7,13 +7,22 @@
 #include "abimport.h"
 #include "nl_assert.h"
 
-plot_figure *Cur_Figure, *All_Figures;
+plot_figure *Current::Figure, *All_Figures;
+plot_obj *Current::Menu_obj;
+plot_pane *Current::Pane;
 
 plot_obj::plot_obj(plot_obj_type po_type, const char *name_in) {
   type = po_type;
   TreeItem = NULL;
+  destroying = false;
   if (name_in == NULL) name_in = typetext();
   name = strdup(name_in);
+  TreeAllocItem();
+}
+
+plot_obj::~plot_obj() {
+  free(name);
+  name = NULL;
 }
 
 const char *plot_obj::typetext() {
@@ -28,6 +37,10 @@ const char *plot_obj::typetext() {
   }
 }
 
+void plot_obj::got_focus() {
+  nl_error(0, "Got Focus: %s %s", typetext(), name);
+}
+
 void plot_obj::TreeAllocItem() {
   char temp_buf[80];
   if ( snprintf(temp_buf, 80, "%s\t%s", name, typetext()) >= 80 )
@@ -36,9 +49,24 @@ void plot_obj::TreeAllocItem() {
   TreeItem->data = (void *)this;
 }
 
-
+int plot_obj::pt_got_focus( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  plot_obj *po;
+  /* eliminate 'unreferenced' warnings */
+  apinfo = apinfo, cbinfo = cbinfo;
+  PtGetResource(widget, Pt_ARG_POINTER, &po, 0);
+  if (po != NULL)
+	  po->got_focus();
+  return Pt_CONTINUE;
+}
 
 plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
+  first = last = NULL;
+  next = NULL;
+  min_dim.h = min_dim.w = 2; // 2*Divider Bezel
+  saw_first_resize = false;
+  display_name = true;
+  visible = true;
   ApModuleParent( ABM_Figure, AB_NO_PARENT, NULL );
   module = ApCreateModule( ABM_Figure, NULL, NULL );
   window = ApGetWidgetPtr(module, ABN_Figure);
@@ -51,17 +79,107 @@ plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
   PhDim_t *div_dim;
   PtGetResource(divider, Pt_ARG_DIM, &div_dim, 0 );
   dim = *div_dim;
-  min_dim.h = min_dim.w = 2; // 2*Divider Bezel
-  saw_first_resize = false;
-  TreeAllocItem();
+  // TreeAllocItem();
   if ( All_Figures != NULL )
 	PtTreeAddAfter(ABW_Graphs_Tab, this->TreeItem, All_Figures->TreeItem);
   else PtTreeAddFirst(ABW_Graphs_Tab, this->TreeItem, NULL);
   new plot_pane(name, this, first_pane);
-  Cur_Figure = this;
-  this->next = All_Figures;
+  Current::Figure = this;
+  next = All_Figures;
   All_Figures = this;
   nl_error(0, "plot_figure %s created", name);
+}
+
+plot_figure::~plot_figure() {
+  if ( destroying ) return;
+  destroying = true;
+  while (first != NULL ) delete first;
+  PtSetResource(window, Pt_ARG_POINTER, NULL, 0 );
+  PtSetResource(module, Pt_ARG_POINTER, NULL, 0 );
+  PtWidget_t *divider = ApGetWidgetPtr(module, ABN_Figure_Div);
+  PtSetResource(divider, Pt_ARG_POINTER, NULL, 0 );
+
+  //  remove self from parent's list of children
+  if (All_Figures == this) All_Figures = next;
+  else {
+	for (plot_figure *f = All_Figures; f != NULL; f = f->next ) {
+	  if (f->next == this) {
+		f->next = next;
+		break;
+	  }
+	}
+  }
+  next = NULL;
+  TreeItem->data = NULL;
+  if (!(PtWidgetFlags(module) & Pt_DESTROYED))
+	PtDestroyWidget(module);
+  module = NULL;
+  PtTreeRemoveItem(ABW_Graphs_Tab, TreeItem);
+  PtTreeFreeItems(TreeItem);
+}
+
+/* plot_figure::AddChild(plot_pane *p);
+ * Called from the child during construction
+ * Responsible for adding the child to the end of
+ * the list of children and adding it's TreeItem to 
+ * the tree hierarchy
+ */
+void plot_figure::AddChild(plot_pane *p) {
+  Change_min_dim(0, p->min_height);
+  if (last != NULL) {
+	PtTreeAddAfter(ABW_Graphs_Tab, p->TreeItem, last->TreeItem);
+	last->next = p;
+  } else {
+	PtTreeAddFirst(ABW_Graphs_Tab, p->TreeItem, TreeItem);
+	first = p;
+  }
+  last = p;
+}
+
+/* void plot_figure::RemoveChild(plot_pane *p);
+ * Called from the child during its destruction.
+ * Responsible for removing the child from the
+ * list of children and possibly removing and
+ * freeing it's TreeItem from the tree hierarchy.
+ * This last step will be skipped if the figure
+ * is in the process of destruction itself, since
+ * the entire subtree will be removed and freed
+ * when the figure is destroyed.
+ */
+void plot_figure::RemoveChild(plot_pane *p) {
+  nl_assert(p != NULL);
+  nl_assert(first != NULL);
+  if (first == p) first = p->next;
+  else {
+	for (plot_pane *c = first; c != NULL; c = c->next ) {
+	  if (c->next == NULL)
+		nl_error(4, "Child pane not found in RemoveChilde");
+	  if (c->next == p) {
+		c->next = p->next;
+		break;
+	  }
+	}
+  }
+  if (first == NULL) last = NULL;
+  p->next = NULL;
+  if (!destroying) {
+	PtDestroyWidget(p->widget);
+	PtTreeRemoveItem(ABW_Graphs_Tab, p->TreeItem);
+	PtTreeFreeItems(p->TreeItem);
+	p->TreeItem = NULL;
+	resized(&dim, &dim, 1);
+  }
+  Change_min_dim( 0, -p->min_height);
+}
+
+void plot_figure::got_focus() {
+  if (this == Current::Figure) return;
+  Current::Figure = this;
+  nl_error(0, "Figure Got Focus: %s", name);
+  nl_assert(TreeItem != NULL);
+  if ( !(TreeItem->gen.list.flags&Pt_LIST_ITEM_SELECTED)) {
+	PtTreeSelect(ABW_Graphs_Tab, TreeItem);
+  }
 }
 
 /*
@@ -91,11 +209,12 @@ int plot_figure::Setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
 
 /* plot_figure::Realized() static member function
  * Realized callback function
+ * This function is apparently superfluous
  */
 int plot_figure::Realized( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
 	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+	apinfo = apinfo, cbinfo = cbinfo;
 	PtWidget_t *module = ApGetInstance(widget);
 	PtWidget_t *window = ApGetWidgetPtr(module, ABN_Figure);
     PtWidget_t *divider = ApGetWidgetPtr(module, ABN_Figure_Div);
@@ -105,17 +224,8 @@ int plot_figure::Realized( PtWidget_t *widget, ApInfo_t *apinfo,
     PtGetResource(divider, Pt_ARG_DIM, &div_dim, 0 );
     nl_error(0, "Divider (%p) dimensions on realize (%d,%d)",
     		divider, div_dim->w, div_dim->h );
-    plot_figure *fig;
-    PtGetResource(window, Pt_ARG_POINTER, &fig, 0);
-    if ( fig != NULL ) {
-      int pane_num = 1;
-      for (plot_pane *p = fig->first; p; p = p->next) {
-    	PhDim_t *p_dim;
-        PtGetResource(p->widget, Pt_ARG_DIM, &p_dim, 0 );
-        nl_error(0, "pane %d dimensions on realize (%d,%d)",
-        		pane_num++, p_dim->w, p_dim->h );
-      }
-    } else nl_error( 0, "module realized before figure attached");
+    // At this point, the plot_figure object has not been
+    // attached to the widget, so there is no more we can do.
 	return( Pt_CONTINUE );
 }
 
@@ -185,31 +295,34 @@ int plot_figure::divider_resized( PtWidget_t *widget, ApInfo_t *apinfo,
   apinfo = apinfo;
   plot_figure *fig;
   PtGetResource(widget, Pt_ARG_POINTER, &fig, 0);
-  return fig->Resized(cb);
+  return fig->resized(&cb->old_dim, &cb->new_dim, 0);
 }
 
-int plot_figure::Resized(PtContainerCallback_t *cb) {
+int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
   int cum_height = 0, cum_min = 0, rem_height;
   PhDim_t pane_dim;
 
-  if ( !eq_dims(&dim, &cb->old_dim)) {
+  if ( !eq_dims(&dim, old_dim)) {
 	nl_error(2,"Missed a resize somewhere");
 	saw_first_resize = true;
   }
-  if ( eq_dims(&dim, &cb->new_dim)) {
-	// No actual resize
-	saw_first_resize = false;
-	return Pt_CONTINUE;
+  if (!force) {
+    if ( eq_dims(&dim, new_dim)) {
+	  // No actual resize
+	  saw_first_resize = false;
+	  return Pt_CONTINUE;
+    }
+    if ( !saw_first_resize) {
+	  saw_first_resize = true;
+	  return Pt_CONTINUE;
+    }
+    nl_error(0, "divider resized");
   }
-  if ( !saw_first_resize) {
-	saw_first_resize = true;
-	return Pt_CONTINUE;
-  }
-  nl_error(0, "divider resized");
   saw_first_resize = false;
-  dim = cb->new_dim;
+  dim = *new_dim;
   plot_figure::Report();
   pane_dim.w = dim.w - 2;
+  if (first == NULL) return Pt_CONTINUE;
   for ( plot_pane *pane = first; pane != NULL; pane = pane->next ) {
 	cum_height += pane->full_height;
 	cum_min += pane->min_height;
@@ -329,6 +442,70 @@ int plot_figure::divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
 	return( Pt_CONTINUE );
 }
 
+int plot_figure::unrealized( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+
+  nl_error(0, "plot_figure::unrealized");
+  return( Pt_CONTINUE );
+}
+
+
+int plot_figure::destroyed( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  plot_figure *fig;
+  PtWidget_t *module;
+  /* eliminate 'unreferenced' warnings */
+  apinfo = apinfo, cbinfo = cbinfo;
+  module = ApGetInstance(widget);
+  PtGetResource(module, Pt_ARG_POINTER, &fig, 0);
+  if ( fig == NULL ) {
+    nl_error(0, "plot_figure::destroyed with NULL data pointer");
+  } else {
+	nl_error(0, "plot_figure::destroyed %s", fig->name);
+	delete fig;
+  }
+  return( Pt_CONTINUE );
+}
+
+
+int plot_figure::wmevent( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  const char *event, *state;
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo;
+  PhWindowEvent_t *wevt = (PhWindowEvent_t *)cbinfo->cbdata;
+  switch (wevt->event_f) {
+	case Ph_WM_CLOSE: event = "Ph_WM_CLOSE"; break;
+	case Ph_WM_FOCUS: return Pt_CONTINUE; //event = "Ph_WM_FOCUS"; break;
+	case Ph_WM_MENU: event = "Ph_WM_MENU"; break;
+	case Ph_WM_TOFRONT: event = "Ph_WM_TOFRONT"; break;
+	case Ph_WM_TOBACK: event = "Ph_WM_TOBACK"; break;
+	case Ph_WM_CONSWITCH: event = "Ph_WM_CONSWITCH"; break;
+	case Ph_WM_RESIZE: event = "Ph_WM_RESIZE"; break;
+	case Ph_WM_MOVE: event = "Ph_WM_MOVE"; break;
+	case Ph_WM_HIDE: event = "Ph_WM_HIDE"; break;
+	case Ph_WM_MAX: event = "Ph_WM_MAX"; break;
+	case Ph_WM_BACKDROP: event = "Ph_WM_BACKDROP"; break;
+	case Ph_WM_RESTORE: event = "Ph_WM_RESTORE"; break;
+	case Ph_WM_HELP: event = "Ph_WM_HELP"; break;
+	case Ph_WM_FFRONT: event = "Ph_WM_FFRONT"; break;
+	default: event = "unknown"; break;
+  }
+  switch (wevt->state_f) {
+    case Ph_WM_STATE_ISNORMAL: state = "Ph_WM_STATE_ISNORMAL"; break;
+    case Ph_WM_STATE_ISHIDDEN: state = "Ph_WM_STATE_ISHIDDEN"; break;
+    case Ph_WM_STATE_ISMAX: state = "Ph_WM_STATE_ISMAX"; break;
+    case Ph_WM_STATE_ISICONIFIED: state = "Ph_WM_STATE_ISICONIFIED"; break;
+    case Ph_WM_STATE_ISTASKBAR: state = "Ph_WM_STATE_ISTASKBAR"; break;
+    case Ph_WM_STATE_ISBACKDROP: state = "Ph_WM_STATE_ISBACKDROP"; break;
+    default: state = "unknown"; break;
+  }
+  nl_error(0, "plot_figure::wmevent %s state %s", event, state);
+  return( Pt_CONTINUE );
+}
+
 /*
  * This is the constructor for the plot_pane object. It can
  * be passed an existing PtPane widget (for the first pane
@@ -348,16 +525,7 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   min_height = min_dim.h;
   next = NULL;
   widget = pane;
-  parent->Change_min_dim(0, min_height);
-  TreeAllocItem();
-  if (parent->last != NULL) {
-	PtTreeAddAfter(ABW_Graphs_Tab, this->TreeItem, parent->last->TreeItem);
-	parent->last->next = this;
-  } else {
-	PtTreeAddFirst(ABW_Graphs_Tab, this->TreeItem, parent->TreeItem);
-	parent->first = this;
-  }
-  parent->last = this;
+  parent->AddChild(this);
   
   window = ApGetWidgetPtr(figure->module, ABN_Figure);
   PtGetResource(window, Pt_ARG_DIM, &win_dim, 0);
@@ -374,8 +542,8 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
 
   // Go through the preexisting panes and report their size
   for ( plot_pane *p = figure->first; p != NULL; p = p->next ) {
-	++n_panes;
 	if ( p->widget != NULL) {
+	  ++n_panes;
 	  // This section should be just a check except for
 	  // calculating cum_height. We should be able to
 	  // skip PtGetResource if we've done things right.
@@ -391,29 +559,33 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
 	  cum_height += p->full_height;
 	}
   }
-  if (cum_height != rem_height)
+  if (n_panes > 0 && cum_height != rem_height)
 	nl_error( 1, "Old pane heights are %d, not %d", cum_height, rem_height);
   if (pane == NULL) {
-	full_height = cum_height/n_panes;
+	full_height = n_panes ? cum_height/(n_panes+1) : rem_height;
 	cum_height += full_height;
-	PtArg_t args[1];
+	PtArg_t args[2];
 	pane_dim.h = full_height;
-	PtSetArg( &args[0], Pt_ARG_ANCHOR_FLAGS, 0, Pt_TRUE);
-	widget = PtCreateWidget(PtPane, divider, 1, args );
+	PtSetArg( &args[0], Pt_ARG_ANCHOR_FLAGS, Pt_FALSE, Pt_TRUE);
+	PtSetArg( &args[1], Pt_ARG_FLAGS, Pt_TRUE,
+			Pt_HIGHLIGHTED|Pt_GETS_FOCUS);
+	widget = PtCreateWidget(PtPane, divider, 2, args );
+	PtAddCallback(widget,Pt_CB_GOT_FOCUS,(PtCallbackF_t *)plot_obj::pt_got_focus,NULL);
 	PtRealizeWidget(widget);
   }
-
+  // PtAddCallback(widget, Pt_CB_RESIZE, plot_pane::resize_cb, this);
+  
   n_panes = 0;
-  // Go through the all panes and adjust their size
+  // Go through all panes and adjust their size
   for ( plot_pane *p = figure->first; p != NULL; p = p->next ) {
     ++n_panes;
 	if (p->widget != NULL) {
 	  pane_dim.h = (rem_height * p->full_height)/cum_height;
 	  PtSetResource(p->widget, Pt_ARG_DIM, &pane_dim, 0);
       cum_height -= p->full_height;
-	  p->full_height = pane_dim.h;
 	  rem_height -= pane_dim.h;
 	  nl_error(0, "Setting pane %d (%p) to (%d,%d)", n_panes, p->widget, pane_dim.w, pane_dim.h);
+	  p->resized(&pane_dim);
 	} else nl_error(2, "Widget was NULL");
   }
   if (n_panes&1) {
@@ -427,10 +599,33 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   PtSetResource(widget, Pt_ARG_MINIMUM_DIM, &min_dim, 0 );
 }
 
-void plot_pane::resized(PhDim_t *newdim) {
+plot_pane::~plot_pane() {
+  if ( destroying ) return;
+  destroying = true;
+  nl_assert(widget != NULL);
+  // ### delete children
+  TreeItem->data = NULL;
+  PtSetResource(widget, Pt_ARG_POINTER, NULL, 0 );
+  parent->RemoveChild(this);
+  widget = NULL;
+}
+
+void plot_pane::resized(PhDim_t *newdim ) {
   full_height = newdim->h;
   nl_assert( full_height >= min_height );
+  nl_error(0,"Pane %s resized to (%d,%d)", name, newdim->w, newdim->h );
   // Then we relay this information to the axes
+}
+
+void plot_pane::got_focus() {
+  if (this == Current::Pane) return;
+  Current::Pane = this;
+  Current::Figure = parent;
+  nl_error(0, "Pane Got Focus: %s", name);
+  nl_assert(TreeItem != NULL);
+  if ( !(TreeItem->gen.list.flags&Pt_LIST_ITEM_SELECTED)) {
+	PtTreeSelect(ABW_Graphs_Tab, TreeItem);
+  }
 }
 
 int plot_obj::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
@@ -439,24 +634,35 @@ int plot_obj::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
   widget = widget, apinfo = apinfo;
   if (cbinfo->reason_subtype == Pt_LIST_SELECTION_FINAL) {
 	PtTreeCallback_t *cb = (PtTreeCallback_t *)cbinfo->cbdata;
+	nl_assert(cb->item != NULL);
 	plot_obj *p = (plot_obj *)cb->item->data;
-    nl_error( 0, "Graphs TreeSelected (Final) %s:%s", p->name, p->typetext());
+	if (cb->item->gen.list.flags&Pt_LIST_ITEM_SELECTED) {
+	  p->got_focus();
+      nl_error( 0, "Selected %s:%s", p->name, p->typetext());
+	}
   }
   return( Pt_CONTINUE );
 }
 
 
-int plot_obj::ToggleVisible( PtWidget_t *widget, ApInfo_t *apinfo,
+int plot_obj::menu_ToggleVisible( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
   /* eliminate 'unreferenced' warnings */
   widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  nl_assert(Current::Menu_obj != NULL);
+  nl_error(0,"plot_obj: ToggleVisible %s:%s", Current::Menu_obj->name, Current::Menu_obj->typetext());
+  Current::Menu_obj = NULL;
   return( Pt_CONTINUE );
 }
 
-int plot_obj::Delete( PtWidget_t *widget, ApInfo_t *apinfo,
+int plot_obj::menu_Delete( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
   /* eliminate 'unreferenced' warnings */
   widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  nl_assert(Current::Menu_obj != NULL);
+  nl_error(0,"plot_obj: Delete %s:%s", Current::Menu_obj->name, Current::Menu_obj->typetext());
+  delete Current::Menu_obj;
+  Current::Menu_obj = NULL;
   return( Pt_CONTINUE );
 }
 
@@ -464,6 +670,8 @@ int plot_obj::context_menu_setup( PtWidget_t *link_instance,
 		ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo ) {
   /* eliminate 'unreferenced' warnings */
   link_instance = link_instance, apinfo = apinfo, cbinfo = cbinfo;
+  nl_assert(Current::Menu_obj != NULL);
+  
   return( Pt_CONTINUE );
 }
 
@@ -486,10 +694,16 @@ int plot_obj::TreeInput( PtWidget_t *widget, ApInfo_t *apinfo,
 	  if ( pe->buttons == Ph_BUTTON_MENU ) {
 		PtGenTreeInput_t *ti = (PtGenTreeInput_t *)cbinfo->cbdata;
 		PtTreeItem_t *item = (PtTreeItem_t *)ti->item;
-		plot_obj *po = (plot_obj *)item->data;
-		nl_error( 0, "plot_obj: Menu: %s:%s", po->name, po->typetext());
+		if (item != NULL) {
+		  plot_obj *po = (plot_obj *)item->data;
+		  Current::Menu_obj = po;
+		  nl_error( 0, "plot_obj: Menu: %s:%s", po->name, po->typetext());
+		  ApCreateModule (ABM_plot_context_menu, widget, cbinfo);
+		}
 	  }
 	}
 	return( Pt_CONTINUE );
 }
+
+
 

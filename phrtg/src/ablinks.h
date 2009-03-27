@@ -15,7 +15,7 @@ ApWindowLink_t Console = {
 ApWindowLink_t Figure = {
 	"Figure.wgtw",
 	&AbContext,
-	AbLinks_Figure, 38, 3
+	AbLinks_Figure, 38, 8
 	};
 
 static ApItem_t ApItems_File_Menu[ 5 ] = {

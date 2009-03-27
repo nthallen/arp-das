@@ -199,9 +199,9 @@ menu_graph_newpane( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbin
 
 	/* eliminate 'unreferenced' warnings */
 	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
-	if ( Cur_Figure ) {
+	if ( Current::Figure ) {
 	  const char *name = RTG_Variable::Cur_Var ? RTG_Variable::Cur_Var->name : "no_var";
-	  new plot_pane(name,Cur_Figure);
+	  new plot_pane(name,Current::Figure);
 	} else menu_graph_newwin( widget, apinfo, cbinfo);
 
 	return( Pt_CONTINUE );
