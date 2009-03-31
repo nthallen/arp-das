@@ -3,6 +3,7 @@
 #define PHRTG_H_INCLUDED
 #include "nortlib.h"
 #include "tm.h"
+#include "f_matrix.h"
 #include <Pt.h>
 #include <photon/PtTree.h>
 
@@ -64,6 +65,9 @@ enum plot_obj_type { po_figure, po_pane, po_axes, po_data,
 
 class plot_pane;
 class plot_figure;
+class plot_axes;
+class plot_data;
+
 class plot_obj {
   public:
 	plot_obj_type type;
@@ -99,6 +103,7 @@ class plot_figure : public plot_obj {
 	bool resizing;
 	bool display_name;
 	bool visible;
+	bool synch_x;
 	PtWidget_t *module;
 	PtWidget_t *window;
 
@@ -139,21 +144,80 @@ class plot_pane : public plot_obj {
   public:
 	plot_pane( const char *name_in, plot_figure *parent, PtWidget_t *pane = NULL);
 	~plot_pane();
+	void AddChild(plot_axes *p);
+	void RemoveChild(plot_axes *p);
 	void resized( PhDim_t *newdim );
 	void got_focus();
-	//plot_axes *first;
-	//plot_axes *last;
+	plot_axes *first;
+	plot_axes *last;
 	plot_pane *next;
 	plot_figure *parent;
 	PtWidget_t *widget;
 	int full_height;
 	int min_height;
+	bool synch_x;
+};
+
+enum Axis_XY { Axis_X, Axis_Y };
+
+class plot_axis {
+  public:
+	plot_axis();
+	void set_scale();
+	void set_scale(int pixel_span);
+	void set_scale(float min, float max);
+	void set_scale(f_matrix *data);
+	Axis_XY XY;
+	bool draw[2]; // Whether to draw primary or secondary axis
+	bool reserve_tick_space[2];
+	bool draw_ticks[2];
+	bool reserve_tick_label_space[2];
+	bool draw_tick_label[2];
+	bool reserve_label_space[2];
+	bool draw_label[2];
+	bool limit_auto;
+	bool log_scale;
+	bool reverse;
+	float min, max;
+	int pixels;
+	float scalev;
+    // *Axis color: color
+    // *Axis Tick Label Style: *use defaults for now
+    // *Axis Label Style: *use defaults for now
+	int major_tick_len; // positive outward, negative inward
+	int minor_tick_len;
+	int label_height; // same units has *_tick_len.
+};
+
+class plot_axes : public plot_obj {
+  public:
+	plot_axes( const char *name_in, plot_pane *parent );
+	~plot_axes();
+	void got_focus();
+	bool visible;
+	plot_pane *parent;
+	plot_axis X;
+	plot_axis Y;
+	plot_data *first, *last;
+	plot_axes *next;
+};
+
+class plot_data : public plot_obj {
+  public:
+	plot_data(RTG_Variable *var, plot_axes *parent);
+	~plot_data();
+	void got_focus();
+	plot_axes *parent;
+	RTG_Variable *variable;
+	bool visible;
 };
 
 class Current {
   public:
     static plot_figure *Figure;
     static plot_pane *Pane;
+    static plot_axes *Axes;
+    static plot_data *Graph;
     static plot_obj *Menu_obj;
 };
 

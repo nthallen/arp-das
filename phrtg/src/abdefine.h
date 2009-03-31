@@ -47,8 +47,8 @@ extern const int ABN_Axes_Visible;
 #define ABW_Axes_Visible                     AbGetABW( ABN_Axes_Visible )
 extern const int ABN_Axis_Label;
 #define ABW_Axis_Label                       AbGetABW( ABN_Axis_Label )
-extern const int ABN_Synch_Overlay;
-#define ABW_Synch_Overlay                    AbGetABW( ABN_Synch_Overlay )
+extern const int ABN_Synch_X_Pane;
+#define ABW_Synch_X_Pane                     AbGetABW( ABN_Synch_X_Pane )
 extern const int ABN_Auto_Scale;
 #define ABW_Auto_Scale                       AbGetABW( ABN_Auto_Scale )
 extern const int ABN_Limits_Group;
@@ -77,6 +77,8 @@ extern const int ABN_Log_Scale;
 #define ABW_Log_Scale                        AbGetABW( ABN_Log_Scale )
 extern const int ABN_Detrend;
 #define ABW_Detrend                          AbGetABW( ABN_Detrend )
+extern const int ABN_Synch_X_Figure;
+#define ABW_Synch_X_Figure                   AbGetABW( ABN_Synch_X_Figure )
 extern const int ABN_Y_Tab;
 #define ABW_Y_Tab                            AbGetABW( ABN_Y_Tab )
 extern const int ABN_Line_Tab;

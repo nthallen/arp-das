@@ -24,25 +24,22 @@ const char ApOptions[] =
 	AB_OPTIONS "vo:mV"; /* Add your options in the "" */
 
 int (*nl_error)(int level, const char *s, ...) = msg;
+static void open_cmd_fd();
 
-int
-phrtg_init( int argc, char *argv[] )
-
-	{
-
-	/* eliminate 'unreferenced' warnings */
-	argc = argc, argv = argv;
+int phrtg_init( int argc, char *argv[] ) {
+  /* eliminate 'unreferenced' warnings */
+  argc = argc, argv = argv;
 	
-	/* Process command line arguments--if any */
-	msg_init_options("phrtg", argc, argv);
-	nl_error(0, "Starting");
+  /* Process command line arguments--if any */
+  msg_init_options("phrtg", argc, argv);
+  nl_error(0, "Starting");
 	
-    RTG_Variable_MLF::set_default_path("/home/nort/rtgbench");
+  RTG_Variable_MLF::set_default_path("/home/nort/PhRTGbench");
+  open_cmd_fd();
 
-    /* Load default configuration */
-	return( Pt_CONTINUE );
-
-	}
+  /* Load default configuration */
+  return( Pt_CONTINUE );
+}
 
 
 extern "C" {
@@ -57,6 +54,23 @@ static void close_cmd_fd() {
 		nl_error(2,"Received error %d from PtAppRemoveFd", errno);
 	close(cmd_fd);
 	cmd_fd = -1;
+  }
+}
+
+static void open_cmd_fd() {
+  int old_response = set_response(0);
+  char *cmddev = tm_dev_name("cmd/phrtg");
+  close_cmd_fd();
+  cmd_fd = tm_open_name(cmddev,NULL,O_RDONLY);
+  set_response(old_response);
+  if ( cmd_fd < 0 ) {
+	ApError( ABW_Console, errno, "PhRTG", "Unable to open command channel",
+		         cmddev );
+  } else {
+	if ( PtAppAddFd( NULL, cmd_fd, Pt_FD_READ, command_input, NULL)) {
+		nl_error(2,"Error (%d) calling PtAppAddFd", errno);
+		close_cmd_fd();
+	} else nl_error(0, "menu_open_cmd succeeded");
   }
 }
 
@@ -91,162 +105,107 @@ static int command_input( int fd, void *data, unsigned mode ) {
   return Pt_CONTINUE;
 }
 
-int
-menu_open_cmd( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo ) {
-
-	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
-	int old_response = set_response(0);
-	char *cmddev = tm_dev_name("cmd/phrtg");
-	close_cmd_fd();
-	cmd_fd = tm_open_name(cmddev,NULL,O_RDONLY);
-	set_response(old_response);
-	if ( cmd_fd < 0 ) {
-		ApError( ABW_Console, errno, "PhRTG", "Unable to open command channel",
-		         cmddev );
-	} else {
-	  if ( PtAppAddFd( NULL, cmd_fd, Pt_FD_READ, command_input, NULL)) {
-		  nl_error(2,"Error (%d) calling PtAppAddFd", errno);
-		  close_cmd_fd();
-	  } else nl_error(0, "menu_open_cmd succeeded");
-	}
-	return( Pt_CONTINUE );
-
-	}
-
-
-int
-menu_close_cmd( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo )
-
-	{
-
-	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
-	close_cmd_fd();
-	nl_error(0,"menu_close_cmd");
-
-	return( Pt_CONTINUE );
-
-	}
-
-
-int
-menu_quit( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo )
-
-	{
-
-	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
-	nl_error(0,"menu_quit");
-	PtExit(0);
-
-	return( Pt_CONTINUE );
-
-	}
-
-
-int
-console_destroyed( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo )
-
-	{
-
-	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
-	close_cmd_fd();
-	nl_error( 0, "console_destroyed");
-
-	return( Pt_CONTINUE );
-
-	}
-
-
-int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo ) {
-	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo;
-	PtPanelGroupCallback_t *PGCallback =
-		(PtPanelGroupCallback_t *)cbinfo->cbdata;
-	if (strcmp(PGCallback->new_panel, "Window") == 0) {
-	  if (All_Figures == NULL) return Pt_END;
-	} else if (strcmp(PGCallback->new_panel, "X") == 0) {
-	  // Check for axes
-	  return Pt_END;
-	} else if (strcmp(PGCallback->new_panel, "Y") == 0) {
-	  return Pt_END;
-	} else if (strcmp(PGCallback->new_panel, "Line") == 0) {
-	  return Pt_END;
-	}
-	return Pt_CONTINUE;
+int menu_open_cmd( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  open_cmd_fd();
+  return( Pt_CONTINUE );
 }
 
 
-int
-menu_graph_curaxes( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo )
+int menu_close_cmd( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  close_cmd_fd();
+  nl_error(0,"menu_close_cmd");
+  return( Pt_CONTINUE );
+}
 
-	{
+int menu_quit( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  nl_error(0,"menu_quit");
+  PtExit(0);
+  return( Pt_CONTINUE );
+}
 
-	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+int console_destroyed( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  close_cmd_fd();
+  nl_error( 0, "console_destroyed");
+  return( Pt_CONTINUE );
+}
 
-	return( Pt_CONTINUE );
+int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo ) {
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo;
+  PtPanelGroupCallback_t *PGCallback =
+		(PtPanelGroupCallback_t *)cbinfo->cbdata;
+  if (strcmp(PGCallback->new_panel, "Window") == 0) {
+	if (All_Figures == NULL) return Pt_END;
+  } else if (strcmp(PGCallback->new_panel, "X") == 0) {
+	// Check for axes
+	return Pt_END;
+  } else if (strcmp(PGCallback->new_panel, "Y") == 0) {
+	return Pt_END;
+  } else if (strcmp(PGCallback->new_panel, "Line") == 0) {
+	return Pt_END;
+  }
+  return Pt_CONTINUE;
+}
 
-	}
+int menu_graph_curaxes( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  return( Pt_CONTINUE );
+}
 
-
-int
-menu_graph_newpane( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo )
-
-	{
-
-	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
-	if ( Current::Figure ) {
-	  const char *name = RTG_Variable::Cur_Var ? RTG_Variable::Cur_Var->name : "no_var";
-	  new plot_pane(name,Current::Figure);
-	} else menu_graph_newwin( widget, apinfo, cbinfo);
-
-	return( Pt_CONTINUE );
-
-	}
-
-
-int
-menu_graph_newwin( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo )
-
-	{
-
-	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+int menu_graph_newpane( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  if ( Current::Figure ) {
 	const char *name = RTG_Variable::Cur_Var ? RTG_Variable::Cur_Var->name : "no_var";
-	new plot_figure(name);
-	return( Pt_CONTINUE );
+	plot_pane *pane = new plot_pane(name,Current::Figure);
+	new plot_axes(name, pane);
+  } else menu_graph_newwin( widget, apinfo, cbinfo);
+  return( Pt_CONTINUE );
+}
 
-	}
+int menu_graph_newwin( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  const char *name = RTG_Variable::Cur_Var ? RTG_Variable::Cur_Var->name : "no_var";
+  plot_figure *fig = new plot_figure(name);
+  new plot_axes(name, fig->first);
+  return( Pt_CONTINUE );
+}
 
+int menu_graph_overlay( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  const char *name = RTG_Variable::Cur_Var ? RTG_Variable::Cur_Var->name : "no_var";
+  if ( Current::Axes != NULL ) {
+	new plot_axes(name, Current::Axes->parent);
+  } else nl_error( 2, "Current::Axes not set");
+  return( Pt_CONTINUE );
+}
 
-int
-menu_graph_overlay( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo )
-
-	{
-
-	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
-
-	return( Pt_CONTINUE );
-
-	}
-
-
-int
-menu_file_report( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo )
-
-	{
-
-	/* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
-	plot_figure::Report();
-	return( Pt_CONTINUE );
-
-	}
+int menu_file_report( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  /* eliminate 'unreferenced' warnings */
+  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  plot_figure::Report();
+  return( Pt_CONTINUE );
+}
 
 
 int console_setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
@@ -261,4 +220,3 @@ int console_setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
 	PtSetResource(graphs, Pt_ARG_TREE_COLUMN_ATTR, col_attrs, 2 );
 	return( Pt_CONTINUE );
 }
-

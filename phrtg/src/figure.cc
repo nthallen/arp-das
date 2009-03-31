@@ -23,6 +23,8 @@ plot_obj::plot_obj(plot_obj_type po_type, const char *name_in) {
 plot_obj::~plot_obj() {
   free(name);
   name = NULL;
+  if (this == Current::Menu_obj)
+	Current::Menu_obj = NULL;
 }
 
 const char *plot_obj::typetext() {
@@ -67,6 +69,7 @@ plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
   saw_first_resize = false;
   display_name = true;
   visible = true;
+  synch_x = true;
   ApModuleParent( ABM_Figure, AB_NO_PARENT, NULL );
   module = ApCreateModule( ABM_Figure, NULL, NULL );
   window = ApGetWidgetPtr(module, ABN_Figure);
@@ -93,6 +96,8 @@ plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
 plot_figure::~plot_figure() {
   if ( destroying ) return;
   destroying = true;
+  if (this == Current::Figure)
+	Current::Figure = NULL;
   while (first != NULL ) delete first;
   PtSetResource(window, Pt_ARG_POINTER, NULL, 0 );
   PtSetResource(module, Pt_ARG_POINTER, NULL, 0 );
@@ -525,6 +530,7 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   min_height = min_dim.h;
   next = NULL;
   widget = pane;
+  synch_x = true;
   parent->AddChild(this);
   
   window = ApGetWidgetPtr(figure->module, ABN_Figure);
@@ -602,12 +608,65 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
 plot_pane::~plot_pane() {
   if ( destroying ) return;
   destroying = true;
+  if (this == Current::Pane)
+	Current::Pane = NULL;
   nl_assert(widget != NULL);
-  // ### delete children
+  while ( first != NULL )
+	delete first;
   TreeItem->data = NULL;
   PtSetResource(widget, Pt_ARG_POINTER, NULL, 0 );
   parent->RemoveChild(this);
   widget = NULL;
+}
+
+/* plot_pane::AddChild(plot_axes *p);
+ * Called from the child during construction
+ * Responsible for adding the child to the end of
+ * the list of children and adding it's TreeItem to 
+ * the tree hierarchy
+ */
+void plot_pane::AddChild(plot_axes *ax) {
+  if (last != NULL) {
+	PtTreeAddAfter(ABW_Graphs_Tab, ax->TreeItem, last->TreeItem);
+	last->next = ax;
+  } else {
+	PtTreeAddFirst(ABW_Graphs_Tab, ax->TreeItem, TreeItem);
+	first = ax;
+  }
+  last = ax;
+}
+
+/* void plot_pane::RemoveChild(plot_axes *ax);
+ * Called from the child during its destruction.
+ * Responsible for removing the child from the
+ * list of children and possibly removing and
+ * freeing it's TreeItem from the tree hierarchy.
+ * This last step will be skipped if the figure
+ * is in the process of destruction itself, since
+ * the entire subtree will be removed and freed
+ * when the figure is destroyed.
+ */
+void plot_pane::RemoveChild(plot_axes *ax) {
+  nl_assert(ax != NULL);
+  nl_assert(first != NULL);
+  if (first == ax) first = ax->next;
+  else {
+	for (plot_axes *c = first; c != NULL; c = c->next ) {
+	  if (c->next == NULL)
+		nl_error(4, "Child axes not found in RemoveChild");
+	  if (c->next == ax) {
+		c->next = ax->next;
+		break;
+	  }
+	}
+  }
+  if (first == NULL) last = NULL;
+  ax->next = NULL;
+  if (!destroying) {
+	PtTreeRemoveItem(ABW_Graphs_Tab, ax->TreeItem);
+	PtTreeFreeItems(ax->TreeItem);
+	ax->TreeItem = NULL;
+  }
 }
 
 void plot_pane::resized(PhDim_t *newdim ) {
@@ -618,9 +677,15 @@ void plot_pane::resized(PhDim_t *newdim ) {
 }
 
 void plot_pane::got_focus() {
+  // Set parent as current *before* checking whether we
+  // are current. This allows deeply nested plot_objs
+  // to do:
+  //   Current::XXX = parent;
+  //   parent->got_focus();
+  // in order to relay the Current settings.
+  Current::Figure = parent;
   if (this == Current::Pane) return;
   Current::Pane = this;
-  Current::Figure = parent;
   nl_error(0, "Pane Got Focus: %s", name);
   nl_assert(TreeItem != NULL);
   if ( !(TreeItem->gen.list.flags&Pt_LIST_ITEM_SELECTED)) {
