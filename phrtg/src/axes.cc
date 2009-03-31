@@ -70,9 +70,10 @@ plot_axes::plot_axes( const char *name_in, plot_pane *pane ) : plot_obj(po_axes,
   first = last = NULL;
   next = NULL;
   parent = pane;
+  parent_obj = pane;
   visible = true;
   parent->AddChild(this);
-  Current::Axes = this;
+  //Current::Axes = this;
 }
 
 plot_axes::~plot_axes() {
@@ -80,23 +81,57 @@ plot_axes::~plot_axes() {
   destroying = true;
   if (this == Current::Axes)
 	Current::Axes = NULL;
-  // delete children
-  // while (first != NULL) delete first;
+  while (first != NULL) delete first;
   TreeItem->data = NULL;
   // PtSetResource(widget, Pt_ARG_POINTER, NULL, 0 );
   parent->RemoveChild(this);
   // widget = NULL;
 }
 
-void plot_axes::got_focus() { // got_focus(gf_type whence)
-  if (this == Current::Axes) return;
-  // plot_obj::got_focus(whence)
-  Current::Axes = this;
-  Current::Pane = parent;
-  Current::Figure = parent->parent;
-  nl_error(0, "Axes Got Focus: %s", name);
-  nl_assert(TreeItem != NULL);
-  if ( !(TreeItem->gen.list.flags&Pt_LIST_ITEM_SELECTED)) {
-	PtTreeSelect(ABW_Graphs_Tab, TreeItem);
+void plot_axes::AddChild(plot_data *data) {
+  if (last != NULL) {
+	PtTreeAddAfter(ABW_Graphs_Tab, data->TreeItem, last->TreeItem);
+	last->next = data;
+  } else {
+	PtTreeAddFirst(ABW_Graphs_Tab, data->TreeItem, TreeItem);
+	first = data;
   }
+  last = data;
+}
+
+void plot_axes::RemoveChild(plot_data *data) {
+  nl_assert(data != NULL);
+  nl_assert(first != NULL);
+  if (current_child == data) current_child = NULL;
+  if (first == data) first = data->next;
+  else {
+	for (plot_data *c = first; c != NULL; c = c->next ) {
+	  if (c->next == NULL)
+		nl_error(4, "Child datum not found in RemoveChild");
+	  if (c->next == data) {
+		c->next = data->next;
+		break;
+	  }
+	}
+  }
+  if (first == NULL) last = NULL;
+  data->next = NULL;
+  if (!destroying) {
+	PtTreeRemoveItem(ABW_Graphs_Tab, data->TreeItem);
+	PtTreeFreeItems(data->TreeItem);
+	data->TreeItem = NULL;
+  }
+}
+
+void plot_axes::CreateGraph(RTG_Variable *var) {
+  nl_assert(var != NULL);
+  plot_data *graph = new plot_data(var, this);
+  graph->got_focus(focus_from_user);
+}
+
+void plot_axes::got_focus(focus_source whence) { // got_focus(gf_type whence)
+  if (this == Current::Axes) return;
+  plot_obj::got_focus(whence);
+  Current::Axes = this;
+  // Update dialogs for axes
 }

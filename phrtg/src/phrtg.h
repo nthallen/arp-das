@@ -9,6 +9,11 @@
 
 class RTG_Variable_Node;
 class RTG_Variable_MLF;
+class plot_pane;
+class plot_figure;
+class plot_axes;
+class plot_data;
+class plot_line;
 enum RTG_Variable_Type { Var_Node, Var_MLF };
 const int DIV_BEVEL_WIDTHS = 2;
 
@@ -16,14 +21,19 @@ class RTG_Variable {
   public:
     RTG_Variable(const char *name_in, RTG_Variable_Type type_in);
     ~RTG_Variable();
-    void Add_Sibling(RTG_Variable *newsib);
+    void AddSibling(RTG_Variable *newsib);
+    void AddGraph(plot_data *graph);
+    void RemoveGraph(plot_data *graph);
+
     RTG_Variable_Type type;
+    char *name;
+
     static int Find_Insert( char *name, RTG_Variable_Node *&parent,
         RTG_Variable *&sib, RTG_Variable *&node, char *&lastnode_text );
     static int TreeSelected( PtWidget_t *widget,
     	ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo );
     static RTG_Variable *Cur_Var;
-    char *name;
+
   friend class RTG_Variable_Node;
   friend class RTG_Variable_MLF;
   protected:
@@ -32,6 +42,7 @@ class RTG_Variable {
     RTG_Variable_Node *Parent;
     RTG_Variable *Next;
     PtTreeItem_t *TreeItem;
+    plot_data *first, *last;
 };
 
 class RTG_Variable_Node : public RTG_Variable {
@@ -62,21 +73,20 @@ class RTG_Variable_MLF : public RTG_Variable_Data {
 
 enum plot_obj_type { po_figure, po_pane, po_axes, po_data,
 		po_line, po_text, po_zoom, po_max };
+enum focus_source { focus_from_user, focus_from_child, focus_from_parent };
 
-class plot_pane;
-class plot_figure;
-class plot_axes;
-class plot_data;
 
 class plot_obj {
   public:
 	plot_obj_type type;
 	char *name;
     PtTreeItem_t *TreeItem;
+    plot_obj *parent_obj;
+    plot_obj *current_child;
     bool destroying;
 	plot_obj( plot_obj_type po_type, const char *name_in);
 	virtual ~plot_obj();
-	virtual void got_focus();
+	virtual void got_focus(focus_source whence);
 	void TreeAllocItem();
 	const char *typetext();
 	static int TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
@@ -111,9 +121,10 @@ class plot_figure : public plot_obj {
 	~plot_figure();
 	void AddChild(plot_pane *p);
 	void RemoveChild(plot_pane *p);
+	void CreateGraph(RTG_Variable *var);
 	int resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force);
 	void Change_min_dim(int dw, int dh);
-	void got_focus();
+	void got_focus(focus_source whence);
 
 	static int Setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
@@ -146,8 +157,9 @@ class plot_pane : public plot_obj {
 	~plot_pane();
 	void AddChild(plot_axes *p);
 	void RemoveChild(plot_axes *p);
+	void CreateGraph(RTG_Variable *var);
 	void resized( PhDim_t *newdim );
-	void got_focus();
+	void got_focus(focus_source whence);
 	plot_axes *first;
 	plot_axes *last;
 	plot_pane *next;
@@ -193,7 +205,10 @@ class plot_axes : public plot_obj {
   public:
 	plot_axes( const char *name_in, plot_pane *parent );
 	~plot_axes();
-	void got_focus();
+	void AddChild(plot_data *p);
+	void RemoveChild(plot_data *p);
+	void CreateGraph(RTG_Variable *var);
+	void got_focus(focus_source whence);
 	bool visible;
 	plot_pane *parent;
 	plot_axis X;
@@ -206,19 +221,35 @@ class plot_data : public plot_obj {
   public:
 	plot_data(RTG_Variable *var, plot_axes *parent);
 	~plot_data();
-	void got_focus();
+	void got_focus(focus_source whence);
+	bool visible;
 	plot_axes *parent;
 	RTG_Variable *variable;
+	plot_line *first, *last;
+	plot_data *next;
+};
+
+class plot_line : public plot_obj {
+public:
+	plot_line();
+	~plot_line();
+	void got_focus(focus_source whence);
 	bool visible;
+	plot_data *parent;
+	int column;
+	plot_line *next;
 };
 
 class Current {
   public:
+	static RTG_Variable *Variable;
     static plot_figure *Figure;
     static plot_pane *Pane;
     static plot_axes *Axes;
     static plot_data *Graph;
+    static plot_line *Line;
     static plot_obj *Menu_obj;
+    static void none(plot_obj_type parent_type);
 };
 
 extern plot_figure *Cur_Figure, *All_Figures;

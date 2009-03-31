@@ -8,12 +8,13 @@
 #include "nl_assert.h"
 
 RTG_Variable *RTG_Variable::Root;
-RTG_Variable *RTG_Variable::Cur_Var;
+RTG_Variable *Current::Variable;
 
 RTG_Variable::RTG_Variable(const char *name_in, RTG_Variable_Type type_in) {
   nl_assert(name_in != NULL);
   Parent = NULL;
   Next = NULL;
+  first = last = NULL;
   name = strdup(name_in);
   type = type_in;
   TreeItem = PtTreeAllocItem(ABW_Variables_Tab, name, -1, -1);
@@ -24,7 +25,7 @@ RTG_Variable::~RTG_Variable() {
 	nl_error(2, "~RTG_Variable");
 }
 
-void RTG_Variable::Add_Sibling(RTG_Variable *newsib) {
+void RTG_Variable::AddSibling(RTG_Variable *newsib) {
   nl_assert(newsib != NULL);
   newsib->Next = this->Next;
   this->Next = newsib;
@@ -32,9 +33,33 @@ void RTG_Variable::Add_Sibling(RTG_Variable *newsib) {
   PtTreeAddAfter(ABW_Variables_Tab, newsib->TreeItem, this->TreeItem);
 }
 
+void RTG_Variable::AddGraph(plot_data *graph) {
+  if (last != NULL) last->next = graph;
+  else first = graph;
+  last = graph;
+}
+
+void RTG_Variable::RemoveGraph(plot_data *graph) {
+  nl_assert(graph != NULL);
+  nl_assert(first != NULL);
+  if (first == graph) first = graph->next;
+  else {
+	for (plot_data *c = first; c != NULL; c = c->next ) {
+	  if (c->next == NULL)
+		nl_error(4, "Graph not found in RemoveGraph");
+	  if (c->next == graph) {
+		c->next = graph->next;
+		break;
+	  }
+	}
+  }
+  if (first == NULL) last = NULL;
+  graph->next = NULL;
+}
+
 void RTG_Variable::update_ancestry( RTG_Variable_Node *parent_in, RTG_Variable *sib ) {
   if ( sib ) {
-    sib->Add_Sibling(this);
+    sib->AddSibling(this);
   } else if ( parent_in ) {
     parent_in->Add_Child(this);
   } else {
@@ -52,10 +77,10 @@ int RTG_Variable::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
 	PtTreeItem_t *item = PtTreeCallback->item;
 	RTG_Variable *var = (RTG_Variable *)item->data;
 	if ( var == NULL || var->type == Var_Node ) {
-	  Cur_Var = NULL;
+	  Current::Variable = NULL;
 	  PtTreeUnselect(ABW_Variables_Tab, item);
 	} else {
-	  Cur_Var = var;
+	  Current::Variable = var;
 	  nl_error( 0, "Variable %s selected", var->name );
 	}
   }

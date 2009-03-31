@@ -161,20 +161,41 @@ int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbin
 
 int menu_graph_curaxes( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
-  /* eliminate 'unreferenced' warnings */
-  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  if (Current::Axes) {
+	if (Current::Variable != NULL)
+	  Current::Axes->CreateGraph(Current::Variable);
+	else nl_error(2, "No Current Variable defined");
+  } else {
+	nl_error(1, "m_g_curaxes: No Current axes: calling m_g_overlay");
+    menu_graph_overlay( widget, apinfo, cbinfo);
+  }
   return( Pt_CONTINUE );
 }
 
+int menu_graph_overlay( PtWidget_t *widget, ApInfo_t *apinfo,
+		PtCallbackInfo_t *cbinfo ) {
+  if (Current::Pane != NULL) {
+    if (Current::Variable != NULL)
+      Current::Pane->CreateGraph(Current::Variable);
+    else nl_error(2, "No current variable defined");
+  } else {
+	nl_error(1,"m_g_overlay: no current pane, calling m_g_newpane");
+	menu_graph_newpane(widget,apinfo,cbinfo);
+  }
+  return Pt_CONTINUE;
+}
+
+
 int menu_graph_newpane( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
-  /* eliminate 'unreferenced' warnings */
-  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
   if ( Current::Figure ) {
-	const char *name = RTG_Variable::Cur_Var ? RTG_Variable::Cur_Var->name : "no_var";
-	plot_pane *pane = new plot_pane(name,Current::Figure);
-	new plot_axes(name, pane);
-  } else menu_graph_newwin( widget, apinfo, cbinfo);
+	if (Current::Variable)
+	  Current::Figure->CreateGraph(Current::Variable);
+	else nl_error( 2, "No Current Variable defined");
+  } else {
+	nl_error(1, "m_g_newpane: No current figure, calling m_g_newwin");
+	menu_graph_newwin( widget, apinfo, cbinfo);
+  }
   return( Pt_CONTINUE );
 }
 
@@ -182,21 +203,12 @@ int menu_graph_newwin( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
   /* eliminate 'unreferenced' warnings */
   widget = widget, apinfo = apinfo, cbinfo = cbinfo;
-  const char *name = RTG_Variable::Cur_Var ? RTG_Variable::Cur_Var->name : "no_var";
-  plot_figure *fig = new plot_figure(name);
-  new plot_axes(name, fig->first);
-  return( Pt_CONTINUE );
-}
-
-int menu_graph_overlay( PtWidget_t *widget, ApInfo_t *apinfo,
-		PtCallbackInfo_t *cbinfo ) {
-  /* eliminate 'unreferenced' warnings */
-  widget = widget, apinfo = apinfo, cbinfo = cbinfo;
-  const char *name = RTG_Variable::Cur_Var ? RTG_Variable::Cur_Var->name : "no_var";
-  if ( Current::Axes != NULL ) {
-	new plot_axes(name, Current::Axes->parent);
-  } else nl_error( 2, "Current::Axes not set");
-  return( Pt_CONTINUE );
+  if (Current::Variable != NULL) {
+	const char *name = Current::Variable->name;
+    plot_figure *fig = new plot_figure(name);
+    fig->first->CreateGraph(Current::Variable);
+  } else nl_error(2, "No current variable defined");
+  return Pt_CONTINUE;
 }
 
 int menu_file_report( PtWidget_t *widget, ApInfo_t *apinfo,

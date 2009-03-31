@@ -17,6 +17,8 @@ plot_obj::plot_obj(plot_obj_type po_type, const char *name_in) {
   destroying = false;
   if (name_in == NULL) name_in = typetext();
   name = strdup(name_in);
+  parent_obj = NULL;
+  current_child = NULL;
   TreeAllocItem();
 }
 
@@ -32,15 +34,36 @@ const char *plot_obj::typetext() {
     case po_figure: return "figure";
     case po_pane: return "pane";
     case po_axes: return "axes";
-    case po_data: return "data";
+    case po_data: return "graph";
     case po_line: return "line";
     case po_text: return "text";
     default: return "unknown";
   }
 }
 
-void plot_obj::got_focus() {
-  nl_error(0, "Got Focus: %s %s", typetext(), name);
+void plot_obj::got_focus(focus_source whence) {
+  const char *twhence;
+  switch (whence) {
+  case focus_from_user: twhence = "user"; break;
+  case focus_from_child: twhence = "child"; break;
+  case focus_from_parent: twhence = "parent"; break;
+  default: nl_error(4, "Invalid whence");
+  }
+  nl_error(0, "%s %s got focus from %s", typetext(), name, twhence);
+  if (whence == focus_from_user) {
+	nl_assert(TreeItem != NULL);
+	if ( !(TreeItem->gen.list.flags&Pt_LIST_ITEM_SELECTED)) {
+	  PtTreeSelect(ABW_Graphs_Tab, TreeItem);
+	}
+  }
+  if (parent_obj && (whence == focus_from_user || whence == focus_from_child)) {
+	parent_obj->current_child = this;
+	parent_obj->got_focus(focus_from_child);
+  }
+  if (whence == focus_from_user || whence == focus_from_parent) {
+	if (current_child) current_child->got_focus(focus_from_parent);
+	else Current::none(type);
+  }
 }
 
 void plot_obj::TreeAllocItem() {
@@ -58,7 +81,7 @@ int plot_obj::pt_got_focus( PtWidget_t *widget, ApInfo_t *apinfo,
   apinfo = apinfo, cbinfo = cbinfo;
   PtGetResource(widget, Pt_ARG_POINTER, &po, 0);
   if (po != NULL)
-	  po->got_focus();
+	  po->got_focus(focus_from_user);
   return Pt_CONTINUE;
 }
 
@@ -87,7 +110,7 @@ plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
 	PtTreeAddAfter(ABW_Graphs_Tab, this->TreeItem, All_Figures->TreeItem);
   else PtTreeAddFirst(ABW_Graphs_Tab, this->TreeItem, NULL);
   new plot_pane(name, this, first_pane);
-  Current::Figure = this;
+  //Current::Figure = this;
   next = All_Figures;
   All_Figures = this;
   nl_error(0, "plot_figure %s created", name);
@@ -154,6 +177,7 @@ void plot_figure::AddChild(plot_pane *p) {
 void plot_figure::RemoveChild(plot_pane *p) {
   nl_assert(p != NULL);
   nl_assert(first != NULL);
+  if (current_child == p) current_child = NULL;
   if (first == p) first = p->next;
   else {
 	for (plot_pane *c = first; c != NULL; c = c->next ) {
@@ -177,14 +201,17 @@ void plot_figure::RemoveChild(plot_pane *p) {
   Change_min_dim( 0, -p->min_height);
 }
 
-void plot_figure::got_focus() {
+void plot_figure::CreateGraph(RTG_Variable *var) {
+  nl_assert(var != NULL);
+  plot_pane *pane = new plot_pane(var->name, this);
+  pane->CreateGraph(var);
+}
+
+void plot_figure::got_focus(focus_source whence) {
   if (this == Current::Figure) return;
+  plot_obj::got_focus(whence);
   Current::Figure = this;
-  nl_error(0, "Figure Got Focus: %s", name);
-  nl_assert(TreeItem != NULL);
-  if ( !(TreeItem->gen.list.flags&Pt_LIST_ITEM_SELECTED)) {
-	PtTreeSelect(ABW_Graphs_Tab, TreeItem);
-  }
+  // Update dialogs for figure
 }
 
 /*
@@ -527,6 +554,7 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   PhDim_t div_dim;
   
   parent = figure;
+  parent_obj = figure;
   min_height = min_dim.h;
   next = NULL;
   widget = pane;
@@ -649,6 +677,7 @@ void plot_pane::AddChild(plot_axes *ax) {
 void plot_pane::RemoveChild(plot_axes *ax) {
   nl_assert(ax != NULL);
   nl_assert(first != NULL);
+  if (current_child == ax) current_child = NULL;
   if (first == ax) first = ax->next;
   else {
 	for (plot_axes *c = first; c != NULL; c = c->next ) {
@@ -669,6 +698,12 @@ void plot_pane::RemoveChild(plot_axes *ax) {
   }
 }
 
+void plot_pane::CreateGraph(RTG_Variable *var) {
+  nl_assert(var != NULL);
+  plot_axes *ax = new plot_axes(var->name, this);
+  ax->CreateGraph(var);
+}
+
 void plot_pane::resized(PhDim_t *newdim ) {
   full_height = newdim->h;
   nl_assert( full_height >= min_height );
@@ -676,21 +711,11 @@ void plot_pane::resized(PhDim_t *newdim ) {
   // Then we relay this information to the axes
 }
 
-void plot_pane::got_focus() {
-  // Set parent as current *before* checking whether we
-  // are current. This allows deeply nested plot_objs
-  // to do:
-  //   Current::XXX = parent;
-  //   parent->got_focus();
-  // in order to relay the Current settings.
-  Current::Figure = parent;
+void plot_pane::got_focus(focus_source whence) {
   if (this == Current::Pane) return;
+  plot_obj::got_focus(whence);
   Current::Pane = this;
-  nl_error(0, "Pane Got Focus: %s", name);
-  nl_assert(TreeItem != NULL);
-  if ( !(TreeItem->gen.list.flags&Pt_LIST_ITEM_SELECTED)) {
-	PtTreeSelect(ABW_Graphs_Tab, TreeItem);
-  }
+  // Update dialogs for pane
 }
 
 int plot_obj::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
@@ -702,13 +727,12 @@ int plot_obj::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
 	nl_assert(cb->item != NULL);
 	plot_obj *p = (plot_obj *)cb->item->data;
 	if (cb->item->gen.list.flags&Pt_LIST_ITEM_SELECTED) {
-	  p->got_focus();
+	  p->got_focus(focus_from_user);
       nl_error( 0, "Selected %s:%s", p->name, p->typetext());
 	}
   }
   return( Pt_CONTINUE );
 }
-
 
 int plot_obj::menu_ToggleVisible( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
@@ -770,5 +794,22 @@ int plot_obj::TreeInput( PtWidget_t *widget, ApInfo_t *apinfo,
 	return( Pt_CONTINUE );
 }
 
-
+void Current::none(plot_obj_type parent_type) {
+  switch (parent_type) {
+    case po_figure:
+      nl_error(0, "No current pane");
+      Current::Pane = NULL;
+    case po_pane:
+      nl_error(0, "No current axes");
+      Current::Axes = NULL;
+    case po_axes:
+      nl_error(0, "No current graph");
+      Current::Graph = NULL;
+    case po_data:
+      nl_error(0, "No current line");
+      //Current::Line = NULL;
+    default:
+      break;
+  }
+}
 

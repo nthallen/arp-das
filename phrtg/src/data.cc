@@ -13,24 +13,29 @@ plot_data::plot_data(RTG_Variable *var, plot_axes *parent_in)
 	: plot_obj(po_data, var->name) {
   variable = var;
   parent = parent_in;
+  parent_obj = parent_in;
   visible = true;
+  parent->AddChild(this);
+  variable->AddGraph(this);
 }
 
 plot_data::~plot_data() {
-	
+  if (destroying) return;
+  destroying = true;
+  if (this == Current::Graph)
+		Current::Graph = NULL;
+  while (first != NULL) delete first;
+  TreeItem->data = NULL;
+  // PtSetResource(widget, Pt_ARG_POINTER, NULL, 0 );
+  variable->RemoveGraph(this);
+  variable = NULL;
+  parent->RemoveChild(this);
+  // widget = NULL;
 }
 
-void plot_data::got_focus() {
+void plot_data::got_focus(focus_source whence) {
   if (this == Current::Graph) return;
-  // plot_obj::got_focus(whence);
-  Current::Pane = parent->parent;
-  Current::Figure = parent->parent->parent;
-  nl_error(0, "Graph Got Focus: %s", name);
-  nl_assert(TreeItem != NULL);
-  if ( !(TreeItem->gen.list.flags&Pt_LIST_ITEM_SELECTED)) {
-	PtTreeSelect(ABW_Graphs_Tab, TreeItem);
-  }
-  // all of the above handled by plot_obj::got_focus(whence);
+  plot_obj::got_focus(whence);
   Current::Graph = this;
-  Current::Axes = parent;
+  // Update any dialogs that require it
 }
