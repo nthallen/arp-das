@@ -26,7 +26,6 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   parent_obj = figure;
   min_height = min_dim.h;
   first = last = NULL;
-  // next = NULL;
   widget = pane;
   synch_x = true;
   parent->AddChild(this);
@@ -45,7 +44,6 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   full_height = (pane == NULL) ? 0 : rem_height;
 
   // Go through the preexisting panes and report their size
-  //for ( plot_pane *p = figure->first; p != NULL; p = p->next ) {
   std::list<plot_pane*>::const_iterator pp;
   for (pp = figure->panes.begin(); pp != figure->panes.end(); ++pp ) {
 	plot_pane *p = *pp;
@@ -84,7 +82,6 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   
   n_panes = 0;
   // Go through all panes and adjust their size
-  //for ( plot_pane *p = figure->first; p != NULL; p = p->next ) {
   for (pp = figure->panes.begin(); pp != figure->panes.end(); ++pp ) {
 	plot_pane *p = *pp;
     ++n_panes;

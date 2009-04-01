@@ -110,8 +110,6 @@ class plot_obj {
 class plot_figure : public plot_obj {
   public:
 	std::list<plot_pane*> panes;
-	// plot_pane *first;
-	// plot_pane *last;
 	bool resizing;
 	bool display_name;
 	bool visible;
@@ -166,7 +164,6 @@ class plot_pane : public plot_obj {
 	void got_focus(focus_source whence);
 	plot_axes *first;
 	plot_axes *last;
-	// plot_pane *next;
 	plot_figure *parent;
 	PtWidget_t *widget;
 	int full_height;
