@@ -88,6 +88,7 @@ class plot_obj {
 	virtual ~plot_obj();
 	virtual void got_focus(focus_source whence);
 	void TreeAllocItem();
+	void TreeFreeItem();
 	const char *typetext();
 	static int TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );

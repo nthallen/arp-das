@@ -545,7 +545,7 @@ data
 0
 PtToggleButton
 5
-Synch_Overlay
+Synch_X_Pane
 3011
 multi
 20
@@ -570,7 +570,7 @@ multi
 10
 Auto Scale1007
 pos
-23,165
+23,190
 1005
 dim
 96,24
@@ -589,7 +589,7 @@ choice
 2
 1007
 pos
-87,190
+87,215
 1005
 dim
 272,24
@@ -812,7 +812,7 @@ multi
 9
 Log Scale1007
 pos
-23,214
+23,239
 1005
 dim
 83,24
@@ -831,7 +831,7 @@ multi
 5
 Data:1007
 pos
-21,247
+21,272
 1005
 dim
 38,21
@@ -844,7 +844,7 @@ multi
 7
 VarName1007
 pos
-66,247
+66,272
 1005
 dim
 61,21
@@ -857,7 +857,7 @@ multi
 7
 Detrend1007
 pos
-23,275
+23,300
 1005
 dim
 72,24
@@ -867,6 +867,25 @@ flag
 1004
 data
 32
+0
+PtToggleButton
+5
+Synch_X_Figure
+3011
+multi
+22
+Synch X within figure	1007
+pos
+23,163
+1005
+dim
+168,24
+1006
+flag
+16908424,1334445470
+1004
+data
+33
 0
 PtPane
 3
@@ -885,7 +904,7 @@ multi
 1
 Y1004
 data
-33
+34
 0
 PtPane
 3
@@ -904,7 +923,7 @@ multi
 4
 Line1004
 data
-34
+35
 0
 PtLabel
 4
@@ -933,7 +952,7 @@ dim
 89,21
 1004
 data
-35
+36
 0
 PtToggleButton
 4
@@ -952,7 +971,7 @@ flag
 138,1334445470
 1004
 data
-36
+37
 0
 PtComboBox
 4
@@ -973,7 +992,7 @@ None
 
 1004
 data
-37
+38
 0
 PtLabel
 4

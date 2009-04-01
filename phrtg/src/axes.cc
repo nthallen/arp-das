@@ -7,8 +7,6 @@
 #include "abimport.h"
 #include "nl_assert.h"
 
-plot_axes *Current::Axes;
-
 plot_axis::plot_axis() {
   XY = Axis_X;
   draw[0] = draw[1] = false;
@@ -116,11 +114,6 @@ void plot_axes::RemoveChild(plot_data *data) {
   }
   if (first == NULL) last = NULL;
   data->next = NULL;
-  if (!destroying) {
-	PtTreeRemoveItem(ABW_Graphs_Tab, data->TreeItem);
-	PtTreeFreeItems(data->TreeItem);
-	data->TreeItem = NULL;
-  }
 }
 
 void plot_axes::CreateGraph(RTG_Variable *var) {

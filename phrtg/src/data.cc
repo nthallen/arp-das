@@ -7,8 +7,6 @@
 #include "abimport.h"
 #include "nl_assert.h"
 
-plot_data *Current::Graph;
-
 plot_data::plot_data(RTG_Variable *var, plot_axes *parent_in)
 	: plot_obj(po_data, var->name) {
   variable = var;
