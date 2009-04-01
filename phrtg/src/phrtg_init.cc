@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include "nl_assert.h"
 
 /* Application Options string */
 const char ApOptions[] =
@@ -206,7 +207,9 @@ int menu_graph_newwin( PtWidget_t *widget, ApInfo_t *apinfo,
   if (Current::Variable != NULL) {
 	const char *name = Current::Variable->name;
     plot_figure *fig = new plot_figure(name);
-    fig->first->CreateGraph(Current::Variable);
+    nl_assert(!fig->panes.empty());
+    fig->panes.front()->CreateGraph(Current::Variable);
+    // fig->first->CreateGraph(Current::Variable);
   } else nl_error(2, "No current variable defined");
   return Pt_CONTINUE;
 }

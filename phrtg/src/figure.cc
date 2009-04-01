@@ -10,8 +10,7 @@
 std::list<plot_figure*> All_Figures;
 
 plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
-  first = last = NULL;
-  //next = NULL;
+  //first = last = NULL;
   min_dim.h = min_dim.w = 2; // 2*Divider Bezel
   saw_first_resize = false;
   display_name = true;
@@ -43,7 +42,8 @@ plot_figure::~plot_figure() {
   destroying = true;
   if (this == Current::Figure)
 	Current::Figure = NULL;
-  while (first != NULL ) delete first;
+  while (! panes.empty()) delete panes.front();
+  // while (first != NULL ) delete first;
   PtSetResource(window, Pt_ARG_POINTER, NULL, 0 );
   PtSetResource(module, Pt_ARG_POINTER, NULL, 0 );
   PtWidget_t *divider = ApGetWidgetPtr(module, ABN_Figure_Div);
@@ -76,14 +76,21 @@ plot_figure::~plot_figure() {
  */
 void plot_figure::AddChild(plot_pane *p) {
   Change_min_dim(0, p->min_height);
-  if (last != NULL) {
-	PtTreeAddAfter(ABW_Graphs_Tab, p->TreeItem, last->TreeItem);
-	last->next = p;
+  if ( !panes.empty() ) {
+	PtTreeAddAfter(ABW_Graphs_Tab, p->TreeItem, panes.back()->TreeItem);
   } else {
 	PtTreeAddFirst(ABW_Graphs_Tab, p->TreeItem, TreeItem);
-	first = p;
   }
-  last = p;
+  panes.push_back(p);
+  // if (last != NULL) {
+//	PtTreeAddAfter(ABW_Graphs_Tab, p->TreeItem, last->TreeItem);
+//	last->next = p;
+//  } else {
+//	PtTreeAddFirst(ABW_Graphs_Tab, p->TreeItem, TreeItem);
+//	axes.push_back(p);
+//	//first = p;
+//  }
+//  last = p;
 }
 
 /* void plot_figure::RemoveChild(plot_pane *p);
@@ -98,21 +105,23 @@ void plot_figure::AddChild(plot_pane *p) {
  */
 void plot_figure::RemoveChild(plot_pane *p) {
   nl_assert(p != NULL);
-  nl_assert(first != NULL);
+  nl_assert(!panes.empty());
+  //nl_assert(first != NULL);
   if (current_child == p) current_child = NULL;
-  if (first == p) first = p->next;
-  else {
-	for (plot_pane *c = first; c != NULL; c = c->next ) {
-	  if (c->next == NULL)
-		nl_error(4, "Child pane not found in RemoveChilde");
-	  if (c->next == p) {
-		c->next = p->next;
-		break;
-	  }
-	}
-  }
-  if (first == NULL) last = NULL;
-  p->next = NULL;
+  panes.remove(p);
+//  if (first == p) first = p->next;
+//  else {
+//	for (plot_pane *c = first; c != NULL; c = c->next ) {
+//	  if (c->next == NULL)
+//		nl_error(4, "Child pane not found in RemoveChilde");
+//	  if (c->next == p) {
+//		c->next = p->next;
+//		break;
+//	  }
+//	}
+//  }
+//  if (first == NULL) last = NULL;
+//  p->next = NULL;
   if (!destroying) {
 	PtDestroyWidget(p->widget);
 	resized(&dim, &dim, 1);
@@ -188,7 +197,6 @@ void plot_figure::Report() {
   // plot_figure *figure;
   PtWidget_t *divider;
   PhDim_t *div_dim, *win_dim;
-  int n_panes = 0;
   for (pos = All_Figures.begin(); pos != All_Figures.end(); pos++) {
 	plot_figure *figure = *pos;
 	//window = ApGetWidgetPtr(figure->module, ABN_Figure);
@@ -199,7 +207,11 @@ void plot_figure::Report() {
 	PtGetResource(divider, Pt_ARG_DIM, &div_dim, 0);
 	nl_error( 0, "Report: Divider (%p) dims (%d,%d)",
 	  divider, div_dim->w, div_dim->h);
-	for ( plot_pane *p = figure->first; p != NULL; p = p->next ) {
+	std::list<plot_pane*>::const_iterator pp;
+	// for ( plot_pane *p = figure->first; p != NULL; p = p->next ) {
+	unsigned int n_panes = 0;
+	for ( pp = figure->panes.begin(); pp != figure->panes.end(); ++pp ) {
+	  plot_pane *p = *pp;
 	  ++n_panes;
 	  if ( p->widget != NULL) {
 		PhDim_t *old_dim;
@@ -214,6 +226,7 @@ void plot_figure::Report() {
 		    n_panes, p->full_height, p->min_height );
 	  }
 	}
+	nl_assert(n_panes == figure->panes.size());
   }
 }
 
@@ -275,8 +288,12 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
   dim = *new_dim;
   plot_figure::Report();
   pane_dim.w = dim.w - 2;
-  if (first == NULL) return Pt_CONTINUE;
-  for ( plot_pane *pane = first; pane != NULL; pane = pane->next ) {
+  //if (first == NULL) return Pt_CONTINUE;
+  if (panes.empty()) return Pt_CONTINUE;
+  // for ( plot_pane *pane = first; pane != NULL; pane = pane->next ) {
+  std::list<plot_pane*>::const_iterator pp;
+  for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
+	plot_pane *pane = *pp;
 	cum_height += pane->full_height;
 	cum_min += pane->min_height;
   }
@@ -288,7 +305,9 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
   }
   if ( rem_height > cum_height ) {
 	// Add to each pane's height
-	for ( plot_pane *pane = first; pane != NULL; pane = pane->next ) {
+	// for ( plot_pane *pane = first; pane != NULL; pane = pane->next ) {
+    for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
+	  plot_pane *pane = *pp;
 	  int new_height = (rem_height * pane->full_height)/cum_height;
 	  pane_dim.h = new_height;
 	  rem_height -= new_height;
@@ -304,7 +323,9 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
 	rem_height -= cum_min;
 	cum_height -= cum_min;
 	nl_assert(cum_height > 0); // it's > rem_height >= cum_min
-	for ( plot_pane *pane = first; pane != NULL; pane = pane->next ) {
+	//for ( plot_pane *pane = first; pane != NULL; pane = pane->next ) {
+	for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
+	  plot_pane *pane = *pp;
       int dh = pane->full_height - pane->min_height;
 	  int new_height = cum_height > 0 ? (rem_height * dh)/cum_height : 0;
 	  rem_height -= new_height;
@@ -317,7 +338,9 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
 	  nl_error( 1, "divider_resized down: cum_height %d rem_height %d",
 			  cum_height, rem_height);
   } else {
-	for ( plot_pane *pane = first; pane != NULL; pane = pane->next ) {
+	// for ( plot_pane *pane = first; pane != NULL; pane = pane->next ) {
+    for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
+	  plot_pane *pane = *pp;
 	  pane_dim.h = pane->full_height;
 	  pane->resized(&pane_dim);
 	} 
@@ -360,6 +383,7 @@ int plot_figure::divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
     PtDividerCallback_t *cb = (PtDividerCallback_t *)cbinfo->cbdata;
     PhDim_t *div_dim, pane_dim;
     plot_figure *fig;
+	std::list<plot_pane*>::const_iterator pp;
     plot_pane *pane;
     int i;
 
@@ -372,8 +396,10 @@ int plot_figure::divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtGetResource(widget, Pt_ARG_POINTER, &fig, 0);
 		PtGetResource(widget, Pt_ARG_DIM, &div_dim, 0);
 		pane_dim = *div_dim;
-		for ( i = 0, pane = fig->first; i < cb->nsizes; pane = pane->next, ++i ) {
-		  nl_assert(pane != NULL);
+		// for ( i = 0, pane = fig->first; i < cb->nsizes; pane = pane->next, ++i ) {
+	    for ( i = 0, pp = fig->panes.begin(); i < cb->nsizes; ++i, ++pp ) {
+		  nl_assert(pp != fig->panes.end());
+		  pane = *pp;
 		  pane_dim.h = cb->sizes[i].to - cb->sizes[i].from + 1;
 		  nl_assert(pane_dim.h >= pane->min_height);
 		  pane->resized(&pane_dim);
