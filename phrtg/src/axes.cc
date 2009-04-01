@@ -66,7 +66,6 @@ plot_axes::plot_axes( const char *name_in, plot_pane *pane ) : plot_obj(po_axes,
   X.XY = Axis_X;
   Y.XY = Axis_Y;
   first = last = NULL;
-  next = NULL;
   parent = pane;
   parent_obj = pane;
   visible = true;
@@ -88,11 +87,11 @@ plot_axes::~plot_axes() {
 
 void plot_axes::AddChild(plot_data *data) {
   if (last != NULL) {
-	PtTreeAddAfter(ABW_Graphs_Tab, data->TreeItem, last->TreeItem);
-	last->next = data;
+  	PtTreeAddAfter(ABW_Graphs_Tab, data->TreeItem, last->TreeItem);
+  	last->next = data;
   } else {
-	PtTreeAddFirst(ABW_Graphs_Tab, data->TreeItem, TreeItem);
-	first = data;
+    PtTreeAddFirst(ABW_Graphs_Tab, data->TreeItem, TreeItem);
+	  first = data;
   }
   last = data;
 }

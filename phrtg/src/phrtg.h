@@ -155,20 +155,22 @@ extern std::list<plot_figure*> All_Figures;
 
 class plot_pane : public plot_obj {
   public:
-	plot_pane( const char *name_in, plot_figure *parent, PtWidget_t *pane = NULL);
-	~plot_pane();
-	void AddChild(plot_axes *p);
-	void RemoveChild(plot_axes *p);
-	void CreateGraph(RTG_Variable *var);
-	void resized( PhDim_t *newdim );
-	void got_focus(focus_source whence);
-	plot_axes *first;
-	plot_axes *last;
-	plot_figure *parent;
-	PtWidget_t *widget;
-	int full_height;
-	int min_height;
-	bool synch_x;
+		// plot_axes *first;
+		// plot_axes *last;
+    std::list<plot_axes*> axes;
+		plot_figure *parent;
+		PtWidget_t *widget;
+		int full_height;
+		int min_height;
+		bool synch_x;
+		
+  	plot_pane( const char *name_in, plot_figure *parent, PtWidget_t *pane = NULL);
+  	~plot_pane();
+  	void AddChild(plot_axes *p);
+  	void RemoveChild(plot_axes *p);
+  	void CreateGraph(RTG_Variable *var);
+  	void resized( PhDim_t *newdim );
+  	void got_focus(focus_source whence);
 };
 
 enum Axis_XY { Axis_X, Axis_Y };
@@ -204,18 +206,19 @@ class plot_axis {
 
 class plot_axes : public plot_obj {
   public:
-	plot_axes( const char *name_in, plot_pane *parent );
-	~plot_axes();
-	void AddChild(plot_data *p);
-	void RemoveChild(plot_data *p);
-	void CreateGraph(RTG_Variable *var);
-	void got_focus(focus_source whence);
-	bool visible;
-	plot_pane *parent;
-	plot_axis X;
-	plot_axis Y;
-	plot_data *first, *last;
-	plot_axes *next;
+    bool visible;
+    plot_pane *parent;
+    plot_axis X;
+    plot_axis Y;
+    plot_data *first, *last;
+    // plot_axes *next;
+    
+  	plot_axes( const char *name_in, plot_pane *parent );
+  	~plot_axes();
+  	void AddChild(plot_data *p);
+  	void RemoveChild(plot_data *p);
+  	void CreateGraph(RTG_Variable *var);
+  	void got_focus(focus_source whence);
 };
 
 class plot_data : public plot_obj {

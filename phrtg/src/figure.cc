@@ -63,9 +63,9 @@ plot_figure::~plot_figure() {
 void plot_figure::AddChild(plot_pane *p) {
   Change_min_dim(0, p->min_height);
   if ( !panes.empty() ) {
-	PtTreeAddAfter(ABW_Graphs_Tab, p->TreeItem, panes.back()->TreeItem);
+    PtTreeAddAfter(ABW_Graphs_Tab, p->TreeItem, panes.back()->TreeItem);
   } else {
-	PtTreeAddFirst(ABW_Graphs_Tab, p->TreeItem, TreeItem);
+    PtTreeAddFirst(ABW_Graphs_Tab, p->TreeItem, TreeItem);
   }
   panes.push_back(p);
 }
@@ -86,8 +86,8 @@ void plot_figure::RemoveChild(plot_pane *p) {
   if (current_child == p) current_child = NULL;
   panes.remove(p);
   if (!destroying) {
-	PtDestroyWidget(p->widget);
-	resized(&dim, &dim, 1);
+  	PtDestroyWidget(p->widget);
+  	resized(&dim, &dim, 1);
   }
   Change_min_dim( 0, -p->min_height);
 }

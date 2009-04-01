@@ -25,7 +25,6 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   parent = figure;
   parent_obj = figure;
   min_height = min_dim.h;
-  first = last = NULL;
   widget = pane;
   synch_x = true;
   parent->AddChild(this);
@@ -111,8 +110,7 @@ plot_pane::~plot_pane() {
   if (this == Current::Pane)
 	Current::Pane = NULL;
   nl_assert(widget != NULL);
-  while ( first != NULL )
-	delete first;
+  while (!axes.empty()) delete axes.front();
   TreeItem->data = NULL;
   PtSetResource(widget, Pt_ARG_POINTER, NULL, 0 );
   parent->RemoveChild(this);
@@ -126,14 +124,12 @@ plot_pane::~plot_pane() {
  * the tree hierarchy
  */
 void plot_pane::AddChild(plot_axes *ax) {
-  if (last != NULL) {
-	PtTreeAddAfter(ABW_Graphs_Tab, ax->TreeItem, last->TreeItem);
-	last->next = ax;
+  if (axes.empty()) {
+    PtTreeAddFirst(ABW_Graphs_Tab, ax->TreeItem, TreeItem);
   } else {
-	PtTreeAddFirst(ABW_Graphs_Tab, ax->TreeItem, TreeItem);
-	first = ax;
+    PtTreeAddAfter(ABW_Graphs_Tab, ax->TreeItem, axes.back()->TreeItem);
   }
-  last = ax;
+  axes.push_back(ax);
 }
 
 /* void plot_pane::RemoveChild(plot_axes *ax);
@@ -148,21 +144,9 @@ void plot_pane::AddChild(plot_axes *ax) {
  */
 void plot_pane::RemoveChild(plot_axes *ax) {
   nl_assert(ax != NULL);
-  nl_assert(first != NULL);
+  nl_assert(!axes.empty());
   if (current_child == ax) current_child = NULL;
-  if (first == ax) first = ax->next;
-  else {
-	for (plot_axes *c = first; c != NULL; c = c->next ) {
-	  if (c->next == NULL)
-		nl_error(4, "Child axes not found in RemoveChild");
-	  if (c->next == ax) {
-		c->next = ax->next;
-		break;
-	  }
-	}
-  }
-  if (first == NULL) last = NULL;
-  ax->next = NULL;
+  axes.remove(ax);
 }
 
 void plot_pane::CreateGraph(RTG_Variable *var) {
