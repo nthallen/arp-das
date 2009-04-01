@@ -7,11 +7,11 @@
 #include "abimport.h"
 #include "nl_assert.h"
 
-plot_figure *All_Figures;
+std::list<plot_figure*> All_Figures;
 
 plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
   first = last = NULL;
-  next = NULL;
+  //next = NULL;
   min_dim.h = min_dim.w = 2; // 2*Divider Bezel
   saw_first_resize = false;
   display_name = true;
@@ -30,13 +30,11 @@ plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
   PtGetResource(divider, Pt_ARG_DIM, &div_dim, 0 );
   dim = *div_dim;
   // TreeAllocItem();
-  if ( All_Figures != NULL )
-	PtTreeAddAfter(ABW_Graphs_Tab, this->TreeItem, All_Figures->TreeItem);
-  else PtTreeAddFirst(ABW_Graphs_Tab, this->TreeItem, NULL);
+  if ( !All_Figures.empty() )
+	PtTreeAddAfter(ABW_Graphs_Tab, TreeItem, All_Figures.back()->TreeItem);
+  else PtTreeAddFirst(ABW_Graphs_Tab, TreeItem, NULL);
   new plot_pane(name, this, first_pane);
-  //Current::Figure = this;
-  next = All_Figures;
-  All_Figures = this;
+  All_Figures.push_back(this);
   nl_error(0, "plot_figure %s created", name);
 }
 
@@ -52,17 +50,18 @@ plot_figure::~plot_figure() {
   PtSetResource(divider, Pt_ARG_POINTER, NULL, 0 );
 
   //  remove self from parent's list of children
-  // All_Figures.remove(this);
-  if (All_Figures == this) All_Figures = next;
-  else {
-	for (plot_figure *f = All_Figures; f != NULL; f = f->next ) {
-	  if (f->next == this) {
-		f->next = next;
-		break;
-	  }
-	}
-  }
-  next = NULL;
+  All_Figures.remove(this);
+  nl_error(0,"All_Figures now has %d elements", All_Figures.size());
+//  if (All_Figures == this) All_Figures = next;
+//  else {
+//	for (plot_figure *f = All_Figures; f != NULL; f = f->next ) {
+//	  if (f->next == this) {
+//		f->next = next;
+//		break;
+//	  }
+//	}
+//  }
+//  next = NULL;
   TreeItem->data = NULL;
   if (!(PtWidgetFlags(module) & Pt_DESTROYED))
 	PtDestroyWidget(module);
@@ -185,11 +184,13 @@ int plot_figure::Realized( PtWidget_t *widget, ApInfo_t *apinfo,
  * Just used for testing.
  */
 void plot_figure::Report() {
-  plot_figure *figure;
+  std::list<plot_figure*>::const_iterator pos;
+  // plot_figure *figure;
   PtWidget_t *divider;
   PhDim_t *div_dim, *win_dim;
   int n_panes = 0;
-  for (figure = All_Figures; figure != NULL; figure = (plot_figure *)figure->next) {
+  for (pos = All_Figures.begin(); pos != All_Figures.end(); pos++) {
+	plot_figure *figure = *pos;
 	//window = ApGetWidgetPtr(figure->module, ABN_Figure);
 	PtGetResource(figure->window, Pt_ARG_DIM, &win_dim, 0);
 	nl_error( 0, "Report: Window (%p) dims (%d,%d)",

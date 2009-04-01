@@ -12,6 +12,7 @@ plot_data::plot_data(RTG_Variable *var, plot_axes *parent_in)
   variable = var;
   parent = parent_in;
   parent_obj = parent_in;
+  first = last = NULL;
   visible = true;
   parent->AddChild(this);
   variable->AddGraph(this);

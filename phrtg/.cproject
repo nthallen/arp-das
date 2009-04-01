@@ -20,6 +20,7 @@
 
 <storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 
+
 <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 <buildTargets>
 <target name="build" path="" targetID="com.qnx.tools.ide.qde.core.cbuilder">

@@ -25,6 +25,7 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   parent = figure;
   parent_obj = figure;
   min_height = min_dim.h;
+  first = last = NULL;
   next = NULL;
   widget = pane;
   synch_x = true;

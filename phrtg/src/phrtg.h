@@ -6,6 +6,7 @@
 #include "f_matrix.h"
 #include <Pt.h>
 #include <photon/PtTree.h>
+#include <list>
 
 class RTG_Variable_Node;
 class RTG_Variable_MLF;
@@ -110,7 +111,6 @@ class plot_figure : public plot_obj {
   public:
 	plot_pane *first;
 	plot_pane *last;
-	plot_figure *next;
 	bool resizing;
 	bool display_name;
 	bool visible;
@@ -151,6 +151,8 @@ class plot_figure : public plot_obj {
 	// [[*Background_Color: Color Should be a Pane Property]]
 	
 };
+
+extern std::list<plot_figure*> All_Figures;
 
 class plot_pane : public plot_obj {
   public:
@@ -252,6 +254,4 @@ class Current {
     static plot_obj *Menu_obj;
     static void none(plot_obj_type parent_type);
 };
-
-extern plot_figure *Cur_Figure, *All_Figures;
 #endif

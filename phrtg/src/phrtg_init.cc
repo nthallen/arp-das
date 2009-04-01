@@ -147,7 +147,7 @@ int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbin
   PtPanelGroupCallback_t *PGCallback =
 		(PtPanelGroupCallback_t *)cbinfo->cbdata;
   if (strcmp(PGCallback->new_panel, "Window") == 0) {
-	if (All_Figures == NULL) return Pt_END;
+	if (All_Figures.empty()) return Pt_END;
   } else if (strcmp(PGCallback->new_panel, "X") == 0) {
 	// Check for axes
 	return Pt_END;
