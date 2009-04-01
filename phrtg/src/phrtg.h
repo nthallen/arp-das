@@ -20,30 +20,30 @@ const int DIV_BEVEL_WIDTHS = 2;
 
 class RTG_Variable {
   public:
+
+    RTG_Variable_Type type;
+    char *name;
+
     RTG_Variable(const char *name_in, RTG_Variable_Type type_in);
     ~RTG_Variable();
     void AddSibling(RTG_Variable *newsib);
     void AddGraph(plot_data *graph);
     void RemoveGraph(plot_data *graph);
 
-    RTG_Variable_Type type;
-    char *name;
-
     static int Find_Insert( char *name, RTG_Variable_Node *&parent,
         RTG_Variable *&sib, RTG_Variable *&node, char *&lastnode_text );
     static int TreeSelected( PtWidget_t *widget,
-    	ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo );
-    static RTG_Variable *Cur_Var;
+      ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo );
 
   friend class RTG_Variable_Node;
   friend class RTG_Variable_MLF;
   protected:
     static RTG_Variable *Root;
-    void update_ancestry( RTG_Variable_Node *parent_in, RTG_Variable *sib );
     RTG_Variable_Node *Parent;
     RTG_Variable *Next;
     PtTreeItem_t *TreeItem;
-    plot_data *first, *last;
+    std::list<plot_data*> graphs;
+    void update_ancestry( RTG_Variable_Node *parent_in, RTG_Variable *sib );
 };
 
 class RTG_Variable_Node : public RTG_Variable {
@@ -155,8 +155,6 @@ extern std::list<plot_figure*> All_Figures;
 
 class plot_pane : public plot_obj {
   public:
-		// plot_axes *first;
-		// plot_axes *last;
     std::list<plot_axes*> axes;
 		plot_figure *parent;
 		PtWidget_t *widget;
@@ -177,31 +175,32 @@ enum Axis_XY { Axis_X, Axis_Y };
 
 class plot_axis {
   public:
-	plot_axis();
-	void set_scale();
-	void set_scale(int pixel_span);
-	void set_scale(float min, float max);
-	void set_scale(f_matrix *data);
-	Axis_XY XY;
-	bool draw[2]; // Whether to draw primary or secondary axis
-	bool reserve_tick_space[2];
-	bool draw_ticks[2];
-	bool reserve_tick_label_space[2];
-	bool draw_tick_label[2];
-	bool reserve_label_space[2];
-	bool draw_label[2];
-	bool limit_auto;
-	bool log_scale;
-	bool reverse;
-	float min, max;
-	int pixels;
-	float scalev;
-    // *Axis color: color
-    // *Axis Tick Label Style: *use defaults for now
-    // *Axis Label Style: *use defaults for now
-	int major_tick_len; // positive outward, negative inward
-	int minor_tick_len;
-	int label_height; // same units has *_tick_len.
+  	Axis_XY XY;
+  	bool draw[2]; // Whether to draw primary or secondary axis
+  	bool reserve_tick_space[2];
+  	bool draw_ticks[2];
+  	bool reserve_tick_label_space[2];
+  	bool draw_tick_label[2];
+  	bool reserve_label_space[2];
+  	bool draw_label[2];
+  	bool limit_auto;
+  	bool log_scale;
+  	bool reverse;
+  	float min, max;
+  	int pixels;
+  	float scalev;
+      // *Axis color: color
+      // *Axis Tick Label Style: *use defaults for now
+      // *Axis Label Style: *use defaults for now
+  	int major_tick_len; // positive outward, negative inward
+  	int minor_tick_len;
+  	int label_height; // same units has *_tick_len.
+
+  	plot_axis();
+    void set_scale();
+    void set_scale(int pixel_span);
+    void set_scale(float min, float max);
+    void set_scale(f_matrix *data);
 };
 
 class plot_axes : public plot_obj {
@@ -210,8 +209,7 @@ class plot_axes : public plot_obj {
     plot_pane *parent;
     plot_axis X;
     plot_axis Y;
-    plot_data *first, *last;
-    // plot_axes *next;
+    std::list<plot_data*> graphs;
     
   	plot_axes( const char *name_in, plot_pane *parent );
   	~plot_axes();
@@ -223,25 +221,25 @@ class plot_axes : public plot_obj {
 
 class plot_data : public plot_obj {
   public:
-	plot_data(RTG_Variable *var, plot_axes *parent);
-	~plot_data();
-	void got_focus(focus_source whence);
-	bool visible;
-	plot_axes *parent;
-	RTG_Variable *variable;
-	plot_line *first, *last;
-	plot_data *next;
+    bool visible;
+    plot_axes *parent;
+    RTG_Variable *variable;
+    // std::list<plot_line*> lines;
+
+    plot_data(RTG_Variable *var, plot_axes *parent);
+  	~plot_data();
+  	void got_focus(focus_source whence);
 };
 
 class plot_line : public plot_obj {
-public:
-	plot_line();
-	~plot_line();
-	void got_focus(focus_source whence);
-	bool visible;
-	plot_data *parent;
-	int column;
-	plot_line *next;
+  public:
+    bool visible;
+    plot_data *parent;
+    int column;
+
+    plot_line();
+  	~plot_line();
+  	void got_focus(focus_source whence);
 };
 
 class Current {

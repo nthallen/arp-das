@@ -65,12 +65,10 @@ void plot_axis::set_scale(f_matrix *data) {
 plot_axes::plot_axes( const char *name_in, plot_pane *pane ) : plot_obj(po_axes, name_in) {
   X.XY = Axis_X;
   Y.XY = Axis_Y;
-  first = last = NULL;
   parent = pane;
   parent_obj = pane;
   visible = true;
   parent->AddChild(this);
-  //Current::Axes = this;
 }
 
 plot_axes::~plot_axes() {
@@ -78,7 +76,7 @@ plot_axes::~plot_axes() {
   destroying = true;
   if (this == Current::Axes)
 	Current::Axes = NULL;
-  while (first != NULL) delete first;
+  while (!graphs.empty()) delete graphs.front();
   TreeItem->data = NULL;
   // PtSetResource(widget, Pt_ARG_POINTER, NULL, 0 );
   parent->RemoveChild(this);
@@ -86,33 +84,19 @@ plot_axes::~plot_axes() {
 }
 
 void plot_axes::AddChild(plot_data *data) {
-  if (last != NULL) {
-  	PtTreeAddAfter(ABW_Graphs_Tab, data->TreeItem, last->TreeItem);
-  	last->next = data;
-  } else {
+  if (graphs.empty()) {
     PtTreeAddFirst(ABW_Graphs_Tab, data->TreeItem, TreeItem);
-	  first = data;
+  } else {
+  	PtTreeAddAfter(ABW_Graphs_Tab, data->TreeItem, graphs.back()->TreeItem);
   }
-  last = data;
+  graphs.push_back(data);
 }
 
 void plot_axes::RemoveChild(plot_data *data) {
   nl_assert(data != NULL);
-  nl_assert(first != NULL);
+  nl_assert(!graphs.empty());
   if (current_child == data) current_child = NULL;
-  if (first == data) first = data->next;
-  else {
-	for (plot_data *c = first; c != NULL; c = c->next ) {
-	  if (c->next == NULL)
-		nl_error(4, "Child datum not found in RemoveChild");
-	  if (c->next == data) {
-		c->next = data->next;
-		break;
-	  }
-	}
-  }
-  if (first == NULL) last = NULL;
-  data->next = NULL;
+  graphs.remove(data);
 }
 
 void plot_axes::CreateGraph(RTG_Variable *var) {

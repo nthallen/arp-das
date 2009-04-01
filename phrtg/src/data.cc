@@ -8,11 +8,10 @@
 #include "nl_assert.h"
 
 plot_data::plot_data(RTG_Variable *var, plot_axes *parent_in)
-	: plot_obj(po_data, var->name) {
+      : plot_obj(po_data, var->name) {
   variable = var;
   parent = parent_in;
   parent_obj = parent_in;
-  first = last = NULL;
   visible = true;
   parent->AddChild(this);
   variable->AddGraph(this);
@@ -23,7 +22,7 @@ plot_data::~plot_data() {
   destroying = true;
   if (this == Current::Graph)
 		Current::Graph = NULL;
-  while (first != NULL) delete first;
+  // while (first != NULL) delete first;
   TreeItem->data = NULL;
   // PtSetResource(widget, Pt_ARG_POINTER, NULL, 0 );
   variable->RemoveGraph(this);

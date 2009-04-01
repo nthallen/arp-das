@@ -14,7 +14,6 @@ RTG_Variable::RTG_Variable(const char *name_in, RTG_Variable_Type type_in) {
   nl_assert(name_in != NULL);
   Parent = NULL;
   Next = NULL;
-  first = last = NULL;
   name = strdup(name_in);
   type = type_in;
   TreeItem = PtTreeAllocItem(ABW_Variables_Tab, name, -1, -1);
@@ -34,27 +33,13 @@ void RTG_Variable::AddSibling(RTG_Variable *newsib) {
 }
 
 void RTG_Variable::AddGraph(plot_data *graph) {
-  if (last != NULL) last->next = graph;
-  else first = graph;
-  last = graph;
+  graphs.push_back(graph);
 }
 
 void RTG_Variable::RemoveGraph(plot_data *graph) {
   nl_assert(graph != NULL);
-  nl_assert(first != NULL);
-  if (first == graph) first = graph->next;
-  else {
-	for (plot_data *c = first; c != NULL; c = c->next ) {
-	  if (c->next == NULL)
-		nl_error(4, "Graph not found in RemoveGraph");
-	  if (c->next == graph) {
-		c->next = graph->next;
-		break;
-	  }
-	}
-  }
-  if (first == NULL) last = NULL;
-  graph->next = NULL;
+  nl_assert(!graphs.empty());
+  graphs.remove(graph);
 }
 
 void RTG_Variable::update_ancestry( RTG_Variable_Node *parent_in, RTG_Variable *sib ) {
