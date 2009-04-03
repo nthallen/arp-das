@@ -160,34 +160,34 @@ void plot_figure::Report() {
   PtWidget_t *divider;
   PhDim_t *div_dim, *win_dim;
   for (pos = All_Figures.begin(); pos != All_Figures.end(); pos++) {
-	plot_figure *figure = *pos;
-	//window = ApGetWidgetPtr(figure->module, ABN_Figure);
-	PtGetResource(figure->window, Pt_ARG_DIM, &win_dim, 0);
-	nl_error( 0, "Report: Window (%p) dims (%d,%d)",
-			  figure->window, win_dim->w, win_dim->h);
-	divider = ApGetWidgetPtr(figure->module, ABN_Figure_Div);
-	PtGetResource(divider, Pt_ARG_DIM, &div_dim, 0);
-	nl_error( 0, "Report: Divider (%p) dims (%d,%d)",
-	  divider, div_dim->w, div_dim->h);
-	std::list<plot_pane*>::const_iterator pp;
-	unsigned int n_panes = 0;
-	for ( pp = figure->panes.begin(); pp != figure->panes.end(); ++pp ) {
-	  plot_pane *p = *pp;
-	  ++n_panes;
-	  if ( p->widget != NULL) {
-		PhDim_t *old_dim;
-		PtGetResource(p->widget, Pt_ARG_DIM, &old_dim, 0);
-		nl_error( 0, "Report: Pane %d (%p) dims (%d,%d)",
-				n_panes, p->widget, old_dim->w, old_dim->h);
-		if (old_dim->h != p->full_height)
-			nl_error(1,"Report: Pane %d full_height %d dim %d",
-			  n_panes, p->full_height, old_dim->h);
-		if ( p->full_height < p->min_height )
-		  nl_error( 1, "Report: Pane %d full_height %d min_height %d",
-		    n_panes, p->full_height, p->min_height );
-	  }
-	}
-	nl_assert(n_panes == figure->panes.size());
+  	plot_figure *figure = *pos;
+  	//window = ApGetWidgetPtr(figure->module, ABN_Figure);
+  	PtGetResource(figure->window, Pt_ARG_DIM, &win_dim, 0);
+  	nl_error( 0, "Report: Window (%p) dims (%d,%d)",
+  			  figure->window, win_dim->w, win_dim->h);
+  	divider = ApGetWidgetPtr(figure->module, ABN_Figure_Div);
+  	PtGetResource(divider, Pt_ARG_DIM, &div_dim, 0);
+  	nl_error( 0, "Report: Divider (%p) dims (%d,%d)",
+  	  divider, div_dim->w, div_dim->h);
+  	std::list<plot_pane*>::const_iterator pp;
+  	unsigned int n_panes = 0;
+  	for ( pp = figure->panes.begin(); pp != figure->panes.end(); ++pp ) {
+  	  plot_pane *p = *pp;
+  	  ++n_panes;
+  	  if ( p->widget != NULL) {
+  		PhDim_t *old_dim;
+  		PtGetResource(p->widget, Pt_ARG_DIM, &old_dim, 0);
+  		nl_error( 0, "Report: Pane %d (%p) dims (%d,%d)",
+  				n_panes, p->widget, old_dim->w, old_dim->h);
+  		if (old_dim->h != p->full_height)
+  			nl_error(1,"Report: Pane %d full_height %d dim %d",
+  			  n_panes, p->full_height, old_dim->h);
+  		if ( p->full_height < p->min_height )
+  		  nl_error( 1, "Report: Pane %d full_height %d min_height %d",
+  		    n_panes, p->full_height, p->min_height );
+  	  }
+  	}
+  	nl_assert(n_panes == figure->panes.size());
   }
 }
 
