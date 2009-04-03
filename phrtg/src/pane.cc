@@ -149,7 +149,7 @@ void plot_pane::RemoveChild(plot_axes *ax) {
   axes.remove(ax);
 }
 
-void plot_pane::CreateGraph(RTG_Variable *var) {
+void plot_pane::CreateGraph(RTG_Variable_Data *var) {
   nl_assert(var != NULL);
   plot_axes *ax = new plot_axes(var->name, this);
   ax->CreateGraph(var);
@@ -167,4 +167,25 @@ void plot_pane::got_focus(focus_source whence) {
   plot_obj::got_focus(whence);
   Current::Pane = this;
   // Update dialogs for pane
+}
+
+bool plot_pane::render() {
+  //###
+  std::list<plot_axes*>::const_iterator pos;
+  for (pos = axes.begin(); pos != axes.end(); pos++) {
+    plot_axes *ax = *pos;
+    if ( ax->render() ) return true;
+  }
+  return false;
+}
+
+bool plot_pane::check_for_updates() {
+  bool updates_required = false;
+  std::list<plot_axes*>::const_iterator pos;
+  for (pos = axes.begin(); pos != axes.end(); pos++) {
+    plot_axes *ax = *pos;
+    if ( ax->check_for_updates() )
+      updates_required = true;
+  }
+  return updates_required;
 }

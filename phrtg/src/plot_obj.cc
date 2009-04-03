@@ -167,3 +167,23 @@ int plot_obj::TreeInput( PtWidget_t *widget, ApInfo_t *apinfo,
 	}
 	return( Pt_CONTINUE );
 }
+
+bool plot_obj::render_all() {
+  std::list<plot_figure*>::const_iterator pos;
+  for (pos = All_Figures.begin(); pos != All_Figures.end(); pos++) {
+    plot_figure *fig = *pos;
+    if ( fig->render() ) return true;
+  }
+  return false;
+}
+
+bool plot_obj::check_vars_for_updates() {
+  bool updates_required = false;
+  std::list<plot_figure*>::const_iterator pos;
+  for (pos = All_Figures.begin(); pos != All_Figures.end(); pos++) {
+    plot_figure *fig = *pos;
+    if ( fig->check_for_updates() )
+      updates_required = true;
+  }
+  return updates_required;
+}

@@ -4,6 +4,7 @@
 #include "nortlib.h"
 #include "tm.h"
 #include "f_matrix.h"
+#include "mlf.h"
 #include <Pt.h>
 #include <photon/PtTree.h>
 #include <list>
@@ -29,11 +30,13 @@ class RTG_Variable {
     void AddSibling(RTG_Variable *newsib);
     void AddGraph(plot_data *graph);
     void RemoveGraph(plot_data *graph);
+    virtual bool reload() = 0;
 
     static int Find_Insert( char *name, RTG_Variable_Node *&parent,
         RTG_Variable *&sib, RTG_Variable *&node, char *&lastnode_text );
     static int TreeSelected( PtWidget_t *widget,
       ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo );
+    static bool reload_all();
 
   friend class RTG_Variable_Node;
   friend class RTG_Variable_MLF;
@@ -51,6 +54,7 @@ class RTG_Variable_Node : public RTG_Variable {
     RTG_Variable_Node(const char *name);
     //~RTG_Variable_Node();
     void Add_Child(RTG_Variable *child);
+    bool reload();
     friend class RTG_Variable;
   private:
     RTG_Variable *First;
@@ -58,18 +62,25 @@ class RTG_Variable_Node : public RTG_Variable {
 
 class RTG_Variable_Data : public RTG_Variable {
   public:
+    bool new_data_available;
+    bool reload_required;
     RTG_Variable_Data(const char *name_in, RTG_Variable_Type type_in);
+    bool check_for_updates();
+    virtual bool reload() = 0;
 };
 
 class RTG_Variable_MLF : public RTG_Variable_Data {
   public:
     RTG_Variable_MLF( const char *name_in );
-    void new_index(int index);
+    bool reload();
+
     static void set_default_path(const char *path_in);
-    static void Incoming( char *name, int index );
+    static void Incoming( char *name, unsigned long index );
   private:
     static char *default_path;
-    char *path;
+    mlf_def_t *mlf;
+    unsigned long next_index;
+    void new_index(unsigned long index);
 };
 
 enum plot_obj_type { po_figure, po_pane, po_axes, po_data,
@@ -105,50 +116,53 @@ class plot_obj {
 			PtCallbackInfo_t *cbinfo );
 	static int pt_got_focus( PtWidget_t *widget, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
+	static bool render_all();
+  static bool check_vars_for_updates();
 };
 
 class plot_figure : public plot_obj {
   public:
-	std::list<plot_pane*> panes;
-	bool resizing;
-	bool display_name;
-	bool visible;
-	bool synch_x;
-	PtWidget_t *module;
-	PtWidget_t *window;
-
-	plot_figure( const char *name_in );
-	~plot_figure();
-	void AddChild(plot_pane *p);
-	void RemoveChild(plot_pane *p);
-	void CreateGraph(RTG_Variable *var);
-	int resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force);
-	void Change_min_dim(int dw, int dh);
-	void got_focus(focus_source whence);
-
-	static int Setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
-			PtCallbackInfo_t *cbinfo );
-	static int Realized( PtWidget_t *widget, ApInfo_t *apinfo,
-			PtCallbackInfo_t *cbinfo );
-	static int divider_resized( PtWidget_t *widget, ApInfo_t *apinfo,
-			PtCallbackInfo_t *cbinfo );
-	static int divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
-			PtCallbackInfo_t *cbinfo );
-	static int unrealized( PtWidget_t *widget, ApInfo_t *apinfo,
-			PtCallbackInfo_t *cbinfo );
-	static int destroyed( PtWidget_t *widget, ApInfo_t *apinfo,
-			PtCallbackInfo_t *cbinfo );
-	static int wmevent( PtWidget_t *widget, ApInfo_t *apinfo,
-			PtCallbackInfo_t *cbinfo );
-	static void Report();
+  	std::list<plot_pane*> panes;
+  	bool resizing;
+  	bool display_name;
+  	bool visible;
+  	bool synch_x;
+  	PtWidget_t *module;
+  	PtWidget_t *window;
+  
+  	plot_figure( const char *name_in );
+  	~plot_figure();
+  	void AddChild(plot_pane *p);
+  	void RemoveChild(plot_pane *p);
+  	void CreateGraph(RTG_Variable_Data *var);
+  	int resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force);
+  	void Change_min_dim(int dw, int dh);
+  	void got_focus(focus_source whence);
+  	bool render();
+  	bool check_for_updates();
+  
+  	static int Setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
+  			PtCallbackInfo_t *cbinfo );
+  	static int Realized( PtWidget_t *widget, ApInfo_t *apinfo,
+  			PtCallbackInfo_t *cbinfo );
+  	static int divider_resized( PtWidget_t *widget, ApInfo_t *apinfo,
+  			PtCallbackInfo_t *cbinfo );
+  	static int divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
+  			PtCallbackInfo_t *cbinfo );
+  	static int unrealized( PtWidget_t *widget, ApInfo_t *apinfo,
+  			PtCallbackInfo_t *cbinfo );
+  	static int destroyed( PtWidget_t *widget, ApInfo_t *apinfo,
+  			PtCallbackInfo_t *cbinfo );
+  	static int wmevent( PtWidget_t *widget, ApInfo_t *apinfo,
+  			PtCallbackInfo_t *cbinfo );
+  	static void Report();
   private:
-	bool saw_first_resize;
-	PhDim_t dim, min_dim;
-	// Area: x,y,height,width (controlled by dragging, not dialog, but should be saved with configuration)
-	// [Pane Orientation: Vertical]
-	// [other window display functions: allow resize, minimize, maximize]
-	// [[*Background_Color: Color Should be a Pane Property]]
-	
+  	bool saw_first_resize;
+  	PhDim_t dim, min_dim;
+  	// Area: x,y,height,width (controlled by dragging, not dialog, but should be saved with configuration)
+  	// [Pane Orientation: Vertical]
+  	// [other window display functions: allow resize, minimize, maximize]
+  	// [[*Background_Color: Color Should be a Pane Property]]
 };
 
 extern std::list<plot_figure*> All_Figures;
@@ -166,9 +180,11 @@ class plot_pane : public plot_obj {
   	~plot_pane();
   	void AddChild(plot_axes *p);
   	void RemoveChild(plot_axes *p);
-  	void CreateGraph(RTG_Variable *var);
+  	void CreateGraph(RTG_Variable_Data *var);
   	void resized( PhDim_t *newdim );
   	void got_focus(focus_source whence);
+  	bool render();
+    bool check_for_updates();
 };
 
 enum Axis_XY { Axis_X, Axis_Y };
@@ -215,20 +231,25 @@ class plot_axes : public plot_obj {
   	~plot_axes();
   	void AddChild(plot_data *p);
   	void RemoveChild(plot_data *p);
-  	void CreateGraph(RTG_Variable *var);
+  	void CreateGraph(RTG_Variable_Data *var);
   	void got_focus(focus_source whence);
+  	bool render();
+    bool check_for_updates();
 };
 
 class plot_data : public plot_obj {
   public:
     bool visible;
+    bool redraw_required;
     plot_axes *parent;
-    RTG_Variable *variable;
+    RTG_Variable_Data *variable;
     // std::list<plot_line*> lines;
 
-    plot_data(RTG_Variable *var, plot_axes *parent);
+    plot_data(RTG_Variable_Data *var, plot_axes *parent);
   	~plot_data();
   	void got_focus(focus_source whence);
+    bool render();
+    bool check_for_updates();
 };
 
 class plot_line : public plot_obj {
@@ -244,7 +265,7 @@ class plot_line : public plot_obj {
 
 class Current {
   public:
-	static RTG_Variable *Variable;
+  	static RTG_Variable_Data *Variable;
     static plot_figure *Figure;
     static plot_pane *Pane;
     static plot_axes *Axes;

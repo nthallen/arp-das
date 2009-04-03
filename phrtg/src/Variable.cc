@@ -8,7 +8,6 @@
 #include "nl_assert.h"
 
 RTG_Variable *RTG_Variable::Root;
-RTG_Variable *Current::Variable;
 
 RTG_Variable::RTG_Variable(const char *name_in, RTG_Variable_Type type_in) {
   nl_assert(name_in != NULL);
@@ -54,6 +53,11 @@ void RTG_Variable::update_ancestry( RTG_Variable_Node *parent_in, RTG_Variable *
   }
 }
 
+bool RTG_Variable::reload_all() {
+  if ( Root ) return Root->reload();
+  return false;
+}
+
 // This is the Pt_CB_TREE_SELECTION callback for the Variables Tab
 int RTG_Variable::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
@@ -65,7 +69,7 @@ int RTG_Variable::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
 	  Current::Variable = NULL;
 	  PtTreeUnselect(ABW_Variables_Tab, item);
 	} else {
-	  Current::Variable = var;
+	  Current::Variable = (RTG_Variable_Data *)var;
 	  nl_error( 0, "Variable %s selected", var->name );
 	}
   }
@@ -82,6 +86,12 @@ void RTG_Variable_Node::Add_Child(RTG_Variable *child) {
   this->First = child;
   child->Parent = this;
   PtTreeAddFirst( ABW_Variables_Tab, child->TreeItem, this->TreeItem );
+}
+
+bool RTG_Variable_Node::reload() {
+  if (First && First->reload()) return true;
+  if (Next) return Next->reload();
+  return false;
 }
 
 /*
@@ -186,17 +196,34 @@ int RTG_Variable::Find_Insert( char *name, RTG_Variable_Node *&parent,
 
 RTG_Variable_Data::RTG_Variable_Data( const char *name_in, RTG_Variable_Type type_in ) :
   RTG_Variable(name_in, type_in) {
+  new_data_available = false;
+  reload_required = false;
+}
+
+bool RTG_Variable_Data::check_for_updates() {
+  if ( new_data_available ) {
+    reload_required = true;
+    new_data_available = false;
+  }
+  return reload_required;
 }
 
 char *RTG_Variable_MLF::default_path;
 
 RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in ) :
     RTG_Variable_Data(name_in, Var_MLF) {
+  char fbase[PATH_MAX];
   nl_assert(default_path != NULL);
-  path = strdup(default_path);
+  if (snprintf(fbase,PATH_MAX,"%s/%s", default_path, name_in) >= PATH_MAX) {
+    nl_error(2,"Basename overflow in RTG_Variable_MLF");
+    mlf = NULL;
+  } else {
+    mlf = mlf_init(3, 60, 0, fbase, ".dat", NULL );
+  }
+  next_index = 0;
 }
 
-void RTG_Variable_MLF::Incoming( char *fullname, int index ) {
+void RTG_Variable_MLF::Incoming( char *fullname, unsigned long index ) {
   RTG_Variable_Node *parent;
   RTG_Variable *sib, *node;
   RTG_Variable_MLF *mlf;
@@ -224,6 +251,18 @@ void RTG_Variable_MLF::set_default_path(const char *path) {
   default_path = strdup(path);
 }
 
-void RTG_Variable_MLF::new_index( int index ) {
-  // ###
+void RTG_Variable_MLF::new_index( unsigned long index ) {
+  next_index = index;
+  if (next_index > 0 && mlf != NULL && next_index != mlf->index) {
+    new_data_available = true;
+  }
+}
+
+bool RTG_Variable_MLF::reload() {
+  if ( reload_required ) {
+    //## load the mlf data
+    reload_required = false;
+    return true;
+  }
+  return false;
 }

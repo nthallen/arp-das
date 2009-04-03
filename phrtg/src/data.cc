@@ -7,7 +7,7 @@
 #include "abimport.h"
 #include "nl_assert.h"
 
-plot_data::plot_data(RTG_Variable *var, plot_axes *parent_in)
+plot_data::plot_data(RTG_Variable_Data *var, plot_axes *parent_in)
       : plot_obj(po_data, var->name) {
   variable = var;
   parent = parent_in;
@@ -36,4 +36,19 @@ void plot_data::got_focus(focus_source whence) {
   plot_obj::got_focus(whence);
   Current::Graph = this;
   // Update any dialogs that require it
+}
+
+/* Like all render operations, this should accomplish a single
+ * non-trivial task and return true, or determined that nothing
+ * needs to be done and return false.
+ */
+bool plot_data::render() {
+  //###
+  return false;
+}
+
+bool plot_data::check_for_updates() {
+  if ( variable->check_for_updates() )
+    redraw_required = true;
+  return redraw_required;
 }

@@ -11,6 +11,7 @@ plot_figure *Current::Figure;
 plot_pane *Current::Pane;
 plot_axes *Current::Axes;
 plot_data *Current::Graph;
+RTG_Variable_Data *Current::Variable;
 
 void Current::none(plot_obj_type parent_type) {
   switch (parent_type) {

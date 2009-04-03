@@ -99,7 +99,7 @@ void plot_axes::RemoveChild(plot_data *data) {
   graphs.remove(data);
 }
 
-void plot_axes::CreateGraph(RTG_Variable *var) {
+void plot_axes::CreateGraph(RTG_Variable_Data *var) {
   nl_assert(var != NULL);
   plot_data *graph = new plot_data(var, this);
   graph->got_focus(focus_from_user);
@@ -110,4 +110,25 @@ void plot_axes::got_focus(focus_source whence) { // got_focus(gf_type whence)
   plot_obj::got_focus(whence);
   Current::Axes = this;
   // Update dialogs for axes
+}
+
+bool plot_axes::render() {
+  //##
+  std::list<plot_data*>::const_iterator pos;
+  for (pos = graphs.begin(); pos != graphs.end(); pos++) {
+    plot_data *graph = *pos;
+    if ( graph->render() ) return true;
+  }
+  return false;
+}
+
+bool plot_axes::check_for_updates() {
+  bool updates_required = false;
+  std::list<plot_data*>::const_iterator pos;
+  for (pos = graphs.begin(); pos != graphs.end(); pos++) {
+    plot_data *graph = *pos;
+    if ( graph->check_for_updates() )
+      updates_required = true;
+  }
+  return updates_required;
 }

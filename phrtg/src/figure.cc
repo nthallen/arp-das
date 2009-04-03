@@ -92,7 +92,7 @@ void plot_figure::RemoveChild(plot_pane *p) {
   Change_min_dim( 0, -p->min_height);
 }
 
-void plot_figure::CreateGraph(RTG_Variable *var) {
+void plot_figure::CreateGraph(RTG_Variable_Data *var) {
   nl_assert(var != NULL);
   plot_pane *pane = new plot_pane(var->name, this);
   pane->CreateGraph(var);
@@ -103,6 +103,26 @@ void plot_figure::got_focus(focus_source whence) {
   plot_obj::got_focus(whence);
   Current::Figure = this;
   // Update dialogs for figure
+}
+
+bool plot_figure::render() {
+  std::list<plot_pane*>::const_iterator pos;
+  for (pos = panes.begin(); pos != panes.end(); pos++) {
+    plot_pane *p = *pos;
+    if ( p->render() ) return true;
+  }
+  return false;
+}
+
+bool plot_figure::check_for_updates() {
+  bool updates_required = false;
+  std::list<plot_pane*>::const_iterator pos;
+  for (pos = panes.begin(); pos != panes.end(); pos++) {
+    plot_pane *p = *pos;
+    if ( p->check_for_updates() )
+      updates_required = true;
+  }
+  return updates_required;
 }
 
 /*
