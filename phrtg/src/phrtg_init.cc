@@ -103,6 +103,7 @@ static int command_input( int fd, void *data, unsigned mode ) {
       }
     } else nl_error(0,"Unhandled command input: '%s'", cmdbuf);
   }
+  plot_obj::render_all();
   return Pt_CONTINUE;
 }
 
@@ -148,14 +149,14 @@ int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbin
   PtPanelGroupCallback_t *PGCallback =
 		(PtPanelGroupCallback_t *)cbinfo->cbdata;
   if (strcmp(PGCallback->new_panel, "Window") == 0) {
-	if (All_Figures.empty()) return Pt_END;
+    if (All_Figures.empty()) return Pt_END;
   } else if (strcmp(PGCallback->new_panel, "X") == 0) {
-	// Check for axes
-	return Pt_END;
+  	// Check for axes
+  	return Pt_END;
   } else if (strcmp(PGCallback->new_panel, "Y") == 0) {
-	return Pt_END;
+    return Pt_END;
   } else if (strcmp(PGCallback->new_panel, "Line") == 0) {
-	return Pt_END;
+    return Pt_END;
   }
   return Pt_CONTINUE;
 }
@@ -163,11 +164,12 @@ int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbin
 int menu_graph_curaxes( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
   if (Current::Axes) {
-	if (Current::Variable != NULL)
-	  Current::Axes->CreateGraph(Current::Variable);
-	else nl_error(2, "No Current Variable defined");
+  	if (Current::Variable != NULL) {
+  	  Current::Axes->CreateGraph(Current::Variable);
+  	  plot_obj::render_all();
+    } else nl_error(2, "No Current Variable defined");
   } else {
-	nl_error(1, "m_g_curaxes: No Current axes: calling m_g_overlay");
+    nl_error(1, "m_g_curaxes: No Current axes: calling m_g_overlay");
     menu_graph_overlay( widget, apinfo, cbinfo);
   }
   return( Pt_CONTINUE );
@@ -176,12 +178,13 @@ int menu_graph_curaxes( PtWidget_t *widget, ApInfo_t *apinfo,
 int menu_graph_overlay( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
   if (Current::Pane != NULL) {
-    if (Current::Variable != NULL)
+    if (Current::Variable != NULL) {
       Current::Pane->CreateGraph(Current::Variable);
-    else nl_error(2, "No current variable defined");
+      plot_obj::render_all();
+    } else nl_error(2, "No current variable defined");
   } else {
-	nl_error(1,"m_g_overlay: no current pane, calling m_g_newpane");
-	menu_graph_newpane(widget,apinfo,cbinfo);
+  	nl_error(1,"m_g_overlay: no current pane, calling m_g_newpane");
+  	menu_graph_newpane(widget,apinfo,cbinfo);
   }
   return Pt_CONTINUE;
 }
@@ -190,12 +193,13 @@ int menu_graph_overlay( PtWidget_t *widget, ApInfo_t *apinfo,
 int menu_graph_newpane( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
   if ( Current::Figure ) {
-	if (Current::Variable)
-	  Current::Figure->CreateGraph(Current::Variable);
-	else nl_error( 2, "No Current Variable defined");
+  	if (Current::Variable) {
+  	  Current::Figure->CreateGraph(Current::Variable);
+  	  plot_obj::render_all();
+  	} else nl_error( 2, "No Current Variable defined");
   } else {
-	nl_error(1, "m_g_newpane: No current figure, calling m_g_newwin");
-	menu_graph_newwin( widget, apinfo, cbinfo);
+  	nl_error(1, "m_g_newpane: No current figure, calling m_g_newwin");
+  	menu_graph_newwin( widget, apinfo, cbinfo);
   }
   return( Pt_CONTINUE );
 }
@@ -205,11 +209,11 @@ int menu_graph_newwin( PtWidget_t *widget, ApInfo_t *apinfo,
   /* eliminate 'unreferenced' warnings */
   widget = widget, apinfo = apinfo, cbinfo = cbinfo;
   if (Current::Variable != NULL) {
-	const char *name = Current::Variable->name;
+    const char *name = Current::Variable->name;
     plot_figure *fig = new plot_figure(name);
     nl_assert(!fig->panes.empty());
     fig->panes.front()->CreateGraph(Current::Variable);
-    // fig->first->CreateGraph(Current::Variable);
+    plot_obj::render_all();
   } else nl_error(2, "No current variable defined");
   return Pt_CONTINUE;
 }

@@ -13,6 +13,7 @@ plot_data::plot_data(RTG_Variable_Data *var, plot_axes *parent_in)
   parent = parent_in;
   parent_obj = parent_in;
   visible = true;
+  new_data = false;
   parent->AddChild(this);
   variable->AddGraph(this);
 }
@@ -43,12 +44,34 @@ void plot_data::got_focus(focus_source whence) {
  * needs to be done and return false.
  */
 bool plot_data::render() {
-  //###
+  if (new_data) {
+    if (visible) {
+      unsigned i = lines.size();
+      for ( ; i < variable->ncols; ++i ) {
+        lines.push_back(plot_line::new_line(this, i));
+        if (i == 0) {
+          PtTreeAddFirst(ABW_Graphs_Tab, lines[i]->TreeItem, TreeItem);
+        } else {
+          PtTreeAddAfter(ABW_Graphs_Tab, lines[i]->TreeItem, lines[i-1]->TreeItem);
+        }
+      }
+      for ( i = 0; i < variable->ncols; ++i ) {
+        lines[i]->new_data = true;
+      }
+      redraw_required = true;
+    }
+    new_data = false;
+  }
+  if ( redraw_required && visible ) {
+    for ( unsigned i = 0; i < lines.size(); ++i ) {
+      if (lines[i]->render()) return true;
+    }
+  }
+  redraw_required = false;
+  // nl_error(0, "Render graph %s", name);
   return false;
 }
 
 bool plot_data::check_for_updates() {
-  if ( variable->check_for_updates() )
-    redraw_required = true;
-  return redraw_required;
+  return variable->check_for_updates();
 }

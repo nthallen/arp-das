@@ -133,19 +133,19 @@ int plot_figure::Setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
 	/* eliminate 'unreferenced' warnings */
 	link_instance = link_instance, apinfo = apinfo, cbinfo = cbinfo;
-    PtWidget_t *divider = ApGetWidgetPtr(link_instance, ABN_Figure_Div);
-    PtWidget_t *first_pane = ApGetWidgetPtr(link_instance, ABN_Figure_Pane );
-    PtWidget_t *window = ApGetWidgetPtr(link_instance, ABN_Figure);
-    nl_assert(divider != NULL && first_pane != NULL && window != NULL);
+  PtWidget_t *divider = ApGetWidgetPtr(link_instance, ABN_Figure_Div);
+  PtWidget_t *first_pane = ApGetWidgetPtr(link_instance, ABN_Figure_Pane );
+  PtWidget_t *window = ApGetWidgetPtr(link_instance, ABN_Figure);
+  nl_assert(divider != NULL && first_pane != NULL && window != NULL);
 
-    PhDim_t *win_dim, *div_dim, *p1_dim;
-    PtGetResource(window, Pt_ARG_DIM, &win_dim, 0 );
-    nl_error(0, "window dimensions during setup (%d,%d)", win_dim->w, win_dim->h );
-    PtGetResource(divider, Pt_ARG_DIM, &div_dim, 0 );
-    nl_error(0, "Divider (%p) dimensions during setup (%d,%d)",
-    		divider, div_dim->w, div_dim->h );
-    PtGetResource(first_pane, Pt_ARG_DIM, &p1_dim, 0 );
-    nl_error(0, "first pane dimensions during setup (%d,%d)", p1_dim->w, p1_dim->h );
+  PhDim_t *win_dim, *div_dim, *p1_dim;
+  PtGetResource(window, Pt_ARG_DIM, &win_dim, 0 );
+  nl_error(0, "window dimensions during setup (%d,%d)", win_dim->w, win_dim->h );
+  PtGetResource(divider, Pt_ARG_DIM, &div_dim, 0 );
+  nl_error(0, "Divider (%p) dimensions during setup (%d,%d)",
+  		divider, div_dim->w, div_dim->h );
+  PtGetResource(first_pane, Pt_ARG_DIM, &p1_dim, 0 );
+  nl_error(0, "first pane dimensions during setup (%d,%d)", p1_dim->w, p1_dim->h );
 
 	return( Pt_CONTINUE );
 }
@@ -242,7 +242,9 @@ int plot_figure::divider_resized( PtWidget_t *widget, ApInfo_t *apinfo,
   apinfo = apinfo;
   plot_figure *fig;
   PtGetResource(widget, Pt_ARG_POINTER, &fig, 0);
-  return fig->resized(&cb->old_dim, &cb->new_dim, 0);
+  int rv = fig->resized(&cb->old_dim, &cb->new_dim, 0);
+  plot_obj::render_all();
+  return rv;
 }
 
 int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
@@ -250,18 +252,18 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
   PhDim_t pane_dim;
 
   if ( !eq_dims(&dim, old_dim)) {
-	nl_error(2,"Missed a resize somewhere");
-	saw_first_resize = true;
+  	nl_error(2,"Missed a resize somewhere");
+  	saw_first_resize = true;
   }
   if (!force) {
     if ( eq_dims(&dim, new_dim)) {
-	  // No actual resize
-	  saw_first_resize = false;
-	  return Pt_CONTINUE;
+  	  // No actual resize
+  	  saw_first_resize = false;
+  	  return Pt_CONTINUE;
     }
     if ( !saw_first_resize) {
-	  saw_first_resize = true;
-	  return Pt_CONTINUE;
+  	  saw_first_resize = true;
+  	  return Pt_CONTINUE;
     }
     nl_error(0, "divider resized");
   }
@@ -272,9 +274,9 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
   if (panes.empty()) return Pt_CONTINUE;
   std::list<plot_pane*>::const_iterator pp;
   for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
-	plot_pane *pane = *pp;
-	cum_height += pane->full_height;
-	cum_min += pane->min_height;
+  	plot_pane *pane = *pp;
+  	cum_height += pane->full_height;
+  	cum_min += pane->min_height;
   }
   rem_height = dim.h - 2;
   if ( rem_height < cum_min ) {
@@ -283,43 +285,43 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
     return Pt_CONTINUE;
   }
   if ( rem_height > cum_height ) {
-	// Add to each pane's height
+    // Add to each pane's height
     for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
-	  plot_pane *pane = *pp;
-	  int new_height = (rem_height * pane->full_height)/cum_height;
-	  pane_dim.h = new_height;
-	  rem_height -= new_height;
-	  cum_height -= pane->full_height;
-	  PtSetResource( pane->widget, Pt_ARG_DIM, &pane_dim, 0);
-	  pane->resized(&pane_dim);
-	}
-	if (cum_height != 0 || rem_height != 0)
-	  nl_error( 1, "divider_resized up: cum_height %d rem_height %d",
-			  cum_height, rem_height);
+  	  plot_pane *pane = *pp;
+  	  int new_height = (rem_height * pane->full_height)/cum_height;
+  	  pane_dim.h = new_height;
+  	  rem_height -= new_height;
+  	  cum_height -= pane->full_height;
+  	  PtSetResource( pane->widget, Pt_ARG_DIM, &pane_dim, 0);
+  	  pane->resized(&pane_dim);
+  	}
+  	if (cum_height != 0 || rem_height != 0)
+  	  nl_error( 1, "divider_resized up: cum_height %d rem_height %d",
+  			  cum_height, rem_height);
   } else if ( rem_height < cum_height ) {
-	// allocate the amount above minimum
-	rem_height -= cum_min;
-	cum_height -= cum_min;
-	nl_assert(cum_height > 0); // it's > rem_height >= cum_min
-	for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
-	  plot_pane *pane = *pp;
-      int dh = pane->full_height - pane->min_height;
-	  int new_height = cum_height > 0 ? (rem_height * dh)/cum_height : 0;
-	  rem_height -= new_height;
-	  cum_height -= dh;
-	  pane_dim.h = new_height + pane->min_height;
-	  PtSetResource( pane->widget, Pt_ARG_DIM, &pane_dim, 0);
-	  pane->resized(&pane_dim);
-	}
-	if (cum_height != 0 || rem_height != 0)
-	  nl_error( 1, "divider_resized down: cum_height %d rem_height %d",
-			  cum_height, rem_height);
+  	// allocate the amount above minimum
+  	rem_height -= cum_min;
+  	cum_height -= cum_min;
+  	nl_assert(cum_height > 0); // it's > rem_height >= cum_min
+  	for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
+  	  plot_pane *pane = *pp;
+        int dh = pane->full_height - pane->min_height;
+  	  int new_height = cum_height > 0 ? (rem_height * dh)/cum_height : 0;
+  	  rem_height -= new_height;
+  	  cum_height -= dh;
+  	  pane_dim.h = new_height + pane->min_height;
+  	  PtSetResource( pane->widget, Pt_ARG_DIM, &pane_dim, 0);
+  	  pane->resized(&pane_dim);
+  	}
+  	if (cum_height != 0 || rem_height != 0)
+  	  nl_error( 1, "divider_resized down: cum_height %d rem_height %d",
+  			  cum_height, rem_height);
   } else {
     for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
-	  plot_pane *pane = *pp;
-	  pane_dim.h = pane->full_height;
-	  pane->resized(&pane_dim);
-	} 
+  	  plot_pane *pane = *pp;
+  	  pane_dim.h = pane->full_height;
+  	  pane->resized(&pane_dim);
+  	} 
   }
   plot_figure::Report();
   return( Pt_CONTINUE );
@@ -355,43 +357,44 @@ void plot_figure::Change_min_dim(int dw, int dh) {
  * offers the opportunity to decline the drag operation.
  */
 int plot_figure::divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
-		PtCallbackInfo_t *cbinfo ) {
-    PtDividerCallback_t *cb = (PtDividerCallback_t *)cbinfo->cbdata;
-    PhDim_t *div_dim, pane_dim;
-    plot_figure *fig;
+              PtCallbackInfo_t *cbinfo ) {
+  PtDividerCallback_t *cb = (PtDividerCallback_t *)cbinfo->cbdata;
+  PhDim_t *div_dim, pane_dim;
+  plot_figure *fig;
 	std::list<plot_pane*>::const_iterator pp;
-    plot_pane *pane;
-    int i;
+  plot_pane *pane;
+  int i;
 
-    /* eliminate 'unreferenced' warnings */
-	widget = widget, apinfo = apinfo, cbinfo = cbinfo;
+  /* eliminate 'unreferenced' warnings */
+	apinfo = apinfo;
 	switch (cbinfo->reason_subtype) {
 	  case Ph_EV_DRAG_COMPLETE:
-		// Need to reset pane sizes accordingly
-		nl_error(0, "div_drag: COMPLETE: %d panes", cb->nsizes);
-		PtGetResource(widget, Pt_ARG_POINTER, &fig, 0);
-		PtGetResource(widget, Pt_ARG_DIM, &div_dim, 0);
-		pane_dim = *div_dim;
+  		// Need to reset pane sizes accordingly
+  		nl_error(0, "div_drag: COMPLETE: %d panes", cb->nsizes);
+  		PtGetResource(widget, Pt_ARG_POINTER, &fig, 0);
+  		PtGetResource(widget, Pt_ARG_DIM, &div_dim, 0);
+  		pane_dim = *div_dim;
 	    for ( i = 0, pp = fig->panes.begin(); i < cb->nsizes; ++i, ++pp ) {
-		  nl_assert(pp != fig->panes.end());
-		  pane = *pp;
-		  pane_dim.h = cb->sizes[i].to - cb->sizes[i].from + 1;
-		  nl_assert(pane_dim.h >= pane->min_height);
-		  pane->resized(&pane_dim);
-		}
-		break;
+  		  nl_assert(pp != fig->panes.end());
+  		  pane = *pp;
+  		  pane_dim.h = cb->sizes[i].to - cb->sizes[i].from + 1;
+  		  nl_assert(pane_dim.h >= pane->min_height);
+  		  pane->resized(&pane_dim);
+  		}
+	    plot_obj::render_all();
+	    break;
 	  case Ph_EV_DRAG_MOVE:
-		break; // expected and may be interesting
+	    break; // expected and may be interesting
 	  case Ph_EV_DRAG_BOUNDARY:
-		break; // expected but uninteresting
+	    break; // expected but uninteresting
 	  case Ph_EV_DRAG_INIT:
 	  case Ph_EV_DRAG_KEY_EVENT:
 	  case Ph_EV_DRAG_MOTION_EVENT:
 	  case Ph_EV_DRAG_START:
 	  default:
-		nl_error(1, "div_drag: Unexpected event subtype: %d",
-				cbinfo->reason_subtype);
-		break;
+  		nl_error(1, "div_drag: Unexpected event subtype: %d",
+  				cbinfo->reason_subtype);
+  		break;
 	}
 	return( Pt_CONTINUE );
 }
@@ -417,8 +420,8 @@ int plot_figure::destroyed( PtWidget_t *widget, ApInfo_t *apinfo,
   if ( fig == NULL ) {
     nl_error(0, "plot_figure::destroyed with NULL data pointer");
   } else {
-	nl_error(0, "plot_figure::destroyed %s", fig->name);
-	delete fig;
+  	nl_error(0, "plot_figure::destroyed %s", fig->name);
+  	delete fig;
   }
   return( Pt_CONTINUE );
 }
@@ -431,21 +434,21 @@ int plot_figure::wmevent( PtWidget_t *widget, ApInfo_t *apinfo,
   widget = widget, apinfo = apinfo;
   PhWindowEvent_t *wevt = (PhWindowEvent_t *)cbinfo->cbdata;
   switch (wevt->event_f) {
-	case Ph_WM_CLOSE: event = "Ph_WM_CLOSE"; break;
-	case Ph_WM_FOCUS: return Pt_CONTINUE; //event = "Ph_WM_FOCUS"; break;
-	case Ph_WM_MENU: event = "Ph_WM_MENU"; break;
-	case Ph_WM_TOFRONT: event = "Ph_WM_TOFRONT"; break;
-	case Ph_WM_TOBACK: event = "Ph_WM_TOBACK"; break;
-	case Ph_WM_CONSWITCH: event = "Ph_WM_CONSWITCH"; break;
-	case Ph_WM_RESIZE: event = "Ph_WM_RESIZE"; break;
-	case Ph_WM_MOVE: event = "Ph_WM_MOVE"; break;
-	case Ph_WM_HIDE: event = "Ph_WM_HIDE"; break;
-	case Ph_WM_MAX: event = "Ph_WM_MAX"; break;
-	case Ph_WM_BACKDROP: event = "Ph_WM_BACKDROP"; break;
-	case Ph_WM_RESTORE: event = "Ph_WM_RESTORE"; break;
-	case Ph_WM_HELP: event = "Ph_WM_HELP"; break;
-	case Ph_WM_FFRONT: event = "Ph_WM_FFRONT"; break;
-	default: event = "unknown"; break;
+  	case Ph_WM_CLOSE: event = "Ph_WM_CLOSE"; break;
+  	case Ph_WM_FOCUS: return Pt_CONTINUE; //event = "Ph_WM_FOCUS"; break;
+  	case Ph_WM_MENU: event = "Ph_WM_MENU"; break;
+  	case Ph_WM_TOFRONT: event = "Ph_WM_TOFRONT"; break;
+  	case Ph_WM_TOBACK: event = "Ph_WM_TOBACK"; break;
+  	case Ph_WM_CONSWITCH: event = "Ph_WM_CONSWITCH"; break;
+  	case Ph_WM_RESIZE: event = "Ph_WM_RESIZE"; break;
+  	case Ph_WM_MOVE: event = "Ph_WM_MOVE"; break;
+  	case Ph_WM_HIDE: event = "Ph_WM_HIDE"; break;
+  	case Ph_WM_MAX: event = "Ph_WM_MAX"; break;
+  	case Ph_WM_BACKDROP: event = "Ph_WM_BACKDROP"; break;
+  	case Ph_WM_RESTORE: event = "Ph_WM_RESTORE"; break;
+  	case Ph_WM_HELP: event = "Ph_WM_HELP"; break;
+  	case Ph_WM_FFRONT: event = "Ph_WM_FFRONT"; break;
+  	default: event = "unknown"; break;
   }
   switch (wevt->state_f) {
     case Ph_WM_STATE_ISNORMAL: state = "Ph_WM_STATE_ISNORMAL"; break;

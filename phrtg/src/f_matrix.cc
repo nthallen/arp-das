@@ -59,14 +59,11 @@ void f_matrix::read_text( char *filename, int minrows ) {
   }
 }
 
-void f_matrix::read_icos( char *filename ) {
+void f_matrix::read_icos( FILE *fp ) {
   unsigned long dims[2];
   unsigned int i;
-  FILE *fp = fopen( filename, "r" );
-  if ( fp == 0 ) {
-    nl_error( 2, "Unable to open file %s", filename );
+  if ( fp == 0 )
     return;
-  }
   if ( fread( dims, sizeof(unsigned long), 2, fp ) != 2 ) {
     nl_error( 2, "Error reading dimensions" );
     fclose(fp);
@@ -84,6 +81,11 @@ void f_matrix::read_icos( char *filename ) {
   nrows = dims[0];
   ncols = dims[1];
   fclose(fp);
+}
+
+void f_matrix::read_icos( const char *filename ) {
+  FILE *fp = fopen(filename, "rb");
+  read_icos(fp);
 }
 
 void f_matrix::check( int rowsz, int colsz ) {

@@ -45,53 +45,53 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   // Go through the preexisting panes and report their size
   std::list<plot_pane*>::const_iterator pp;
   for (pp = figure->panes.begin(); pp != figure->panes.end(); ++pp ) {
-	plot_pane *p = *pp;
-	if ( p->widget != NULL) {
-	  ++n_panes;
-	  // This section should be just a check except for
-	  // calculating cum_height. We should be able to
-	  // skip PtGetResource if we've done things right.
-	  PhDim_t *old_dim;
-	  PtGetResource(p->widget, Pt_ARG_DIM, &old_dim, 0);
-	  nl_error( 0, "Pane %d (%p) dims (%d,%d)",
-			n_panes, p->widget, old_dim->w, old_dim->h);
-	  if ( p->full_height != old_dim->h ) {
-		nl_error( 1, "Pane %d full_height %d, old_dim %d",
-				  n_panes, p->full_height, old_dim->h);
-		p->full_height = old_dim->h;
-	  }
-	  cum_height += p->full_height;
-	}
+  	plot_pane *p = *pp;
+  	if ( p->widget != NULL) {
+  	  ++n_panes;
+  	  // This section should be just a check except for
+  	  // calculating cum_height. We should be able to
+  	  // skip PtGetResource if we've done things right.
+  	  PhDim_t *old_dim;
+  	  PtGetResource(p->widget, Pt_ARG_DIM, &old_dim, 0);
+  	  nl_error( 0, "Pane %d (%p) dims (%d,%d)",
+  			n_panes, p->widget, old_dim->w, old_dim->h);
+  	  if ( p->full_height != old_dim->h ) {
+    		nl_error( 1, "Pane %d full_height %d, old_dim %d",
+    				  n_panes, p->full_height, old_dim->h);
+    		p->full_height = old_dim->h;
+  	  }
+  	  cum_height += p->full_height;
+  	}
   }
   if (n_panes > 0 && cum_height != rem_height)
-	nl_error( 1, "Old pane heights are %d, not %d", cum_height, rem_height);
+    nl_error( 1, "Old pane heights are %d, not %d", cum_height, rem_height);
   if (pane == NULL) {
-	full_height = n_panes ? cum_height/(n_panes+1) : rem_height;
-	cum_height += full_height;
-	PtArg_t args[2];
-	pane_dim.h = full_height;
-	PtSetArg( &args[0], Pt_ARG_ANCHOR_FLAGS, Pt_FALSE, Pt_TRUE);
-	PtSetArg( &args[1], Pt_ARG_FLAGS, Pt_TRUE,
-			Pt_HIGHLIGHTED|Pt_GETS_FOCUS);
-	widget = PtCreateWidget(PtPane, divider, 2, args );
-	PtAddCallback(widget,Pt_CB_GOT_FOCUS,(PtCallbackF_t *)plot_obj::pt_got_focus,NULL);
-	PtRealizeWidget(widget);
+  	full_height = n_panes ? cum_height/(n_panes+1) : rem_height;
+  	cum_height += full_height;
+  	PtArg_t args[2];
+  	pane_dim.h = full_height;
+  	PtSetArg( &args[0], Pt_ARG_ANCHOR_FLAGS, Pt_FALSE, Pt_TRUE);
+  	PtSetArg( &args[1], Pt_ARG_FLAGS, Pt_TRUE,
+  			Pt_HIGHLIGHTED|Pt_GETS_FOCUS);
+  	widget = PtCreateWidget(PtPane, divider, 2, args );
+  	PtAddCallback(widget,Pt_CB_GOT_FOCUS,(PtCallbackF_t *)plot_obj::pt_got_focus,NULL);
+  	PtRealizeWidget(widget);
   }
   // PtAddCallback(widget, Pt_CB_RESIZE, plot_pane::resize_cb, this);
   
   n_panes = 0;
   // Go through all panes and adjust their size
   for (pp = figure->panes.begin(); pp != figure->panes.end(); ++pp ) {
-	plot_pane *p = *pp;
-    ++n_panes;
-	if (p->widget != NULL) {
-	  pane_dim.h = (rem_height * p->full_height)/cum_height;
-	  PtSetResource(p->widget, Pt_ARG_DIM, &pane_dim, 0);
-      cum_height -= p->full_height;
-	  rem_height -= pane_dim.h;
-	  nl_error(0, "Setting pane %d (%p) to (%d,%d)", n_panes, p->widget, pane_dim.w, pane_dim.h);
-	  p->resized(&pane_dim);
-	} else nl_error(2, "Widget was NULL");
+  	plot_pane *p = *pp;
+      ++n_panes;
+  	if (p->widget != NULL) {
+  	  pane_dim.h = (rem_height * p->full_height)/cum_height;
+  	  PtSetResource(p->widget, Pt_ARG_DIM, &pane_dim, 0);
+        cum_height -= p->full_height;
+  	  rem_height -= pane_dim.h;
+  	  nl_error(0, "Setting pane %d (%p) to (%d,%d)", n_panes, p->widget, pane_dim.w, pane_dim.h);
+  	  p->resized(&pane_dim);
+  	} else nl_error(2, "Widget was NULL");
   }
   if (n_panes&1) {
 	  PtSetResource(widget, Pt_ARG_FILL_COLOR, Pg_RED, 0 );
@@ -157,9 +157,15 @@ void plot_pane::CreateGraph(RTG_Variable_Data *var) {
 
 void plot_pane::resized(PhDim_t *newdim ) {
   full_height = newdim->h;
+  full_width = newdim->w;
   nl_assert( full_height >= min_height );
   nl_error(0,"Pane %s resized to (%d,%d)", name, newdim->w, newdim->h );
-  // Then we relay this information to the axes
+  //### We'll need to do some math here to calculate
+  //### the appropriate bounding boxes
+  std::list<plot_axes*>::const_iterator ax;
+  for ( ax = axes.begin(); ax != axes.end(); ++ax ) {
+    (*ax)->resized(newdim);
+  }
 }
 
 void plot_pane::got_focus(focus_source whence) {

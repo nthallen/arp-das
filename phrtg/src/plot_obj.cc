@@ -7,7 +7,7 @@
 #include "abimport.h"
 #include "nl_assert.h"
 
-plot_obj *Current::Menu_obj;
+bool plot_obj::rendering = false;
 
 plot_obj::plot_obj(plot_obj_type po_type, const char *name_in) {
   type = po_type;
@@ -127,7 +127,8 @@ int plot_obj::menu_Delete( PtWidget_t *widget, ApInfo_t *apinfo,
   nl_error(0,"plot_obj: Delete %s:%s", Current::Menu_obj->name, Current::Menu_obj->typetext());
   delete Current::Menu_obj;
   Current::Menu_obj = NULL;
-  return( Pt_CONTINUE );
+  plot_obj::render_all();
+  return Pt_CONTINUE;
 }
 
 int plot_obj::context_menu_setup( PtWidget_t *link_instance,
@@ -155,26 +156,37 @@ int plot_obj::TreeInput( PtWidget_t *widget, ApInfo_t *apinfo,
 	if (cbinfo->reason_subtype == Ph_EV_BUT_PRESS) {
 	  PhPointerEvent_t *pe = (PhPointerEvent_t *)PhGetData(cbinfo->event);
 	  if ( pe->buttons == Ph_BUTTON_MENU ) {
-		PtGenTreeInput_t *ti = (PtGenTreeInput_t *)cbinfo->cbdata;
-		PtTreeItem_t *item = (PtTreeItem_t *)ti->item;
-		if (item != NULL) {
-		  plot_obj *po = (plot_obj *)item->data;
-		  Current::Menu_obj = po;
-		  nl_error( 0, "plot_obj: Menu: %s:%s", po->name, po->typetext());
-		  ApCreateModule (ABM_plot_context_menu, widget, cbinfo);
-		}
+  		PtGenTreeInput_t *ti = (PtGenTreeInput_t *)cbinfo->cbdata;
+  		PtTreeItem_t *item = (PtTreeItem_t *)ti->item;
+  		if (item != NULL) {
+  		  plot_obj *po = (plot_obj *)item->data;
+  		  Current::Menu_obj = po;
+  		  nl_error( 0, "plot_obj: Menu: %s:%s", po->name, po->typetext());
+  		  ApCreateModule (ABM_plot_context_menu, widget, cbinfo);
+  		}
 	  }
 	}
 	return( Pt_CONTINUE );
 }
 
-bool plot_obj::render_all() {
+void plot_obj::render_all() {
+  if (rendering) return;
+  rendering = true;
+  while (render_each())
+    PtBkgdHandlerProcess();
+  rendering = false;
+}
+
+bool plot_obj::render_each() {
   std::list<plot_figure*>::const_iterator pos;
+  if (RTG_Variable::reload_all())
+    return true;
   for (pos = All_Figures.begin(); pos != All_Figures.end(); pos++) {
     plot_figure *fig = *pos;
-    if ( fig->render() ) return true;
+    if ( fig->render() )
+      return true;
   }
-  return false;
+  return plot_obj::check_vars_for_updates();
 }
 
 bool plot_obj::check_vars_for_updates() {

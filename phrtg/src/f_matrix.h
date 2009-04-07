@@ -1,5 +1,6 @@
 #ifndef F_MATRIX_H_INCLUDED
 #define F_MATRIX_H_INCLUDED
+#include <stdio.h>
 
 typedef float scalar_t;
 typedef scalar_t *vector_t;
@@ -18,7 +19,8 @@ class f_matrix {
     inline f_matrix() { f_matrix( 0, 0 ); }
     f_matrix( char *filename, int format );
     void read_text( char *filename, int minrows );
-    void read_icos( char *filename );
+    void read_icos( FILE *fp );
+    void read_icos( const char *filename );
     void append( float value );
     void check( int rowsize, int colsize );
     void check( int vecsize );

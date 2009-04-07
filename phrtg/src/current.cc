@@ -11,7 +11,9 @@ plot_figure *Current::Figure;
 plot_pane *Current::Pane;
 plot_axes *Current::Axes;
 plot_data *Current::Graph;
+plot_line *Current::Line;
 RTG_Variable_Data *Current::Variable;
+plot_obj *Current::Menu_obj;
 
 void Current::none(plot_obj_type parent_type) {
   switch (parent_type) {
@@ -26,7 +28,7 @@ void Current::none(plot_obj_type parent_type) {
       Current::Graph = NULL;
     case po_data:
       nl_error(0, "No current line");
-      //Current::Line = NULL;
+      Current::Line = NULL;
     default:
       break;
   }

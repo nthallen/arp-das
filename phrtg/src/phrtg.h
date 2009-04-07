@@ -8,6 +8,7 @@
 #include <Pt.h>
 #include <photon/PtTree.h>
 #include <list>
+#include <vector>
 
 class RTG_Variable_Node;
 class RTG_Variable_MLF;
@@ -19,6 +20,21 @@ class plot_line;
 enum RTG_Variable_Type { Var_Node, Var_MLF };
 const int DIV_BEVEL_WIDTHS = 2;
 
+class RTG_Variable_Range {
+  public:
+    scalar_t min, max;
+    bool range_required;
+    bool range_auto;
+    bool range_is_current;
+    bool range_is_empty;
+    RTG_Variable_Range();
+    void clear();
+    void update(scalar_t min_in, scalar_t max_in);
+    inline void update(scalar_t val ) { update(val, val); }
+    void update(RTG_Variable_Range &R);
+    bool changed(RTG_Variable_Range &R);
+};
+
 class RTG_Variable {
   public:
 
@@ -28,8 +44,6 @@ class RTG_Variable {
     RTG_Variable(const char *name_in, RTG_Variable_Type type_in);
     ~RTG_Variable();
     void AddSibling(RTG_Variable *newsib);
-    void AddGraph(plot_data *graph);
-    void RemoveGraph(plot_data *graph);
     virtual bool reload() = 0;
 
     static int Find_Insert( char *name, RTG_Variable_Node *&parent,
@@ -45,7 +59,6 @@ class RTG_Variable {
     RTG_Variable_Node *Parent;
     RTG_Variable *Next;
     PtTreeItem_t *TreeItem;
-    std::list<plot_data*> graphs;
     void update_ancestry( RTG_Variable_Node *parent_in, RTG_Variable *sib );
 };
 
@@ -64,15 +77,28 @@ class RTG_Variable_Data : public RTG_Variable {
   public:
     bool new_data_available;
     bool reload_required;
+    unsigned nrows, ncols;
+    std::list<plot_data*> graphs;
+
     RTG_Variable_Data(const char *name_in, RTG_Variable_Type type_in);
+    void AddGraph(plot_data *graph);
+    void RemoveGraph(plot_data *graph);
     bool check_for_updates();
-    virtual bool reload() = 0;
+    bool reload();
+    virtual bool reload_data() = 0;
+    virtual bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) = 0;
+    virtual void evaluate_range(unsigned col, RTG_Variable_Range &X,
+        RTG_Variable_Range &Y) = 0;
 };
 
 class RTG_Variable_MLF : public RTG_Variable_Data {
   public:
+    f_matrix data;
     RTG_Variable_MLF( const char *name_in );
-    bool reload();
+    bool reload_data();
+    bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
+    void evaluate_range(unsigned col, RTG_Variable_Range &X,
+         RTG_Variable_Range &Y);
 
     static void set_default_path(const char *path_in);
     static void Incoming( char *name, unsigned long index );
@@ -102,6 +128,8 @@ class plot_obj {
 	void TreeAllocItem();
 	void TreeFreeItem();
 	const char *typetext();
+
+	static bool rendering;
 	static int TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
 	static int menu_ToggleVisible( PtWidget_t *widget, ApInfo_t *apinfo,
@@ -116,7 +144,8 @@ class plot_obj {
 			PtCallbackInfo_t *cbinfo );
 	static int pt_got_focus( PtWidget_t *widget, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
-	static bool render_all();
+	static void render_all();
+	static bool render_each();
   static bool check_vars_for_updates();
 };
 
@@ -174,6 +203,7 @@ class plot_pane : public plot_obj {
 		PtWidget_t *widget;
 		int full_height;
 		int min_height;
+		int full_width;
 		bool synch_x;
 		
   	plot_pane( const char *name_in, plot_figure *parent, PtWidget_t *pane = NULL);
@@ -192,6 +222,11 @@ enum Axis_XY { Axis_X, Axis_Y };
 class plot_axis {
   public:
   	Axis_XY XY;
+  	bool reverse_dim; // based on X or Y
+    bool reverse; // user-selectable
+  	bool data_range_updated;
+  	bool axis_range_updated;
+  	bool axis_limits_updated; // implies redraw required
   	bool draw[2]; // Whether to draw primary or secondary axis
   	bool reserve_tick_space[2];
   	bool draw_ticks[2];
@@ -199,10 +234,9 @@ class plot_axis {
   	bool draw_tick_label[2];
   	bool reserve_label_space[2];
   	bool draw_label[2];
-  	bool limit_auto;
   	bool log_scale;
-  	bool reverse;
-  	float min, max;
+  	RTG_Variable_Range range;
+  	RTG_Variable_Range limits;
   	int pixels;
   	float scalev;
       // *Axis color: color
@@ -213,10 +247,11 @@ class plot_axis {
   	int label_height; // same units has *_tick_len.
 
   	plot_axis();
+  	void check_limits();
     void set_scale();
     void set_scale(int pixel_span);
-    void set_scale(float min, float max);
-    void set_scale(f_matrix *data);
+    short evaluate(scalar_t V);
+    bool render(plot_axes *axes);
 };
 
 class plot_axes : public plot_obj {
@@ -233,6 +268,7 @@ class plot_axes : public plot_obj {
   	void RemoveChild(plot_data *p);
   	void CreateGraph(RTG_Variable_Data *var);
   	void got_focus(focus_source whence);
+    void resized( PhDim_t *newdim );
   	bool render();
     bool check_for_updates();
 };
@@ -240,10 +276,11 @@ class plot_axes : public plot_obj {
 class plot_data : public plot_obj {
   public:
     bool visible;
+    bool new_data;
     bool redraw_required;
     plot_axes *parent;
     RTG_Variable_Data *variable;
-    // std::list<plot_line*> lines;
+    std::vector<plot_line*> lines;
 
     plot_data(RTG_Variable_Data *var, plot_axes *parent);
   	~plot_data();
@@ -255,12 +292,21 @@ class plot_data : public plot_obj {
 class plot_line : public plot_obj {
   public:
     bool visible;
+    bool new_data;
+    bool redraw_required;
     plot_data *parent;
     int column;
+    PgColor_t color;
+    RTG_Variable_Range Xrange, Yrange;
+    std::vector<PhPoint_t> idata;
+    std::vector<PtWidget_t *> widgets;
 
-    plot_line();
+    plot_line(plot_data *parent_in, unsigned col, const char *name_in);
   	~plot_line();
   	void got_focus(focus_source whence);
+    bool render();
+  	static plot_line *new_line(plot_data *parent_in, unsigned col);
+  	static const unsigned pts_per_polygon;
 };
 
 class Current {
