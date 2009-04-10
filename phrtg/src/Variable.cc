@@ -46,6 +46,7 @@ bool RTG_Variable_Range::changed(RTG_Variable_Range &R ) {
     if (R.range_is_empty) return false;
     min = R.min;
     max = R.max;
+    range_is_empty = false;
     return true;
   }
   if (R.range_is_empty) {
@@ -289,7 +290,7 @@ RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in ) :
     nl_error(2,"Basename overflow in RTG_Variable_MLF");
     mlf = NULL;
   } else {
-    mlf = mlf_init(3, 60, 0, fbase, ".dat", NULL );
+    mlf = mlf_init(3, 60, 0, fbase, "dat", NULL );
   }
   next_index = 0;
 }
@@ -342,6 +343,7 @@ void RTG_Variable_MLF::evaluate_range(unsigned col,
         scalar_t V = Ydata[r];
         Y.update(V);
       }
+      Y.range_is_empty = false;
     }
   }
 }

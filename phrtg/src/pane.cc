@@ -93,13 +93,14 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   	  p->resized(&pane_dim);
   	} else nl_error(2, "Widget was NULL");
   }
-  if (n_panes&1) {
-	  PtSetResource(widget, Pt_ARG_FILL_COLOR, Pg_RED, 0 );
-	  nl_error(0, "Setting color to Pg_RED");
-  } else {
-	  PtSetResource(widget, Pt_ARG_FILL_COLOR, Pg_GREEN, 0 );
-	  nl_error(0, "Setting color to Pg_GREEN");
-  }
+//  if (n_panes&1) {
+//	  PtSetResource(widget, Pt_ARG_FILL_COLOR, Pg_RED, 0 );
+//	  nl_error(0, "Setting color to Pg_RED");
+//  } else {
+//	  PtSetResource(widget, Pt_ARG_FILL_COLOR, Pg_GREEN, 0 );
+//	  nl_error(0, "Setting color to Pg_GREEN");
+//  }
+  PtSetResource(widget, Pt_ARG_FILL_COLOR, Pg_BLACK, 0 );
   PtSetResource(widget, Pt_ARG_POINTER, this, 0 );
   PtSetResource(widget, Pt_ARG_MINIMUM_DIM, &min_dim, 0 );
 }

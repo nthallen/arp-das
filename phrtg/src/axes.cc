@@ -34,7 +34,7 @@ void plot_axis::check_limits() {
     axis_range_updated = false;
     if ( limits.range_auto ) {
       if ( limits.changed(range) ) {
-        axis_limits_updated = true;
+        set_scale();
       }
     }
   }
@@ -44,11 +44,14 @@ void plot_axis::set_scale() {
   if ( limits.max != limits.min ) {
     scalev = pixels/(limits.max-limits.min);
   } else scalev = 0;
+  axis_limits_updated = true;
 }
 
 void plot_axis::set_scale(int pixel_span) {
-  pixels = pixel_span;
-  set_scale();
+  if (pixels != pixel_span) {
+    pixels = pixel_span;
+    set_scale();
+  }
 }
 
 short plot_axis::evaluate(scalar_t val) {
@@ -61,6 +64,11 @@ short plot_axis::evaluate(scalar_t val) {
 bool plot_axis::render( plot_axes *axes ) {
   /* For the moment, we won't do anything here, so always return false.
    */
+  if (axis_limits_updated) {
+    // redraw the axes
+    axis_limits_updated = false;
+    // return true;
+  }
   return false;
 }
 
@@ -123,44 +131,42 @@ void plot_axes::resized(PhDim_t *newdim) {
   Y.set_scale(newdim->h);
 }
 
-bool plot_axes::render() {
-  /* First update the axes data range if any of the
-   * graphs have updated their range
-   */
-  if (! visible ) return false;
-  bool chkX = X.limits.range_auto && X.data_range_updated;
-  bool chkY = Y.limits.range_auto && Y.data_range_updated;
-  if ( chkX || chkY ) {
-    nl_assert(!graphs.empty()); // should be true
-    std::list<plot_data*>::const_iterator gr;
-    RTG_Variable_Range Xr, Yr;
-    for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
-      if ( (*gr)->visible ) {
-        std::vector<plot_line*>::const_iterator ln;
-        for (ln = (*gr)->lines.begin(); ln != (*gr)->lines.end(); ++ln ) {
-          plot_line *line = *ln;
-          if ( line->visible ) {
-            if (chkX) Xr.update(line->Xrange);
-            if (chkY) Yr.update(line->Yrange);
-          }
-        }
-      }
-    }
-    if (chkX) {
-      X.data_range_updated = false;
-      if (X.range.changed(Xr))
-        X.axis_range_updated = true;
-    }
-    if (chkY) {
-      Y.data_range_updated = false;
-      if (Y.range.changed(Yr))
-        Y.axis_range_updated = true;
-    }
+bool plot_axes::check_limits() {
+  std::list<plot_data*>::const_iterator gr;
+  RTG_Variable_Range Xr, Yr;
+  for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
+    if ((*gr)->check_limits(Xr, Yr)) return true;
+  }
+
+  if (X.limits.range_auto && X.data_range_updated) {
+    X.data_range_updated = false;
+    if (X.range.changed(Xr))
+      X.axis_range_updated = true;
+  }
+  if (Y.limits.range_auto && Y.data_range_updated) {
+    Y.data_range_updated = false;
+    if (Y.range.changed(Yr))
+      Y.axis_range_updated = true;
   }
 
   /* Now check to see if the limits need to be updated */
   X.check_limits();
   Y.check_limits();
+  if (X.axis_limits_updated || Y.axis_limits_updated) {
+    for (gr = graphs.begin(); gr != graphs.end(); ++gr) {
+      (*gr)->axes_rescaled = true;
+    }
+  }
+  return false;
+}
+
+bool plot_axes::render() {
+  /* First update the axes data range if any of the
+   * graphs have updated their range
+   */
+  if (! visible ) return false;
+
+  if ( check_limits() ) return true;
   if ( X.render(this) ) return true;
   if ( Y.render(this) ) return true;
   std::list<plot_data*>::const_iterator gr;

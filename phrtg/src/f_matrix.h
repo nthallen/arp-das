@@ -14,10 +14,11 @@ class f_matrix {
     int ncols;
     int offset;
 
-    f_matrix(int rowsize, int colsize);
-    inline f_matrix(int rowsize) { f_matrix( rowsize, 1 ); }
-    inline f_matrix() { f_matrix( 0, 0 ); }
+    inline f_matrix(int rowsize, int colsize) { init(rowsize, colsize); }
+    inline f_matrix(int rowsize) { init( rowsize, 1 ); }
+    inline f_matrix() { init( 0, 0 ); }
     f_matrix( char *filename, int format );
+    void init( int rowsize, int colsize );
     void read_text( char *filename, int minrows );
     void read_icos( FILE *fp );
     void read_icos( const char *filename );

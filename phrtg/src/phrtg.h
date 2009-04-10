@@ -226,7 +226,7 @@ class plot_axis {
     bool reverse; // user-selectable
   	bool data_range_updated;
   	bool axis_range_updated;
-  	bool axis_limits_updated; // implies redraw required
+  	bool axis_limits_updated;
   	bool draw[2]; // Whether to draw primary or secondary axis
   	bool reserve_tick_space[2];
   	bool draw_ticks[2];
@@ -269,6 +269,7 @@ class plot_axes : public plot_obj {
   	void CreateGraph(RTG_Variable_Data *var);
   	void got_focus(focus_source whence);
     void resized( PhDim_t *newdim );
+    bool check_limits();
   	bool render();
     bool check_for_updates();
 };
@@ -277,6 +278,7 @@ class plot_data : public plot_obj {
   public:
     bool visible;
     bool new_data;
+    bool axes_rescaled;
     bool redraw_required;
     plot_axes *parent;
     RTG_Variable_Data *variable;
@@ -285,6 +287,7 @@ class plot_data : public plot_obj {
     plot_data(RTG_Variable_Data *var, plot_axes *parent);
   	~plot_data();
   	void got_focus(focus_source whence);
+  	bool check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr );
     bool render();
     bool check_for_updates();
 };
@@ -304,6 +307,7 @@ class plot_line : public plot_obj {
     plot_line(plot_data *parent_in, unsigned col, const char *name_in);
   	~plot_line();
   	void got_focus(focus_source whence);
+  	bool check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr );
     bool render();
   	static plot_line *new_line(plot_data *parent_in, unsigned col);
   	static const unsigned pts_per_polygon;

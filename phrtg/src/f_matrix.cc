@@ -4,7 +4,7 @@
 #include "f_matrix.h"
 #include "nortlib.h"
 
-f_matrix::f_matrix( int rowsz, int colsz ) {
+void f_matrix::init( int rowsz, int colsz ) {
   vdata = 0; mdata = 0;
   nrows = ncols = 0;
   maxrows = maxcols = 0;
@@ -13,7 +13,7 @@ f_matrix::f_matrix( int rowsz, int colsz ) {
 }
 
 f_matrix::f_matrix( char *filename, int format ) {
-  f_matrix( 0, 0 );
+  init( 0, 0 );
   switch (format ) {
     case FM_FMT_TEXT:
       read_text( filename, 128 );
