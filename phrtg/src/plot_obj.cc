@@ -140,7 +140,12 @@ int plot_obj::context_menu_setup( PtWidget_t *link_instance,
   /* eliminate 'unreferenced' warnings */
   link_instance = link_instance, apinfo = apinfo, cbinfo = cbinfo;
   nl_assert(Current::Menu_obj != NULL);
-  
+  ApModifyItemState(&plot_context_menu,
+      Current::Menu_obj->visible ? AB_ITEM_SET : AB_ITEM_NORMAL,
+          ABN_PlotVisible, NULL );
+  ApModifyItemState(&plot_context_menu,
+      Current::Menu_obj->type == po_line ? AB_ITEM_DIM : AB_ITEM_NORMAL,
+          ABN_PlotObjDelete, NULL );
   return( Pt_CONTINUE );
 }
 

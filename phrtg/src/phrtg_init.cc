@@ -140,6 +140,7 @@ int console_destroyed( PtWidget_t *widget, ApInfo_t *apinfo,
   widget = widget, apinfo = apinfo, cbinfo = cbinfo;
   close_cmd_fd();
   nl_error( 0, "console_destroyed");
+  PtExit(0);
   return( Pt_CONTINUE );
 }
 
@@ -149,12 +150,19 @@ int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbin
   PtPanelGroupCallback_t *PGCallback =
 		(PtPanelGroupCallback_t *)cbinfo->cbdata;
   if (strcmp(PGCallback->new_panel, "Window") == 0) {
-    if (All_Figures.empty()) return Pt_END;
+    if (Current::Figure == NULL) return Pt_END;
+    // Update Window_Tab 
+    PtSetResource(ABW_Window_Name, Pt_ARG_TEXT_STRING,
+        Current::Figure->name, 0);
+    PtSetResource(ABW_Window_Visible, Pt_ARG_FLAGS,
+        Current::Figure->visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
   } else if (strcmp(PGCallback->new_panel, "X") == 0) {
+    if (Current::Pane == NULL) return Pt_END;
+    Current::Pane->Update_Axis_Pane(Axis_X);
   	// Check for axes
-  	return Pt_END;
   } else if (strcmp(PGCallback->new_panel, "Y") == 0) {
-    return Pt_END;
+    if (Current::Pane == NULL) return Pt_END;
+    PtReparentWidget(ABW_Axis_Pane,ABW_Y_Tab);
   } else if (strcmp(PGCallback->new_panel, "Line") == 0) {
     return Pt_END;
   }

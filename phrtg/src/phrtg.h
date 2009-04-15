@@ -200,6 +200,8 @@ class plot_figure : public plot_obj {
 
 extern std::list<plot_figure*> All_Figures;
 
+enum Axis_XY { Axis_X, Axis_Y };
+
 class plot_pane : public plot_obj {
   public:
     std::list<plot_axes*> axes;
@@ -219,11 +221,10 @@ class plot_pane : public plot_obj {
   	void got_focus(focus_source whence);
   	bool render();
     bool check_for_updates(bool parent_visibility);
+    void Update_Axis_Pane(Axis_XY ax);
     
     static PtWidget_t *cache;
 };
-
-enum Axis_XY { Axis_X, Axis_Y };
 
 class plot_axis {
   public:
@@ -258,6 +259,9 @@ class plot_axis {
     void set_scale(int pixel_span);
     short evaluate(scalar_t V);
     bool render(plot_axes *axes);
+    void Update_Axis_Pane(plot_axes *parent);
+    
+    static void Clear_Axis_Pane();
 };
 
 class plot_axes : public plot_obj {

@@ -27,7 +27,7 @@ plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
   PtGetResource(divider, Pt_ARG_DIM, &div_dim, 0 );
   dim = *div_dim;
   if ( !All_Figures.empty() )
-	PtTreeAddAfter(ABW_Graphs_Tab, TreeItem, All_Figures.back()->TreeItem);
+    PtTreeAddAfter(ABW_Graphs_Tab, TreeItem, All_Figures.back()->TreeItem);
   else PtTreeAddFirst(ABW_Graphs_Tab, TreeItem, NULL);
   new plot_pane(name, this, first_pane);
   All_Figures.push_back(this);
@@ -151,7 +151,7 @@ bool plot_figure::check_for_updates() {
 int plot_figure::Setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
 	/* eliminate 'unreferenced' warnings */
-	link_instance = link_instance, apinfo = apinfo, cbinfo = cbinfo;
+	apinfo = apinfo, cbinfo = cbinfo;
   PtWidget_t *divider = ApGetWidgetPtr(link_instance, ABN_Figure_Div);
   PtWidget_t *first_pane = ApGetWidgetPtr(link_instance, ABN_Figure_Pane );
   PtWidget_t *window = ApGetWidgetPtr(link_instance, ABN_Figure);

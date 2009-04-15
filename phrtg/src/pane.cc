@@ -240,3 +240,27 @@ bool plot_pane::check_for_updates(bool parent_visibility) {
   }
   return updates_required;
 }
+
+void plot_pane::Update_Axis_Pane(Axis_XY ax) {
+  plot_axis *axis;
+  
+  PtReparentWidget(ABW_Axis_Pane, ax == Axis_X ? ABW_X_Tab : ABW_Y_Tab);
+  PtSetResource(ABW_Pane_Name, Pt_ARG_TEXT_STRING, name, 0);
+  PtSetResource(ABW_Pane_Visible, Pt_ARG_FLAGS,
+      visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
+  switch (ax) {
+    case Axis_X:
+      PtReparentWidget(ABW_Axis_Pane, ABW_X_Tab);
+      axis = Current::Axes ? &Current::Axes->X : NULL;
+      break;
+    case Axis_Y:
+      PtReparentWidget(ABW_Axis_Pane, ABW_Y_Tab);
+      axis = Current::Axes ? &Current::Axes->Y : NULL;
+      break;
+  }
+  if (axis) {
+    axis->Update_Axis_Pane(Current::Axes);
+  } else {
+    plot_axis::Clear_Axis_Pane();
+  }
+}

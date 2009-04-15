@@ -72,6 +72,21 @@ bool plot_axis::render( plot_axes *axes ) {
   return false;
 }
 
+void plot_axis::Update_Axis_Pane(plot_axes *parent) {
+  PtSetResource(ABW_Axes_Name, Pt_ARG_TEXT_STRING, parent->name, 0);
+  PtSetResource(ABW_Axes_Visible, Pt_ARG_FLAGS,
+      parent->visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
+  PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS,
+      limits.range_auto ? Pt_TRUE : Pt_FALSE, Pt_SET);
+  // PtSetResource
+}
+
+void plot_axis::Clear_Axis_Pane() {
+  PtSetResource(ABW_Axes_Name, Pt_ARG_TEXT_STRING, "", 0);
+  PtSetResource(ABW_Axes_Visible, Pt_ARG_FLAGS, Pt_FALSE, Pt_SET);
+  PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, Pt_FALSE, Pt_SET);
+}
+
 plot_axes::plot_axes( const char *name_in, plot_pane *pane ) : plot_obj(po_axes, name_in) {
   Y.XY = Axis_Y;
   Y.reverse_dim = true;
