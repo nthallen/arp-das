@@ -116,18 +116,21 @@ enum focus_source { focus_from_user, focus_from_child, focus_from_parent };
 
 class plot_obj {
   public:
-	plot_obj_type type;
-	char *name;
+  	plot_obj_type type;
+  	char *name;
     PtTreeItem_t *TreeItem;
     plot_obj *parent_obj;
     plot_obj *current_child;
+    bool visible;
+    bool new_visibility;
     bool destroying;
-	plot_obj( plot_obj_type po_type, const char *name_in);
-	virtual ~plot_obj();
-	virtual void got_focus(focus_source whence);
-	void TreeAllocItem();
-	void TreeFreeItem();
-	const char *typetext();
+
+    plot_obj( plot_obj_type po_type, const char *name_in);
+  	virtual ~plot_obj();
+  	virtual void got_focus(focus_source whence);
+  	void TreeAllocItem();
+  	void TreeFreeItem();
+  	const char *typetext();
 
 	static bool rendering;
 	static int TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
@@ -154,10 +157,10 @@ class plot_figure : public plot_obj {
   	std::list<plot_pane*> panes;
   	bool resizing;
   	bool display_name;
-  	bool visible;
   	bool synch_x;
   	PtWidget_t *module;
   	PtWidget_t *window;
+    PhDim_t dim, min_dim;
   
   	plot_figure( const char *name_in );
   	~plot_figure();
@@ -165,6 +168,7 @@ class plot_figure : public plot_obj {
   	void RemoveChild(plot_pane *p);
   	void CreateGraph(RTG_Variable_Data *var);
   	int resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force);
+  	void Adjust_Panes(int delta_min_height);
   	void Change_min_dim(int dw, int dh);
   	void got_focus(focus_source whence);
   	bool render();
@@ -187,7 +191,7 @@ class plot_figure : public plot_obj {
   	static void Report();
   private:
   	bool saw_first_resize;
-  	PhDim_t dim, min_dim;
+  	PhPoint_t Pos;
   	// Area: x,y,height,width (controlled by dragging, not dialog, but should be saved with configuration)
   	// [Pane Orientation: Vertical]
   	// [other window display functions: allow resize, minimize, maximize]
@@ -214,7 +218,9 @@ class plot_pane : public plot_obj {
   	void resized( PhDim_t *newdim );
   	void got_focus(focus_source whence);
   	bool render();
-    bool check_for_updates();
+    bool check_for_updates(bool parent_visibility);
+    
+    static PtWidget_t *cache;
 };
 
 enum Axis_XY { Axis_X, Axis_Y };
@@ -256,7 +262,6 @@ class plot_axis {
 
 class plot_axes : public plot_obj {
   public:
-    bool visible;
     plot_pane *parent;
     plot_axis X;
     plot_axis Y;
@@ -271,12 +276,11 @@ class plot_axes : public plot_obj {
     void resized( PhDim_t *newdim );
     bool check_limits();
   	bool render();
-    bool check_for_updates();
+    bool check_for_updates(bool parent_visibility);
 };
 
 class plot_data : public plot_obj {
   public:
-    bool visible;
     bool new_data;
     bool axes_rescaled;
     bool redraw_required;
@@ -289,14 +293,14 @@ class plot_data : public plot_obj {
   	void got_focus(focus_source whence);
   	bool check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr );
     bool render();
-    bool check_for_updates();
+    bool check_for_updates(bool parent_visibility);
 };
 
 class plot_line : public plot_obj {
   public:
-    bool visible;
     bool new_data;
     bool redraw_required;
+    bool effective_visibility;
     plot_data *parent;
     int column;
     PgColor_t color;
@@ -306,9 +310,11 @@ class plot_line : public plot_obj {
 
     plot_line(plot_data *parent_in, unsigned col, const char *name_in);
   	~plot_line();
+  	void clear_widgets();
   	void got_focus(focus_source whence);
   	bool check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr );
     bool render();
+    bool check_for_updates(bool parent_visibility);
   	static plot_line *new_line(plot_data *parent_in, unsigned col);
   	static const unsigned pts_per_polygon;
 };

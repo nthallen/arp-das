@@ -79,7 +79,6 @@ plot_axes::plot_axes( const char *name_in, plot_pane *pane ) : plot_obj(po_axes,
   Y.set_scale(pane->full_height);
   parent = pane;
   parent_obj = pane;
-  visible = true;
   parent->AddChild(this);
 }
 
@@ -177,12 +176,20 @@ bool plot_axes::render() {
   return false;
 }
 
-bool plot_axes::check_for_updates() {
+/* Visibility Strategy
+ * Use same strategy as lines for hiding axes, i.e.
+ * keep track of effective visibility
+ * on switch to invisibility, move widgets off screen
+ * on axes redraw while invisible.
+ * For the moment, this means do nothing.
+ */
+bool plot_axes::check_for_updates(bool parent_visibility) {
   bool updates_required = false;
   std::list<plot_data*>::const_iterator pos;
+  visible = new_visibility;
   for (pos = graphs.begin(); pos != graphs.end(); pos++) {
     plot_data *graph = *pos;
-    if ( graph->check_for_updates() )
+    if ( graph->check_for_updates(visible && parent_visibility) )
       updates_required = true;
   }
   return updates_required;

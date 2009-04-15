@@ -12,6 +12,8 @@ bool plot_obj::rendering = false;
 plot_obj::plot_obj(plot_obj_type po_type, const char *name_in) {
   type = po_type;
   TreeItem = NULL;
+  visible = true;
+  new_visibility = true;
   destroying = false;
   if (name_in == NULL) name_in = typetext();
   name = strdup(name_in);
@@ -115,7 +117,9 @@ int plot_obj::menu_ToggleVisible( PtWidget_t *widget, ApInfo_t *apinfo,
   widget = widget, apinfo = apinfo, cbinfo = cbinfo;
   nl_assert(Current::Menu_obj != NULL);
   nl_error(0,"plot_obj: ToggleVisible %s:%s", Current::Menu_obj->name, Current::Menu_obj->typetext());
-  Current::Menu_obj = NULL;
+  Current::Menu_obj->new_visibility = !Current::Menu_obj->visible;
+  plot_obj::render_all();
+  // Current::Menu_obj = NULL;
   return( Pt_CONTINUE );
 }
 

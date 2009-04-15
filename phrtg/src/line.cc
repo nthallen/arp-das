@@ -18,9 +18,9 @@ const unsigned plot_line::pts_per_polygon = 500;
 
 plot_line::plot_line(plot_data *parent_in, unsigned col, const char *name_in)
                 : plot_obj(po_line, name_in ) {
-  visible = true;
   new_data = false;
   redraw_required = false;
+  effective_visibility = true;
   parent = parent_in;
   parent_obj = parent;
   column = col;
@@ -45,19 +45,23 @@ plot_line::~plot_line() {
   // We don't have to delete our widgets if the parent
   // widget is being deleted. The parent widget is the pane,
   // which corresponds to parent(data)->parent(axes)->parent(pane)
+  clear_widgets();
+  TreeItem->data = NULL;
+  // The parent plot_data object will be responsible
+  // for deleting our tree elements and removing
+  // us from its children
+}
+
+void plot_line::clear_widgets() {
   if (parent->parent->parent->destroying) {
     widgets.clear();
   } else {
     while (!widgets.empty()) {
       PtWidget_t *last = widgets.back();
-      PtDestroyWidget(last);
+      if (last != NULL) PtDestroyWidget(last);
       widgets.pop_back();
     }
   }
-  TreeItem->data = NULL;
-  // The parent plot_data object will be responsible
-  // for deleting our tree elements and removing
-  // us from its children
 }
 
 void plot_line::got_focus(focus_source whence) {
@@ -146,4 +150,47 @@ bool plot_line::render() {
     }
   }
   return true;
+}
+
+/* Visibility Strategy for lines.
+ * When a line is marked invisible, just move the widget off screen.
+ * That way, if it is marked visible, it can be moved back onscreen
+ * quickly. If new data arrives, there is no longer any value in
+ * holding on to those widgets, so destroy them. The new_data flag
+ * will remain set until the line is made visible, since all other
+ * rendering routines will return quickly.
+ * 
+ * I realize that moving the widgets offscreen is overkill if the
+ * pane or window is invisible, but it's quick and easier than
+ * figuring out all the nuances.
+ */
+bool plot_line::check_for_updates( bool parent_visibility ) {
+  std::vector<PtWidget_t*>::const_iterator pos;
+  bool new_effective_visibility = new_visibility && parent_visibility;
+  bool updates_required = new_effective_visibility && new_data;
+  if ( effective_visibility && !new_effective_visibility ) {
+    // hide the widgets
+    PhPoint_t OffScreen = { -30000, 0 };
+    for (pos = widgets.begin(); pos != widgets.end(); ++pos ) {
+      PtSetResource(*pos, Pt_ARG_POS, &OffScreen, 0);
+    }
+    parent->parent->X.data_range_updated = true;
+    parent->parent->Y.data_range_updated = true;
+    updates_required = true;
+  } else if ( !effective_visibility && new_effective_visibility ) {
+    PhPoint_t OnScreen = { 0, 0 };
+    for (pos = widgets.begin(); pos != widgets.end(); ++pos ) {
+      PtSetResource(*pos, Pt_ARG_POS, &OnScreen, 0);
+    }
+    parent->parent->X.data_range_updated = true;
+    parent->parent->Y.data_range_updated = true;
+    updates_required = true;
+  }
+  visible = new_visibility;
+  effective_visibility = new_effective_visibility;
+  if (!effective_visibility && new_data) {
+    // Data has changed, no need to hold on to these
+    clear_widgets();
+  }
+  return updates_required;
 }

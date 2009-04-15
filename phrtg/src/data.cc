@@ -12,8 +12,7 @@ plot_data::plot_data(RTG_Variable_Data *var, plot_axes *parent_in)
   variable = var;
   parent = parent_in;
   parent_obj = parent_in;
-  visible = true;
-  new_data = false;
+  new_data = true;
   axes_rescaled = false;
   parent->AddChild(this);
   variable->AddGraph(this);
@@ -91,6 +90,16 @@ bool plot_data::render() {
   return false;
 }
 
-bool plot_data::check_for_updates() {
-  return variable->check_for_updates();
+/* Visibility Strategy:
+ * Basically leave it up to the lines.
+ */
+bool plot_data::check_for_updates(bool parent_visibility) {
+  std::vector<plot_line*>::const_iterator pos;
+  bool updates_required = false;
+  visible = new_visibility;
+  for (pos = lines.begin(); pos != lines.end(); ++pos) {
+    if ((*pos)->check_for_updates(visible && parent_visibility))
+      updates_required = true;
+  }
+  return variable->check_for_updates() || updates_required;
 }

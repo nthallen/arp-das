@@ -13,7 +13,6 @@ plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
   min_dim.h = min_dim.w = 2; // 2*Divider Bezel
   saw_first_resize = false;
   display_name = true;
-  visible = true;
   synch_x = true;
   ApModuleParent( ABM_Figure, AB_NO_PARENT, NULL );
   module = ApCreateModule( ABM_Figure, NULL, NULL );
@@ -61,13 +60,14 @@ plot_figure::~plot_figure() {
  * the tree hierarchy
  */
 void plot_figure::AddChild(plot_pane *p) {
-  Change_min_dim(0, p->min_height);
+  // Change_min_dim(0, p->min_height);
   if ( !panes.empty() ) {
     PtTreeAddAfter(ABW_Graphs_Tab, p->TreeItem, panes.back()->TreeItem);
   } else {
     PtTreeAddFirst(ABW_Graphs_Tab, p->TreeItem, TreeItem);
   }
   panes.push_back(p);
+  Adjust_Panes(p->min_height);
 }
 
 /* void plot_figure::RemoveChild(plot_pane *p);
@@ -85,11 +85,15 @@ void plot_figure::RemoveChild(plot_pane *p) {
   nl_assert(!panes.empty());
   if (current_child == p) current_child = NULL;
   panes.remove(p);
-  if (!destroying) {
+  if (!destroying)
   	PtDestroyWidget(p->widget);
-  	resized(&dim, &dim, 1);
-  }
-  Change_min_dim( 0, -p->min_height);
+  Adjust_Panes( -p->min_height );
+}
+
+void plot_figure::Adjust_Panes(int delta_min_height) {
+  Change_min_dim( 0, delta_min_height);
+  if (!destroying)
+    resized(&dim, &dim, 1);
 }
 
 void plot_figure::CreateGraph(RTG_Variable_Data *var) {
@@ -117,9 +121,24 @@ bool plot_figure::render() {
 bool plot_figure::check_for_updates() {
   bool updates_required = false;
   std::list<plot_pane*>::const_iterator pos;
+  if (visible && !new_visibility) {
+    // save current Pt_ARG_POS
+    PhPoint_t *PosP;
+    PhPoint_t OffScreen = { -32000, 0 };
+    PtGetResource(window, Pt_ARG_POS, &PosP, 0);
+    Pos = *PosP;
+    PtSetResource(window, Pt_ARG_POS, &OffScreen, 0);
+    PtSetResource(window, Pt_ARG_FLAGS, Pt_TRUE, Pt_BLOCKED );
+    nl_error(0,"Hiding: old pos (%d,%d)", Pos.x, Pos.y);
+  } else if (!visible && new_visibility) {
+    PtSetResource(window, Pt_ARG_POS, &Pos, 0);
+    PtSetResource(window, Pt_ARG_FLAGS, Pt_FALSE, Pt_BLOCKED );
+    nl_error(0,"Restoring: old pos (%d,%d)", Pos.x, Pos.y);
+  }
+  visible = new_visibility;
   for (pos = panes.begin(); pos != panes.end(); pos++) {
     plot_pane *p = *pos;
-    if ( p->check_for_updates() )
+    if ( p->check_for_updates(visible) )
       updates_required = true;
   }
   return updates_required;
@@ -275,8 +294,10 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
   std::list<plot_pane*>::const_iterator pp;
   for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
   	plot_pane *pane = *pp;
-  	cum_height += pane->full_height;
-  	cum_min += pane->min_height;
+  	if (pane->visible) {
+    	cum_height += pane->full_height;
+    	cum_min += pane->min_height;
+  	}
   }
   rem_height = dim.h - 2;
   if ( rem_height < cum_min ) {
@@ -288,12 +309,14 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
     // Add to each pane's height
     for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
   	  plot_pane *pane = *pp;
-  	  int new_height = (rem_height * pane->full_height)/cum_height;
-  	  pane_dim.h = new_height;
-  	  rem_height -= new_height;
-  	  cum_height -= pane->full_height;
-  	  PtSetResource( pane->widget, Pt_ARG_DIM, &pane_dim, 0);
-  	  pane->resized(&pane_dim);
+  	  if (pane->visible) {
+    	  int new_height = (rem_height * pane->full_height)/cum_height;
+    	  pane_dim.h = new_height;
+    	  rem_height -= new_height;
+    	  cum_height -= pane->full_height;
+    	  PtSetResource( pane->widget, Pt_ARG_DIM, &pane_dim, 0);
+    	  pane->resized(&pane_dim);
+  	  }
   	}
   	if (cum_height != 0 || rem_height != 0)
   	  nl_error( 1, "divider_resized up: cum_height %d rem_height %d",
@@ -305,13 +328,15 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
   	nl_assert(cum_height > 0); // it's > rem_height >= cum_min
   	for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
   	  plot_pane *pane = *pp;
+  	  if (pane->visible) {
         int dh = pane->full_height - pane->min_height;
-  	  int new_height = cum_height > 0 ? (rem_height * dh)/cum_height : 0;
-  	  rem_height -= new_height;
-  	  cum_height -= dh;
-  	  pane_dim.h = new_height + pane->min_height;
-  	  PtSetResource( pane->widget, Pt_ARG_DIM, &pane_dim, 0);
-  	  pane->resized(&pane_dim);
+    	  int new_height = cum_height > 0 ? (rem_height * dh)/cum_height : 0;
+    	  rem_height -= new_height;
+    	  cum_height -= dh;
+    	  pane_dim.h = new_height + pane->min_height;
+    	  PtSetResource( pane->widget, Pt_ARG_DIM, &pane_dim, 0);
+    	  pane->resized(&pane_dim);
+  	  }
   	}
   	if (cum_height != 0 || rem_height != 0)
   	  nl_error( 1, "divider_resized down: cum_height %d rem_height %d",
@@ -319,9 +344,11 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
   } else {
     for ( pp = panes.begin(); pp != panes.end(); ++pp ) {
   	  plot_pane *pane = *pp;
-  	  pane_dim.h = pane->full_height;
-  	  pane->resized(&pane_dim);
-  	} 
+  	  if (pane->visible) {
+    	  pane_dim.h = pane->full_height;
+    	  pane->resized(&pane_dim);
+  	  }
+  	}
   }
   plot_figure::Report();
   return( Pt_CONTINUE );
@@ -330,12 +357,12 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
 void plot_figure::Change_min_dim(int dw, int dh) {
   PhDim_t real_min;
   if (dw<0 && min_dim.w+DIV_BEVEL_WIDTHS < -dw) {
-	nl_error(2, "figure min.w (%d) < 0", min_dim.w );
-	dw = DIV_BEVEL_WIDTHS-min_dim.w;
+  	nl_error(2, "figure min.w (%d) < 0", min_dim.w );
+  	dw = DIV_BEVEL_WIDTHS-min_dim.w;
   }
   if (dh<0 && min_dim.h+DIV_BEVEL_WIDTHS < -dh) {
-	nl_error(2, "figure min.h (%d) < 0", min_dim.h );
-	dh = DIV_BEVEL_WIDTHS-min_dim.h;
+  	nl_error(2, "figure min.h (%d) < 0", min_dim.h );
+  	dh = DIV_BEVEL_WIDTHS-min_dim.h;
   }
   min_dim.w += dw;
   min_dim.h += dh;
@@ -377,9 +404,11 @@ int plot_figure::divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
 	    for ( i = 0, pp = fig->panes.begin(); i < cb->nsizes; ++i, ++pp ) {
   		  nl_assert(pp != fig->panes.end());
   		  pane = *pp;
-  		  pane_dim.h = cb->sizes[i].to - cb->sizes[i].from + 1;
-  		  nl_assert(pane_dim.h >= pane->min_height);
-  		  pane->resized(&pane_dim);
+  		  if (pane->visible) {
+    		  pane_dim.h = cb->sizes[i].to - cb->sizes[i].from + 1;
+    		  nl_assert(pane_dim.h >= pane->min_height);
+    		  pane->resized(&pane_dim);
+  		  }
   		}
 	    plot_obj::render_all();
 	    break;
