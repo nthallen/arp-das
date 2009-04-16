@@ -290,6 +290,9 @@ flag
 1004
 data
 9
+1006
+flag
+33555594,1334445470
 0
 PtToggleButton
 4
@@ -309,6 +312,9 @@ flag
 1004
 data
 10
+1006
+flag
+50332808,1334445470
 0
 PtToggleButton
 4
@@ -328,6 +334,9 @@ flag
 1004
 data
 11
+1006
+flag
+50332808,1334445470
 0
 PtPane
 3
@@ -487,7 +496,7 @@ flag
 0
 PtText
 6
-PtText
+Axes_Name
 1005
 dim
 85,27
@@ -497,6 +506,9 @@ pos
 10001
 flag
 3840,8176
+1004
+data
+16
 0
 PtToggleButton
 6
@@ -515,15 +527,15 @@ flag
 138,1334445470
 1004
 data
-16
+17
 0
 PtLabel
 5
 PtLabel
 3011
 multi
-13
-X Axis Label:1007
+11
+Axis Label:1007
 pos
 19,108
 1005
@@ -541,7 +553,7 @@ pos
 108,104
 1004
 data
-17
+18
 0
 PtToggleButton
 5
@@ -560,7 +572,7 @@ flag
 16908424,1334445470
 1004
 data
-18
+19
 0
 PtToggleButton
 5
@@ -579,7 +591,7 @@ flag
 138,1334445470
 1004
 data
-19
+20
 0
 PtGroup
 5
@@ -598,7 +610,7 @@ flag
 131072,1334445470
 1004
 data
-20
+21
 0
 PtNumericFloat
 6
@@ -617,7 +629,7 @@ flag
 16777216,1334445470
 1004
 data
-21
+22
 0
 PtLabel
 6
@@ -652,7 +664,7 @@ flag
 16777216,1334445470
 1004
 data
-22
+23
 0
 PtGroup
 5
@@ -681,7 +693,7 @@ flag
 33555594,1334445470
 1004
 data
-23
+24
 0
 PtToggleButton
 6
@@ -700,7 +712,7 @@ flag
 33555594,1334445470
 1004
 data
-24
+25
 0
 PtToggleButton
 6
@@ -716,7 +728,7 @@ flag
 33555594,1334445470
 1004
 data
-25
+26
 0
 PtToggleButton
 6
@@ -735,7 +747,7 @@ flag
 33555594,1334445470
 1004
 data
-26
+27
 0
 PtToggleButton
 6
@@ -751,7 +763,7 @@ dim
 91,24
 1004
 data
-27
+28
 0
 PtToggleButton
 6
@@ -767,7 +779,7 @@ flag
 33555594,1334445470
 1004
 data
-28
+29
 0
 PtToggleButton
 6
@@ -783,7 +795,7 @@ flag
 16908424,1334445470
 1004
 data
-29
+30
 0
 PtToggleButton
 6
@@ -802,7 +814,7 @@ flag
 16908424,1334445470
 1004
 data
-30
+31
 0
 PtToggleButton
 5
@@ -821,7 +833,7 @@ flag
 16908424,1334445470
 1004
 data
-31
+32
 0
 PtLabel
 5
@@ -866,7 +878,7 @@ flag
 16908424,1334445470
 1004
 data
-32
+33
 0
 PtToggleButton
 5
@@ -885,7 +897,7 @@ flag
 16908424,1334445470
 1004
 data
-33
+34
 0
 PtPane
 3
@@ -904,7 +916,7 @@ multi
 1
 Y1004
 data
-34
+35
 0
 PtPane
 3
@@ -923,7 +935,7 @@ multi
 4
 Line1004
 data
-35
+36
 0
 PtLabel
 4
@@ -952,7 +964,7 @@ dim
 89,21
 1004
 data
-36
+37
 0
 PtToggleButton
 4
@@ -971,7 +983,7 @@ flag
 138,1334445470
 1004
 data
-37
+38
 0
 PtComboBox
 4
@@ -992,7 +1004,7 @@ None
 
 1004
 data
-38
+39
 0
 PtLabel
 4
