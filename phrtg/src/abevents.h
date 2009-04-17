@@ -11,7 +11,7 @@ static const ApEventLink_t AbApplLinks[] = {
 
 ApEventLink_t AbInternalLinks[] = {
 	{ 3, 0, 0L, 0L, 0L, &Figure, NULL, NULL, 0, plot_figure::Setup, 0, 0, 0, 0, },
-	{ 5, 0, 0L, 0L, 0L, &plot_context_menu, NULL, NULL, 0, plot_obj::context_menu_setup, 0, 10, 0, 0, },
+	{ 5, 0, 0L, 0L, 0L, &plot_context_menu, NULL, NULL, 0, plot_obj::context_menu_setup, 0, 3, 0, 0, },
 	{ 0 }
 	};
 
@@ -24,6 +24,11 @@ static const ApEventLink_t AbLinks_Console[] = {
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Graphs_Tab", 23022, plot_obj::TreeSelected, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Graphs_Tab", 23036, plot_obj::TreeColSelect, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Graphs_Tab", 23023, plot_obj::TreeInput, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Window_Name", 4010, Modify_Notify, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Pane_Name", 4010, Modify_Notify, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Axes_Name", 4014, Modify_Notify, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Axis_Label", 4010, Modify_Notify, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Name", 4010, Modify_Notify, 0, 0, 0, 0, },
 	{ 0 }
 	};
 

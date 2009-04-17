@@ -90,6 +90,11 @@ void plot_figure::RemoveChild(plot_pane *p) {
   Adjust_Panes( -p->min_height );
 }
 
+void plot_figure::rename(const char *text) {
+  plot_obj::rename(text);
+  PtSetResource(window, Pt_ARG_WINDOW_TITLE, name, 0);
+}
+
 void plot_figure::Adjust_Panes(int delta_min_height) {
   Change_min_dim( 0, delta_min_height);
   if (!destroying)

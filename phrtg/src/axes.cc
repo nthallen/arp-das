@@ -73,12 +73,21 @@ bool plot_axis::render( plot_axes *axes ) {
 }
 
 void plot_axis::Update_Axis_Pane(plot_axes *parent) {
+  PtArg_t args[2];
+  long is_auto = limits.range_auto ? Pt_TRUE : Pt_FALSE;
   PtSetResource(ABW_Axes_Name, Pt_ARG_TEXT_STRING, parent->name, 0);
   PtSetResource(ABW_Axes_Visible, Pt_ARG_FLAGS,
       parent->visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
-  PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS,
-      limits.range_auto ? Pt_TRUE : Pt_FALSE, Pt_SET);
-  // PtSetResource
+  double val;
+  PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_auto, Pt_SET);
+  val = limits.min;
+  PtSetArg( &args[0], Pt_ARG_FLAGS, is_auto, Pt_GHOST);
+  PtSetArg( &args[1], Pt_ARG_NUMERIC_VALUE, &val, 0 );
+  PtSetResources(ABW_Limit_Min, 2, args);
+  val = limits.max;
+  PtSetArg( &args[0], Pt_ARG_FLAGS, is_auto, Pt_GHOST);
+  PtSetArg( &args[1], Pt_ARG_NUMERIC_VALUE, &val, 0 );
+  PtSetResources(ABW_Limit_Max, 2, args);
 }
 
 void plot_axis::Clear_Axis_Pane() {

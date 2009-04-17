@@ -46,32 +46,32 @@ const char *plot_obj::typetext() {
 void plot_obj::got_focus(focus_source whence) {
   const char *twhence;
   switch (whence) {
-  case focus_from_user: twhence = "user"; break;
-  case focus_from_child: twhence = "child"; break;
-  case focus_from_parent: twhence = "parent"; break;
-  default: nl_error(4, "Invalid whence");
+    case focus_from_user: twhence = "user"; break;
+    case focus_from_child: twhence = "child"; break;
+    case focus_from_parent: twhence = "parent"; break;
+    default: nl_error(4, "Invalid whence");
   }
   nl_error(0, "%s %s got focus from %s", typetext(), name, twhence);
   if (whence == focus_from_user) {
-	nl_assert(TreeItem != NULL);
-	if ( !(TreeItem->gen.list.flags&Pt_LIST_ITEM_SELECTED)) {
-	  PtTreeSelect(ABW_Graphs_Tab, TreeItem);
-	}
+  	nl_assert(TreeItem != NULL);
+  	if ( !(TreeItem->gen.list.flags&Pt_LIST_ITEM_SELECTED)) {
+  	  PtTreeSelect(ABW_Graphs_Tab, TreeItem);
+  	}
   }
   if (parent_obj && (whence == focus_from_user || whence == focus_from_child)) {
-	parent_obj->current_child = this;
-	parent_obj->got_focus(focus_from_child);
+  	parent_obj->current_child = this;
+  	parent_obj->got_focus(focus_from_child);
   }
   if (whence == focus_from_user || whence == focus_from_parent) {
-	if (current_child) current_child->got_focus(focus_from_parent);
-	else Current::none(type);
+  	if (current_child) current_child->got_focus(focus_from_parent);
+  	else Current::none(type);
   }
 }
 
 void plot_obj::TreeAllocItem() {
   char temp_buf[80];
   if ( snprintf(temp_buf, 80, "%s\t%s", name, typetext()) >= 80 )
-	nl_error(2,"Variable name exceeds buffer length in TreeAllocItem");
+    nl_error(2,"Variable name exceeds buffer length in TreeAllocItem");
   TreeItem = PtTreeAllocItem(ABW_Graphs_Tab, temp_buf, -1, -1);
   TreeItem->data = (void *)this;
 }
@@ -82,6 +82,15 @@ void plot_obj::TreeFreeItem() {
     PtTreeFreeItems(TreeItem);
     TreeItem = NULL;
   }
+}
+
+void plot_obj::rename(const char *text) {
+  char temp_buf[80];
+  if ( snprintf(temp_buf, 80, "%s\t%s", name, typetext()) >= 80 )
+    nl_error(2,"Variable name exceeds buffer length in TreeAllocItem");
+  free(name);
+  name = strdup(text);
+  PtTreeChangeItem(ABW_Graphs_Tab, TreeItem, temp_buf, NULL);
 }
 
 int plot_obj::pt_got_focus( PtWidget_t *widget, ApInfo_t *apinfo,
@@ -100,13 +109,13 @@ int plot_obj::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
   /* eliminate 'unreferenced' warnings */
   widget = widget, apinfo = apinfo;
   if (cbinfo->reason_subtype == Pt_LIST_SELECTION_FINAL) {
-	PtTreeCallback_t *cb = (PtTreeCallback_t *)cbinfo->cbdata;
-	nl_assert(cb->item != NULL);
-	plot_obj *p = (plot_obj *)cb->item->data;
-	if (cb->item->gen.list.flags&Pt_LIST_ITEM_SELECTED) {
-	  p->got_focus(focus_from_user);
-      nl_error( 0, "Selected %s:%s", p->name, p->typetext());
-	}
+  	PtTreeCallback_t *cb = (PtTreeCallback_t *)cbinfo->cbdata;
+  	nl_assert(cb->item != NULL);
+  	plot_obj *p = (plot_obj *)cb->item->data;
+  	if (cb->item->gen.list.flags&Pt_LIST_ITEM_SELECTED) {
+  	  p->got_focus(focus_from_user);
+        nl_error( 0, "Selected %s:%s", p->name, p->typetext());
+  	}
   }
   return( Pt_CONTINUE );
 }

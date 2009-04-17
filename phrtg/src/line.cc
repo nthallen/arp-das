@@ -194,3 +194,13 @@ bool plot_line::check_for_updates( bool parent_visibility ) {
   }
   return updates_required;
 }
+
+void plot_line::Update_Line_Tab() {
+  PtSetResource(ABW_Line_Name, Pt_ARG_TEXT_STRING, name, 0);
+  PtSetResource(ABW_Line_Visible, Pt_ARG_FLAGS,
+      visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
+  PtSetResource(ABW_Line_Color, Pt_ARG_CS_COLOR, color, 0);
+  PtSetResource(ABW_Line_Variable_Name, Pt_ARG_TEXT_STRING,
+      parent->variable->name, 0);
+  PtSetResource(ABW_Line_Column, Pt_ARG_NUMERIC_VALUE, column, 0);
+}

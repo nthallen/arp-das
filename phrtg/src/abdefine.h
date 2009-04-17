@@ -43,6 +43,8 @@ extern const int ABN_Pane_Name;
 #define ABW_Pane_Name                        AbGetABW( ABN_Pane_Name )
 extern const int ABN_Pane_Visible;
 #define ABW_Pane_Visible                     AbGetABW( ABN_Pane_Visible )
+extern const int ABN_Pane_Color;
+#define ABW_Pane_Color                       AbGetABW( ABN_Pane_Color )
 extern const int ABN_Axes_Name;
 #define ABW_Axes_Name                        AbGetABW( ABN_Axes_Name )
 extern const int ABN_Axes_Visible;
@@ -91,6 +93,12 @@ extern const int ABN_Line_Visible;
 #define ABW_Line_Visible                     AbGetABW( ABN_Line_Visible )
 extern const int ABN_Line_Type;
 #define ABW_Line_Type                        AbGetABW( ABN_Line_Type )
+extern const int ABN_Line_Color;
+#define ABW_Line_Color                       AbGetABW( ABN_Line_Color )
+extern const int ABN_Line_Variable_Name;
+#define ABW_Line_Variable_Name               AbGetABW( ABN_Line_Variable_Name )
+extern const int ABN_Line_Column;
+#define ABW_Line_Column                      AbGetABW( ABN_Line_Column )
 
 /* 'Figure' Window link */
 extern const int ABN_Figure;

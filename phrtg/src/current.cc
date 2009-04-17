@@ -14,6 +14,7 @@ plot_data *Current::Graph;
 plot_line *Current::Line;
 RTG_Variable_Data *Current::Variable;
 plot_obj *Current::Menu_obj;
+Tab_Name Current::Tab = Tab_None;
 
 void Current::none(plot_obj_type parent_type) {
   switch (parent_type) {

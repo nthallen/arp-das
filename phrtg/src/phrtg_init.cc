@@ -156,15 +156,19 @@ int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbin
         Current::Figure->name, 0);
     PtSetResource(ABW_Window_Visible, Pt_ARG_FLAGS,
         Current::Figure->visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
+    Current::Tab = Tab_Figure;
   } else if (strcmp(PGCallback->new_panel, "X") == 0) {
     if (Current::Pane == NULL) return Pt_END;
     Current::Pane->Update_Axis_Pane(Axis_X);
-  	// Check for axes
+    Current::Tab = Tab_X;
   } else if (strcmp(PGCallback->new_panel, "Y") == 0) {
     if (Current::Pane == NULL) return Pt_END;
-    PtReparentWidget(ABW_Axis_Pane,ABW_Y_Tab);
+    Current::Pane->Update_Axis_Pane(Axis_Y);
+    Current::Tab = Tab_Y;
   } else if (strcmp(PGCallback->new_panel, "Line") == 0) {
-    return Pt_END;
+    if (Current::Line == NULL) return Pt_END;
+    Current::Line->Update_Line_Tab();
+    Current::Tab = Tab_Line;
   }
   return Pt_CONTINUE;
 }

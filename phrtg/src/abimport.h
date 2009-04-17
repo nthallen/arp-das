@@ -10,7 +10,7 @@ extern ApEventLink_t AbInternalLinks[];
 
 extern ApWindowLink_t Console;
 extern ApWindowLink_t Figure;
-extern ApWidget_t AbWidgets[ 43 ];
+extern ApWidget_t AbWidgets[ 47 ];
 
 extern ApMenuLink_t File_Menu;
 extern ApMenuLink_t Variable_Menu;
@@ -34,4 +34,5 @@ int menu_graph_overlay( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cb
 int menu_graph_newpane( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int menu_graph_newwin( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int menu_file_report( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
+int Modify_Notify( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 #endif

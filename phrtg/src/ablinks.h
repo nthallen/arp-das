@@ -9,13 +9,13 @@ extern ApContext_t AbContext;
 ApWindowLink_t Console = {
 	"Console.wgtw",
 	&AbContext,
-	AbLinks_Console, 0, 8
+	AbLinks_Console, 0, 13
 	};
 
 ApWindowLink_t Figure = {
 	"Figure.wgtw",
 	&AbContext,
-	AbLinks_Figure, 40, 8
+	AbLinks_Figure, 44, 8
 	};
 
 static ApItem_t ApItems_File_Menu[ 5 ] = {
@@ -34,7 +34,7 @@ ApMenuLink_t File_Menu = {
 	ApItems_File_Menu,
 	& AbContext,
 	AbLinks_File_Menu,
-	43, 4, 4
+	47, 4, 4
 	};
 
 static ApItem_t ApItems_Variable_Menu[ 5 ] = {
@@ -53,7 +53,7 @@ ApMenuLink_t Variable_Menu = {
 	ApItems_Variable_Menu,
 	& AbContext,
 	AbLinks_Variable_Menu,
-	48, 4, 4
+	52, 4, 4
 	};
 
 static ApItem_t ApItems_plot_context_menu[ 3 ] = {
@@ -70,7 +70,7 @@ ApMenuLink_t plot_context_menu = {
 	ApItems_plot_context_menu,
 	& AbContext,
 	AbLinks_plot_context_menu,
-	53, 2, 2
+	57, 2, 2
 	};
 
 

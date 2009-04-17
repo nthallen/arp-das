@@ -29,6 +29,7 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   min_height = min_dim.h;
   widget = pane;
   synch_x = true;
+  pane_color = Pg_BLACK;
   int n_panes = parent->panes.size();
   if ( n_panes == 0 ) ++n_panes;
   full_height = parent->dim.h/n_panes;
@@ -42,7 +43,7 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
     PtAddCallback(widget,Pt_CB_GOT_FOCUS,(PtCallbackF_t *)plot_obj::pt_got_focus,NULL);
     PtRealizeWidget(widget);
   }
-  PtSetResource(widget, Pt_ARG_FILL_COLOR, Pg_BLACK, 0 );
+  PtSetResource(widget, Pt_ARG_FILL_COLOR, pane_color, 0 );
   PtSetResource(widget, Pt_ARG_POINTER, this, 0 );
   PtSetResource(widget, Pt_ARG_MINIMUM_DIM, &min_dim, 0 );
 
@@ -248,6 +249,7 @@ void plot_pane::Update_Axis_Pane(Axis_XY ax) {
   PtSetResource(ABW_Pane_Name, Pt_ARG_TEXT_STRING, name, 0);
   PtSetResource(ABW_Pane_Visible, Pt_ARG_FLAGS,
       visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
+  PtSetResource(ABW_Pane_Color, Pt_ARG_CS_COLOR, pane_color, 0);
   switch (ax) {
     case Axis_X:
       PtReparentWidget(ABW_Axis_Pane, ABW_X_Tab);

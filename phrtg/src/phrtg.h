@@ -130,6 +130,7 @@ class plot_obj {
   	virtual void got_focus(focus_source whence);
   	void TreeAllocItem();
   	void TreeFreeItem();
+  	virtual void rename(const char *text);
   	const char *typetext();
 
 	static bool rendering;
@@ -171,6 +172,7 @@ class plot_figure : public plot_obj {
   	void Adjust_Panes(int delta_min_height);
   	void Change_min_dim(int dw, int dh);
   	void got_focus(focus_source whence);
+  	void rename(const char *text);
   	bool render();
   	bool check_for_updates();
   
@@ -201,12 +203,15 @@ class plot_figure : public plot_obj {
 extern std::list<plot_figure*> All_Figures;
 
 enum Axis_XY { Axis_X, Axis_Y };
+enum Tab_Name { Tab_None, Tab_Variables, Tab_Graphs, Tab_Figure,
+  Tab_X, Tab_Y, Tab_Line };
 
 class plot_pane : public plot_obj {
   public:
     std::list<plot_axes*> axes;
 		plot_figure *parent;
 		PtWidget_t *widget;
+		PgColor_t pane_color;
 		int full_height;
 		int min_height;
 		int full_width;
@@ -319,6 +324,7 @@ class plot_line : public plot_obj {
   	bool check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr );
     bool render();
     bool check_for_updates(bool parent_visibility);
+    void Update_Line_Tab();
   	static plot_line *new_line(plot_data *parent_in, unsigned col);
   	static const unsigned pts_per_polygon;
 };
@@ -332,6 +338,10 @@ class Current {
     static plot_data *Graph;
     static plot_line *Line;
     static plot_obj *Menu_obj;
+    static Tab_Name Tab;
     static void none(plot_obj_type parent_type);
 };
+
+enum Update_Source { from_file, from_widget };
+extern void Update_Text( int Name, char *text, Update_Source src );
 #endif
