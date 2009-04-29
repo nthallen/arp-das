@@ -39,8 +39,9 @@ plot_line::~plot_line() {
 
   nl_assert(parent->destroying); // Just my current assumption.
 
-  if (this == Current::Line)
-    Current::Line = NULL;
+  // And therefore we don't have to mess with Current::Line
+  // if (this == Current::Line)
+  //   Current::Line = NULL;
   
   // We don't have to delete our widgets if the parent
   // widget is being deleted. The parent widget is the pane,

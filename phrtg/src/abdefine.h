@@ -105,8 +105,6 @@ extern const int ABN_Figure;
 #define ABW_Figure                           AbGetABW( ABN_Figure )
 extern const int ABN_Figure_Div;
 #define ABW_Figure_Div                       AbGetABW( ABN_Figure_Div )
-extern const int ABN_Figure_Pane;
-#define ABW_Figure_Pane                      AbGetABW( ABN_Figure_Pane )
 
 #define AbGetABW( n ) ( AbWidgets[ n ].wgt )
 

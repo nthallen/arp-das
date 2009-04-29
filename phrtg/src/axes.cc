@@ -125,18 +125,14 @@ plot_axes::plot_axes( const char *name_in, plot_pane *pane ) : plot_obj(po_axes,
   parent = pane;
   parent_obj = pane;
   parent->AddChild(this);
-  if (Current::Axes == NULL) got_focus(focus_from_parent);
 }
 
 plot_axes::~plot_axes() {
   if (destroying) return;
     destroying = true;
-  if (this == Current::Axes)
-    Current::Axes = NULL;
   while (!graphs.empty()) delete graphs.front();
   TreeItem->data = NULL;
   parent->RemoveChild(this);
-  // widget = NULL;
 }
 
 void plot_axes::AddChild(plot_data *data) {
@@ -153,13 +149,22 @@ void plot_axes::RemoveChild(plot_data *data) {
   nl_assert(data != NULL);
   nl_assert(!graphs.empty());
   if (current_child == data) current_child = NULL;
+  else { nl_assert(Current::Graph != data); }
   graphs.remove(data);
+  if ( !destroying && current_child == NULL) {
+    current_child = default_child();
+    if (Current::Graph == data) {
+      if (current_child == NULL) Current::none(type);
+      else current_child->got_focus(focus_from_parent);
+    }
+  }
 }
 
-void plot_axes::CreateGraph(RTG_Variable_Data *var) {
+plot_data *plot_axes::CreateGraph(RTG_Variable_Data *var) {
   nl_assert(var != NULL);
   plot_data *graph = new plot_data(var, this);
   graph->got_focus(focus_from_user);
+  return graph;
 }
 
 void plot_axes::got_focus(focus_source whence) { // got_focus(gf_type whence)

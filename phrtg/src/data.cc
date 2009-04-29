@@ -22,19 +22,14 @@ plot_data::plot_data(RTG_Variable_Data *var, plot_axes *parent_in)
 plot_data::~plot_data() {
   if (destroying) return;
   destroying = true;
-  if (this == Current::Graph)
-		Current::Graph = NULL;
-  // delete the lines
   while (!lines.empty()) {
     delete lines.back();
     lines.pop_back();
   }
   TreeItem->data = NULL;
-  // PtSetResource(widget, Pt_ARG_POINTER, NULL, 0 );
   variable->RemoveGraph(this);
   variable = NULL;
   parent->RemoveChild(this);
-  // widget = NULL;
 }
 
 void plot_data::got_focus(focus_source whence) {
@@ -58,7 +53,7 @@ bool plot_data::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
       }
       if (current_child == NULL) current_child = lines.back();
     }
-    if (Current::Line == NULL && current_child != NULL)
+    if (this == Current::Graph && Current::Line == NULL && current_child != NULL)
       current_child->got_focus(focus_from_parent);
     for ( unsigned i = 0; i < variable->ncols; ++i ) {
       lines[i]->new_data = true;
@@ -66,6 +61,8 @@ bool plot_data::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
     redraw_required = true;
     new_data = false;
   }
+  if (this == Current::Graph && Current::Line == NULL && Current::Tab == Tab_Line)
+    PtSetResource(ABW_ConsoleGroup, Pt_ARG_PG_CURRENT, "Graphs", 0);
   for ( unsigned i = 0; i < variable->ncols; ++i ) {
     if (lines[i]->check_limits(Xr, Yr)) return true;
   }

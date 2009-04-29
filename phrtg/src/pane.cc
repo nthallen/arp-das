@@ -15,47 +15,38 @@ PtWidget_t *plot_pane::cache;
  * that exists when the window is created) or it can create
  * a new one.
  */
-plot_pane::plot_pane( const char *name_in, plot_figure *figure,
-		PtWidget_t *pane) : plot_obj(po_pane, name_in) {
-  //PtWidget_t *window;
-  //PhDim_t *div_dimp, *win_dim;
+plot_pane::plot_pane( const char *name_in, plot_figure *figure)
+        : plot_obj(po_pane, name_in) {
   PhDim_t min_dim = {20,20};
-  //PhDim_t pane_dim;
-  //int rem_height, cum_height = 0;
-  //PhDim_t div_dim;
   
   parent = figure;
   parent_obj = figure;
   min_height = min_dim.h;
-  widget = pane;
   synch_x = true;
   pane_color = Pg_BLACK;
   int n_panes = parent->panes.size();
   if ( n_panes == 0 ) ++n_panes;
   full_height = parent->dim.h/n_panes;
-  if (pane == NULL) {
-    PtArg_t args[2];
-    PtSetArg( &args[0], Pt_ARG_ANCHOR_FLAGS, Pt_FALSE, Pt_TRUE);
-    PtSetArg( &args[1], Pt_ARG_FLAGS, Pt_TRUE,
-        Pt_HIGHLIGHTED|Pt_GETS_FOCUS);
-    PtWidget_t *divider = ApGetWidgetPtr(parent->module, ABN_Figure_Div);
-    widget = PtCreateWidget(PtPane, divider, 2, args );
-    PtAddCallback(widget,Pt_CB_GOT_FOCUS,(PtCallbackF_t *)plot_obj::pt_got_focus,NULL);
-    PtRealizeWidget(widget);
-  }
+
+  PtArg_t args[2];
+  PtSetArg( &args[0], Pt_ARG_ANCHOR_FLAGS, Pt_FALSE, Pt_TRUE);
+  PtSetArg( &args[1], Pt_ARG_FLAGS, Pt_TRUE,
+      Pt_HIGHLIGHTED|Pt_GETS_FOCUS);
+  PtWidget_t *divider = ApGetWidgetPtr(parent->module, ABN_Figure_Div);
+  widget = PtCreateWidget(PtPane, divider, 2, args );
+  PtAddCallback(widget,Pt_CB_GOT_FOCUS,(PtCallbackF_t *)plot_obj::pt_got_focus,NULL);
+  PtRealizeWidget(widget);
+
   PtSetResource(widget, Pt_ARG_FILL_COLOR, pane_color, 0 );
   PtSetResource(widget, Pt_ARG_POINTER, this, 0 );
   PtSetResource(widget, Pt_ARG_MINIMUM_DIM, &min_dim, 0 );
 
   parent->AddChild(this);
-  if (Current::Pane == NULL) got_focus(focus_from_parent);
 }
 
 plot_pane::~plot_pane() {
   if ( destroying ) return;
-    destroying = true;
-  if (this == Current::Pane)
-    Current::none(po_figure);
+  destroying = true;
   nl_assert(widget != NULL);
   while (!axes.empty()) delete axes.front();
   TreeItem->data = NULL;
@@ -94,14 +85,22 @@ void plot_pane::RemoveChild(plot_axes *ax) {
   nl_assert(ax != NULL);
   nl_assert(!axes.empty());
   if (current_child == ax) current_child = NULL;
+  else { nl_assert(Current::Axes != ax); }
   axes.remove(ax);
-  if (current_child == NULL) current_child = default_child();
+  if (!destroying && current_child == NULL) {
+    current_child = default_child();
+    if (Current::Axes == ax) {
+      if (current_child == NULL) Current::none(type);
+      else current_child->got_focus(focus_from_parent);
+    }
+  }
 }
 
-void plot_pane::CreateGraph(RTG_Variable_Data *var) {
+plot_axes *plot_pane::CreateGraph(RTG_Variable_Data *var) {
   nl_assert(var != NULL);
   plot_axes *ax = new plot_axes(var->name, this);
   ax->CreateGraph(var);
+  return ax;
 }
 
 void plot_pane::resized(PhDim_t *newdim ) {

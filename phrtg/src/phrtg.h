@@ -109,7 +109,7 @@ class RTG_Variable_MLF : public RTG_Variable_Data {
     void new_index(unsigned long index);
 };
 
-enum plot_obj_type { po_figure, po_pane, po_axes, po_data,
+enum plot_obj_type { po_root, po_figure, po_pane, po_axes, po_data,
 		po_line, po_text, po_zoom, po_max };
 enum focus_source { focus_from_user, focus_from_child, focus_from_parent };
 enum Update_Source { from_file, from_widget };
@@ -169,12 +169,13 @@ class plot_figure : public plot_obj {
   	~plot_figure();
   	void AddChild(plot_pane *p);
   	void RemoveChild(plot_pane *p);
-  	void CreateGraph(RTG_Variable_Data *var);
+  	plot_pane *CreateGraph(RTG_Variable_Data *var);
   	int resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force);
   	void Adjust_Panes(int delta_min_height);
   	void Change_min_dim(int dw, int dh);
   	void got_focus(focus_source whence);
   	void rename(const char *text, Update_Source src);
+  	void Update_Window_Tab();
     plot_obj *default_child();
   	bool render();
   	bool check_for_updates();
@@ -220,11 +221,11 @@ class plot_pane : public plot_obj {
 		int full_width;
 		bool synch_x;
 		
-  	plot_pane( const char *name_in, plot_figure *parent, PtWidget_t *pane = NULL);
+  	plot_pane( const char *name_in, plot_figure *parent);
   	~plot_pane();
   	void AddChild(plot_axes *p);
   	void RemoveChild(plot_axes *p);
-  	void CreateGraph(RTG_Variable_Data *var);
+  	plot_axes *CreateGraph(RTG_Variable_Data *var);
   	void resized( PhDim_t *newdim );
   	void got_focus(focus_source whence);
     void rename(const char *text, Update_Source src);
@@ -288,7 +289,7 @@ class plot_axes : public plot_obj {
   	~plot_axes();
   	void AddChild(plot_data *p);
   	void RemoveChild(plot_data *p);
-  	void CreateGraph(RTG_Variable_Data *var);
+  	plot_data *CreateGraph(RTG_Variable_Data *var);
   	void got_focus(focus_source whence);
     void resized( PhDim_t *newdim );
     bool check_limits();

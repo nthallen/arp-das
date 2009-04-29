@@ -63,7 +63,6 @@ static const ApEventLink_t AbLinks_Figure[] = {
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 2010, plot_obj::pt_got_focus, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure_Div", 10003, plot_figure::divider_resized, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure_Div", 44003, plot_figure::divider_drag, 0, 0, 0, 0, },
-	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure_Pane", 2010, plot_obj::pt_got_focus, 0, 0, 0, 0, },
 	{ 0 }
 	};
 

@@ -148,12 +148,8 @@ int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbin
 		(PtPanelGroupCallback_t *)cbinfo->cbdata;
   if (strcmp(PGCallback->new_panel, "Window") == 0) {
     if (Current::Figure == NULL) return Pt_END;
-    // Update Window_Tab 
-    PtSetResource(ABW_Window_Name, Pt_ARG_TEXT_STRING,
-        Current::Figure->name, 0);
-    PtSetResource(ABW_Window_Visible, Pt_ARG_FLAGS,
-        Current::Figure->visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
     Current::Tab = Tab_Figure;
+    Current::Figure->Update_Window_Tab();
   } else if (strcmp(PGCallback->new_panel, "X") == 0) {
     if (Current::Pane == NULL) return Pt_END;
     Current::Tab = Tab_X;
@@ -180,7 +176,9 @@ int menu_graph_curaxes( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
   if (Current::Axes) {
   	if (Current::Variable != NULL) {
-  	  Current::Axes->CreateGraph(Current::Variable);
+  	  plot_data *graph =
+  	    Current::Axes->CreateGraph(Current::Variable);
+  	  graph->got_focus(focus_from_user);
   	  plot_obj::render_all();
     } else nl_error(2, "No Current Variable defined");
   } else {
@@ -194,7 +192,8 @@ int menu_graph_overlay( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
   if (Current::Pane != NULL) {
     if (Current::Variable != NULL) {
-      Current::Pane->CreateGraph(Current::Variable);
+      plot_axes *ax = Current::Pane->CreateGraph(Current::Variable);
+      ax->got_focus(focus_from_user);
       plot_obj::render_all();
     } else nl_error(2, "No current variable defined");
   } else {
@@ -209,7 +208,9 @@ int menu_graph_newpane( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
   if ( Current::Figure ) {
   	if (Current::Variable) {
-  	  Current::Figure->CreateGraph(Current::Variable);
+      // Current::Figure->CreateGraph(Current::Variable);
+  	  plot_pane *pane = Current::Figure->CreateGraph(Current::Variable);
+  	  pane->got_focus(focus_from_user);
   	  plot_obj::render_all();
   	} else nl_error( 2, "No Current Variable defined");
   } else {
@@ -226,8 +227,8 @@ int menu_graph_newwin( PtWidget_t *widget, ApInfo_t *apinfo,
   if (Current::Variable != NULL) {
     const char *name = Current::Variable->name;
     plot_figure *fig = new plot_figure(name);
-    nl_assert(!fig->panes.empty());
-    fig->panes.front()->CreateGraph(Current::Variable);
+    fig->CreateGraph(Current::Variable);
+    fig->got_focus(focus_from_user);
     plot_obj::render_all();
   } else nl_error(2, "No current variable defined");
   return Pt_CONTINUE;

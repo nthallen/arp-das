@@ -18,7 +18,6 @@ plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
   module = ApCreateModule( ABM_Figure, NULL, NULL );
   window = ApGetWidgetPtr(module, ABN_Figure);
   PtWidget_t *divider = ApGetWidgetPtr(module, ABN_Figure_Div);
-  PtWidget_t *first_pane = ApGetWidgetPtr(module, ABN_Figure_Pane );
   PtSetResource(window, Pt_ARG_POINTER, this, 0 );
   PtSetResource(window, Pt_ARG_WINDOW_TITLE, name, 0);
   PtSetResource(module, Pt_ARG_POINTER, this, 0 );
@@ -29,17 +28,13 @@ plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
   if ( !All_Figures.empty() )
     PtTreeAddAfter(ABW_Graphs_Tab, TreeItem, All_Figures.back()->TreeItem);
   else PtTreeAddFirst(ABW_Graphs_Tab, TreeItem, NULL);
-  new plot_pane(name, this, first_pane);
   All_Figures.push_back(this);
-  if (Current::Figure == NULL) got_focus(focus_from_parent);
-  nl_error(0, "plot_figure %s created", name);
+  nl_error(-2, "plot_figure %s created", name);
 }
 
 plot_figure::~plot_figure() {
   if ( destroying ) return;
     destroying = true;
-  if (this == Current::Figure)
-  	Current::Figure = NULL;
   while (! panes.empty()) delete panes.front();
   PtSetResource(window, Pt_ARG_POINTER, NULL, 0 );
   PtSetResource(module, Pt_ARG_POINTER, NULL, 0 );
@@ -50,8 +45,12 @@ plot_figure::~plot_figure() {
   nl_error(0,"All_Figures now has %d elements", All_Figures.size());
   TreeItem->data = NULL;
   if (!(PtWidgetFlags(module) & Pt_DESTROYED))
-	PtDestroyWidget(module);
+    PtDestroyWidget(module);
   module = NULL;
+  if (this == Current::Figure) {
+    if (All_Figures.empty())Current::none(po_root);
+    else All_Figures.front()->got_focus(focus_from_parent);
+  }
 }
 
 /* plot_figure::AddChild(plot_pane *p);
@@ -86,11 +85,21 @@ void plot_figure::RemoveChild(plot_pane *p) {
   nl_assert(p != NULL);
   nl_assert(!panes.empty());
   if (current_child == p) current_child = NULL;
+  else {
+    nl_assert(Current::Pane != p);
+  }
   panes.remove(p);
-  if (!destroying)
+  if (!destroying) {
   	PtDestroyWidget(p->widget);
-  Adjust_Panes( -p->min_height );
-  if (current_child == NULL) current_child = default_child();
+    Adjust_Panes( -p->min_height );
+    if (current_child == NULL) {
+      current_child = default_child();
+      if (Current::Pane == p) {
+        if (current_child == NULL) Current::none(type);
+        else current_child->got_focus(focus_from_parent);
+      }
+    }
+  }
 }
 
 void plot_figure::rename(const char *text, Update_Source src) {
@@ -109,17 +118,25 @@ void plot_figure::Adjust_Panes(int delta_min_height) {
     resized(&dim, &dim, 1);
 }
 
-void plot_figure::CreateGraph(RTG_Variable_Data *var) {
+plot_pane *plot_figure::CreateGraph(RTG_Variable_Data *var) {
   nl_assert(var != NULL);
   plot_pane *pane = new plot_pane(var->name, this);
   pane->CreateGraph(var);
+  return pane;
 }
 
 void plot_figure::got_focus(focus_source whence) {
   if (this == Current::Figure) return;
   plot_obj::got_focus(whence);
   Current::Figure = this;
-  // Update dialogs for figure
+  Update_Window_Tab();
+}
+
+void plot_figure::Update_Window_Tab() {
+  // Update Window_Tab 
+  PtSetResource(ABW_Window_Name, Pt_ARG_TEXT_STRING, name, 0);
+  PtSetResource(ABW_Window_Visible, Pt_ARG_FLAGS,
+      visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
 }
 
 bool plot_figure::render() {
@@ -147,10 +164,14 @@ bool plot_figure::check_for_updates() {
     Pos = *PosP;
     PtSetResource(window, Pt_ARG_POS, &OffScreen, 0);
     PtSetResource(window, Pt_ARG_FLAGS, Pt_TRUE, Pt_BLOCKED );
+    PtSetResource(window, Pt_ARG_WINDOW_MANAGED_FLAGS, Pt_FALSE,
+        Ph_WM_FOCUS);
     nl_error(0,"Hiding: old pos (%d,%d)", Pos.x, Pos.y);
   } else if (!visible && new_visibility) {
     PtSetResource(window, Pt_ARG_POS, &Pos, 0);
     PtSetResource(window, Pt_ARG_FLAGS, Pt_FALSE, Pt_BLOCKED );
+    PtSetResource(window, Pt_ARG_WINDOW_MANAGED_FLAGS, Pt_TRUE,
+        Ph_WM_FOCUS);
     nl_error(0,"Restoring: old pos (%d,%d)", Pos.x, Pos.y);
   }
   visible = new_visibility;
@@ -170,20 +191,20 @@ int plot_figure::Setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
 	/* eliminate 'unreferenced' warnings */
 	apinfo = apinfo, cbinfo = cbinfo;
-  PtWidget_t *divider = ApGetWidgetPtr(link_instance, ABN_Figure_Div);
-  PtWidget_t *first_pane = ApGetWidgetPtr(link_instance, ABN_Figure_Pane );
-  PtWidget_t *window = ApGetWidgetPtr(link_instance, ABN_Figure);
-  nl_assert(divider != NULL && first_pane != NULL && window != NULL);
 
-  PhDim_t *win_dim, *div_dim, *p1_dim;
-  PtGetResource(window, Pt_ARG_DIM, &win_dim, 0 );
-  nl_error(0, "window dimensions during setup (%d,%d)", win_dim->w, win_dim->h );
-  PtGetResource(divider, Pt_ARG_DIM, &div_dim, 0 );
-  nl_error(0, "Divider (%p) dimensions during setup (%d,%d)",
-  		divider, div_dim->w, div_dim->h );
-  PtGetResource(first_pane, Pt_ARG_DIM, &p1_dim, 0 );
-  nl_error(0, "first pane dimensions during setup (%d,%d)", p1_dim->w, p1_dim->h );
+  #ifdef DEBUG_WINDOW_SIZE
+    PtWidget_t *divider = ApGetWidgetPtr(link_instance, ABN_Figure_Div);
+    PtWidget_t *window = ApGetWidgetPtr(link_instance, ABN_Figure);
+    nl_assert(divider != NULL && window != NULL);
 
+    PhDim_t *win_dim, *div_dim;
+    PtGetResource(window, Pt_ARG_DIM, &win_dim, 0 );
+    nl_error(0, "window dimensions during setup (%d,%d)", win_dim->w, win_dim->h );
+    PtGetResource(divider, Pt_ARG_DIM, &div_dim, 0 );
+    nl_error(0, "Divider (%p) dimensions during setup (%d,%d)",
+    		divider, div_dim->w, div_dim->h );
+  #endif
+  
 	return( Pt_CONTINUE );
 }
 
