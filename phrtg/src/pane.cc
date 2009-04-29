@@ -48,66 +48,14 @@ plot_pane::plot_pane( const char *name_in, plot_figure *figure,
   PtSetResource(widget, Pt_ARG_MINIMUM_DIM, &min_dim, 0 );
 
   parent->AddChild(this);
-  
-//  window = ApGetWidgetPtr(figure->module, ABN_Figure);
-//  PtGetResource(window, Pt_ARG_DIM, &win_dim, 0);
-//  nl_error( 0, "Window (%p) dims for new pane (%d,%d)",
-//		  window, win_dim->w, win_dim->h);
-//  divider = ApGetWidgetPtr(figure->module, ABN_Figure_Div);
-//  PtGetResource(divider, Pt_ARG_DIM, &div_dimp, 0);
-//  nl_error( 0, "Divider (%p) dims for new pane (%d,%d)",
-//		  divider, div_dimp->w, div_dimp->h);
-//  div_dim = *div_dimp;
-//  rem_height = div_dim.h - 2; // Actually less the bevel*2
-//  pane_dim.w = div_dim.w - 2;
-//  full_height = (pane == NULL) ? 0 : rem_height;
-//
-//  // Go through the preexisting panes and report their size
-//  std::list<plot_pane*>::const_iterator pp;
-//  for (pp = figure->panes.begin(); pp != figure->panes.end(); ++pp ) {
-//  	plot_pane *p = *pp;
-//  	if ( p->widget != NULL) {
-//  	  ++n_panes;
-//  	  // This section should be just a check except for
-//  	  // calculating cum_height. We should be able to
-//  	  // skip PtGetResource if we've done things right.
-//  	  PhDim_t *old_dim;
-//  	  PtGetResource(p->widget, Pt_ARG_DIM, &old_dim, 0);
-//  	  nl_error( 0, "Pane %d (%p) dims (%d,%d)",
-//  			n_panes, p->widget, old_dim->w, old_dim->h);
-//  	  if ( p->full_height != old_dim->h ) {
-//    		nl_error( 1, "Pane %d full_height %d, old_dim %d",
-//    				  n_panes, p->full_height, old_dim->h);
-//    		p->full_height = old_dim->h;
-//  	  }
-//  	  cum_height += p->full_height;
-//  	}
-//  }
-//  if (n_panes > 0 && cum_height != rem_height)
-//    nl_error( 1, "Old pane heights are %d, not %d", cum_height, rem_height);
-//  // PtAddCallback(widget, Pt_CB_RESIZE, plot_pane::resize_cb, this);
-//  
-//  n_panes = 0;
-//  // Go through all panes and adjust their size
-//  for (pp = figure->panes.begin(); pp != figure->panes.end(); ++pp ) {
-//  	plot_pane *p = *pp;
-//      ++n_panes;
-//  	if (p->widget != NULL) {
-//  	  pane_dim.h = (rem_height * p->full_height)/cum_height;
-//  	  PtSetResource(p->widget, Pt_ARG_DIM, &pane_dim, 0);
-//        cum_height -= p->full_height;
-//  	  rem_height -= pane_dim.h;
-//  	  nl_error(0, "Setting pane %d (%p) to (%d,%d)", n_panes, p->widget, pane_dim.w, pane_dim.h);
-//  	  p->resized(&pane_dim);
-//  	} else nl_error(2, "Widget was NULL");
-//  }
+  if (Current::Pane == NULL) got_focus(focus_from_parent);
 }
 
 plot_pane::~plot_pane() {
   if ( destroying ) return;
-  destroying = true;
+    destroying = true;
   if (this == Current::Pane)
-	Current::Pane = NULL;
+    Current::none(po_figure);
   nl_assert(widget != NULL);
   while (!axes.empty()) delete axes.front();
   TreeItem->data = NULL;
@@ -129,6 +77,7 @@ void plot_pane::AddChild(plot_axes *ax) {
     PtTreeAddAfter(ABW_Graphs_Tab, ax->TreeItem, axes.back()->TreeItem);
   }
   axes.push_back(ax);
+  if (current_child == NULL) current_child = ax;
 }
 
 /* void plot_pane::RemoveChild(plot_axes *ax);
@@ -146,6 +95,7 @@ void plot_pane::RemoveChild(plot_axes *ax) {
   nl_assert(!axes.empty());
   if (current_child == ax) current_child = NULL;
   axes.remove(ax);
+  if (current_child == NULL) current_child = default_child();
 }
 
 void plot_pane::CreateGraph(RTG_Variable_Data *var) {
@@ -171,7 +121,29 @@ void plot_pane::got_focus(focus_source whence) {
   if (this == Current::Pane) return;
   plot_obj::got_focus(whence);
   Current::Pane = this;
-  // Update dialogs for pane
+  if (Current::Tab == Tab_X || Current::Tab == Tab_Y)
+    Update_Axis_Pane();
+}
+
+/* This routine couples the specific widget (ABW_Pane_Name) with
+ * The specific container it may fit within (Tab_X or Tab_Y)
+ */
+void plot_pane::rename(const char *text, Update_Source src) {
+  plot_obj::rename(text, src);
+  if (src == from_file && Current::Pane == this
+      && (Current::Tab == Tab_X || Current::Tab == Tab_Y)) {
+    PtSetResource(ABW_Pane_Name, Pt_ARG_TEXT_STRING,
+        Current::Pane->name, 0);
+  }
+}
+void plot_pane::set_bg_color(PgColor_t rgb, Update_Source src) {
+  if (pane_color == rgb) return;
+  pane_color = rgb;
+  PtSetResource(widget, Pt_ARG_FILL_COLOR, pane_color, 0);
+  if (src != from_widget && this == Current::Pane &&
+      (Current::Tab == Tab_X || Current::Tab == Tab_Y)) {
+    PtSetResource(ABW_Pane_Color, Pt_ARG_CS_COLOR, rgb, 0);
+  }
 }
 
 bool plot_pane::render() {
@@ -182,6 +154,11 @@ bool plot_pane::render() {
     if ( ax->render() ) return true;
   }
   return false;
+}
+
+plot_obj *plot_pane::default_child() {
+  if (axes.empty()) return NULL;
+  else return axes.front();
 }
 
 /* Visibility Strategy
@@ -242,27 +219,9 @@ bool plot_pane::check_for_updates(bool parent_visibility) {
   return updates_required;
 }
 
-void plot_pane::Update_Axis_Pane(Axis_XY ax) {
-  plot_axis *axis;
-  
-  PtReparentWidget(ABW_Axis_Pane, ax == Axis_X ? ABW_X_Tab : ABW_Y_Tab);
+void plot_pane::Update_Axis_Pane() {
   PtSetResource(ABW_Pane_Name, Pt_ARG_TEXT_STRING, name, 0);
   PtSetResource(ABW_Pane_Visible, Pt_ARG_FLAGS,
       visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
   PtSetResource(ABW_Pane_Color, Pt_ARG_CS_COLOR, pane_color, 0);
-  switch (ax) {
-    case Axis_X:
-      PtReparentWidget(ABW_Axis_Pane, ABW_X_Tab);
-      axis = Current::Axes ? &Current::Axes->X : NULL;
-      break;
-    case Axis_Y:
-      PtReparentWidget(ABW_Axis_Pane, ABW_Y_Tab);
-      axis = Current::Axes ? &Current::Axes->Y : NULL;
-      break;
-  }
-  if (axis) {
-    axis->Update_Axis_Pane(Current::Axes);
-  } else {
-    plot_axis::Clear_Axis_Pane();
-  }
 }

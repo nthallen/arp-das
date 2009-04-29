@@ -55,12 +55,6 @@ extern const int ABN_Synch_X_Pane;
 #define ABW_Synch_X_Pane                     AbGetABW( ABN_Synch_X_Pane )
 extern const int ABN_Auto_Scale;
 #define ABW_Auto_Scale                       AbGetABW( ABN_Auto_Scale )
-extern const int ABN_Limits_Group;
-#define ABW_Limits_Group                     AbGetABW( ABN_Limits_Group )
-extern const int ABN_Limit_Max;
-#define ABW_Limit_Max                        AbGetABW( ABN_Limit_Max )
-extern const int ABN_Limit_Min;
-#define ABW_Limit_Min                        AbGetABW( ABN_Limit_Min )
 extern const int ABN_Draw_Axis_Primary;
 #define ABW_Draw_Axis_Primary                AbGetABW( ABN_Draw_Axis_Primary )
 extern const int ABN_Draw_Axis_Secondary;
@@ -83,6 +77,12 @@ extern const int ABN_Detrend;
 #define ABW_Detrend                          AbGetABW( ABN_Detrend )
 extern const int ABN_Synch_X_Figure;
 #define ABW_Synch_X_Figure                   AbGetABW( ABN_Synch_X_Figure )
+extern const int ABN_Limit_Min;
+#define ABW_Limit_Min                        AbGetABW( ABN_Limit_Min )
+extern const int ABN_Limit_Max;
+#define ABW_Limit_Max                        AbGetABW( ABN_Limit_Max )
+extern const int ABN_Apply_Limits;
+#define ABW_Apply_Limits                     AbGetABW( ABN_Apply_Limits )
 extern const int ABN_Y_Tab;
 #define ABW_Y_Tab                            AbGetABW( ABN_Y_Tab )
 extern const int ABN_Line_Tab;

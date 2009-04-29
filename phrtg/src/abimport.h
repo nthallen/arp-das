@@ -35,4 +35,7 @@ int menu_graph_newpane( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cb
 int menu_graph_newwin( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int menu_file_report( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int Modify_Notify( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
+int Color_Changed( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
+int Toggle_Activate( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
+int Numeric_Changed( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 #endif

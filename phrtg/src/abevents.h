@@ -11,7 +11,7 @@ static const ApEventLink_t AbApplLinks[] = {
 
 ApEventLink_t AbInternalLinks[] = {
 	{ 3, 0, 0L, 0L, 0L, &Figure, NULL, NULL, 0, plot_figure::Setup, 0, 0, 0, 0, },
-	{ 5, 0, 0L, 0L, 0L, &plot_context_menu, NULL, NULL, 0, plot_obj::context_menu_setup, 0, 3, 0, 0, },
+	{ 5, 0, 0L, 0L, 0L, &plot_context_menu, NULL, NULL, 0, plot_obj::context_menu_setup, 0, 10, 20, -20, },
 	{ 0 }
 	};
 
@@ -25,10 +25,33 @@ static const ApEventLink_t AbLinks_Console[] = {
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Graphs_Tab", 23036, plot_obj::TreeColSelect, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Graphs_Tab", 23023, plot_obj::TreeInput, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Window_Name", 4010, Modify_Notify, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Window_Visible", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Windows_Display_Menu", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Window_Display_Name", 2009, Toggle_Activate, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Pane_Name", 4010, Modify_Notify, 0, 0, 0, 0, },
-	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Axes_Name", 4014, Modify_Notify, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Pane_Visible", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Pane_Color", 150005, Color_Changed, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Axes_Name", 4010, Modify_Notify, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Axes_Visible", 2009, Toggle_Activate, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Axis_Label", 4010, Modify_Notify, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Synch_X_Pane", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Auto_Scale", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Draw_Axis_Primary", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Draw_Axis_Secondary", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Draw_Ticks_Primary", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Draw_Ticks_Secondary", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Draw_Tick_Labels_Secondary", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Draw_Tick_Labels_Primary", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Draw_Label_Primary", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Draw_Label_Secondary", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Log_Scale", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Detrend", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Synch_X_Figure", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Apply_Limits", 2009, Toggle_Activate, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Name", 4010, Modify_Notify, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Visible", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Color", 150005, Color_Changed, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Column", 53015, Numeric_Changed, 0, 0, 0, 0, },
 	{ 0 }
 	};
 

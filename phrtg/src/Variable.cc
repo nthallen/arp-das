@@ -36,7 +36,7 @@ void RTG_Variable_Range::update(RTG_Variable_Range &R ) {
     update(R.min, R.max);
 }
 
-/* Changed sets the the current range to that of the input
+/* Changed sets the current range to that of the input
  * and returns true if this represents a change
  */
 bool RTG_Variable_Range::changed(RTG_Variable_Range &R ) {

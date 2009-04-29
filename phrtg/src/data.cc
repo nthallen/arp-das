@@ -16,6 +16,7 @@ plot_data::plot_data(RTG_Variable_Data *var, plot_axes *parent_in)
   axes_rescaled = false;
   parent->AddChild(this);
   variable->AddGraph(this);
+  if (Current::Graph == NULL) got_focus(focus_from_parent);
 }
 
 plot_data::~plot_data() {
@@ -55,7 +56,10 @@ bool plot_data::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
       } else {
         PtTreeAddAfter(ABW_Graphs_Tab, lines[i]->TreeItem, lines[i-1]->TreeItem);
       }
+      if (current_child == NULL) current_child = lines.back();
     }
+    if (Current::Line == NULL && current_child != NULL)
+      current_child->got_focus(focus_from_parent);
     for ( unsigned i = 0; i < variable->ncols; ++i ) {
       lines[i]->new_data = true;
     }
@@ -75,6 +79,7 @@ bool plot_data::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
 bool plot_data::render() {
   if (!visible) return false;
   if ( axes_rescaled ) {
+    nl_assert(variable->ncols <= lines.size()); //should be set in check_limits()
     for ( unsigned i = 0; i < variable->ncols; ++i ) {
       lines[i]->redraw_required = true;
     }
@@ -88,6 +93,11 @@ bool plot_data::render() {
   }
   redraw_required = false;
   return false;
+}
+
+plot_obj *plot_data::default_child() {
+  if (lines.empty()) return NULL;
+  else return lines[0];
 }
 
 /* Visibility Strategy:

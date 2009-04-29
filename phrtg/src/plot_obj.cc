@@ -43,6 +43,10 @@ const char *plot_obj::typetext() {
   }
 }
 
+plot_obj *plot_obj::default_child() {
+  return NULL;
+}
+
 void plot_obj::got_focus(focus_source whence) {
   const char *twhence;
   switch (whence) {
@@ -63,6 +67,7 @@ void plot_obj::got_focus(focus_source whence) {
   	parent_obj->got_focus(focus_from_child);
   }
   if (whence == focus_from_user || whence == focus_from_parent) {
+    if (current_child == NULL) current_child = default_child();
   	if (current_child) current_child->got_focus(focus_from_parent);
   	else Current::none(type);
   }
@@ -84,13 +89,21 @@ void plot_obj::TreeFreeItem() {
   }
 }
 
-void plot_obj::rename(const char *text) {
+void plot_obj::rename(const char *text, Update_Source src) {
+  PtTreeItem_t *new_item;
   char temp_buf[80];
-  if ( snprintf(temp_buf, 80, "%s\t%s", name, typetext()) >= 80 )
+  src = src;
+  if ( snprintf(temp_buf, 80, "%s\t%s",
+      *text ? text : " ", typetext()) >= 80 )
     nl_error(2,"Variable name exceeds buffer length in TreeAllocItem");
   free(name);
   name = strdup(text);
-  PtTreeChangeItem(ABW_Graphs_Tab, TreeItem, temp_buf, NULL);
+  new_item = PtTreeChangeItem(ABW_Graphs_Tab, TreeItem, temp_buf, NULL);
+  if ( new_item == NULL ) {
+    nl_error(2, "PtTreeChangeItem returned error");
+  } else {
+    TreeItem = new_item; 
+  }
 }
 
 int plot_obj::pt_got_focus( PtWidget_t *widget, ApInfo_t *apinfo,

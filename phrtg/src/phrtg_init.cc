@@ -28,9 +28,6 @@ int (*nl_error)(int level, const char *s, ...) = msg;
 static void open_cmd_fd();
 
 int phrtg_init( int argc, char *argv[] ) {
-  /* eliminate 'unreferenced' warnings */
-  argc = argc, argv = argv;
-	
   /* Process command line arguments--if any */
   msg_init_options("phrtg", argc, argv);
   nl_error(0, "Starting");
@@ -159,16 +156,22 @@ int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbin
     Current::Tab = Tab_Figure;
   } else if (strcmp(PGCallback->new_panel, "X") == 0) {
     if (Current::Pane == NULL) return Pt_END;
-    Current::Pane->Update_Axis_Pane(Axis_X);
     Current::Tab = Tab_X;
+    PtReparentWidget(ABW_Axis_Pane, ABW_X_Tab);
+    Current::Pane->Update_Axis_Pane();
+    if (Current::Axes) Current::Axes->Update_Axis_Pane(Axis_X);
+    else plot_axis::Clear_Axis_Pane();
   } else if (strcmp(PGCallback->new_panel, "Y") == 0) {
     if (Current::Pane == NULL) return Pt_END;
-    Current::Pane->Update_Axis_Pane(Axis_Y);
     Current::Tab = Tab_Y;
+    PtReparentWidget(ABW_Axis_Pane, ABW_Y_Tab);
+    Current::Pane->Update_Axis_Pane();
+    if (Current::Axes) Current::Axes->Update_Axis_Pane(Axis_Y);
+    else plot_axis::Clear_Axis_Pane();
   } else if (strcmp(PGCallback->new_panel, "Line") == 0) {
     if (Current::Line == NULL) return Pt_END;
-    Current::Line->Update_Line_Tab();
     Current::Tab = Tab_Line;
+    Current::Line->Update_Line_Tab();
   }
   return Pt_CONTINUE;
 }
@@ -249,5 +252,6 @@ int console_setup( PtWidget_t *link_instance, ApInfo_t *apinfo,
 	link_instance = link_instance, apinfo = apinfo, cbinfo = cbinfo;
 	PtWidget_t *graphs = ApGetWidgetPtr(link_instance, ABN_Graphs_Tab);
 	PtSetResource(graphs, Pt_ARG_TREE_COLUMN_ATTR, col_attrs, 2 );
+	/* Set pallettes for color widgets */
 	return( Pt_CONTINUE );
 }

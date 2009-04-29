@@ -9,7 +9,7 @@ extern ApContext_t AbContext;
 ApWindowLink_t Console = {
 	"Console.wgtw",
 	&AbContext,
-	AbLinks_Console, 0, 13
+	AbLinks_Console, 0, 36
 	};
 
 ApWindowLink_t Figure = {

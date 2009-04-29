@@ -68,7 +68,7 @@ void plot_line::got_focus(focus_source whence) {
   if (this == Current::Line) return;
   plot_obj::got_focus(whence);
   Current::Line = this;
-  // Update any dialogs that require it
+  Update_Line_Tab();
 }
 
 bool plot_line::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
@@ -103,6 +103,18 @@ bool plot_line::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
   return false;
 }
 
+void plot_line::set_line_color(PgColor_t rgb, Update_Source src) {
+  if (color == rgb || redraw_required) return;
+  color = rgb;
+  for ( unsigned wn = 0; wn < widgets.size(); ++wn ) {
+    PtSetResource(widgets[wn], Pt_ARG_COLOR, color, 0);
+  }
+  if (src != from_widget && this == Current::Line &&
+      Current::Tab == Tab_Line) {
+    PtSetResource(ABW_Line_Color, Pt_ARG_CS_COLOR, color, 0);
+  }
+}
+
 bool plot_line::render() {
   if (!visible || !redraw_required) return false;
   // unrealize or delete all existing widgets
@@ -135,9 +147,7 @@ bool plot_line::render() {
   }
   // PhDim_t minsize = { 0,0};
   PtArg_t args[2];
-  //PtSetArg( &args[1], Pt_ARG_AREA, &ax->area, 0 );
   PtSetArg( &args[1], Pt_ARG_COLOR, color, 0 );
-  //PtSetArg( &args[2], Pt_ARG_MINIMUM_DIM, &minsize, 0 );
   unsigned wn = 0;
   for ( unsigned i = 0; i < npts; i += pts_per_polygon - 1, ++wn ) {
     unsigned np = npts-i;
@@ -196,6 +206,7 @@ bool plot_line::check_for_updates( bool parent_visibility ) {
 }
 
 void plot_line::Update_Line_Tab() {
+  if (Current::Tab != Tab_Line ) return;
   PtSetResource(ABW_Line_Name, Pt_ARG_TEXT_STRING, name, 0);
   PtSetResource(ABW_Line_Visible, Pt_ARG_FLAGS,
       visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
@@ -203,4 +214,5 @@ void plot_line::Update_Line_Tab() {
   PtSetResource(ABW_Line_Variable_Name, Pt_ARG_TEXT_STRING,
       parent->variable->name, 0);
   PtSetResource(ABW_Line_Column, Pt_ARG_NUMERIC_VALUE, column, 0);
+  PtSetResource(ABW_Line_Column, Pt_ARG_NUMERIC_MAX, parent->lines.size()-1, 0);
 }

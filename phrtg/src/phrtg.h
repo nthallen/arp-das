@@ -112,6 +112,7 @@ class RTG_Variable_MLF : public RTG_Variable_Data {
 enum plot_obj_type { po_figure, po_pane, po_axes, po_data,
 		po_line, po_text, po_zoom, po_max };
 enum focus_source { focus_from_user, focus_from_child, focus_from_parent };
+enum Update_Source { from_file, from_widget };
 
 
 class plot_obj {
@@ -130,8 +131,9 @@ class plot_obj {
   	virtual void got_focus(focus_source whence);
   	void TreeAllocItem();
   	void TreeFreeItem();
-  	virtual void rename(const char *text);
+  	virtual void rename(const char *text, Update_Source src);
   	const char *typetext();
+  	virtual plot_obj *default_child();
 
 	static bool rendering;
 	static int TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
@@ -172,7 +174,8 @@ class plot_figure : public plot_obj {
   	void Adjust_Panes(int delta_min_height);
   	void Change_min_dim(int dw, int dh);
   	void got_focus(focus_source whence);
-  	void rename(const char *text);
+  	void rename(const char *text, Update_Source src);
+    plot_obj *default_child();
   	bool render();
   	bool check_for_updates();
   
@@ -224,9 +227,12 @@ class plot_pane : public plot_obj {
   	void CreateGraph(RTG_Variable_Data *var);
   	void resized( PhDim_t *newdim );
   	void got_focus(focus_source whence);
+    void rename(const char *text, Update_Source src);
+    void set_bg_color(PgColor_t rgb, Update_Source src);
   	bool render();
+    plot_obj *default_child();
     bool check_for_updates(bool parent_visibility);
-    void Update_Axis_Pane(Axis_XY ax);
+    void Update_Axis_Pane();
     
     static PtWidget_t *cache;
 };
@@ -262,9 +268,11 @@ class plot_axis {
   	void check_limits();
     void set_scale();
     void set_scale(int pixel_span);
+    void set_scale(double min, double max);
     short evaluate(scalar_t V);
     bool render(plot_axes *axes);
     void Update_Axis_Pane(plot_axes *parent);
+    void Update_Axis_Pane_Limits();
     
     static void Clear_Axis_Pane();
 };
@@ -284,7 +292,10 @@ class plot_axes : public plot_obj {
   	void got_focus(focus_source whence);
     void resized( PhDim_t *newdim );
     bool check_limits();
+    void Update_Axis_Pane(Axis_XY ax);
+    void rename(const char *text, Update_Source src);
   	bool render();
+    plot_obj *default_child();
     bool check_for_updates(bool parent_visibility);
 };
 
@@ -302,6 +313,7 @@ class plot_data : public plot_obj {
   	void got_focus(focus_source whence);
   	bool check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr );
     bool render();
+    plot_obj *default_child();
     bool check_for_updates(bool parent_visibility);
 };
 
@@ -322,6 +334,7 @@ class plot_line : public plot_obj {
   	void clear_widgets();
   	void got_focus(focus_source whence);
   	bool check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr );
+    void set_line_color(PgColor_t rgb, Update_Source src);
     bool render();
     bool check_for_updates(bool parent_visibility);
     void Update_Line_Tab();
@@ -335,6 +348,7 @@ class Current {
     static plot_figure *Figure;
     static plot_pane *Pane;
     static plot_axes *Axes;
+    static plot_axis *Axis;
     static plot_data *Graph;
     static plot_line *Line;
     static plot_obj *Menu_obj;
@@ -342,6 +356,8 @@ class Current {
     static void none(plot_obj_type parent_type);
 };
 
-enum Update_Source { from_file, from_widget };
 extern void Update_Text( int Name, char *text, Update_Source src );
+void Update_Color(int Name, PgColor_t rgb, Update_Source src );
+void Update_Toggle(int Name, long int value, Update_Source src );
+void Update_Numeric(int Name, double value, Update_Source src );
 #endif

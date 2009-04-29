@@ -54,6 +54,12 @@ void plot_axis::set_scale(int pixel_span) {
   }
 }
 
+void plot_axis::set_scale(double min, double max) {
+  limits.min = min;
+  limits.max = max;
+  set_scale();
+}
+
 short plot_axis::evaluate(scalar_t val) {
   int rv = int((val-limits.min)*scalev);
   if ( reverse xor reverse_dim )
@@ -66,34 +72,49 @@ bool plot_axis::render( plot_axes *axes ) {
    */
   if (axis_limits_updated) {
     // redraw the axes
+    if (this == Current::Axis) {
+      Tab_Name tab = (XY == Axis_X ? Tab_X : Tab_Y);
+      if ( Current::Tab == tab ) {
+        Update_Axis_Pane_Limits();
+      }
+    }
     axis_limits_updated = false;
     // return true;
   }
   return false;
 }
 
+plot_obj *plot_axes::default_child() {
+  if (graphs.empty()) return NULL;
+  else return graphs.front();
+}
+
 void plot_axis::Update_Axis_Pane(plot_axes *parent) {
-  PtArg_t args[2];
+  Current::Axis = this;
   long is_auto = limits.range_auto ? Pt_TRUE : Pt_FALSE;
-  PtSetResource(ABW_Axes_Name, Pt_ARG_TEXT_STRING, parent->name, 0);
-  PtSetResource(ABW_Axes_Visible, Pt_ARG_FLAGS,
-      parent->visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
-  double val;
   PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_auto, Pt_SET);
+  PtSetResource(ABW_Limit_Min, Pt_ARG_FLAGS, is_auto,
+      Pt_GHOST|Pt_BLOCKED );
+  PtSetResource(ABW_Limit_Max, Pt_ARG_FLAGS, is_auto,
+      Pt_GHOST|Pt_BLOCKED );
+  PtSetResource(ABW_Apply_Limits, Pt_ARG_FLAGS, is_auto,
+      Pt_GHOST|Pt_BLOCKED );
+  Update_Axis_Pane_Limits();
+}
+
+void plot_axis::Update_Axis_Pane_Limits() {
+  double val;
   val = limits.min;
-  PtSetArg( &args[0], Pt_ARG_FLAGS, is_auto, Pt_GHOST);
-  PtSetArg( &args[1], Pt_ARG_NUMERIC_VALUE, &val, 0 );
-  PtSetResources(ABW_Limit_Min, 2, args);
+  PtSetResource(ABW_Limit_Min, Pt_ARG_NUMERIC_VALUE, &val, 0);
   val = limits.max;
-  PtSetArg( &args[0], Pt_ARG_FLAGS, is_auto, Pt_GHOST);
-  PtSetArg( &args[1], Pt_ARG_NUMERIC_VALUE, &val, 0 );
-  PtSetResources(ABW_Limit_Max, 2, args);
+  PtSetResource(ABW_Limit_Max, Pt_ARG_NUMERIC_VALUE, &val, 0);
 }
 
 void plot_axis::Clear_Axis_Pane() {
   PtSetResource(ABW_Axes_Name, Pt_ARG_TEXT_STRING, "", 0);
   PtSetResource(ABW_Axes_Visible, Pt_ARG_FLAGS, Pt_FALSE, Pt_SET);
   PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, Pt_FALSE, Pt_SET);
+  Current::Axis = NULL;
 }
 
 plot_axes::plot_axes( const char *name_in, plot_pane *pane ) : plot_obj(po_axes, name_in) {
@@ -104,16 +125,16 @@ plot_axes::plot_axes( const char *name_in, plot_pane *pane ) : plot_obj(po_axes,
   parent = pane;
   parent_obj = pane;
   parent->AddChild(this);
+  if (Current::Axes == NULL) got_focus(focus_from_parent);
 }
 
 plot_axes::~plot_axes() {
   if (destroying) return;
-  destroying = true;
+    destroying = true;
   if (this == Current::Axes)
-	Current::Axes = NULL;
+    Current::Axes = NULL;
   while (!graphs.empty()) delete graphs.front();
   TreeItem->data = NULL;
-  // PtSetResource(widget, Pt_ARG_POINTER, NULL, 0 );
   parent->RemoveChild(this);
   // widget = NULL;
 }
@@ -125,6 +146,7 @@ void plot_axes::AddChild(plot_data *data) {
   	PtTreeAddAfter(ABW_Graphs_Tab, data->TreeItem, graphs.back()->TreeItem);
   }
   graphs.push_back(data);
+  if (current_child == NULL) current_child = data;
 }
 
 void plot_axes::RemoveChild(plot_data *data) {
@@ -144,7 +166,24 @@ void plot_axes::got_focus(focus_source whence) { // got_focus(gf_type whence)
   if (this == Current::Axes) return;
   plot_obj::got_focus(whence);
   Current::Axes = this;
-  // Update dialogs for axes
+  if (Current::Tab == Tab_X)
+    Update_Axis_Pane(Axis_X);
+  else if (Current::Tab == Tab_Y)
+    Update_Axis_Pane(Axis_Y);
+}
+
+void plot_axes::Update_Axis_Pane(Axis_XY ax) {
+  PtSetResource(ABW_Axes_Name, Pt_ARG_TEXT_STRING, name, 0);
+  PtSetResource(ABW_Axes_Visible, Pt_ARG_FLAGS,
+      visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
+  switch (ax) {
+    case Axis_X:
+      X.Update_Axis_Pane(this);
+      break;
+    case Axis_Y:
+      Y.Update_Axis_Pane(this);
+      break;
+  }
 }
 
 void plot_axes::resized(PhDim_t *newdim) {
@@ -181,6 +220,18 @@ bool plot_axes::check_limits() {
     }
   }
   return false;
+}
+
+/* This routine couples the specific widget (ABW_Axes_Name) with
+ * The specific container it may fit within (Tab_X or Tab_Y)
+ */
+void plot_axes::rename(const char *text, Update_Source src) {
+  plot_obj::rename(text, src);
+  if (src == from_file && Current::Axes == this
+      && (Current::Tab == Tab_X || Current::Tab == Tab_Y)) {
+    PtSetResource(ABW_Axes_Name, Pt_ARG_TEXT_STRING,
+        Current::Axes->name, 0);
+  }
 }
 
 bool plot_axes::render() {

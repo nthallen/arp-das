@@ -31,14 +31,15 @@ plot_figure::plot_figure( const char *name_in) : plot_obj(po_figure, name_in) {
   else PtTreeAddFirst(ABW_Graphs_Tab, TreeItem, NULL);
   new plot_pane(name, this, first_pane);
   All_Figures.push_back(this);
+  if (Current::Figure == NULL) got_focus(focus_from_parent);
   nl_error(0, "plot_figure %s created", name);
 }
 
 plot_figure::~plot_figure() {
   if ( destroying ) return;
-  destroying = true;
+    destroying = true;
   if (this == Current::Figure)
-	Current::Figure = NULL;
+  	Current::Figure = NULL;
   while (! panes.empty()) delete panes.front();
   PtSetResource(window, Pt_ARG_POINTER, NULL, 0 );
   PtSetResource(module, Pt_ARG_POINTER, NULL, 0 );
@@ -68,6 +69,7 @@ void plot_figure::AddChild(plot_pane *p) {
   }
   panes.push_back(p);
   Adjust_Panes(p->min_height);
+  if (current_child == NULL) current_child = p;
 }
 
 /* void plot_figure::RemoveChild(plot_pane *p);
@@ -88,11 +90,17 @@ void plot_figure::RemoveChild(plot_pane *p) {
   if (!destroying)
   	PtDestroyWidget(p->widget);
   Adjust_Panes( -p->min_height );
+  if (current_child == NULL) current_child = default_child();
 }
 
-void plot_figure::rename(const char *text) {
-  plot_obj::rename(text);
+void plot_figure::rename(const char *text, Update_Source src) {
+  plot_obj::rename(text, src);
   PtSetResource(window, Pt_ARG_WINDOW_TITLE, name, 0);
+  if (src == from_file && Current::Figure == this
+      && Current::Tab == Tab_Figure) {
+    PtSetResource(ABW_Window_Name, Pt_ARG_TEXT_STRING,
+        Current::Figure->name, 0);
+  }
 }
 
 void plot_figure::Adjust_Panes(int delta_min_height) {
@@ -121,6 +129,11 @@ bool plot_figure::render() {
     if ( p->render() ) return true;
   }
   return false;
+}
+
+plot_obj *plot_figure::default_child() {
+  if (panes.empty()) return NULL;
+  else return panes.front();
 }
 
 bool plot_figure::check_for_updates() {
