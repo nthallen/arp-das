@@ -1,5 +1,8 @@
 /* tmcmain.c
  * $Log$
+ * Revision 1.5  2009/04/30 14:21:37  ntallen
+ * Up the release number
+ *
  * Revision 1.4  2008/08/13 14:28:28  ntallen
  * Always define global DG_data objects for TM 'Receive'
  * Place __attribute__((packed)) appropriately in home_row definition
@@ -44,7 +47,7 @@
 static char rcsid[] =
   "$Id$";
 
-int (*nl_error)(int level, char *format, ...) = compile_error;
+int (*nl_error)(int level, const char *format, ...) = compile_error;
 
 FILE *vfile = NULL, *dacfile = NULL, *addrfile = NULL;
 
