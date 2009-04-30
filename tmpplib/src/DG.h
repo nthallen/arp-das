@@ -40,7 +40,7 @@ class data_generator : public data_queue {
     void tm_stop();
     uint64_t row_period_nsec_default;
     uint64_t row_period_nsec_current;
-    void check_writev( int rc, int wr_size, char *where );
+    void check_writev( int rc, int wr_size, const char *where );
 };
 
 #endif

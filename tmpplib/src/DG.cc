@@ -103,7 +103,7 @@ void data_generator::transmit_data( int single_row ) {
   }
 }
 
-void data_generator::check_writev( int rc, int wr_size, char *where ) {
+void data_generator::check_writev( int rc, int wr_size, const char *where ) {
   if ( rc < 0 ) nl_error( 3, "Error %d %s", errno, where );
   else if ( rc != wr_size )
     nl_error( 3, "writev %d, not %d, %s", rc, wr_size, where );
