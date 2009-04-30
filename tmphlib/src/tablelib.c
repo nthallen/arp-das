@@ -38,8 +38,8 @@ void tbl_horiz_sep( PtWidget_t *parent, int x, int y, int w, int dbl ) {
 }
 
 
-PtWidget_t *tbl_label_widget( PtWidget_t *window, char *text,
-		int x, int y, char *font, PgColor_t color, int align ) {
+PtWidget_t *tbl_label_widget( PtWidget_t *window, const char *text,
+		int x, int y, const char *font, PgColor_t color, int align ) {
   PhPoint_t pos;
   PtArg_t args[8];
 
@@ -54,21 +54,24 @@ PtWidget_t *tbl_label_widget( PtWidget_t *window, char *text,
   return PtCreateWidget(PtLabel, window, 7, args);
 }
 
-PtWidget_t *tbl_label( PtWidget_t *window, char *text, int x, int y ) {
-  return tbl_label_widget( window, text, x, y, tbl_labelfont, Pg_GREEN, Pt_LEFT ); 
+PtWidget_t *tbl_label( PtWidget_t *window, const char *text, int x, int y ) {
+  return tbl_label_widget( window, text, x, y, tbl_labelfont,
+		Pg_GREEN, Pt_LEFT ); 
 }
 
-PtWidget_t *tbl_field( PtWidget_t *window, char *text, int x, int y, int w, int h ) {
+PtWidget_t *tbl_field( PtWidget_t *window, const char *text, int x, int y,
+			int w, int h ) {
   PtWidget_t *fld;
   PhDim_t dim;
 
-  fld = tbl_label_widget( window, text, x, y, tbl_fieldfont, Pg_WHITE, Pt_RIGHT ); 
+  fld = tbl_label_widget( window, text, x, y, tbl_fieldfont,
+	Pg_WHITE, Pt_RIGHT ); 
   dim.w = w; dim.h = h;
   PtSetResource( fld, Pt_ARG_DIM, &dim, 0 );
   return fld;
 }
 
-PtWidget_t *tbl_window( char *title, int width, int height ) {
+PtWidget_t *tbl_window( const char *title, int width, int height ) {
   PtArg_t args[8];
   PtSetArg(&args[0], Pt_ARG_WINDOW_TITLE, title, 0); 
   PtSetArg(&args[1], Pt_ARG_WINDOW_MANAGED_FLAGS,
