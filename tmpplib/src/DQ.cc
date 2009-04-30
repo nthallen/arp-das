@@ -166,7 +166,7 @@ void data_queue::retire_rows( dq_data_ref *dqd, int n_rows ) {
       nl_error( 4, "Underflow in retire_rows" );
   } else {
     first += n_rows;
-    if ( first > total_Qrows ) {
+    if ( first >= total_Qrows ) {
       first -= total_Qrows;
       if ( first > last )
         nl_error( 4, "Underflow after wrap in retire_rows" );
