@@ -1,5 +1,9 @@
 /* tmcmain.c
  * $Log$
+ * Revision 1.4  2008/08/13 14:28:28  ntallen
+ * Always define global DG_data objects for TM 'Receive'
+ * Place __attribute__((packed)) appropriately in home_row definition
+ *
  * Revision 1.3  2008/07/15 16:54:32  ntallen
  * Handle optargs reset portably
  *
@@ -48,7 +52,7 @@ FILE *vfile = NULL, *dacfile = NULL, *addrfile = NULL;
 #define EXTRACT_SKELETON "extmain.skel"
 
 #ifdef __USAGE
-tmc Telemetry Compiler Version 1 Revision 9
+tmc Telemetry Compiler Version 1 Revision 10
 
 %C	[options] [files]
 	-c             Generate collection rules
