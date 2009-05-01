@@ -7,12 +7,17 @@
                          # /usr/local/share/libtool
   autoconf               # to generate configure
                          # to generate Makefile src/Makefile:
-  ./configure CPPFLAGS=-I/usr/local/include
+  ./configure CPPFLAGS=-I/usr/local/include CC=qcc CXX=QCC
   make
   # make install
 
 # I used autoscan to get started on configure.ac
 # I used autoheader to generate config.h.in (which may not be necessary)
+
+# The CC=cc CXX=QCC options are necessary in Neutrino 6.4.0 in order to
+# build with the Dinkum libraries (which are the default using 'cc' and
+# the Windows-based IDE). Without those options, ./configure finds g++,
+# which will build against libstdc++.
 
 # To clean totally:
 # make distclean

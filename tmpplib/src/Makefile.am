@@ -12,5 +12,5 @@ oui_HEADERS = dc.oui
 # Need to set CPPFLAGS in configure, so this isn't necessary:
 # AM_CPPFLAGS = -I /usr/local/include
 
-CXX = cc
+# CXX = QCC
 AM_CXXFLAGS = -lang-c++
