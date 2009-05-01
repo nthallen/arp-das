@@ -7,7 +7,7 @@
                          # /usr/local/share/libtool
   autoconf               # to generate configure
                          # to generate Makefile src/Makefile:
-  ./configure CPPFLAGS=-I/usr/local/include
+  ./configure CPPFLAGS=-I/usr/local/include CC=qcc CXX=QCC
   make
   # make install
 
