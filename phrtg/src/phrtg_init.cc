@@ -32,7 +32,7 @@ int phrtg_init( int argc, char *argv[] ) {
   msg_init_options("phrtg", argc, argv);
   nl_error(0, "Starting");
 	
-  RTG_Variable_MLF::set_default_path("/home/nort/PhRTGbench");
+  RTG_Variable_MLF::set_default_path("/home/nort/PhRTGbench2");
   open_cmd_fd();
 
   /* Load default configuration */
@@ -68,7 +68,7 @@ static void open_cmd_fd() {
 	if ( PtAppAddFd( NULL, cmd_fd, Pt_FD_READ, command_input, NULL)) {
 		nl_error(2,"Error (%d) calling PtAppAddFd", errno);
 		close_cmd_fd();
-	} else nl_error(0, "menu_open_cmd succeeded");
+	} else nl_error(-2, "menu_open_cmd succeeded");
   }
 }
 
@@ -94,13 +94,13 @@ static int command_input( int fd, void *data, unsigned mode ) {
           nl_error( 2, "MLF expected digits" );
         } else {
           int index = atoi(s);
-          nl_error( 0, "Received MLF %s %d", name, index);
+          nl_error( -2, "Received MLF %s %d", name, index);
           RTG_Variable_MLF::Incoming( name, index );
         }
       }
-    } else nl_error(0,"Unhandled command input: '%s'", cmdbuf);
+    } else nl_error(2,"Unhandled command input: '%s'", cmdbuf);
   }
-  plot_obj::render_all();
+  //plot_obj::render_all();
   return Pt_CONTINUE;
 }
 
@@ -118,7 +118,7 @@ int menu_close_cmd( PtWidget_t *widget, ApInfo_t *apinfo,
   /* eliminate 'unreferenced' warnings */
   widget = widget, apinfo = apinfo, cbinfo = cbinfo;
   close_cmd_fd();
-  nl_error(0,"menu_close_cmd");
+  nl_error(-2,"menu_close_cmd");
   return( Pt_CONTINUE );
 }
 
@@ -182,7 +182,7 @@ int menu_graph_curaxes( PtWidget_t *widget, ApInfo_t *apinfo,
   	  plot_obj::render_all();
     } else nl_error(2, "No Current Variable defined");
   } else {
-    nl_error(1, "m_g_curaxes: No Current axes: calling m_g_overlay");
+    nl_error(-2, "m_g_curaxes: No Current axes: calling m_g_overlay");
     menu_graph_overlay( widget, apinfo, cbinfo);
   }
   return( Pt_CONTINUE );
@@ -197,7 +197,7 @@ int menu_graph_overlay( PtWidget_t *widget, ApInfo_t *apinfo,
       plot_obj::render_all();
     } else nl_error(2, "No current variable defined");
   } else {
-  	nl_error(1,"m_g_overlay: no current pane, calling m_g_newpane");
+  	nl_error(-2,"m_g_overlay: no current pane, calling m_g_newpane");
   	menu_graph_newpane(widget,apinfo,cbinfo);
   }
   return Pt_CONTINUE;
@@ -214,7 +214,7 @@ int menu_graph_newpane( PtWidget_t *widget, ApInfo_t *apinfo,
   	  plot_obj::render_all();
   	} else nl_error( 2, "No Current Variable defined");
   } else {
-  	nl_error(1, "m_g_newpane: No current figure, calling m_g_newwin");
+  	nl_error(-2, "m_g_newpane: No current figure, calling m_g_newwin");
   	menu_graph_newwin( widget, apinfo, cbinfo);
   }
   return( Pt_CONTINUE );

@@ -115,7 +115,7 @@ int RTG_Variable::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
 	  PtTreeUnselect(ABW_Variables_Tab, item);
 	} else {
 	  Current::Variable = (RTG_Variable_Data *)var;
-	  nl_error( 0, "Variable %s selected", var->name );
+	  nl_error( -2, "Variable %s selected", var->name );
 	}
   }
   return Pt_CONTINUE;
@@ -350,8 +350,11 @@ void RTG_Variable_MLF::evaluate_range(unsigned col,
 
 void RTG_Variable_MLF::new_index( unsigned long index ) {
   next_index = index;
-  if (next_index > 0 && mlf != NULL && next_index != mlf->index) {
+  if (next_index > 0 && mlf != NULL && next_index != mlf->index
+      && !new_data_available) {
     new_data_available = true;
+    if (!graphs.empty())
+      plot_obj::setup_background();
   }
 }
 

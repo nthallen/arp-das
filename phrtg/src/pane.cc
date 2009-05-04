@@ -107,7 +107,7 @@ void plot_pane::resized(PhDim_t *newdim ) {
   full_height = newdim->h;
   full_width = newdim->w;
   nl_assert( full_height >= min_height );
-  nl_error(0,"Pane %s resized to (%d,%d)", name, newdim->w, newdim->h );
+  nl_error(-2,"Pane %s resized to (%d,%d)", name, newdim->w, newdim->h );
   //### We'll need to do some math here to calculate
   //### the appropriate bounding boxes
   std::list<plot_axes*>::const_iterator ax;

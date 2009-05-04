@@ -42,7 +42,7 @@ plot_figure::~plot_figure() {
   PtSetResource(divider, Pt_ARG_POINTER, NULL, 0 );
 
   All_Figures.remove(this);
-  nl_error(0,"All_Figures now has %d elements", All_Figures.size());
+  nl_error(-3,"All_Figures now has %d elements", All_Figures.size());
   TreeItem->data = NULL;
   if (!(PtWidgetFlags(module) & Pt_DESTROYED))
     PtDestroyWidget(module);
@@ -166,13 +166,13 @@ bool plot_figure::check_for_updates() {
     PtSetResource(window, Pt_ARG_FLAGS, Pt_TRUE, Pt_BLOCKED );
     PtSetResource(window, Pt_ARG_WINDOW_MANAGED_FLAGS, Pt_FALSE,
         Ph_WM_FOCUS);
-    nl_error(0,"Hiding: old pos (%d,%d)", Pos.x, Pos.y);
+    nl_error(-2,"Hiding: old pos (%d,%d)", Pos.x, Pos.y);
   } else if (!visible && new_visibility) {
     PtSetResource(window, Pt_ARG_POS, &Pos, 0);
     PtSetResource(window, Pt_ARG_FLAGS, Pt_FALSE, Pt_BLOCKED );
     PtSetResource(window, Pt_ARG_WINDOW_MANAGED_FLAGS, Pt_TRUE,
         Ph_WM_FOCUS);
-    nl_error(0,"Restoring: old pos (%d,%d)", Pos.x, Pos.y);
+    nl_error(-2,"Restoring: old pos (%d,%d)", Pos.x, Pos.y);
   }
   visible = new_visibility;
   for (pos = panes.begin(); pos != panes.end(); pos++) {
@@ -216,6 +216,7 @@ int plot_figure::Realized( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
 	/* eliminate 'unreferenced' warnings */
 	apinfo = apinfo, cbinfo = cbinfo;
+#ifdef VERBOSE
 	PtWidget_t *module = ApGetInstance(widget);
 	PtWidget_t *window = ApGetWidgetPtr(module, ABN_Figure);
     PtWidget_t *divider = ApGetWidgetPtr(module, ABN_Figure_Div);
@@ -227,6 +228,9 @@ int plot_figure::Realized( PtWidget_t *widget, ApInfo_t *apinfo,
     		divider, div_dim->w, div_dim->h );
     // At this point, the plot_figure object has not been
     // attached to the widget, so there is no more we can do.
+#else
+    widget = widget;
+#endif
 	return( Pt_CONTINUE );
 }
 
@@ -323,11 +327,11 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
   	  saw_first_resize = true;
   	  return Pt_CONTINUE;
     }
-    nl_error(0, "divider resized");
+    nl_error(-2, "divider resized");
   }
   saw_first_resize = false;
   dim = *new_dim;
-  plot_figure::Report();
+  //plot_figure::Report();
   pane_dim.w = dim.w - 2;
   if (panes.empty()) return Pt_CONTINUE;
   std::list<plot_pane*>::const_iterator pp;
@@ -389,7 +393,7 @@ int plot_figure::resized(PhDim_t *old_dim, PhDim_t *new_dim, bool force) {
   	  }
   	}
   }
-  plot_figure::Report();
+  //plot_figure::Report();
   return( Pt_CONTINUE );
 }
 
@@ -436,7 +440,7 @@ int plot_figure::divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
 	switch (cbinfo->reason_subtype) {
 	  case Ph_EV_DRAG_COMPLETE:
   		// Need to reset pane sizes accordingly
-  		nl_error(0, "div_drag: COMPLETE: %d panes", cb->nsizes);
+  		nl_error(-2, "div_drag: COMPLETE: %d panes", cb->nsizes);
   		PtGetResource(widget, Pt_ARG_POINTER, &fig, 0);
   		PtGetResource(widget, Pt_ARG_DIM, &div_dim, 0);
   		pane_dim = *div_dim;
@@ -472,7 +476,7 @@ int plot_figure::unrealized( PtWidget_t *widget, ApInfo_t *apinfo,
   /* eliminate 'unreferenced' warnings */
   widget = widget, apinfo = apinfo, cbinfo = cbinfo;
 
-  nl_error(0, "plot_figure::unrealized");
+  nl_error(-2, "plot_figure::unrealized");
   return( Pt_CONTINUE );
 }
 
@@ -486,9 +490,9 @@ int plot_figure::destroyed( PtWidget_t *widget, ApInfo_t *apinfo,
   module = ApGetInstance(widget);
   PtGetResource(module, Pt_ARG_POINTER, &fig, 0);
   if ( fig == NULL ) {
-    nl_error(0, "plot_figure::destroyed with NULL data pointer");
+    nl_error(-2, "plot_figure::destroyed with NULL data pointer");
   } else {
-  	nl_error(0, "plot_figure::destroyed %s", fig->name);
+  	nl_error(-2, "plot_figure::destroyed %s", fig->name);
   	delete fig;
   }
   return( Pt_CONTINUE );
@@ -527,6 +531,6 @@ int plot_figure::wmevent( PtWidget_t *widget, ApInfo_t *apinfo,
     case Ph_WM_STATE_ISBACKDROP: state = "Ph_WM_STATE_ISBACKDROP"; break;
     default: state = "unknown"; break;
   }
-  nl_error(0, "plot_figure::wmevent %s state %s", event, state);
+  nl_error(-2, "plot_figure::wmevent %s state %s", event, state);
   return( Pt_CONTINUE );
 }

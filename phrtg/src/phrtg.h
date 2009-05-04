@@ -136,6 +136,8 @@ class plot_obj {
   	virtual plot_obj *default_child();
 
 	static bool rendering;
+	static bool background_set;
+	static PtWorkProcId_t *WorkProcId;
 	static int TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
 	static int menu_ToggleVisible( PtWidget_t *widget, ApInfo_t *apinfo,
@@ -150,8 +152,10 @@ class plot_obj {
 			PtCallbackInfo_t *cbinfo );
 	static int pt_got_focus( PtWidget_t *widget, ApInfo_t *apinfo,
 			PtCallbackInfo_t *cbinfo );
+	static void setup_background();
 	static void render_all();
 	static bool render_each();
+	static void render_one();
   static bool check_vars_for_updates();
 };
 

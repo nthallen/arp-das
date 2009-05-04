@@ -8,6 +8,8 @@
 #include "nl_assert.h"
 
 bool plot_obj::rendering = false;
+bool plot_obj::background_set = false;
+PtWorkProcId_t *plot_obj::WorkProcId;
 
 plot_obj::plot_obj(plot_obj_type po_type, const char *name_in) {
   type = po_type;
@@ -55,7 +57,7 @@ void plot_obj::got_focus(focus_source whence) {
     case focus_from_parent: twhence = "parent"; break;
     default: nl_error(4, "Invalid whence");
   }
-  nl_error(0, "%s %s got focus from %s", typetext(), name, twhence);
+  nl_error(-2, "%s %s got focus from %s", typetext(), name, twhence);
   if (whence == focus_from_user) {
   	nl_assert(TreeItem != NULL);
   	if ( !(TreeItem->gen.list.flags&Pt_LIST_ITEM_SELECTED)) {
@@ -127,7 +129,7 @@ int plot_obj::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
   	plot_obj *p = (plot_obj *)cb->item->data;
   	if (cb->item->gen.list.flags&Pt_LIST_ITEM_SELECTED) {
   	  p->got_focus(focus_from_user);
-        nl_error( 0, "Selected %s:%s", p->name, p->typetext());
+        nl_error( -2, "Selected %s:%s", p->name, p->typetext());
   	}
   }
   return( Pt_CONTINUE );
@@ -138,7 +140,7 @@ int plot_obj::menu_ToggleVisible( PtWidget_t *widget, ApInfo_t *apinfo,
   /* eliminate 'unreferenced' warnings */
   widget = widget, apinfo = apinfo, cbinfo = cbinfo;
   nl_assert(Current::Menu_obj != NULL);
-  nl_error(0,"plot_obj: ToggleVisible %s:%s", Current::Menu_obj->name, Current::Menu_obj->typetext());
+  nl_error(-2,"plot_obj: ToggleVisible %s:%s", Current::Menu_obj->name, Current::Menu_obj->typetext());
   Current::Menu_obj->new_visibility = !Current::Menu_obj->visible;
   plot_obj::render_all();
   // Current::Menu_obj = NULL;
@@ -150,7 +152,7 @@ int plot_obj::menu_Delete( PtWidget_t *widget, ApInfo_t *apinfo,
   /* eliminate 'unreferenced' warnings */
   widget = widget, apinfo = apinfo, cbinfo = cbinfo;
   nl_assert(Current::Menu_obj != NULL);
-  nl_error(0,"plot_obj: Delete %s:%s", Current::Menu_obj->name, Current::Menu_obj->typetext());
+  nl_error(-2,"plot_obj: Delete %s:%s", Current::Menu_obj->name, Current::Menu_obj->typetext());
   delete Current::Menu_obj;
   Current::Menu_obj = NULL;
   plot_obj::render_all();
@@ -176,7 +178,7 @@ int plot_obj::TreeColSelect( PtWidget_t *widget, ApInfo_t *apinfo,
   /* eliminate 'unreferenced' warnings */
   PtTreeCallback_t *cb = (PtTreeCallback_t *)cbinfo->cbdata;
   widget = widget, apinfo = apinfo;
-  nl_error(0,"Graphs TreeColSelect: col %d, nitems %d", cb->column, cb->nitems);
+  nl_error(-2,"Graphs TreeColSelect: col %d, nitems %d", cb->column, cb->nitems);
   return( Pt_CONTINUE );
 }
 
@@ -192,12 +194,27 @@ int plot_obj::TreeInput( PtWidget_t *widget, ApInfo_t *apinfo,
   		if (item != NULL) {
   		  plot_obj *po = (plot_obj *)item->data;
   		  Current::Menu_obj = po;
-  		  nl_error( 0, "plot_obj: Menu: %s:%s", po->name, po->typetext());
+  		  nl_error( -2, "plot_obj: Menu: %s:%s", po->name, po->typetext());
   		  ApCreateModule (ABM_plot_context_menu, widget, cbinfo);
   		}
 	  }
 	}
 	return( Pt_CONTINUE );
+}
+
+extern "C" {
+  static PtWorkProcF_t WorkProc;
+}
+
+static int WorkProc(void*data) {
+  plot_obj::render_one();
+  return Pt_CONTINUE;
+}
+
+void plot_obj::setup_background() {
+  if (background_set) return;
+  WorkProcId = PtAppAddWorkProc( NULL, WorkProc, NULL );
+  background_set = true;
 }
 
 void plot_obj::render_all() {
@@ -218,6 +235,13 @@ bool plot_obj::render_each() {
       return true;
   }
   return plot_obj::check_vars_for_updates();
+}
+
+void plot_obj::render_one() {
+  if (!render_each()) {
+    PtAppRemoveWorkProc(NULL, WorkProcId);
+    background_set = false;
+  }
 }
 
 bool plot_obj::check_vars_for_updates() {

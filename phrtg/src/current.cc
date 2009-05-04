@@ -20,7 +20,7 @@ Tab_Name Current::Tab = Tab_None;
 void Current::none(plot_obj_type parent_type) {
   switch (parent_type) {
     case po_root:
-      nl_error(0, "No current figure");
+      nl_error(-2, "No current figure");
       Current::Figure = NULL;
       switch (Current::Tab) {
         case Tab_Figure:
@@ -33,7 +33,7 @@ void Current::none(plot_obj_type parent_type) {
           break;
       }
     case po_figure:
-      nl_error(0, "No current pane");
+      nl_error(-2, "No current pane");
       Current::Pane = NULL;
       switch (Current::Tab) {
         case Tab_X:
@@ -45,7 +45,7 @@ void Current::none(plot_obj_type parent_type) {
           break;
       }
     case po_pane:
-      nl_error(0, "No current axes");
+      nl_error(-2, "No current axes");
       Current::Axes = NULL;
       Current::Axis = NULL;
       switch (Current::Tab) {
@@ -60,12 +60,12 @@ void Current::none(plot_obj_type parent_type) {
           break;
       }
     case po_axes:
-      nl_error(0, "No current graph");
+      nl_error(-2, "No current graph");
       Current::Graph = NULL;
       if (Current::Tab == Tab_Line)
         PtSetResource(ABW_ConsoleGroup, Pt_ARG_PG_CURRENT, "Graphs", 0);
     case po_data:
-      nl_error(0, "No current line");
+      nl_error(-2, "No current line");
       Current::Line = NULL;
       /* Defer this test until we find out if there are lines */
       // if (Current::Tab == Tab_Line)

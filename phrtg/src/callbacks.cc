@@ -25,7 +25,7 @@ void Update_Text(int Name, char *text, Update_Source src ) {
       nl_error(2, "Update Axes_Name with no Current::Axes");
       return;
     }
-    nl_error( 0, "Update(Axes_Name, \"%s\")", text );
+    nl_error( -3, "Update(Axes_Name, \"%s\")", text );
     Current::Axes->rename(text, src);
   } else if (Name == ABN_Axis_Label) {
     if (Current::Axis == NULL) {
@@ -85,7 +85,7 @@ int Color_Changed( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinf
 static void po_set_visibility(plot_obj *po, const char *txt, long int value,
     int Name, Update_Source src) {
   if (po == NULL) {
-    nl_error(1, "Update_Toggle(ABN_%s_Visible) with Current::%s NULL",
+    nl_error(2, "Update_Toggle(ABN_%s_Visible) with Current::%s NULL",
         txt, txt);
   } else {
     po->new_visibility = value;
@@ -103,18 +103,18 @@ static void apply_limits() {
    * and apply them to Current::Axis->limits.min & max
    */
   if ( Current::Axis == NULL ) {
-    nl_error(1, "apply_limits() when Current::Axis == NULL");
+    nl_error(2, "apply_limits() when Current::Axis == NULL");
     return;
   }
   if ( Current::Axis->limits.range_auto ) {
-    nl_error(1, "apply_limits() while limits are auto");
+    nl_error(2, "apply_limits() while limits are auto");
     return;
   }
   double *minp, *maxp;
   PtGetResource(ABW_Limit_Min, Pt_ARG_NUMERIC_VALUE, &minp, 0);
   PtGetResource(ABW_Limit_Max, Pt_ARG_NUMERIC_VALUE, &maxp, 0);
   Current::Axis->set_scale(*minp, *maxp);
-  nl_error(0, "Updated %s axis limits to (%.2f,%.2f)",
+  nl_error(-2, "Updated %s axis limits to (%.2f,%.2f)",
       Current::Axis->XY == Axis_X ? "X" : "Y",
       Current::Axis->limits.min, Current::Axis->limits.max);
 }
@@ -139,7 +139,7 @@ void Update_Toggle(int Name, long int value, Update_Source src ) {
      * turning it on will.
      */
     if (Current::Axis == NULL) {
-      nl_error(1,"Toggle Auto_Scale with no Current::Axis");
+      nl_error(2,"Toggle Auto_Scale with no Current::Axis");
     } else {
       Current::Axis->limits.range_auto = value;
       if ( value )
@@ -188,7 +188,7 @@ void Update_Numeric(int Name, double value, Update_Source src ) {
     unsigned col = (int)value;
     if ( col >= Current::Graph->lines.size())
       return;
-    nl_error(0, "Switching to column %u", col);
+    nl_error(-2, "Switching to column %u", col);
     Current::Graph->lines[col]->got_focus(focus_from_user);
   } else nl_error(1,"Update_Numeric(%s) not implemented", Name);
 }
