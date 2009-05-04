@@ -111,7 +111,7 @@ void DClgr::process_data_t3() {
 }
 
 void DClgr::process_data() {
-  switch ( output_tm_type ) {
+  switch ( input_tm_type ) {
     case TMTYPE_DATA_T1:
     case TMTYPE_DATA_T2:
       nl_error(3,"Data type not implemented" );
