@@ -1,5 +1,8 @@
 /* extmain.skel include file for extraction
  * $Log$
+ * Revision 1.8  2008/08/25 15:37:55  ntallen
+ * Use atexit() for shutdown message
+ *
  * Revision 1.7  2008/08/25 14:37:25  ntallen
  * Need nortlib.h
  *
@@ -44,6 +47,12 @@ static char emrcsid[] =
 %console_functions%
 
 /* Skeleton data_defs section */
+#ifndef EXTRACTION_INIT
+  #define EXTRACTION_INIT
+#endif
+#ifndef EXTRACTION_TERM
+  #define EXTRACTION_TERM
+#endif
 %data_defs%
 
 /* Skeleton main_program section */
@@ -63,7 +72,10 @@ int main(int argc, char **argv) {
   nl_error( 0, "Startup" );
   atexit(dc_exit);
   DATA_CLIENT DC(4096, 1, 0);
+  EXTRACTION_INIT;
   DC.operate();
+  EXTRACTION_TERM;
+  nl_error( 0, "Shutdown" );
   return 0;
 }
 
@@ -88,9 +100,8 @@ int main(int argc, char **argv) {
 #if TM_DATA_TYPE == TMTYPE_DATA_T3
 void DATA_CLIENT::process_data() {
   tm_data_t3_t *data = &msg->body.data3;
-  unsigned char *raw = &data->data[0];
+  unsigned char *raw;
   int n_rows = data->n_rows;
-  home = (union home_row *) raw;
   MFCtr = data->mfctr;
   #ifdef IVFUNCS
     unsigned short delta = MFCtr - next_minor_frame;
@@ -105,7 +116,8 @@ void DATA_CLIENT::process_data() {
   #endif
   majf_row = (((unsigned short)MFCtr) % NROWMAJF);
 
-  for ( ; n_rows > 0; --n_rows, ++home ) {
+  for ( raw = &data->data[0]; n_rows > 0; --n_rows, raw += nbQrow ) {
+    home = (union home_row *) raw;
     efuncs[majf_row]();
     incmod(majf_row, NROWMAJF);
     ++MFCtr;
