@@ -84,6 +84,7 @@ static const ApClassTab_t ClassTable[] = {
 	{ "PtComboBox", &PtComboBox },
 	{ "PtNumericInteger", &PtNumericInteger },
 	{ "PtMenu", &PtMenu },
+	{ "PtOSContainer", &PtOSContainer },
 	{ NULL, NULL }
 	};
 
