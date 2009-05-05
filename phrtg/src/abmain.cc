@@ -47,7 +47,8 @@ main ( int argc, char *argv[] )
 
 	{
 
-	_Ap_.Ap_winstate = 0;
+	_Ap_.Ap_winpos.x  = _Ap_.Ap_winpos.y  = AB_LOCKED;
+	_Ap_.Ap_winsize.y = _Ap_.Ap_winsize.x = AB_LOCKED;
 
 	/* AppBuilder Initialization */
 	ApInitialize( argc, argv, &AbContext );

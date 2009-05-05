@@ -127,7 +127,7 @@ extern const int ABN_plot_context_menu;
 extern const int ABN_PlotVisible;
 extern const int ABN_PlotObjDelete;
 
-#define AB_OPTIONS "s:x:y:h:w:S:"
+#define AB_OPTIONS "s:"
 
 #if defined(__cplusplus)
 }

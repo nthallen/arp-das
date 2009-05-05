@@ -3,17 +3,16 @@
 
 Options:
   -s server     Server path or device name
-  -x x[%][r]	Initial x position in pixels, or as a percentage of
-                screen width if % is specified. If r is specified, the
-                the coordinate is relative to the current console. 
-  -y y[%][r]    Initial y position in pixels, or as a percentage of
-                screen height if % is specified. If r is specified, the
-                the coordinate is relative to the current console.
-  -h h[%]       Initial h dimension in pixels, or as a percentage of the
-                screen width if % is specified.
-  -w w[%]       Initial w dimension in pixels, or as a percentage of the
-                screen height if % is specified. 
-  -S i|m|n      Initial window state: i=iconified, m=maximized, n=normal
+
+Msg Options:
+  -v            add a level of verbosity
+  -o filename   Write messages to specified filename
+  -m            Write to memo [default]
+  -V            Write to stderr
+  
+PhRTG Options:
+  -P path       Specify default path for MLF variables
+  -C node       Specify node name for command server
 
 Examples:
 %C -s photon_s

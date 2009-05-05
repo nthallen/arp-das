@@ -22,17 +22,30 @@
 
 /* Application Options string */
 const char ApOptions[] =
-	AB_OPTIONS "vo:mV"; /* Add your options in the "" */
+	AB_OPTIONS "vo:mVP:C:"; /* Add your options in the "" */
+const char *opt_string = ApOptions;
 
 int (*nl_error)(int level, const char *s, ...) = msg;
 static void open_cmd_fd();
+static char *cmd_node;
 
 int phrtg_init( int argc, char *argv[] ) {
+  int c;
+
   /* Process command line arguments--if any */
   msg_init_options("phrtg", argc, argv);
   nl_error(0, "Starting");
+
+  optind = OPTIND_RESET;
+  opterr = 0;
+  while ((c = getopt(argc, argv, ApOptions)) != -1) {
+    switch (c) {
+      case 'P': RTG_Variable_MLF::set_default_path(optarg); break;
+      case 'C': cmd_node = optarg; break;
+      default: break; // could check for errors
+    }
+  }
 	
-  RTG_Variable_MLF::set_default_path("/home/nort/PhRTGbench2");
   open_cmd_fd();
 
   /* Load default configuration */
@@ -59,7 +72,7 @@ static void open_cmd_fd() {
   int old_response = set_response(0);
   char *cmddev = tm_dev_name("cmd/phrtg");
   close_cmd_fd();
-  cmd_fd = tm_open_name(cmddev,NULL,O_RDONLY);
+  cmd_fd = tm_open_name(cmddev, cmd_node, O_RDONLY);
   set_response(old_response);
   if ( cmd_fd < 0 ) {
 	ApError( ABW_Console, errno, "PhRTG", "Unable to open command channel",
