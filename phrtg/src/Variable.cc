@@ -70,12 +70,21 @@ RTG_Variable::RTG_Variable(const char *name_in, RTG_Variable_Type type_in) {
   Next = NULL;
   name = strdup(name_in);
   type = type_in;
+  destroying = false;
   TreeItem = PtTreeAllocItem(ABW_Variables_Tab, name, -1, -1);
   TreeItem->data = (void *)this;
 }
 
 RTG_Variable::~RTG_Variable() {
-	nl_error(2, "~RTG_Variable");
+  destroying = true;
+  if (TreeItem) {
+    PtTreeRemoveItem(ABW_Variables_Tab, TreeItem);
+    PtTreeFreeItems(TreeItem);
+    TreeItem = NULL;
+  }
+  free(name);
+  name = NULL;
+  if (Parent) Parent->Remove_Child(this);
 }
 
 void RTG_Variable::AddSibling(RTG_Variable *newsib) {
@@ -125,12 +134,32 @@ RTG_Variable_Node::RTG_Variable_Node(const char *name_in) : RTG_Variable(name_in
   First = NULL;
 }
 
+RTG_Variable_Node::~RTG_Variable_Node() {
+  nl_assert(First == NULL);
+}
+
 void RTG_Variable_Node::Add_Child(RTG_Variable *child) {
   nl_assert(child != NULL);
-  child->Next = this->First; // just to test compiler, should be child->Next
+  child->Next = this->First;
   this->First = child;
   child->Parent = this;
   PtTreeAddFirst( ABW_Variables_Tab, child->TreeItem, this->TreeItem );
+}
+
+void RTG_Variable_Node::Remove_Child(RTG_Variable *child) {
+  nl_assert(child != NULL);
+  if (First == child) {
+    First = child->Next;
+    if (First == NULL) delete this;
+  } else {
+    RTG_Variable *sib = First;
+    while (sib != NULL) {
+      if (sib->Next == child) {
+        sib->Next = child->Next;
+        break;
+      }
+    }
+  }
 }
 
 bool RTG_Variable_Node::reload() {
@@ -239,11 +268,43 @@ int RTG_Variable::Find_Insert( char *name, RTG_Variable_Node *&parent,
   return 1;
 }
 
+/* return true on overflow */
+bool RTG_Variable::isnprint_path(char *&dest, int &n) {
+  if (Parent) {
+    if ( Parent->isnprint_path(dest, n) || n < 1 )
+      return true;
+    *dest++ = '/';
+    --n;
+  }
+  int rc = snprintf(dest, n, "%s", name);
+  if (rc < 0 || rc >= n) return true;
+  dest += rc;
+  n -= rc;
+  return false;
+}
+
+bool RTG_Variable::snprint_path(char *dest, int n) {
+  return isnprint_path(dest, n);
+}
+
 RTG_Variable_Data::RTG_Variable_Data( const char *name_in, RTG_Variable_Type type_in ) :
-  RTG_Variable(name_in, type_in) {
+    RTG_Variable(name_in, type_in) {
   new_data_available = false;
   reload_required = false;
   ncols = 0;
+  char fullname[80];
+  if ( snprint_path(fullname, 80) )
+    nl_error(1, "Overflow in nsprint_path()");
+  else nl_error(0, "Data var '%s' created", fullname);
+}
+
+RTG_Variable_Data::~RTG_Variable_Data() {
+  // Need to delete any graphs or derivatives
+  destroying = true;
+  while (!graphs.empty())
+    delete graphs.front();
+  while (!derivatives.empty())
+    delete(derivatives.front());
 }
 
 bool RTG_Variable_Data::check_for_updates() {
@@ -279,11 +340,71 @@ void RTG_Variable_Data::RemoveGraph(plot_data *graph) {
   nl_assert(!graphs.empty());
   graphs.remove(graph);
 }
+void RTG_Variable_Data::AddDerived(RTG_Variable_Derived *var) {
+  derivatives.push_back(var);
+}
+
+void RTG_Variable_Data::RemoveDerived(RTG_Variable_Derived *var) {
+  nl_assert(var != NULL);
+  nl_assert(!derivatives.empty());
+  derivatives.remove(var);
+}
+
+RTG_Variable_Data *RTG_Variable_Data::Derived_From() {
+  return NULL;
+}
+
+RTG_Variable_Matrix::RTG_Variable_Matrix(const char *name_in, RTG_Variable_Type type_in) :
+    RTG_Variable_Data(name_in, type_in) {
+}
+
+bool RTG_Variable_Matrix::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) {
+  if ( r >= nrows || c >= ncols ) return false;
+  X = r;
+  Y = data.mdata[c][r];
+  return true;
+}
+
+/* what should I do if there is no data?
+ * I can set the range to [0], but we really need to mark
+ * the line as invisible.
+ */
+void RTG_Variable_Matrix::evaluate_range(unsigned col,
+    RTG_Variable_Range &X, RTG_Variable_Range &Y) {
+  int r, r1;
+  if (X.range_auto) {
+    X.min = 0;
+    X.max = nrows-1;
+    X.range_required = false;
+    X.range_is_current = true;
+    X.range_is_empty = (nrows == 0);
+  }
+  r = (X.min < 0) ? 0 : (int) ceil(X.min);
+  r1 = (X.max < 0) ? -1 : (int) floor(X.max);
+  if (r > (int)nrows) r = nrows;
+  if (r1 >= (int)nrows) r1 = nrows-1;
+  if (r > r1)
+    X.range_is_empty = true;
+  if (Y.range_auto) {
+    Y.clear();
+    Y.range_required = false;
+    Y.range_is_current = true;
+    if (!X.range_is_empty && col < ncols) {
+      vector_t Ydata = data.mdata[col];
+      Y.min = Y.max = Ydata[r++];
+      for ( ; r <= r1; ++r ) {
+        scalar_t V = Ydata[r];
+        Y.update(V);
+      }
+      Y.range_is_empty = false;
+    }
+  }
+}
 
 char *RTG_Variable_MLF::default_path;
 
 RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in ) :
-    RTG_Variable_Data(name_in, Var_MLF) {
+    RTG_Variable_Matrix(name_in, Var_MLF) {
   char fbase[PATH_MAX];
   nl_assert(default_path != NULL);
   if (snprintf(fbase,PATH_MAX,"%s/%s", default_path, name_in) >= PATH_MAX) {
@@ -305,47 +426,6 @@ bool RTG_Variable_MLF::reload_data() {
     return true;
   }
   return false;
-}
-
-bool RTG_Variable_MLF::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) {
-  if ( r >= nrows || c >= ncols ) return false;
-  X = r;
-  Y = data.mdata[c][r];
-  return true;
-}
-
-/* what should I do if there is no data?
- * I can set the range to [0], but we really need to mark
- * the line as invisible.
- */
-void RTG_Variable_MLF::evaluate_range(unsigned col,
-    RTG_Variable_Range &X, RTG_Variable_Range &Y) {
-  unsigned r, r1;
-  if (X.range_auto) {
-    X.min = 0;
-    X.max = nrows-1;
-    X.range_required = false;
-    X.range_is_current = true;
-    X.range_is_empty = (nrows == 0);
-  }
-  r = (unsigned)ceil(X.min);
-  r1 = (unsigned)floor(X.max);
-  if (r > r1)
-    X.range_is_empty = true;
-  if (Y.range_auto) {
-    Y.clear();
-    Y.range_required = false;
-    Y.range_is_current = true;
-    if (!X.range_is_empty && col < ncols) {
-      vector_t Ydata = data.mdata[col];
-      Y.min = Y.max = Ydata[r];
-      for ( ; r <= r1; ++r ) {
-        scalar_t V = Ydata[r];
-        Y.update(V);
-      }
-      Y.range_is_empty = false;
-    }
-  }
 }
 
 void RTG_Variable_MLF::new_index( unsigned long index ) {

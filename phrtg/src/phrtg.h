@@ -12,12 +12,13 @@
 
 class RTG_Variable_Node;
 class RTG_Variable_MLF;
+class RTG_Variable_Derived;
 class plot_pane;
 class plot_figure;
 class plot_axes;
 class plot_data;
 class plot_line;
-enum RTG_Variable_Type { Var_Node, Var_MLF };
+enum RTG_Variable_Type { Var_Node, Var_MLF, Var_Detrend };
 const int DIV_BEVEL_WIDTHS = 2;
 
 class RTG_Variable_Range {
@@ -37,13 +38,14 @@ class RTG_Variable_Range {
 
 class RTG_Variable {
   public:
-
     RTG_Variable_Type type;
     char *name;
+    bool destroying;
 
     RTG_Variable(const char *name_in, RTG_Variable_Type type_in);
-    ~RTG_Variable();
+    virtual ~RTG_Variable();
     void AddSibling(RTG_Variable *newsib);
+    bool snprint_path(char *dest, int n);
     virtual bool reload() = 0;
 
     static int Find_Insert( char *name, RTG_Variable_Node *&parent,
@@ -60,13 +62,15 @@ class RTG_Variable {
     RTG_Variable *Next;
     PtTreeItem_t *TreeItem;
     void update_ancestry( RTG_Variable_Node *parent_in, RTG_Variable *sib );
+    bool isnprint_path(char *&dest, int &n);
 };
 
 class RTG_Variable_Node : public RTG_Variable {
   public:
     RTG_Variable_Node(const char *name);
-    //~RTG_Variable_Node();
+    ~RTG_Variable_Node();
     void Add_Child(RTG_Variable *child);
+    void Remove_Child(RTG_Variable *child);
     bool reload();
     friend class RTG_Variable;
   private:
@@ -79,26 +83,36 @@ class RTG_Variable_Data : public RTG_Variable {
     bool reload_required;
     unsigned nrows, ncols;
     std::list<plot_data*> graphs;
+    std::list<RTG_Variable_Derived *> derivatives;
 
     RTG_Variable_Data(const char *name_in, RTG_Variable_Type type_in);
+    ~RTG_Variable_Data();
     void AddGraph(plot_data *graph);
-    void RemoveGraph(plot_data *graph);
+    virtual void RemoveGraph(plot_data *graph);
+    void AddDerived(RTG_Variable_Derived *var);
+    virtual void RemoveDerived(RTG_Variable_Derived *var);
     bool check_for_updates();
     bool reload();
     virtual bool reload_data() = 0;
     virtual bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) = 0;
     virtual void evaluate_range(unsigned col, RTG_Variable_Range &X,
         RTG_Variable_Range &Y) = 0;
+    virtual RTG_Variable_Data *Derived_From();
 };
 
-class RTG_Variable_MLF : public RTG_Variable_Data {
+class RTG_Variable_Matrix : public RTG_Variable_Data {
   public:
     f_matrix data;
-    RTG_Variable_MLF( const char *name_in );
-    bool reload_data();
+    RTG_Variable_Matrix(const char *name_in, RTG_Variable_Type type_in);
     bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
     void evaluate_range(unsigned col, RTG_Variable_Range &X,
          RTG_Variable_Range &Y);
+};
+
+class RTG_Variable_MLF : public RTG_Variable_Matrix {
+  public:
+    RTG_Variable_MLF( const char *name_in );
+    bool reload_data();
 
     static void set_default_path(const char *path_in);
     static void Incoming( char *name, unsigned long index );
@@ -107,6 +121,25 @@ class RTG_Variable_MLF : public RTG_Variable_Data {
     mlf_def_t *mlf;
     unsigned long next_index;
     void new_index(unsigned long index);
+};
+
+class RTG_Variable_Derived : public RTG_Variable_Matrix {
+  public:
+    RTG_Variable_Data *Source;
+    
+    RTG_Variable_Derived(RTG_Variable_Data *src, RTG_Variable_Type type_in);
+    void RemoveGraph(plot_data *graph);
+    void RemoveDerived(RTG_Variable_Derived *var);
+    bool reload_data(); // needs overload, but there is a common part
+    RTG_Variable_Data *Derived_From();
+};
+
+class RTG_Variable_Detrend : public RTG_Variable_Derived {
+  public:
+    RTG_Variable_Detrend(RTG_Variable_Data *src, scalar_t min, scalar_t max);
+    bool reload_data(); // calls RTG_Variable_Derived::reload_data();
+  private:
+    scalar_t x_min, x_max;
 };
 
 enum plot_obj_type { po_root, po_figure, po_pane, po_axes, po_data,
