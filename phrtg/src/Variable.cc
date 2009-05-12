@@ -130,8 +130,11 @@ int RTG_Variable::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
   return Pt_CONTINUE;
 }
 
-RTG_Variable_Node::RTG_Variable_Node(const char *name_in) : RTG_Variable(name_in, Var_Node) {
+RTG_Variable_Node::RTG_Variable_Node(const char *name_in,
+    RTG_Variable_Node *parent_in, RTG_Variable *sib )
+    : RTG_Variable(name_in, Var_Node) {
   First = NULL;
+  update_ancestry(parent_in, sib);
 }
 
 RTG_Variable_Node::~RTG_Variable_Node() {
@@ -258,8 +261,8 @@ int RTG_Variable::Find_Insert( char *name, RTG_Variable_Node *&parent,
         return 0;
       }
       // Create a new internal node here
-      RTG_Variable_Node *newnode = new RTG_Variable_Node(node_name);
-      newnode->update_ancestry( parent, sib );
+      RTG_Variable_Node *newnode =
+        new RTG_Variable_Node(node_name, parent, sib);
       parent = newnode;
       sib = NULL;
     }
@@ -292,10 +295,6 @@ RTG_Variable_Data::RTG_Variable_Data( const char *name_in, RTG_Variable_Type typ
   new_data_available = false;
   reload_required = false;
   ncols = 0;
-  char fullname[80];
-  if ( snprint_path(fullname, 80) )
-    nl_error(1, "Overflow in nsprint_path()");
-  else nl_error(0, "Data var '%s' created", fullname);
 }
 
 RTG_Variable_Data::~RTG_Variable_Data() {
@@ -403,8 +402,8 @@ void RTG_Variable_Matrix::evaluate_range(unsigned col,
 
 char *RTG_Variable_MLF::default_path;
 
-RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in ) :
-    RTG_Variable_Matrix(name_in, Var_MLF) {
+RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in, RTG_Variable_Node *parent_in,
+        RTG_Variable *sib ) : RTG_Variable_Matrix(name_in, Var_MLF) {
   char fbase[PATH_MAX];
   nl_assert(default_path != NULL);
   if (snprintf(fbase,PATH_MAX,"%s/%s", default_path, name_in) >= PATH_MAX) {
@@ -414,6 +413,7 @@ RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in ) :
     mlf = mlf_init(3, 60, 0, fbase, "dat", NULL );
   }
   next_index = 0;
+  update_ancestry(parent_in, sib);
 }
 
 bool RTG_Variable_MLF::reload_data() {
@@ -460,8 +460,11 @@ void RTG_Variable_MLF::Incoming( char *fullname, unsigned long index ) {
       return;
     }
   } else {
-    mlf = new RTG_Variable_MLF(lastnode_text);
-    mlf->update_ancestry( parent, sib );
+    mlf = new RTG_Variable_MLF(lastnode_text, parent, sib);
     mlf->new_index(index);
+    char fullname[80];
+    if ( mlf->snprint_path(fullname, 80) )
+      nl_error(1, "Overflow in nsprint_path()");
+    else nl_error(0, "Data var '%s' created", fullname);
   }
 }

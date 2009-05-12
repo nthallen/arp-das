@@ -67,7 +67,7 @@ class RTG_Variable {
 
 class RTG_Variable_Node : public RTG_Variable {
   public:
-    RTG_Variable_Node(const char *name);
+    RTG_Variable_Node(const char *name, RTG_Variable_Node *parent_in, RTG_Variable *sib );
     ~RTG_Variable_Node();
     void Add_Child(RTG_Variable *child);
     void Remove_Child(RTG_Variable *child);
@@ -111,7 +111,7 @@ class RTG_Variable_Matrix : public RTG_Variable_Data {
 
 class RTG_Variable_MLF : public RTG_Variable_Matrix {
   public:
-    RTG_Variable_MLF( const char *name_in );
+    RTG_Variable_MLF( const char *name_in, RTG_Variable_Node *parent_in, RTG_Variable *sib );
     bool reload_data();
 
     static void set_default_path(const char *path_in);
@@ -127,7 +127,8 @@ class RTG_Variable_Derived : public RTG_Variable_Matrix {
   public:
     RTG_Variable_Data *Source;
     
-    RTG_Variable_Derived(RTG_Variable_Data *src, RTG_Variable_Type type_in);
+    RTG_Variable_Derived(RTG_Variable_Data *src, const char *name_in,
+        RTG_Variable_Type type_in);
     void RemoveGraph(plot_data *graph);
     void RemoveDerived(RTG_Variable_Derived *var);
     bool reload_data(); // needs overload, but there is a common part
@@ -136,8 +137,12 @@ class RTG_Variable_Derived : public RTG_Variable_Matrix {
 
 class RTG_Variable_Detrend : public RTG_Variable_Derived {
   public:
-    RTG_Variable_Detrend(RTG_Variable_Data *src, scalar_t min, scalar_t max);
+    RTG_Variable_Detrend(RTG_Variable_Data *src, const char *name_in,
+        RTG_Variable_Node *parent_in, RTG_Variable *sib,
+        scalar_t min, scalar_t max);
     bool reload_data(); // calls RTG_Variable_Derived::reload_data();
+    static RTG_Variable_Detrend *Create( RTG_Variable_Data *src,
+            unsigned min, unsigned max );
   private:
     scalar_t x_min, x_max;
 };
