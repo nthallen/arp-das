@@ -323,6 +323,10 @@ bool RTG_Variable_Data::reload() {
         plot_data *graph = *pos;
         graph->new_data = true;
       }
+      std::list<RTG_Variable_Derived *>::const_iterator dpos;
+      for (dpos = derivatives.begin(); dpos != derivatives.end(); ++dpos) {
+        (*dpos)->reload_required = true;
+      }
       return true;
     }
   }
@@ -414,6 +418,21 @@ RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in, RTG_Variable_Node *pare
   }
   next_index = 0;
   update_ancestry(parent_in, sib);
+}
+
+// If range is empty returns i_min > i_max
+void RTG_Variable_MLF::xrow_range(scalar_t x_min, scalar_t x_max,
+        unsigned &i_min, unsigned &i_max) {
+  if (x_max < 0 || x_max < x_min || nrows == 0) {
+    i_max = 0;
+    i_min = 1;
+  } else {
+    if (x_min < 0) i_min = 0;
+    else if (x_min >= nrows-1) i_min = nrows;
+    else i_min = (unsigned)ceil(x_min);
+    if (x_max >= nrows-1) i_max = nrows-1;
+    else i_max = (unsigned)floor(x_max);
+  }
 }
 
 bool RTG_Variable_MLF::reload_data() {

@@ -124,6 +124,7 @@ plot_axes::plot_axes( const char *name_in, plot_pane *pane ) : plot_obj(po_axes,
   Y.set_scale(pane->full_height);
   parent = pane;
   parent_obj = pane;
+  detrended = false;
   parent->AddChild(this);
 }
 
@@ -181,6 +182,8 @@ void plot_axes::Update_Axis_Pane(Axis_XY ax) {
   PtSetResource(ABW_Axes_Name, Pt_ARG_TEXT_STRING, name, 0);
   PtSetResource(ABW_Axes_Visible, Pt_ARG_FLAGS,
       visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
+  PtSetResource(ABW_Detrend, Pt_ARG_FLAGS,
+      detrended ? Pt_TRUE : Pt_FALSE, Pt_SET);
   switch (ax) {
     case Axis_X:
       X.Update_Axis_Pane(this);
@@ -273,4 +276,46 @@ bool plot_axes::check_for_updates(bool parent_visibility) {
       updates_required = true;
   }
   return updates_required;
+}
+
+/* ax->Detrend(value);
+ * If value is non-zero, we walk through the graphs in these axes
+ * and detrend each one using the current x-limits.
+ */
+void plot_axes::Detrend(long value) {
+  std::list<plot_data*>::const_iterator pos;
+  if (value) {
+    detrended = true;
+    if (X.limits.range_is_empty) {
+      nl_error(1,"Empty X-range: Skipping detrend");
+    } else if (!X.limits.range_is_current) {
+      nl_error(1,"X-limits not current: Skipping detrend");
+    } else {
+      for (pos = graphs.begin(); pos != graphs.end(); pos++) {
+        plot_data *graph = *pos;
+        RTG_Variable_Data *var = graph->variable;
+        RTG_Variable_Data *src = var->Derived_From();
+        if (src == NULL || src->type != Var_Detrend) {
+          // don't detrend a detrend
+          RTG_Variable_Detrend *dt = RTG_Variable_Detrend::Create(
+              var, X.limits.min, X.limits.max);
+          graph->variable = dt;
+          var->RemoveGraph(graph);
+          dt->AddGraph(graph);
+        }
+      }
+    }
+  } else {
+    detrended = false;
+    for (pos = graphs.begin(); pos != graphs.end(); pos++) {
+      plot_data *graph = *pos;
+      RTG_Variable_Data *var = graph->variable;
+      RTG_Variable_Data *src = var->Derived_From();
+      if (src != NULL && src->type == Var_Detrend) {
+        graph->variable = src;
+        var->RemoveGraph(graph);
+        src->AddGraph(graph);
+      }
+    }
+  }
 }

@@ -97,6 +97,8 @@ class RTG_Variable_Data : public RTG_Variable {
     virtual bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) = 0;
     virtual void evaluate_range(unsigned col, RTG_Variable_Range &X,
         RTG_Variable_Range &Y) = 0;
+    virtual void xrow_range(scalar_t x_min, scalar_t x_max,
+        unsigned &i_min, unsigned &i_max) = 0;
     virtual RTG_Variable_Data *Derived_From();
 };
 
@@ -113,6 +115,8 @@ class RTG_Variable_MLF : public RTG_Variable_Matrix {
   public:
     RTG_Variable_MLF( const char *name_in, RTG_Variable_Node *parent_in, RTG_Variable *sib );
     bool reload_data();
+    void xrow_range(scalar_t x_min, scalar_t x_max,
+            unsigned &i_min, unsigned &i_max);
 
     static void set_default_path(const char *path_in);
     static void Incoming( char *name, unsigned long index );
@@ -129,9 +133,9 @@ class RTG_Variable_Derived : public RTG_Variable_Matrix {
     
     RTG_Variable_Derived(RTG_Variable_Data *src, const char *name_in,
         RTG_Variable_Type type_in);
+    ~RTG_Variable_Derived();
     void RemoveGraph(plot_data *graph);
     void RemoveDerived(RTG_Variable_Derived *var);
-    bool reload_data(); // needs overload, but there is a common part
     RTG_Variable_Data *Derived_From();
 };
 
@@ -140,11 +144,16 @@ class RTG_Variable_Detrend : public RTG_Variable_Derived {
     RTG_Variable_Detrend(RTG_Variable_Data *src, const char *name_in,
         RTG_Variable_Node *parent_in, RTG_Variable *sib,
         scalar_t min, scalar_t max);
-    bool reload_data(); // calls RTG_Variable_Derived::reload_data();
+    bool reload_data(); // needs overload, but there is a common part
+    bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
+    void xrow_range(scalar_t x_min, scalar_t x_max,
+            unsigned &i_min, unsigned &i_max);
     static RTG_Variable_Detrend *Create( RTG_Variable_Data *src,
             unsigned min, unsigned max );
   private:
+    std::vector<bool> detrend_required;
     scalar_t x_min, x_max;
+    unsigned i_min, i_max;
 };
 
 enum plot_obj_type { po_root, po_figure, po_pane, po_axes, po_data,
@@ -326,6 +335,7 @@ class plot_axes : public plot_obj {
     plot_axis X;
     plot_axis Y;
     std::list<plot_data*> graphs;
+    bool detrended;
     
   	plot_axes( const char *name_in, plot_pane *parent );
   	~plot_axes();
@@ -340,6 +350,7 @@ class plot_axes : public plot_obj {
   	bool render();
     plot_obj *default_child();
     bool check_for_updates(bool parent_visibility);
+    void Detrend(long value);
 };
 
 class plot_data : public plot_obj {

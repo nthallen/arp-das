@@ -157,6 +157,15 @@ void Update_Toggle(int Name, long int value, Update_Source src ) {
           PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_auto, Pt_SET);
       }
     }
+  } else if (Name == ABN_Detrend) {
+    /* This is on Tab_X and Tab_Y
+     * It refers to Current::Axes (and if selected, overlaid axises)
+     */
+    if (Current::Axes == NULL) {
+      nl_error(2,"Toggle Detrend with no Current::Axes");
+    } else {
+      Current::Axes->Detrend(value);
+    }
   } else
     nl_error( 1, "Update_Toggle(%d) not implemented", Name);
 }

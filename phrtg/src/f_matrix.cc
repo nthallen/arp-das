@@ -4,7 +4,7 @@
 #include "f_matrix.h"
 #include "nortlib.h"
 
-void f_matrix::init( int rowsz, int colsz ) {
+void f_matrix::init( unsigned rowsz, unsigned colsz ) {
   vdata = 0; mdata = 0;
   nrows = ncols = 0;
   maxrows = maxcols = 0;
@@ -25,8 +25,8 @@ f_matrix::f_matrix( char *filename, int format ) {
   nl_error( 2, "Invalid or unsupported format" );
 }
 
-void f_matrix::read_text( char *filename, int minrows ) {
-  int n_vars = 0;
+void f_matrix::read_text( char *filename, unsigned minrows ) {
+  unsigned n_vars = 0;
   FILE *fp = fopen( filename, "r" );
   if ( fp == 0 ) {
     nl_error(2, "Unable to open file %s", filename );
@@ -34,7 +34,7 @@ void f_matrix::read_text( char *filename, int minrows ) {
   }
   for (;;) {
     char buf[MYBUFSIZE], *p, *ep;
-    int i;
+    unsigned i;
 
     if ( fgets( buf, MYBUFSIZE, fp ) == 0 ) {
       fclose(fp);
@@ -69,7 +69,7 @@ void f_matrix::read_icos( FILE *fp ) {
     fclose(fp);
     return;
   }
-  check(dims[0], dims[1]);
+  setsize(dims[0], dims[1], false);
   for ( i = 0; i < dims[1]; i++ ) {
     int ne = fread( mdata[i], sizeof(scalar_t), dims[0], fp );
     if ( ne != (int) dims[0] ) {
@@ -78,8 +78,6 @@ void f_matrix::read_icos( FILE *fp ) {
       return;
     }
   }
-  nrows = dims[0];
-  ncols = dims[1];
   fclose(fp);
 }
 
@@ -88,8 +86,8 @@ void f_matrix::read_icos( const char *filename ) {
   read_icos(fp);
 }
 
-void f_matrix::check( int rowsz, int colsz ) {
-  int i;
+void f_matrix::check( unsigned rowsz, unsigned colsz, bool preserve ) {
+  unsigned i;
 
   if ( rowsz > maxrows || colsz > maxcols ) {
     matrix_t newmdata = new vector_t[colsz];
@@ -99,7 +97,7 @@ void f_matrix::check( int rowsz, int colsz ) {
     for ( i = 0; i < colsz; i++ ) {
       newmdata[i] = &newvdata[i*rowsz];
     }
-    if ( nrows != 0 && ncols != 0 ) {
+    if ( preserve && nrows != 0 && ncols != 0 ) {
       if ( nrows == maxrows && nrows == rowsz ) {
         memcpy( newvdata, vdata, nrows*ncols*sizeof(scalar_t) );
       } else {
@@ -115,4 +113,10 @@ void f_matrix::check( int rowsz, int colsz ) {
     maxrows = rowsz;
     maxcols = colsz;
   }
+}
+
+void f_matrix::setsize( unsigned nrows_in, unsigned ncols_in, bool preserve ) {
+  check(nrows_in, ncols_in, preserve);
+  nrows = nrows_in;
+  ncols = ncols_in;
 }
