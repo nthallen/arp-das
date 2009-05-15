@@ -85,6 +85,16 @@ RTG_Variable::~RTG_Variable() {
   free(name);
   name = NULL;
   if (Parent) Parent->Remove_Child(this);
+  else if (Root == this) Root = Next;
+  else {
+    RTG_Variable *var = Root;
+    for (var = Root; var != NULL; var = var->Next) {
+      if (var->Next == this) {
+        var->Next = Next;
+        break;
+      }
+    }
+  }
 }
 
 void RTG_Variable::AddSibling(RTG_Variable *newsib) {
@@ -315,20 +325,18 @@ bool RTG_Variable_Data::check_for_updates() {
 }
 
 bool RTG_Variable_Data::reload() {
-  if ( reload_required ) {
+  if ( reload_required && reload_data() ) {
     reload_required = false;
-    if ( reload_data() ) {
-      std::list<plot_data*>::const_iterator pos;
-      for (pos = graphs.begin(); pos != graphs.end(); ++pos) {
-        plot_data *graph = *pos;
-        graph->new_data = true;
-      }
-      std::list<RTG_Variable_Derived *>::const_iterator dpos;
-      for (dpos = derivatives.begin(); dpos != derivatives.end(); ++dpos) {
-        (*dpos)->reload_required = true;
-      }
-      return true;
+    std::list<plot_data*>::const_iterator pos;
+    for (pos = graphs.begin(); pos != graphs.end(); ++pos) {
+      plot_data *graph = *pos;
+      graph->new_data = true;
     }
+    std::list<RTG_Variable_Derived *>::const_iterator dpos;
+    for (dpos = derivatives.begin(); dpos != derivatives.end(); ++dpos) {
+      (*dpos)->reload_required = true;
+    }
+    return true;
   }
   if (Next) return Next->reload();
   return false;
@@ -368,24 +376,27 @@ bool RTG_Variable_Matrix::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) 
   return true;
 }
 
+vector_t RTG_Variable_Matrix::y_vector(unsigned col) {
+  nl_assert(col < ncols && col < data.ncols);
+  return data.mdata[col];
+}
+
 /* what should I do if there is no data?
  * I can set the range to [0], but we really need to mark
  * the line as invisible.
  */
 void RTG_Variable_Matrix::evaluate_range(unsigned col,
     RTG_Variable_Range &X, RTG_Variable_Range &Y) {
-  int r, r1;
+  unsigned r, r1;
   if (X.range_auto) {
-    X.min = 0;
-    X.max = nrows-1;
+    scalar_t y;
+    get(0,col,X.min,y);
+    get(nrows-1,col,X.max,y);
     X.range_required = false;
     X.range_is_current = true;
     X.range_is_empty = (nrows == 0);
   }
-  r = (X.min < 0) ? 0 : (int) ceil(X.min);
-  r1 = (X.max < 0) ? -1 : (int) floor(X.max);
-  if (r > (int)nrows) r = nrows;
-  if (r1 >= (int)nrows) r1 = nrows-1;
+  xrow_range(X.min, X.max, r, r1 );
   if (r > r1)
     X.range_is_empty = true;
   if (Y.range_auto) {
@@ -393,7 +404,7 @@ void RTG_Variable_Matrix::evaluate_range(unsigned col,
     Y.range_required = false;
     Y.range_is_current = true;
     if (!X.range_is_empty && col < ncols) {
-      vector_t Ydata = data.mdata[col];
+      vector_t Ydata = y_vector(col);
       Y.min = Y.max = Ydata[r++];
       for ( ; r <= r1; ++r ) {
         scalar_t V = Ydata[r];
@@ -452,7 +463,7 @@ void RTG_Variable_MLF::new_index( unsigned long index ) {
   if (next_index > 0 && mlf != NULL && next_index != mlf->index
       && !new_data_available) {
     new_data_available = true;
-    if (!graphs.empty())
+    if (!graphs.empty() && !derivatives.empty())
       plot_obj::setup_background();
   }
 }

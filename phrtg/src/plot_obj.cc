@@ -238,10 +238,13 @@ bool plot_obj::render_each() {
 }
 
 void plot_obj::render_one() {
+  nl_assert(!rendering);
+  rendering = true;
   if (!render_each()) {
     PtAppRemoveWorkProc(NULL, WorkProcId);
     background_set = false;
   }
+  rendering = false;
 }
 
 bool plot_obj::check_vars_for_updates() {

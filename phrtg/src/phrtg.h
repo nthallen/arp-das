@@ -91,7 +91,7 @@ class RTG_Variable_Data : public RTG_Variable {
     virtual void RemoveGraph(plot_data *graph);
     void AddDerived(RTG_Variable_Derived *var);
     virtual void RemoveDerived(RTG_Variable_Derived *var);
-    bool check_for_updates();
+    virtual bool check_for_updates();
     bool reload();
     virtual bool reload_data() = 0;
     virtual bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) = 0;
@@ -99,6 +99,7 @@ class RTG_Variable_Data : public RTG_Variable {
         RTG_Variable_Range &Y) = 0;
     virtual void xrow_range(scalar_t x_min, scalar_t x_max,
         unsigned &i_min, unsigned &i_max) = 0;
+    virtual vector_t y_vector(unsigned col) = 0;
     virtual RTG_Variable_Data *Derived_From();
 };
 
@@ -109,6 +110,7 @@ class RTG_Variable_Matrix : public RTG_Variable_Data {
     bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
     void evaluate_range(unsigned col, RTG_Variable_Range &X,
          RTG_Variable_Range &Y);
+    vector_t y_vector(unsigned col);
 };
 
 class RTG_Variable_MLF : public RTG_Variable_Matrix {
@@ -136,6 +138,7 @@ class RTG_Variable_Derived : public RTG_Variable_Matrix {
     ~RTG_Variable_Derived();
     void RemoveGraph(plot_data *graph);
     void RemoveDerived(RTG_Variable_Derived *var);
+    bool check_for_updates();
     RTG_Variable_Data *Derived_From();
 };
 
@@ -148,8 +151,10 @@ class RTG_Variable_Detrend : public RTG_Variable_Derived {
     bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
     void xrow_range(scalar_t x_min, scalar_t x_max,
             unsigned &i_min, unsigned &i_max);
+    vector_t y_vector(unsigned col);
+    void detrend(unsigned c);
     static RTG_Variable_Detrend *Create( RTG_Variable_Data *src,
-            unsigned min, unsigned max );
+            scalar_t min, scalar_t max );
   private:
     std::vector<bool> detrend_required;
     scalar_t x_min, x_max;

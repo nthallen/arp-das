@@ -32,6 +32,10 @@ void RTG_Variable_Derived::RemoveDerived(RTG_Variable_Derived *var) {
     delete this;
 }
 
+bool RTG_Variable_Derived::check_for_updates() {
+  return Source->check_for_updates() || reload_required;
+}
+
 RTG_Variable_Data *RTG_Variable_Derived::Derived_From() {
   return Source;
 }
@@ -60,30 +64,53 @@ bool RTG_Variable_Detrend::reload_data() {
 
 bool RTG_Variable_Detrend::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) {
   if ( r >= nrows || c >= ncols ) return false;
-  if ( detrend_required[c] ) {
-    scalar_t xx, y0, y1, m;
-    vector_t x = data.mdata[0];
-    vector_t v = data.mdata[c+1];
-    if (!Source->get(i_min, c, xx, y0) ||
-        !Source->get(i_max, c, xx, y1) )
-      nl_error(4, "Error in Source->get from Detrend");
-    m = nrows > 1 ? (y1-y0)/(nrows-1) : 0;
-    for (unsigned i = 0; i < nrows; i++) {
-      scalar_t y;
-      Source->get(i_min+i, c, x[i], y);
-      v[i] = y - y0;
-      y0 += m;
-    }
-    detrend_required[c] = false;
-  }
+  if ( detrend_required[c] ) detrend(c);
   X = data.mdata[0][r];
   Y = data.mdata[c+1][r];
   return true;
 }
 
+void RTG_Variable_Detrend::detrend(unsigned c) {
+  scalar_t xx, y0, y1, m;
+  vector_t x = data.mdata[0];
+  vector_t v = data.mdata[c+1];
+  if (!Source->get(i_min, c, xx, y0) ||
+      !Source->get(i_max, c, xx, y1) )
+    nl_error(4, "Error in Source->get from Detrend");
+  m = nrows > 1 ? (y1-y0)/(nrows-1) : 0;
+  for (unsigned i = 0; i < nrows; i++) {
+    scalar_t y;
+    Source->get(i_min+i, c, x[i], y);
+    v[i] = y - y0;
+    y0 += m;
+  }
+  detrend_required[c] = false;
+}
+
+vector_t RTG_Variable_Detrend::y_vector(unsigned col) {
+  nl_assert(col < ncols && col+1 < data.ncols);
+  if ( detrend_required[col] ) detrend(col);
+  return data.mdata[col+1];
+}
+
+/*
+ * Detrend maps directly onto a subset of the Source range, so
+ * we can call the source's xrow_range and offset by i_min.
+ */
 void RTG_Variable_Detrend::xrow_range(scalar_t x_min, scalar_t x_max,
         unsigned &i_min, unsigned &i_max) {
-  nl_error(2, "RTG_Variable_Detrend::xrow_range() not implemented");
+  Source->xrow_range(x_min, x_max, i_min, i_max);
+  if ( i_max > i_min ) {
+    if (i_max > this->i_max) i_max = this->i_max;
+    if (i_max < this->i_min || i_min > this->i_max) {
+      i_min = 1;
+      i_max = 0;
+    } else {
+      i_max -= this->i_min;
+      if (i_min <= this->i_min ) i_min = 0;
+      else i_min -= this->i_min;
+    }
+  }
 }
 
 /* Creates a variable named:
@@ -91,7 +118,7 @@ void RTG_Variable_Detrend::xrow_range(scalar_t x_min, scalar_t x_max,
  * Where Xn is X1, X2, ... and corresponds to possible X ranges
  */
 RTG_Variable_Detrend *RTG_Variable_Detrend::Create( RTG_Variable_Data *src,
-    unsigned min, unsigned max ) {
+    scalar_t min, scalar_t max ) {
   RTG_Variable_Detrend *dt = NULL;
   RTG_Variable_Node *parent;
   RTG_Variable *sib, *node;

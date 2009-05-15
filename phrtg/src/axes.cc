@@ -311,7 +311,7 @@ void plot_axes::Detrend(long value) {
       plot_data *graph = *pos;
       RTG_Variable_Data *var = graph->variable;
       RTG_Variable_Data *src = var->Derived_From();
-      if (src != NULL && src->type == Var_Detrend) {
+      if (src != NULL && var->type == Var_Detrend) {
         graph->variable = src;
         var->RemoveGraph(graph);
         src->AddGraph(graph);
