@@ -113,12 +113,17 @@ plot_obj *plot_data::default_child() {
 bool plot_data::check_for_updates(bool parent_visibility) {
   std::vector<plot_line*>::const_iterator pos;
   bool updates_required = false;
+  bool check_var = false;
   visible = new_visibility;
   for (pos = lines.begin(); pos != lines.end(); ++pos) {
     if ((*pos)->check_for_updates(visible && parent_visibility))
       updates_required = true;
+    if ((*pos)->effective_visibility)
+      check_var = true;
   }
-  if (updates_required || lines.empty())
-    updates_required = variable->check_for_updates();
+  if ( ( check_var ||
+         (visible && parent_visibility && lines.empty()))
+       && variable->check_for_updates())
+    updates_required = true;
   return updates_required;
 }

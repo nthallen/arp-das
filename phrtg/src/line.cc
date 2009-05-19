@@ -172,8 +172,10 @@ bool plot_line::render() {
   return true;
 }
 
-/* Return true if line is visible, and hence if we should
- * check the associated variable for updates.
+/* Return true if our visibility has changed.
+ * The graph will also check to see if we are now effectively
+ * visible for deciding whether or not to check the variable
+ * for updates. 
  * 
  *  Visibility Strategy for lines.
  * When a line is marked invisible, just move the widget off screen.
@@ -190,6 +192,7 @@ bool plot_line::render() {
 bool plot_line::check_for_updates( bool parent_visibility ) {
   std::vector<PtWidget_t*>::const_iterator pos;
   bool new_effective_visibility = new_visibility && parent_visibility;
+  bool vis_change = false;
   if (effective_visibility) {
     if ( !new_effective_visibility ) {
       // hide the widgets
@@ -199,23 +202,25 @@ bool plot_line::check_for_updates( bool parent_visibility ) {
       }
       parent->parent->X.data_range_updated = true;
       parent->parent->Y.data_range_updated = true;
+      vis_change = true;
     }
-  } else { // we have been invisible
-    if (new_data) {
+  } else if (new_effective_visibility) { // we have been invisible
+    if (new_data || redraw_required) {
       // Data has changed, no need to hold on to these
       clear_widgets();
-    } else if (new_effective_visibility) {
+    } else {
       PhPoint_t OnScreen = { 0, 0 };
       for (pos = widgets.begin(); pos != widgets.end(); ++pos ) {
         PtSetResource(*pos, Pt_ARG_POS, &OnScreen, 0);
       }
-      parent->parent->X.data_range_updated = true;
-      parent->parent->Y.data_range_updated = true;
     }
+    parent->parent->X.data_range_updated = true;
+    parent->parent->Y.data_range_updated = true;
+    vis_change = true;
   }
   visible = new_visibility;
   effective_visibility = new_effective_visibility;
-  return effective_visibility;
+  return vis_change;
 }
 
 void plot_line::Update_Line_Tab() {
