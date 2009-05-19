@@ -25,6 +25,14 @@ f_matrix::f_matrix( char *filename, int format ) {
   nl_error( 2, "Invalid or unsupported format" );
 }
 
+f_matrix::~f_matrix() {
+  if ( mdata != 0 ) delete mdata;
+  if ( vdata != 0 ) delete vdata;
+  mdata = 0;
+  vdata = 0;
+  maxrows = maxcols = 0;
+}
+
 void f_matrix::read_text( char *filename, unsigned minrows ) {
   unsigned n_vars = 0;
   FILE *fp = fopen( filename, "r" );

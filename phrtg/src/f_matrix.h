@@ -18,6 +18,7 @@ class f_matrix {
     inline f_matrix(unsigned rowsize) { init( rowsize, 1 ); }
     inline f_matrix() { init( 0, 0 ); }
     f_matrix( char *filename, int format );
+    ~f_matrix();
     void init( unsigned rowsize, unsigned colsize );
     void read_text( char *filename, unsigned minrows );
     void read_icos( FILE *fp );
