@@ -58,8 +58,16 @@ bool plot_data::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
     for ( unsigned i = 0; i < variable->ncols; ++i ) {
       lines[i]->new_data = true;
     }
+    check_range = true;
     redraw_required = true;
     new_data = false;
+  }
+  if ( check_range ) {
+    nl_assert(lines.size() >= variable->ncols);
+    for (unsigned i = 0; i < variable->ncols; ++i ) {
+      lines[i]->check_range = true;
+    }
+    check_range = false;
   }
   if (this == Current::Graph && Current::Line == NULL && Current::Tab == Tab_Line)
     PtSetResource(ABW_ConsoleGroup, Pt_ARG_PG_CURRENT, "Graphs", 0);
@@ -98,7 +106,9 @@ plot_obj *plot_data::default_child() {
 }
 
 /* Visibility Strategy:
- * Basically leave it up to the lines.
+ *   Basically leave it up to the lines.
+ * Update Strategy:
+ *   Only check variables if lines are visible.
  */
 bool plot_data::check_for_updates(bool parent_visibility) {
   std::vector<plot_line*>::const_iterator pos;
@@ -108,5 +118,7 @@ bool plot_data::check_for_updates(bool parent_visibility) {
     if ((*pos)->check_for_updates(visible && parent_visibility))
       updates_required = true;
   }
-  return variable->check_for_updates() || updates_required;
+  if (updates_required || lines.empty())
+    updates_required = variable->check_for_updates();
+  return updates_required;
 }

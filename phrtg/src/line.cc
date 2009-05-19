@@ -76,6 +76,12 @@ bool plot_line::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
   if ( ! visible ) return false;
   plot_axes *ax = parent->parent;
   if (new_data) {
+    new_data = false;
+    redraw_required = true;
+    check_range = true;
+  }
+  if (check_range) {
+    check_range = false;
     if (ax->X.limits.range_auto) {
       Xrange.range_required = true;
       Xrange.range_auto = true;
@@ -88,8 +94,6 @@ bool plot_line::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
       Yrange.range_is_current = false;
       Yrange.range_is_empty = true;
     } else Yrange = ax->Y.limits;
-    new_data = false;
-    redraw_required = true;
     if (Xrange.range_required || Yrange.range_required) {
       parent->variable->evaluate_range(column, Xrange, Yrange);
       if (Xrange.range_auto)
@@ -160,10 +164,18 @@ bool plot_line::render() {
       PtRealizeWidget(widgets.back());
     }
   }
+  while (wn < widgets.size()) {
+    PtWidget_t *last = widgets.back();
+    if (last != NULL) PtDestroyWidget(last);
+    widgets.pop_back();
+  }
   return true;
 }
 
-/* Visibility Strategy for lines.
+/* Return true if line is visible, and hence if we should
+ * check the associated variable for updates.
+ * 
+ *  Visibility Strategy for lines.
  * When a line is marked invisible, just move the widget off screen.
  * That way, if it is marked visible, it can be moved back onscreen
  * quickly. If new data arrives, there is no longer any value in
@@ -178,32 +190,32 @@ bool plot_line::render() {
 bool plot_line::check_for_updates( bool parent_visibility ) {
   std::vector<PtWidget_t*>::const_iterator pos;
   bool new_effective_visibility = new_visibility && parent_visibility;
-  bool updates_required = new_effective_visibility && new_data;
-  if ( effective_visibility && !new_effective_visibility ) {
-    // hide the widgets
-    PhPoint_t OffScreen = { -30000, 0 };
-    for (pos = widgets.begin(); pos != widgets.end(); ++pos ) {
-      PtSetResource(*pos, Pt_ARG_POS, &OffScreen, 0);
+  if (effective_visibility) {
+    if ( !new_effective_visibility ) {
+      // hide the widgets
+      PhPoint_t OffScreen = { -30000, 0 };
+      for (pos = widgets.begin(); pos != widgets.end(); ++pos ) {
+        PtSetResource(*pos, Pt_ARG_POS, &OffScreen, 0);
+      }
+      parent->parent->X.data_range_updated = true;
+      parent->parent->Y.data_range_updated = true;
     }
-    parent->parent->X.data_range_updated = true;
-    parent->parent->Y.data_range_updated = true;
-    updates_required = true;
-  } else if ( !effective_visibility && new_effective_visibility ) {
-    PhPoint_t OnScreen = { 0, 0 };
-    for (pos = widgets.begin(); pos != widgets.end(); ++pos ) {
-      PtSetResource(*pos, Pt_ARG_POS, &OnScreen, 0);
+  } else { // we have been invisible
+    if (new_data) {
+      // Data has changed, no need to hold on to these
+      clear_widgets();
+    } else if (new_effective_visibility) {
+      PhPoint_t OnScreen = { 0, 0 };
+      for (pos = widgets.begin(); pos != widgets.end(); ++pos ) {
+        PtSetResource(*pos, Pt_ARG_POS, &OnScreen, 0);
+      }
+      parent->parent->X.data_range_updated = true;
+      parent->parent->Y.data_range_updated = true;
     }
-    parent->parent->X.data_range_updated = true;
-    parent->parent->Y.data_range_updated = true;
-    updates_required = true;
   }
   visible = new_visibility;
   effective_visibility = new_effective_visibility;
-  if (!effective_visibility && new_data) {
-    // Data has changed, no need to hold on to these
-    clear_widgets();
-  }
-  return updates_required;
+  return effective_visibility;
 }
 
 void plot_line::Update_Line_Tab() {

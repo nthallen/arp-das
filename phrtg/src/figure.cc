@@ -305,7 +305,7 @@ int plot_figure::divider_resized( PtWidget_t *widget, ApInfo_t *apinfo,
   plot_figure *fig;
   PtGetResource(widget, Pt_ARG_POINTER, &fig, 0);
   int rv = fig->resized(&cb->old_dim, &cb->new_dim, 0);
-  plot_obj::render_all();
+  plot_obj::render_one();
   return rv;
 }
 
@@ -453,7 +453,7 @@ int plot_figure::divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
     		  pane->resized(&pane_dim);
   		  }
   		}
-	    plot_obj::render_all();
+	    plot_obj::render_one();
 	    break;
 	  case Ph_EV_DRAG_MOVE:
 	    break; // expected and may be interesting

@@ -463,8 +463,9 @@ void RTG_Variable_MLF::new_index( unsigned long index ) {
   if (next_index > 0 && mlf != NULL && next_index != mlf->index
       && !new_data_available) {
     new_data_available = true;
-    if (!graphs.empty() && !derivatives.empty())
-      plot_obj::setup_background();
+    plot_obj::render_one();
+    //if (!graphs.empty() && !derivatives.empty())
+    //  plot_obj::setup_background();
   }
 }
 

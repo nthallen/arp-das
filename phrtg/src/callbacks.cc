@@ -106,6 +106,10 @@ static void apply_limits() {
     nl_error(2, "apply_limits() when Current::Axis == NULL");
     return;
   }
+  if ( Current::Axes == NULL ) {
+    nl_error(2, "apply_limits() when Current::Axes == NULL");
+    return;
+  }
   if ( Current::Axis->limits.range_auto ) {
     nl_error(2, "apply_limits() while limits are auto");
     return;
@@ -114,6 +118,7 @@ static void apply_limits() {
   PtGetResource(ABW_Limit_Min, Pt_ARG_NUMERIC_VALUE, &minp, 0);
   PtGetResource(ABW_Limit_Max, Pt_ARG_NUMERIC_VALUE, &maxp, 0);
   Current::Axis->set_scale(*minp, *maxp);
+  Current::Axes->schedule_range_check();
   nl_error(-2, "Updated %s axis limits to (%.2f,%.2f)",
       Current::Axis->XY == Axis_X ? "X" : "Y",
       Current::Axis->limits.min, Current::Axis->limits.max);
@@ -138,12 +143,15 @@ void Update_Toggle(int Name, long int value, Update_Source src ) {
      * Turning auto off should not require any updates, but
      * turning it on will.
      */
-    if (Current::Axis == NULL) {
-      nl_error(2,"Toggle Auto_Scale with no Current::Axis");
+    if (Current::Axis == NULL || Current::Axes == NULL) {
+      nl_error(2,"Toggle Auto_Scale with no Current::Axis or Axes");
     } else {
       Current::Axis->limits.range_auto = value;
-      if ( value )
-        Current::Axis->axis_range_updated = true;
+      if ( value ) {
+        // Current::Axis->axis_range_updated = true;
+        Current::Axes->schedule_range_check();
+        Current::Axis->range.clear();
+      }
       if ((Current::Axis->XY == Axis_X && Current::Tab == Tab_X)
         || (Current::Axis->XY == Axis_Y && Current::Tab == Tab_Y)) {
         long is_auto = value ? Pt_TRUE : Pt_FALSE;
@@ -175,7 +183,7 @@ int Toggle_Activate( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbi
   /* eliminate 'unreferenced' warnings */
 	apinfo = apinfo;
 	Update_Toggle(ApName(widget), cb->value, from_widget);
-  plot_obj::render_all();
+  plot_obj::render_one();
 	return( Pt_CONTINUE );
 }
 
@@ -208,7 +216,7 @@ int Numeric_Changed( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbi
   /* eliminate 'unreferenced' warnings */
 	apinfo = apinfo;
 	Update_Numeric(ApName(widget), cb->numeric_value, from_widget);
-  plot_obj::render_all();
+  plot_obj::render_one();
 	return( Pt_CONTINUE );
 }
 

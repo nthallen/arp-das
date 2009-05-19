@@ -142,7 +142,7 @@ int plot_obj::menu_ToggleVisible( PtWidget_t *widget, ApInfo_t *apinfo,
   nl_assert(Current::Menu_obj != NULL);
   nl_error(-2,"plot_obj: ToggleVisible %s:%s", Current::Menu_obj->name, Current::Menu_obj->typetext());
   Current::Menu_obj->new_visibility = !Current::Menu_obj->visible;
-  plot_obj::render_all();
+  plot_obj::render_one();
   // Current::Menu_obj = NULL;
   return( Pt_CONTINUE );
 }
@@ -155,7 +155,7 @@ int plot_obj::menu_Delete( PtWidget_t *widget, ApInfo_t *apinfo,
   nl_error(-2,"plot_obj: Delete %s:%s", Current::Menu_obj->name, Current::Menu_obj->typetext());
   delete Current::Menu_obj;
   Current::Menu_obj = NULL;
-  plot_obj::render_all();
+  plot_obj::render_one();
   return Pt_CONTINUE;
 }
 
@@ -240,7 +240,12 @@ bool plot_obj::render_each() {
 void plot_obj::render_one() {
   nl_assert(!rendering);
   rendering = true;
-  if (!render_each()) {
+  if (render_each()) {
+    if (!background_set) {
+      WorkProcId = PtAppAddWorkProc( NULL, WorkProc, NULL );
+      background_set = true;
+    }
+  } else if (background_set) {
     PtAppRemoveWorkProc(NULL, WorkProcId);
     background_set = false;
   }

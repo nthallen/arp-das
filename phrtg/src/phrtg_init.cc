@@ -192,7 +192,7 @@ int menu_graph_curaxes( PtWidget_t *widget, ApInfo_t *apinfo,
   	  plot_data *graph =
   	    Current::Axes->CreateGraph(Current::Variable);
   	  graph->got_focus(focus_from_user);
-  	  plot_obj::render_all();
+  	  plot_obj::render_one();
     } else nl_error(2, "No Current Variable defined");
   } else {
     nl_error(-2, "m_g_curaxes: No Current axes: calling m_g_overlay");
@@ -207,7 +207,7 @@ int menu_graph_overlay( PtWidget_t *widget, ApInfo_t *apinfo,
     if (Current::Variable != NULL) {
       plot_axes *ax = Current::Pane->CreateGraph(Current::Variable);
       ax->got_focus(focus_from_user);
-      plot_obj::render_all();
+      plot_obj::render_one();
     } else nl_error(2, "No current variable defined");
   } else {
   	nl_error(-2,"m_g_overlay: no current pane, calling m_g_newpane");
@@ -224,7 +224,7 @@ int menu_graph_newpane( PtWidget_t *widget, ApInfo_t *apinfo,
       // Current::Figure->CreateGraph(Current::Variable);
   	  plot_pane *pane = Current::Figure->CreateGraph(Current::Variable);
   	  pane->got_focus(focus_from_user);
-  	  plot_obj::render_all();
+  	  plot_obj::render_one();
   	} else nl_error( 2, "No Current Variable defined");
   } else {
   	nl_error(-2, "m_g_newpane: No current figure, calling m_g_newwin");
@@ -242,7 +242,7 @@ int menu_graph_newwin( PtWidget_t *widget, ApInfo_t *apinfo,
     plot_figure *fig = new plot_figure(name);
     fig->CreateGraph(Current::Variable);
     fig->got_focus(focus_from_user);
-    plot_obj::render_all();
+    plot_obj::render_one();
   } else nl_error(2, "No current variable defined");
   return Pt_CONTINUE;
 }

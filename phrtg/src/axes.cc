@@ -43,7 +43,13 @@ void plot_axis::check_limits() {
 void plot_axis::set_scale() {
   if ( limits.max != limits.min ) {
     scalev = pixels/(limits.max-limits.min);
-  } else scalev = 0;
+    clip_max = limits.min + 20000/scalev;
+    clip_min = limits.min - 20000/scalev;
+  } else {
+    clip_max = limits.min + 1;
+    clip_min = limits.min - 1;
+    scalev = 0;
+  }
   axis_limits_updated = true;
 }
 
@@ -61,6 +67,8 @@ void plot_axis::set_scale(double min, double max) {
 }
 
 short plot_axis::evaluate(scalar_t val) {
+  if (val > clip_max) val = clip_max;
+  else if (val < clip_min) val = clip_min;
   int rv = int((val-limits.min)*scalev);
   if ( reverse xor reverse_dim )
     rv = pixels - rv;
@@ -278,6 +286,14 @@ bool plot_axes::check_for_updates(bool parent_visibility) {
   return updates_required;
 }
 
+void plot_axes::schedule_range_check() {
+  std::list<plot_data*>::const_iterator pos;
+  for (pos = graphs.begin(); pos != graphs.end(); pos++) {
+    plot_data *graph = *pos;
+    graph->check_range = true;
+  }
+}
+
 /* ax->Detrend(value);
  * If value is non-zero, we walk through the graphs in these axes
  * and detrend each one using the current x-limits.
@@ -316,6 +332,7 @@ void plot_axes::Detrend(long value) {
         var->RemoveGraph(graph);
         src->AddGraph(graph);
       }
+      graph->new_data = true;
     }
   }
 }

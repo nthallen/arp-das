@@ -314,6 +314,8 @@ class plot_axis {
   	RTG_Variable_Range limits;
   	int pixels;
   	float scalev;
+  	float clip_max;
+  	float clip_min;
       // *Axis color: color
       // *Axis Tick Label Style: *use defaults for now
       // *Axis Label Style: *use defaults for now
@@ -355,6 +357,7 @@ class plot_axes : public plot_obj {
   	bool render();
     plot_obj *default_child();
     bool check_for_updates(bool parent_visibility);
+    void schedule_range_check();
     void Detrend(long value);
 };
 
@@ -363,6 +366,7 @@ class plot_data : public plot_obj {
     bool new_data;
     bool axes_rescaled;
     bool redraw_required;
+    bool check_range;
     plot_axes *parent;
     RTG_Variable_Data *variable;
     std::vector<plot_line*> lines;
@@ -380,6 +384,7 @@ class plot_line : public plot_obj {
   public:
     bool new_data;
     bool redraw_required;
+    bool check_range;
     bool effective_visibility;
     plot_data *parent;
     int column;
