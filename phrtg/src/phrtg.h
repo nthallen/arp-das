@@ -322,6 +322,7 @@ class plot_axis {
   	int major_tick_len; // positive outward, negative inward
   	int minor_tick_len;
   	int label_height; // same units has *_tick_len.
+  	static const int pane_overage;
 
   	plot_axis();
   	void check_limits();

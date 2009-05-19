@@ -7,6 +7,8 @@
 #include "abimport.h"
 #include "nl_assert.h"
 
+const int plot_axis::pane_overage = 5;
+
 plot_axis::plot_axis() {
   XY = Axis_X;
   reverse_dim = false;
@@ -54,8 +56,8 @@ void plot_axis::set_scale() {
 }
 
 void plot_axis::set_scale(int pixel_span) {
-  if (pixels != pixel_span) {
-    pixels = pixel_span;
+  if (pixels != pixel_span-pane_overage) {
+    pixels = pixel_span-pane_overage;
     set_scale();
   }
 }
