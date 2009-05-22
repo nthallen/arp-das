@@ -1,0 +1,20 @@
+#! /bin/sh
+
+# mkinps
+# Run this in /home/tilde. It should generate .inp files for all extractions
+# for all versions under bin. .inps will be stored in anal/$VERSION/*.inp
+function nl_error {
+  echo mkinps: $* >&2
+  exit 1
+}
+
+[ -d bin ] || nl_error "No bin dir"
+versions=`ls bin`
+for ver in versions; do
+  if [ -d "bin/$ver" ]; then
+    [ -d "anal/$ver" ] || mkdir anal/$ver || nl_error Unable to mkdir anal/$ver
+    cd anal/$ver
+    mkinp ~-/bin/$ver/*ext
+    cd -
+  fi
+done
