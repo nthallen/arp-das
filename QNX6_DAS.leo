@@ -2,8 +2,8 @@
 <?xml-stylesheet ekr_test?>
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
-<globals body_outline_ratio="0.301857585139">
-	<global_window_position top="10" left="10" height="646" width="901"/>
+<globals body_outline_ratio="0.359133126935">
+	<global_window_position top="19" left="41" height="646" width="901"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
@@ -15,7 +15,8 @@
 <v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
-<v t="ntallen.20080702140151"><vh>Update to Trinity 2M7 Build</vh></v>
+<v t="ntallen.20090225110248"><vh>Install 6.4.0</vh></v>
+<v t="ntallen.20090505113338"><vh>Flight System Configuration</vh></v>
 </v>
 <v t="ntallen.20070815151915.1"><vh>Command</vh></v>
 <v t="ntallen.20080516115802"><vh>memo</vh></v>
@@ -35,9 +36,11 @@
 <v t="ntallen.20080627131220.4"><vh>pkgsrc</vh></v>
 </v>
 </v>
-<v t="ntallen.20070815151915.3"><vh>Lessons</vh></v>
+<v t="ntallen.20070815151915.3" a="E"><vh>Lessons</vh>
+<v t="ntallen.20090430131154"><vh>Linking Problem: 090430</vh></v>
+</v>
 <v t="ntallen.20070409132623"><vh>PR</vh>
-<v t="ntallen.20070409133739" a="E"><vh>Operation</vh>
+<v t="ntallen.20070409133739"><vh>Operation</vh>
 <v t="ntallen.20070409133739.1"><vh>Configurations</vh>
 <v t="ntallen.20070409132623.1"><vh>Full Up with GSE</vh></v>
 <v t="ntallen.20070409132623.2"><vh>Flight Mode</vh></v>
@@ -55,7 +58,7 @@
 </v>
 <v t="ntallen.20070409133739.3"><vh>Implementation</vh></v>
 </v>
-<v t="ntallen.20070413134915"><vh>QNX Development Issues</vh>
+<v t="ntallen.20070413134915" a="E"><vh>QNX Development Issues</vh>
 <v t="ntallen.20070425144317"><vh>Handling more than one executable per project</vh></v>
 <v t="ntallen.20070413134915.1"><vh>Development Strategy</vh>
 <v t="ntallen.20070425144317.1" a="E"><vh>cmdgen</vh>
@@ -307,17 +310,55 @@
 </v>
 </v>
 <v t="ntallen.20070404221945.3" a="E"><vh>Graphics</vh>
-<v t="ntallen.20090203160910" a="E"><vh>plot</vh>
-<v t="ntallen.20090211110324"><vh>Todo</vh>
+<v t="ntallen.20090203160910" a="E"><vh>PhRTG</vh>
+<v t="ntallen.20090316133552" a="E"><vh>Bugs</vh>
+<v t="ntallen.20090422104622"><vh>Marking line visible does not redraw...</vh></v>
+<v t="ntallen.20090316133552.1"><vh>Resolved: Divider Issue</vh></v>
+</v>
+<v t="ntallen.20090211110324" a="E"><vh>Todo</vh>
+<v t="ntallen.20090508182157" a="E"><vh>Derived</vh>
+<v t="ntallen.20090514103050"><vh>X Units</vh></v>
+<v t="ntallen.20090508132540"><vh>Detrend</vh></v>
+<v t="ntallen.20090508132540.2"><vh>FFT</vh></v>
+</v>
+<v t="ntallen.20090508132540.1"><vh>~RTG_Variable</vh></v>
+<v t="ntallen.20090429153442"><vh>Deleting a Graph should flag a change in range</vh></v>
+<v t="ntallen.20090422102356.2"><vh>Figure out how palette works</vh></v>
+<v t="ntallen.20090227133851"><vh>Data Feed</vh></v>
+<v t="ntallen.20090302125256"><vh>Warnings</vh></v>
+<v t="ntallen.20090422102356.1"><vh>Done: Remove Pane from PhAB module</vh></v>
+<v t="ntallen.20090429153442.1"><vh>Done: Adding a graph switches away from Line Tab</vh></v>
+<v t="ntallen.20090428171747"><vh>Done: Provide reasonable defaults for current_child</vh></v>
 <v t="ntallen.20090211110418.1"><vh>Drag and Drop test programs</vh></v>
+<v t="ntallen.20090325170837"><vh>Done: Keep for Reference: plot_obj destructors</vh></v>
+<v t="ntallen.20090331140856.1"><vh>Done? Consider get_focus changes</vh></v>
 <v t="ntallen.20090211110324.1"><vh>Done: PtDivider test program</vh></v>
+</v>
+<v t="ntallen.20090323135341.1" a="E"><vh>Done</vh>
+<v t="ntallen.20090422110349"><vh>Done: Service dialog callbacks</vh></v>
+<v t="ntallen.20090429164601"><vh>Done: Eliminate or downgrade most nl_error outputs</vh></v>
+<v t="ntallen.20090429164601.1"><vh>Done: Try to compile on 6.3.2</vh></v>
+<v t="ntallen.20090430095233"><vh>Done: Create a realtime test</vh></v>
 <v t="ntallen.20090211110418"><vh>Done: PtTree test program</vh></v>
+<v t="ntallen.20090323135341"><vh>Done: Window Tree</vh></v>
+<v t="ntallen.20090316133552.2"><vh>Done: Pane handling</vh>
+<v t="ntallen.20090505142020" a="E"><vh>Figure</vh>
+<v t="ntallen.20090505142020.1" a="E"><vh>PtOSContainer</vh>
+<v t="ntallen.20090505142020.2"><vh>Figure_Div</vh></v>
+</v>
+</v>
+</v>
 </v>
 <v t="ntallen.20090203160910.1" a="E"><vh>Object hierarchy</vh>
+<v t="ntallen.20090514140929"><vh>Rendering flags</vh></v>
+<v t="ntallen.20090515141753"><vh>Rendering drill</vh></v>
+<v t="ntallen.20090401102408.1"><vh>plot_obj</vh></v>
 <v t="ntallen.20090218163512" a="E"><vh>Variable</vh>
 <v t="ntallen.20090204093154"><vh>Data Feed</vh></v>
+<v t="ntallen.20090226163758"><vh>Operation</vh></v>
+<v t="ntallen.20090403102636"><vh>Trends</vh></v>
 </v>
-<v t="ntallen.20090218164400"><vh>Figure Window</vh>
+<v t="ntallen.20090218164400" a="E"><vh>Figure Window</vh>
 <v t="ntallen.20090219084511"><vh>Figure Properties</vh></v>
 </v>
 <v t="ntallen.20090219084511.1"><vh>Window Pane</vh>
@@ -327,15 +368,28 @@
 <v t="ntallen.20090203160910.2"><vh>Axes scenarios</vh></v>
 <v t="ntallen.20090219084511.3"><vh>Axis properties</vh></v>
 </v>
-<v t="ntallen.20090218163512.1"><vh>Data</vh>
+<v t="ntallen.20090218163512.1" a="E"><vh>Data</vh>
 <v t="ntallen.20090219084511.4"><vh>Data Properties</vh></v>
 </v>
 <v t="ntallen.20090218164400.1"><vh>Line</vh>
 <v t="ntallen.20090219084511.5"><vh>Line Properties</vh></v>
 </v>
 </v>
-<v t="ntallen.20090203162108.1"><vh>Photon Issues</vh>
+<v t="ntallen.20090203162108.1" a="E"><vh>Photon Issues</vh>
+<v t="ntallen.20090227092327"><vh>Command Line Options</vh></v>
+<v t="ntallen.20090227131711"><vh>Cleanup</vh></v>
 <v t="ntallen.20090204093154"><vh>Data Feed</vh></v>
+<v t="ntallen.20090331165341"><vh>Rendering</vh>
+<v t="ntallen.20090401155216"><vh>Root</vh></v>
+<v t="ntallen.20090403102636.1"><vh>Variables</vh></v>
+<v t="ntallen.20090331165341.1"><vh>Window</vh></v>
+<v t="ntallen.20090331165341.2"><vh>Pane</vh></v>
+<v t="ntallen.20090331165341.3"><vh>Axes</vh></v>
+<v t="ntallen.20090331165341.4"><vh>Graph</vh></v>
+<v t="ntallen.20090331165341.5"><vh>Line</vh></v>
+</v>
+<v t="ntallen.20090413114310"><vh>Visibility Changes</vh></v>
+<v t="ntallen.20090519153418" a="TV"><vh>Building on 6.3.2</vh></v>
 </v>
 <v t="ntallen.20090210131028" a="E"><vh>UI</vh>
 <v t="ntallen.20090210131028.1" a="E"><vh>Windows</vh>
@@ -358,13 +412,13 @@
 <v t="ntallen.20090219084511.4"><vh>Data Properties</vh></v>
 </v>
 </v>
-<v t="ntallen.20090219085744.1" a="ETV"><vh>Line Properties</vh>
+<v t="ntallen.20090219085744.1" a="E"><vh>Line Properties</vh>
 <v t="ntallen.20090219084511.5"><vh>Line Properties</vh></v>
 </v>
 </v>
 <v t="ntallen.20090210131028.2" a="E"><vh>GraphWindow</vh></v>
 </v>
-<v t="ntallen.20090210131028.4"><vh>Operations</vh>
+<v t="ntallen.20090210131028.4" a="E"><vh>Operations</vh>
 <v t="ntallen.20090210131028.5"><vh>Startup</vh></v>
 <v t="ntallen.20090210131028.6"><vh>Define a variable</vh></v>
 <v t="ntallen.20090210131028.7"><vh>Create a new Graph Window</vh></v>
@@ -1186,23 +1240,18 @@ decision can be made on the first write.
 tmlib has appropriate functions to generate a cmdsrvr
   I *think* tmlib has functional cmd client functions (command senders)
 tmphlib has functions to support a keyboard client
-
-DG is first command receiver. Currently implemented directly in modules in QNX6/DGdev, but will be moved into tmlib soon.
-
-May want to add general library routines for receiving commands.
-
-All of these require appgen support
+appgen supports building
 
 
 </t>
 <t tx="ntallen.20070815151915.2">TMbfr is operational. Will need further work to support memo, additional data formats
 tmc is functional.
-DG_data.cc: Need to fully implement TM 'Receive'
-lgr: Need to write it
-rdr: Need to write it
-ssp: Need to test it
-qcli: Need to write it
-subbus: Need to write it
+DG_data.cc: done
+lgr: done
+rdr: Needs more options
+ssp: done
+qcli: done
+subbus: done
 </t>
 <t tx="ntallen.20070815151915.3">For setuid root, need to link with -rpath to find .so in /usr/local/lib:
     LDFLAGS=-Wl,-rpath -Wl,/usr/local/lib
@@ -1537,7 +1586,6 @@ I used it to build a lot of tools after latest install (see Install above)</t>
 Any module or object that needs to be part of the main event loop (and ultimately that means any useful part of the program!) needs to hook into the dispatch handle using message_attach(), pulse_attach(), resmgr_attach() or select_attach(). In order to have an orderly shutdown, these objects also need to hook into the quit processing.
 
 A DG_dispatch_client will provide this functionality. When the application is ready to quit (end of input, quit request received, etc.) a quit request is sent to the DG_dispatch object. It will pass the request on to each of its clients until it has no more clients, at which point, it will break out of the event loop and terminate.</t>
-<t tx="ntallen.20080702140151"></t>
 <t tx="ntallen.20080707135523">Standard oui processing, including initialization hooks
 Initialize the interfaces
   needs some sort of hook for adding driver interfaces
@@ -2096,7 +2144,7 @@ When doit runs, we may expect to find the experiment in any one of several state
 The basic doit commands are:
     not: shut down a transitional tree, otherwise do nothing
     start: start up a new experiment tree and client functionality
-    stop: execute an orderly shutdown of a running experiment
+    stop: execute an orderly shutdown of an operational experiment
     wait: start up client functionality only after locating an existing experiment tree
 
 not:
@@ -2110,7 +2158,9 @@ start:
     switch (state)
       Idle:
           take action to start up right
-          start up flight.sh
+          start up flight.sh:
+              If system is running photon, then pterm is probably the trick
+              else try some flavor of 'on'
           start client stuff
       Transitional:
           complain and die
@@ -2238,30 +2288,11 @@ What needs to be done in order to redraw?
 <t tx="ntallen.20090204093154">Take 2:
     Data feed defines a variable, not any graphics.
     We may use drag &amp; drop to establish certain data feeds, particularly for trend plots, but for right now and SSP, I will read from the standard command interface. Command format could be:
-        Var SSP1 MLF &lt;path&gt; &lt;n&gt;
+        MLF_File &lt;varname&gt; &lt;path&gt; &lt;n&gt;
     The window configuration, etc. is handled interactively and/or via a configuration file.
 
-Take 1:
-Need to define a data stream syntax. For starters, I will go with lines of the format:
-    'FILE' &lt;path&gt; '#' &lt;number&gt;
-To indicate that the specified file should be read and displayed.
-
-OK, this is crude. This assumes a single figure with a single set of axes, but the general case is more complicated.
-I think what we want to do is to define data sets or variables, associate those data sets with specific graphs,
-then provide commands to modify the data sets.
-
-&lt;variable name="SSP1" source="SSP1#17" /&gt;
-&lt;figure name="F"&gt;
-  &lt;axes&gt;
-    &lt;plot variable="SSP1"/&gt;
-  &lt;/axes&gt;
-&lt;/figure&gt;
-&lt;variable name="SSP1" source="SSP1#18" /&gt;
-&lt;variable name="P" append_value="1777777, 760" /&gt;
-
-Probably a good idea. I could either use libxml2, libexpat or XSD/e to process the input.
-
-That said, for the immediate need, making the assumption of one figure and one pair of axes is OK.</t>
+    http://www.qnx.com/developers/docs/6.3.2/photon/prog_guide/ipc.html#OtherIOMechanisms
+</t>
 <t tx="ntallen.20090210131028"></t>
 <t tx="ntallen.20090210131028.1">On startup, open the console window:
     Empty Variables and Windows trees
@@ -2306,7 +2337,10 @@ Pt_CB_PG_PANEL_SWITCHING
   Update new panel with current selection values
   Prevent switching to panels that are not relevant
 Pt_ARG_PG_FLAGS-&gt;Pt_PG_DND
-  Allow dragging panels to new windows! Love it.
+  Allow dragging panels to new windows! Love it. A little buggy. Should probably
+  submit a note to the forums. If I drag a tab within the current PanelGroup, it
+  sometimes disappears. As such, I might need to provide a View menu to
+  re-enable the missing dialogs.
 
 Keep track of current variable
 Use menu to select where a new graph goes
@@ -2350,7 +2384,7 @@ Also can override the color scheme so these items don't change when selected
   and properties requests
 </t>
 <t tx="ntallen.20090210131028.4"></t>
-<t tx="ntallen.20090210131028.5">On startup without preconfiguration, the console and one graph window will open. The graph will include a single pair of axes, but no data plotted. The console will show that hierarchy and presumably no variables.
+<t tx="ntallen.20090210131028.5">On startup without preconfiguration, the console will open.
 
 If an existing configuration is stored, it will be read in, and the necessary graphs will be created.
 </t>
@@ -2447,6 +2481,67 @@ We can have display options for unix time such as:
 
 Will need a list of Data objects that reference this variable. When
 the data changes, the Data objects need to be notified.
+
+Variables will be stored in a hierarchical structure mirroring the tree structure in the Variables Window
+There will be a virtual base class RTG_Variable which will define what is necessary for that structure.
+sub classes will include:
+    RTG_Variable_Node: hierarchical element with no data but children
+    RTG_Variable_Data: a node that includes data 
+    RTG_Variable_MLF: MLF-File data
+    RTG_Variable_Trend: Trend Data
+
+It *may* be useful to derive from the RTG_plot_obj class, but probably not.
+The root of the variable structure will be an RTG_Variable_Node
+
+RTG_Variable_Data should include a list of Data plot objects that link to his variable
+  It should also include a list of RTG_Variable_Data objects derived from this object
+  (e.g. FFT)
+
+#include &lt;photon/PtTree.h&gt;
+#include &lt;list&gt;
+
+class RTG_Variable {
+  public:
+    RTG_Variable(char *name);
+    ~RTG_Variable();
+    virtual int is_leaf();
+  protected:
+    RTG_Variable *Parent;
+    char *name;
+    PtTreeItem_t *TreeItem;
+};
+
+class RTG_Variable_Node : public RTG_Variable {
+  public:
+    RTG_Variable_Node(char *name);
+    ~RTG_Variable_Node();
+    int is_leaf() { return 0; }
+    Add_Child(RTG_Variable *child);
+  private:
+    RTG_Variable *First;
+    RTG_Variable *Next;
+};
+
+class RTG_Variable_Data : public RTG_Variable {
+  public:
+    int is_leaf() { return 1; }
+}
+
+class RTG_Variable_MLF : public RTG_Variable_Data {
+  public:
+    RTG_Variable_MLF( char *name, char *path );
+};
+
+int RTG_Variable::Find_Insert( const char *name, RTG_Variable *parent&amp;, RTG_Variable *sib&amp;, RTG_Variable *node&amp;, char *lastnode_text&amp; );
+    Checks name for length and syntax
+    Searches the tree and inserts internal nodes as necessary, but does not insert the leaf node,
+      since that is type-dependent.
+    Returns success if the named variable already exists (node points to existing variable) or if
+      it can be inserted as the first child of parent (sib is NULL) or the sibling of sib.
+    Will fail if:
+        Name is invalid (invalid characters in nodes, length limits exceeded)
+        An internal node of name conflicts with an existing variable
+        The variable name conflicts with an existing internal node
 </t>
 <t tx="ntallen.20090218163512.1">Data associates variable data with axes.
 The prototype implementation stores the data in the line object.
@@ -2501,7 +2596,7 @@ Pane Properties:
 *May never want to display pane title on the graph</t>
 <t tx="ntallen.20090219084511.3">
 Axes Properties:
-    Axes_Name: String Just for graphs tab. Default to first variable name
+    Axes_Name: String Just for graphs tab. Default to first variable name. Part of plot_obj base
     Axes_Visible: Boolean
 
 Axis Properties:
@@ -2578,6 +2673,9 @@ Options:
     graph current variable on selected axes
     Drag and Drop:
         Use ctrl, alt, shift on drop to indicate what to do?
+    
+    Once I define all the data types and have a Cur_Window, Cur_Axes, Cur_Pane, etc.,
+    I will need a menu setup function to decide which menu items to enable.
 
   Zoom
     on Excl_Toggle
@@ -2692,6 +2790,615 @@ Data Properties: These should probably only apply to the y-axis
 How does dnd work for lists?
 Can I drag a list item to another app?
     I think what I'll need to do is create a widget that will be the actual drag item
+</t>
+<t tx="ntallen.20090225110248">How is hostname handled? In /etc/net.cfg (usually via the network config tool)
+/etc/system/sysinit also looks in /etc/HOSTNAME
+
+Following pkgsrc instruction to install openssh
+http://community.qnx.com/sf/wiki/do/viewPage/projects.pkgsrc/wiki/BinaryPackages
+
+downloaded pkgsrc bootstrap bootstrap.tar.gz and installed
+
+Installed:
+    openssh
+    sudo
+    autoconf
+      m4
+      perl_5.8.8
+    automake
+    libtool (complaints about installing libtool-info
+      libtool-base
+      libiconv
+      gettext-lib
+    gtexinfo
+    libtool-info
+    
+    nortutil
+    nortlib
+    cmdgen
+    oui
+    QNX6/tmlib   (TM library)
+    QNX6/tmphlib (need for display programs and keyboard client programs)
+    QNX6/tmpplib (C++ interface for TM) Need to eliminate CXX=cc spec
+    QNX6/displib (needed for display programs generated via phtable) eliminate CXX=cc spec
+    QNX6/tmutil
+    QNX6/memo
+
+    *QNX6/tmc
+    *QNX6/lgr
+    *QNX6/rdr
+    *QNX6/tmcalgo
+    *QNX6/qcliutil
+    *snafu
+
+    eli compiler tools (required for table, qclicomp?)
+    
+    *table
+    *qclicomp (or qclicompsrc?)
+
+    Try installing Leo, what the heck!    </t>
+<t tx="ntallen.20090226163758">Upon receiving the following for the first time:
+    MLF_File &lt;varname&gt; &lt;path&gt; &lt;n&gt;
+The application will:
+    Create a new variable of the specified name and type (MLF_File in this case)
+        Update the variables hierarchy and ultimately update the display
+        Name can be hierarchical
+    Mark the variable as requiring a reload, but don't actually load the file
+
+</t>
+<t tx="ntallen.20090227092327">I can probably get away without using any, but:
+    The default PhAB options conflict with my usual command line set.
+    It would be nice if there was a simple way to work around that.
+
+AB_OPTIONS "s:x:y:h:w:S:"
+
+msg_init_options claims to use -s, but it's a no-op in QNX6, since there is no sound interface.
+I should remove that from the msg interface.
+
+I will have to do the command line processing manually (not via oui) just because I don't know
+how to plug in tools to the QNX windows-hosted IDE.
+</t>
+<t tx="ntallen.20090227131711">Use PtExit(0) to quit
+Do whatever cleanup we need to do in the Destroyed callback for the console window.
+</t>
+<t tx="ntallen.20090227133851">Handle closing of the command channel
+Recognize EOF from command channel and close it down
+Close the connection explicitly during destruction
+
+Start interpreting commands:
+    MLF_File &lt;varname&gt; &lt;n&gt;
+    Build the Variable structure, tied in to the variable tree.
+
+Need to define current variable in order to support graph create commands
+    Use Pt_CB_TREE_SELECTION callback:
+        Should I mark internal nodes as not selectable? There does not
+        appear to be such an option, so I can accept selection of
+        non-variables, clear the current variable, then optionally
+        call PtTreeUnselect() to show it as not selected.
+        
+        This works OK, and can probably stay for awhile, but I think
+        there is also a GenTree option to not select... Currently the
+        node is selected until after you click, which is a little
+        annoying. Hmm. I don't see that option. I'll stick with this
+        for now.</t>
+<t tx="ntallen.20090302125256">tmlib is listing warnings.</t>
+<t tx="ntallen.20090316133552"></t>
+<t tx="ntallen.20090316133552.1">PtWindow
+  PtDivider anchored 0x5a0
+    PtPane
+    PtPane
+
+Realized
+Drag the divider as the very first action,
+then resize the window (larger)
+PtDivider does not resize until you drag the divider again.
+
+Resolution:
+    Set Pane anchor flags to zero
+    realize new pane before resizing
+    set divider's anchor offsets to zero
+    resize panes</t>
+<t tx="ntallen.20090316133552.2">I think I have pane creation down:
+    realize new pane
+    reset divider's offset anchors
+    resize each pane to total less than divider's size
+    set each pane's minimum dimensions and window's minimum dimensions
+    set dividers Cascade option so dragging handle doesn't squash panes below minimum
+    record each pane's minumum height and current height
+
+Current assumption:
+    divider height matches window height (guaranteed by setting anchor offsets to zero)
+    divider height equals sum of pane heights plus twice the bevel width:
+        This one is proving false. When I let the divider do it's thing, the
+        sum of the heights of the panes is coming out greater than the size
+        of the divider. Cannot replicate in PhAB
+
+Resizing: Two cases:
+    1: drag handle
+        Just want to record the change (and update scaling, etc.)
+    2: Resize of window
+        Go through and set pane sizes proportionally
+        If new height is less than old height allocate space proportional to the sizes above minimum
+        If new height is greater than old height, allocate space proportional to total size
+</t>
+<t tx="ntallen.20090323135341">+Select elements
++Delete elements
++Provide destructors
++figure out how to safely delete either from multiple points in the program
++e.g. closing a window will trigger deletion of the figure hierarchy, but deleting
++the figure hierarchy will trigger deletion of the window. Which comes first?
+
++Add a delete window command and find out whether the destroyed callback occurs.
+</t>
+<t tx="ntallen.20090323135341.1"></t>
+<t tx="ntallen.20090325170837">Will need:
+    plot_axes
+    plot_data
+    plot_line
+
+Each should:
+    mark self as destroying
+    delete children
+    remove self from parent's list of children
+    set associated widget's data pointer to NULL
+    save widget pointer and set widget pointer to NULL
+    Clear tree node's data pointer (just to be anal)
+    if parent is not destroying
+      destroy associated widget if not already marked for destruction
+      delete associated tree node:
+        PtTreeRemoveItem()
+    (else the parent will delete the widget hierarchy and the subtree)
+
+Widget destroyed function should:
+    store plot_obj
+    if plot_obj != NULL:
+        set data pointer to NULL
+        delete plot_obj--would like to tell plot_obj that the widget is already destroyed, but that may not be possible
+
+Deleting a pane:
+    May need to do some resizing after the fact
+Deleting a figure:
+Deleting axes:
+Deleting data:
+Deleting Lines: not allowed--context_menu_setup should disable the delete option
+        </t>
+<t tx="ntallen.20090331140856.1">May want to include current_child pointers in each plot_obj.
+
+When an object gets selected in the graphs tab, we call got_focus() to select it.
+
+When a widget (currently only window or pane) gets focus, pt_got_focus gets called on the widget, and it in turn calls got_focus() for the associated plot_obj. We want to highlight the corresponding tree item in the graphs tab, but this is complicated a bit by the fact that both the window and the pane get focus. To get around this, we will only make changes if the current object is not the current object of its type (e.g. the plot_pane is not Current::Pane) For this to work, when plot_pane::got_focus() is called, it must set Current::Pane and also Current::Figure (for its parent) Assuming Photon calls pt_got_focus from the most deeply nested widget first, the plot_pane will get called first, and when the plot_figure::got_focus() is called, it will already be Current::Figure, so it will not take further action.
+
+plot_axes, plot_data and plot_line may not have user-selectable widgets associated with them, so they may only be selected via the graphs tab. If I select axes2 in figure2, then select figure1, axes2 remains the Current::Axes, which is a little counterintuitive.
+
+Suppose I make got_focus() take an argument with three possible values: { gf_from_user, gf_from_parent, gf_from_child }
+
+if (this == Current::Thingy) return; // child will have already updated my current_child pointer
+// This block can be handled by plot_obj::got_focus()
+// Need to create a parent_obj and current_child pointers
+if (whence == gf_from_user) {
+  select TreeItem if not already selected
+}
+if (parent_obj &amp;&amp; (whence == gf_from_user || whence == gf_from_child)) {
+  parent_obj-&gt;current_child = this;
+  parent_obj-&gt;got_focus(gf_from_child);
+}
+if (whence == gf_from_user || whence == gf_from_parent) {
+  if (current_child) current_child-&gt;got_focus(gf_from_parent);
+  else Current::none(type);
+}
+Current::Thingy = this;
+Update any dialogs that might need it.
+
+This approach has a shortcoming if one object has no children and hence no current child. If a window is selected with no panes, then Current::Pane, Current::Axes, Current::Graph and Current::Line should all be set to NULL, otherwise counterintuitive results will happen when "create graph in current pane"
+
+Current::none(plot_obj_type type) {
+  switch (type) {
+    case po_figure:
+      Current::Pane = NULL;
+    case po_pane:
+      Current::Axes = NULL;
+    case po_axes:
+      Current::Graph = NULL;
+    case po_data:
+      Current::Line = NULL;
+    default:
+      break;
+  }
+}
+    </t>
+<t tx="ntallen.20090331165341">Baseline render routine will recurse through the entire plot_obj hierarchy looking for work
+Each call into the hierarchy should perform a single non-trivial operation and return
+an indication of whether there is more work to be done.
+
+May want to make a po_root object (except it does not have representatives in the graphs tab)
+
+  </t>
+<t tx="ntallen.20090331165341.1">Render each pane</t>
+<t tx="ntallen.20090331165341.2">render each axes
+
+When pane is resized, axes need to be redrawn, scales recalculated and lines redrawn
+</t>
+<t tx="ntallen.20090331165341.3">Flags:
+    check limits
+    recalculate scale
+    redraw axes
+
+If check limits and autoscale, check em
+
+If axes need to be redrawn, delete the old ones and create new ones
+Render each Graph
+</t>
+<t tx="ntallen.20090331165341.4">Flags:
+    reload data
+    recalculate range
+    redraw
+
+If recalculate range required, do so and mark axes as needing to recheck limits
+(re)Render each line that needs redraw
+If a line needs to be redrawn, unrealize it immediately to avoid redraws by Photon
+
+When data changes (new file):
+    a) Once we have started to draw a variable (loaded, etc.), do not reload it
+    until all the graphs have been rendered. For MLF variables, maintain a 'next'
+    number, and update that as variables come in. Once all the graphs have been
+    updated, check to see if the next number has changed.
+
+    If limits are auto, mark recalculate range
+    mark [visible] lines as needing redraw
+</t>
+<t tx="ntallen.20090331165341.5">translate data into polylines and realize each
+</t>
+<t tx="ntallen.20090401102408.1">This is the virtual base class for all plot objects. Each of the real objects is derived from this.
+A plot_obj is basically:
+
+class plot_obj {
+  public:
+	plot_obj_type type;
+	char *name;
+    PtTreeItem_t *TreeItem;
+    plot_obj *parent_obj;
+    plot_obj *current_child;
+    bool destroying;
+	plot_obj( plot_obj_type po_type, const char *name_in);
+	virtual ~plot_obj();
+	virtual void got_focus(focus_source whence);
+	void TreeAllocItem();
+	const char *typetext();
+};
+
+</t>
+<t tx="ntallen.20090401155216">NOTE: The current plot_obj::render_all() is actually the inner loop of root-&gt;render() depicted here
+so some juggling needs to be done.
+
+flags
+  flush_required
+
+plot_obj::render_all() {
+  if (rendering) return;
+  rendering = true;
+  while (render_each())
+    PtBkgdHandlerProcess();
+  root-&gt;rendering = false;
+}
+
+int plot_obj::render_each() {
+  if (RTG_Variable::reload_all()) return true;
+  if (render_figures()) return true;
+  if (flush_required) {
+    PtFlush();
+    flush_required = false;
+    return true;
+  }
+  return plot_obj::check_vars_for_updates();
+}
+</t>
+<t tx="ntallen.20090403102636">For trends, we can have 2 dequeues, one for current data, one for new data
+When data arrives, we add it to the new dequeue and set the new_data_available flag.
+On load, we transfer all the new data onto the current dequeue and optionally trim the front
+
+As with all variables, on load, we will mark all graphs as data_changed.</t>
+<t tx="ntallen.20090403102636.1"></t>
+<t tx="ntallen.20090413114310">I think I want to delete widgets when objects are made invisible
+Widgets involved are:
+    module, PtWindow
+    PtPane
+    PtPolygon
+
+This is a bit complicated when marking a figure as invisible
+
+plot_figure:
+    need to refactor the initialization where the module is created
+
+plot_pane:
+    probably need to refactor the initialization
+
+plot_axes:
+    If the axes is invisible, does that mean all the graphs are
+    invisible as well? That's what I have been assuming.
+
+plot_line:
+    The creation of widgets is already handled in render, so no
+    change required there.</t>
+<t tx="ntallen.20090422102356.1">Makes scripting easier if creating a window does not automatically create a pane of the same name.
+</t>
+<t tx="ntallen.20090422102356.2">Will probably have to go to the forums again.</t>
+<t tx="ntallen.20090422104622">Marking a line as visible does not redraw if data has been updated while invisible.
+</t>
+<t tx="ntallen.20090422110349">The plot_obj::rename() functions need to update the dialogs, but only if:
+    a) The dialog is currently being displayed
+    b) This plot_obj is "current"
+    c) The rename originated from a source other than a callback for this field (i.e. scripting)
+
+Same strategy for other widgets.
+I've handled text widgets and color widgets.
+Still need to handle:
+    check boxes
+    numeric (column number, limits)
+    
+
+Text callbacks are handled through Pt_CB_MODIFY_NOTIFY callback to Modify_Notify@callbacks.cc
+Modify_Notify() calls Update_Text(), which can also be called from scripting tools
+
+Color callbacks are handled through Pt_CB_CS_COLOR_CHANGED callback to Color_Changed@callbacks.cc
+Color_Changed() calls Update_Color(), which can also be called from scripting tools
+
+Checkboxes are handled through Pt_CB_ACTIVATE callback to Toggle_Activate@callbacks.cc
+Toggle_Activate() calls Update_Toggle(), which can also be called from scripting tools
+
+WORKING HERE:
+Numerics are handled through Pt_CB_NUMERIC_CHANGED callback to Numeric_Changed@callbacks.cc
+Numeric_Changed() calls Update_Numeric(), which can also be called from scripting tools
+    That's OK for column number. For limits, back out this change and us an
+    'Apply' button.
+  Limits still aren't quite right.
+  When auto limits are updated, need to update the tab
+</t>
+<t tx="ntallen.20090428171747">Still trying to sort out a rational approach for handling dialogs when creating and deleting objects
+
+Whenever an object gets focus, the appropriate dialog needs to be updated if active
+
+Whenever an object gets deleted, we can
+  find an appropriate replacement object
+  close the relevant dialog
+  clear the relevant dialog
+
+The trick comes from the fact that if we are deleting one object, we are deleting it's children as well, and there's no point in the children looking for a replacement. That should be done at the highest level of deletion. That really means that if an object is being deleted because its parent is being deleted, it should take no action with respect to the dialogs because the parent will handle it. For the top level object being deleted, this could be handled either in the descructor or in the parent's Remove_Child method. Something like
+
+    if (current_child == child) {
+      current_child = NULL;
+    } else {
+      nl_assert(Current::XXX != child);
+    }
+    remove(child);
+    if (!destroying) {
+      PtDestroyWidget(child-&gt;widget);
+      Adjust_Panes( - child-&gt;min_height );  
+      if (current_child == NULL) {
+        current_child = default_child();
+        if (Current::XXX == child) {
+          if (current_child == NULL) Current::none(type);
+          else current_child-&gt;got_focus(focus_from_parent);
+        }
+      }
+    }
+
+Handle the following in Current::none() {
+  If no current Figure, shift away from Window, Tab_X, Tab_Y or Tab_Line
+  If no current Pane, then shift away from Tab_X or Tab_Y or Tab_Line
+  If no current Axes, clear the axes portions of Tab_X or Tab_Y, shift away from Tab_Line
+  If no current Graph, shift away from Tab_Line
+  If no current Line, shift away from Tab_Line
+}
+</t>
+<t tx="ntallen.20090429153442"></t>
+<t tx="ntallen.20090429153442.1">Had to move that code out of Current::none() into the plot_data::check_limits() where we actually read the data from the file.</t>
+<t tx="ntallen.20090429164601"></t>
+<t tx="ntallen.20090429164601.1"></t>
+<t tx="ntallen.20090430095233"></t>
+<t tx="ntallen.20090430131154">Linking and/or Compiling
+
+I've been ducking this problem for awhile, but I think I can't outrun it anymore.
+
+I'm having trouble linking a C++ application with several libraries.
+
+I am building on Neutrino 6.4.0 (because I have additional QNX-based tools in my toolchain)
+
+With no IDE, the build is a standard Makefile
+
+The libraries were developed using autoconf/automake/libtool. By default, libtool seems to invoke g++ to compile C++ files. This caused me some trouble under 6.3.2, and the hack that worked there was for me to define CXX=cc in my Makefile.am. This is not working in 6.4.0 apparently because libtool is generating a command line with options that are incompatible with cc.
+
+So, bottom line, the C++ libraries are compiled with g++
+
+The application is compiled using cc. cc -V tells me the default target is 4.2.4,gcc_ntox86.
+
+libcpp is Dinkum. Alternative is libstdc++
+
+SOLUTION: ./configure CC=qcc CXX=QCC -I/usr/local/include
+</t>
+<t tx="ntallen.20090505113338">/sbin/tinit is launched by /etc/rc.d/rc.sysinit
+It reads /etc/config/ttys
+</t>
+<t tx="ntallen.20090505142020"></t>
+<t tx="ntallen.20090505142020.1"></t>
+<t tx="ntallen.20090505142020.2">Anchors: Left/Left, Right/Right, Top/Top, Bottom/Bottom
+Divider Flags: RESIZE_BOTH, CASCADE
+Orientation: Vertical
+Separator Type: Drag Handle
+Bevel Width: 1
+Flags: Highlighted, Gets_Focus
+Resize_Flags: 0
+
+Callbacks:
+    Divider Drag: plot_figure::divider_drag@figure.cc
+    Resize: plot_figure::divider_resized@figure.cc</t>
+<t tx="ntallen.20090508132540">Axes has a flag indicating whether detrended or not
+Data has a flag indicating whether detrended or not
+In Data, if axes is detrended and we are not
+  Create a detrend variable referencing our X-Axis, this graph and the appropriate variable
+if axes is not detrended and we are
+  find the undetrended variable
+  remove us from the detrended variable
+  point to the undetrended variable
+
+In Detrend Variable
+  On RemoveGraph:
+      if caller is destroying, call RemoveGraph on undetrended variable
+      if this is the last graph, self-destruct
+
+Could treat this like proposal for FFT where detrended data appears in a new window</t>
+<t tx="ntallen.20090508132540.1">delete all associated graphs (but not by explicitly removing them from the list. The graphs should remove themselves during their own deletion routine.)
+</t>
+<t tx="ntallen.20090508132540.2">Like detrend, but performs FFT. Two things missing:
+    You have to store the X-limits, since the X scale changes
+    Need to find a way to enter the sample frequency: or not. Assume sample frequency = 1.
+
+Unlike detrend, what we really want is to take a graph, and then request an FFT on a particular line.
+This should create a derived variable using the x limits of the current graph, and then create a new
+graph in a new window to display the FFT. Hence there is no "derived" distinction in the resulting
+graph. New variable has a defined X range and can be associated with multiple graphs with whatever
+limits they deem appropriate.
+
+Derived variable name could be:
+    FFT/&lt;variable&gt;/&lt;col&gt;/&lt;orig&gt;/&lt;npts&gt;
+</t>
+<t tx="ntallen.20090508182157">Is there a justification for having a separate hierarchy for derived?
+What I'm talking about here are "checkbox derivatives" which have the following in common:
+    Can be turned on or off via a checkbox on the Y-Axis tab
+    [References the originating axes for the purpose of matching the X-limits]
+        Alternately could refer to the axes of the first graph, or just store
+        the initial limits. Can switch off to change the limits, then switch back
+        This is complicated in the case of FFT. When you select FFT, both the X and Y scales change,
+        so you can't use the current X-limits to define the input range
+    References a single source variable
+    Automatically self-destructs on RemoveGraph() or RemoveDerived() if none left.
+    Will implicitly self-destruct if the source variable is deleted, since that will delete the
+    graphs, which will leave the derived with no graphs, and hence trigger destruction.
+
+I'm going to make the derived variable types vector-oriented rather than matrix, i.e. they will
+pertain to a single column of an underlying matrix (multi-column) variable. This allows us to
+save the space allocated for unplotted columns as well as the work of detrending a column that
+won't be displayed.
+
+OK, now I've tried that and realize that from the user standpoint, this becomes bizarre when we've
+been referring to a specific column (e.g. column 2), and then it becomes a single-column variable.
+Instead, there should be communication from the graphs to the variables regarding which columns are
+required.
+
+RTG_Variable_Data needs to maintain a list of variables derived from this one. If the variable
+is deleted, all the derived variables must be deleted.
+
+Note: I am treating Detrend or FFT as a property of the axes, but it will actually be applied
+to a graph, and individually to each line.
+
+When detrend is checked, walk through each graph and create a new derived variable that refers
+to the original. Point the graph to the derived variable, without removing it from the original
+variable's list.
+
+FFT is not really a "checkbox derivative" at all. It should probably be a button on the line
+tab that creates a new variable and a graph in a new window (best default, since the x axis
+is guaranteed to be different. User can always create another graph in a pane.)
+
+
+------------------
+As an actual variable, showing up on the Variable tab, it will be possible to create a new graph based on that variable. When this happens:
+    The new graph must have the same checkbox selection
+    The new graph must be added to the source variable's list of graphs
+    The new graph must be added to the derived variable's list of graphs
+This makes it impossible to apply multiple derivations, which is probably fine.
+----------------
+Wait, I think this is an unnecessary restriction, requires unnecessary complexity and little value.
+If the user chooses to do something complicated by selecting a derived variable, let them.
+
+Deleting a derived variable should not delete the graphs. Instead, it should uncheck the box on the parent axis.
+To be precise, interactively deleting a derived variable should do this. The actual destructor needs to be more direct, and probably should just delete the graphs if any exist.
+-----------------
+Again, too much complexity for little value. If the user explicitly deletes the derived variable, do what usually happens and delete the graphs.
+</t>
+<t tx="ntallen.20090514103050">MLF:
+    Implicit Linear Scale
+    Zero origin
+    Slope 1 (i.e. X[i] = i;
+    Range [0,nrows-1]
+FFT:
+    Implicit Linear Scale
+    Zero origin
+    Slope .5/(nrows-1) (i.e. X[nrows-1] = .5)
+    Range [0,.5] (where 1 == sample frequency)
+Trend Data:
+    X explicit, but normalized to latest recorded time
+
+Detrend:
+    Subset of Source's range, but it isn't reasonable for the derived channel to know the source's scaling.
+    Hence:
+        Store the X values explicitly in the derived channel
+        Provide a method to translate an X range into a row range</t>
+<t tx="ntallen.20090514140929">Variables:
+    (new_data_available is a deferred version of reload_required. It does not
+    trigger a reload until the current output cycle is completed)
+    new_data_available =&gt; reload_required (Variable_Data::check_for_updates())
+    reload_required =&gt; graph-&gt;new_data
+
+Figure:
+
+Pane:
+    
+Axis:
+    data_range_updated =&gt; axis_range_update (axes::check_limits())
+    axis_range_updated =&gt; axis_limits_updated (axis::check_limits())
+    axis_limits_updated =&gt; graph-&gt;axes_rescaled (check_limits)
+    axis_limits_updated =&gt; redraw (axes::render())
+
+Graph:
+    new_data =&gt; lines-&gt;new_data, redraw_required (check_limits)
+    axes_rescaled =&gt; redraw_required, lines-&gt;redraw_required (render)
+    redraw_required =&gt; lines-&gt;render() (render)
+
+Line:
+    new_data =&gt; axis::data_range_updated, redraw_required (check_limits)
+</t>
+<t tx="ntallen.20090515141753">plot_obj::render_each {
+  load any new data
+  render the data
+  plot_obj::check_for_updates(); // Handle visibility changes and check to see if there is new data available to plot
+}
+
+After any significant work, this will return true. Ordinarily, no new data should be loaded until you've gotten all the way through the rendering phase and done check_for_updates
+
+plot_obj::check_for_updates() {
+  foreach figure, figure-&gt;check_for_updates();
+}
+
+plot_figure::check_for_updates() {
+  foreach pane, pane-&gt;check_for_updates();
+}
+
+plot_pane::check_for_updates() {
+  foreach axes, axes-&gt;check_for_updates();
+}
+
+plot_axes::check_for_updates() {
+  for each graph, graph-&gt;check_for_updates();
+}
+
+plot_data::check_for_updates() {
+  foreach line, line-&gt;check_for_updates();
+  variable-&gt;check_for_updates();
+}
+
+Variables are only checked if they are referenced from a visible graph
+</t>
+<t tx="ntallen.20090519153418">Needed to hack common.mk to add:
+    
+    ifndef PROJECT_ROOT
+    PROJECT_ROOT=/home/nort/IDE/phrtg
+    endif
+    ifndef BUILDNAME
+    BUILDNAME=phrtg_g
+    endif
+
+Which apparently weren't defined in the old IDE.
+
+This will cease to be an issue once we upgrade.
 </t>
 </tnodes>
 </leo_file>
