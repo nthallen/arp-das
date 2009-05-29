@@ -327,9 +327,9 @@ bool RTG_Variable_Data::check_for_updates() {
 bool RTG_Variable_Data::reload() {
   if ( reload_required && reload_data() ) {
     reload_required = false;
-    std::list<plot_data*>::const_iterator pos;
+    std::list<plot_graph*>::const_iterator pos;
     for (pos = graphs.begin(); pos != graphs.end(); ++pos) {
-      plot_data *graph = *pos;
+      plot_graph *graph = *pos;
       graph->new_data = true;
     }
     std::list<RTG_Variable_Derived *>::const_iterator dpos;
@@ -342,11 +342,11 @@ bool RTG_Variable_Data::reload() {
   return false;
 }
 
-void RTG_Variable_Data::AddGraph(plot_data *graph) {
+void RTG_Variable_Data::AddGraph(plot_graph *graph) {
   graphs.push_back(graph);
 }
 
-void RTG_Variable_Data::RemoveGraph(plot_data *graph) {
+void RTG_Variable_Data::RemoveGraph(plot_graph *graph) {
   nl_assert(graph != NULL);
   nl_assert(!graphs.empty());
   graphs.remove(graph);

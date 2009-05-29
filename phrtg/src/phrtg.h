@@ -16,7 +16,7 @@ class RTG_Variable_Derived;
 class plot_pane;
 class plot_figure;
 class plot_axes;
-class plot_data;
+class plot_graph;
 class plot_line;
 enum RTG_Variable_Type { Var_Node, Var_MLF, Var_Detrend };
 const int DIV_BEVEL_WIDTHS = 2;
@@ -82,13 +82,13 @@ class RTG_Variable_Data : public RTG_Variable {
     bool new_data_available;
     bool reload_required;
     unsigned nrows, ncols;
-    std::list<plot_data*> graphs;
+    std::list<plot_graph*> graphs;
     std::list<RTG_Variable_Derived *> derivatives;
 
     RTG_Variable_Data(const char *name_in, RTG_Variable_Type type_in);
     ~RTG_Variable_Data();
-    void AddGraph(plot_data *graph);
-    virtual void RemoveGraph(plot_data *graph);
+    void AddGraph(plot_graph *graph);
+    virtual void RemoveGraph(plot_graph *graph);
     void AddDerived(RTG_Variable_Derived *var);
     virtual void RemoveDerived(RTG_Variable_Derived *var);
     virtual bool check_for_updates();
@@ -136,7 +136,7 @@ class RTG_Variable_Derived : public RTG_Variable_Matrix {
     RTG_Variable_Derived(RTG_Variable_Data *src, const char *name_in,
         RTG_Variable_Type type_in);
     ~RTG_Variable_Derived();
-    void RemoveGraph(plot_data *graph);
+    void RemoveGraph(plot_graph *graph);
     void RemoveDerived(RTG_Variable_Derived *var);
     bool check_for_updates();
     RTG_Variable_Data *Derived_From();
@@ -342,14 +342,14 @@ class plot_axes : public plot_obj {
     plot_pane *parent;
     plot_axis X;
     plot_axis Y;
-    std::list<plot_data*> graphs;
+    std::list<plot_graph*> graphs;
     bool detrended;
     
   	plot_axes( const char *name_in, plot_pane *parent );
   	~plot_axes();
-  	void AddChild(plot_data *p);
-  	void RemoveChild(plot_data *p);
-  	plot_data *CreateGraph(RTG_Variable_Data *var);
+  	void AddChild(plot_graph *p);
+  	void RemoveChild(plot_graph *p);
+  	plot_graph *CreateGraph(RTG_Variable_Data *var);
   	void got_focus(focus_source whence);
     void resized( PhDim_t *newdim );
     bool check_limits();
@@ -376,7 +376,7 @@ class plot_axes_diag : public plot_axes {
     void draw(int side, int x0, int y0, int dx, int dy);
 };
 
-class plot_data : public plot_obj {
+class plot_graph : public plot_obj {
   public:
     bool new_data;
     bool axes_rescaled;
@@ -386,8 +386,8 @@ class plot_data : public plot_obj {
     RTG_Variable_Data *variable;
     std::vector<plot_line*> lines;
 
-    plot_data(RTG_Variable_Data *var, plot_axes *parent);
-  	~plot_data();
+    plot_graph(RTG_Variable_Data *var, plot_axes *parent);
+  	~plot_graph();
   	void got_focus(focus_source whence);
   	bool check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr );
     bool render();
@@ -401,14 +401,14 @@ class plot_line : public plot_obj {
     bool redraw_required;
     bool check_range;
     bool effective_visibility;
-    plot_data *parent;
+    plot_graph *parent;
     int column;
     PgColor_t color;
     RTG_Variable_Range Xrange, Yrange;
     std::vector<PhPoint_t> idata;
     std::vector<PtWidget_t *> widgets;
 
-    plot_line(plot_data *parent_in, unsigned col, const char *name_in);
+    plot_line(plot_graph *parent_in, unsigned col, const char *name_in);
   	~plot_line();
   	void clear_widgets();
   	void got_focus(focus_source whence);
@@ -417,7 +417,7 @@ class plot_line : public plot_obj {
     bool render();
     bool check_for_updates(bool parent_visibility);
     void Update_Line_Tab();
-  	static plot_line *new_line(plot_data *parent_in, unsigned col);
+  	static plot_line *new_line(plot_graph *parent_in, unsigned col);
   	static const unsigned pts_per_polygon;
 };
 
@@ -428,7 +428,7 @@ class Current {
     static plot_pane *Pane;
     static plot_axes *Axes;
     static plot_axis *Axis;
-    static plot_data *Graph;
+    static plot_graph *Graph;
     static plot_line *Line;
     static plot_obj *Menu_obj;
     static Tab_Name Tab;

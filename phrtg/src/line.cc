@@ -16,7 +16,7 @@ static PgColor_t line_colors[] = {
 
 const unsigned plot_line::pts_per_polygon = 500;
 
-plot_line::plot_line(plot_data *parent_in, unsigned col, const char *name_in)
+plot_line::plot_line(plot_graph *parent_in, unsigned col, const char *name_in)
                 : plot_obj(po_line, name_in ) {
   new_data = false;
   redraw_required = false;
@@ -27,7 +27,7 @@ plot_line::plot_line(plot_data *parent_in, unsigned col, const char *name_in)
   color = line_colors[col%N_COLORS];
 }
 
-plot_line *plot_line::new_line(plot_data *parent, unsigned col) {
+plot_line *plot_line::new_line(plot_graph *parent, unsigned col) {
   char buf[80];
   snprintf(buf, 80, "%s[%u]", parent->name, col);
   return new plot_line(parent, col, buf);
@@ -48,7 +48,7 @@ plot_line::~plot_line() {
   // which corresponds to parent(data)->parent(axes)->parent(pane)
   clear_widgets();
   TreeItem->data = NULL;
-  // The parent plot_data object will be responsible
+  // The parent plot_graph object will be responsible
   // for deleting our tree elements and removing
   // us from its children
 }

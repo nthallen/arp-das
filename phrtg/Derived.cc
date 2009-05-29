@@ -20,7 +20,7 @@ RTG_Variable_Derived::~RTG_Variable_Derived() {
   Source->RemoveDerived(this);
 }
 
-void RTG_Variable_Derived::RemoveGraph(plot_data *graph) {
+void RTG_Variable_Derived::RemoveGraph(plot_graph *graph) {
   RTG_Variable_Data::RemoveGraph(graph);
   if (graphs.empty() && derivatives.empty())
     delete this;

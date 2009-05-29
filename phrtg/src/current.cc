@@ -11,7 +11,7 @@ plot_figure *Current::Figure;
 plot_pane *Current::Pane;
 plot_axes *Current::Axes;
 plot_axis *Current::Axis;
-plot_data *Current::Graph;
+plot_graph *Current::Graph;
 plot_line *Current::Line;
 RTG_Variable_Data *Current::Variable;
 plot_obj *Current::Menu_obj;

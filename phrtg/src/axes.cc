@@ -146,7 +146,7 @@ plot_axes::~plot_axes() {
   parent->RemoveChild(this);
 }
 
-void plot_axes::AddChild(plot_data *data) {
+void plot_axes::AddChild(plot_graph *data) {
   if (graphs.empty()) {
     PtTreeAddFirst(ABW_Graphs_Tab, data->TreeItem, TreeItem);
   } else {
@@ -156,7 +156,7 @@ void plot_axes::AddChild(plot_data *data) {
   if (current_child == NULL) current_child = data;
 }
 
-void plot_axes::RemoveChild(plot_data *data) {
+void plot_axes::RemoveChild(plot_graph *data) {
   nl_assert(data != NULL);
   nl_assert(!graphs.empty());
   if (current_child == data) current_child = NULL;
@@ -171,9 +171,9 @@ void plot_axes::RemoveChild(plot_data *data) {
   }
 }
 
-plot_data *plot_axes::CreateGraph(RTG_Variable_Data *var) {
+plot_graph *plot_axes::CreateGraph(RTG_Variable_Data *var) {
   nl_assert(var != NULL);
-  plot_data *graph = new plot_data(var, this);
+  plot_graph *graph = new plot_graph(var, this);
   graph->got_focus(focus_from_user);
   return graph;
 }
@@ -212,7 +212,7 @@ void plot_axes::resized(PhDim_t *newdim) {
 }
 
 bool plot_axes::check_limits() {
-  std::list<plot_data*>::const_iterator gr;
+  std::list<plot_graph*>::const_iterator gr;
   RTG_Variable_Range Xr, Yr;
   for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
     if ((*gr)->check_limits(Xr, Yr)) return true;
@@ -261,7 +261,7 @@ bool plot_axes::render() {
   if ( check_limits() ) return true;
   if ( X.render(this) ) return true;
   if ( Y.render(this) ) return true;
-  std::list<plot_data*>::const_iterator gr;
+  std::list<plot_graph*>::const_iterator gr;
   for (gr = graphs.begin(); gr != graphs.end(); ++gr) {
     if ( (*gr)->render() )
       return true;
@@ -278,10 +278,10 @@ bool plot_axes::render() {
  */
 bool plot_axes::check_for_updates(bool parent_visibility) {
   bool updates_required = false;
-  std::list<plot_data*>::const_iterator pos;
+  std::list<plot_graph*>::const_iterator pos;
   visible = new_visibility;
   for (pos = graphs.begin(); pos != graphs.end(); pos++) {
-    plot_data *graph = *pos;
+    plot_graph *graph = *pos;
     if ( graph->check_for_updates(visible && parent_visibility) )
       updates_required = true;
   }
@@ -289,9 +289,9 @@ bool plot_axes::check_for_updates(bool parent_visibility) {
 }
 
 void plot_axes::schedule_range_check() {
-  std::list<plot_data*>::const_iterator pos;
+  std::list<plot_graph*>::const_iterator pos;
   for (pos = graphs.begin(); pos != graphs.end(); pos++) {
-    plot_data *graph = *pos;
+    plot_graph *graph = *pos;
     graph->check_range = true;
   }
 }
@@ -301,7 +301,7 @@ void plot_axes::schedule_range_check() {
  * and detrend each one using the current x-limits.
  */
 void plot_axes::Detrend(long value) {
-  std::list<plot_data*>::const_iterator pos;
+  std::list<plot_graph*>::const_iterator pos;
   if (value) {
     detrended = true;
     if (X.limits.range_is_empty) {
@@ -310,7 +310,7 @@ void plot_axes::Detrend(long value) {
       nl_error(1,"X-limits not current: Skipping detrend");
     } else {
       for (pos = graphs.begin(); pos != graphs.end(); pos++) {
-        plot_data *graph = *pos;
+        plot_graph *graph = *pos;
         RTG_Variable_Data *var = graph->variable;
         RTG_Variable_Data *src = var->Derived_From();
         if (src == NULL || src->type != Var_Detrend) {
@@ -326,7 +326,7 @@ void plot_axes::Detrend(long value) {
   } else {
     detrended = false;
     for (pos = graphs.begin(); pos != graphs.end(); pos++) {
-      plot_data *graph = *pos;
+      plot_graph *graph = *pos;
       RTG_Variable_Data *var = graph->variable;
       RTG_Variable_Data *src = var->Derived_From();
       if (src != NULL && var->type == Var_Detrend) {

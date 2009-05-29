@@ -7,7 +7,7 @@
 #include "abimport.h"
 #include "nl_assert.h"
 
-plot_data::plot_data(RTG_Variable_Data *var, plot_axes *parent_in)
+plot_graph::plot_graph(RTG_Variable_Data *var, plot_axes *parent_in)
       : plot_obj(po_data, var->name) {
   variable = var;
   parent = parent_in;
@@ -19,7 +19,7 @@ plot_data::plot_data(RTG_Variable_Data *var, plot_axes *parent_in)
   if (Current::Graph == NULL) got_focus(focus_from_parent);
 }
 
-plot_data::~plot_data() {
+plot_graph::~plot_graph() {
   if (destroying) return;
   destroying = true;
   while (!lines.empty()) {
@@ -32,14 +32,14 @@ plot_data::~plot_data() {
   parent->RemoveChild(this);
 }
 
-void plot_data::got_focus(focus_source whence) {
+void plot_graph::got_focus(focus_source whence) {
   if (this == Current::Graph) return;
   plot_obj::got_focus(whence);
   Current::Graph = this;
   // Update any dialogs that require it
 }
 
-bool plot_data::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
+bool plot_graph::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
   if (!visible) return false;
   if (new_data) {
     // Make sure we have line objects for each column
@@ -81,7 +81,7 @@ bool plot_data::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
  * non-trivial task and return true, or determined that nothing
  * needs to be done and return false.
  */
-bool plot_data::render() {
+bool plot_graph::render() {
   if (!visible) return false;
   if ( axes_rescaled ) {
     nl_assert(variable->ncols <= lines.size()); //should be set in check_limits()
@@ -100,7 +100,7 @@ bool plot_data::render() {
   return false;
 }
 
-plot_obj *plot_data::default_child() {
+plot_obj *plot_graph::default_child() {
   if (lines.empty()) return NULL;
   else return lines[0];
 }
@@ -110,7 +110,7 @@ plot_obj *plot_data::default_child() {
  * Update Strategy:
  *   Only check variables if lines are visible.
  */
-bool plot_data::check_for_updates(bool parent_visibility) {
+bool plot_graph::check_for_updates(bool parent_visibility) {
   std::vector<plot_line*>::const_iterator pos;
   bool updates_required = false;
   bool check_var = false;

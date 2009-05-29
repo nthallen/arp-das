@@ -189,7 +189,7 @@ int menu_graph_curaxes( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
   if (Current::Axes) {
   	if (Current::Variable != NULL) {
-  	  plot_data *graph =
+  	  plot_graph *graph =
   	    Current::Axes->CreateGraph(Current::Variable);
   	  graph->got_focus(focus_from_user);
   	  plot_obj::render_one();
