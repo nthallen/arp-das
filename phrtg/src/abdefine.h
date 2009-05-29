@@ -27,10 +27,10 @@ extern const int ABN_Graphs_Tab;
 #define ABW_Graphs_Tab                       AbGetABW( ABN_Graphs_Tab )
 extern const int ABN_Window_Tab;
 #define ABW_Window_Tab                       AbGetABW( ABN_Window_Tab )
-extern const int ABN_Window_Name;
-#define ABW_Window_Name                      AbGetABW( ABN_Window_Name )
-extern const int ABN_Window_Visible;
-#define ABW_Window_Visible                   AbGetABW( ABN_Window_Visible )
+extern const int ABN_Figure_Name;
+#define ABW_Figure_Name                      AbGetABW( ABN_Figure_Name )
+extern const int ABN_Figure_Visible;
+#define ABW_Figure_Visible                   AbGetABW( ABN_Figure_Visible )
 extern const int ABN_Windows_Display_Menu;
 #define ABW_Windows_Display_Menu             AbGetABW( ABN_Windows_Display_Menu )
 extern const int ABN_Window_Display_Name;

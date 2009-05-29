@@ -355,11 +355,25 @@ class plot_axes : public plot_obj {
     bool check_limits();
     void Update_Axis_Pane(Axis_XY ax);
     void rename(const char *text, Update_Source src);
-  	bool render();
+  	virtual bool render();
     plot_obj *default_child();
     bool check_for_updates(bool parent_visibility);
     void schedule_range_check();
     void Detrend(long value);
+};
+
+class plot_axes_diag : public plot_axes {
+  public:
+    std::vector<PhPoint_t> idata;
+    PtWidget_t *widget;
+    int Xpx, Ypx;
+    static const int Nlvls;
+
+    plot_axes_diag( const char *name_in, plot_pane *parent );
+    ~plot_axes_diag();
+    bool render();
+  private:
+    void draw(int side, int x0, int y0, int dx, int dy);
 };
 
 class plot_data : public plot_obj {

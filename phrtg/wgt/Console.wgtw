@@ -242,7 +242,7 @@ data
 0
 PtText
 4
-Window_Name
+Figure_Name
 1005
 dim
 142,27
@@ -271,7 +271,7 @@ dim
 0
 PtToggleButton
 4
-Window_Visible
+Figure_Visible
 3011
 multi
 7

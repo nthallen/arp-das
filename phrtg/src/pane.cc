@@ -98,6 +98,7 @@ void plot_pane::RemoveChild(plot_axes *ax) {
 
 plot_axes *plot_pane::CreateGraph(RTG_Variable_Data *var) {
   nl_assert(var != NULL);
+  // Change this to use plot_axes() or plot_axes_diag()
   plot_axes *ax = new plot_axes(var->name, this);
   ax->CreateGraph(var);
   return ax;

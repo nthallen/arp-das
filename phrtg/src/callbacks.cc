@@ -8,9 +8,9 @@
 #include "nl_assert.h"
 
 void Update_Text(int Name, char *text, Update_Source src ) {
-  if (Name == ABN_Window_Name) {
+  if (Name == ABN_Figure_Name) {
     if (Current::Figure == NULL) {
-      nl_error(2, "Update Window_Name with no Current::Figure");
+      nl_error(2, "Update Figure_Name with no Current::Figure");
       return;
     }
     Current::Figure->rename(text, src);
@@ -125,7 +125,7 @@ static void apply_limits() {
 }
 
 void Update_Toggle(int Name, long int value, Update_Source src ) {
-  if ( Name == ABN_Window_Visible )
+  if ( Name == ABN_Figure_Visible )
     po_set_visibility(Current::Figure, "Figure", value, Name, src);
   else if (Name == ABN_Pane_Visible)
     po_set_visibility(Current::Pane, "Pane", value, Name, src);

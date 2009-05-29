@@ -7,7 +7,7 @@
 #include "abimport.h"
 #include "nl_assert.h"
 
-const int plot_axis::pane_overage = 5;
+const int plot_axis::pane_overage = 0;
 
 plot_axis::plot_axis() {
   XY = Axis_X;
@@ -337,4 +337,74 @@ void plot_axes::Detrend(long value) {
       graph->new_data = true;
     }
   }
+}
+
+plot_axes_diag::plot_axes_diag( const char *name_in, plot_pane *parent )
+      : plot_axes(name_in, parent) {
+  widget = NULL;
+  Xpx = Ypx = 0;
+}
+
+plot_axes_diag::~plot_axes_diag() {
+  if (widget) {
+    PtDestroyWidget(widget);
+    widget = NULL;
+  }
+  // Vector should be auto-deleted
+}
+
+const int plot_axes_diag::Nlvls = 7;
+
+void plot_axes_diag::draw(int side, int x0, int y0, int dx, int dy) {
+  int i = side * (Nlvls*2 + 1);
+  int xp = x0;
+  int yp = y0;
+  for (int lvl = 0; lvl < Nlvls; ++lvl) {
+    idata[i].x = xp;
+    idata[i].y = yp;
+    ++i;
+    if (side & 1) yp += dy;
+    else xp += dx;
+    idata[i].x = xp;
+    idata[i].y = yp;
+    ++i;
+    if (side & 1) xp += dx;
+    else yp += dy;
+  }
+  if (side & 1) xp = x0;
+  else yp = y0;
+  idata[i].x = xp;
+  idata[i].y = yp;
+}
+
+bool plot_axes_diag::render() {
+  if (visible) {
+    if (!widget || Xpx != X.pixels || Ypx != Y.pixels) {
+      Xpx = X.pixels;
+      Ypx = Y.pixels;
+      int nptside = Nlvls*2+1;
+      int npts = 4*nptside+1;
+      int dx = Xpx/(Nlvls+1);
+      int dy = Ypx/(Nlvls+1);
+      idata.resize(npts);
+      draw(0, 0, 0, dx, 1);
+      draw(1,X.pixels-1,0,-1,dy);
+      draw(2,X.pixels-1,Y.pixels-1,-dx,-1);
+      draw(3,0,Y.pixels-1,1,-dy);
+      idata[npts-1].x = 0;
+      idata[npts-1].y = 0;
+      PtArg_t args[2];
+      PtSetArg( &args[1], Pt_ARG_COLOR, Pg_RED, 0 );
+      PtSetArg( &args[0], Pt_ARG_POINTS, &idata[0], npts );
+      if (widget) PtSetResources( widget, 2, args );
+      else {
+        widget = PtCreateWidget(PtPolygon, parent->widget, 2, args );
+        PtRealizeWidget(widget);
+      }
+    }
+  } else if (widget) {
+    PtDestroyWidget(widget);
+    widget = NULL;
+  }
+  return plot_axes::render();
 }

@@ -107,7 +107,7 @@ void plot_figure::rename(const char *text, Update_Source src) {
   PtSetResource(window, Pt_ARG_WINDOW_TITLE, name, 0);
   if (src == from_file && Current::Figure == this
       && Current::Tab == Tab_Figure) {
-    PtSetResource(ABW_Window_Name, Pt_ARG_TEXT_STRING,
+    PtSetResource(ABW_Figure_Name, Pt_ARG_TEXT_STRING,
         Current::Figure->name, 0);
   }
 }
@@ -134,8 +134,8 @@ void plot_figure::got_focus(focus_source whence) {
 
 void plot_figure::Update_Window_Tab() {
   // Update Window_Tab 
-  PtSetResource(ABW_Window_Name, Pt_ARG_TEXT_STRING, name, 0);
-  PtSetResource(ABW_Window_Visible, Pt_ARG_FLAGS,
+  PtSetResource(ABW_Figure_Name, Pt_ARG_TEXT_STRING, name, 0);
+  PtSetResource(ABW_Figure_Visible, Pt_ARG_FLAGS,
       visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
 }
 
@@ -444,6 +444,7 @@ int plot_figure::divider_drag( PtWidget_t *widget, ApInfo_t *apinfo,
   		PtGetResource(widget, Pt_ARG_POINTER, &fig, 0);
   		PtGetResource(widget, Pt_ARG_DIM, &div_dim, 0);
   		pane_dim = *div_dim;
+  		pane_dim.w -= 2;
 	    for ( i = 0, pp = fig->panes.begin(); i < cb->nsizes; ++i, ++pp ) {
   		  nl_assert(pp != fig->panes.end());
   		  pane = *pp;
