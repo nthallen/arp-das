@@ -63,19 +63,20 @@ const int ABN_File_Menu = 46;
 const int ABN_menu_open_cmd = 47;
 const int ABN_menu_close_cmd = 48;
 const int ABN_menu_file_report = 49;
-const int ABN_menu_quit = 50;
+const int ABN_menu_save_cfg = 50;
+const int ABN_menu_quit = 51;
 
 /* 'Variable_Menu' Menu link */
-const int ABN_Variable_Menu = 51;
-const int ABN_vg_curaxes = 52;
-const int ABN_vg_overlay = 53;
-const int ABN_vg_newpane = 54;
-const int ABN_vg_newwin = 55;
+const int ABN_Variable_Menu = 52;
+const int ABN_vg_curaxes = 53;
+const int ABN_vg_overlay = 54;
+const int ABN_vg_newpane = 55;
+const int ABN_vg_newwin = 56;
 
 /* 'plot_context_menu' Menu link */
-const int ABN_plot_context_menu = 56;
-const int ABN_PlotVisible = 57;
-const int ABN_PlotObjDelete = 58;
+const int ABN_plot_context_menu = 57;
+const int ABN_PlotVisible = 58;
+const int ABN_PlotObjDelete = 59;
 
 
 #if defined(__cplusplus)

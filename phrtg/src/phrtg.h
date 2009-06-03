@@ -18,6 +18,7 @@ class plot_figure;
 class plot_axes;
 class plot_graph;
 class plot_line;
+class RTG_Cfg_Ser;
 enum RTG_Variable_Type { Var_Node, Var_MLF, Var_Detrend };
 const int DIV_BEVEL_WIDTHS = 2;
 
@@ -433,6 +434,14 @@ class Current {
     static plot_obj *Menu_obj;
     static Tab_Name Tab;
     static void none(plot_obj_type parent_type);
+};
+
+class RTG_Cfg {
+  public:
+    static int Serialize( PtWidget_t *widget, ApInfo_t *apinfo,
+      PtCallbackInfo_t *cbinfo );
+    static void Load( PtWidget_t *widget, ApInfo_t *apinfo,
+      PtCallbackInfo_t *cbinfo);
 };
 
 extern void Update_Text( int Name, char *text, Update_Source src );

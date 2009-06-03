@@ -70,6 +70,7 @@ static const ApEventLink_t AbLinks_File_Menu[] = {
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "menu_open_cmd", 2009, menu_open_cmd, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "menu_close_cmd", 2009, menu_close_cmd, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "menu_file_report", 2009, menu_file_report, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "menu_save_cfg", 2009, RTG_Cfg::Serialize, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "menu_quit", 2009, menu_quit, 0, 0, 0, 0, },
 	{ 0 }
 	};

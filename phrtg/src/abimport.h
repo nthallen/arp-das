@@ -26,7 +26,6 @@ int phrtg_init( int argc, char **argv );
 int console_setup( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int menu_open_cmd( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int menu_close_cmd( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
-int menu_quit( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int console_destroyed( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int PanelSwitching( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int menu_graph_curaxes( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
@@ -38,4 +37,5 @@ int Modify_Notify( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo 
 int Color_Changed( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int Toggle_Activate( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 int Numeric_Changed( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
+int menu_quit( PtWidget_t *widget, ApInfo_t *data, PtCallbackInfo_t *cbinfo );
 #endif

@@ -113,6 +113,7 @@ extern const int ABN_File_Menu;
 extern const int ABN_menu_open_cmd;
 extern const int ABN_menu_close_cmd;
 extern const int ABN_menu_file_report;
+extern const int ABN_menu_save_cfg;
 extern const int ABN_menu_quit;
 
 /* 'Variable_Menu' Menu link */
