@@ -2,7 +2,7 @@
 <?xml-stylesheet ekr_test?>
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
-<globals body_outline_ratio="0.359133126935">
+<globals body_outline_ratio="0.360681114551">
 	<global_window_position top="19" left="41" height="646" width="901"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
@@ -316,16 +316,16 @@
 <v t="ntallen.20090316133552.1"><vh>Resolved: Divider Issue</vh></v>
 </v>
 <v t="ntallen.20090211110324" a="E"><vh>Todo</vh>
-<v t="ntallen.20090508182157" a="E"><vh>Derived</vh>
+<v t="ntallen.20090508182157"><vh>Derived</vh>
 <v t="ntallen.20090514103050"><vh>X Units</vh></v>
 <v t="ntallen.20090508132540"><vh>Detrend</vh></v>
 <v t="ntallen.20090508132540.2"><vh>FFT</vh></v>
 </v>
-<v t="ntallen.20090508132540.1"><vh>~RTG_Variable</vh></v>
-<v t="ntallen.20090429153442"><vh>Deleting a Graph should flag a change in range</vh></v>
 <v t="ntallen.20090422102356.2"><vh>Figure out how palette works</vh></v>
 <v t="ntallen.20090227133851"><vh>Data Feed</vh></v>
 <v t="ntallen.20090302125256"><vh>Warnings</vh></v>
+<v t="ntallen.20090508132540.1"><vh>Done: ~RTG_Variable</vh></v>
+<v t="ntallen.20090429153442"><vh>Done: Deleting a Graph should flag a change in range</vh></v>
 <v t="ntallen.20090422102356.1"><vh>Done: Remove Pane from PhAB module</vh></v>
 <v t="ntallen.20090429153442.1"><vh>Done: Adding a graph switches away from Line Tab</vh></v>
 <v t="ntallen.20090428171747"><vh>Done: Provide reasonable defaults for current_child</vh></v>
@@ -334,7 +334,7 @@
 <v t="ntallen.20090331140856.1"><vh>Done? Consider get_focus changes</vh></v>
 <v t="ntallen.20090211110324.1"><vh>Done: PtDivider test program</vh></v>
 </v>
-<v t="ntallen.20090323135341.1" a="E"><vh>Done</vh>
+<v t="ntallen.20090323135341.1"><vh>Done</vh>
 <v t="ntallen.20090422110349"><vh>Done: Service dialog callbacks</vh></v>
 <v t="ntallen.20090429164601"><vh>Done: Eliminate or downgrade most nl_error outputs</vh></v>
 <v t="ntallen.20090429164601.1"><vh>Done: Try to compile on 6.3.2</vh></v>
@@ -375,7 +375,7 @@
 <v t="ntallen.20090219084511.5"><vh>Line Properties</vh></v>
 </v>
 </v>
-<v t="ntallen.20090203162108.1" a="E"><vh>Photon Issues</vh>
+<v t="ntallen.20090203162108.1"><vh>Photon Issues</vh>
 <v t="ntallen.20090227092327"><vh>Command Line Options</vh></v>
 <v t="ntallen.20090227131711"><vh>Cleanup</vh></v>
 <v t="ntallen.20090204093154"><vh>Data Feed</vh></v>
@@ -389,11 +389,30 @@
 <v t="ntallen.20090331165341.5"><vh>Line</vh></v>
 </v>
 <v t="ntallen.20090413114310"><vh>Visibility Changes</vh></v>
-<v t="ntallen.20090519153418" a="TV"><vh>Building on 6.3.2</vh></v>
+<v t="ntallen.20090519153418"><vh>Building on 6.3.2</vh></v>
+</v>
+<v t="ntallen.20090529113129" a="E"><vh>Configuration</vh>
+<v t="ntallen.20090529113129.1" a="E"><vh>File Format</vh>
+<v t="ntallen.20090529113129.2"><vh>Console</vh></v>
+<v t="ntallen.20090529122349"><vh>Variable</vh></v>
+<v t="ntallen.20090529113129.3"><vh>Figure</vh></v>
+<v t="ntallen.20090529132820"><vh>Pane</vh></v>
+<v t="ntallen.20090529132820.1" a="E"><vh>Axes</vh>
+<v t="ntallen.20090529132820.2" a="TV"><vh>Axis</vh></v>
+</v>
+<v t="ntallen.20090529132820.3"><vh>Graph</vh></v>
+<v t="ntallen.20090529132820.4"><vh>Line</vh></v>
+</v>
+<v t="ntallen.20090602162607"><vh>Serializer</vh></v>
+<v t="ntallen.20090529113129.4"><vh>Data Feed</vh></v>
+<v t="ntallen.20090602153925" a="E"><vh>Parser</vh>
+<v t="ntallen.20090602154813"><vh>Variable</vh></v>
+</v>
+<v t="ntallen.20090529113129.5"><vh>Window Size and Position</vh></v>
 </v>
 <v t="ntallen.20090210131028" a="E"><vh>UI</vh>
 <v t="ntallen.20090210131028.1" a="E"><vh>Windows</vh>
-<v t="ntallen.20090210131028.3" a="E"><vh>Console</vh>
+<v t="ntallen.20090210131028.3"><vh>Console</vh>
 <v t="ntallen.20090224121203"><vh>Drag and Drop</vh></v>
 <v t="ntallen.20090223110548"><vh>Menu</vh></v>
 <v t="ntallen.20090224102255"><vh>Variables Tab</vh></v>
@@ -3399,6 +3418,209 @@ Variables are only checked if they are referenced from a visible graph
 Which apparently weren't defined in the old IDE.
 
 This will cease to be an issue once we upgrade.
+</t>
+<t tx="ntallen.20090529113129">Configuration will be saved to a text file
+A default location will be used, or a command line option to override
+Configuration will be saved automatically on exit and at other critical times
+Configuration can be saved to another file, but that is only as a backup
+Configuration can be restored from another file:
+    then it will immediately be written out to the standard configuration file
+When loading a configuration file, we'll need to decide whether or not to clear the current configuration:
+    It's probably the right thing to do, but certain things like variables
+    which may be holding current realtime data should probably be preserved.
+
+The idea is to preserve as much of the current state as is reasonable:
+    Names of variables, etc. is reasonable
+    Data for those variables probably isn't
+
+Basic strategy is to tie into the functions used by the GUI for updates and where possible
+tie into that logic. Controls in the GUI have unique names which identify the control,
+and it applies to Current objects. Hence when reading and writing configurations, we
+need to carry through on that approach and manipulate the Current objects so the controls
+will apply to the correct objects.
+
+There are some controls which are implicit in the GUI, like window size and position.</t>
+<t tx="ntallen.20090529113129.1">I will create an EBNF specification for the file format, but my intention is to keep it very simple so the parser can be correspondingly simple.
+The file will consist entirely of statements which will fit on a single line
+Each statement will start with a keyword and then have appropriate arguments.
+Keywords will be coordinated with the ABN_* namespace:
+    Where applicable, a keyword 'X' will map to ABN_X
+    Some ABN_X will not require a keyword
+    Some keywords will not map to ABN_
+
+
+Top Level
+
+Handle:
+    End File
+
+Delegate:
+    Console_Pos
+    Console_State?
+    MLF
+    Detrend
+    Figure
+</t>
+<t tx="ntallen.20090529113129.2">Will need to specify position and/or state (minimized, etc.)
+Also which tab is selected
+
+Handle:
+    Console_Pos &lt;PhPoint_t:pos&gt;
+    Console_State?
+
+</t>
+<t tx="ntallen.20090529113129.3">A Figure is a plot_figure object which includes:
+    a Figure module instantiated from ABM_Figure including
+    a PtWindow widget
+
+By default, the window definition command will create a new window
+new plot_figure(name) requires only the name, so this command should take a single name argument:
+
+Figure &lt;string:name&gt;
+    This creates the new figure and makes it the Current::Figure
+
+Figure_Select &lt;string:name&gt;
+    This does not create a new figure. If a figure of the matching name does not exist, Current::Figure is undefined.
+
+End Figure
+    This undefines Current::Figure and triggers delayed actions including resizing.
+
+Figure properties:
+    These should be tolerant of Current::Figure being undefined.
+    
+    Figure_Name &lt;string:name&gt; would be redundant in configuration, but could be useful interactively
+    Figure_Visible &lt;bool:vis&gt;
+    Figure_Area &lt;PhArea_t:area&gt; (PhPoint_t (short x,y) pos, PhDim_t (unsigned short w,h) size)
+    Figure_State? (see notes on Pt_Arg_Window_State in PtWindow doc)
+    [Figure_ShowName &lt;bool:showname&gt;] (look at Pt_ARG_WINDOW_RENDER_FLAGS)
+    [Figure_ShowMenu &lt;bool:showmenu&gt;]
+
+Invocation:
+    Figure &lt;string:name&gt; &lt;action:act&gt;
+        action: create*, select, delete
+
+Handle:
+    Figure_Name &lt;string:name&gt;
+    Figure_Visible &lt;bool:vis&gt;
+    Figure_Area &lt;PhArea_t:area&gt;
+    Figure_State? (see above)
+    End Figure
+
+Delegate:
+    Pane
+</t>
+<t tx="ntallen.20090529113129.4">If I handle configuration file data the same way I handle data feed commands, it would be possible to manipulate the data display via the interactive command line. For example:
+    if there are multiple modes of instrument operation, switching between modes
+    could trigger switches between configurations.
+    Starting a scanning sequence could automatically create a new graph window to display the scan.
+There are certainly issues to work out:
+    Since the command stream is unidirectional, we would probably need some sort of conditional execution:
+        don't create that window if it already exists, and don't mess with it's definition.
+</t>
+<t tx="ntallen.20090529113129.5">This topic applies to all windows and panes and maybe certain things yet to be defined.
+
+When sizes are changed via the GUI, the application usually just needs to take notice.
+When sizes are changed via configuration, we actually need to manipulate the GUI.
+This means the functions won't be exactly identical.
+As always, we need to make sure we don't get in a loop where resizing triggers resizing.
+</t>
+<t tx="ntallen.20090529122349">We need to define variables before we can define graphs that reference them
+
+Currently I recognize:
+    MLF varpath index
+
+Need to define derivatives:
+    Detrend src_varpath detrend_varpath x_min x_max
+
+Variables currently have no other properties
+</t>
+<t tx="ntallen.20090529132820">Invocation:
+    Pane
+
+Handle:
+    Pane &lt;string:name&gt; &lt;action:act&gt;
+        action: create*, select, delete
+    Pane_Name &lt;string:name&gt;
+    Pane_Visible &lt;bool:vis&gt;
+    Pane_Color &lt;color:color&gt;
+
+Delegate:
+    Axes
+
+End Pane
+</t>
+<t tx="ntallen.20090529132820.1">Handle:
+    Axes &lt;string:name&gt; &lt;action:act&gt;
+        action: create*, select, delete
+
+    Axes_Name &lt;string:name&gt; (usually redundant)
+    Detrend &lt;bool:detrend&gt; [&lt;bool:act:false&gt;]
+        If not present, act defaults to false
+        act determines whether this command should actually simulate selecting or deselecting
+        the detrend toggle or simply record the selection. For use in the configuration file,
+        act should be false, since the appropriate variable will already be recorded.
+        This option can be added much later when there is an actual need for this functionality.
+    End Axes
+
+Delegate:
+    Axis
+    Graph
+</t>
+<t tx="ntallen.20090529132820.2">Axis &lt;AxisXY:xy&gt;
+
+Auto_Scale &lt;bool:autoscale&gt;
+Limit_Min &lt;scalar_t:lim_min&gt;
+Limit_Max &lt;scalar_t:lim_max&gt;
+</t>
+<t tx="ntallen.20090529132820.3">Graph varpath
+Graph_Select varpath
+
+Graph_Visible &lt;bool:graph_vis&gt; (currently no GUI equivalent)
+</t>
+<t tx="ntallen.20090529132820.4">Line &lt;unsigned:column&gt;
+Line_Name &lt;string:line_name&gt;
+Line_Visible &lt;bool:line_visible&gt;
+Line_Color &lt;color:color&gt;
+</t>
+<t tx="ntallen.20090602153925">Open configuration file
+
+parser = new RTG_Parser(char *filename);
+while ( parser-&gt;newline() ) {
+  switch (parser-&gt;keyword) {
+    case CFG_Console_Pos:
+    case CFG_Console_State?:
+        Console_Config(parser);
+        break;
+    case CFG_MLF:
+        RTG_Variable_MLF::cfg_load(parser);
+        break;
+    case CFG_Detrend:
+        RTG_Variable_Detrend::cfg_load(parser);
+        break;
+    case CFG_Figure:
+        plot_figure::cfg_load(parser);
+        break;
+  }
+</t>
+<t tx="ntallen.20090602154813">    MLF varpath index
+
+
+RTG_Variable_MLF::cfg_load(parser) {
+  varpath vp;
+  unsigned long mlfno;
+  if ( parser-&gt;varpath(vp) &amp;&amp; parser-&gt;ulong(mlfno) ) {
+    Incoming(vp, mlfno);
+  }
+}
+</t>
+<t tx="ntallen.20090602162607">clase RTG_Serializer {
+  public:
+    File *fp;
+    RTG_Serializer(char *filename);
+    keyword(int code);
+    varpath(RTG_Variable *var);
+    static void cfg_save(char *filename);
+}
 </t>
 </tnodes>
 </leo_file>
