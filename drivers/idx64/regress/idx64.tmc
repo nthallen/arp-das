@@ -1,0 +1,21 @@
+TM typedef unsigned short IndxrPos {
+  text "%5d";
+  collect x = sbw(x.address);
+}
+TM typedef unsigned char IndxrStat {
+  text "%08b";
+  collect x = sbb(x.address);
+}
+TM 4 Hz IndxrPos  ID0Ps;  Address ID0Ps 0xA0C;
+TM 4 Hz IndxrStat ID0St;  Address ID0St 0xA0E;
+TM 4 Hz IndxrPos  ID1Ps;  Address ID1Ps 0xA14;
+TM 4 Hz IndxrStat ID1St;  Address ID1St 0xA16;
+TM 4 Hz IndxrPos  ID2Ps;  Address ID2Ps 0xA1C;
+TM 4 Hz IndxrStat ID2St;  Address ID2St 0xA1E;
+TM 4 Hz IndxrPos  ID3Ps;  Address ID3Ps 0xA24;
+TM 4 Hz IndxrStat ID3St;  Address ID3St 0xA26;
+TM 4 Hz IndxrPos  ID4Ps;  Address ID4Ps 0xA2C;
+TM 4 Hz IndxrStat ID4St;  Address ID4St 0xA2E;
+TM 1 Hz IndxrPos  ID5Ps;  Address ID5Ps 0xA34;
+TM 1 Hz IndxrStat ID5St;  Address ID5St 0xA36;
+TM 4 Hz IndxrPos  IXStt;

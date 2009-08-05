@@ -1,0 +1,59 @@
+#! /bin/sh
+#__USAGE
+#%C	<input file> <root>
+#	Generates 5 output files
+#	<root>.tmc     Basic TMC definitions
+#	<root>col.tmc  Collection TMC definitions
+#	<root>flag.tmc TMC definitions for status display
+#	<root>drv.cmd  CMDGEN definitions for the drives
+#	<root>.idx64   Configuration String for idx64
+function nl_error {
+  echo idx64cfg: $* >&2
+  exit 1
+}
+src=idx64cfg.awk
+path=`dirname $0`
+for srcfile in $path/$src /usr/local/lib/src/$src; do
+  [ -f $srcfile ] && break
+done
+[ ! -f $srcfile ] && nl_error Unable to locate source file $src
+inputfile=$1
+[ ! -f $inputfile ] && nl_error Unable to locate input file $inputfile
+inputfile=`fullpath -t $inputfile`
+root=$2
+[ -z "$root" ] && root="idx"
+
+[ -d "idx64cfg.tmp" ] || mkdir idx64cfg.tmp ||
+  nl_error "Unable to create directory idx64cfg.tmp"
+cd idx64cfg.tmp
+
+function generate {
+  /bin/awk -f $srcfile $1=1 $2 >$3 || {
+	rm -f $3
+	exit 1
+  }
+}
+
+generate basetmc  $inputfile ${root}.tmc
+generate coltmc   $inputfile ${root}col.tmc
+generate flagtmc  $inputfile ${root}flag.tmc 
+generate drivecmd $inputfile ${root}drv.cmd
+generate cfgstr   $inputfile ${root}.idx64
+
+for file in ${root}.tmc ${root}col.tmc ${root}flag.tmc \
+			${root}drv.cmd ${root}.idx64; do
+  [ -f $file ] || nl_error "idx64cfg.tmp/$file not found\n";
+  if [ ! -f ../$file ]; then
+	echo "Creating $file"
+	cp -f $file ../$file
+  elif cmp -s $file ../$file; then
+  	:
+  else
+	echo "Updating $file"
+	cp -f $file ../$file
+  fi
+done
+
+cd ..
+rm -rf idx64cfg.tmp || nl_error "Error removing idx64cfg.tmp"
+exit 0

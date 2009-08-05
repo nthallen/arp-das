@@ -1,0 +1,3 @@
+TM typedef unsigned short UINT { text "%5u"; }
+TM 0 Hz UINT  MFCtr;
+TM 0 Hz UINT  Synch;

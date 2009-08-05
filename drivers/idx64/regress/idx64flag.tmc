@@ -1,0 +1,28 @@
+%{
+  char *IdxFlgTxt[8] = {
+	"    ",
+	"Scan",
+	"On  ",
+	"????",
+	"Off ",
+	"????",
+	"Alt ",
+	"????"
+  };
+%}
+TM typedef unsigned short IndxrFlag {
+  text "%4d" IdxFlgTxt[];
+}
+
+IndxrFlag ID0Flg; invalidate ID0Flg;
+{ ID0Flg = ( IXStt ) & 7; validate ID0Flg; }
+IndxrFlag ID1Flg; invalidate ID1Flg;
+{ ID1Flg = ( IXStt >> 3 ) & 7; validate ID1Flg; }
+IndxrFlag ID2Flg; invalidate ID2Flg;
+{ ID2Flg = ( IXStt >> 6 ) & 7; validate ID2Flg; }
+IndxrFlag ID3Flg; invalidate ID3Flg;
+{ ID3Flg = ( IXStt >> 9 ) & 7; validate ID3Flg; }
+IndxrFlag ID4Flg; invalidate ID4Flg;
+{ ID4Flg = ( IXStt >> 12 ) & 7; validate ID4Flg; }
+IndxrFlag ID5Flg; invalidate ID5Flg;
+{ ID5Flg = ( IXStt >> 15 ) & 1; validate ID5Flg; }

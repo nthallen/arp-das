@@ -1,0 +1,5 @@
+idx64.o
+idx64oui.o
+idx64oui.c
+*.err
+idx64

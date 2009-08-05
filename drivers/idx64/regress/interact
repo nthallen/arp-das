@@ -1,0 +1,9 @@
+Launch memo            memo -vy -e $Experiment.log
+Launch Cmdctrl         cmdctrl -mvc0
+Launch huarp/intserv   intserv -vc0 -l
+Launch "-g dg"         idx64col -vc0 &&
+                       pick_file -q
+Launch db              bfr -vc0
+Launch -               lgr -vc0 `lfctr -O`
+Launch idx64           /usr/local/bin/idx64 -vc0 -l C23,3:,3:,3:,3:,3:,1
+Launch cmdinterp       idx64srvr -vc0

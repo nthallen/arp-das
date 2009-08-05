@@ -1,0 +1,20 @@
+channel 0 
+  position 4 Hz ID0Ps
+  status   4 Hz ID0St
+  scanstat ID0Flg
+  swap limits
+  rate 53 Hz
+  scan
+  chop
+channel 1 Bellows
+  position 4 Hz ID1Ps
+  status   4 Hz ID1St
+  scanstat ID1Flg
+  scan
+  chop
+channel 2 Primary Throttle
+  position 4 Hz ID2Ps
+  status   4 Hz ID2St
+  scanstat ID2Flg
+  scan
+  chop

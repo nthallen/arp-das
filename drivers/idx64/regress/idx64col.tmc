@@ -1,0 +1,12 @@
+%{
+  #include <sys/types.h>
+  #include "subbus.h"
+  pid_t IndxrProxy;
+%}
+TM "proxy" IndxrProxy 2;
+IndxrPos Idx64;
+TM "Receive" Idx64 0;
+Collect IXStt {
+  IXStt = Idx64;
+  if (IndxrProxy!=0) Trigger(IndxrProxy);
+}

@@ -1,0 +1,14 @@
+IndxrPos ID0Rate;
+invalidate ID0Rate;
+%{
+  static IndxrPos ID0PrevPs = 0;
+%}
+depending on ( 1 Hz ) {
+  if ( ID0Ps == 0 ) {
+	ID0Rate = 0;
+  } else if ( ID0Ps > ID0PrevPs && (ID0Ps - ID0PrevPs) > ID0Rate ) {
+	ID0Rate = ID0Ps - ID0PrevPs;
+  }
+  validate ID0Rate;
+  ID0PrevPs = ID0Ps;
+}

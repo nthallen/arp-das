@@ -1,0 +1,92 @@
+Hysteresis {
+  Modify queued command structure to add another flag word to
+  indicate command progress:
+	Has been driven
+	Requires Final Hysteresis Compensation Drive
+	Requires Final Status Bit Update
+  These are set when the command is first processed by
+  execute_cmd(). Hysteresis Drive is required if the drive is in
+  the IN direction unless the in limit is reached before the
+  destination.
+  
+  "IN" drive should be translated to "TO" when hysteresis is
+  being compensated. After the initial drive, drive "TO" the
+  destination, provided it's above the current position.
+  
+  Requires Final Status will be set on the "line" commands, and
+  the specific status will be delayed until the drive is
+  completed. This is an optional feature, and is different from the
+  current implementation, but is closer to reality, particularly
+  for long drives.
+}
+Drive Calibration {
+  A table of calibration values is provided. It will be a sorted
+  list of ordered pairs listing of (step, lstep) where step
+  corresponds to the step number reported by the indexer hardware
+  and lstep is a linearized step number.
+  Once established, all commands for the channel use the
+  linearized steps as a reference. The current linear step is
+  determined from the hardware step number. The destination
+  linear step is determined from the command or as a difference
+  from the current linear step, then translated to a hardware
+  step. 
+}
+Outstanding: {
+  Need option to specify INTA region
+}
+idx64 Software {
+
+  This is a new version of the indexer software with the goal of 
+  remaining somewhat compatible with the old indexer but possibly 
+  changing some things which weren't so good?
+  
+  Support 6 channels per board, up to 4 boards, total of 24 
+  channels. During init, read from base address of each board to 
+  determine which are present, allocate space as needed.
+  
+  Configuration read on command line:
+    [cfg code][,n_bits][:[cfg code][,n_bits] ...]
+  no spaces, default cfg code is C00 (hex). default n_bits is 0
+  Later may add ability to read the configuration from a file, 
+  but that's a low priority.
+  
+  On init query each board. If present, allocate space for 
+  channels, allocate proxy, register with intserv. If a config is 
+  requested for a channel on a board which isn't present, issue a 
+  warning, reject all service requests.
+  
+  typedef struct {
+	unsigned short card_base;
+	char * cardID;
+  } idx64_card;
+  idx64_card idx_defs[ MAX_IDXRS ];
+  idx64_card idx_defs[ MAX_IDXRS ] = {
+	0xA00, "Idx64_0",
+	0xA40, "Idx64_1",
+	0xA80, "Idx64_2",
+	0xAC0, "Idx64_3"
+  };
+  /* This is the structure for boards actually in use */
+  typedef struct {
+	pid_t proxy;
+	unsigned short requests;
+	chandef chan[ 6 ];
+  } idx64_bd;
+
+  I will provide a new API with the commands changed from indxr_*
+  to idx64_*. To the user, the change should be minor, but this 
+  will allow me to:
+  
+    Not use cmdctrl for message forwarding, supporting more 
+	network transparency. Register global name instead.
+	
+	Change the message protocol to come into line with other QNX 
+	messages.
+	
+	Eliminate last vestiges of experiment-dependence.
+}
+What does a server have to do {
+  Register a name and receive!
+  If expand, name has to pass through nl_make_name()
+  Register on the local node in most all cases.
+}

@@ -1,0 +1,37 @@
+channel 0 
+  position 4 Hz ID0Ps
+  status   4 Hz ID0St
+  scanstat ID0Flg
+  scan
+  chop
+  swap limits
+  disable zeroref
+channel 1
+  position 4 Hz ID1Ps
+  status   4 Hz ID1St
+  scanstat ID1Flg
+  scan
+  chop
+channel 2
+  position 4 Hz ID2Ps
+  status   4 Hz ID2St
+  scanstat ID2Flg
+  scan
+  chop
+channel 3 
+  position 4 Hz ID3Ps
+  status   4 Hz ID3St
+  scanstat ID3Flg
+  scan
+  chop
+channel 4
+  position 4 Hz ID4Ps
+  status   4 Hz ID4St
+  scanstat ID4Flg
+  scan
+  chop
+channel 5
+  position 1 Hz ID5Ps
+  status   1 Hz ID5St
+  scanstat ID5Flg
+  scan

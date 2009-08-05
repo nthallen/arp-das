@@ -1,0 +1,17 @@
+State Init {
+          > Telemetry Logging Suspend
+		  > Telemetry Start
+	   +1 > CMDENBL On
+	   +5 > scan channel 3 to 10000 by 100
+	   +3 Validate Wait;
+}
+
+State Wait {
+	      { if ( ID0Ps == 65535 ) Validate Snarf; }
+}
+
+State Snarf "idx64.tmas" {
+          > Preset Channel 0 Position to 0
+		  hold until ( ID0Ps == 0 );
+		  Validate Wait;
+}
