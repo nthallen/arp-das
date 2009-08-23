@@ -13,13 +13,34 @@ if [ `id -u` != 0 ]; then
   exec /usr/pkg/bin/sudo $0 $*
 fi
 
+function waitforip {
+  n=1
+  while [ $n -lt 5 ]; do
+    line=`/sbin/ifconfig -a | tail -n1`
+    set -- $line
+    if [ "$1" != "inet" ]; then
+      echo "Bad line: $line"
+    fi
+    ip=$2
+    case $ip in
+      127.0.0.1) ;;
+      0.0.0.0) ;;
+      *) echo "IP: $line"; return;;
+    esac
+    echo "Waiting..."
+    sleep 1
+    let n=n+1
+  done
+  echo Timed out waiting
+}
+
 case $1 in
   suspend)
     slay dhcp.client;;
   wakeup)
-    /sbin/rtc hw
+    /sbin/rtc -l hw
     /usr/sbin/dhcp.client -m
-    /sbin/ifconfig -a;;
+    waitforip;;
   *)
     echo Unrecognized option >&1
     exit 1;
