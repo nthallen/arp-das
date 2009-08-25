@@ -2,7 +2,7 @@
 use strict;
 use File::Path;
 use File::Copy;
-use Cwd;
+use Cwd qw(getcwd abs_path);
 
 # mkrtkitarch <destdir> <pkg> [<pkg> ...]
 #
@@ -21,11 +21,13 @@ use Cwd;
 # to be updated.
 #
 # Optional Header contents:
-#  ^SrcRoot: <path>
+#  ^Files: <file> @ <path>
 #    Directory to cd to before creating archive
+#    More than one Files: line is supported (and usually required)
 
+my $create_bundle = 1;
 my $pkgroot = "/var/huarp/pkg";
-my $pkgcache = "/var/cache/huarp/pkg";
+my $pkgcache = "/var/huarp/pkgcache";
 
 -d $pkgroot || mkpath($pkgroot) || die "Fatal: Unable to create pkgroot $pkgroot\n";
 -d $pkgroot || die "Fatal: Misunderstood mkpath return\n";
@@ -35,6 +37,9 @@ my $pkgcache = "/var/cache/huarp/pkg";
 
 die "Insufficient arguments\n" unless @ARGV >= 2;
 my $pkgdest = shift @ARGV;
+-d $pkgdest || die "Package destination directory '$pkgdest' not found\n";
+$pkgdest = abs_path($pkgdest);
+
 my @reqlist;
 my @pkglist;
 while ( @ARGV ) {
@@ -54,27 +59,51 @@ while (@reqlist) {
     unless vercmp( $pkg, $inst ) >= 0;
   push( @pkglist, $inst );
   $inst->{name} = "$inst->{root}-" . join( '.', @{$inst->{ver}});
-  $inst->{SrcRoot} = "/";
   pkg_read_header( $inst );
-  -d $inst->{SrcRoot} || die "SrcRoot for package $inst->{name} does not exist\n";
-  if ( ! -f "$pkgcache/$inst->{name}" ) {
-    ### Create the archive
+  my $archive = "$pkgcache/$inst->{name}.tar";
+  if ( !create_bundle && ! -f "$archive.gz" ) {
+    ### Create individual archives
     my $cwd = getcwd();
-    cwd($inst->{SrcRoot});
-    print "Creating archive $inst->{name}.tar.gz\n";
-    system( "tar -czf $pkgcache/$inst->{name}.tar.gz --owner=0 --group=0 --transform=s,^x86/,," .
-            "-T $pkgroot/$inst->{name}/MANIFEST" ) &&
-      die "tar failed creating archive for $inst->{name}\n";
+    -f $archive && unlink($archive);
+    print "Creating archive $archive.gz\n";
+    for my $Files ( @{$inst->{Files}} ) {
+      cwd($Files->{SrcRoot});
+      system( "tar -rf $archive --owner=0 --group=0 " .
+            "-T $pkgroot/$inst->{name}/$Files->{List}" ) &&
+        die "tar failed creating archive for $inst->{name}\n";
+    }
     cwd($cwd);
+    system( "gzip $archive" ) && die "gzip $archive failed\n";
   }
 }
 
-# Now go through @pkglist and copy the archives into the repository directory
-for my $pkg ( @pkglist ) {
-  print "Copying archive $pkg->{name}.tar.gz into repository\n";
-  copy( $pkgcache/$pkg->{name}.tar.gz, "repository/$pkg->{name}.tar.gz" );
+if ( $create_bundle ) {
+  my $archive = "$pkgdest/$pkglist[0]->{name}-bundle.tar";
+  if ( -f $archive ) {
+    warn "Warning: Found existing $archive\n";
+    unlink( $archive );
+  }
+  while ( @pkglist ) {
+    my $pkg = pop(@pkglist);
+    print "Adding files from package $pkg->{name}\n";
+    for my $Files ( @{$pkg->{Files}} ) {
+      cwd($Files->{SrcRoot});
+      system( "tar -rf $archive --owner=0 --group=0 " .
+            "-T $pkgroot/$pkg->{name}/$Files->{List}" ) &&
+        die "tar failed including files from $pkg->{name}/$Files->{List}\n";
+    }
+  }
+  system( "gzip $archive" ) && die "gzip $archive failed\n";
+} else {
+  # Go through @pkglist and copy the archives into the repository directory
+  for my $pkg ( @pkglist ) {
+    print "Copying archive $pkg->{name}.tar.gz into repository\n";
+    copy( $pkgcache/$pkg->{name}.tar.gz, "$pkgdest/$pkg->{name}.tar.gz" );
+  }
 }
 
+# pkg_check(name) verifies the syntax of a package reference
+# and returns a hashref with $root and @ver elements
 sub pkg_check {
   my ( $pkg, $src ) = @_;
   if ( $pkg =~ m/^(\w+)(?:-(\d+(?:\.\d+)*))?$ ) {
@@ -107,8 +136,9 @@ sub vercmp {
 sub pkg_read_header {
   # Now read the header
   #  ^Requires: Add packages to reqlist in reverse order
-  #  ^SrcRoot: 
+  #  ^Files: <file> @ <SrcRoot>
   my $pkg = shift;
+  $pkg->{Files} = [];
   open HDR, "<$pkgroot/$pkg->{name}/Header" ||
     die "Unable to read Header for package $pkg->{name} required by $pkg->{src}\n";
   while ( my $line = <HDR> ) {
@@ -118,12 +148,12 @@ sub pkg_read_header {
       for my $rpkg ( reverse split ' ', $1 ) {
         push( @reqlist, pkg_check( $rpkg, $pkg->{name} );
       }
-    } elsif ( $line =~ m|\s*SrcRoot| ) {
-      if ( $line =~ m|^\s*SrcRoot:\s+(/[\w/]*)\s*$| ) {
-        $pkg->{SrcRoot} = $1;
-      } else {
-        die "Syntax error in 'SrcRoot' line of $pkg->{name}/Header\n";
-      }
+    } elsif ( $line =~ m|\s*Files:\s*(\w+)\s*\@\s*(/(?:(?:\w+/)*\w+))$| ) {
+      -f "$pkgroot/$pkg->{name}/$1" ||
+        die "Unable to find filelist '$1' specified in $pkg->{name}/Header\n";
+      -d $2 ||
+        die "Invalid SrcRoot path '$2' specified in $pkg->{name}/Header\n";
+      push(@{$pkg->{Files}}, { List => $1, SrcRoot => $2 } );
     } else {
       die "Syntax error in $pkg->{name}/Header\n";
     }
