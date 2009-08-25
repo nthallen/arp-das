@@ -8,12 +8,16 @@ INSTALL=cp -vn
 
 .PHONY : all install install-sbin install-bin install-data
 all : install
-install : install-sbin install-bin install-data install-oui
+install : install-sbin install-bin install-data
 install-sbin : $(SBIN)
-	@$(INSTALL) $(SBIN) $(TGTNODE)/usr/local/sbin
+	mkdir -p $(TGTNODE)/usr/local/sbin
+	$(INSTALL) $(SBIN) $(TGTNODE)/usr/local/sbin
 install-bin : $(BIN)
-	@$(INSTALL) $(BIN) $(TGTNODE)/usr/local/bin
+	mkdir -p $(TGTNODE)/usr/local/bin
+	$(INSTALL) $(BIN) $(TGTNODE)/usr/local/bin
 install-data : $(DATA)
-	@$(INSTALL) $(DATA) $(TGTNODE)/usr/local/share/huarp
+	mkdir -p $(TGTNODE)/usr/local/share/huarp
+	$(INSTALL) $(DATA) $(TGTNODE)/usr/local/share/huarp
 #install-oui : $(OUI)
+#	@mkdir -p $(TGTNODE)/usr/local/share/oui
 #	@$(INSTALL) $(OUI) $(TGTNODE)/usr/local/share/oui

@@ -61,7 +61,7 @@ then
 fi
 
 cd /install
-for instarchive in $SRCPATH/repository/*.tgz
+for instarchive in $SRCPATH/repository/*.tar.gz
 do
 	echo "Extracting $instarchive"
 	tar -zxf $instarchive

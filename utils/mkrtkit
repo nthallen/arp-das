@@ -6,7 +6,7 @@ function nl_error {
   exit 1
 }
 
-$pkg=$1
+pkg=$1
 [ -n "$pkg" ] || nl_error No package specified
 
 # This needs a lot of work
@@ -39,6 +39,6 @@ chmod a+x ./rtinstall
 # Copy each of the archives you created earlier to ./repository:
 mkrtkitarch repository $pkg || nl_error mkrtkitarch failed
 
-path/mkisofs -r -b instflop.dat -c boot/isocatalog -J -o ../rtkit-$pkg.iso .
+mkisofs -r -b instflop.dat -c boot/isocatalog -J -o ../rtkit-$pkg.iso .
 cd ..
 # rm -r rtkit_image

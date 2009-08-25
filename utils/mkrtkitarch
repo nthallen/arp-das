@@ -1,4 +1,4 @@
-#! /usr/bin/perl -w
+#! /usr/pkg/bin/perl -w
 use strict;
 use File::Path;
 use File::Copy;
@@ -49,30 +49,32 @@ while ( @ARGV ) {
 
 while (@reqlist) {
   my $pkg = pop(@reqlist);
-  my @opts = sort vercmp map s|^.*/|| && pkg_check($_, "Package directory: $pkgroot"),
-    <$pkgroot/$pkg->{root}-*>;
+  my @opts;
+  @opts = sort { vercmp($a,$b) } map s|^.*/|| &&
+     pkg_check($_, "Package directory: $pkgroot"),
+     glob "$pkgroot/$pkg->{root}-*";
   # These are sorted in ascending order, so the last element is the one we want
   die "Unable to locate package $pkg->{root} required by $pkg->{src}\n"
     unless @opts;
   my $inst = pop(@opts);
   die "Latest version of package $pkg->{root} is older than version required by $pkg->{src}\n"
-    unless vercmp( $pkg, $inst ) >= 0;
+    unless vercmp( $inst, $pkg ) >= 0;
   push( @pkglist, $inst );
   $inst->{name} = "$inst->{root}-" . join( '.', @{$inst->{ver}});
   pkg_read_header( $inst );
   my $archive = "$pkgcache/$inst->{name}.tar";
-  if ( !create_bundle && ! -f "$archive.gz" ) {
+  if ( !$create_bundle && ! -f "$archive.gz" ) {
     ### Create individual archives
     my $cwd = getcwd();
     -f $archive && unlink($archive);
     print "Creating archive $archive.gz\n";
     for my $Files ( @{$inst->{Files}} ) {
-      cwd($Files->{SrcRoot});
+      chdir($Files->{SrcRoot});
       system( "tar -rf $archive --owner=0 --group=0 " .
             "-T $pkgroot/$inst->{name}/$Files->{List}" ) &&
         die "tar failed creating archive for $inst->{name}\n";
     }
-    cwd($cwd);
+    chdir($cwd);
     system( "gzip $archive" ) && die "gzip $archive failed\n";
   }
 }
@@ -87,7 +89,8 @@ if ( $create_bundle ) {
     my $pkg = pop(@pkglist);
     print "Adding files from package $pkg->{name}\n";
     for my $Files ( @{$pkg->{Files}} ) {
-      cwd($Files->{SrcRoot});
+      print "  $Files->{List} @ $Files->{SrcRoot}\n";
+      chdir($Files->{SrcRoot});
       system( "tar -rf $archive --owner=0 --group=0 " .
             "-T $pkgroot/$pkg->{name}/$Files->{List}" ) &&
         die "tar failed including files from $pkg->{name}/$Files->{List}\n";
@@ -98,7 +101,7 @@ if ( $create_bundle ) {
   # Go through @pkglist and copy the archives into the repository directory
   for my $pkg ( @pkglist ) {
     print "Copying archive $pkg->{name}.tar.gz into repository\n";
-    copy( $pkgcache/$pkg->{name}.tar.gz, "$pkgdest/$pkg->{name}.tar.gz" );
+    copy( "$pkgcache/$pkg->{name}.tar.gz", "$pkgdest/$pkg->{name}.tar.gz" );
   }
 }
 
@@ -106,7 +109,7 @@ if ( $create_bundle ) {
 # and returns a hashref with $root and @ver elements
 sub pkg_check {
   my ( $pkg, $src ) = @_;
-  if ( $pkg =~ m/^(\w+)(?:-(\d+(?:\.\d+)*))?$ ) {
+  if ( $pkg =~ m/^(\w+)(?:-(\d+(?:\.\d+)*))?$/ ) {
     my $root = $1;
     my @ver;
     @ver = split( /\./, $2 ) if $2;
@@ -117,6 +120,9 @@ sub pkg_check {
 }
 
 sub vercmp {
+  # I am going with slow so I can call this function
+  # outside sort.
+  my ( $a, $b ) = @_;
   my $i = 0;
   my $va = $a->{ver};
   my $vb = $b->{ver};
@@ -127,6 +133,8 @@ sub vercmp {
       } else {
         return -1;
       }
+    } elsif ( $i >= @$vb ) {
+      return 1;
     }
     my $rv = $va->[$i] <=> $vb->[$i];
     return $rv if $rv;
@@ -146,16 +154,16 @@ sub pkg_read_header {
     next if $line =~ m/^\s*(?:#.*)?$/;
     if ( $line =~ m/^\s*Requires:((?:\s+[-\w.]+)*)$/ ) {
       for my $rpkg ( reverse split ' ', $1 ) {
-        push( @reqlist, pkg_check( $rpkg, $pkg->{name} );
+        push( @reqlist, pkg_check( $rpkg, $pkg->{name} ) );
       }
-    } elsif ( $line =~ m|\s*Files:\s*(\w+)\s*\@\s*(/(?:(?:\w+/)*\w+))$| ) {
+    } elsif ( $line =~ m|^\s*Files:\s*(\w+)\s*\@\s*(/(?:(?:\w+/)*\w+)?)$| ) {
       -f "$pkgroot/$pkg->{name}/$1" ||
         die "Unable to find filelist '$1' specified in $pkg->{name}/Header\n";
       -d $2 ||
         die "Invalid SrcRoot path '$2' specified in $pkg->{name}/Header\n";
       push(@{$pkg->{Files}}, { List => $1, SrcRoot => $2 } );
     } else {
-      die "Syntax error in $pkg->{name}/Header\n";
+      die "Syntax error in $pkg->{name}/Header: '$line'\n";
     }
   }
 }
