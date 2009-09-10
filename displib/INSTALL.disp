@@ -1,5 +1,8 @@
 # After downloading from the CVS repository:
 
+  # autoreconf -i takes care of all the pre-configure stuff
+  # FullBuild all handles everything.
+
   aclocal                # to generate aclocal.m4
   libtoolize             # to link in libtool files
   automake --add-missing # to generate Makefile.in src/Makefile.in
