@@ -1,5 +1,8 @@
 /* cmdgen.c contains the main program for the Command Parser Generator.
  * $Log$
+ * Revision 1.9  2007/05/01 17:42:27  ntallen
+ * Added %INTERFACE <name> spec
+ *
  * Revision 1.8  2006/05/30 00:17:09  ntallen
  * Portability (to compile under cygwin)
  *
@@ -26,7 +29,7 @@
 	"$Id$";
 #pragma on (unreferenced)
 
-int (*nl_error)(int level, char *s, ...) = compile_error;
+int (*nl_error)(int level, const char *s, ...) = compile_error;
 static int verbose = 0;
 static char data_file[FILENAME_MAX+1] = "";
 static time_t time_of_day;
