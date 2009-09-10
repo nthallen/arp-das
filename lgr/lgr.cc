@@ -52,7 +52,7 @@ void DClgr::process_tstamp() {
   }
 }
 
-void DClgr::lgr_write(void *buf, int nb, char *where ) {
+void DClgr::lgr_write(void *buf, int nb, const char *where ) {
   if ( fwrite( buf, nb, 1, ofp ) < 1 )
     nl_error( 3, "Error %s: %s", where, strerror(errno) );
   fflush(ofp);

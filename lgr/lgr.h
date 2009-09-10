@@ -23,7 +23,7 @@
       int nb_out;
       void next_file();
       void write_tstamp();
-      void lgr_write(void *buf, int nb, char *where);
+      void lgr_write(void *buf, int nb, const char *where);
   };
 
 extern "C" {

@@ -17,4 +17,4 @@ mlf_find script: lgr -N `mlf_find LOG`
 
 <package> msghdr_default
 <vars>
-  char *msg_hdr_default = "lgr";
+  const char *msg_hdr_default = "lgr";

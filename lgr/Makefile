@@ -1,9 +1,14 @@
 include /usr/local/share/huarp/appgen.mk
 CFLAGS=-Wall -g
 CXXFLAGS=-Wall -g
+# I specify these two to:
+#  a) override the setting CXX=cc in appgen.mk
+#  b) use g++ to link instead of $(CC)=cc, which ties into a different library
+CXX=g++
+LINK.cxx=$(CXX) $(AG_LDFLAGS) $(LDFLAGS)
 
 lgr : lgr.o lgroui.o
-	$(LINK.norm) -o lgr lgr.o lgroui.o -ltmpp -ltm -lnort -lang-c++
+	$(LINK.cxx) -o lgr lgr.o lgroui.o -ltmpp -ltm -lnort
 	usemsg lgr lgroui.c
 lgr.o : lgr.cc
 lgroui.c : lgr.oui
