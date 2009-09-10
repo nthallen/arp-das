@@ -1,0 +1,41 @@
+#! /bin/sh
+#  sudo -E -u ./FullBuild all
+#  ./FullBuild make
+#  ./FullBuild install
+# Note: must use sudo -E to preserve QNX_HOST and QNX_TARGET settings
+
+function compile {
+  echo
+  echo "============"
+  echo "$*"
+  date
+  id
+  echo "============"
+  $*
+}
+
+case "$1" in
+  make) ;;
+  install) ;;
+  all)
+    if [ -n "$SUDO_USER" ]; then
+      sudo -E -u $SUDO_USER $0 make 
+    else
+      $0 make
+    fi
+    $0 install
+    exit;;
+  *) echo "usage: ./FullBuild [make|install|all]" >&2
+    exit;;
+esac
+
+(
+  case "$1" in
+    make)
+      compile autoreconf -i
+      compile ./configure
+      compile make;;
+    install)
+      compile make install;;
+  esac
+) 2>&1 | tee -a FullBuild.log

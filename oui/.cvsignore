@@ -9,3 +9,9 @@ oui-*.tar.gz
 x86
 autom4te.cache
 FullBuild.log
+ylwrap
+missing
+install-sh
+depcomp
+INSTALL
+COPYING
