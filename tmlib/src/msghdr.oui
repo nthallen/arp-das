@@ -16,7 +16,7 @@
 <sort>
 	-h <msg header>
 <var>
-  char *msg_hdr;
+  const char *msg_hdr;
 <init>
   msg_hdr = msghdr_init( msg_hdr_default, argc, argv );
 
