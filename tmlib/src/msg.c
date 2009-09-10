@@ -3,15 +3,17 @@
 #include <string.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <time.h>
 #include "oui.h"
 #include "nortlib.h"
 #include "msg.h"
+#include "tm.h"
 
 /** Handle -h option
  */
-char *msghdr_init(const char *hdr_default, int argc, char **argv) {
-  char *hdr = hdr_default;
+const char *msghdr_init(const char *hdr_default, int argc, char **argv) {
+  const char *hdr = hdr_default;
   int c;
 
   optind = OPTIND_RESET;

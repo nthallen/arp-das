@@ -162,7 +162,7 @@ int ci_sendcmd(const char *cmdtext, int mode) {
     }
     clen = strlen(cmdtext);
     { int len = clen;
-      char *ts = ci_time_str();
+      const char *ts = ci_time_str();
 
       if (len > 0 && cmdtext[len-1]=='\n') len--;
       nl_error( mode == 2 ? -4 : -3,

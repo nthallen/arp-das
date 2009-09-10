@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <string.h>
 #include <ctype.h>
 #include "cis.h"
 #include "tm.h"
@@ -399,7 +400,7 @@ static int io_notify(resmgr_context_t *ctp, io_notify_t *msg, RESMGR_OCB_T *ocb)
 static int io_close_ocb(resmgr_context_t *ctp, void *rsvd, RESMGR_OCB_T *ocb) {
   IOFUNC_ATTR_T *rd_attr = ocb->hdr.attr;
   iofunc_notify_remove(ctp, rd_attr->notify);
-  return(iofunc_close_ocb_default(ctp, rsvd, ocb));
+  return(iofunc_close_ocb_default(ctp, rsvd, (iofunc_ocb_t *)ocb));
 }
 
 static void read_reply( RESMGR_OCB_T *ocb ) {

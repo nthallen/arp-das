@@ -13,3 +13,4 @@ ltmain.sh
 missing
 autom4te.cache
 aclocal.m4
+FullBuild.log
