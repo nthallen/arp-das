@@ -1,7 +1,9 @@
 #! /bin/sh
-#  ./FullBuild all
+#  sudo -E -u ./FullBuild all
 #  ./FullBuild make
 #  ./FullBuild install
+# Note: must use sudo -E to preserve QNX_HOST and QNX_TARGET settings
+
 function compile {
   echo
   echo "============"
@@ -17,7 +19,7 @@ case "$1" in
   install) ;;
   all)
     if [ -n "$SUDO_USER" ]; then
-      sudo -u $SUDO_USER $0 make 
+      sudo -E -u $SUDO_USER $0 make 
     else
       $0 make
     fi
