@@ -16,3 +16,6 @@ libtool
 ltmain.sh
 missing
 stamp-h1
+FullBuild.log
+FullBuild.made
+FullBuild.installed

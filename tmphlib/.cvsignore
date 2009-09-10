@@ -10,3 +10,6 @@ config.sub
 depcomp
 install-sh
 missing
+FullBuild.log
+FullBuild.made
+FullBuild.installed
