@@ -10,7 +10,7 @@ function nl_error {
 }
 typeset tgt ans opts
 if [ `id -u` != 0 ]; then
-  exec /usr/local/bin/sudo /usr/local/bin/distribute $*
+  exec /usr/pkg/bin/sudo /usr/local/bin/distribute $*
 fi
 [ -n "$SUDO_USER" ] || nl_error Cannot determine user
 opts=-vpn
@@ -21,7 +21,7 @@ fi
 tgt=$1
 shift 1
 [ ! -d "$tgt" ] && nl_error "Target '$tgt' is not a directory"
-ans=`/usr/local/bin/sudo -u $SUDO_USER /bin/ksh -c "if [ -w \"$tgt\" ]; then echo yes; else echo no; fi"`
+ans=`/usr/pkg/bin/sudo -u $SUDO_USER /bin/ksh -c "if [ -w \"$tgt\" ]; then echo yes; else echo no; fi"`
 [ "$ans" != "yes" ] && nl_error You do not have write permission in $tgt
 /bin/cp $opts $* $tgt
 exit 0

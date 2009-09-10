@@ -22,8 +22,8 @@ esac
 # fsys=`/usr/bin/fullpath -t $fsys`
 
 if [ `id -u` != 0 ]; then
-  echo exec /usr/local/bin/sudo $0 $*
-  exec /usr/local/bin/sudo $0 $*
+  echo exec /usr/pkg/bin/sudo $0 $*
+  exec /usr/pkg/bin/sudo $0 $*
   exit 1
 fi
 
