@@ -1,5 +1,8 @@
 /* compiler.h
  * $Log$
+ * Revision 1.3  2001/12/04 15:06:04  nort
+ * Debugging, etc.
+ *
  * Revision 1.2  2001/10/05 21:03:49  nort
  * Updated compiler.h to fix prototype.
  * Removed Makefile.in
@@ -35,7 +38,7 @@ extern short compile_options;
 extern "C" {
 #endif
 
-int compile_error(int level, char *format, ...);
+int compile_error(int level, const char *format, ...);
 FILE *open_output_file(char *name);
 FILE *open_input_file(char *name);
 void compile_init_options(int argc, char **argv, char *extension);

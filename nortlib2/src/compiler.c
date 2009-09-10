@@ -88,7 +88,7 @@ static void compile_exit(void) {
   }
 }
 
-int compile_error(int level, char *format, ...) {
+int compile_error(int level, const char *format, ...) {
   va_list arg;
   
   if (level < -1 && nl_debug_level > level) return(level);
