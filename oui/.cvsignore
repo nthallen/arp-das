@@ -8,3 +8,4 @@ config.status
 oui-*.tar.gz
 x86
 autom4te.cache
+FullBuild.log

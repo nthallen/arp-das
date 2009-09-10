@@ -11,7 +11,7 @@ char *opt_string = "uqkwvo:";
 #include "nortlib.h"
 #include <stdio.h>
 #include "compiler.h"
-  int (*nl_error)(int level, char *s, ...) = compile_error;
+  int (*nl_error)(int level, const char *s, ...) = compile_error;
 
 void oui_init_options(int argc, char **argv) {
   char *output_extension;
