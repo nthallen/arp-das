@@ -6,6 +6,6 @@ typedef struct {
   unsigned short status;
 } qcli_data_t;
 
-extern void qclid_init_options( char *msg_hdr, int argc, char **argv );
+extern void qclid_init_options( const char *msg_hdr, int argc, char **argv );
 
 #endif

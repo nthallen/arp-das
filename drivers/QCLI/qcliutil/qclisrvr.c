@@ -16,7 +16,7 @@
 #include "tm.h"
 
 /* Use msg_hdr for the name. */
-static char *qcli_name = "QCLI";
+static const char *qcli_name = "QCLI";
 
 enum qcli_cmd { SW, RW, ST, CE, TN, TF, TP, D0, D1, D2, D3, QU, XX };
 
@@ -86,7 +86,7 @@ qcli_cmd_defp parse_cmd ( char *cmd ) {
   return NULL;
 }
 
-void qclid_init_options( char *msg_hdr, int argc, char **argv ) {
+void qclid_init_options( const char *msg_hdr, int argc, char **argv ) {
   qcli_name = msg_hdr;
 }
 
