@@ -15,7 +15,7 @@
  * nl_response.
  */
 #define CMDEE_BUFSIZE 160
-int ci_cmdee_init( char *cmd_node ) {
+int ci_cmdee_init( const char *cmd_node ) {
   char buf[CMDEE_BUFSIZE];
   int fd;
 

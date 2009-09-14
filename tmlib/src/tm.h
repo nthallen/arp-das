@@ -218,7 +218,7 @@ const char *ci_time_str( void );
 void ci_server(void); /* in nortlib/cis.c */
 void cis_initialize(void); /* in cmdgen.skel or .cmd */
 void cis_terminate(void);  /* in cmdgen.skel of .cmd */
-int ci_cmdee_init( char *name );
+int ci_cmdee_init( const char *name );
 void ci_report_version(void);
 
 /* tmcalgo (tma) support routines */
@@ -227,7 +227,7 @@ void tma_new_time(unsigned int partition, long int t1, const char *next_cmd);
 void tma_hold(int hold);
 
 /* tmdac.c */
-void load_tmdac( char *path );
+void load_tmdac( const char *path );
 
 #ifdef __cplusplus
   };

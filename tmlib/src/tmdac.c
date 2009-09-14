@@ -4,7 +4,7 @@
 #include <errno.h>
 #include "tm.h"
 
-static FILE *open_path( char *path, char *fname ) {
+static FILE *open_path( const char *path, const char *fname ) {
   char filename[PATH_MAX];
   FILE *tmd;
   if ( snprintf( filename, PATH_MAX, "%s/%s", path, fname )
@@ -14,7 +14,7 @@ static FILE *open_path( char *path, char *fname ) {
   return tmd;
 }
 
-void load_tmdac( char *path ) {
+void load_tmdac( const char *path ) {
   FILE *dacfile;
   if ( path == NULL || path[0] == '\0' ) path = ".";
   dacfile = open_path( path, "tm.dac" );
