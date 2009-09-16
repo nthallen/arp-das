@@ -173,7 +173,7 @@ Command Summary:
  TM Advance to MFCtr
  TM Advance to Time
  */
-int data_generator::execute(char *cmd) {
+int data_generator::execute(const char *cmd) {
   if (cmd[0] == '\0') {
     tmr->settime(0);
     lock();

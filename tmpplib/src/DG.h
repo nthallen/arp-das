@@ -18,7 +18,7 @@ class data_generator : public data_queue {
     virtual ~data_generator();
     void init( int collection );
     void operate(); // event loop
-    int execute(char *cmd);
+    int execute(const char *cmd);
     virtual void event(enum dg_event evt);
     DG_dispatch *dispatch;
     virtual void service_row_timer() = 0;
