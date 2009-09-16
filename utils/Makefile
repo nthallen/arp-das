@@ -10,7 +10,7 @@ PREFIX=$(TGTNODE)/usr/local
 
 .PHONY : all install install-sbin install-bin install-osdata install-data
 all : install
-install : install-sbin install-bin install-data
+install : install-sbin install-bin install-data install-osdata
 install-sbin : $(SBIN)
 	mkdir -p $(PREFIX)/sbin
 	$(INSTALL) $(SBIN) $(PREFIX)/sbin
