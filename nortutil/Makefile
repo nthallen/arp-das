@@ -5,5 +5,10 @@ BIN=decipher install_app mkpatch txt2html word2txt \
 NOINST=distill
 #INSTALL=/usr/bin/install
 INSTALL=cp -v
-install :
+
+.PHONY : install checkperl
+
+install : checkperl
 	$(INSTALL) $(BIN) /usr/local/bin
+checkperl :
+	/usr/bin/perl -v
