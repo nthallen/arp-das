@@ -7,7 +7,7 @@
 
 #define RDR_BUFSIZE 16384
 
-static char *opt_basepath = ".";
+static const char *opt_basepath = ".";
 static int opt_autostart;
 static int opt_regulate;
 static int opt_kluge_a;
@@ -66,7 +66,7 @@ int main( int argc, char **argv ) {
   nl_error(0, "Shutdown");
 }
 
-Reader::Reader(int nQrows, int low_water, int bufsize, char *path) :
+Reader::Reader(int nQrows, int low_water, int bufsize, const char *path) :
     data_generator(nQrows, low_water), data_client( bufsize, 0, (char *)0 ) {
   it_blocked = 0;
   ot_blocked = 0;
@@ -91,7 +91,7 @@ static void pt_create( void *(*func)(void *), pthread_t *thread, void *arg ) {
     nl_error(3,"pthread_create failed: %s", strerror(errno));
 }
 
-static void pt_join( pthread_t thread, char *which ) {
+static void pt_join( pthread_t thread, const char *which ) {
   void *value;
   int rv = pthread_join(thread, &value);
   if ( rv != EOK )
@@ -276,7 +276,7 @@ void Reader::process_data() {
       last_rec_full = 1;
     } else {
       if ( n_rows * 2 < nrows_full_rec ||
-	  (!last_rec_full) && n_rows*2 == nrows_full_rec ) {
+	  ((!last_rec_full) && n_rows*2 == nrows_full_rec )) {
 	// We won't use this record, but we might record
 	// the MFCtr
 	if ( last_rec_full ) frac_MFCtr = MFCtr;

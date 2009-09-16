@@ -13,7 +13,7 @@ class Rdr_quit_pulse;
 
 class Reader : public data_generator, public data_client {
   public:
-    Reader(int nQrows, int low_water, int bufsize, char *path);
+    Reader(int nQrows, int low_water, int bufsize, const char *path);
     void event(enum dg_event evt);
     void *input_thread();
     void *output_thread();
