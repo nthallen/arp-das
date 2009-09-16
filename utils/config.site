@@ -1,2 +1,3 @@
 # Default site configuration for QNX6
 [ x$LDFLAGS = x ] && LDFLAGS='-Wl,-rpath -Wl,/usr/local/lib -L/usr/local/lib'
+[ x$CPPFLAGS = x ] && CPPFLAGS='-I/usr/local/include'
