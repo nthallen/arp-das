@@ -1,6 +1,6 @@
 #! /bin/sh
 if [ `id -u` != 0 ]; then
-  exec /usr/local/bin/sudo $0 $*
+  exec /usr/pkg/bin/sudo $0 $*
 fi
 /bin/chown root $*
 /bin/chmod u+s $*

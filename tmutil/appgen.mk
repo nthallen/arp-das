@@ -1,7 +1,7 @@
 # make include files for appgen QNX6 output.
 CPPFLAGS=-I/usr/local/include
-CXX=cc
-CXXFLAGS=-lang-c++ -I/usr/local/include
+# CXX=cc
+# CXXFLAGS=-lang-c++
 AG_LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 LINK.norm=$(CC) $(CPPFLAGS) $(CFLAGS) $(AG_LDFLAGS) $(LDFLAGS) -o $@
 LINK.priv=/bin/rm -f $@; $(LINK.norm)

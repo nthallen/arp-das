@@ -12,11 +12,13 @@ CXXFLAGS=-Wall -g -I/usr/local/include -lang-c++
 LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 
 .PHONY : all install install-sbin install-bin install-data
+.PHONY : checksudo
+
 all : parent
 install : install-sbin install-bin install-data install-oui
-install-sbin :
+install-sbin : checksudo
 	@$(INSTALL) $(SBIN) $(TGTNODE)/usr/local/sbin
-install-bin :
+install-bin : checksudo
 	@$(INSTALL) $(BIN) $(TGTNODE)/usr/local/bin
 install-data :
 	@$(INSTALL) $(DATA) $(TGTNODE)/usr/local/share/huarp
@@ -33,3 +35,8 @@ DCtap : DCtap.o DCtapoui.o
 DCtap.o : DCtap.cc
 DCtapoui.c : DCtap.oui
 	oui -o DCtapoui.c DCtap.oui
+
+# Trivial check for the existence of sudo where these utilities
+# expect to find it
+checksudo :
+	/usr/pkg/bin/sudo -V
