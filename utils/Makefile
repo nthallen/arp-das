@@ -4,20 +4,25 @@
 BIN=unsu vmutil
 SBIN=mkrtkit mkrtkitarch
 DATA=rtinstall
+OSDATA=config.site
 INSTALL=cp -vn
+PREFIX=$(TGTNODE)/usr/local
 
-.PHONY : all install install-sbin install-bin install-data
+.PHONY : all install install-sbin install-bin install-osdata install-data
 all : install
 install : install-sbin install-bin install-data
 install-sbin : $(SBIN)
-	mkdir -p $(TGTNODE)/usr/local/sbin
-	$(INSTALL) $(SBIN) $(TGTNODE)/usr/local/sbin
+	mkdir -p $(PREFIX)/sbin
+	$(INSTALL) $(SBIN) $(PREFIX)/sbin
 install-bin : $(BIN)
-	mkdir -p $(TGTNODE)/usr/local/bin
-	$(INSTALL) $(BIN) $(TGTNODE)/usr/local/bin
+	mkdir -p $(PREFIX)/bin
+	$(INSTALL) $(BIN) $(PREFIX)/bin
 install-data : $(DATA)
-	mkdir -p $(TGTNODE)/usr/local/share/huarp
-	$(INSTALL) $(DATA) $(TGTNODE)/usr/local/share/huarp
+	mkdir -p $(PREFIX)/share/huarp
+	$(INSTALL) $(DATA) $(PREFIX)/share/huarp
+install-osdata : $(OSDATA)
+	mkdir -p $(PREFIX)/share
+	$(INSTALL) $(OSDATA) $(PREFIX)/share
 #install-oui : $(OUI)
-#	@mkdir -p $(TGTNODE)/usr/local/share/oui
-#	@$(INSTALL) $(OUI) $(TGTNODE)/usr/local/share/oui
+#	@mkdir -p $(PREFIX)/share/oui
+#	@$(INSTALL) $(OUI) $(PREFIX)/share/oui

@@ -1,0 +1,2 @@
+# Default site configuration for QNX6
+[ x$LDFLAGS = x ] && LDFLAGS='-Wl,-rpath -Wl,/usr/local/lib -L/usr/local/lib'
