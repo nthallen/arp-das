@@ -269,7 +269,7 @@ void ptg_output_time( PTG_OUTPUT_FILE file ) {
   fprintf( file, "\n" );
 }
 
-void ptg_output_name( PTG_OUTPUT_FILE file, char *name ) {
+void ptg_output_name( PTG_OUTPUT_FILE file, const char *name ) {
   fprintf( file, "  \"%-10.10s\"", name );
 }
 
