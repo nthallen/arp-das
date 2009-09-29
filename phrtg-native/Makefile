@@ -11,4 +11,5 @@ $(EXE) :
 install : phrtg
 	cp -vn phrtg /usr/local/bin
 clean :
+	rm -f phrtg
 	make -C../phrtg -f../phrtg-native/native.mk clean
