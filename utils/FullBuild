@@ -1,0 +1,81 @@
+#! /bin/sh
+#  ./FullBuild all
+#  ./FullBuild make
+#  ./FullBuild install
+function nl_error {
+  echo "FullBuild: $*" >&2
+  exit 1
+}
+
+function compile {
+  echo
+  echo "============"
+  echo "$*"
+  date
+  id
+  echo "QNX_HOST=$QNX_HOST QNX_TARGET=$QNX_TARGET"
+  echo "============"
+  $* || nl_error $* failed
+}
+
+[ "$1" = "all" ] && set - configure make install
+
+# First make sure we have root access if necessary
+for arg in $*; do
+  case "$arg" in
+    configure) ;;
+    make) ;;
+    install)
+      if [ `id -u` != 0 ]; then
+	exec sudo -E $0 $*
+	nl_error exec failed
+      fi;;
+    *) nl_error "usage: ./FullBuild [configure|make|install|all]";;
+  esac
+done
+
+# Now handle multiple arguments
+if [ "$2" != "" ]; then
+  if [ `id -u` = 0 -a -n "$SUDO_USER" ]; then
+    unsu="sudo -E -u $SUDO_USER"
+  else
+    unsu=""
+  fi
+  for arg in $*; do
+    case "$arg" in
+      configure)
+	rm -f FullBuild.config
+	$unsu $0 $arg
+	[ -f FullBuild.config ] || nl_error "$unsu $0 $arg failed";;
+      make)
+	rm -f FullBuild.made
+	$unsu $0 $arg
+	[ -f FullBuild.made ] || nl_error "$unsu $0 $arg failed";;
+      install)
+	rm -f FullBuild.installed
+	$0 $arg
+	[ -f FullBuild.installed ] || nl_error "$0 $arg failed";;
+      *)
+	nl_error "Unexpected argument '$arg' in second case";;
+    esac
+  done
+  echo "$0 $* Completed"
+  exit
+fi
+
+# Now we should have just a single argument
+(
+  case "$1" in
+    configure)
+      [ -f configure.ac -o -f configure.in ] && compile autoreconf -i
+      [ -x configure ] && compile ./configure
+      touch FullBuild.config;;
+    make)
+      compile make
+      touch FullBuild.made;;
+    install)
+      compile make install
+      touch FullBuild.installed;;
+    *) nl_error "usage: $0 configure|make|install|all";;
+  esac
+) 2>&1 | tee -a FullBuild.log
