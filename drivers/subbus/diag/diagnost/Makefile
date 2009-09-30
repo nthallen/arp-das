@@ -1,4 +1,7 @@
 # $Log$
+# Revision 1.3  2008/09/09 13:20:44  ntallen
+# Port failtest to NTO
+#
 # Revision 1.2  2008/08/28 15:09:19  ntallen
 # Compiled and running
 #
@@ -12,7 +15,8 @@
 # Initial revision
 #
 
-TARGET=bckpln failtest scdebug sbswitch
+# TARGET=bckpln failtest scdebug sbswitch
+TARGET=bckpln failtest sbswitch
 
 LLIB=/usr/local/lib
 CFLAGS=-Wall -g -I/usr/local/include
