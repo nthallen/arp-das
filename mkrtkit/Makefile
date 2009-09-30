@@ -1,28 +1,30 @@
-# QNX6/utils
-# This directory contains miscellaneous utilities that need to be
-# compiled.
-BIN=unsu vmutil
+# QNX6/mkrtkit
+# This directory contains scripts for building runtime install CDs
+BIN=
 SBIN=mkrtkit mkrtkitarch
 DATA=rtinstall
-OSDATA=config.site
+OSDATA=
 INSTALL=cp -vn
 PREFIX=$(TGTNODE)/usr/local
+PKGPREFIX=$(TGTNODE)/var/huarp
 
-.PHONY : all install install-sbin install-bin install-osdata install-data
-all : install
-install : install-sbin install-bin install-data install-osdata
+PKGS := $(filter-out CVS, $(notdir $(wildcard pkgs/*)))
+
+.PHONY : test all install install-sbin install-data install-pkgs
+test :
+	@echo PKGS are $(PKGS)
+install : install-sbin install-data install-pkgs
 install-sbin : $(SBIN)
 	mkdir -p $(PREFIX)/sbin
 	$(INSTALL) $(SBIN) $(PREFIX)/sbin
-install-bin : $(BIN)
-	mkdir -p $(PREFIX)/bin
-	$(INSTALL) $(BIN) $(PREFIX)/bin
 install-data : $(DATA)
 	mkdir -p $(PREFIX)/share/huarp
 	$(INSTALL) $(DATA) $(PREFIX)/share/huarp
-install-osdata : $(OSDATA)
-	mkdir -p $(PREFIX)/share
-	$(INSTALL) $(OSDATA) $(PREFIX)/share
-#install-oui : $(OUI)
-#	@mkdir -p $(PREFIX)/share/oui
-#	@$(INSTALL) $(OUI) $(PREFIX)/share/oui
+install-pkgs :
+	mkdir -p $(PKGPREFIX)/pkg
+	@for pkg in $(PKGS); do \
+	  mkdir $(PKGPREFIX)/pkg/$$pkg; \
+	  for file in pkgs/$$pkg/*; do \
+	    [ -f $$file ] && cp -v $$file $(PKGPREFIX)/pkg/$$pkg/; \
+	  done; \
+	done
