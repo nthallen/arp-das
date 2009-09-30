@@ -1,0 +1,169 @@
+#! /usr/pkg/bin/perl -w
+use strict;
+use File::Path;
+use File::Copy;
+use Cwd qw(getcwd abs_path);
+
+# mkrtkitarch <destdir> <pkg> [<pkg> ...]
+#
+# Package definitions are found under /var/huarp/pkg/<pkg>-<ver>/
+# Each directory must include a Header file with at least the
+# following information
+#  ^Requires:(?:\s+(\w+)(?:-(\d+(?:\.\d+)*))?)*$
+# A full package implementation would allow dependency on
+# specific version ranges. I will probably opt for taking the
+# latest version in most cases, particularly at this point
+# where were making initial installs.
+#
+# Later, as new packages are created or old packages are updated,
+# I will want a package install utility that would need to look
+# at the dependencies and decide whether other packages need
+# to be updated.
+#
+# Optional Header contents:
+#  ^Files: <file> @ <path>
+#    Directory to cd to before creating archive
+#    More than one Files: line is supported (and usually required)
+
+my $create_bundle = 1;
+my $pkgroot = "/var/huarp/pkg";
+my $pkgcache = "/var/huarp/pkgcache";
+
+-d $pkgroot || mkpath($pkgroot) || die "Fatal: Unable to create pkgroot $pkgroot\n";
+-d $pkgroot || die "Fatal: Misunderstood mkpath return\n";
+
+-d $pkgcache || mkpath($pkgcache) || die "Fatal: Unable to create pkgcache $pkgcache\n";
+-d $pkgcache || die "Fatal: Misunderstood mkpath return\n";
+
+die "Insufficient arguments\n" unless @ARGV >= 2;
+my $pkgdest = shift @ARGV;
+-d $pkgdest || die "Package destination directory '$pkgdest' not found\n";
+$pkgdest = abs_path($pkgdest);
+
+my @reqlist;
+my @pkglist;
+while ( @ARGV ) {
+  my $pkg = pop(@ARGV);
+  push( @reqlist, pkg_check($pkg, 'Command Line') );
+}
+
+while (@reqlist) {
+  my $pkg = pop(@reqlist);
+  my @opts;
+  @opts = sort { vercmp($a,$b) } map s|^.*/|| &&
+     pkg_check($_, "Package directory: $pkgroot"),
+     glob "$pkgroot/$pkg->{root}-*";
+  # These are sorted in ascending order, so the last element is the one we want
+  die "Unable to locate package $pkg->{root} required by $pkg->{src}\n"
+    unless @opts;
+  my $inst = pop(@opts);
+  die "Latest version of package $pkg->{root} is older than version required by $pkg->{src}\n"
+    unless vercmp( $inst, $pkg ) >= 0;
+  push( @pkglist, $inst );
+  $inst->{name} = "$inst->{root}-" . join( '.', @{$inst->{ver}});
+  pkg_read_header( $inst );
+  my $archive = "$pkgcache/$inst->{name}.tar";
+  if ( !$create_bundle && ! -f "$archive.gz" ) {
+    ### Create individual archives
+    my $cwd = getcwd();
+    -f $archive && unlink($archive);
+    print "Creating archive $archive.gz\n";
+    for my $Files ( @{$inst->{Files}} ) {
+      chdir($Files->{SrcRoot});
+      system( "tar -rf $archive --owner=0 --group=0 " .
+            "-T $pkgroot/$inst->{name}/$Files->{List}" ) &&
+        die "tar failed creating archive for $inst->{name}\n";
+    }
+    chdir($cwd);
+    system( "gzip $archive" ) && die "gzip $archive failed\n";
+  }
+}
+
+if ( $create_bundle ) {
+  my $archive = "$pkgdest/$pkglist[0]->{name}-bundle.tar";
+  if ( -f $archive ) {
+    warn "Warning: Found existing $archive\n";
+    unlink( $archive );
+  }
+  while ( @pkglist ) {
+    my $pkg = pop(@pkglist);
+    print "Adding files from package $pkg->{name}\n";
+    for my $Files ( @{$pkg->{Files}} ) {
+      print "  $Files->{List} @ $Files->{SrcRoot}\n";
+      chdir($Files->{SrcRoot});
+      system( "tar -rf $archive --owner=0 --group=0 " .
+            "-T $pkgroot/$pkg->{name}/$Files->{List}" ) &&
+        die "tar failed including files from $pkg->{name}/$Files->{List}\n";
+    }
+  }
+  system( "gzip $archive" ) && die "gzip $archive failed\n";
+} else {
+  # Go through @pkglist and copy the archives into the repository directory
+  for my $pkg ( @pkglist ) {
+    print "Copying archive $pkg->{name}.tar.gz into repository\n";
+    copy( "$pkgcache/$pkg->{name}.tar.gz", "$pkgdest/$pkg->{name}.tar.gz" );
+  }
+}
+
+# pkg_check(name) verifies the syntax of a package reference
+# and returns a hashref with $root and @ver elements
+sub pkg_check {
+  my ( $pkg, $src ) = @_;
+  if ( $pkg =~ m/^(\w+)(?:-(\d+(?:\.\d+)*))?$/ ) {
+    my $root = $1;
+    my @ver;
+    @ver = split( /\./, $2 ) if $2;
+    return { root => $root, ver => \@ver, src => $src };
+  } else {
+    die "Invalid package reference: '$pkg' from $src\n";
+  }
+}
+
+sub vercmp {
+  # I am going with slow so I can call this function
+  # outside sort.
+  my ( $a, $b ) = @_;
+  my $i = 0;
+  my $va = $a->{ver};
+  my $vb = $b->{ver};
+  for ( my $i = 0; ; ++$i ) {
+    if ( $i >= @$va ) {
+      if ( $i >= @$vb ) {
+        return 0;
+      } else {
+        return -1;
+      }
+    } elsif ( $i >= @$vb ) {
+      return 1;
+    }
+    my $rv = $va->[$i] <=> $vb->[$i];
+    return $rv if $rv;
+  }
+}
+
+sub pkg_read_header {
+  # Now read the header
+  #  ^Requires: Add packages to reqlist in reverse order
+  #  ^Files: <file> @ <SrcRoot>
+  my $pkg = shift;
+  $pkg->{Files} = [];
+  open HDR, "<$pkgroot/$pkg->{name}/Header" ||
+    die "Unable to read Header for package $pkg->{name} required by $pkg->{src}\n";
+  while ( my $line = <HDR> ) {
+    chomp $line;
+    next if $line =~ m/^\s*(?:#.*)?$/;
+    if ( $line =~ m/^\s*Requires:((?:\s+[-\w.]+)*)$/ ) {
+      for my $rpkg ( reverse split ' ', $1 ) {
+        push( @reqlist, pkg_check( $rpkg, $pkg->{name} ) );
+      }
+    } elsif ( $line =~ m|^\s*Files:\s*(\w+)\s*\@\s*(/(?:(?:\w+/)*\w+)?)$| ) {
+      -f "$pkgroot/$pkg->{name}/$1" ||
+        die "Unable to find filelist '$1' specified in $pkg->{name}/Header\n";
+      -d $2 ||
+        die "Invalid SrcRoot path '$2' specified in $pkg->{name}/Header\n";
+      push(@{$pkg->{Files}}, { List => $1, SrcRoot => $2 } );
+    } else {
+      die "Syntax error in $pkg->{name}/Header: '$line'\n";
+    }
+  }
+}

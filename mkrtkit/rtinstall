@@ -1,0 +1,96 @@
+#!/qnxbase/bin/sh
+
+SRCPATH=$1
+
+# We need it later on even if the user ejects the CD
+cp /qnxbase/bin/shutdown /dev/shmem/
+
+# This is a slightly non-standard runtime environment
+export PATH=/qnxbase/bin:/qnxbase/usr/bin:/qnxbase/sbin:/qnxbase/usr/sbin:$PATH
+export LD_LIBRARY_PATH=/qnxbase/lib:/qnxbase/usr/lib:/qnxbase/lib/dll:$LD_LIBRARY_PATH
+
+pipe &
+on -W 60 -w /dev/pipe
+
+ln -sP /dev/shmem /tmp
+
+# For those scripts that need it
+ln -sP /qnxbase/bin/sh /bin/sh
+
+#progTitle="QNX Software Development Platform 6.4.1"
+#qconfigTitle="qnx-6.4.1"
+#instList="qnx6-host qnx6-target qnx6-qde qnx6-target-html"
+#nonsu=0
+
+#CMDID="id";
+#HOSTARCN="qnx6-host"
+#tgtdir="usr/qnx641"
+
+#sdk_inst=1
+#gpl_inst=0
+
+###############################################################################
+# functions
+###############################################################################
+
+getresp() {
+	printf "$1 [$2] "
+	read resp
+	if test "X$resp" = "X" ; then
+		resp=$2
+	fi
+}
+
+if [ $(fdisk /dev/hd0 query -t179) -ne 0 ]
+then
+	echo "Error: t179 partition already exists on first hard disk" 1>&2 
+	echo "Aborting installation" 1>&2 
+fi
+
+fdisk /dev/hd0 add -t179
+fdisk /dev/hd0 boot -t179
+fdisk /dev/hd0 loader
+mount -e /dev/hd0
+mkqnx6fs -Tdesktop /dev/hd0t179
+mount -tqnx6 /dev/hd0t179 /install
+
+if [ ! -d /install ]
+then
+	echo "Error mounting /install"
+	exit 1
+fi
+
+cd /install
+for instarchive in $SRCPATH/repository/*.tar.gz
+do
+	echo "Extracting $instarchive"
+	tar -zxf $instarchive
+done
+
+# This bit is here since the system really wants everything 
+# rooted at / but the archives include files in x86/*. If x86 
+# is a directory, then we put things right. The alternative is to 
+# do the right thing when making the archives.
+if [ -d x86 ]; then
+  echo Found an /x86 directory
+	cp -cRp x86/* .
+	rm -rf x86
+fi
+if [ ! -e x86 ]; then
+  echo Creating /x86 link
+	ln -s . x86
+fi
+
+mkdir -p /install/boot/fs
+cp $SRCPATH/boot/fs/*.ifs /install/boot/fs/
+cp $SRCPATH/boot/fs/*.ifs /install/.boot/
+
+cat >/install/.diskroot <<HERE
+mount=/
+HERE
+
+[ -d /install/etc/system/config ] || mkdir -p /install/etc/system/config
+touch /install/etc/system/config/nophoton
+
+getresp "Press ENTER to restart"
+shutdown
