@@ -54,11 +54,11 @@ int DatumHeight(int nrows) {
 
 int RuleThickness = 9;
 
-void preview_window( PTG_OUTPUT_FILE f, char *name, int w, int h ) {
+void preview_window( PTG_OUTPUT_FILE f, const char *name, int w, int h ) {
   if (do_output) window = tbl_window( name, w, h );
 }
 
-void preview_label( PTG_OUTPUT_FILE f, char *str, int r, int c ) {
+void preview_label( PTG_OUTPUT_FILE f, const char *str, int r, int c ) {
   if (do_output) tbl_label( window, str, r, c );
 }
 
