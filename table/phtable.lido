@@ -41,11 +41,11 @@ RULE: HDimension ::= Dimension COMPUTE
   % HDimension.Dimension = Dimension.Dimension;
   HDimension.Dimension = MKDIM(
     DatumWidth(SPACE(Dimension.Dimension)),
-    GLUE(Dimension.Dimension));
+    GLUE(Dimension.Dimension)) <- INCLUDING Program.PhotonSetup;
 END;
 
 RULE: VDimension ::= Dimension COMPUTE
-  % VDimension.GlueScale = DatumHeight(1) <- INCLUDING Program.PhotonSetup;
+  % VDimension.GlueScale = DatumHeight(1);
   % VDimension.Dimension = Dimension.Dimension;
   VDimension.Dimension = MKDIM(
     DatumHeight(SPACE(Dimension.Dimension)),
@@ -141,7 +141,8 @@ RULE: Datum ::=  '(' Word DatumDimensions ')' COMPUTE
 END;
 
 RULE: DatumDimensions ::= COMPUTE
-  DatumDimensions.MinWidth = MKDIM(DatumWidth(DEF_DATUM_WID),0);
+  DatumDimensions.MinWidth = MKDIM(DatumWidth(DEF_DATUM_WID),0)
+     <- INCLUDING Program.PhotonSetup;
   DatumDimensions.MinHeight = MKDIM(DatumHeight(DEF_DATUM_HT),0);
   DatumDimensions.NSpaces = DEF_DATUM_WID;
 END;

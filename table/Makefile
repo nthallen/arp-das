@@ -1,4 +1,4 @@
-.PHONY : install
+.PHONY : install clean
 
 SRCS := Odinfile phtable.specs $(shell grep -v '^\$$' phtable.specs)
 
@@ -11,3 +11,6 @@ phtable.exe : $(SRCS)
 	eli phtable.exe
 install : phtable
 	@cp -v phtable /usr/local/bin/phtable
+clean :
+	rm -f phtable phtable.exe dbphtable
+	@echo "Execute 'eli -r' if you want to reset the cache"
