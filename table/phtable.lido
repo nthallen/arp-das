@@ -97,7 +97,7 @@ END;
 RULE: Attr ::= 'Title:' COMPUTE Attr.NewAttr = 5; END;
 RULE: Attr ::= 'Header:' COMPUTE Attr.NewAttr = 3; END;
 
-SYMBOL Program COMPUTE CHAINSTART HEAD.Attr = 4; END;
+SYMBOL Program COMPUTE CHAINSTART HEAD.Attr = 4 <- TAIL.DatumOffset; END;
 SYMBOL NamedTable COMPUTE CHAINSTART HEAD.Attr = 4; END;
 SYMBOL Table COMPUTE
   THIS.Attr = THIS.Attr;
