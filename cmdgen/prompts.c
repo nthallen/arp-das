@@ -1,6 +1,9 @@
 /* prompts.c
  *
  * $Log$
+ * Revision 1.6  2004/10/08 17:07:12  nort
+ * Mostly keyword differences
+ *
  * Revision 1.5  1995/05/25  17:21:13  nort
  * Use standard nortlib compiler functions
  *
@@ -115,7 +118,7 @@ static int prompt_idx(char *text) {
 static int n_prompts = 0;
 static void pprompt(int more, char *text) {
   if (n_prompts > 0) putc(',', ofile);
-  fprintf(ofile, "\n  %2d, PRMTOFST(%d)", more, prompt_idx(text));
+  fprintf(ofile, "\n  { %2d, PRMTOFST(%d) }", more, prompt_idx(text));
   n_prompts++;
 }
 

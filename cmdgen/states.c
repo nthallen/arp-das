@@ -1,6 +1,9 @@
 /* states.c
  *
  * $Log$
+ * Revision 1.5  2004/10/08 17:07:14  nort
+ * Mostly keyword differences
+ *
  * Revision 1.4  1995/05/25  17:20:41  nort
  * Use standard nortlib compiler functions
  *
@@ -303,7 +306,7 @@ void output_shifts(void) {
 		shift = nt->action.value;
 	  }
 	  if (offset != 0) putc(',', ofile);
-	  fprintf(ofile, "\n  %d, %d", ntnum, shift);
+	  fprintf(ofile, "\n  { %d, %d }", ntnum, shift);
 	  offset++;
 	  if (nt == NULL) break;
 	}
@@ -323,18 +326,18 @@ void output_states(void) {
 	nterm_offset = st->nonterm_offset;
 	switch (st->terminal_type) {
       case SI_WORD:
-		fprintf(ofile, "\n  STFL_WORD, %d, %d, %d", st->term_offset,
+		fprintf(ofile, "\n  { STFL_WORD, %d, %d, %d }", st->term_offset,
 				st->prompt_offset, st->nonterm_offset);
 		break;
       case SI_VSPC:
-		fprintf(ofile, "\n  STFL_VARIABLE, %s, %d, %d",
+		fprintf(ofile, "\n  { STFL_VARIABLE, %s, %d, %d }",
 				st->terminals->term->u.vspc.symbol,
 				st->prompt_offset, st->nonterm_offset);
 		break;
       case SI_EOR:
 		assert(st->terminals != NULL);
 		assert(st->terminals->term == NULL);
-		fprintf(ofile, "\n  STFL_REDUCE, %d, -1, %d",
+		fprintf(ofile, "\n  { STFL_REDUCE, %d, -1, %d }",
 				st->terminals->action.value, st->nonterm_offset);
 		break;
       case SI_NT:

@@ -1,6 +1,9 @@
 /* trie.c Defines grand trie structure in output file.
  *
  * $Log$
+ * Revision 1.4  2004/10/08 17:07:17  nort
+ * Mostly keyword differences
+ *
  * Revision 1.3  1995/05/25  17:21:02  nort
  * Use standard nortlib compiler functions
  *
@@ -102,10 +105,10 @@ static int output_tnodes(tnode *tn, int depth, int from) {
 	else prev = tn->number - from;
 	code = tn->code;
 	if (tn->sib == NULL && code != 1) code |= 0x80;
-	fprintf(ofile, "\n  0x%02X", code);
+	fprintf(ofile, "\n  { 0x%02X", code);
 	if (isprint(code &= 0x7F)) fprintf(ofile, " /* '%c' */", code);
 	else fprintf(ofile, "          ");
-	fprintf(ofile, ", %3d, %3d", next, prev);
+	fprintf(ofile, ", %3d, %3d }", next, prev);
 	fflush(ofile);
 	result = 1;
   } else for (tnp = tn->child; tnp != NULL; tnp = tnp->sib) {
