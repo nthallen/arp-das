@@ -1,5 +1,9 @@
 /* calibr.c Handles calibration information.
  * $Log$
+ * Revision 1.3  2009/05/22 13:17:01  ntallen
+ * Replace call to ltoa with code for binary conversion
+ * Remove use of min()
+ *
  * Revision 1.2  2008/07/03 18:18:48  ntallen
  * To compile under QNX6 with minor blind adaptations to changes between
  * dbr.h and tm.h
@@ -1266,7 +1270,7 @@ static char *generate_tfunc( char *in_type, unsigned int in_tcode,
 
     /* generate the text function */
     print_indent(NULL);
-    fprintf(ofile, "char *%s( %s x) {", tfname, in_type );
+    fprintf(ofile, "const char *%s( %s x) {", tfname, in_type );
     adjust_indent( 2 );
 
     /* determine minimum and maximum output values based on format */
@@ -1454,7 +1458,7 @@ static void gen_int_tcvt( struct tmtype *ftype ) {
             tname->name );
     var = "x";
     fprintf( ofile,
-            "char *%s%s %s) {\n", cdf->tcvt->fnpre,
+            "const char *%s%s %s) {\n", cdf->tcvt->fnpre,
             ftype->decl->nameref->name, var);
     compile_error(1,
       "Format \"%s\" may be narrow for input type %s",
