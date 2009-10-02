@@ -569,15 +569,15 @@ static void output_cmd_code( FILE *ofp, struct cmddef *cmd,
   assert( cmd != 0 );
   switch ( cmd->cmdtype ) {
 	case CMDTYPE_CMD:
-	  fprintf( ofp, "%8ld, \">%s\\n\",\n", cmd->cmdtime, cmd->cmdtext );
+	  fprintf( ofp, "    {%8ld, \">%s\\n\" },\n", cmd->cmdtime, cmd->cmdtext );
 	  break;
 	case CMDTYPE_VAL:
-	  fprintf( ofp, "%8ld, \"#%d\", /* %s */\n", cmd->cmdtime,
+	  fprintf( ofp, "    {%8ld, \"#%d\" }, /* %s */\n", cmd->cmdtime,
 		get_state_case( cmd->cmdtext, 0, -1 ), cmd->cmdtext );
 	  output_edge( state->name, cmd->cmdtext, NULL );
 	  break;
 	case CMDTYPE_QSTR:
-	  fprintf( ofp, "%8ld, \"\\%s,\n", cmd->cmdtime, cmd->cmdtext );
+	  fprintf( ofp, "    {%8ld, \"\\%s },\n", cmd->cmdtime, cmd->cmdtext );
 	  break;
 	case CMDTYPE_HOLD:
 	case CMDTYPE_VHOLD:
@@ -593,7 +593,7 @@ static void output_cmd_code( FILE *ofp, struct cmddef *cmd,
 			statetext = cmd->cmdtext;
 			output_edge( state->name, cmd->cmdtext, NULL );
 			if ( cmd->substate ) {
-			  fprintf( ofp, "%8ld, \"#%d\", /* %s */\n",
+			  fprintf( ofp, "    {%8ld, \"#%d\" }, /* %s */\n",
 				cmd->cmdtime, cmd->substate->state_case,
 				cmd->substate->name );
 			}
@@ -601,11 +601,11 @@ static void output_cmd_code( FILE *ofp, struct cmddef *cmd,
 			statecase = cmd->substate->state_case;
 			statetext = cmd->substate->name;
 		  }
-		  fprintf( ofp, "%8ld, \"?%d,%ld,%d,%d\", /* %s */\n",
+		  fprintf( ofp, "    {%8ld, \"?%d,%ld,%d,%d\" }, /* %s */\n",
 			cmd->cmdtime, cmd->else_count, cmd->timeout,
 			statecase, mycase, statetext );
 		} else {
-		  fprintf( ofp, "%8ld, \"?%d,%ld,%d,%d\", /* %s */\n", 
+		  fprintf( ofp, "    {%8ld, \"?%d,%ld,%d,%d\" }, /* %s */\n", 
 			cmd->cmdtime, cmd->else_count, cmd->timeout,
 			cmd->substate->state_case, mycase, cmd->substate->name );
 		}
@@ -614,7 +614,7 @@ static void output_cmd_code( FILE *ofp, struct cmddef *cmd,
 	  }
 	  break;
 	case CMDTYPE_RES:
-	  fprintf( ofp, "%8ld, \"R%d,%d\", /* %s */\n",
+	  fprintf( ofp, "    {%8ld, \"R%d,%d\" }, /* %s */\n",
 		cmd->cmdtime,
 		get_state_partno( cmd->cmdtext ),
 		get_state_case( cmd->cmdtext, 0, -1 ),
@@ -622,7 +622,7 @@ static void output_cmd_code( FILE *ofp, struct cmddef *cmd,
 	  output_edge( state->name, cmd->cmdtext, " [color=blue]" );
 	  break;
 	case CMDTYPE_SS:
-	  fprintf( ofp, "%8ld, \"#%d\", /* %s */\n",
+	  fprintf( ofp, "    {%8ld, \"#%d\" }, /* %s */\n",
 		cmd->cmdtime,
 		cmd->substate->state_case,
 		cmd->substate->name );
@@ -663,7 +663,7 @@ static void output_state(FILE *ofp, struct stdef *state ) {
   for ( ; cmd; cmd = cmd->next ) {
 	output_cmd_code( ofp, cmd, state );
   }
-  fprintf( ofp, "%8ld, NULL\n  };\n", -1L );
+  fprintf( ofp, "    {%8ld, NULL }\n  };\n", -1L );
   
   if (state->filename != 0 ) {
 	fprintf( ofp, "  tma_ifile %s_file_ = {\n", state->name );
@@ -735,7 +735,7 @@ void output_mainloop( FILE *ofp ) {
 				"  int subcase;\n\n"
 				"  it = itime();\n"
 				"  ci_settime( it );\n"
-				"  while ( subcase = tma_process( it ) ) {\n"
+				"  while ( (subcase = tma_process( it )) ) {\n"
 				"\tswitch (subcase) {\n" );
   fprintf( ofp, "\t  case -1:\n"
 				"\t  case 0: break;\n" );
@@ -754,15 +754,15 @@ void output_mainloop( FILE *ofp ) {
 	fprintf( ofp, "%%{\n  slurp_val slurp_vals[] = {\n" );
 	for ( subs = state_cases.first; subs != 0; subs = subs->next ) {
 	  if ( subs->slurp ) {
-		fprintf( ofp, "    \"%s\", \"#%d",
+		fprintf( ofp, "    { \"%s\", \"#%d",
 		  subs->statename, subs->statecase );
 		if ( subs->partno >= 0 ) {
 		  fprintf( ofp, "R%d,%d",
 			subs->partno, subs->statecase );
 		}
-		fprintf( ofp, "\",\n" );
+		fprintf( ofp, "\" },\n" );
 	  }
 	}
-	fprintf( ofp, "    NULL, 0\n  };\n%%}\n" );
+	fprintf( ofp, "    { NULL, 0 }\n  };\n%%}\n" );
   }
 }
