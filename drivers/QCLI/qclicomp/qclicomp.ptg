@@ -153,12 +153,12 @@ WaveName: "  " [ ptg_output_name $1 string ]
 */
 WaveNames:
   "%{\n"
-  "  static char *" $3 string "_Wt[] = {\n"
+  "  static const char *" $3 string "_Wt[] = {\n"
   $1 "\n"
   "  };\n"
   "  #define N_" $3 string "_WAVES " $2 int "\n"
   "\n"
-  "  char *" $3 string "_Wave_text( int n ) {\n"
+  "  const char *" $3 string "_Wave_text( int n ) {\n"
   "    if ( n < 0 || n >= N_" $3 string "_WAVES )\n"
   "      return \"----------\";\n"
   "    else return " $3 string "_Wt[n];\n"
