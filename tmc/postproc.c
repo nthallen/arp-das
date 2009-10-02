@@ -1,6 +1,9 @@
 /* postproc.c Handles output processing after all the crucial code has
    been generated.
    $Log$
+   Revision 1.8  2008/07/29 20:11:22  ntallen
+   Changes for Col_send
+
    Revision 1.7  2008/07/21 16:27:05  ntallen
    Output TM_DATA_TYPE
    Omit mfcopy for TMTYPE_DATA_T3
@@ -155,7 +158,7 @@ void post_processing(void) {
     verfd = open( "VERSION", O_RDONLY );
     if ( verfd < 0 ) {
       compile_error( 1, "Cannot find VERSION, using '1.0'" );
-      strcpy( tmi.tmid.version, "1.0" );
+      strcpy( (char *)tmi.tmid.version, "1.0" );
     } else {
       int i, rc;
       rc = read( verfd, tmi.tmid.version, 16 );
@@ -181,40 +184,46 @@ void post_processing(void) {
     tmi.flags = SynchInverted ? TMF_INVERTED : 0;
     
     print_indent(NULL);
-    fprintf(ofile, "\ntm_info_t tm_info = {\n ");
-    fprintf( ofile, "  /* version: '%s' */\n ", tmi.tmid.version );
+    fprintf(ofile, "\ntm_info_t tm_info = {\n");
+    fprintf(ofile, "  {   /* tm_dac_t tm; */\n    { /* tmid_t tmid; */\n" );
+    fprintf( ofile, "      /* version: '%s' */\n", tmi.tmid.version );
     { int i;
       for ( i = 0; i < 16; i += 8 ) {
         int j;
+        fprintf( ofile, "      %c", i ? ' ' : '{' );
         for (j = 0; j < 8; j++ ) {
-          fprintf( ofile, " %3d,", tmi.tmid.version[i+j] );
+          fprintf( ofile, " %3d%s", tmi.tmid.version[i+j],
+            i+j < 15 ? "," : " }," );
         }
-        fprintf( ofile, "\n " );
+        fprintf( ofile, "\n" );
       }
     }
-    fprintf( ofile, "  /* md5: */\n " );
+    fprintf( ofile, "      /* md5: */\n" );
     { int i;
       for ( i = 0; i < 16; i += 8 ) {
         int j;
+	fprintf( ofile, "      %c", i ? ' ' : '{' );
         for (j = 0; j < 8; j++ ) {
-          fprintf( ofile, " 0x%02X,", tmi.tmid.md5[i+j] );
+          fprintf( ofile, " 0x%02X%s", tmi.tmid.md5[i+j],
+            i+j < 15 ? "," : " }" );
         }
-        fprintf( ofile, "\n " );
+        fprintf( ofile, "\n" );
       }
     }
-    fprintf(ofile,  " %d, /* NBMINF */\n"
-                   "  %d, /* NBROW */\n"
-                   "  %d, /* NROWSMAJF */\n"
-                   "  %d, /* NSECSPER */\n"
-                   "  %d, /* NROWSPER */\n",
+    fprintf(ofile, "    },\n"
+		   "    %d, /* nbminf */\n"
+                   "    %d, /* nbrow */\n"
+                   "    %d, /* nrowsmajf */\n"
+                   "    %d, /* nsecsper */\n"
+                   "    %d, /* nrowsper */\n",
          tmi.nbminf, tmi.nbrow, tmi.nrowmajf, tmi.nsecsper, tmi.nrowsper);
-    fprintf(ofile, "  %d, %d, /* MFC lsb col, msb col */\n",
+    fprintf(ofile, "    %d, %d, /* mfc_lsb, mfc_msb */\n",
                     tmi.mfc_lsb, tmi.mfc_msb);
-    fprintf(ofile, "  0x%04X, /* Synch Value */\n"
-                   "  %s\n};\n",
+    fprintf(ofile, "    0x%04X, /* synch */\n"
+                   "    %s\n  }\n};\n",
                    tmi.synch, tmi.flags ?
-                     "TMF_INVERTED" :
-                     "0 /* not inverted */");
+                     "TMF_INVERTED /* flags */" :
+                     "0 /* flags: not inverted */");
     if (dacfile != NULL) {
       fwrite(&tmi, sizeof(tmi), 1, dacfile);
       fclose(dacfile);
