@@ -11,3 +11,4 @@ DG_tmr.lo
 DGcol.lo
 DQ.lo
 libtmpp.la
+FullBuild.*

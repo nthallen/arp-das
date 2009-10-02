@@ -24,7 +24,7 @@ class collector : public data_generator {
     virtual ~collector();
     void init();
     void event(enum dg_event evt);
-    DG_data *receive(char *name, void *data, int data_size, int synch);
+    DG_data *receive(const char *name, void *data, int data_size, int synch);
   protected:
     void commit_tstamp( mfc_t MFCtr, time_t time );
     static unsigned short majf_row, minf_row;

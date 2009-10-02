@@ -17,7 +17,7 @@ resmgr_connect_funcs_t DG_data::connect_funcs;
 resmgr_io_funcs_t DG_data::io_funcs;
 bool DG_data::funcs_initialized = false;
 
-DG_data::DG_data(DG_dispatch *dispatch, char *name_in, void *data,
+DG_data::DG_data(DG_dispatch *dispatch, const char *name_in, void *data,
 	 int data_size, int synch)
     : DG_dispatch_client() {
 

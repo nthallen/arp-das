@@ -21,7 +21,7 @@ struct data_dev_attr {
 class DG_data : public DG_dispatch_client {
   private:
     int dev_id;
-    char *name; // Keep around mostly for debugging
+    const char *name; // Keep around mostly for debugging
     short int stale_count;
     void *dptr;
     int dsize;
@@ -32,7 +32,8 @@ class DG_data : public DG_dispatch_client {
     static bool funcs_initialized;
   public:
     // DG_data(data_generator *data_gen); // perhaps I only need the dispatch
-    DG_data(DG_dispatch *disp, char *name, void *data, int data_size, int synch);
+    DG_data(DG_dispatch *disp, const char *name, void *data,
+        int data_size, int synch);
     ~DG_data();
     int ready_to_quit(); // virtual function of DG_dispatch_client
     int io_write(resmgr_context_t *ctp);
