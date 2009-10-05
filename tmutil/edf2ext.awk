@@ -1,5 +1,9 @@
 # edf2ext.awk Converts .edf files to .ext for TMC input.
 # $Log$
+# Revision 1.2  2008/09/22 16:00:30  ntallen
+# Updates to appgen for extractions
+# mkinp and tomat utilities
+#
 # Revision 1.1  2008/09/22 13:36:29  ntallen
 # edf tools for QNX6
 #
@@ -42,7 +46,7 @@ BEGIN { rv = 0 }
 	printf "\n"
 	print "  static double ext_delta = 0.;"
 	printf "\n"
-	print "  static sps_ptr edf_ss_open( char *name, int width ) {"
+	print "  static sps_ptr edf_ss_open( const char *name, int width ) {"
 	print "\tsps_ptr ss;"
 	printf "\n"
 	print "\tss = ss_open( name );"
