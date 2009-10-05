@@ -1,16 +1,16 @@
 # QNX6/utils
 # This directory contains miscellaneous utilities that need to be
 # compiled.
-BIN=unsu vmutil
-SBIN=mkrtkit mkrtkitarch
-DATA=rtinstall
+BIN=unsu vmutil FullBuild
+SBIN=
+DATA=
 OSDATA=config.site
 INSTALL=cp -vn
 PREFIX=$(TGTNODE)/usr/local
 
 .PHONY : all install install-sbin install-bin install-osdata install-data
 all : install
-install : install-sbin install-bin install-data install-osdata
+install : install-bin install-osdata
 install-sbin : $(SBIN)
 	mkdir -p $(PREFIX)/sbin
 	$(INSTALL) $(SBIN) $(PREFIX)/sbin
