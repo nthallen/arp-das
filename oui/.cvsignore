@@ -8,12 +8,10 @@ config.status
 oui-*.tar.gz
 x86
 autom4te.cache
-FullBuild.log
-FullBuild.made
-FullBuild.installed
 ylwrap
 missing
 install-sh
 depcomp
 INSTALL
 COPYING
+FullBuild.*
