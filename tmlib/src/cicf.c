@@ -5,7 +5,7 @@
 char rcsid_cicf_c[] =
   "$Header$";
 
-int ci_sendfcmd(int mode, char *fmt, ...) {
+int ci_sendfcmd(int mode, const char *fmt, ...) {
   va_list arg;
   char cmdbuf[CMD_INTERP_MAX];
 

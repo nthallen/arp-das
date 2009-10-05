@@ -4,7 +4,7 @@
 char rcsid_tmaR2_c[] = 
   "$Header$";
 
-void tma_init_state( int partno, tma_state *cmds, char *name ) {
+void tma_init_state( int partno, tma_state *cmds, const char *name ) {
   tma_prtn *p;
 
   if ( partno < tma_n_partitions ) {

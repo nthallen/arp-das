@@ -4,3 +4,4 @@ Makefile.in Makefile
 tabbed
 detabbed
 *.log
+FullBuild.*

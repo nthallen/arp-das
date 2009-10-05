@@ -7,21 +7,21 @@
 
 typedef struct {
   long int dt;
-  char *cmd;
+  const char *cmd;
 } tma_state;
 
 typedef struct {
   int partno;
-  char *filename;
-  char *statename;
+  const char *filename;
+  const char *statename;
   tma_state *cmds;
   tma_state *def_cmds;
   time_t modtime;
 } tma_ifile;
 
 typedef struct {
-  char *state;
-  char *cmdstr;
+  const char *state;
+  const char *cmdstr;
 } slurp_val;
 
 extern slurp_val slurp_vals[];
@@ -71,7 +71,7 @@ void tma_time(tma_prtn *p, unsigned int col, long int t);
 void tma_next_cmd( unsigned int partition, const char *cmd );
 
 /* R2 routines */
-void tma_init_state( int partno, tma_state *cmds, char *name );
+void tma_init_state( int partno, tma_state *cmds, const char *name );
 void tma_read_file( tma_ifile *ifilespec );
 int tma_process( long int it );
 void tma_succeed( int partno, int statecase );
