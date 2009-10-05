@@ -25,7 +25,9 @@ function waitforip {
     case $ip in
       127.0.0.1) ;;
       0.0.0.0) ;;
-      *) echo "IP: $line"; return;;
+      *) echo "IP: $line"
+         echo "hostname is `hostname`"
+         return;;
     esac
     echo "Waiting..."
     sleep 1
