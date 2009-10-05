@@ -465,7 +465,7 @@ for i in $basetargets; do
     replace_all .oui ${i}oui.c "\n\t\$(OUI)" $deps &&
       ouiout=${i}oui.c
     replace_each .c .o "" $deps
-    replace_each .cc .o "" $deps && cxx=' -lang-c++'
+    replace_each .cc .o "" $deps && cxx=CXX
     unset libs odeps
     for dep in $deps; do
       case "x$dep" in
@@ -474,7 +474,7 @@ for i in $basetargets; do
 	*) nl_error Unrecognized dependent $dep;;
       esac
     done
-    deps="$odeps\n\t\$(LINK.$LINK)$odeps$libs$ldisp$ltmph$ltmpp -ltm$lssp -lnort$cxx"
+    deps="$odeps\n\t\$(LINK.$LINK$cxx)$odeps$libs$ldisp$ltmph$ltmpp -ltm$lssp -lnort"
     [ -n "$ouiout" ] &&	deps="$deps\n\t\$(OUIUSE) $ouiout"
     if [ $LINK = priv ]; then deps="$deps\n\t\$(PROMOTE) $i"; fi
   fi

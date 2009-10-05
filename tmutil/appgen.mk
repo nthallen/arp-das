@@ -1,10 +1,23 @@
 # make include files for appgen QNX6 output.
 CPPFLAGS=-I/usr/local/include
+
+# CXX and CXXLINK are used for compiling and linking c++ apps
+# We need to use the same compiler that is used in building
+# our c++ libs (tmpp, disp)
+# CXX=g++ # (this is the GNU Make default
+CXXLINK=$(CXX)
+
+# If our c++ libraries (tmpp, disp) are built using cc, we can use these
+# definitions:
 # CXX=cc
-# CXXFLAGS=-lang-c++
+# CXXLINK=cc -lang-c++
+
 AG_LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
-LINK.norm=$(CC) $(CPPFLAGS) $(CFLAGS) $(AG_LDFLAGS) $(LDFLAGS) -o $@
+LINK.args=$(CPPFLAGS) $(CFLAGS) $(AG_LDFLAGS) $(LDFLAGS) -o $@
+LINK.norm=$(CC) $(LINK.args)
 LINK.priv=/bin/rm -f $@; $(LINK.norm)
+LINK.normCXX=$(CXXLINK) $(LINK.args)
+LINK.privCXX=/bin/rm -f $@; $(LINK.normCXX)
 TMCREV=tmc
 TMC=$(TMCREV) -s -o $@ $(TMCFLAGS)
 TMC.col=name=$@; $(TMC) -p -V $${name%col.cc}.pcm -c -D tm.dac $(COLFLAGS)
