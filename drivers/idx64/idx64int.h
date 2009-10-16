@@ -42,7 +42,7 @@ typedef struct {
 
 /* This is the structure for boards actually in use */
 typedef struct {
-  pid_t proxy; /* proxy for intserv for this board */
+  int8_t pulse_code; /* proxy for intserv for this board */
   unsigned short request; /* bit-map of drive requests */
   unsigned short scans; /* bit-map of scans */
   chandef chans[ MAX_IDXR_CHANS ];

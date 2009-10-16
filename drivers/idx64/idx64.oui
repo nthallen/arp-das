@@ -1,12 +1,20 @@
 <package> idx64
 <include> msg subbus_reqd
-<include> "idx64.h" "idx64int.h"
+<include> "idx64.h" "idx64int.h" "intserv_int.h"
+<opts> "i:"
+<sort>
+	-i <sbirq>[:<spirq>[:<pfirq>]] Specify IRQ levels
 <args>
 	if ( idx64_cfg_string != 0 )
 	  nl_error( 3, "Only one configuration string allowed" );
 	idx64_cfg_string = optarg;
+
+<switch>
+  case 'i': process_IRQs( optarg ); break;
+
 <synopsis>
 %C	[options] [cfg string]
+
 <unsort>
 <blank>
 [cfg string] is a string of the form:
@@ -21,7 +29,7 @@ configuration options for a channel, including step rate, in and
 out limits and output polarities. Refer to the Indexer64 
 specification:
 <blank>
-   http://www-arp.harvard.edu/das/manuals/idx64/idxspec.html
+   http://www.arp.harvard.edu/eng/elec/idx64/index.html
 <blank>
 for details.
 <blank>
@@ -38,8 +46,8 @@ Either code or bits may be omitted, in which case the default
 values of C00 and 0 are used. Note that there should be no spaces 
 in the configuration string.
 <blank>
-This version created June 9, 1999 to add a hysteresis defeat
-mechanism.
+June 9, 1999: added a hysteresis defeat mechanism.
+October 15, 2009: ported to QNX6
 
 <package> msghdr_init
 <init>

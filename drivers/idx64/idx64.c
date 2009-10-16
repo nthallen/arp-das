@@ -1,9 +1,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <sys/kernel.h>
-#include <sys/name.h>
-#include <sys/proxy.h>
+#include <sys/neutrino.h>
 #include "nortlib.h"
 #include "oui.h"
 #include "collect.h"
@@ -96,11 +94,10 @@ send_id tm_data;
 char *idx64_cfg_string;
 int idx64_region = 0x40;
 
-#define N_PROXIES  (MAX_IDXRS + 2)
-pid_t proxies[ N_PROXIES];
-#define CC_PROXY_ID 0
-#define SCAN_PROXY_ID 1
-#define BD_0_PROXY 2
+#define CMD_PULSE_CODE (_PULSE_CODE_MINAVAIL + 0)
+#define SCAN_PULSE_CODE (_PULSE_CODE_MINAVAIL + 1)
+#define INTR_PULSE_CODE (_PULSE_CODE_MINAVAIL + 2)
+#define EXPINT_PULSE_CODE (_PULSE_CODE_MINAVAIL + 3)
 
 /* Channel_init() initializes the channel's data structure,
    zeros the hardware's counters and performs default
@@ -142,24 +139,21 @@ static void init_boards( void ) {
   idx64_def *bddef;
 
   for ( i = 0; i < MAX_IDXRS; i++ ) {
-	unsigned short val;
+    unsigned short val;
 
-	/* if present, allocate structure, get proxy */
-	bddef = &idx_defs[i];
-	if ( read_ack( 0, bddef->card_base, &val ) != 0 ) {
-	  nl_error( -2, "Board %s present", bddef->cardID );
-	  bd = boards[i] = new_memory( sizeof( idx64_bd ) );
-	  proxies[ BD_0_PROXY + i ] = bd->proxy =
-		qnx_proxy_attach( 0, NULL, 0, -1 );
-	  if ( bd->proxy == -1 )
-		nl_error( 3, "Error attaching proxy for %s", 
-						bddef->cardID );
-	  IntSrv_Int_attach( bddef->cardID,	bddef->card_base, idx64_region,
-						  bd->proxy );
-	  bd->request = bd->scans = 0;
-	  for ( j = 0; j < MAX_IDXR_CHANS; j++ )
-		Channel_init( &bd->chans[j], bddef->card_base + 8 * ( j + 1 ) );
-	} else nl_error( -2, "Board %s not present", bddef->cardID );
+    /* if present, allocate structure, get proxy */
+    bddef = &idx_defs[i];
+    if ( read_ack( bddef->card_base, &val ) != 0 ) {
+      nl_error( -2, "Board %s present", bddef->cardID );
+      bd = boards[i] = new_memory( sizeof( idx64_bd ) );
+      bd->pulse_code = EXPINT_PULSE_CODE;
+      bd->pulse_value = i;
+      IntSrv_Int_attach( bddef->cardID,	bddef->card_base, idx64_region,
+                          bd->pulse_code, bd->pulse_value );
+      bd->request = bd->scans = 0;
+      for ( j = 0; j < MAX_IDXR_CHANS; j++ )
+        Channel_init( &bd->chans[j], bddef->card_base + 8 * ( j + 1 ) );
+    } else nl_error( -2, "Board %s not present", bddef->cardID );
   }
 }
 
@@ -174,15 +168,15 @@ static unsigned short idx_cfg_num( char **s, int base ) {
   t = *s;
   val = strtoul( t, s, base );
   if ( t == *s )
-	nl_error( 3, "Syntax error in configuration string" );
+    nl_error( 3, "Syntax error in configuration string" );
   return val;
 }
 
 /*
     [cfg code][,n_bits][:[cfg code][,n_bits] ...]
-	no spaces, default cfg code is C00 (hex). default n_bits is 0
-	Later may add ability to read the configuration from a file, 
-	but that's a low priority.
+    no spaces, default cfg code is C00 (hex). default n_bits is 0
+    Later may add ability to read the configuration from a file, 
+    but that's a low priority.
 */
 static void config_channels( char *s ) {
   int chan = 0;
@@ -194,56 +188,56 @@ static void config_channels( char *s ) {
   
   wdno = bitno = 0;
   while ( *s != '\0' ) {
-	if ( *s == ':' ) {
-	  s++; /* empty def */
-	  chan++;
-	} else {
-	  /* non-empty definition */
-	  if ( *s != ',' ) code = idx_cfg_num( &s, 16 );
-	  else code = DFLT_CHAN_CFG;
-	  if ( *s == ',' ) {
-		s++;
-		bits = idx_cfg_num( &s, 10 );
-		if ( bits > 3 )
-		  nl_error( 3, "bits value greater than 3" );
-	  } else bits = 0;
-	  if ( bitno + bits > 16 ) {
-		wdno++;
-		bitno = 0;
-	  }
-	  bdno = chan / MAX_IDXR_CHANS;
-	  chno = chan % MAX_IDXR_CHANS;
-	  if ( bdno > MAX_IDXRS )
-		nl_error( 3, "Too many channel configurations" );
-	  bd = boards[ bdno ];
-	  if ( bd == 0 ) {
-		nl_error( 1, "Configuration specified for non-existant channel" );
-		bitno += bits;
-	  } else {
-		ch = &bd->chans[ chno ];
-		if ( bits != 0 ) {
-		  ch->tm_ptr = &tm_ptrs[ wdno ];
-		  if ( bits & 1 )
-			ch->scan_bit = ( 1 << bitno++ );
-		  if ( bits >= 2 ) {
-			ch->on_bit = ( 1 << bitno++ );
-			ch->supp_bit = ( 1 << bitno++ );
-		  }
-		}
-		if ( code != DFLT_CHAN_CFG )
-		  sbwr( ch->base_addr + 6, code );
-	  }
-	}
+    if ( *s == ':' ) {
+      s++; /* empty def */
+      chan++;
+    } else {
+      /* non-empty definition */
+      if ( *s != ',' ) code = idx_cfg_num( &s, 16 );
+      else code = DFLT_CHAN_CFG;
+      if ( *s == ',' ) {
+        s++;
+        bits = idx_cfg_num( &s, 10 );
+        if ( bits > 3 )
+          nl_error( 3, "bits value greater than 3" );
+      } else bits = 0;
+      if ( bitno + bits > 16 ) {
+        wdno++;
+        bitno = 0;
+      }
+      bdno = chan / MAX_IDXR_CHANS;
+      chno = chan % MAX_IDXR_CHANS;
+      if ( bdno > MAX_IDXRS )
+        nl_error( 3, "Too many channel configurations" );
+      bd = boards[ bdno ];
+      if ( bd == 0 ) {
+        nl_error( 1, "Configuration specified for non-existant channel" );
+        bitno += bits;
+      } else {
+        ch = &bd->chans[ chno ];
+        if ( bits != 0 ) {
+          ch->tm_ptr = &tm_ptrs[ wdno ];
+          if ( bits & 1 )
+            ch->scan_bit = ( 1 << bitno++ );
+          if ( bits >= 2 ) {
+            ch->on_bit = ( 1 << bitno++ );
+            ch->supp_bit = ( 1 << bitno++ );
+          }
+        }
+        if ( code != DFLT_CHAN_CFG )
+          sbwr( ch->base_addr + 6, code );
+      }
+    }
   }
 }
 
 static void tm_status_set( unsigned short *ptr,
-				unsigned short mask, unsigned short value ) {
+                unsigned short mask, unsigned short value ) {
   if ( ptr != 0 ) {
-	unsigned short old = *ptr;
-	*ptr = ( old & ~mask ) | ( value & mask );
-	if ( *ptr != old )
-	  Col_send( tm_data );
+    unsigned short old = *ptr;
+    *ptr = ( old & ~mask ) | ( value & mask );
+    if ( *ptr != old )
+      Col_send( tm_data );
   }
 }
 
@@ -251,10 +245,10 @@ static void dequeue( chandef *ch ) {
   ixcmdl *im;
 
   if ( ch != 0 && ch->first != 0 ) {
-	im = ch->first;
-	ch->first = im->next;
-	if ( ch->first == 0 ) ch->last = NULL;
-	free( im );
+    im = ch->first;
+    ch->first = im->next;
+    if ( ch->first == 0 ) ch->last = NULL;
+    free( im );
   }
 }
 
@@ -273,33 +267,33 @@ static int scan_setup( idx64_bd *bd, unsigned short chno, int start ) {
   static int n_scans = 0;
 
   if ( start != 0 ) {
-	if ( ( bd->scans & (1<<chno) ) == 0 ) {
-	  if ( n_scans == 0 ) {
-		int resp;
+    if ( ( bd->scans & (1<<chno) ) == 0 ) {
+      if ( n_scans == 0 ) {
+        int resp;
 
-		resp = set_response( 1 );
-		proxies[ SCAN_PROXY_ID ] =
-		  Col_set_proxy( INDEXER_PROXY_ID, 0 );
-		set_response( resp );
-		if ( proxies[ SCAN_PROXY_ID ] == -1 )
-		  return -1;
-	  }
-	  n_scans++;
-	  bd->scans |= (1<<chno);
-	}
+        resp = set_response( 1 );
+        proxies[ SCAN_PROXY_ID ] =
+          Col_set_proxy( INDEXER_PROXY_ID, 0 );
+        set_response( resp );
+        if ( proxies[ SCAN_PROXY_ID ] == -1 )
+          return -1;
+      }
+      n_scans++;
+      bd->scans |= (1<<chno);
+    }
   } else {
-	if ( ( bd->scans & (1<<chno) ) != 0 ) {
-	  assert( n_scans > 0 );
-	  if ( --n_scans == 0 ) {
-		int resp;
+    if ( ( bd->scans & (1<<chno) ) != 0 ) {
+      assert( n_scans > 0 );
+      if ( --n_scans == 0 ) {
+        int resp;
 
-		resp = set_response( 1 );
-		Col_reset_proxy( INDEXER_PROXY_ID );
-		set_response( resp );
-		proxies[ SCAN_PROXY_ID ] = -1;
-	  }
-	  bd->scans &= ~(1<<chno);
-	}
+        resp = set_response( 1 );
+        Col_reset_proxy( INDEXER_PROXY_ID );
+        set_response( resp );
+        proxies[ SCAN_PROXY_ID ] = -1;
+      }
+      bd->scans &= ~(1<<chno);
+    }
   }
   return 0;
 }
@@ -320,7 +314,7 @@ static unsigned short stop_channel( idx64_bd *bd, unsigned short chno ) {
 
   /* Clear all the TM bits */
   tm_status_set( ch->tm_ptr,
-	  ch->scan_bit | ch->on_bit | ch->supp_bit, 0 );
+      ch->scan_bit | ch->on_bit | ch->supp_bit, 0 );
   return EOK;
 }
 
@@ -330,14 +324,14 @@ static void shutdown_boards( void ) {
   idx64_bd *bd;
 
   for ( i = 0; i < MAX_IDXRS; i++ ) {
-	bd = boards[i];
-	if ( bd != 0 ) {
-	  /* Stop each channel */
-	  for ( j = 0; j < MAX_IDXR_CHANS; j++ )
-		stop_channel( bd, j );
-	  IntSrv_Int_detach( idx_defs[i].cardID );
-	  qnx_proxy_detach( bd->proxy );
-	}
+    bd = boards[i];
+    if ( bd != 0 ) {
+      /* Stop each channel */
+      for ( j = 0; j < MAX_IDXR_CHANS; j++ )
+        stop_channel( bd, j );
+      IntSrv_Int_detach( idx_defs[i].cardID );
+      qnx_proxy_detach( bd->proxy );
+    }
   }
 }
 
@@ -345,39 +339,39 @@ step_t translate_steps( chandef *ch, byte_t *cmd, step_t *steps ) {
   step_t curpos, dest;
   
   switch ( *cmd ) {
-	case IX64_ONLINE:
-	  *cmd = IX64_TO;
-	  *steps = ch->online;
-	  break;
-	case IX64_OFFLINE:
-	  *cmd = IX64_TO;
-	  *steps = ch->offline_pos ? ch->offline_pos :
-		  ch->online + ch->offline_delta;
-	  break;
-	case IX64_ALTLINE:
-	  *cmd = IX64_TO;
-	  *steps = ch->altline_pos ? ch->altline_pos :
-		  ch->online + ch->altline_delta;
-	  break;
-	default:
-	  break;
+    case IX64_ONLINE:
+      *cmd = IX64_TO;
+      *steps = ch->online;
+      break;
+    case IX64_OFFLINE:
+      *cmd = IX64_TO;
+      *steps = ch->offline_pos ? ch->offline_pos :
+          ch->online + ch->offline_delta;
+      break;
+    case IX64_ALTLINE:
+      *cmd = IX64_TO;
+      *steps = ch->altline_pos ? ch->altline_pos :
+          ch->online + ch->altline_delta;
+      break;
+    default:
+      break;
   }
   /* Translate IX64_TO to IX64_IN or IX64_OUT */
   curpos = sbw( ch->base_addr + 4 );
   if (*cmd & IX64_TO) {
-	dest = *steps;
-	*cmd &= ~IX64_DIR;
-	if (curpos < *steps) {
-	  *cmd |= IX64_OUT;
-	  *steps -= curpos;
-	} else {
-	  *cmd |= IX64_IN; /* nop! */
-	  *steps = curpos - *steps;
-	}
+    dest = *steps;
+    *cmd &= ~IX64_DIR;
+    if (curpos < *steps) {
+      *cmd |= IX64_OUT;
+      *steps -= curpos;
+    } else {
+      *cmd |= IX64_IN; /* nop! */
+      *steps = curpos - *steps;
+    }
   } else if ( ( *cmd & IX64_DIR ) == IX64_OUT ) {
-	dest = curpos + *steps;
+    dest = curpos + *steps;
   } else {
-	dest = curpos - *steps;
+    dest = curpos - *steps;
   }
   return dest;
 }
@@ -390,47 +384,47 @@ drive_chan( chandef *ch, ixcmdl *im ) {
   step_t steps;
 
   if ( im->flags & IXCMD_NEEDS_DRIVE ) {
-	im->flags &= ~IXCMD_NEEDS_DRIVE;
-	cmd = im->c.dir_scan;
-	steps = ( cmd & IX64_SCAN ) ? im->c.dsteps : im->c.steps;
-	im->dest = translate_steps( ch, &cmd, &steps );
-	if ( (( cmd & IX64_DIR ) == IX64_IN ) &&
-		ch->hysteresis != 0 && im->dest - steps < im->dest ) {
-	  steps += ch->hysteresis;
-	  im->flags |= IXCMD_NEEDS_HYST;
-	}
-	switch ( im->c.dir_scan ) {
-	  case IX64_ONLINE:
-	  case IX64_OFFLINE:
-	  case IX64_ALTLINE:
-		im->flags |= IXCMD_NEEDS_STATUS;
-		break;
-	  default:
-		break;
-	}
-	tm_status_set( ch->tm_ptr, ch->supp_bit | ch->on_bit, 0 );
+    im->flags &= ~IXCMD_NEEDS_DRIVE;
+    cmd = im->c.dir_scan;
+    steps = ( cmd & IX64_SCAN ) ? im->c.dsteps : im->c.steps;
+    im->dest = translate_steps( ch, &cmd, &steps );
+    if ( (( cmd & IX64_DIR ) == IX64_IN ) &&
+        ch->hysteresis != 0 && im->dest - steps < im->dest ) {
+      steps += ch->hysteresis;
+      im->flags |= IXCMD_NEEDS_HYST;
+    }
+    switch ( im->c.dir_scan ) {
+      case IX64_ONLINE:
+      case IX64_OFFLINE:
+      case IX64_ALTLINE:
+        im->flags |= IXCMD_NEEDS_STATUS;
+        break;
+      default:
+        break;
+    }
+    tm_status_set( ch->tm_ptr, ch->supp_bit | ch->on_bit, 0 );
   } else if ( im->flags & IXCMD_NEEDS_HYST ) {
-	step_t curstep =  sbw( ch->base_addr + 4 );
-	im->flags &= ~IXCMD_NEEDS_HYST;
-	if ( im->dest > curstep ) {
-	  cmd = IX64_OUT;
-	  steps = im->dest - curstep;
-	} else {
-	  im->flags &= ~IXCMD_NEEDS_STATUS;
-	  return 0;
-	}
+    step_t curstep =  sbw( ch->base_addr + 4 );
+    im->flags &= ~IXCMD_NEEDS_HYST;
+    if ( im->dest > curstep ) {
+      cmd = IX64_OUT;
+      steps = im->dest - curstep;
+    } else {
+      im->flags &= ~IXCMD_NEEDS_STATUS;
+      return 0;
+    }
   } else {
-	nl_error( 4, "drive_chan without drive or hyst" );
+    nl_error( 4, "drive_chan without drive or hyst" );
   }
   
   /* Check limits and don't drive if we're against one */
   stat = sbb( ch->base_addr + 6 );
   if ( ( cmd & IX64_DIR) == IX64_OUT ) {
-	if ( stat & 2 ) return 0;
-	addr = ch->base_addr + 2;
+    if ( stat & 2 ) return 0;
+    addr = ch->base_addr + 2;
   } else {
-	if ( stat & 1 ) return 0;
-	addr = ch->base_addr;
+    if ( stat & 1 ) return 0;
+    addr = ch->base_addr;
   }
   /* drive 0 in opposite dir. to clear limit latch */
   sbwr( addr ^ 2, 0 );
@@ -453,54 +447,54 @@ static void execute_cmd( idx64_bd *bd, int chno ) {
 
   ch = &bd->chans[ chno ];
   while ( ch->first != 0 ) {
-	im = ch->first;
-	if ( im->flags & IXCMD_NEEDS_INIT ) {
-	  im->flags &= ~IXCMD_NEEDS_INIT;
-	  if ( im->c.dir_scan == IX64_PRESET_POS ) {
-		sbwr( ch->base_addr + 4, im->c.steps );
-		dequeue( ch );
-	  } else if ( im->c.dir_scan == IX64_SET_SPEED ) {
-		sbwr( ch->base_addr + 6, im->c.steps & 0xF00 );
-		dequeue( ch );
-	  } else if ( im->c.dir_scan & IX64_SCAN ) {
-		scan_setup( bd, chno, 1 );
-		translate_steps( ch, &im->c.dir_scan, &im->c.steps );
-		bd->request &= ~(1 << chno);
-		return;
-	  } else {
-		/* set up normal drives */
-		im->flags |= IXCMD_NEEDS_DRIVE;
-	  }
-	} else if ( im->flags &
-				(IXCMD_NEEDS_DRIVE | IXCMD_NEEDS_HYST ) ) {
-	  if ( drive_chan( ch, im ) ) return;
-	  if ( (im->c.dir_scan & IX64_SCAN) == 0 )
-		dequeue( ch );
-	} else if ( im->flags & IXCMD_NEEDS_STATUS ) {
-	  im->flags &= ~IXCMD_NEEDS_STATUS;
-	  switch ( im->c.dir_scan ) {
-		case IX64_ONLINE:
-		  tm_status_set( ch->tm_ptr, ch->supp_bit | ch->on_bit,
-													ch->on_bit );
-		  break;
-		case IX64_OFFLINE:
-		  tm_status_set( ch->tm_ptr, ch->supp_bit | ch->on_bit,
-									 ch->supp_bit );
-		  break;
-		case IX64_ALTLINE:
-		  tm_status_set( ch->tm_ptr, ch->supp_bit | ch->on_bit,
-									 ch->supp_bit | ch->on_bit );
-		  break;
-		default:
-		  nl_error( 4, "Did not need status!" );
-	  }
-	} else if ( im->c.dir_scan & IX64_SCAN ) {
-	  bd->request &= ~(1 << chno);
-	  return;
-	} else dequeue(ch);
+    im = ch->first;
+    if ( im->flags & IXCMD_NEEDS_INIT ) {
+      im->flags &= ~IXCMD_NEEDS_INIT;
+      if ( im->c.dir_scan == IX64_PRESET_POS ) {
+        sbwr( ch->base_addr + 4, im->c.steps );
+        dequeue( ch );
+      } else if ( im->c.dir_scan == IX64_SET_SPEED ) {
+        sbwr( ch->base_addr + 6, im->c.steps & 0xF00 );
+        dequeue( ch );
+      } else if ( im->c.dir_scan & IX64_SCAN ) {
+        scan_setup( bd, chno, 1 );
+        translate_steps( ch, &im->c.dir_scan, &im->c.steps );
+        bd->request &= ~(1 << chno);
+        return;
+      } else {
+        /* set up normal drives */
+        im->flags |= IXCMD_NEEDS_DRIVE;
+      }
+    } else if ( im->flags &
+                (IXCMD_NEEDS_DRIVE | IXCMD_NEEDS_HYST ) ) {
+      if ( drive_chan( ch, im ) ) return;
+      if ( (im->c.dir_scan & IX64_SCAN) == 0 )
+        dequeue( ch );
+    } else if ( im->flags & IXCMD_NEEDS_STATUS ) {
+      im->flags &= ~IXCMD_NEEDS_STATUS;
+      switch ( im->c.dir_scan ) {
+        case IX64_ONLINE:
+          tm_status_set( ch->tm_ptr, ch->supp_bit | ch->on_bit,
+                                                    ch->on_bit );
+          break;
+        case IX64_OFFLINE:
+          tm_status_set( ch->tm_ptr, ch->supp_bit | ch->on_bit,
+                                     ch->supp_bit );
+          break;
+        case IX64_ALTLINE:
+          tm_status_set( ch->tm_ptr, ch->supp_bit | ch->on_bit,
+                                     ch->supp_bit | ch->on_bit );
+          break;
+        default:
+          nl_error( 4, "Did not need status!" );
+      }
+    } else if ( im->c.dir_scan & IX64_SCAN ) {
+      bd->request &= ~(1 << chno);
+      return;
+    } else dequeue(ch);
   }
   if ( ch->first == 0 )
-	bd->request &= ~(1 << chno);
+    bd->request &= ~(1 << chno);
 }
 
 /* service_board() is called when a board signals an interrupt
@@ -511,21 +505,21 @@ static void service_board( int bdno ) {
   unsigned int chno, mask;
 
   if ( bdno >= MAX_IDXRS || boards[bdno] == 0 )
-	nl_error( 4, "Invalid bdno in service_board" );
+    nl_error( 4, "Invalid bdno in service_board" );
   bd = boards[ bdno ];
   mask = bd->request & ~sbb( idx_defs[ bdno ].card_base );
   nl_error( -3, "svcbd bdno %d request %02X mask %02X scans %02X",
-		  bdno, bd->request, mask, bd->scans );
+          bdno, bd->request, mask, bd->scans );
   /* Mask should now have a non-zero bit for each channel
      which is ready to be serviced. */
   for ( chno = 0; mask != 0 && chno < MAX_IDXR_CHANS; chno++ ) {
-	if ( mask & ( 1 << chno ) ) {
-	  if ( bd->scans & ( 1 << chno ) )
-		bd->request &= ~(1 << chno);
-	  else
-		execute_cmd( bd, chno );
-	  mask &= ~(1 << chno );
-	}
+    if ( mask & ( 1 << chno ) ) {
+      if ( bd->scans & ( 1 << chno ) )
+        bd->request &= ~(1 << chno);
+      else
+        execute_cmd( bd, chno );
+      mask &= ~(1 << chno );
+    }
   }
 }
 
@@ -538,14 +532,14 @@ static unsigned short queue_request( idx64_cmnd *cmd ) {
   bdno = cmd->drive / MAX_IDXR_CHANS;
   chno = cmd->drive % MAX_IDXR_CHANS;
   if ( bdno >= MAX_IDXRS || boards[bdno] == 0 )
-	nl_error( 4, "Invalid bdno in queue_request" );
+    nl_error( 4, "Invalid bdno in queue_request" );
   bd = boards[ bdno ];
   ch = &bd->chans[ chno ];
 
   cmdl = malloc( sizeof( ixcmdl ) );
   if ( cmdl == 0 ) {
-	nl_error( 1, "Out of memory in queue_request!" );
-	return ENOMEM;
+    nl_error( 1, "Out of memory in queue_request!" );
+    return ENOMEM;
   }
   cmdl->next = NULL;
   cmdl->flags = IXCMD_NEEDS_INIT;
@@ -579,54 +573,54 @@ static void service_scan( idx64_bd *bd, int chno ) {
   nl_error( -3, "svcscn chno %d steps %5d dsteps %5d", chno,
      im->c.steps, im->c.dsteps );
   if ( im->c.steps != 0 && ch->scan_bit != 0 &&
-		( (*ch->tm_ptr) & ch->scan_bit ) == 0 ) {
-	tm_status_set( ch->tm_ptr, ch->scan_bit, ch->scan_bit );
+        ( (*ch->tm_ptr) & ch->scan_bit ) == 0 ) {
+    tm_status_set( ch->tm_ptr, ch->scan_bit, ch->scan_bit );
   } else if ( im->c.steps != 0 ) {
-	/* do drive and set request flag */
-	if ( im->c.dsteps == 0 ) im->c.dsteps = 1;
-	if ( im->c.dsteps > im->c.steps ) im->c.dsteps = im->c.steps;
-	im->c.steps -= im->c.dsteps;
-	im->flags |= IXCMD_NEEDS_DRIVE;
-	if ( drive_chan( ch, im ) )
-	  bd->request |= ( 1 << chno );
-	else im->c.steps = 0;
+    /* do drive and set request flag */
+    if ( im->c.dsteps == 0 ) im->c.dsteps = 1;
+    if ( im->c.dsteps > im->c.steps ) im->c.dsteps = im->c.steps;
+    im->c.steps -= im->c.dsteps;
+    im->flags |= IXCMD_NEEDS_DRIVE;
+    if ( drive_chan( ch, im ) )
+      bd->request |= ( 1 << chno );
+    else im->c.steps = 0;
   } else if ( im->c.dsteps != 0 && ch->scan_bit != 0 ) {
-	tm_status_set( ch->tm_ptr, ch->scan_bit, 0 );
-	im->c.dsteps = 0;
+    tm_status_set( ch->tm_ptr, ch->scan_bit, 0 );
+    im->c.dsteps = 0;
   } else {
-	/* all done: clear scans, dequeue and service next command */
-	scan_setup( bd, chno, 0 );
-	bd->request |= (1 << chno);
-	dequeue( ch );
-	execute_cmd( bd, chno );
+    /* all done: clear scans, dequeue and service next command */
+    scan_setup( bd, chno, 0 );
+    bd->request |= (1 << chno);
+    dequeue( ch );
+    execute_cmd( bd, chno );
   }
 }
 
 /* scan_proxy() is called when the scan proxy is received */
-static void scan_proxy( void ) {
+static void scan_pulse( void ) {
   idx64_bd *bd;
   unsigned short svc;
   int bdno, chno;
 
   for ( bdno = 0; bdno < MAX_IDXRS; bdno++ ) {
-	bd = boards[bdno];
-	if ( bd != 0 && bd->scans != 0 ) {
+    bd = boards[bdno];
+    if ( bd != 0 && bd->scans != 0 ) {
 
-	  /* Clear bd->request for any scans no longer running */
-	  svc = bd->scans & bd->request &
-			~sbb( idx_defs[ bdno ].card_base );
-	  bd->request &= ~svc;
+      /* Clear bd->request for any scans no longer running */
+      svc = bd->scans & bd->request &
+            ~sbb( idx_defs[ bdno ].card_base );
+      bd->request &= ~svc;
 
-	  /* Now find out which scans are not running */
-	  svc = bd->scans & ~bd->request;
-	  nl_error( svc==0 ? -2 : -3, "scan_proxy scans %02X svc %02X",
-				  bd->scans, svc );
+      /* Now find out which scans are not running */
+      svc = bd->scans & ~bd->request;
+      nl_error( svc==0 ? -2 : -3, "scan_proxy scans %02X svc %02X",
+                  bd->scans, svc );
 
-	  for ( chno = 0; svc != 0 && chno < MAX_IDXR_CHANS; chno++ ) {
-		if ( svc & 1 ) service_scan( bd, chno );
-		svc >>= 1;
-	  }
-	}
+      for ( chno = 0; svc != 0 && chno < MAX_IDXR_CHANS; chno++ ) {
+        if ( svc & 1 ) service_scan( bd, chno );
+        svc >>= 1;
+      }
+    }
   }
 }
 
@@ -646,86 +640,127 @@ static unsigned short drive_command( idx64_cmnd *cmd ) {
   ch = &bd->chans[ chno ];
   
   if ( cmd->dir_scan < IX64_STOP )
-	return queue_request( cmd );
+    return queue_request( cmd );
   else switch ( cmd->dir_scan ) {
-	case IX64_ONLINE:
-	case IX64_OFFLINE:
-	case IX64_ALTLINE:
-	case IX64_PRESET_POS:
-	case IX64_SET_SPEED:
-	  return queue_request( cmd );
-	case IX64_STOP:
-	  return stop_channel( bd, chno );
-	case IX64_MOVE_ONLINE_OUT:
-	  ch->online += ch->online_delta; return EOK;
-	case IX64_MOVE_ONLINE_IN:
-	  ch->online -= ch->online_delta; return EOK;
-	case IX64_SET_ONLINE:
-	  ch->online = cmd->steps; return EOK;
-	case IX64_SET_ON_DELTA:
-	  ch->online_delta = cmd->steps; return EOK;
-	case IX64_SET_OFF_DELTA:
-	  ch->offline_delta = cmd->steps;
-	  ch->offline_pos = 0;
-	  return EOK;
-	case IX64_SET_OFF_POS:
-	  ch->offline_pos = cmd->steps; return EOK;
-	case IX64_SET_ALT_DELTA:
-	  ch->altline_delta = cmd->steps;
-	  ch->altline_pos = 0;
-	  return EOK;
-	case IX64_SET_ALT_POS:
-	  ch->altline_pos = cmd->steps; return EOK;
-	case IX64_SET_HYSTERESIS:
-	  ch->hysteresis = cmd->steps; return EOK;
-	case IX64_QUIT: /* should have been handled in operate() */
-	default:
-	  return ENOSYS; /* Unknown command */
+    case IX64_ONLINE:
+    case IX64_OFFLINE:
+    case IX64_ALTLINE:
+    case IX64_PRESET_POS:
+    case IX64_SET_SPEED:
+      return queue_request( cmd );
+    case IX64_STOP:
+      return stop_channel( bd, chno );
+    case IX64_MOVE_ONLINE_OUT:
+      ch->online += ch->online_delta; return EOK;
+    case IX64_MOVE_ONLINE_IN:
+      ch->online -= ch->online_delta; return EOK;
+    case IX64_SET_ONLINE:
+      ch->online = cmd->steps; return EOK;
+    case IX64_SET_ON_DELTA:
+      ch->online_delta = cmd->steps; return EOK;
+    case IX64_SET_OFF_DELTA:
+      ch->offline_delta = cmd->steps;
+      ch->offline_pos = 0;
+      return EOK;
+    case IX64_SET_OFF_POS:
+      ch->offline_pos = cmd->steps; return EOK;
+    case IX64_SET_ALT_DELTA:
+      ch->altline_delta = cmd->steps;
+      ch->altline_pos = 0;
+      return EOK;
+    case IX64_SET_ALT_POS:
+      ch->altline_pos = cmd->steps; return EOK;
+    case IX64_SET_HYSTERESIS:
+      ch->hysteresis = cmd->steps; return EOK;
+    case IX64_QUIT: /* should have been handled in operate() */
+    default:
+      return ENOSYS; /* Unknown command */
   }
 }
 
 /* This is the main operational loop */
 static void operate( void ) {
-  pid_t who;
+  struct _pulse pulse;
   idx64_msg im;
   idx64_reply rep;
   int done = 0, i;
 
   while ( ! done ) {
-	who = Receive(0, &im, sizeof(im));
-	if ( who == -1 ) {
-	  nl_error( 1, "Error receiving" );
-	} else {
-	  for ( i = 0; i < N_PROXIES; i++ )
-		if ( who == proxies[i] ) break;
-	  if ( i < N_PROXIES ) {
-		switch ( i ) {
-		  case CC_PROXY_ID:
-			nl_error( 0, "Received quit proxy" );
-			done = 1;
-			break;
-		  case SCAN_PROXY_ID:
-			scan_proxy();
-			break;
-		  default:
-			service_board( i - BD_0_PROXY );
-			break;
-		}
-	  } else {
-		if ( im.type != IDX64_MSG_TYPE ) {
-		  rep.status = ENOSYS;
-		  nl_error( 1, "Unknown message type: 0x%04X", im.type );
-		} else {
-		  if ( im.ix.dir_scan == IX64_QUIT ) {
-			done = 1;
-			nl_error( 0, "Received Quit Request" );
-			rep.status = EOK;
-		  } else
-			rep.status = drive_command( &im.ix );
-		}
-		Reply( who, &rep, sizeof( rep ) );
-	  }
-	}
+    if ( MsgReceivePulse(chid, &pulse, sizeof(pulse), NULL) == 0 ) {
+      service_pulse(pulse.code, pulse.value.sival_int);
+    } else switch (errno) {
+      case EFAULT:
+      case EINTR:
+      case ESRCH:
+      case ETIMEOUT:
+      default:
+        nl_error( 2, "Error %d from MsgReceivePulse", errno);
+        break;
+    }
+  }
+}
+
+/* Return non-zero if the result of the pulse is a command to quit */
+int service_pulse(int8_t code, int value ) {
+  switch (code) {
+    case CMD_PULSE_CODE: return read_command(); break;
+    case SCAN_PULSE_CODE: scan_pulse(); break;
+    case INTR_PULSE_CODE: service_expint(); break;
+    case EXPINT_PULSE_CODE: service_board(value); break;
+    default: nl_error( 3, "Invalid pulse_code in service_pulse()" );
+  }
+  return 0;
+}
+
+#ifdef OLD_OPERATE
+    who = Receive(0, &im, sizeof(im));
+    if ( who == -1 ) {
+      nl_error( 1, "Error receiving" );
+    } else {
+      for ( i = 0; i < N_PROXIES; i++ )
+        if ( who == proxies[i] ) break;
+      if ( i < N_PROXIES ) {
+        switch ( i ) {
+          case CC_PROXY_ID:
+            nl_error( 0, "Received quit proxy" );
+            done = 1;
+            break;
+          case SCAN_PROXY_ID:
+            scan_proxy();
+            break;
+          default:
+            service_board( i - BD_0_PROXY );
+            break;
+        }
+      } else {
+        if ( im.type != IDX64_MSG_TYPE ) {
+          rep.status = ENOSYS;
+          nl_error( 1, "Unknown message type: 0x%04X", im.type );
+        } else {
+          if ( im.ix.dir_scan == IX64_QUIT ) {
+            done = 1;
+            nl_error( 0, "Received Quit Request" );
+            rep.status = EOK;
+          } else
+            rep.status = drive_command( &im.ix );
+        }
+        Reply( who, &rep, sizeof( rep ) );
+      }
+    }
+  }
+}
+#endif
+
+static void open_cmd_fd(void) {
+  int old_response = set_response(0);
+  char *cmddev = tm_dev_name("cmd/idx64");
+  close_cmd_fd();
+  cmd_fd = tm_open_name(cmddev, cmd_node, O_RDONLY);
+  set_response(old_response);
+  if ( cmd_fd < 0 ) {
+    nl_error(3, "Unable to open command channel" );
+  } else {
+    nl_error(-2, "open_cmd_fd succeeded");
   }
 }
 
@@ -733,26 +768,22 @@ int main( int argc, char **argv ) {
   int name_id, resp;
 
   oui_init_options( argc, argv );
-  init_boards();
+  open_cmd_fd();
+  ThreadCtl( _NTO_TCTL_IO, 0 );
+  expint_init(); /* Define the IRQ */
+  init_boards(); /* Configure each board */
   if ( idx64_cfg_string != 0 )
-	config_channels( idx64_cfg_string );
+    config_channels( idx64_cfg_string );
   /* boards[0]->chans[1].hysteresis = 100; */
   resp = set_response( 1 );
   tm_data = Col_send_init( "Idx64", tm_ptrs, sizeof(tm_ptrs) );
-  proxies[ CC_PROXY_ID ] = cc_quit_request( 0 );
   set_response( resp );
-
-  /* register name */
-  name_id =
-	qnx_name_attach( 0, nl_make_name( IDX64_NAME, 0 ) );
-  if ( name_id == -1 )
-	nl_error( 3, "Unable to attach name" );
-  nl_error( 0, "Installed" );
 
   operate();
 
   /* cleanup: */
-  qnx_name_detach( 0, name_id );
+  expint_reset();
+  close_cmd_fd();
   shutdown_boards();
   Col_send_reset( tm_data );
   nl_error( 0, "Terminated" );

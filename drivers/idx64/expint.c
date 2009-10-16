@@ -17,10 +17,8 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/kernel.h>
-// #include <conio.h>
-// #include <signal.h>
 #include "intserv.h"
-#include "internal.h"
+#include "intserv_int.h"
 #include "nortlib.h"
 #include "subbus.h"
 
@@ -57,7 +55,7 @@ static void delete_card( card_def **cdp ) {
   free( cd );
 }
 
-static card_def **find_card( char *cardID, unsigned short address ) {
+static card_def **find_card( const char *cardID, unsigned short address ) {
   card_def *cd, **cdp;
 
   for ( cdp = &carddefs, cd = carddefs;
@@ -81,18 +79,8 @@ void service_expint( void ) {
       mask = sbb( regions[i].address ) & regions[i].bits;
       for ( bitno = 0, bit = 1; i < 7 && mask; bitno++, bit <<= 1 ) {
         if ( mask & bit ) {
-          if ( Trigger( regions[i].def[bitno]->proxy ) == -1 ) {
-            if ( errno == ESRCH ) {
-              card_def **cdp, *cd;
-
-              cd = regions[i].def[bitno];
-              nl_error( 1, "Proxy %d for card %s died",
-                cd->proxy, cd->cardID );
-              cdp = find_card( cd->cardID, cd->address );
-              delete_card( cdp );
-            } else
-              nl_error( 2, "Unexpected error %d on Trigger", errno );
-          }
+          service_pulse( regions[i].def[bitno]->pulse_code,
+            regions[i].def[bitno]->pulse_value );
           mask &= ~bit;
         }
       }
@@ -101,7 +89,7 @@ void service_expint( void ) {
 }
 
 void expint_attach( pid_t who, char *cardID, unsigned short address,
-                      int region, pid_t proxy, IntSrv_reply *rep ) {
+                      int region, int8_t pulse_code, int pulse_value ) {
   card_def **cdp, *cd;
   int bitno, bit, i;
 
@@ -171,7 +159,8 @@ void expint_attach( pid_t who, char *cardID, unsigned short address,
   cd->address = address;
   cd->reg_id = i;
   cd->bitno = bitno;
-  cd->proxy = proxy;
+  cd->pulse_code = pulse_code;
+  cd->pulse_value = pulse_value;
   cd->owner = who;
 
   regions[i].bits |= bit;
@@ -213,105 +202,107 @@ void expint_detach( pid_t who, char *cardID, IntSrv_reply *rep ) {
   }
 }
 
-typedef struct irq_ctrl_s {
-  struct irq_ctrl_s *next;
-  char cardID[ cardID_MAX ];
-  pid_t owner;
-  pid_t proxy;
-} irq_ctrl;
-static struct {
-  char *name;
-  irq_ctrl *ctrl;
-} irq_defs[ ISRV_MAX_IRQS ] = {
-  "SPARE_IRQ", 0,
-  "PFAIL_IRQ", 0
-};
+#ifdef IRQ_SUPPORT
+  typedef struct irq_ctrl_s {
+    struct irq_ctrl_s *next;
+    char cardID[ cardID_MAX ];
+    pid_t owner;
+    pid_t proxy;
+  } irq_ctrl;
+  static struct {
+    char *name;
+    irq_ctrl *ctrl;
+  } irq_defs[ ISRV_MAX_IRQS ] = {
+    "SPARE_IRQ", 0,
+    "PFAIL_IRQ", 0
+  };
 
-void irq_attach( pid_t who, char *cardID, short irq,
-                      pid_t proxy, IntSrv_reply *rep ) {
-  irq_ctrl *ctrl;
-  if ( irq < 0 || irq >= ISRV_MAX_IRQS ) {
-    rep->status = ENOENT;
-    return;
+  void irq_attach( pid_t who, char *cardID, short irq,
+                        pid_t proxy, IntSrv_reply *rep ) {
+    irq_ctrl *ctrl;
+    if ( irq < 0 || irq >= ISRV_MAX_IRQS ) {
+      rep->status = ENOENT;
+      return;
+    }
+    ctrl = new_memory(sizeof(irq_ctrl));
+    ctrl->next = irq_defs[irq].ctrl;
+    ctrl->owner = who;
+    ctrl->proxy = proxy;
+    strncpy( ctrl->cardID, cardID, cardID_MAX );
+    ctrl->cardID[ cardID_MAX - 1 ] = '\0';
+    irq_defs[irq].ctrl = ctrl;
+    rep->status = EOK;
+    if ( irq_defs[irq].ctrl->next == 0) {
+      switch ( irq ) {
+        case ISRV_IRQ_SPARE:
+          spare_init();
+          break;
+        case ISRV_IRQ_PFAIL:
+          pfail_init();
+          break;
+      }
+    }
+    /* should we check for the case where lowpower has already
+       been asserted? */
+    if ( irq == ISRV_IRQ_PFAIL ) pfail_proxy_handler( 0 );
   }
-  ctrl = new_memory(sizeof(irq_ctrl));
-  ctrl->next = irq_defs[irq].ctrl;
-  ctrl->owner = who;
-  ctrl->proxy = proxy;
-  strncpy( ctrl->cardID, cardID, cardID_MAX );
-  ctrl->cardID[ cardID_MAX - 1 ] = '\0';
-  irq_defs[irq].ctrl = ctrl;
-  rep->status = EOK;
-  if ( irq_defs[irq].ctrl->next == 0) {
-    switch ( irq ) {
-      case ISRV_IRQ_SPARE:
-		spare_init();
-		break;
-      case ISRV_IRQ_PFAIL:
-		pfail_init();
-		break;
+
+  void irq_detach( pid_t who, char *cardID, short irq, IntSrv_reply *rep ) {
+    irq_ctrl **ctrlp, *ctrl;
+    int found = 0;
+    if ( irq < 0 || irq >= ISRV_MAX_IRQS ) {
+      rep->status = ENOENT;
+      return;
+    }
+    nl_error( 0, "irq detach request from %s", cardID );
+    for ( ctrlp = &irq_defs[irq].ctrl; *ctrlp != 0; ctrlp = &(*ctrlp)->next )
+      if ((*ctrlp)->owner == who) break;
+    if ( *ctrlp != 0 ) {
+      ctrl = *ctrlp;
+      *ctrlp = ctrl->next;
+      free_memory(ctrl);
+      if ( irq_defs[irq].ctrl == 0 ) {
+        nl_error( 0, "Detaching interrupt" );
+        switch ( irq ) {
+          case ISRV_IRQ_SPARE:
+            spare_reset();
+            break;
+          case ISRV_IRQ_PFAIL:
+            pfail_reset();
+            break;
+        }
+        rep->status = EOK;
+      }
+    } else {
+      nl_error( 2, "Failed attempt by %d to detach %s for %s",
+        who, irq_defs[irq].name, cardID );
+      rep->status = EPERM;
     }
   }
-  /* should we check for the case where lowpower has already
-     been asserted? */
-  if ( irq == ISRV_IRQ_PFAIL ) pfail_proxy_handler( 0 );
-}
 
-void irq_detach( pid_t who, char *cardID, short irq, IntSrv_reply *rep ) {
-  irq_ctrl **ctrlp, *ctrl;
-  int found = 0;
-  if ( irq < 0 || irq >= ISRV_MAX_IRQS ) {
-    rep->status = ENOENT;
-    return;
+  void pfail_proxy_handler( int saw_irq ) {
+    /* Check here to make sure it's legit */
+    /* 30DH bit 0x10 is PFO/
+            bit 0x04 is Lowpower */
+    int iobits = inp(0x30D) ^ 0x10; /* port C hi byte */
+    if ( iobits & 0x14) {
+      irq_proxy_handler( ISRV_IRQ_PFAIL );
+    } else if (saw_irq) {
+      nl_error( 1, "Spurious lowpower interrupt observed" );
+    }
   }
-  nl_error( 0, "irq detach request from %s", cardID );
-  for ( ctrlp = &irq_defs[irq].ctrl; *ctrlp != 0; ctrlp = &(*ctrlp)->next )
-    if ((*ctrlp)->owner == who) break;
-  if ( *ctrlp != 0 ) {
-	ctrl = *ctrlp;
-	*ctrlp = ctrl->next;
-	free_memory(ctrl);
-	if ( irq_defs[irq].ctrl == 0 ) {
-	  nl_error( 0, "Detaching interrupt" );
-	  switch ( irq ) {
-		case ISRV_IRQ_SPARE:
-		  spare_reset();
-		  break;
-		case ISRV_IRQ_PFAIL:
-		  pfail_reset();
-		  break;
-	  }
-	  rep->status = EOK;
-	}
-  } else {
-    nl_error( 2, "Failed attempt by %d to detach %s for %s",
-      who, irq_defs[irq].name, cardID );
-    rep->status = EPERM;
-  }
-}
 
-void pfail_proxy_handler( int saw_irq ) {
-  /* Check here to make sure it's legit */
-  /* 30DH bit 0x10 is PFO/
-          bit 0x04 is Lowpower */
-  int iobits = inp(0x30D) ^ 0x10; /* port C hi byte */
-  if ( iobits & 0x14) {
-    irq_proxy_handler( ISRV_IRQ_PFAIL );
-  } else if (saw_irq) {
-    nl_error( 1, "Spurious lowpower interrupt observed" );
+  void irq_proxy_handler( int irq ) {
+    irq_ctrl *ctrl;
+    if ( irq < 0 || irq >= ISRV_MAX_IRQS )
+      nl_error( 4, "Bad irq number in irq_proxy_handler" );
+    for (ctrl = irq_defs[irq].ctrl; ctrl; ctrl = ctrl->next ) {
+      nl_error( 0, "preparing to send" );
+      nl_error( 0, "Sending %d to %s", ctrl->proxy, ctrl->cardID );
+      if ( ctrl->proxy < 0)
+        kill(ctrl->owner, ~ctrl->proxy);
+      else
+        Trigger(ctrl->proxy);
+    }
   }
-}
-
-void irq_proxy_handler( int irq ) {
-  irq_ctrl *ctrl;
-  if ( irq < 0 || irq >= ISRV_MAX_IRQS )
-    nl_error( 4, "Bad irq number in irq_proxy_handler" );
-  for (ctrl = irq_defs[irq].ctrl; ctrl; ctrl = ctrl->next ) {
-	nl_error( 0, "preparing to send" );
-    nl_error( 0, "Sending %d to %s", ctrl->proxy, ctrl->cardID );
-    if ( ctrl->proxy < 0)
-      kill(ctrl->owner, ~ctrl->proxy);
-    else
-      Trigger(ctrl->proxy);
-  }
-}
+#endif
