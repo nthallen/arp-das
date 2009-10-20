@@ -66,7 +66,7 @@ static void int_reset( int iid, unsigned short mask ) {
   }
 }
 
-void expint_init( int coid, int8_t code, int value ) {
+void expint_init( int coid, short code, int value ) {
   expint_iid = int_init( expint_irq, 0x20, 0, coid, code, value );
 }
 

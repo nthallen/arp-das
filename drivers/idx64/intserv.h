@@ -5,10 +5,10 @@
 #include <sys/types.h>
 
 /* This is the API: */
-// extern int IntSrv_IRQ_attach( const char *cardID, int IRQ, int8_t pulse_code );
+// extern int IntSrv_IRQ_attach( const char *cardID, int IRQ, short pulse_code );
 // extern int IntSrv_IRQ_detach( const char *cardID, int IRQ );
 extern int IntSrv_Int_attach( const char *cardID, unsigned short address,
-						int region, int8_t pulse_code );
+						int region, short pulse_code );
 extern int IntSrv_Int_detach( char *cardID );
 
 #define ISRV_REGION_A 0x40

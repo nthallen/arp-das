@@ -88,23 +88,21 @@ void service_expint( void ) {
   }
 }
 
-void expint_attach( /* pid_t who, */ char *cardID, unsigned short address,
-                      int region, int8_t pulse_code, int pulse_value ) {
+int expint_attach( /* pid_t who, */ char *cardID, unsigned short address,
+                      int region, short pulse_code, int pulse_value ) {
   card_def **cdp, *cd;
   int bitno, bit, i;
 
   if ( subbus_subfunction == 0 ) {
     nl_error( 1, "Request for expint w/o subbus" );
-    rep->status = ELIBACC;
-    return;
+    return ELIBACC;
   }
   /* Verify that the region is legal */
   if ( ( region & (~6) ) != 0x40 || address == 0 ) {
     nl_error( 1,
       "Illegal region (0x%02X) or address (0x%03X) requested",
       region, address );
-    rep->status = ENXIO;
-    return;
+    return ENXIO;
   }
 
   /* First check to make sure it isn't already defined */
@@ -114,12 +112,10 @@ void expint_attach( /* pid_t who, */ char *cardID, unsigned short address,
     if ( cd->address != address ) {
       nl_error( 2, "Same ID (%s) two addresses (0x%03X, 0x%03X)",
         cardID, cd->address, address );
-      rep->status = ENXIO;
-      return;
+      return ENXIO;
     } else {
       nl_error( 1, "Duplicate request for cardID %s", cardID );
-      rep->status = EAGAIN;
-      return;
+      return EAGAIN;
     }
   }
   
@@ -129,8 +125,7 @@ void expint_attach( /* pid_t who, */ char *cardID, unsigned short address,
   }
   if ( i == MAX_REGIONS ) {
     nl_error( 2, "Too many regions requested!" );
-    rep->status = ENOSPC;
-    return;
+    return ENOSPC;
   }
   regions[i].address = region;
   for ( bitno = 0, bit = 1; bitno < 8; bitno++, bit <<= 1 ) {
@@ -138,16 +133,14 @@ void expint_attach( /* pid_t who, */ char *cardID, unsigned short address,
   }
   if ( bitno == 8 ) {
     nl_error( 2, "Too many requests for region 0x%02X", region );
-    rep->status = ENOSPC;
-    return;
+    return ENOSPC;
   }
 
   /* Now assign a new def. */
   cd = malloc( sizeof( card_def ) );
   if ( cd == 0 ) {
     nl_error( 2, "Out of memory in expint_attach" );
-    rep->status = ENOMEM;
-    return;
+    return ENOMEM;
   }
   strncpy( cd->cardID, cardID, cardID_MAX );
   cd->cardID[ cardID_MAX - 1 ] = '\0';
@@ -176,23 +169,23 @@ void expint_attach( /* pid_t who, */ char *cardID, unsigned short address,
   }
   service_expint();
   
-  rep->status = EOK;
+  return EOK;
 }
 
-void expint_detach( /* pid_t who, */ char *cardID, IntSrv_reply *rep ) {
+int expint_detach( /* pid_t who, */ char *cardID ) {
   card_def **cdp;
   
   cdp = find_card( cardID, 0 );
   if ( cdp == 0 ) {
-    rep->status = ENOENT;
+    return ENOENT;
   } else {
     // if ( (*cdp)->owner != who ) {
       // nl_error( 1, "Non-owner %d attempted detach for %s",
                 // who, cardID );
-      // rep->status = EPERM;
+      // return EPERM;
     // } else {
       delete_card( cdp );
-      rep->status = EOK;
+      return EOK;
     // }
   }
 }

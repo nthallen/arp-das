@@ -2,14 +2,20 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <sys/neutrino.h>
+#include <ctype.h>
+#include <unistd.h>
+#include <sys/iomsg.h>
+#include <sys/netmgr.h>
 #include "nortlib.h"
 #include "oui.h"
 #include "collect.h"
-#include "cltsrvr.h"
+//#include "cltsrvr.h"
+#include "intserv_int.h"
 #include "intserv.h"
 #include "subbus.h"
 #include "idx64.h"
 #include "idx64int.h"
+#include "tm.h"
 
 #ifdef DOCUMENTATION
   Overview of the structure of this application:
@@ -42,7 +48,7 @@
   collection.
   
   Commands are passed to to drive_command() which immediately
-  executes those that don't touch the hardware and passes the 
+  executes those that do not touch the hardware and passes the 
   rest on to queue_request().
   
   queue_request() does just that, sets a flag requesting service 
@@ -51,7 +57,7 @@
   
   service_board() is the interrupt service routine. It is passed 
   the index of the board which produced the interrupt. It reads 
-  the board's status register and compares that to the request 
+  the board''s status register and compares that to the request 
   word to determine if any channels need attention. If so, the 
   channel is passed on to execute_cmd().
   
@@ -76,10 +82,10 @@
 
 /* Global Variables */
 idx64_def idx_defs[ MAX_IDXRS ] = {
-  0xA00, "Idx64_0",
-  0xA40, "Idx64_1",
-  0xA80, "Idx64_2",
-  0xAC0, "Idx64_3"
+  { 0xA00, "Idx64_0" },
+  { 0xA40, "Idx64_1" },
+  { 0xA80, "Idx64_2" },
+  { 0xAC0, "Idx64_3" }
 };
 idx64_bd *boards[ MAX_IDXRS ];
 /* If every channel requires 3 status bits (maximum possible), we
@@ -150,7 +156,7 @@ static void init_boards( void ) {
       bd = boards[i] = new_memory( sizeof( idx64_bd ) );
       bd->pulse_code = EXPINT_PULSE_CODE;
       bd->pulse_value = i;
-      IntSrv_Int_attach( bddef->cardID,	bddef->card_base, idx64_region,
+      expint_attach( bddef->cardID, bddef->card_base, idx64_region,
                           bd->pulse_code, bd->pulse_value );
       bd->request = bd->scans = 0;
       for ( j = 0; j < MAX_IDXR_CHANS; j++ )
@@ -237,7 +243,7 @@ static void tm_status_set( unsigned short *ptr,
                 unsigned short mask, unsigned short value ) {
   if ( ptr != 0 ) {
     // unsigned short old = *ptr;
-    *ptr = ( old & ~mask ) | ( value & mask );
+    *ptr = ( *ptr & ~mask ) | ( value & mask );
     //if ( *ptr != old )
     //  Col_send( tm_data );
   }
@@ -270,30 +276,13 @@ static int scan_setup( idx64_bd *bd, unsigned short chno, int start ) {
 
   if ( start != 0 ) {
     if ( ( bd->scans & (1<<chno) ) == 0 ) {
-      if ( n_scans == 0 ) {
-        int resp;
-
-        resp = set_response( 1 );
-        proxies[ SCAN_PROXY_ID ] =
-          Col_set_proxy( INDEXER_PROXY_ID, 0 );
-        set_response( resp );
-        if ( proxies[ SCAN_PROXY_ID ] == -1 )
-          return -1;
-      }
       n_scans++;
       bd->scans |= (1<<chno);
     }
   } else {
     if ( ( bd->scans & (1<<chno) ) != 0 ) {
       assert( n_scans > 0 );
-      if ( --n_scans == 0 ) {
-        int resp;
-
-        resp = set_response( 1 );
-        Col_reset_proxy( INDEXER_PROXY_ID );
-        set_response( resp );
-        proxies[ SCAN_PROXY_ID ] = -1;
-      }
+      --n_scans;
       bd->scans &= ~(1<<chno);
     }
   }
@@ -331,8 +320,8 @@ static void shutdown_boards( void ) {
       /* Stop each channel */
       for ( j = 0; j < MAX_IDXR_CHANS; j++ )
         stop_channel( bd, j );
-      IntSrv_Int_detach( idx_defs[i].cardID );
-      qnx_proxy_detach( bd->proxy );
+      expint_detach( idx_defs[i].cardID );
+      // qnx_proxy_detach( bd->proxy );
     }
   }
 }
@@ -687,7 +676,7 @@ static int parse_command( char *buf, int nb ) {
   int i, n_args = 0;
   int args_expected;
   int cmd_code = -1;
-  idx64_cmd cmd;
+  idx64_cmnd cmd;
   int rv;
   
   if ( nb < 3 ) {
@@ -724,9 +713,9 @@ static int parse_command( char *buf, int nb ) {
       break;
     case 'D':
       switch (buf[1]) {
-        case 'I ': cmd_code = IX64_IN; args_expected = 2; break;
-        case 'O ': cmd_code = IX64_OUT; args_expected = 2; break;
-        case 'T ': cmd_code = IX64_TO; args_expected = 2; break;
+        case 'I': cmd_code = IX64_IN; args_expected = 2; break;
+        case 'O': cmd_code = IX64_OUT; args_expected = 2; break;
+        case 'T': cmd_code = IX64_TO; args_expected = 2; break;
         default: break;
       }
       break;
@@ -745,8 +734,8 @@ static int parse_command( char *buf, int nb ) {
       break;
     case 'M':
       switch (buf[1]) {
-        case 'I': cmd_code = IX64_ONLINE_IN; args_expected = 1; break;
-        case 'O': cmd_code = IX64_ONLINE_OUT; args_expected = 1; break;
+        case 'I': cmd_code = IX64_MOVE_ONLINE_IN; args_expected = 1; break;
+        case 'O': cmd_code = IX64_MOVE_ONLINE_OUT; args_expected = 1; break;
         default: break;
       }
       break;
@@ -812,10 +801,11 @@ static int check_command(void) {
     if (rv == -1) nl_error( 3, "Received error % from iontify in check_command()", errno );
     if (rv == 0) break;
   }
+  return 0;
 }
 
 /* Return non-zero if the result of the pulse is a command to quit */
-int service_pulse(int8_t code, int value ) {
+int service_pulse(short code, int value ) {
   switch (code) {
     case CMD_PULSE_CODE: return check_command(); break;
     case SCAN_PULSE_CODE: scan_pulse(); break;
@@ -827,11 +817,9 @@ int service_pulse(int8_t code, int value ) {
 }
 
 /* This is the main operational loop */
-static void operate( void ) {
+static void operate( int chid ) {
   struct _pulse pulse;
-  idx64_msg im;
-  idx64_reply rep;
-  int done = 0, i;
+  int done = 0;
 
   while ( ! done ) {
     if ( MsgReceivePulse(chid, &pulse, sizeof(pulse), NULL) == 0 ) {
@@ -840,7 +828,7 @@ static void operate( void ) {
       case EFAULT:
       case EINTR:
       case ESRCH:
-      case ETIMEOUT:
+      case ETIMEDOUT:
       default:
         nl_error( 2, "Error %d from MsgReceivePulse", errno);
         break;
@@ -848,11 +836,15 @@ static void operate( void ) {
   }
 }
 
-static void open_cmd_fd( int coid, int8_t code, int value ) {
+static void close_cmd_fd(void) {
+  close(cmd_fd);
+}
+
+static void open_cmd_fd( int coid, short code, int value ) {
   int old_response = set_response(0);
   char *cmddev = tm_dev_name("cmd/idx64");
   close_cmd_fd();
-  cmd_fd = tm_open_name(cmddev, cmd_node, O_RDONLY|O_NONBLOCK);
+  cmd_fd = tm_open_name(cmddev, NULL, O_RDONLY|O_NONBLOCK);
   set_response(old_response);
   if ( cmd_fd < 0 ) {
     nl_error(3, "Unable to open command channel" );
@@ -897,7 +889,7 @@ int main( int argc, char **argv ) {
   
   check_command(); // Arm the command channel
 
-  operate();
+  operate(chid);
 
   /* cleanup: */
   expint_reset();
