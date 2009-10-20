@@ -1,6 +1,9 @@
 /* collect.h defines routines applications might use to
    communicate with collection.
    $Log$
+   Revision 1.2  2008/07/29 19:21:06  ntallen
+   Support for colsend
+
    Revision 1.1  2008/07/25 13:38:03  ntallen
    Col_send functionality
    Includes a proposed Col_Send class for C++
@@ -15,8 +18,10 @@
 #ifndef _COLLECT_H_INCLUDED
 #define _COLLECT_H_INCLUDED
 
-#ifdef __cplusplus
+#include <sys/siginfo.h>
 
+#ifdef __cplusplus
+  // This is a proposed C++ wrapper. To my knowledge it has not been implemented
   class Col_Send {
     public:
       Col_Send(char *name, void *data_in, int size_in, int synch);
@@ -62,9 +67,13 @@ typedef struct {
   void *data;
   int data_size;
   int err_code;
+  int armed;
+  int priority;
+  struct sigevent event;
 } send_id_struct, *send_id;
 
 send_id Col_send_init(const char *name, void *data, unsigned short size, int synch);
+int Col_send_arm( send_id sender, int coid, short code, int value );
 int Col_send(send_id sender);
 int Col_send_reset(send_id sender);
 

@@ -16,6 +16,8 @@
 #include <limits.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/iomsg.h>
+#include <pthread.h>
 #include "collect.h"
 #include "nortlib.h"
 #include "nl_assert.h"
@@ -44,7 +46,27 @@ send_id Col_send_init(const char *name, void *data, unsigned short size, int blo
   sender->data = data;
   sender->data_size = size;
   sender->err_code = 0;
+  sender->armed = blocking ? 0 : 1;
   return sender;
+}
+
+int Col_send_arm( send_id sender, int coid, short code, int value ) {
+  int policy;
+  struct sched_param param;
+  nl_assert(sender != 0 && event != 0);
+  if (sender->armed == 0) {
+    nl_error(nl_response, "Col_send_arm() requires non-blocking option");
+    return 1;
+  }
+  sender->event.sigev_notify = SIGEV_PULSE;
+  sender->event.sigev.coid = coid;
+  sender->event.sigev_code = code;
+  sender->event.sigev_value.sival_int = value;
+  sender->armed = 2;
+  if ( pthread_getschedparam( pthread_self(), &policy, &param ) != EOK )
+    nl_error(4,"Error calling pthread_getschedparam");
+  sender->priority = param.sched_priority;
+  return Col_send(sender);
 }
 
 /* return 0 on success, non-zero otherwise
@@ -57,6 +79,19 @@ int Col_send(send_id sender) {
     if ( nb == -1 ) {
       sender->err_code = errno;
       return 1;
+    }
+    if (sender->armed == 2) {
+      int rv = ionotify(sender->fd, _NOTIFY_ACTION_POLLARM,
+          _NOTIFY_COND_OUTPUT, &(sender->event));
+      if (rv == -1) {
+        sender->err_code = errno;
+        return 1;
+      }
+      if ((rv & _NOTIFY_COND_OUTPUT) &&
+          MsgSendPulse(sender->event.sigev.coid, sender->priority,
+              sender->event.sigev_code,
+              sender->event.sigev_value.sival_int) == -1)
+        nl_error(4, "Error %d calling MsgSendPulse() in Col_send()", errno);
     }
   }
   sender->err_code = 0;
