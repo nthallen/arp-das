@@ -73,7 +73,7 @@ void service_expint( void ) {
   int i, bitno, bit;
   unsigned short mask;
 
-  while ( Creceive( expint_proxy, 0, 0 ) != -1 );
+  //while ( Creceive( expint_proxy, 0, 0 ) != -1 );
   for ( i = 0; i < MAX_REGIONS && regions[i].address != 0; i++ ) {
     if ( regions[i].bits != 0 ) {
       mask = sbb( regions[i].address ) & regions[i].bits;
@@ -88,7 +88,7 @@ void service_expint( void ) {
   }
 }
 
-void expint_attach( pid_t who, char *cardID, unsigned short address,
+void expint_attach( /* pid_t who, */ char *cardID, unsigned short address,
                       int region, int8_t pulse_code, int pulse_value ) {
   card_def **cdp, *cd;
   int bitno, bit, i;
@@ -116,11 +116,6 @@ void expint_attach( pid_t who, char *cardID, unsigned short address,
         cardID, cd->address, address );
       rep->status = ENXIO;
       return;
-    }
-    if ( Creceive( cd->owner, NULL, 0 ) == -1 &&
-            errno == ESRCH ) {
-      nl_error( 1, "Card ID %s reassigned", cardID );
-      delete_card( cdp );
     } else {
       nl_error( 1, "Duplicate request for cardID %s", cardID );
       rep->status = EAGAIN;
@@ -161,7 +156,7 @@ void expint_attach( pid_t who, char *cardID, unsigned short address,
   cd->bitno = bitno;
   cd->pulse_code = pulse_code;
   cd->pulse_value = pulse_value;
-  cd->owner = who;
+  // cd->owner = who;
 
   regions[i].bits |= bit;
   regions[i].def[bitno] = cd;
@@ -184,21 +179,21 @@ void expint_attach( pid_t who, char *cardID, unsigned short address,
   rep->status = EOK;
 }
 
-void expint_detach( pid_t who, char *cardID, IntSrv_reply *rep ) {
+void expint_detach( /* pid_t who, */ char *cardID, IntSrv_reply *rep ) {
   card_def **cdp;
   
   cdp = find_card( cardID, 0 );
   if ( cdp == 0 ) {
     rep->status = ENOENT;
   } else {
-    if ( (*cdp)->owner != who ) {
-      nl_error( 1, "Non-owner %d attempted detach for %s",
-                who, cardID );
-      rep->status = EPERM;
-    } else {
+    // if ( (*cdp)->owner != who ) {
+      // nl_error( 1, "Non-owner %d attempted detach for %s",
+                // who, cardID );
+      // rep->status = EPERM;
+    // } else {
       delete_card( cdp );
       rep->status = EOK;
-    }
+    // }
   }
 }
 

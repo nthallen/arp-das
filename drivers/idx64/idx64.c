@@ -91,6 +91,8 @@ idx64_bd *boards[ MAX_IDXRS ];
 #define MAX_WORDS ((MAX_IDXRS*MAX_IDXR_CHANS+4)/5)
 unsigned short tm_ptrs[ MAX_WORDS ];
 send_id tm_data;
+static int cmd_fd;
+static struct sigevent cmd_event;
 char *idx64_cfg_string;
 int idx64_region = 0x40;
 
@@ -234,10 +236,10 @@ static void config_channels( char *s ) {
 static void tm_status_set( unsigned short *ptr,
                 unsigned short mask, unsigned short value ) {
   if ( ptr != 0 ) {
-    unsigned short old = *ptr;
+    // unsigned short old = *ptr;
     *ptr = ( old & ~mask ) | ( value & mask );
-    if ( *ptr != old )
-      Col_send( tm_data );
+    //if ( *ptr != old )
+    //  Col_send( tm_data );
   }
 }
 
@@ -602,6 +604,7 @@ static void scan_pulse( void ) {
   unsigned short svc;
   int bdno, chno;
 
+  Col_send(tm_data);
   for ( bdno = 0; bdno < MAX_IDXRS; bdno++ ) {
     bd = boards[bdno];
     if ( bd != 0 && bd->scans != 0 ) {
@@ -678,6 +681,151 @@ static unsigned short drive_command( idx64_cmnd *cmd ) {
   }
 }
 
+#define MAX_IXCMD_ARGS 3
+static int parse_command( char *buf, int nb ) {
+  int args[MAX_IXCMD_ARGS];
+  int i, n_args = 0;
+  int args_expected;
+  int cmd_code = -1;
+  idx64_cmd cmd;
+  int rv;
+  
+  if ( nb < 3 ) {
+    nl_error( 2, "Short command received" );
+    return 0;
+  }
+  for (i = 2; i < nb; ) {
+    if (isdigit(buf[i])) {
+      int arg = buf[i++] - '0';
+      while ( i<nb && isdigit(buf[i])) {
+        arg = arg*10 + buf[i++] - '0';
+      }
+      if (i >= nb) {
+        nl_error( 2, "Command truncated inside number" );
+        return 0;
+      }
+      args[n_args++] = arg;
+      if ( buf[i] == ':' ) i++;
+    } else if (buf[i] == '\n') {
+      if (++i < nb ) {
+        nl_error( 1, "Garbage after newline in parse_command" );
+        break;
+      }
+    }
+  }
+  switch (buf[0]) {
+    case 'A':
+      switch (buf[1]) {
+        case 'L': cmd_code = IX64_ALTLINE; args_expected = 1; break;
+        case 'P': cmd_code = IX64_SET_ALT_POS; args_expected = 2; break;
+        case 'D': cmd_code = IX64_SET_ALT_DELTA; args_expected = 2; break;
+        default: break;
+      }
+      break;
+    case 'D':
+      switch (buf[1]) {
+        case 'I ': cmd_code = IX64_IN; args_expected = 2; break;
+        case 'O ': cmd_code = IX64_OUT; args_expected = 2; break;
+        case 'T ': cmd_code = IX64_TO; args_expected = 2; break;
+        default: break;
+      }
+      break;
+    case 'F':
+      switch (buf[1]) {
+        case 'D': cmd_code = IX64_SET_OFF_DELTA; args_expected = 2; break;
+        case 'P': cmd_code = IX64_SET_OFF_POS; args_expected = 2; break;
+        default: break;
+      }
+      break;
+    case 'H':
+      if (buf[1] == 'Y') {
+        cmd_code = IX64_SET_HYSTERESIS;
+        args_expected = 2;
+      }
+      break;
+    case 'M':
+      switch (buf[1]) {
+        case 'I': cmd_code = IX64_ONLINE_IN; args_expected = 1; break;
+        case 'O': cmd_code = IX64_ONLINE_OUT; args_expected = 1; break;
+        default: break;
+      }
+      break;
+    case 'O':
+      switch (buf[1]) {
+        case 'N': cmd_code = IX64_ONLINE; args_expected = 1; break;
+        case 'F': cmd_code = IX64_OFFLINE; args_expected = 1; break;
+        case 'P': cmd_code = IX64_SET_ONLINE; args_expected = 2; break;
+        case 'D': cmd_code = IX64_SET_ON_DELTA; args_expected = 2; break;
+        default: break;
+      }
+      break;
+    case 'P':
+        case 'R': cmd_code = IX64_PRESET_POS; args_expected = 2; break;
+    case 'Q':
+        case 'U': cmd_code = IX64_QUIT; args_expected = 0; break;
+    case 'S':
+      switch (buf[1]) {
+        case 'I': cmd_code = (IX64_SCAN|IX64_IN); args_expected = 3; break;
+        case 'O': cmd_code = (IX64_SCAN|IX64_OUT); args_expected = 3; break;
+        case 'P': cmd_code = IX64_STOP; args_expected = 1; break;
+        case 'S': cmd_code = IX64_SET_SPEED; args_expected = 2; break;
+        case 'T': cmd_code = (IX64_SCAN|IX64_TO); args_expected = 3; break;
+        default: break;
+      }
+      break;
+  }
+  if (cmd_code == -1) {
+    nl_error( 2, "Invalid command in parse_command" );
+    return 0;
+  }
+  if (n_args != args_expected) {
+    nl_error( 2, "Incorrect number of args (%d) for command '%c%c': expected %d",
+      n_args, buf[0], buf[1], args_expected );
+    return 0;
+  }
+  cmd.dir_scan = cmd_code;
+  cmd.drive = n_args > 0 ? args[0] : 0;
+  cmd.steps = n_args > 1 ? args[1] : 0;
+  cmd.dsteps = n_args > 2 ? args[2] : 0;
+  if (cmd.dir_scan == IX64_QUIT) return 1;
+  rv = drive_command(&cmd);
+  if ( rv != EOK )
+    nl_error( 2, "drive_command returned error %d", rv );
+  return 0;
+}
+
+#define IDXCMDBUFSIZE 256
+static int check_command(void) {
+  char buf[IDXCMDBUFSIZE];
+  for (;;) {
+    int rv;
+    rv = read(cmd_fd, buf, IDXCMDBUFSIZE);
+    if ( rv > 0 ) {
+      if (parse_command( buf, rv )) return 1;
+    } else if ( rv == 0 ) return 1; // quit command
+    else if ( rv == -1 ) {
+      if ( errno != EAGAIN )
+        nl_error(3, "Received error %d from read() in check_command()", errno );
+    } else nl_error(4, "Bad return value [%d] from read in check_command", rv );
+    rv = ionotify(cmd_fd, _NOTIFY_ACTION_POLLARM,
+        _NOTIFY_COND_INPUT, &cmd_event);
+    if (rv == -1) nl_error( 3, "Received error % from iontify in check_command()", errno );
+    if (rv == 0) break;
+  }
+}
+
+/* Return non-zero if the result of the pulse is a command to quit */
+int service_pulse(int8_t code, int value ) {
+  switch (code) {
+    case CMD_PULSE_CODE: return check_command(); break;
+    case SCAN_PULSE_CODE: scan_pulse(); break;
+    case INTR_PULSE_CODE: service_expint(); break;
+    case EXPINT_PULSE_CODE: service_board(value); break;
+    default: nl_error( 3, "Invalid pulse_code in service_pulse()" );
+  }
+  return 0;
+}
+
 /* This is the main operational loop */
 static void operate( void ) {
   struct _pulse pulse;
@@ -687,7 +835,7 @@ static void operate( void ) {
 
   while ( ! done ) {
     if ( MsgReceivePulse(chid, &pulse, sizeof(pulse), NULL) == 0 ) {
-      service_pulse(pulse.code, pulse.value.sival_int);
+      done = service_pulse(pulse.code, pulse.value.sival_int);
     } else switch (errno) {
       case EFAULT:
       case EINTR:
@@ -700,84 +848,54 @@ static void operate( void ) {
   }
 }
 
-/* Return non-zero if the result of the pulse is a command to quit */
-int service_pulse(int8_t code, int value ) {
-  switch (code) {
-    case CMD_PULSE_CODE: return read_command(); break;
-    case SCAN_PULSE_CODE: scan_pulse(); break;
-    case INTR_PULSE_CODE: service_expint(); break;
-    case EXPINT_PULSE_CODE: service_board(value); break;
-    default: nl_error( 3, "Invalid pulse_code in service_pulse()" );
-  }
-  return 0;
-}
-
-#ifdef OLD_OPERATE
-    who = Receive(0, &im, sizeof(im));
-    if ( who == -1 ) {
-      nl_error( 1, "Error receiving" );
-    } else {
-      for ( i = 0; i < N_PROXIES; i++ )
-        if ( who == proxies[i] ) break;
-      if ( i < N_PROXIES ) {
-        switch ( i ) {
-          case CC_PROXY_ID:
-            nl_error( 0, "Received quit proxy" );
-            done = 1;
-            break;
-          case SCAN_PROXY_ID:
-            scan_proxy();
-            break;
-          default:
-            service_board( i - BD_0_PROXY );
-            break;
-        }
-      } else {
-        if ( im.type != IDX64_MSG_TYPE ) {
-          rep.status = ENOSYS;
-          nl_error( 1, "Unknown message type: 0x%04X", im.type );
-        } else {
-          if ( im.ix.dir_scan == IX64_QUIT ) {
-            done = 1;
-            nl_error( 0, "Received Quit Request" );
-            rep.status = EOK;
-          } else
-            rep.status = drive_command( &im.ix );
-        }
-        Reply( who, &rep, sizeof( rep ) );
-      }
-    }
-  }
-}
-#endif
-
-static void open_cmd_fd(void) {
+static void open_cmd_fd( int coid, int8_t code, int value ) {
   int old_response = set_response(0);
   char *cmddev = tm_dev_name("cmd/idx64");
   close_cmd_fd();
-  cmd_fd = tm_open_name(cmddev, cmd_node, O_RDONLY);
+  cmd_fd = tm_open_name(cmddev, cmd_node, O_RDONLY|O_NONBLOCK);
   set_response(old_response);
   if ( cmd_fd < 0 ) {
     nl_error(3, "Unable to open command channel" );
   } else {
     nl_error(-2, "open_cmd_fd succeeded");
   }
+
+  /* Initialize cmd event */
+  cmd_event.sigev_notify = SIGEV_PULSE;
+  cmd_event.sigev_coid = coid;
+  cmd_event.sigev_priority = SIGEV_PULSE_PRIO_INHERIT;
+  cmd_event.sigev_code = code;
+  cmd_event.sigev_value.sival_int = value;
 }
 
 int main( int argc, char **argv ) {
   int name_id, resp;
+  int coid, chid;
 
   oui_init_options( argc, argv );
-  open_cmd_fd();
-  ThreadCtl( _NTO_TCTL_IO, 0 );
-  expint_init(); /* Define the IRQ */
+  
+  /* Initialize channel to receive pulses*/
+  chid = ChannelCreate(0);
+  if ( chid == -1 )
+    nl_error( 3, "Error %d from ChannelCreate()", errno );
+  coid = ConnectAttach( ND_LOCAL_NODE, 0, chid, _NTO_SIDE_CHANNEL, 0);
+  if ( coid == -1 )
+    nl_error( 3, "Error %d from ConnectAttach()", errno );
+
+  ThreadCtl( _NTO_TCTL_IO, 0 ); // required for interrupt handling
+  open_cmd_fd( coid, CMD_PULSE_CODE, 0 );
+  expint_init( coid, INTR_PULSE_CODE, 0 ); /* Define the IRQ */
   init_boards(); /* Configure each board */
   if ( idx64_cfg_string != 0 )
     config_channels( idx64_cfg_string );
   /* boards[0]->chans[1].hysteresis = 100; */
+  
   resp = set_response( 1 );
-  tm_data = Col_send_init( "Idx64", tm_ptrs, sizeof(tm_ptrs) );
+  tm_data = Col_send_init( "Idx64", tm_ptrs, sizeof(tm_ptrs), 0 );
+  Col_send_arm( tm_data, coid, SCAN_PULSE_CODE, 0 );
   set_response( resp );
+  
+  check_command(); // Arm the command channel
 
   operate();
 
