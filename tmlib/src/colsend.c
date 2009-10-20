@@ -53,13 +53,13 @@ send_id Col_send_init(const char *name, void *data, unsigned short size, int blo
 int Col_send_arm( send_id sender, int coid, short code, int value ) {
   int policy;
   struct sched_param param;
-  nl_assert(sender != 0 && event != 0);
+  nl_assert(sender != 0);
   if (sender->armed == 0) {
     nl_error(nl_response, "Col_send_arm() requires non-blocking option");
     return 1;
   }
   sender->event.sigev_notify = SIGEV_PULSE;
-  sender->event.sigev.coid = coid;
+  sender->event.sigev_coid = coid;
   sender->event.sigev_code = code;
   sender->event.sigev_value.sival_int = value;
   sender->armed = 2;
@@ -88,7 +88,7 @@ int Col_send(send_id sender) {
         return 1;
       }
       if ((rv & _NOTIFY_COND_OUTPUT) &&
-          MsgSendPulse(sender->event.sigev.coid, sender->priority,
+          MsgSendPulse(sender->event.sigev_coid, sender->priority,
               sender->event.sigev_code,
               sender->event.sigev_value.sival_int) == -1)
         nl_error(4, "Error %d calling MsgSendPulse() in Col_send()", errno);
