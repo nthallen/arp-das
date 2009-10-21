@@ -94,26 +94,27 @@ typedef struct {
 /* Functions return:
    0 on success, -1 on error with errno set appropriately
 */
-int idx64_cmd(byte_t cmd, byte_t drive, step_t steps, step_t dsteps);
-int idx64_drive(byte_t drive, byte_t dir, step_t steps);
-int idx64_scan(byte_t drive, byte_t dir, step_t steps, step_t dsteps);
-#define idx64_drive(drv,dir,s) idx64_cmd((dir&IX64_DIR), drv, s, 0)
-#define idx64_scan(drv,dir,st,ds) idx64_cmd((dir&IX64_DIR)|IX64_SCAN,drv,st,ds)
-#define idx64_stop(drive) idx64_cmd(IX64_STOP, drive, 0, 0)
-#define idx64_online(drive) idx64_cmd(IX64_ONLINE, drive, 0, 0)
-#define idx64_offline(drive) idx64_cmd(IX64_OFFLINE, drive, 0, 0)
-#define idx64_altline(drive) idx64_cmd(IX64_ALTLINE, drive, 0, 0)
-#define idx64_preset(drv, stps) idx64_cmd(IX64_PRESET_POS, drv, stps, 0)
-#define idx64_move_in(drive) idx64_cmd(IX64_MOVE_ONLINE_IN, drive, 0, 0)
-#define idx64_move_out(drive) idx64_cmd(IX64_MOVE_ONLINE_OUT, drive, 0, 0)
-#define idx64_set_online(d, s) idx64_cmd(IX64_SET_ONLINE, d, s, 0)
-#define idx64_online_delta(d, s) idx64_cmd(IX64_SET_ON_DELTA, d, s, 0)
-#define idx64_offline_delta(d, s) idx64_cmd(IX64_SET_OFF_DELTA, d, s, 0)
-#define idx64_offline_pos(d, s) idx64_cmd(IX64_SET_OFF_POS, d, s, 0)
-#define idx64_altline_delta(d, s) idx64_cmd(IX64_SET_ALT_DELTA, d, s, 0)
-#define idx64_altline_pos(d, s) idx64_cmd(IX64_SET_ALT_POS, d, s, 0)
-#define idx64_hysteresis(d, s) idx64_cmd(IX64_SET_HYSTERESIS, d, s, 0)
-#define idx64_speed(drv,s) idx64_cmd(IX64_SET_SPEED, drv, s, 0)
+#if 0
+  int idx64_cmd(byte_t cmd, byte_t drive, step_t steps, step_t dsteps);
+  int idx64_drive(byte_t drive, byte_t dir, step_t steps);
+  int idx64_scan(byte_t drive, byte_t dir, step_t steps, step_t dsteps);
+  #define idx64_drive(drv,dir,s) idx64_cmd((dir&IX64_DIR), drv, s, 0)
+  #define idx64_scan(drv,dir,st,ds) idx64_cmd((dir&IX64_DIR)|IX64_SCAN,drv,st,ds)
+  #define idx64_stop(drive) idx64_cmd(IX64_STOP, drive, 0, 0)
+  #define idx64_online(drive) idx64_cmd(IX64_ONLINE, drive, 0, 0)
+  #define idx64_offline(drive) idx64_cmd(IX64_OFFLINE, drive, 0, 0)
+  #define idx64_altline(drive) idx64_cmd(IX64_ALTLINE, drive, 0, 0)
+  #define idx64_preset(drv, stps) idx64_cmd(IX64_PRESET_POS, drv, stps, 0)
+  #define idx64_move_in(drive) idx64_cmd(IX64_MOVE_ONLINE_IN, drive, 0, 0)
+  #define idx64_move_out(drive) idx64_cmd(IX64_MOVE_ONLINE_OUT, drive, 0, 0)
+  #define idx64_set_online(d, s) idx64_cmd(IX64_SET_ONLINE, d, s, 0)
+  #define idx64_online_delta(d, s) idx64_cmd(IX64_SET_ON_DELTA, d, s, 0)
+  #define idx64_offline_delta(d, s) idx64_cmd(IX64_SET_OFF_DELTA, d, s, 0)
+  #define idx64_offline_pos(d, s) idx64_cmd(IX64_SET_OFF_POS, d, s, 0)
+  #define idx64_altline_delta(d, s) idx64_cmd(IX64_SET_ALT_DELTA, d, s, 0)
+  #define idx64_altline_pos(d, s) idx64_cmd(IX64_SET_ALT_POS, d, s, 0)
+  #define idx64_hysteresis(d, s) idx64_cmd(IX64_SET_HYSTERESIS, d, s, 0)
+  #define idx64_speed(drv,s) idx64_cmd(IX64_SET_SPEED, drv, s, 0)
 #endif
 
 /*
@@ -142,3 +143,5 @@ int idx64_scan(byte_t drive, byte_t dir, step_t steps, step_t dsteps);
 
     CC[\d+[:\d+[:\d+]]]\n
 */
+
+#endif
