@@ -39,8 +39,8 @@ clean :
 	rm -f *.o idx64oui.c idx64
 install : install-bin install-data install-config
 install-bin : $(BIN)
-	cp -v $(BIN) $(BINDIR)
+	@cp -v $(BIN) $(BINDIR)
 install-data : $(DATA)
-	cp -v $(DATA) $(DATADIR)
+	@cp -v $(DATA) $(DATADIR)
 install-config :
 	( cd config; make install TGTNODE=$(TGTNODE) )
