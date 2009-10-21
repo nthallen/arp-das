@@ -10,6 +10,11 @@ SOURCE=$(SRC) $(TOOL)
 OBJECT=$(OBJ) $(INTERM) $(TEMP)
 TARGET=idx64
 
+BIN=idx64
+DATA=idx64.cmd
+BINDIR=$(TGTNODE)/usr/local/bin
+DATADIR=$(TGTNODE)/usr/local/share/huarp
+
 CPPFLAGS=-I /usr/local/include
 CFLAGS=-Wall -g
 LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
@@ -28,8 +33,14 @@ idx64oui.c : idx64.oui
 expint.o : expint.c
 hint.o : hint.c
 
-.PHONY : all clean install
+.PHONY : all clean install install-bin install-data install-config
 all : idx64
 clean :
 	rm -f *.o idx64oui.c idx64
-install :
+install : install-bin install-data install-config
+install-bin : $(BIN)
+	cp -v $(BIN) $(BINDIR)
+install-data : $(DATA)
+	cp -v $(DATA) $(DATADIR)
+install-config :
+	( cd config; make install TGTNODE=$(TGTNODE) )
