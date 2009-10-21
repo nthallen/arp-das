@@ -1,6 +1,6 @@
 <package> idx64
 <include> msg subbus
-<include> "idx64.h" "idx64int.h" "intserv_int.h"
+<include> "idx64.h" "idx64int.h" "intserv.h"
 <opts> "i:"
 <sort>
 	-i <sbirq>[:<spirq>[:<pfirq>]] Specify IRQ levels

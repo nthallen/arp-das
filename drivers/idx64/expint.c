@@ -17,7 +17,6 @@
 #include <errno.h>
 #include <string.h>
 #include "intserv.h"
-#include "intserv_int.h"
 #include "idx64int.h"
 #include "nortlib.h"
 #include "subbus.h"
@@ -75,7 +74,6 @@ void service_expint( void ) {
   int i, bitno, bit;
   unsigned short mask;
 
-  //while ( Creceive( expint_proxy, 0, 0 ) != -1 );
   for ( i = 0; i < MAX_REGIONS && regions[i].address != 0; i++ ) {
     if ( regions[i].bits != 0 ) {
       mask = sbb( regions[i].address ) & regions[i].bits;

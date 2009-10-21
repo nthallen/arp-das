@@ -9,8 +9,6 @@
 #include "nortlib.h"
 #include "oui.h"
 #include "collect.h"
-//#include "cltsrvr.h"
-#include "intserv_int.h"
 #include "intserv.h"
 #include "subbus.h"
 #include "idx64.h"

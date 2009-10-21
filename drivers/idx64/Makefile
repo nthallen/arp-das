@@ -1,8 +1,8 @@
 SUBDIRS=config IdxC
-TOOL=Makefile todo indexer.c
+TOOL=Makefile todo
 SRC=idx64.c idx64int.h
 SRC+=idx64.oui
-OBJ=idx64.o idx64oui.o hint.o expint.o intserv.o
+OBJ=idx64.o idx64oui.o hint.o expint.o
 INTERM=idx64oui.c
 TEMP=*.err
 
@@ -27,7 +27,6 @@ idx64oui.c : idx64.oui
 	oui -o idx64oui.c idx64.oui
 expint.o : expint.c
 hint.o : hint.c
-intserv.o : intserv.c
 
 .PHONY : all clean install
 all : idx64

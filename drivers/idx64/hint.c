@@ -1,28 +1,39 @@
 /* hint.c provides all the interrupt functionality (except the
    handler itself.
 */
+#include <stdlib.h>
 #include <errno.h>
 #include <sys/neutrino.h>
 #include <hw/inout.h>
 #include "nortlib.h"
 #include "intserv.h"
-#include "intserv_int.h"
 #include "subbus.h"
 
 static int expint_iid = -1;
-//static int spare_iid = -1;
-//static int pfail_iid = -1;
-//pid_t expint_proxy = 0;
-//pid_t spare_proxy = 0;
-//pid_t pfail_proxy = 0;
 int expint_irq = 9;
-//int spare_irq = 0;
-//int pfail_irq = 0;
 
 #define MAX_IRQ_104 12
 static unsigned short irq104[ MAX_IRQ_104 ] = {
   0, 0, 0, 0x21, 0x22, 0x23, 0x24, 0x25, 0, 0x20, 0x26, 0x27
 };
+
+static int read_one_irq( char **s ) {
+  int ans;
+  char *t;
+
+  t = *s;
+  if ( t == 0 || *t == '\0' ) return 0;
+  ans = strtoul( t, s, 10 );
+  if ( t == *s ) ans = 0;
+  if ( **s == ':' ) (*s)++;
+  return ans;
+}
+
+void process_IRQs( char *t ) {
+  expint_irq = read_one_irq( &t );
+  //spare_irq = read_one_irq( &t );
+  //pfail_irq = read_one_irq( &t );
+}
 
 static int int_init( int irq, unsigned short enable, int bit,
            int coid, short code, int value ) {
@@ -73,6 +84,11 @@ void expint_reset(void) {
 }
 
 #ifdef IRQ_SUPPORT
+  static int spare_iid = -1;
+  static int pfail_iid = -1;
+  int spare_irq = 0;
+  int pfail_irq = 0;
+
   void spare_init( void ) {
     spare_iid = int_init( spare_irq, 0x2000, 10, spare_handler );
   }
