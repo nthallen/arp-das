@@ -861,7 +861,7 @@ static void open_cmd_fd( int coid, short code, int value ) {
 }
 
 int main( int argc, char **argv ) {
-  int name_id, resp;
+  int resp;
   int coid, chid;
 
   oui_init_options( argc, argv );

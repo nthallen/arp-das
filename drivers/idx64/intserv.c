@@ -5,12 +5,10 @@
 #include <string.h> /* for strerror */
 #include <unistd.h> /* for getnid() */
 #include <stdlib.h> /* for stroul() */
-#include <sys/kernel.h>
-#include <sys/name.h>
 #include "nortlib.h"
 #include "oui.h"
 #include "intserv.h"
-#include "internal.h"
+#include "intserv_int.h"
 #include "subbus.h"
 
 #ifdef INTSERV_STANDALONE
@@ -110,6 +108,6 @@ static int read_one_irq( char **s ) {
 
 void process_IRQs( char *t ) {
   expint_irq = read_one_irq( &t );
-  spare_irq = read_one_irq( &t );
-  pfail_irq = read_one_irq( &t );
+  //spare_irq = read_one_irq( &t );
+  //pfail_irq = read_one_irq( &t );
 }

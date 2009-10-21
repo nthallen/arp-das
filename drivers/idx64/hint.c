@@ -1,24 +1,23 @@
 /* hint.c provides all the interrupt functionality (except the
    handler itself.
 */
-#include <conio.h>
-#include <i86.h>
-#include <sys/irqinfo.h>
-#include <sys/proxy.h>
+#include <errno.h>
+#include <sys/neutrino.h>
+#include <hw/inout.h>
 #include "nortlib.h"
 #include "intserv.h"
-#include "internal.h"
+#include "intserv_int.h"
 #include "subbus.h"
 
 static int expint_iid = -1;
-static int spare_iid = -1;
-static int pfail_iid = -1;
-pid_t expint_proxy = 0;
-pid_t spare_proxy = 0;
-pid_t pfail_proxy = 0;
+//static int spare_iid = -1;
+//static int pfail_iid = -1;
+//pid_t expint_proxy = 0;
+//pid_t spare_proxy = 0;
+//pid_t pfail_proxy = 0;
 int expint_irq = 9;
-int spare_irq = 0;
-int pfail_irq = 0;
+//int spare_irq = 0;
+//int pfail_irq = 0;
 
 #define MAX_IRQ_104 12
 static unsigned short irq104[ MAX_IRQ_104 ] = {
@@ -26,7 +25,7 @@ static unsigned short irq104[ MAX_IRQ_104 ] = {
 };
 
 static int int_init( int irq, unsigned short enable, int bit,
-          pid_t (far *handler)( void ) ) {
+           int coid, short code, int value ) {
   unsigned short cfg_word, cfg_val, cfg_mask;
   int iid;
   struct sigevent intr_event;
@@ -40,7 +39,6 @@ static int int_init( int irq, unsigned short enable, int bit,
   intr_event.sigev_value.sival_int = value;
   iid = InterruptAttachEvent(expint_irq, &intr_event,
       _NTO_INTR_FLAGS_PROCESS | _NTO_INTR_FLAGS_TRK_MSK );
-  iid = qnx_hint_attach( irq, handler, FP_SEG( &expint_proxy ) );
   if (iid == -1)
     nl_error( 3, "Unable to attach IRQ %d: errno %d", irq, errno);
   if ( subbus_subfunction == SB_SYSCON104 ) {
@@ -51,9 +49,9 @@ static int int_init( int irq, unsigned short enable, int bit,
     cfg_val = irq104[ irq ] & ~0x20;
     cfg_val = ( cfg_val << bit ) | enable;
     cfg_mask = ( 7 << bit ) | enable;
-    cfg_word = ( inpw( 0x312 ) & ~cfg_mask ) | cfg_val;
+    cfg_word = ( in16( 0x312 ) & ~cfg_mask ) | cfg_val;
     nl_error( -2, "SC104 writing CPA word %04X", cfg_word );
-    outpw( 0x312, cfg_word );
+    out16( 0x312, cfg_word );
   }
   return iid;
 }
@@ -61,8 +59,8 @@ static int int_init( int irq, unsigned short enable, int bit,
 static void int_reset( int iid, unsigned short mask ) {
   if ( iid != -1 ) InterruptDetach( iid );
   if ( subbus_subfunction == SB_SYSCON104 ) {
-    unsigned short cfg_word = ( inpw( 0x312 ) & ~mask );
-    outpw( 0x312, cfg_word );
+    unsigned short cfg_word = ( in16( 0x312 ) & ~mask );
+    out16( 0x312, cfg_word );
   }
 }
 

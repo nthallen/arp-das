@@ -1,5 +1,5 @@
 <package> idx64
-<include> msg subbus_reqd
+<include> msg subbus
 <include> "idx64.h" "idx64int.h" "intserv_int.h"
 <opts> "i:"
 <sort>
@@ -22,7 +22,7 @@
      [code][,bits][:[code][,bits]...]
 <blank>
 Where code is an optional hex value which is written to the 
-channel's configuration address and bits is a number between 0 
+channel''s configuration address and bits is a number between 0 
 and 3 defining how many extra status bits are to be reported to 
 telemetry. The code word can be used to specify all of the 
 configuration options for a channel, including step rate, in and 

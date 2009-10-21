@@ -2,9 +2,7 @@
 #define IDX64INT_H_INCLUDED
 
 #include <sys/types.h>
-#ifndef IDX64_H_INCLUDED
-  #error Must include idx64.h before idx64int.h
-#endif
+#include "idx64.h"
 
 #define MAX_IDXRS 4
 #define MAX_IDXR_CHANS 6
@@ -59,5 +57,6 @@ extern idx64_def idx_defs[ MAX_IDXRS ];
 extern idx64_bd *boards[ MAX_IDXRS ];
 extern char *idx64_cfg_string;
 extern int idx64_region;
+extern int service_pulse(short code, int value );
 
 #endif

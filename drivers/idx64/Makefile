@@ -13,14 +13,14 @@ TARGET=idx64
 CPPFLAGS=-I /usr/local/include
 CFLAGS=-Wall -g
 LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
-LIBS=-lnort -ltm
+LIBS=-lsubbus -lnort -ltm
 
 
 idx64 : $(OBJ)
 	rm -f idx64
 	$(CC) $(CFLAGS) $(LDFLAGS) -o idx64 $(OBJ) $(LIBS)
 	usemsg idx64 idx64oui.c
-	promote idx64
+	/usr/local/sbin/promote idx64
 idx64.o : idx64.c idx64int.h idx64.h
 idx64oui.o : idx64oui.c idx64int.h
 idx64oui.c : idx64.oui

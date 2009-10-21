@@ -16,9 +16,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/kernel.h>
 #include "intserv.h"
 #include "intserv_int.h"
+#include "idx64int.h"
 #include "nortlib.h"
 #include "subbus.h"
 
@@ -28,6 +28,8 @@ typedef struct carddef {
   unsigned short address;
   unsigned int reg_id;
   unsigned int bitno;
+  short pulse_code;
+  int pulse_value;
 } card_def;
 
 typedef struct {
@@ -88,8 +90,9 @@ void service_expint( void ) {
   }
 }
 
-int expint_attach( /* pid_t who, */ char *cardID, unsigned short address,
-                      int region, short pulse_code, int pulse_value ) {
+int expint_attach( /* pid_t who, */ const char *cardID,
+      unsigned short address, int region,
+      short pulse_code, int pulse_value ) {
   card_def **cdp, *cd;
   int bitno, bit, i;
 
@@ -172,7 +175,7 @@ int expint_attach( /* pid_t who, */ char *cardID, unsigned short address,
   return EOK;
 }
 
-int expint_detach( /* pid_t who, */ char *cardID ) {
+int expint_detach( /* pid_t who, */ const char *cardID ) {
   card_def **cdp;
   
   cdp = find_card( cardID, 0 );
