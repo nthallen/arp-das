@@ -74,9 +74,16 @@ function nl_error( level, msg ) {
 /^ *[Ss]tatus +[0-9/]+ +Hz +[A-Za-z_]/ {
   set_value( "rate", "status", curr_chan, $2 )
   set_value( "mnemonic", "status", curr_chan, $4 )
-  if ( $5 == "Diagram" ) {
-	drivestats = 1
-	set_value( "Diagram", "scanstat", curr_chan, $6 )
+  sfld = 5
+  while ( sfld <= NF ) {
+    if ( $sfld == "Diagram" ) {
+      drivestats = 1
+      set_value( "Diagram", "status", curr_chan, $(sfld+1) )
+    } else if ( $sfld == "KillStat" ) {
+      killstats = 1
+      set_value( "KillStat", "status", curr_chan, $(sfld+1) )
+    }
+    sfld = sfld+2
   }
   next
 }
@@ -160,11 +167,11 @@ END {
   if ( basetmc ) {
 	print "TM typedef unsigned short IndxrPos {"
 	print "  text \"%5d\";"
-	print "  collect x = sbw(x.address);"
+	print "  collect x = sbwa(x.address);"
 	print "}"
 	print "TM typedef unsigned char IndxrStat {"
 	print "  text \"%08b\";"
-	print "  collect x = sbb(x.address);"
+	print "  collect x = sbba(x.address);"
 	print "}"
 	for ( i = 0; i <= max_channel; i++ ) {
 	  bdno = int( i/6 )
@@ -267,11 +274,42 @@ END {
 	  print "%}"
 	  print "TM typedef unsigned char IxDriveStat { text \"%5d\" IxDrive_text[]; }"
 	  for ( i = 0; i <= max_channel; i++ ) {
-		dmnem = values["scanstat","Diagram",i]
-		mnem = values["scanstat", "mnemonic", i]
+		dmnem = values["status","Diagram",i]
+		mnem = values["status", "mnemonic",i]
 		if ( dmnem != "" && mnem != "" ) {
 		  printf "IxDriveStat " dmnem "; invalidate " dmnem ";"
 		  print " { " dmnem " = " mnem " & 0xF; Validate " dmnem "; }"
+		}
+	  }
+	}
+	if ( killstats ) {
+	  print "%{"
+	  print "  char *IxKillStat_text[] = {"
+	  print "    \"----\","
+	  print "    \"---A\","
+	  print "    \"--B-\","
+	  print "    \"--BA\","
+	  print "    \"-Z--\","
+	  print "    \"-Z-A\","
+	  print "    \"-ZB-\","
+	  print "    \"-ZBA\","
+	  print "    \"C---\","
+	  print "    \"C--A\","
+	  print "    \"C-B-\","
+	  print "    \"C-BA\","
+	  print "    \"CZ--\","
+	  print "    \"CZ-A\","
+	  print "    \"CZB-\","
+	  print "    \"CZBA\""
+	  print "  };"
+	  print "%}"
+	  print "TM typedef unsigned char IxKillStat { text \"%4d\" IxKillStat_text[]; }"
+	  for ( i = 0; i <= max_channel; i++ ) {
+		dmnem = values["status","KillStat",i]
+		mnem = values["status", "mnemonic",i]
+		if ( dmnem != "" && mnem != "" ) {
+		  printf "IxKillStat " dmnem "; invalidate " dmnem ";"
+		  print " { " dmnem " = (" mnem " >> 4) & 0xF; Validate " dmnem "; }"
 		}
 	  }
 	}
@@ -281,11 +319,11 @@ END {
 	  print "\t\"    \","
 	  print "\t\"Scan\","
 	  print "\t\"On  \","
-	  print "\t\"????\","
+	  print "\t\"S/On\","
 	  print "\t\"Off \","
-	  print "\t\"????\","
+	  print "\t\"S/Of\","
 	  print "\t\"Alt \","
-	  print "\t\"????\""
+	  print "\t\"S/Al\""
 	  print "  };"
 	  print "%}"
 	  print "TM typedef unsigned short IndxrFlag {"

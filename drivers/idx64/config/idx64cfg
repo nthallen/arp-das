@@ -28,7 +28,7 @@ root=$2
 cd idx64cfg.tmp
 
 function generate {
-  /bin/awk -f $srcfile $1=1 $2 >$3 || {
+  /usr/bin/awk -f $srcfile $1=1 $2 >$3 || {
 	rm -f $3
 	exit 1
   }
