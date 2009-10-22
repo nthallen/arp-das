@@ -13,7 +13,7 @@ function nl_error {
 }
 src=idx64cfg.awk
 path=`dirname $0`
-for srcfile in $path/$src /usr/local/lib/src/$src; do
+for srcfile in $path/$src /usr/local/share/huarp/$src; do
   [ -f $srcfile ] && break
 done
 [ ! -f $srcfile ] && nl_error Unable to locate source file $src
