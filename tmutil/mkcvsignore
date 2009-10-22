@@ -1,0 +1,22 @@
+#! /usr/bin/perl -w
+use strict;
+use lib "/usr/local/share/huarp";
+use Makefile;
+
+my %macros;
+-f "Makefile" || die "No Makefile found\n";
+-f ".cvsignore" && die ".cvsignore already exists\n";
+Makefile::read_makefile( \%macros, "Makefile" );
+my @objs = (
+  split(/\s+/,
+    Makefile::expand_macro( \%macros, "OBJECT" ) ),
+  split(/\s+/,
+	Makefile::expand_macro( \%macros, "TARGET" ) ) );
+if ( @objs ) {
+  open( CIG, ">.cvsignore" ) || die "Cannot write .cvsignore\n";
+  print CIG map "$_\n", @objs;
+  close(CIG) || warn "Error closing .cvsignore\n";
+  print ".cvsignore created\n";
+} else {
+  print "No OBJECTs or TARGETs found in Makefile\n";
+}
