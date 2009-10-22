@@ -250,7 +250,7 @@ END {
   if ( flagtmc ) {
 	if ( drivestats ) {
 	  print "%{"
-	  print "  char *IxDrive_text[] = {"
+	  print "  const char *IxDrive_text[] = {"
 	  print "\t\"  <  \","
 	  print "\t\"| <  \","
 	  print "\t\"  < |\","
@@ -281,7 +281,7 @@ END {
 	}
 	if ( killstats ) {
 	  print "%{"
-	  print "  char *IxKillStat_text[] = {"
+	  print "  const char *IxKillStat_text[] = {"
 	  print "    \"----\","
 	  print "    \"---A\","
 	  print "    \"--B-\","
@@ -312,7 +312,7 @@ END {
 	}
 	if ( scanstats ) {
 	  print "%{"
-	  print "  char *IdxFlgTxt[8] = {"
+	  print "  const char *IdxFlgTxt[8] = {"
 	  print "\t\"    \","
 	  print "\t\"Scan\","
 	  print "\t\"On  \","

@@ -12,8 +12,10 @@ TARGET=idx64
 
 BIN=idx64
 DATA=idx64.cmd
+INCLUDE=idx64.h
 BINDIR=$(TGTNODE)/usr/local/bin
 DATADIR=$(TGTNODE)/usr/local/share/huarp
+INCLUDEDIR=$(TGTNODE)/usr/local/include
 
 CPPFLAGS=-I /usr/local/include
 CFLAGS=-Wall -g
@@ -33,13 +35,15 @@ idx64oui.c : idx64.oui
 expint.o : expint.c
 hint.o : hint.c
 
-.PHONY : all clean install install-bin install-data install-config
+.PHONY : all clean install install-bin install-data install-config install-include
 all : idx64
 clean :
 	rm -f *.o idx64oui.c idx64
-install : install-bin install-data install-config
+install : install-bin install-data install-config install-include
 install-bin : $(BIN)
 	@cp -v $(BIN) $(BINDIR)
+install-include : $(INCLUDE)
+	@cp -v $(INCLUDE) $(INCLUDEDIR)
 install-data : $(DATA)
 	@cp -v $(DATA) $(DATADIR)
 install-config :

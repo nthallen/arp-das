@@ -1,3 +1,5 @@
+%INTERFACE <idx64>
+
 %{
   #include "idx64.h"
   void idx64_cmd2( char *cmd, int drive, step_t steps) {
@@ -7,8 +9,6 @@
     cis_turf(if_idx64, "%s%d\n", cmd, drive);
   }
 %}
-
-%INTERFACE <idx64>
 
 &command
 	: &indexer_cmd
@@ -20,23 +20,23 @@
 	: Scan &drive &direction &steps by %d (Enter Steps per Step) *
 	  { cis_turf(if_idx64, "S%c%d:%u:%u\n", $3, $2, $4, $6 ); }
 	: Stop &drive * { idx64_cmd1( "SP", $2); }
-	: Drive &drive Online * { idx64_cmd1("ON", drive); }
-	: Drive &drive Offline * { idx64_cmd1("OF", drive); } 
-	: Drive &drive Altline * { idx64_cmd1("AL", drive); } 
+	: Drive &drive Online * { idx64_cmd1("ON", $2); }
+	: Drive &drive Offline * { idx64_cmd1("OF", $2); } 
+	: Drive &drive Altline * { idx64_cmd1("AL", $2); } 
 	: Preset &drive Position to &steps * { idx64_cmd2("PR", $2, $5); }
 	: Set &drive Online Position %d (Enter Online Position) *
 		{ idx64_cmd2("OP", $2, $5); }
 	: Set &drive Online Delta
 		%d (Enter positive number of steps between dithered online positions) *
-		  { idx64__cmd2("OD", $2, $5); }
+		  { idx64_cmd2("OD", $2, $5); }
 	: Set &drive Offline Delta
 		%d (Enter signed number of steps from Online to Offline position) *
 		  { idx64_cmd2("FD", $2, $5); }
 	: Set &drive Offline Position %d (Enter Offline Position) *
-		{ idx64_cmd2("FP", ($2, $5); }
+		{ idx64_cmd2("FP", $2, $5); }
 	: Set &drive Altline Delta
 		%d (Enter signed number of steps from Online to Altline position) *
-		  { idx64_cmd2("AD", ($2, $5); }
+		  { idx64_cmd2("AD", $2, $5); }
 	: Set &drive Altline Position %d (Enter Altline Position) *
 		{ idx64_cmd2("AP", $2, $5); }
 	: Set &drive Hysteresis %d (Enter Hysteresis Amount) *
