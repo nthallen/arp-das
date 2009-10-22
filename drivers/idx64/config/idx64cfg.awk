@@ -197,13 +197,10 @@ END {
 	else subs = ""
 	if ( coltmc ) {
 	  print "%{"
-	  print "  #include <sys/types.h>"
 	  print "  #include \"subbus.h\""
-	  print "  pid_t IndxrProxy;"
 	  print "%}"
-	  print "TM \"proxy\" IndxrProxy 2;"
 	  print "IndxrPos Idx64" subs ";"
-	  print "TM \"Receive\" Idx64 0;"
+	  print "TM \"Receive\" Idx64 1;"
 	}
 	if ( basetmc ) {
 	  printf "TM " values["rate","IXStt",0] " Hz IndxrPos  "
@@ -217,7 +214,7 @@ END {
 		print "    " values["mnemonic","IXStt",0] "[i] = Idx64[i];"
 		print "  }"
 	  } else print "  " values["mnemonic","IXStt",0] " = Idx64;"
-	  print "  if (IndxrProxy!=0) Trigger(IndxrProxy);"
+	  print "  Idx64_obj->synch();"
 	  print "}"
 	}
   }
