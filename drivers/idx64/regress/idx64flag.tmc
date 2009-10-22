@@ -1,28 +1,55 @@
 %{
-  char *IdxFlgTxt[8] = {
+  const char *IxDrive_text[] = {
+	"  <  ",
+	"| <  ",
+	"  < |",
+	"| < |",
+	"  >  ",
+	"| >  ",
+	"  > |",
+	"| > |",
+	"<----",  /* driving in */
+	"|<---",  /* driving in against in limit */
+	"<---|",  /* driving in from out limit */
+	"|<--|",  /* driving in both limits. Broke */
+	"---->",  /* driving out */
+	"|--->",  /* driving out from in limit */
+	"--->|",  /* driving out agains out limit */
+	"|-->|"   /* driving out both limits. Broke */
+  };
+%}
+TM typedef unsigned char IxDriveStat { text "%5d" IxDrive_text[]; }
+IxDriveStat IX0Dgrm; invalidate IX0Dgrm; { IX0Dgrm = IX0Stat & 0xF; Validate IX0Dgrm; }
+IxDriveStat IX1Dgrm; invalidate IX1Dgrm; { IX1Dgrm = IX1Stat & 0xF; Validate IX1Dgrm; }
+IxDriveStat IX2Dgrm; invalidate IX2Dgrm; { IX2Dgrm = IX2Stat & 0xF; Validate IX2Dgrm; }
+IxDriveStat IX3Dgrm; invalidate IX3Dgrm; { IX3Dgrm = IX3Stat & 0xF; Validate IX3Dgrm; }
+IxDriveStat IX4Dgrm; invalidate IX4Dgrm; { IX4Dgrm = IX4Stat & 0xF; Validate IX4Dgrm; }
+IxDriveStat IX5Dgrm; invalidate IX5Dgrm; { IX5Dgrm = IX5Stat & 0xF; Validate IX5Dgrm; }
+%{
+  const char *IdxFlgTxt[8] = {
 	"    ",
 	"Scan",
 	"On  ",
-	"????",
+	"S/On",
 	"Off ",
-	"????",
+	"S/Of",
 	"Alt ",
-	"????"
+	"S/Al"
   };
 %}
 TM typedef unsigned short IndxrFlag {
   text "%4d" IdxFlgTxt[];
 }
 
-IndxrFlag ID0Flg; invalidate ID0Flg;
-{ ID0Flg = ( IXStt ) & 7; validate ID0Flg; }
-IndxrFlag ID1Flg; invalidate ID1Flg;
-{ ID1Flg = ( IXStt >> 3 ) & 7; validate ID1Flg; }
-IndxrFlag ID2Flg; invalidate ID2Flg;
-{ ID2Flg = ( IXStt >> 6 ) & 7; validate ID2Flg; }
-IndxrFlag ID3Flg; invalidate ID3Flg;
-{ ID3Flg = ( IXStt >> 9 ) & 7; validate ID3Flg; }
-IndxrFlag ID4Flg; invalidate ID4Flg;
-{ ID4Flg = ( IXStt >> 12 ) & 7; validate ID4Flg; }
-IndxrFlag ID5Flg; invalidate ID5Flg;
-{ ID5Flg = ( IXStt >> 15 ) & 1; validate ID5Flg; }
+IndxrFlag IX0Scan; invalidate IX0Scan;
+{ IX0Scan = ( IXStt ) & 1; validate IX0Scan; }
+IndxrFlag IX1Scan; invalidate IX1Scan;
+{ IX1Scan = ( IXStt >> 1 ) & 1; validate IX1Scan; }
+IndxrFlag IX2Scan; invalidate IX2Scan;
+{ IX2Scan = ( IXStt >> 2 ) & 1; validate IX2Scan; }
+IndxrFlag IX3Scan; invalidate IX3Scan;
+{ IX3Scan = ( IXStt >> 3 ) & 1; validate IX3Scan; }
+IndxrFlag IX4Scan; invalidate IX4Scan;
+{ IX4Scan = ( IXStt >> 4 ) & 1; validate IX4Scan; }
+IndxrFlag IX5Scan; invalidate IX5Scan;
+{ IX5Scan = ( IXStt >> 5 ) & 1; validate IX5Scan; }

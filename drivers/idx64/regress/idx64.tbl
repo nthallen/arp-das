@@ -1,0 +1,16 @@
+Indexer {
+  Title: >"Indexer Diagnostic"<;
+  Header: Channel Step Status Diagram Scan;
+  "0" (IX0Step,5) (IX0Stat,8) (IX0Dgrm,5) (IX0Scan,4); 
+  "1" (IX1Step,5) (IX1Stat,8) (IX1Dgrm,5) (IX1Scan,4); 
+  "2" (IX2Step,5) (IX2Stat,8) (IX2Dgrm,5) (IX2Scan,4); 
+  "3" (IX3Step,5) (IX3Stat,8) (IX3Dgrm,5) (IX3Scan,4); 
+  "4" (IX4Step,5) (IX4Stat,8) (IX4Dgrm,5) (IX4Scan,4); 
+  "5" (IX5Step,5) (IX5Stat,8) (IX5Dgrm,5) (IX5Scan,4); 
+}
+
+{
+  [Indexer];
+  -;
+  >{ (flttime,8) (MFCtr,5) }
+}

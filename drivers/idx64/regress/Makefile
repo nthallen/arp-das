@@ -1,91 +1,72 @@
-# Makefile Generated Wed Nov 20 15:32:50 est 1996
+# Makefile Generated Thu Oct 22 14:39:11 EDT 2009
 MNC=idx64
-HOMEDIR=/usr/local/src/das/idx64/regress
+HOMEDIR=/home/idx64
 SPECFILE=idx64.spec
-SRC=idx64.idx idx64.cfg types.tmc idx64.tmc idx64col.tmc
-SRC+=idx64flag.tmc idx64rate.tmc idx64.fld idx64.tma idx64.doit
-SRC+=idx64.edf cmdenbl.cmd idx64drv.cmd
+SRC=base.tmc idx64.tmc idx64col.tmc idx64flag.tmc idx64.tbl
 TOOL=idx64.spec Makefile
-SCRIPT=interact Experiment.config
-OBJ=idx64.idx64 idx64col.c idx64.pcm tm.dac idx64coloui.c idx64col.o
-OBJ+=idx64coloui.o idx64disp.tmc idx64disp.c idx64dispoui.c
-OBJ+=idx64disp.o idx64dispoui.o idx64algoa.tmc idx64algo.c
-OBJ+=idx64algooui.c idx64algo.o idx64algooui.o idx64extedf.oui
-OBJ+=idx64ext.tmc idx64ext.c idx64extoui.c idx64ext.o idx64extoui.o
-OBJ+=idx64cmd.c idx64cmd.dat idx64clt.o idx64cltoui.c idx64cltoui.o
-OBJ+=idx64srvr.o idx64srvroui.c idx64srvroui.o
-TGT=idx64col idx64disp idx64algo idx64doit idx64ext idx64clt
-TGT+=idx64srvr
-DISTRIB=idx64.fld idx64.tma types.tmc idx64.tmc idx64.pcm tm.dac
+SCRIPT=doit interact
+OBJ=idx64col.cc idx64.pcm tm.dac idx64coloui.c idx64coloui.o
+OBJ+=idx64col.o idx64tbl.tmc idx64disp.cc idx64dispoui.c
+OBJ+=idx64dispoui.o idx64disp.o idx64cmd.c idx64cmd.dat idx64clt.o
+OBJ+=idx64cltoui.c idx64cltoui.o idx64srvr.o idx64srvroui.c
+OBJ+=idx64srvroui.o
+TGT=idx64col idx64disp idx64clt idx64srvr
+DISTRIB=idx64.pcm tm.dac
+IDISTRIB=Experiment.config VERSION doit
+SRCDIST=base.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc
 NONRCS=
+TMCBASE=base.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc
+CMDBASE=/usr/local/share/huarp/root.cmd
+CMDBASE+=/usr/local/share/huarp/idx64.cmd
 RCS=$(SRC) $(TOOL) $(SCRIPT)
 SOURCE=$(RCS) $(NONRCS)
 OBJECT=$(OBJ) *.err
 TARGET=$(TGT)
 DSTRB=$(TGT) $(DISTRIB) $(SCRIPT)
-include /usr/local/lib/src/appgen.mk
+include /usr/local/share/huarp/appgen.mk
 
-all : $(TGT)
-distribution : $(DSTRB)
-	distribute $(TGTDIR) $(DSTRB); :
-
+all : Makefile $(TGT)
+Makefile : idx64.spec
+	appgen idx64.spec
+VERSION=`cat VERSION`
+extdistribution : $(DSTRB) $(SRCDIST)
+	@[ -d $(TGTDIR)/bin ] || mkdir $(TGTDIR)/bin
+	@[ -d $(TGTDIR)/bin/$(VERSION) ] || mkdir $(TGTDIR)/bin/$(VERSION)
+	@[ -d  $(TGTDIR)/bin/$(VERSION)/Base ] || mkdir $(TGTDIR)/bin/$(VERSION)/Base
+	@distribute $(FORCE) $(TGTDIR)/bin/$(VERSION) $(DSTRB)
+	@distribute $(FORCE) $(TGTDIR)/bin/$(VERSION)/Base $(SRCDIST)
+distribution : extdistribution
+	@distribute $(FORCE) $(TGTDIR) $(IDISTRIB)
 idx64col : idx64col.o idx64coloui.o
-	$(LINK.priv) idx64col.o idx64coloui.o
+	$(LINK.privCXX) idx64col.o idx64coloui.o -lsubbus -ltmpp -ltm -lnort
 	$(OUIUSE) idx64coloui.c
-	promote idx64col
+	$(PROMOTE) idx64col
 idx64disp : idx64disp.o idx64dispoui.o
-	$(LINK.norm) idx64disp.o idx64dispoui.o
+	$(LINK.normCXX) idx64disp.o idx64dispoui.o -ldisp -ltmph -lph -ltmpp -ltm -lnort
 	$(OUIUSE) idx64dispoui.c
-idx64algo : idx64algo.o idx64algooui.o
-	$(LINK.norm) idx64algo.o idx64algooui.o
-	$(OUIUSE) idx64algooui.c
-idx64doit : idx64.doit
-	mkdoit2 -o idx64doit  idx64.doit && chmod a+x idx64doit
-idx64ext : idx64ext.o idx64extoui.o
-	$(LINK.norm) idx64ext.o idx64extoui.o
-	$(OUIUSE) idx64extoui.c
 idx64clt : idx64clt.o idx64cltoui.o
-	$(LINK.norm) idx64clt.o idx64cltoui.o
+	$(LINK.norm) idx64clt.o idx64cltoui.o -ltmph -lph -ltm -lnort
 	$(OUIUSE) idx64cltoui.c
 idx64srvr : idx64srvr.o idx64srvroui.o
-	$(LINK.priv) idx64srvr.o idx64srvroui.o
+	$(LINK.priv) idx64srvr.o idx64srvroui.o -ltm -lnort
 	$(OUIUSE) idx64srvroui.c
-	promote idx64srvr
-idx64col.c : types.tmc idx64.tmc idx64col.tmc
-	$(TMC.col) types.tmc idx64.tmc idx64col.tmc
-idx64coloui.c : $(OUIDIR)/collect.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus_reqd.oui $(OUIDIR)/msg.oui
-	$(OUI) $(OUIDIR)/collect.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus_reqd.oui $(OUIDIR)/msg.oui
-idx64col.o : idx64col.c
+	$(PROMOTE) idx64srvr
+idx64col.cc : base.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc idx64col.tmc
+	$(TMC.col) base.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc idx64col.tmc
+idx64coloui.c : $(OUIDIR)/collect.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
+	$(OUI) $(OUIDIR)/collect.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 idx64coloui.o : idx64coloui.c
-idx64disp.tmc : idx64.fld
-	$(FLD2DISP) idx64.fld
-idx64disp.c : types.tmc idx64.tmc idx64flag.tmc idx64rate.tmc idx64disp.tmc
-	$(TMC) types.tmc idx64.tmc idx64flag.tmc idx64rate.tmc idx64disp.tmc
-idx64dispoui.c : $(OUIDIR)/nl_cons.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
-	$(OUI) $(OUIDIR)/nl_cons.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
-idx64disp.o : idx64disp.c
+idx64col.o : idx64col.cc
+idx64tbl.tmc : idx64.tbl
+	$(TABLE) idx64.tbl
+idx64disp.cc : base.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc idx64flag.tmc idx64tbl.tmc
+	$(TMC) base.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc idx64flag.tmc idx64tbl.tmc
+idx64dispoui.c : $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
+	$(OUI) $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 idx64dispoui.o : idx64dispoui.c
-idx64algoa.tmc : idx64.tma idx64srvr
-	$(SERVER) idx64srvr
-	$(TMCALGO) idx64.tma
-idx64algo.c : types.tmc idx64.tmc idx64algoa.tmc
-	$(TMC) types.tmc idx64.tmc idx64algoa.tmc
-idx64algooui.c : $(OUIDIR)/tma.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
-	$(OUI) $(OUIDIR)/tma.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
-idx64algo.o : idx64algo.c
-idx64algooui.o : idx64algooui.c
-idx64extedf.oui : idx64.edf
-	$(EDF2OUI) idx64.edf
-idx64ext.tmc : idx64.edf
-	$(EDF2EXT) idx64.edf
-idx64ext.c : types.tmc idx64.tmc idx64rate.tmc idx64ext.tmc
-	$(TMC) types.tmc idx64.tmc idx64rate.tmc idx64ext.tmc
-idx64extoui.c : idx64extedf.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
-	$(OUI) idx64extedf.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
-idx64ext.o : idx64ext.c
-idx64extoui.o : idx64extoui.c
-idx64cmd.c : /usr/local/lib/src/root.cmd /usr/local/lib/src/idx64.cmd cmdenbl.cmd idx64drv.cmd
-	$(CMDGEN) -d idx64cmd.dat /usr/local/lib/src/root.cmd /usr/local/lib/src/idx64.cmd cmdenbl.cmd idx64drv.cmd
+idx64disp.o : idx64disp.cc
+idx64cmd.c : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/idx64.cmd
+	$(CMDGEN) -d idx64cmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/idx64.cmd
 idx64clt.o : idx64cmd.c
 	$(COMPILE.clt) idx64cmd.c
 idx64cltoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui
@@ -93,11 +74,13 @@ idx64cltoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui
 idx64cltoui.o : idx64cltoui.c
 idx64srvr.o : idx64cmd.c
 	$(COMPILE.srvr) idx64cmd.c
-idx64srvroui.c : $(OUIDIR)/server.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus_opt.oui $(OUIDIR)/msg.oui
-	$(OUI) $(OUIDIR)/server.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus_opt.oui $(OUIDIR)/msg.oui
+idx64srvroui.c : $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/msg.oui
+	$(OUI) $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/msg.oui
 idx64srvroui.o : idx64srvroui.c
-IDX64CFG=../config/idx64cfg
-idx64.tmc idx64col.tmc idx64flag.tmc idx64drv.cmd idx64.idx64 : idx64.idx
-	$(IDX64CFG) idx64.idx idx64
-idx64doit : idx64.fld
-LDFLAGS+=-ltermlib
+
+tidy :
+	rm -f $(OBJECT)
+clean : tidy
+	rm -f $(TARGET)
+.cvsignore :
+	@for i in Makefile '.B4*' $(OBJECT) $(TARGET); do echo "$$i"; done >.cvsignore
