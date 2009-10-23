@@ -1,4 +1,4 @@
-# Makefile Generated Thu Oct 22 14:39:11 EDT 2009
+# Makefile Generated Thu Oct 22 15:02:15 EDT 2009
 MNC=idx64
 HOMEDIR=/home/idx64
 SPECFILE=idx64.spec
@@ -23,6 +23,7 @@ SOURCE=$(RCS) $(NONRCS)
 OBJECT=$(OBJ) *.err
 TARGET=$(TGT)
 DSTRB=$(TGT) $(DISTRIB) $(SCRIPT)
+TGTDIR= /home/idx64
 include /usr/local/share/huarp/appgen.mk
 
 all : Makefile $(TGT)

@@ -1,12 +1,18 @@
 Indexer {
   Title: >"Indexer Diagnostic"<;
-  Header: Channel Step Status Diagram Scan;
-  "0" (IX0Step,5) (IX0Stat,8) (IX0Dgrm,5) (IX0Scan,4); 
-  "1" (IX1Step,5) (IX1Stat,8) (IX1Dgrm,5) (IX1Scan,4); 
-  "2" (IX2Step,5) (IX2Stat,8) (IX2Dgrm,5) (IX2Scan,4); 
-  "3" (IX3Step,5) (IX3Stat,8) (IX3Dgrm,5) (IX3Scan,4); 
-  "4" (IX4Step,5) (IX4Stat,8) (IX4Dgrm,5) (IX4Scan,4); 
-  "5" (IX5Step,5) (IX5Stat,8) (IX5Dgrm,5) (IX5Scan,4); 
+  Header: Channel Step Status Diagram Scan Kill;
+  "0" (IX0Step,5) (IX0Stat,8) (IX0Dgrm,5) (IX0Scan,4) (IX0Kill,5); 
+  "1" (IX1Step,5) (IX1Stat,8) (IX1Dgrm,5) (IX1Scan,4) (IX1Kill,5); 
+  "2" (IX2Step,5) (IX2Stat,8) (IX2Dgrm,5) (IX2Scan,4) (IX2Kill,5); 
+  "3" (IX3Step,5) (IX3Stat,8) (IX3Dgrm,5) (IX3Scan,4) (IX3Kill,5); 
+  "4" (IX4Step,5) (IX4Stat,8) (IX4Dgrm,5) (IX4Scan,4) (IX4Kill,5); 
+  "5" (IX5Step,5) (IX5Stat,8) (IX5Dgrm,5) (IX5Scan,4) (IX5Kill,5); 
+  "6" (IX6Step,5) (IX6Stat,8) (IX6Dgrm,5) (IX6Scan,4) (IX6Kill,5); 
+  "7" (IX7Step,5) (IX7Stat,8) (IX7Dgrm,5) (IX7Scan,4) (IX7Kill,5); 
+  "8" (IX8Step,5) (IX8Stat,8) (IX8Dgrm,5) (IX8Scan,4) (IX8Kill,5); 
+  "9" (IX9Step,5) (IX9Stat,8) (IX9Dgrm,5) (IX9Scan,4) (IX9Kill,5); 
+  "10" (IX10Step,5) (IX10Stat,8) (IX10Dgrm,5) (IX10Scan,4) (IX10Kill,5); 
+  "11" (IX11Step,5) (IX11Stat,8) (IX11Dgrm,5) (IX11Scan,4) (IX11Kill,5); 
 }
 
 {

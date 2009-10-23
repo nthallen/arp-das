@@ -25,6 +25,45 @@ IxDriveStat IX2Dgrm; invalidate IX2Dgrm; { IX2Dgrm = IX2Stat & 0xF; Validate IX2
 IxDriveStat IX3Dgrm; invalidate IX3Dgrm; { IX3Dgrm = IX3Stat & 0xF; Validate IX3Dgrm; }
 IxDriveStat IX4Dgrm; invalidate IX4Dgrm; { IX4Dgrm = IX4Stat & 0xF; Validate IX4Dgrm; }
 IxDriveStat IX5Dgrm; invalidate IX5Dgrm; { IX5Dgrm = IX5Stat & 0xF; Validate IX5Dgrm; }
+IxDriveStat IX6Dgrm; invalidate IX6Dgrm; { IX6Dgrm = IX6Stat & 0xF; Validate IX6Dgrm; }
+IxDriveStat IX7Dgrm; invalidate IX7Dgrm; { IX7Dgrm = IX7Stat & 0xF; Validate IX7Dgrm; }
+IxDriveStat IX8Dgrm; invalidate IX8Dgrm; { IX8Dgrm = IX8Stat & 0xF; Validate IX8Dgrm; }
+IxDriveStat IX9Dgrm; invalidate IX9Dgrm; { IX9Dgrm = IX9Stat & 0xF; Validate IX9Dgrm; }
+IxDriveStat IX10Dgrm; invalidate IX10Dgrm; { IX10Dgrm = IX10Stat & 0xF; Validate IX10Dgrm; }
+IxDriveStat IX11Dgrm; invalidate IX11Dgrm; { IX11Dgrm = IX11Stat & 0xF; Validate IX11Dgrm; }
+%{
+  const char *IxKillStat_text[] = {
+    "----",
+    "---A",
+    "--B-",
+    "--BA",
+    "-Z--",
+    "-Z-A",
+    "-ZB-",
+    "-ZBA",
+    "C---",
+    "C--A",
+    "C-B-",
+    "C-BA",
+    "CZ--",
+    "CZ-A",
+    "CZB-",
+    "CZBA"
+  };
+%}
+TM typedef unsigned char IxKillStat { text "%4d" IxKillStat_text[]; }
+IxKillStat IX0Kill; invalidate IX0Kill; { IX0Kill = (IX0Stat >> 4) & 0xF; Validate IX0Kill; }
+IxKillStat IX1Kill; invalidate IX1Kill; { IX1Kill = (IX1Stat >> 4) & 0xF; Validate IX1Kill; }
+IxKillStat IX2Kill; invalidate IX2Kill; { IX2Kill = (IX2Stat >> 4) & 0xF; Validate IX2Kill; }
+IxKillStat IX3Kill; invalidate IX3Kill; { IX3Kill = (IX3Stat >> 4) & 0xF; Validate IX3Kill; }
+IxKillStat IX4Kill; invalidate IX4Kill; { IX4Kill = (IX4Stat >> 4) & 0xF; Validate IX4Kill; }
+IxKillStat IX5Kill; invalidate IX5Kill; { IX5Kill = (IX5Stat >> 4) & 0xF; Validate IX5Kill; }
+IxKillStat IX6Kill; invalidate IX6Kill; { IX6Kill = (IX6Stat >> 4) & 0xF; Validate IX6Kill; }
+IxKillStat IX7Kill; invalidate IX7Kill; { IX7Kill = (IX7Stat >> 4) & 0xF; Validate IX7Kill; }
+IxKillStat IX8Kill; invalidate IX8Kill; { IX8Kill = (IX8Stat >> 4) & 0xF; Validate IX8Kill; }
+IxKillStat IX9Kill; invalidate IX9Kill; { IX9Kill = (IX9Stat >> 4) & 0xF; Validate IX9Kill; }
+IxKillStat IX10Kill; invalidate IX10Kill; { IX10Kill = (IX10Stat >> 4) & 0xF; Validate IX10Kill; }
+IxKillStat IX11Kill; invalidate IX11Kill; { IX11Kill = (IX11Stat >> 4) & 0xF; Validate IX11Kill; }
 %{
   const char *IdxFlgTxt[8] = {
 	"    ",
@@ -53,3 +92,15 @@ IndxrFlag IX4Scan; invalidate IX4Scan;
 { IX4Scan = ( IXStt >> 4 ) & 1; validate IX4Scan; }
 IndxrFlag IX5Scan; invalidate IX5Scan;
 { IX5Scan = ( IXStt >> 5 ) & 1; validate IX5Scan; }
+IndxrFlag IX6Scan; invalidate IX6Scan;
+{ IX6Scan = ( IXStt >> 6 ) & 1; validate IX6Scan; }
+IndxrFlag IX7Scan; invalidate IX7Scan;
+{ IX7Scan = ( IXStt >> 7 ) & 1; validate IX7Scan; }
+IndxrFlag IX8Scan; invalidate IX8Scan;
+{ IX8Scan = ( IXStt >> 8 ) & 1; validate IX8Scan; }
+IndxrFlag IX9Scan; invalidate IX9Scan;
+{ IX9Scan = ( IXStt >> 9 ) & 1; validate IX9Scan; }
+IndxrFlag IX10Scan; invalidate IX10Scan;
+{ IX10Scan = ( IXStt >> 10 ) & 1; validate IX10Scan; }
+IndxrFlag IX11Scan; invalidate IX11Scan;
+{ IX11Scan = ( IXStt >> 11 ) & 1; validate IX11Scan; }

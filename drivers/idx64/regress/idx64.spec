@@ -5,6 +5,7 @@ SCRIPT = doit interact
 IDISTRIB = doit
 CLEANDIST
 HOMEDIR = /home/idx64
+TGTDIR = /home/idx64
 
 idx64col : idx64col.tmc -lsubbus
 idx64disp : idx64flag.tmc idx64.tbl
