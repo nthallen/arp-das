@@ -210,11 +210,19 @@ int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, in
                    UNSET_REC(1);
             case L: case l:
                    SETUP_REC(MAXLIMSTAT,1,FIELD_ADDR+2,1);
-                   stch_i(out,&maxlim); maxlim=(maxlim) ? maxlim : 0xFFFF;
+                   { int tmp;
+		     stch_i(out, &tmp);
+		     maxlim = tmp;
+		   }
+                   maxlim=(maxlim) ? maxlim : 0xFFFF;
                    UNSET_REC(1);
             case CTRLL:       
                    SETUP_REC(MINLIMSTAT,1,FIELD_ADDR+2,1);
-                   stch_i(out,&minlim); minlim=(minlim) ? minlim : 0;
+                   { int tmp;
+		     stch_i(out, &tmp);
+		     minlim = tmp;
+		   }
+                   minlim=(minlim) ? minlim : 0;
                    UNSET_REC(1);
             case PLUS:
                   if (numcycaddr) {

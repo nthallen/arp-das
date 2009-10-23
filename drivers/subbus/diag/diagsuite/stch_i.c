@@ -24,20 +24,16 @@
 #include <string.h>
 #include "port.h"
 
-stch_i(p,r)
-const char *p;
-int *r;
-{
-int i,j,c;
+int stch_i(const char *p,int *r) {
+  int i,j,c;
 
-i = j = 0;
-for (c = *p; isxdigit(c); c = p[++j])
-{
-i <<= 4;
-if(isdigit(c)) i |= c-'0';
-if(isupper(c)) i |= c-'A'+10;
-if(islower(c)) i |= c-'a'+10;
-}
-*r = i;
-return(j);
+  i = j = 0;
+  for (c = *p; isxdigit(c); c = p[++j]) {
+    i <<= 4;
+    if(isdigit(c)) i |= c-'0';
+    if(isupper(c)) i |= c-'A'+10;
+    if(islower(c)) i |= c-'a'+10;
+  }
+  *r = i;
+  return(j);
 }
