@@ -6,8 +6,9 @@ tm.dac
 idx64coloui.c
 idx64col.o
 idx64coloui.o
+idx64col.cc
 idx64disp.tmc
-idx64disp.c
+idx64disp.cc
 idx64dispoui.c
 idx64disp.o
 idx64dispoui.o
@@ -38,3 +39,4 @@ idx64doit
 idx64ext
 idx64clt
 idx64srvr
+idx64tbl.tmc
