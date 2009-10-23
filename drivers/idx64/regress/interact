@@ -5,13 +5,10 @@
   memo=/dev/huarp/$Experiment/memo
   echo "Running script interact" >$memo
 
-# stty baud=115200 -ihflow -echoe -onlcr -ohflow -echoke -echoctl -imaxbel </dev/ser2
-# stty baud=115200 -ihflow -echoe -onlcr -ohflow -echoke -echoctl -imaxbel </dev/ser3
-# stty baud=115200 -ihflow -echoe -onlcr -ohflow -echoke -echoctl -imaxbel </dev/ser4
-
-  Launch cmd/server idxsrvr
+  Launch cmd/server idx64srvr
   Launch - lgr -N `mlf_find LOG`
 # Launch - dccc -f $TMBINDIR/dccc.dccc
-  Launch DG/cmd idxcol
-# Launch - idxalgo -v
+  Launch DG/cmd idx64col
+  Launch - idx64
+# Launch - idx64algo -v
 

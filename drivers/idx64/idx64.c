@@ -887,6 +887,7 @@ int main( int argc, char **argv ) {
   
   check_command(); // Arm the command channel
 
+  nl_error( 0, "Startup" );
   operate(chid);
 
   /* cleanup: */

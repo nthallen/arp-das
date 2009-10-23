@@ -49,6 +49,6 @@ in the configuration string.
 June 9, 1999: added a hysteresis defeat mechanism.
 October 15, 2009: ported to QNX6
 
-<package> msghdr_init
+<package> msghdr_default
 <init>
-  msg_hdr = "Idx64";
+  char *msg_hdr_default = "Idx64";

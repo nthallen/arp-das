@@ -1,8 +1,9 @@
-# Makefile Generated Thu Oct 22 15:02:15 EDT 2009
+# Makefile Generated Fri Oct 23 14:36:37 EDT 2009
 MNC=idx64
 HOMEDIR=/home/idx64
 SPECFILE=idx64.spec
 SRC=base.tmc idx64.tmc idx64col.tmc idx64flag.tmc idx64.tbl
+SRC+=idx64drv.cmd
 TOOL=idx64.spec Makefile
 SCRIPT=doit interact
 OBJ=idx64col.cc idx64.pcm tm.dac idx64coloui.c idx64coloui.o
@@ -17,13 +18,13 @@ SRCDIST=base.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc
 NONRCS=
 TMCBASE=base.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc
 CMDBASE=/usr/local/share/huarp/root.cmd
-CMDBASE+=/usr/local/share/huarp/idx64.cmd
+CMDBASE+=/usr/local/share/huarp/idx64.cmd idx64drv.cmd
 RCS=$(SRC) $(TOOL) $(SCRIPT)
 SOURCE=$(RCS) $(NONRCS)
 OBJECT=$(OBJ) *.err
 TARGET=$(TGT)
 DSTRB=$(TGT) $(DISTRIB) $(SCRIPT)
-TGTDIR= /home/idx64
+TGTDIR= $(TGTNODE)/home/idx64
 include /usr/local/share/huarp/appgen.mk
 
 all : Makefile $(TGT)
@@ -66,8 +67,8 @@ idx64dispoui.c : $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 idx64dispoui.o : idx64dispoui.c
 idx64disp.o : idx64disp.cc
-idx64cmd.c : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/idx64.cmd
-	$(CMDGEN) -d idx64cmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/idx64.cmd
+idx64cmd.c : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/idx64.cmd idx64drv.cmd
+	$(CMDGEN) -d idx64cmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/idx64.cmd idx64drv.cmd
 idx64clt.o : idx64cmd.c
 	$(COMPILE.clt) idx64cmd.c
 idx64cltoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui

@@ -96,10 +96,10 @@ fi
 
 memo -o idxclt.log &
 waitfor /dev/huarp/$Experiment/memo
-idxdisp -t $FlightNode &
+idx64disp -t $FlightNode &
 
 # idxalgo &
-idxclt ${FlightNode:+-C$FlightNode}
+idx64clt ${FlightNode:+-C$FlightNode}
 # kill -sINT $pterm_pid
 # Leave the log up for a few seconds to view shutdown status
 echo "doit: Invoking parent for cleanup"
