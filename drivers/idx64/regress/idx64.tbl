@@ -1,6 +1,6 @@
 Indexer {
-  Title: >"Indexer Diagnostic"<;
-  Header: Channel Step Status Diagram Scan Kill;
+  { Title: >"Indexer Diagnostic"<  (IXStt,5) };
+  Header: Channel Step czbardoi Diagram Scan Kill;
   "0" (IX0Step,5) (IX0Stat,8) (IX0Dgrm,5) (IX0Scan,4) (IX0Kill,5); 
   "1" (IX1Step,5) (IX1Stat,8) (IX1Dgrm,5) (IX1Scan,4) (IX1Kill,5); 
   "2" (IX2Step,5) (IX2Stat,8) (IX2Dgrm,5) (IX2Scan,4) (IX2Kill,5); 

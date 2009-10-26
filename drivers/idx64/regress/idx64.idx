@@ -4,7 +4,7 @@ Channel 0 IX0
   Position 4 Hz IX0Step
   Status 4 Hz IX0Stat Diagram IX0Dgrm KillStat IX0Kill
   Scan
-  # Chop
+  Chop
   Scanstat IX0Scan
   Speed 1067 Hz
   Disable Zeroref
@@ -17,7 +17,7 @@ Channel 1 IX1
   Position 4 Hz IX1Step
   Status 4 Hz IX1Stat Diagram IX1Dgrm KillStat IX1Kill
   Scan
-  # Chop
+  Chop
   Scanstat IX1Scan
   Speed 1067 Hz
   Disable Zeroref

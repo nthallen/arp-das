@@ -178,6 +178,21 @@ static unsigned short idx_cfg_num( char **s, int base ) {
   return val;
 }
 
+
+static void tm_status_set( unsigned short *ptr,
+                unsigned short mask, unsigned short value ) {
+  if ( ptr != 0 ) {
+    unsigned short old = *ptr;
+    *ptr = ( *ptr & ~mask ) | ( value & mask );
+    nl_error(-2, "tm_status_set: old = %04X new = %04X", old, *ptr );
+    if ( *ptr != old ) {
+      if ( Col_send( tm_data ) )
+      nl_error(-3, "Col_send() returned error %d", errno);
+      else nl_error(-3, "Col_send() succeeded" );
+    }
+  } else nl_error( -3, "tm_status_set(NULL)" );
+}
+
 /*
     [cfg code][,n_bits][:[cfg code][,n_bits] ...]
     no spaces, default cfg code is C00 (hex). default n_bits is 0
@@ -234,16 +249,6 @@ static void config_channels( char *s ) {
           sbwr( ch->base_addr + 6, code );
       }
     }
-  }
-}
-
-static void tm_status_set( unsigned short *ptr,
-                unsigned short mask, unsigned short value ) {
-  if ( ptr != 0 ) {
-    // unsigned short old = *ptr;
-    *ptr = ( *ptr & ~mask ) | ( value & mask );
-    //if ( *ptr != old )
-    //  Col_send( tm_data );
   }
 }
 
@@ -435,6 +440,7 @@ static void execute_cmd( idx64_bd *bd, int chno ) {
   ixcmdl *im;
 
   ch = &bd->chans[ chno ];
+  nl_error(-3,"execute_cmd(ch=%d) top", chno);
   while ( ch->first != 0 ) {
     im = ch->first;
     if ( im->flags & IXCMD_NEEDS_INIT ) {
@@ -461,6 +467,7 @@ static void execute_cmd( idx64_bd *bd, int chno ) {
         dequeue( ch );
     } else if ( im->flags & IXCMD_NEEDS_STATUS ) {
       im->flags &= ~IXCMD_NEEDS_STATUS;
+      nl_error( -3, "execute_cmd(ch=%d) set status", chno );
       switch ( im->c.dir_scan ) {
         case IX64_ONLINE:
           tm_status_set( ch->tm_ptr, ch->supp_bit | ch->on_bit,
@@ -590,7 +597,12 @@ static void scan_pulse( void ) {
   idx64_bd *bd;
   unsigned short svc;
   int bdno, chno;
+  static int pulse_count;
 
+  if (pulse_count == 0 || pulse_count >= 40) {
+    nl_error(-2, "Servicing scan_pulse: %d", pulse_count);
+    pulse_count = 1;
+  } else ++pulse_count;
   Col_send(tm_data);
   for ( bdno = 0; bdno < MAX_IDXRS; bdno++ ) {
     bd = boards[bdno];

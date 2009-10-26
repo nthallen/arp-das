@@ -81,26 +81,26 @@ TM typedef unsigned short IndxrFlag {
 }
 
 IndxrFlag IX0Scan; invalidate IX0Scan;
-{ IX0Scan = ( IXStt ) & 1; validate IX0Scan; }
+{ IX0Scan = ( IXStt ) & 7; validate IX0Scan; }
 IndxrFlag IX1Scan; invalidate IX1Scan;
-{ IX1Scan = ( IXStt >> 1 ) & 1; validate IX1Scan; }
+{ IX1Scan = ( IXStt >> 3 ) & 7; validate IX1Scan; }
 IndxrFlag IX2Scan; invalidate IX2Scan;
-{ IX2Scan = ( IXStt >> 2 ) & 1; validate IX2Scan; }
+{ IX2Scan = ( IXStt >> 6 ) & 1; validate IX2Scan; }
 IndxrFlag IX3Scan; invalidate IX3Scan;
-{ IX3Scan = ( IXStt >> 3 ) & 1; validate IX3Scan; }
+{ IX3Scan = ( IXStt >> 7 ) & 1; validate IX3Scan; }
 IndxrFlag IX4Scan; invalidate IX4Scan;
-{ IX4Scan = ( IXStt >> 4 ) & 1; validate IX4Scan; }
+{ IX4Scan = ( IXStt >> 8 ) & 1; validate IX4Scan; }
 IndxrFlag IX5Scan; invalidate IX5Scan;
-{ IX5Scan = ( IXStt >> 5 ) & 1; validate IX5Scan; }
+{ IX5Scan = ( IXStt >> 9 ) & 1; validate IX5Scan; }
 IndxrFlag IX6Scan; invalidate IX6Scan;
-{ IX6Scan = ( IXStt >> 6 ) & 1; validate IX6Scan; }
+{ IX6Scan = ( IXStt >> 10 ) & 1; validate IX6Scan; }
 IndxrFlag IX7Scan; invalidate IX7Scan;
-{ IX7Scan = ( IXStt >> 7 ) & 1; validate IX7Scan; }
+{ IX7Scan = ( IXStt >> 11 ) & 1; validate IX7Scan; }
 IndxrFlag IX8Scan; invalidate IX8Scan;
-{ IX8Scan = ( IXStt >> 8 ) & 1; validate IX8Scan; }
+{ IX8Scan = ( IXStt >> 12 ) & 1; validate IX8Scan; }
 IndxrFlag IX9Scan; invalidate IX9Scan;
-{ IX9Scan = ( IXStt >> 9 ) & 1; validate IX9Scan; }
+{ IX9Scan = ( IXStt >> 13 ) & 1; validate IX9Scan; }
 IndxrFlag IX10Scan; invalidate IX10Scan;
-{ IX10Scan = ( IXStt >> 10 ) & 1; validate IX10Scan; }
+{ IX10Scan = ( IXStt >> 14 ) & 1; validate IX10Scan; }
 IndxrFlag IX11Scan; invalidate IX11Scan;
-{ IX11Scan = ( IXStt >> 11 ) & 1; validate IX11Scan; }
+{ IX11Scan = ( IXStt >> 15 ) & 1; validate IX11Scan; }
