@@ -2,9 +2,10 @@
 #  This directory holds general-purpose utilities for
 #  The Anderson Group Data Acquisition System/QNX6
 BIN=TM appgen distribute parent saverun fixdisk mkinp tomat extract
-BIN+=mkcvsignore
+BIN+=mkcvsignore mkdoit3
 SBIN=promote flight.sh signal_parent
 DATA=appgen.mk edf2ext.awk edf2oui.awk Makefile.pm
+DATA+=mkdoit3.sh mkdoit3.awk
 OUI=seteuid.oui
 INSTALL=cp -vn
 CFLAGS=-Wall -g -I/usr/local/include
@@ -40,4 +41,4 @@ DCtapoui.c : DCtap.oui
 # Trivial check for the existence of sudo where these utilities
 # expect to find it
 checksudo :
-	/usr/pkg/bin/sudo -V
+	/usr/pkg/bin/sudo -V >/dev/null
