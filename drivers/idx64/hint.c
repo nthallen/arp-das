@@ -83,6 +83,11 @@ void expint_reset(void) {
   int_reset( expint_iid, 0x3F );
 }
 
+void expint_svc(void) {
+  service_expint();
+  InterruptUnmask( expint_irq, expint_iid );
+}
+
 #ifdef IRQ_SUPPORT
   static int spare_iid = -1;
   static int pfail_iid = -1;

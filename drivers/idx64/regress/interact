@@ -9,6 +9,6 @@
   Launch - lgr -N `mlf_find LOG`
 # Launch - dccc -f $TMBINDIR/dccc.dccc
   Launch DG/cmd idx64col
-  Launch - idx64 -i7 -vv `cat $TMBINDIR/idx64.idx64`
+  Launch - idx64 -i7 `cat $TMBINDIR/idx64.idx64`
 # Launch - idx64algo -v
 

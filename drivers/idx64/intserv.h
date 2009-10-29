@@ -18,6 +18,7 @@ extern void process_IRQs( char *s );
 extern int intserv_quit;
 extern void expint_init( int coid, short code, int value );
 extern void expint_reset( void );
+extern void expint_svc( void );
 extern void spare_init( void );
 extern void spare_reset( void );
 extern void pfail_init( void );

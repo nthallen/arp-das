@@ -13,4 +13,4 @@ ana104 : $(SRCS)
 clean :
 	rm -f *.o $(TARGETS)
 install : $(TARGETS)
-	cp -v $(TARGETS) /usr/local/bin
+	cp -v $(TARGETS) $(TGTNODE)/usr/local/bin

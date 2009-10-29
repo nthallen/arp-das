@@ -1,6 +1,9 @@
 /* collect.h defines routines applications might use to
    communicate with collection.
    $Log$
+   Revision 1.3  2009/10/20 18:25:17  ntallen
+   Add support for non-blocking writes with ionotify
+
    Revision 1.2  2008/07/29 19:21:06  ntallen
    Support for colsend
 
@@ -68,7 +71,6 @@ typedef struct {
   int data_size;
   int err_code;
   int armed;
-  int priority;
   struct sigevent event;
 } send_id_struct, *send_id;
 

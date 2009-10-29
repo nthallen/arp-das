@@ -99,6 +99,7 @@ static int cmd_fd;
 static struct sigevent cmd_event;
 char *idx64_cfg_string;
 int idx64_region = 0x40;
+static int n_scans = 0;
 
 #define CMD_PULSE_CODE (_PULSE_CODE_MINAVAIL + 0)
 #define SCAN_PULSE_CODE (_PULSE_CODE_MINAVAIL + 1)
@@ -182,14 +183,14 @@ static unsigned short idx_cfg_num( char **s, int base ) {
 static void tm_status_set( unsigned short *ptr,
                 unsigned short mask, unsigned short value ) {
   if ( ptr != 0 ) {
-    unsigned short old = *ptr;
+    //unsigned short old = *ptr;
     *ptr = ( *ptr & ~mask ) | ( value & mask );
-    nl_error(-2, "tm_status_set: old = %04X new = %04X", old, *ptr );
-    if ( *ptr != old ) {
-      if ( Col_send( tm_data ) )
-      nl_error(-3, "Col_send() returned error %d", errno);
-      else nl_error(-3, "Col_send() succeeded" );
-    }
+    //nl_error(-2, "tm_status_set: old = %04X new = %04X", old, *ptr );
+    //if ( *ptr != old ) {
+    //  if ( Col_send( tm_data ) )
+    //  nl_error(-3, "Col_send() returned error %d", errno);
+    //  else nl_error(-3, "Col_send() succeeded" );
+    //}
   } else nl_error( -3, "tm_status_set(NULL)" );
 }
 
@@ -275,7 +276,6 @@ static void dequeue( chandef *ch ) {
    zero, the scan proxy is reset.
 */ 
 static int scan_setup( idx64_bd *bd, unsigned short chno, int start ) {
-  static int n_scans = 0;
 
   if ( start != 0 ) {
     if ( ( bd->scans & (1<<chno) ) == 0 ) {
@@ -440,7 +440,6 @@ static void execute_cmd( idx64_bd *bd, int chno ) {
   ixcmdl *im;
 
   ch = &bd->chans[ chno ];
-  nl_error(-3,"execute_cmd(ch=%d) top", chno);
   while ( ch->first != 0 ) {
     im = ch->first;
     if ( im->flags & IXCMD_NEEDS_INIT ) {
@@ -467,7 +466,6 @@ static void execute_cmd( idx64_bd *bd, int chno ) {
         dequeue( ch );
     } else if ( im->flags & IXCMD_NEEDS_STATUS ) {
       im->flags &= ~IXCMD_NEEDS_STATUS;
-      nl_error( -3, "execute_cmd(ch=%d) set status", chno );
       switch ( im->c.dir_scan ) {
         case IX64_ONLINE:
           tm_status_set( ch->tm_ptr, ch->supp_bit | ch->on_bit,
@@ -504,8 +502,6 @@ static void service_board( int bdno ) {
     nl_error( 4, "Invalid bdno in service_board" );
   bd = boards[ bdno ];
   mask = bd->request & ~sbb( idx_defs[ bdno ].card_base );
-  nl_error( -3, "svcbd bdno %d request %02X mask %02X scans %02X",
-          bdno, bd->request, mask, bd->scans );
   /* Mask should now have a non-zero bit for each channel
      which is ready to be serviced. */
   for ( chno = 0; mask != 0 && chno < MAX_IDXR_CHANS; chno++ ) {
@@ -566,8 +562,6 @@ static void service_scan( idx64_bd *bd, int chno ) {
   im = ch->first;
   assert( im != 0 );
   assert( ch->scan_bit == 0 || ch->tm_ptr != 0 );
-  nl_error( -3, "svcscn chno %d steps %5d dsteps %5d", chno,
-     im->c.steps, im->c.dsteps );
   if ( im->c.steps != 0 && ch->scan_bit != 0 &&
         ( (*ch->tm_ptr) & ch->scan_bit ) == 0 ) {
     tm_status_set( ch->tm_ptr, ch->scan_bit, ch->scan_bit );
@@ -597,30 +591,27 @@ static void scan_pulse( void ) {
   idx64_bd *bd;
   unsigned short svc;
   int bdno, chno;
-  static int pulse_count;
 
-  if (pulse_count == 0 || pulse_count >= 40) {
-    nl_error(-2, "Servicing scan_pulse: %d", pulse_count);
-    pulse_count = 1;
-  } else ++pulse_count;
   Col_send(tm_data);
-  for ( bdno = 0; bdno < MAX_IDXRS; bdno++ ) {
-    bd = boards[bdno];
-    if ( bd != 0 && bd->scans != 0 ) {
+  if (n_scans) {
+    for ( bdno = 0; bdno < MAX_IDXRS; bdno++ ) {
+      bd = boards[bdno];
+      if ( bd != 0 && bd->scans != 0 ) {
 
-      /* Clear bd->request for any scans no longer running */
-      svc = bd->scans & bd->request &
-            ~sbb( idx_defs[ bdno ].card_base );
-      bd->request &= ~svc;
+	/* Clear bd->request for any scans no longer running */
+	svc = bd->scans & bd->request &
+	      ~sbb( idx_defs[ bdno ].card_base );
+	bd->request &= ~svc;
 
-      /* Now find out which scans are not running */
-      svc = bd->scans & ~bd->request;
-      nl_error( svc==0 ? -2 : -3, "scan_proxy scans %02X svc %02X",
-                  bd->scans, svc );
+	/* Now find out which scans are not running */
+	svc = bd->scans & ~bd->request;
+	nl_error( svc==0 ? -2 : -3, "scan_proxy scans %02X svc %02X",
+		    bd->scans, svc );
 
-      for ( chno = 0; svc != 0 && chno < MAX_IDXR_CHANS; chno++ ) {
-        if ( svc & 1 ) service_scan( bd, chno );
-        svc >>= 1;
+	for ( chno = 0; svc != 0 && chno < MAX_IDXR_CHANS; chno++ ) {
+	  if ( svc & 1 ) service_scan( bd, chno );
+	  svc >>= 1;
+	}
       }
     }
   }
@@ -819,7 +810,7 @@ int service_pulse(short code, int value ) {
   switch (code) {
     case CMD_PULSE_CODE: return check_command(); break;
     case SCAN_PULSE_CODE: scan_pulse(); break;
-    case INTR_PULSE_CODE: service_expint(); break;
+    case INTR_PULSE_CODE: expint_svc(); break;
     case EXPINT_PULSE_CODE: service_board(value); break;
     default: nl_error( 3, "Invalid pulse_code in service_pulse()" );
   }
@@ -858,8 +849,6 @@ static void open_cmd_fd( int coid, short code, int value ) {
   set_response(old_response);
   if ( cmd_fd < 0 ) {
     nl_error(3, "Unable to open command channel" );
-  } else {
-    nl_error(-2, "open_cmd_fd succeeded");
   }
 
   /* Initialize cmd event */

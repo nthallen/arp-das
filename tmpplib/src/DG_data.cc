@@ -9,6 +9,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+#include <stdlib.h>
 #include "nortlib.h"
 #include "nl_assert.h"
 #include "tm.h"
@@ -16,6 +17,37 @@
 resmgr_connect_funcs_t DG_data::connect_funcs;
 resmgr_io_funcs_t DG_data::io_funcs;
 bool DG_data::funcs_initialized = false;
+
+extern "C" {
+  static struct data_dev_ocb *ocb_calloc(resmgr_context_t *ctp,
+		data_dev_attr *device);
+  static void ocb_free(struct data_dev_ocb *ocb);
+}
+
+static iofunc_funcs_t ocb_funcs = {
+  _IOFUNC_NFUNCS,
+  ocb_calloc,
+  ocb_free
+};
+
+static iofunc_mount_t DGdata_mountpoint = { 0, 0, 0, 0, &ocb_funcs };
+
+static struct data_dev_ocb *ocb_calloc(resmgr_context_t *ctp,
+	      data_dev_attr *device) {
+  struct data_dev_ocb *ocb =
+    (struct data_dev_ocb *)
+      malloc(sizeof(struct data_dev_ocb));
+  ocb->rcvid = 0;
+  ocb->msgsize = 0;
+  return ocb;
+}
+
+static void ocb_free(struct data_dev_ocb *ocb) {
+  free(ocb);
+}
+
+
+
 
 DG_data::DG_data(DG_dispatch *dispatch, const char *name_in, void *data,
 	 int data_size, int synch)
@@ -49,6 +81,7 @@ DG_data::DG_data(DG_dispatch *dispatch, const char *name_in, void *data,
   }
   
   iofunc_attr_init( &data_attr.attr, S_IFNAM | 0222, 0, 0 ); // write-only
+  data_attr.attr.mount = &DGdata_mountpoint;
   IOFUNC_NOTIFY_INIT( data_attr.notify );
   char tbuf[80];
   snprintf(tbuf, 79, "DG/data/%s", name);
@@ -63,16 +96,35 @@ DG_data::DG_data(DG_dispatch *dispatch, const char *name_in, void *data,
 
 DG_data::~DG_data() {}
 
-int DG_data::io_write( resmgr_context_t *ctp ) {
+// The semantics of write are a bit non-standard. I use blocking I/O
+// purely as a synchronization technique. In all contexts, a write
+// that gets here is immediately processed, but depending on
+// the synchronization flag (set in the TMC source) and the nonblock
+// value (set by the client), we may not reply immediately to the
+// client.
+int DG_data::io_write( resmgr_context_t *ctp, IOFUNC_OCB_T *ocb,
+			  int nonblock ) {
   int msgsize = resmgr_msgread( ctp, dptr, dsize, sizeof(io_write_t) );
-  _IO_SET_WRITE_NBYTES( ctp, msgsize );
   data_attr.written = synched;
+  if (synched && !nonblock) {
+    if (blocked && blocked != ocb)
+      return EBUSY;
+    ocb->rcvid = ctp->rcvid;
+    ocb->msgsize = msgsize;
+    blocked = ocb;
+    return _RESMGR_NOREPLY;
+  }
+  _IO_SET_WRITE_NBYTES( ctp, msgsize );
   stale_count = 0;
   return EOK;
 }
 
 void DG_data::synch() {
   data_attr.written = false;
+  if (blocked) {
+    MsgReply(blocked->rcvid, blocked->msgsize, 0, 0);
+    blocked = 0;
+  }
   if (IOFUNC_NOTIFY_OUTPUT_CHECK( data_attr.notify, 1 ) )
     iofunc_notify_trigger(data_attr.notify, 1, IOFUNC_NOTIFY_OUTPUT);
 }
@@ -84,31 +136,32 @@ int DG_data::stale() {
 }
 
 int DG_data_io_write( resmgr_context_t *ctp,
-         io_write_t *msg, RESMGR_OCB_T *ocb ) {
-  int status;
+         io_write_t *msg, IOFUNC_OCB_T *ocb ) {
+  int status, nonblock;
 
-  status = iofunc_write_verify(ctp, msg, (iofunc_ocb_t *)ocb, NULL);
+  status = iofunc_write_verify(ctp, msg, (iofunc_ocb_t *)ocb, &nonblock);
   if ( status != EOK )
     return status;
 
   if ((msg->i.xtype &_IO_XTYPE_MASK) != _IO_XTYPE_NONE )
     return ENOSYS;
 
-  return ocb->attr->DGd->io_write(ctp);
+  return ocb->hdr.attr->DGd->io_write(ctp, ocb, nonblock);
 }
 
 int DG_data_io_notify( resmgr_context_t *ctp,
-         io_notify_t *msg, RESMGR_OCB_T *ocb ) {
-  IOFUNC_ATTR_T *wr_attr = ocb->attr;
+         io_notify_t *msg, IOFUNC_OCB_T *ocb ) {
+  IOFUNC_ATTR_T *wr_attr = ocb->hdr.attr;
   int trig = 0;
   if (!wr_attr->written) trig |= _NOTIFY_COND_OUTPUT;
   return(iofunc_notify(ctp, msg, wr_attr->notify, trig, NULL, NULL ));
 }
 
-int DG_data_io_close_ocb(resmgr_context_t *ctp, void *rsvd, RESMGR_OCB_T *ocb) {
-  IOFUNC_ATTR_T *wr_attr = ocb->attr;
+int DG_data_io_close_ocb(resmgr_context_t *ctp, void *rsvd,
+			  IOFUNC_OCB_T *ocb) {
+  IOFUNC_ATTR_T *wr_attr = ocb->hdr.attr;
   iofunc_notify_remove(ctp, wr_attr->notify);
-  return(iofunc_close_ocb_default(ctp, rsvd, ocb));
+  return(iofunc_close_ocb_default(ctp, rsvd, &ocb->hdr));
 }
 
 /** DG_data::ready_to_quit() returns true if we are ready to terminate. For DG/data, that means all writers

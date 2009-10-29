@@ -38,7 +38,7 @@ send_id Col_send_init(const char *name, void *data, unsigned short size, int blo
   if ( fd < 0 ) {
     if (nl_response)
       nl_error(nl_response,
-        "Col_send_init(%s) failed on open: %s", name, strerror(errno));
+        "Col_send_init(%s) failed on open: %s", dev_path, strerror(errno));
     return NULL;
   }
   sender = (send_id)nl_new_memory(sizeof(send_id_struct));
@@ -62,10 +62,8 @@ int Col_send_arm( send_id sender, int coid, short code, int value ) {
   sender->event.sigev_coid = coid;
   sender->event.sigev_code = code;
   sender->event.sigev_value.sival_int = value;
+  sender->event.sigev_priority = SIGEV_PULSE_PRIO_INHERIT;
   sender->armed = 2;
-  if ( pthread_getschedparam( pthread_self(), &policy, &param ) != EOK )
-    nl_error(4,"Error calling pthread_getschedparam");
-  sender->priority = param.sched_priority;
   return Col_send(sender);
 }
 
@@ -77,6 +75,7 @@ int Col_send(send_id sender) {
   if ( sender->fd >= 0 ) {
     int nb = write(sender->fd, sender->data, sender->data_size);
     if ( nb == -1 ) {
+      nl_error(-2,"Col_send() write returned errno %d", errno);
       sender->err_code = errno;
       return 1;
     }
@@ -84,14 +83,17 @@ int Col_send(send_id sender) {
       int rv = ionotify(sender->fd, _NOTIFY_ACTION_POLLARM,
           _NOTIFY_COND_OUTPUT, &(sender->event));
       if (rv == -1) {
+	nl_error(MSG_DEBUG, "Col_send() ionotify returned errno %d", errno);
         sender->err_code = errno;
         return 1;
       }
-      if ((rv & _NOTIFY_COND_OUTPUT) &&
-          MsgSendPulse(sender->event.sigev_coid, sender->priority,
+      if (rv & _NOTIFY_COND_OUTPUT) {
+	nl_error(MSG_DEBUG, "Col_send() auto-pulsing");
+	if ( MsgSendPulse(sender->event.sigev_coid, sender->event.sigev_priority,
               sender->event.sigev_code,
               sender->event.sigev_value.sival_int) == -1)
-        nl_error(4, "Error %d calling MsgSendPulse() in Col_send()", errno);
+	  nl_error(4, "Error %d calling MsgSendPulse() in Col_send()", errno);
+      } else nl_error(MSG_DEBUG, "Col_send() armed");
     }
   }
   sender->err_code = 0;

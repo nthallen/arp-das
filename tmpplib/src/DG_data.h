@@ -3,6 +3,7 @@
 
 struct data_dev_attr;
 #define IOFUNC_ATTR_T struct data_dev_attr
+#define IOFUNC_OCB_T struct data_dev_ocb
 
 #include <signal.h>
 #include "DG.h"
@@ -17,6 +18,12 @@ struct data_dev_attr {
   DG_data *DGd;
 };
 
+struct data_dev_ocb {
+  iofunc_ocb_t hdr;
+  int rcvid;
+  int msgsize;
+};
+
 
 class DG_data : public DG_dispatch_client {
   private:
@@ -27,6 +34,7 @@ class DG_data : public DG_dispatch_client {
     int dsize;
     bool synched;
     struct data_dev_attr data_attr;
+    struct data_dev_ocb *blocked;
     static resmgr_connect_funcs_t connect_funcs;
     static resmgr_io_funcs_t io_funcs;
     static bool funcs_initialized;
@@ -36,18 +44,18 @@ class DG_data : public DG_dispatch_client {
         int data_size, int synch);
     ~DG_data();
     int ready_to_quit(); // virtual function of DG_dispatch_client
-    int io_write(resmgr_context_t *ctp);
+    int io_write(resmgr_context_t *ctp, IOFUNC_OCB_T *ocb, int nonblock);
     void synch();
     int stale();
 };
 
 extern "C" {
   int DG_data_io_write( resmgr_context_t *ctp,
-            io_write_t *msg, RESMGR_OCB_T *ocb );
+            io_write_t *msg, IOFUNC_OCB_T *ocb );
   int DG_data_io_notify( resmgr_context_t *ctp,
-	    io_notify_t *msg, RESMGR_OCB_T *ocb );
+	    io_notify_t *msg, IOFUNC_OCB_T *ocb );
   int DG_data_io_close_ocb( resmgr_context_t *ctp,
-	    void *rsvd, RESMGR_OCB_T *ocb );
+	    void *rsvd, IOFUNC_OCB_T *ocb );
 }
 
 #endif
