@@ -16,6 +16,8 @@ ln -sP /dev/shmem /tmp
 
 # For those scripts that need it
 ln -sP /qnxbase/bin/sh /bin/sh
+ln -sP /qnxbase/usr/lib/terminfo /usr/lib/terminfo
+export TERM=qansi-m
 
 
 ###############################################################################
