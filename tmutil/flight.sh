@@ -69,8 +69,8 @@ elif [ -n "$PICKFILE" ]; then
 else
   script=${RUNFILE:-runfile.dflt}
 fi
-[ ${script#/} = $script ] && script=$TMBINDIR/$script
-if [ -r $script ]; then
+[ ${script#/} = "$script" ] && script=$TMBINDIR/$script
+if [ -x $script ]; then
   echo flight.sh: `id`: Experiment=$Experiment script=$script
   . $script
 else
