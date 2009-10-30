@@ -2,8 +2,8 @@
 <?xml-stylesheet ekr_test?>
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
-<globals body_outline_ratio="0.360681114551">
-	<global_window_position top="19" left="41" height="646" width="901"/>
+<globals body_outline_ratio="0.377708978328">
+	<global_window_position top="10" left="10" height="867" width="811"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
@@ -11,12 +11,25 @@
 <vnodes>
 <v t="ntallen.20070319130904" a="E"><vh>QNX6 Data Acquisition Architecture</vh>
 <v t="ntallen.20070815151915" a="E"><vh>Status</vh>
-<v t="ntallen.20080729145409"><vh>Overview</vh></v>
+<v t="ntallen.20080729145409" a="TV"><vh>Overview</vh></v>
 <v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
 <v t="ntallen.20090225110248"><vh>Install 6.4.0</vh></v>
+<v t="ntallen.20090824101208" a="E"><vh>Install 6.4.1</vh>
+<v t="ntallen.20090910171038"><vh>C++ Compiling and Linking</vh></v>
+<v t="ntallen.20090911120219"><vh>phrtg compile hacks</vh></v>
+<v t="ntallen.20090930220540"><vh>Eli 4.6.1 CVS</vh></v>
+</v>
+<v t="ntallen.20090824123722"><vh>Runtime kit Creation</vh></v>
 <v t="ntallen.20090505113338"><vh>Flight System Configuration</vh></v>
+<v t="ntallen.20090818124956" a="E"><vh>6.4.1 Upgrade and CLARREO IIP</vh>
+<v t="ntallen.20090818124956.1"><vh>Install 6.4.1 on Windows</vh></v>
+<v t="ntallen.20090818124956.2"><vh>Install 6.4.1 on VM</vh></v>
+<v t="ntallen.20090818124956.3"><vh>Create flight runtime kit for 6.4.1 and install on IIP flight system</vh></v>
+<v t="ntallen.20091030133630"><vh>Create gse runtime kit for 6.4.1 and install on IIP GSE</vh></v>
+<v t="ntallen.20090818124956.4"><vh>Investigate consolidation of libraries into single autoconf group</vh></v>
+</v>
 </v>
 <v t="ntallen.20070815151915.1"><vh>Command</vh></v>
 <v t="ntallen.20080516115802"><vh>memo</vh></v>
@@ -24,7 +37,7 @@
 <v t="ntallen.20080715165457"><vh>tmc Changes</vh></v>
 <v t="ntallen.20080716230618"><vh>Timestamp issue</vh></v>
 <v t="ntallen.20080724120806"><vh>To Cache or not to Cache</vh></v>
-<v t="ntallen.20080724120806.1" a="E"><vh>TM Receive</vh>
+<v t="ntallen.20080724120806.1"><vh>TM Receive</vh>
 <v t="ntallen.20080724120806.2"><vh>Client library</vh></v>
 <v t="ntallen.20080724120806.3"><vh>Collection Side</vh></v>
 </v>
@@ -36,7 +49,7 @@
 <v t="ntallen.20080627131220.4"><vh>pkgsrc</vh></v>
 </v>
 </v>
-<v t="ntallen.20070815151915.3" a="E"><vh>Lessons</vh>
+<v t="ntallen.20070815151915.3"><vh>Lessons</vh>
 <v t="ntallen.20090430131154"><vh>Linking Problem: 090430</vh></v>
 </v>
 <v t="ntallen.20070409132623"><vh>PR</vh>
@@ -48,20 +61,20 @@
 <v t="ntallen.20070409132623.4"><vh>Extraction</vh></v>
 <v t="ntallen.20070409132623.5"><vh>Remote GSE</vh></v>
 </v>
-<v t="ntallen.20070409133739.2" a="E"><vh>Display Options</vh>
+<v t="ntallen.20070409133739.2"><vh>Display Options</vh>
 <v t="ntallen.20070409132623.6"><vh>Data</vh></v>
 <v t="ntallen.20070409132623.7"><vh>Command</vh></v>
 </v>
-<v t="ntallen.20070409132623.8" a="E"><vh>Applications</vh>
+<v t="ntallen.20070409132623.8"><vh>Applications</vh>
 <v t="ntallen.20070409132623.9"><vh>Memo</vh></v>
 </v>
 </v>
 <v t="ntallen.20070409133739.3"><vh>Implementation</vh></v>
 </v>
-<v t="ntallen.20070413134915" a="E"><vh>QNX Development Issues</vh>
+<v t="ntallen.20070413134915"><vh>QNX Development Issues</vh>
 <v t="ntallen.20070425144317"><vh>Handling more than one executable per project</vh></v>
-<v t="ntallen.20070413134915.1"><vh>Development Strategy</vh>
-<v t="ntallen.20070425144317.1" a="E"><vh>cmdgen</vh>
+<v t="ntallen.20070413134915.1" a="E"><vh>Development Strategy</vh>
+<v t="ntallen.20070425144317.1"><vh>cmdgen</vh>
 <v t="ntallen.20070430134037"><vh>QNX4</vh></v>
 </v>
 <v t="ntallen.20070502121159"><vh>Names and Devices</vh></v>
@@ -73,11 +86,11 @@
 <v t="ntallen.20070502121159.1" a="E"><vh>Implementation</vh>
 <v t="ntallen.20070320121924"><vh>cmdgen</vh>
 <v t="ntallen.20070501165557"><vh>Done</vh>
-<v t="ntallen.20070411152334" a="E"><vh>Add Interface Definitions</vh>
+<v t="ntallen.20070411152334"><vh>Add Interface Definitions</vh>
 <v t="ntallen.20070404111542"><vh>Initialization</vh></v>
 </v>
 <v t="ntallen.20070501165557.1"><vh>Figure out appropriate library flag</vh></v>
-<v t="ntallen.20070502121159.2" a="E"><vh>Syntax and version checking</vh>
+<v t="ntallen.20070502121159.2"><vh>Syntax and version checking</vh>
 <v t="ntallen.20070502121159.3"><vh>cis must produce syntax error messages</vh></v>
 <v t="ntallen.20070502121159.4"><vh>cic must handle version test differently</vh></v>
 </v>
@@ -96,7 +109,7 @@
 <v t="ntallen.20070502121159.5"><vh>Memo interface can wait</vh></v>
 <v t="ntallen.20070509151554.3"><vh>Add default .cmd files as appropriate</vh></v>
 </v>
-<v t="ntallen.20070508171951.2"><vh>Todo</vh>
+<v t="ntallen.20070508171951.2" a="E"><vh>Todo</vh>
 <v t="ntallen.20070508171951.6"><vh>Draw polygon</vh></v>
 <v t="ntallen.20070508171951.7"><vh>Get a cursor in cmd_text somehow</vh></v>
 </v>
@@ -105,11 +118,13 @@
 <v t="ntallen.20070509151554.5"><vh>command server</vh></v>
 </v>
 <v t="ntallen.20080516115802.1"><vh>memo</vh></v>
+<v t="ntallen.20091022143321"><vh>mkdoit3	</vh></v>
+<v t="ntallen.20091022143321.1"><vh>algorithm status</vh></v>
 </v>
-<v t="ntallen.20070502121159.6" a="E"><vh>Design</vh>
+<v t="ntallen.20070502121159.6"><vh>Design</vh>
 <v t="ntallen.20070319130904.1"><vh>Data</vh>
-<v t="ntallen.20070524163205" a="E"><vh>Data Issues</vh>
-<v t="ntallen.20070524163205.1" a="E"><vh>What is the difference between the telemetry stream and the TM stream as returned from TMbfr?</vh>
+<v t="ntallen.20070524163205"><vh>Data Issues</vh>
+<v t="ntallen.20070524163205.1"><vh>What is the difference between the telemetry stream and the TM stream as returned from TMbfr?</vh>
 <v t="ntallen.20070524163205.2"><vh>TM has no timestamps</vh></v>
 <v t="ntallen.20070524163205.3"><vh>Does not include TM info struct or identifiers</vh></v>
 </v>
@@ -129,24 +144,24 @@
 <v t="ntallen.20080715165457"><vh>tmc Changes</vh></v>
 </v>
 <v t="ntallen.20070319130904.2"><vh>TMbfr</vh>
-<v t="ntallen.20070524163205.8" a="E"><vh>TMbfr Operation</vh>
+<v t="ntallen.20070524163205.8"><vh>TMbfr Operation</vh>
 <v t="ntallen.20080516131227"><vh>TMbfr Write Modes: O_NONBLOCK</vh></v>
 <v t="ntallen.20080516131227.1"><vh>TMbfr Read Modes: DCo, DCf</vh></v>
 <v t="ntallen.20070525114357"><vh>Register Names</vh></v>
 <v t="ntallen.20070525114357.1"><vh>Delay allocating buffers</vh></v>
 <v t="ntallen.20070525114357.2"><vh>DG initialization</vh></v>
 <v t="ntallen.20070525114357.3"><vh>Store incoming data in circular queue</vh></v>
-<v t="ntallen.20070525114357.4" a="E"><vh>Store metadata in linked list</vh>
+<v t="ntallen.20070525114357.4"><vh>Store metadata in linked list</vh>
 <v t="ntallen.20070706110550"><vh>How to track reader progress</vh></v>
 </v>
 <v t="ntallen.20070525114357.5"><vh>Store TimeStamps in linked list</vh></v>
 <v t="ntallen.20070529132018"><vh>Extend Attribute Structure</vh></v>
 <v t="ntallen.20070529132018.1"><vh>Provide iofunc_open_handler for DG</vh></v>
-<v t="ntallen.20070525114357.6" a="E"><vh>Store context in each OCB</vh>
+<v t="ntallen.20070525114357.6"><vh>Store context in each OCB</vh>
 <v t="ntallen.20070525132754"><vh>Partial frames</vh></v>
 </v>
-<v t="ntallen.20070529132018.2" a="E"><vh>io_write</vh>
-<v t="ntallen.20070531163245" a="E"><vh>States</vh>
+<v t="ntallen.20070529132018.2"><vh>io_write</vh>
+<v t="ntallen.20070531163245"><vh>States</vh>
 <v t="ntallen.20070529133623"><vh>Partial Header</vh></v>
 <v t="ntallen.20070531162708"><vh>TM_Info</vh></v>
 <v t="ntallen.20070529133623.1"><vh>Partial Data</vh></v>
@@ -166,8 +181,8 @@
 <v t="ntallen.20070612220750"><vh>Scratch</vh></v>
 </v>
 </v>
-<v t="ntallen.20070531154309" a="E"><vh>io_read</vh>
-<v t="ntallen.20070531163245.1" a="E"><vh>States</vh>
+<v t="ntallen.20070531154309"><vh>io_read</vh>
+<v t="ntallen.20070531163245.1"><vh>States</vh>
 <v t="ntallen.20070531163245.2"><vh>Partial Header</vh></v>
 <v t="ntallen.20070531163245.3"><vh>TM_Info</vh></v>
 <v t="ntallen.20070531163245.4"><vh>Partial Data</vh></v>
@@ -182,15 +197,15 @@
 <v t="ntallen.20070817133522.5"><vh>DG API and design issues</vh>
 <v t="ntallen.20080624104326"><vh>Interfaces</vh>
 <v t="ntallen.20080625152707"><vh>Command Interfaces</vh></v>
-<v t="ntallen.20080624104326.1" a="E"><vh>Driver Interface</vh>
+<v t="ntallen.20080624104326.1"><vh>Driver Interface</vh>
 <v t="ntallen.20080624104326.2"><vh>Driver Class</vh></v>
 </v>
-<v t="ntallen.20080624104326.3" a="E"><vh>Driver Synchronization</vh>
+<v t="ntallen.20080624104326.3"><vh>Driver Synchronization</vh>
 <v t="ntallen.20080624104326.4"><vh>Blocking writes</vh></v>
 <v t="ntallen.20080624104326.5"><vh>Non-blocking writes and ionotify</vh></v>
 </v>
 </v>
-<v t="ntallen.20080707135523" a="E"><vh>Main</vh>
+<v t="ntallen.20080707135523"><vh>Main</vh>
 <v t="ntallen.20080707135523.1"><vh>Read Thread</vh></v>
 <v t="ntallen.20080708133047"><vh>Write Thread</vh></v>
 </v>
@@ -198,7 +213,7 @@
 <v t="ntallen.20080710162929"><vh>DQ hierarchy</vh>
 <v t="ntallen.20080710162929.1"><vh>Commands</vh></v>
 <v t="ntallen.20080710162929.2"><vh>Collection strategy</vh></v>
-<v t="ntallen.20080908205900" a="E"><vh>rdr (or general extraction) Strategy</vh>
+<v t="ntallen.20080908205900"><vh>rdr (or general extraction) Strategy</vh>
 <v t="ntallen.20080909114112"><vh>Control Thread</vh></v>
 <v t="ntallen.20080710162929.3"><vh>Output Thread</vh></v>
 <v t="ntallen.20080909114112.1"><vh>Input Thread</vh></v>
@@ -206,13 +221,13 @@
 </v>
 <v t="ntallen.20080708165645.1"><vh>Will DQ provide type translation?</vh></v>
 <v t="ntallen.20080623133120"><vh>DQ Semaphore</vh></v>
-<v t="ntallen.20070823131008.1" a="E"><vh>Writer operations</vh>
+<v t="ntallen.20070823131008.1"><vh>Writer operations</vh>
 <v t="ntallen.20080709115758"><vh>Initialization</vh></v>
 <v t="ntallen.20070823131008.2"><vh>allocate_rows(n_rows_max)</vh></v>
 <v t="ntallen.20070823131008.3"><vh>commit_rows(MFCtr, row_start, n_rows)</vh></v>
 <v t="ntallen.20070823131008.4"><vh>commit_tstamp(MFCtr, time)</vh></v>
 </v>
-<v t="ntallen.20070823131008.5" a="E"><vh>Reader operations</vh>
+<v t="ntallen.20070823131008.5"><vh>Reader operations</vh>
 <v t="ntallen.20070823131008.6"><vh>transmit_rows(n_rows)</vh></v>
 </v>
 </v>
@@ -247,8 +262,8 @@
 <v t="ntallen.20070320135407.4"><vh>Message contents</vh></v>
 <v t="ntallen.20070320135407.5"><vh>Queue Length</vh></v>
 </v>
-<v t="ntallen.20070320140803" a="E"><vh>Operation</vh>
-<v t="ntallen.20070330134656.1" a="E"><vh>Command Type</vh></v>
+<v t="ntallen.20070320140803"><vh>Operation</vh>
+<v t="ntallen.20070330134656.1"><vh>Command Type</vh></v>
 </v>
 <v t="ntallen.20070320140803.1"><vh>Errors</vh>
 <v t="ntallen.20070320140803.2"><vh>Out of Memory</vh></v>
@@ -296,14 +311,14 @@
 <v t="ntallen.20070322130922.3"><vh>Write to log file, etc.</vh></v>
 <v t="ntallen.20070330134656.3"><vh>Can eliminate ocb_funcs here</vh></v>
 <v t="ntallen.20070322130922.2"><vh>Accept atomic writes from multiple sources</vh></v>
-<v t="ntallen.20070322160353.2" a="E"><vh>Strategy for termination, communication with the command server</vh>
+<v t="ntallen.20070322160353.2"><vh>Strategy for termination, communication with the command server</vh>
 <v t="ntallen.20070322180349"><vh>Find out how to gracefully shut down a resource manager</vh></v>
 <v t="ntallen.20070322160353.3"><vh>Avoiding Deadlock</vh></v>
 <v t="ntallen.20070322160353.4"><vh>Terminate after at least one client has opened and all have closed</vh></v>
 </v>
 </v>
-<v t="ntallen.20090202133816" a="E"><vh>Utilities</vh>
-<v t="ntallen.20090202133816.1" a="E"><vh>mkdoit</vh>
+<v t="ntallen.20090202133816"><vh>Utilities</vh>
+<v t="ntallen.20090202133816.1"><vh>mkdoit</vh>
 <v t="ntallen.20090202133816.2"><vh>Dedicated Acquisition node</vh></v>
 <v t="ntallen.20090202133816.3"><vh>Development node</vh></v>
 </v>
@@ -311,11 +326,11 @@
 </v>
 <v t="ntallen.20070404221945.3" a="E"><vh>Graphics</vh>
 <v t="ntallen.20090203160910" a="E"><vh>PhRTG</vh>
-<v t="ntallen.20090316133552" a="E"><vh>Bugs</vh>
+<v t="ntallen.20090316133552"><vh>Bugs</vh>
 <v t="ntallen.20090422104622"><vh>Marking line visible does not redraw...</vh></v>
 <v t="ntallen.20090316133552.1"><vh>Resolved: Divider Issue</vh></v>
 </v>
-<v t="ntallen.20090211110324" a="E"><vh>Todo</vh>
+<v t="ntallen.20090211110324"><vh>Todo</vh>
 <v t="ntallen.20090508182157"><vh>Derived</vh>
 <v t="ntallen.20090514103050"><vh>X Units</vh></v>
 <v t="ntallen.20090508132540"><vh>Detrend</vh></v>
@@ -342,33 +357,33 @@
 <v t="ntallen.20090211110418"><vh>Done: PtTree test program</vh></v>
 <v t="ntallen.20090323135341"><vh>Done: Window Tree</vh></v>
 <v t="ntallen.20090316133552.2"><vh>Done: Pane handling</vh>
-<v t="ntallen.20090505142020" a="E"><vh>Figure</vh>
-<v t="ntallen.20090505142020.1" a="E"><vh>PtOSContainer</vh>
+<v t="ntallen.20090505142020"><vh>Figure</vh>
+<v t="ntallen.20090505142020.1"><vh>PtOSContainer</vh>
 <v t="ntallen.20090505142020.2"><vh>Figure_Div</vh></v>
 </v>
 </v>
 </v>
 </v>
-<v t="ntallen.20090203160910.1" a="E"><vh>Object hierarchy</vh>
+<v t="ntallen.20090203160910.1"><vh>Object hierarchy</vh>
 <v t="ntallen.20090514140929"><vh>Rendering flags</vh></v>
 <v t="ntallen.20090515141753"><vh>Rendering drill</vh></v>
 <v t="ntallen.20090401102408.1"><vh>plot_obj</vh></v>
-<v t="ntallen.20090218163512" a="E"><vh>Variable</vh>
+<v t="ntallen.20090218163512"><vh>Variable</vh>
 <v t="ntallen.20090204093154"><vh>Data Feed</vh></v>
 <v t="ntallen.20090226163758"><vh>Operation</vh></v>
 <v t="ntallen.20090403102636"><vh>Trends</vh></v>
 </v>
-<v t="ntallen.20090218164400" a="E"><vh>Figure Window</vh>
+<v t="ntallen.20090218164400"><vh>Figure Window</vh>
 <v t="ntallen.20090219084511"><vh>Figure Properties</vh></v>
 </v>
 <v t="ntallen.20090219084511.1"><vh>Window Pane</vh>
 <v t="ntallen.20090219084511.2"><vh>Pane Properties</vh></v>
 </v>
-<v t="ntallen.20090203162108" a="E"><vh>Axes</vh>
+<v t="ntallen.20090203162108"><vh>Axes</vh>
 <v t="ntallen.20090203160910.2"><vh>Axes scenarios</vh></v>
 <v t="ntallen.20090219084511.3"><vh>Axis properties</vh></v>
 </v>
-<v t="ntallen.20090218163512.1" a="E"><vh>Data</vh>
+<v t="ntallen.20090218163512.1"><vh>Data</vh>
 <v t="ntallen.20090219084511.4"><vh>Data Properties</vh></v>
 </v>
 <v t="ntallen.20090218164400.1"><vh>Line</vh>
@@ -391,53 +406,53 @@
 <v t="ntallen.20090413114310"><vh>Visibility Changes</vh></v>
 <v t="ntallen.20090519153418"><vh>Building on 6.3.2</vh></v>
 </v>
-<v t="ntallen.20090529113129" a="E"><vh>Configuration</vh>
-<v t="ntallen.20090529113129.1" a="E"><vh>File Format</vh>
+<v t="ntallen.20090529113129"><vh>Configuration</vh>
+<v t="ntallen.20090529113129.1"><vh>File Format</vh>
 <v t="ntallen.20090529113129.2"><vh>Console</vh></v>
 <v t="ntallen.20090529122349"><vh>Variable</vh></v>
 <v t="ntallen.20090529113129.3"><vh>Figure</vh></v>
 <v t="ntallen.20090529132820"><vh>Pane</vh></v>
-<v t="ntallen.20090529132820.1" a="E"><vh>Axes</vh>
-<v t="ntallen.20090529132820.2" a="TV"><vh>Axis</vh></v>
+<v t="ntallen.20090529132820.1"><vh>Axes</vh>
+<v t="ntallen.20090529132820.2"><vh>Axis</vh></v>
 </v>
 <v t="ntallen.20090529132820.3"><vh>Graph</vh></v>
 <v t="ntallen.20090529132820.4"><vh>Line</vh></v>
 </v>
 <v t="ntallen.20090602162607"><vh>Serializer</vh></v>
 <v t="ntallen.20090529113129.4"><vh>Data Feed</vh></v>
-<v t="ntallen.20090602153925" a="E"><vh>Parser</vh>
+<v t="ntallen.20090602153925"><vh>Parser</vh>
 <v t="ntallen.20090602154813"><vh>Variable</vh></v>
 </v>
 <v t="ntallen.20090529113129.5"><vh>Window Size and Position</vh></v>
 </v>
-<v t="ntallen.20090210131028" a="E"><vh>UI</vh>
-<v t="ntallen.20090210131028.1" a="E"><vh>Windows</vh>
+<v t="ntallen.20090210131028"><vh>UI</vh>
+<v t="ntallen.20090210131028.1"><vh>Windows</vh>
 <v t="ntallen.20090210131028.3"><vh>Console</vh>
 <v t="ntallen.20090224121203"><vh>Drag and Drop</vh></v>
 <v t="ntallen.20090223110548"><vh>Menu</vh></v>
 <v t="ntallen.20090224102255"><vh>Variables Tab</vh></v>
 <v t="ntallen.20090224102255.1"><vh>Graphs Tab</vh></v>
-<v t="ntallen.20090218161257.1" a="E"><vh>Window Tab</vh>
+<v t="ntallen.20090218161257.1"><vh>Window Tab</vh>
 <v t="ntallen.20090219084511"><vh>Figure Properties</vh></v>
 </v>
-<v t="ntallen.20090224110843" a="E"><vh>X,Y Tabs</vh>
+<v t="ntallen.20090224110843"><vh>X,Y Tabs</vh>
 <v t="ntallen.20090219084511.6"><vh>Pane Properties</vh>
 <v t="ntallen.20090219084511.2"><vh>Pane Properties</vh></v>
 </v>
 <v t="ntallen.20090218161257.2"><vh>Axes Properties</vh>
 <v t="ntallen.20090219084511.3"><vh>Axis properties</vh></v>
 </v>
-<v t="ntallen.20090219085744" a="E"><vh>Data Properties</vh>
+<v t="ntallen.20090219085744"><vh>Data Properties</vh>
 <v t="ntallen.20090219084511.4"><vh>Data Properties</vh></v>
 </v>
 </v>
-<v t="ntallen.20090219085744.1" a="E"><vh>Line Properties</vh>
+<v t="ntallen.20090219085744.1"><vh>Line Properties</vh>
 <v t="ntallen.20090219084511.5"><vh>Line Properties</vh></v>
 </v>
 </v>
-<v t="ntallen.20090210131028.2" a="E"><vh>GraphWindow</vh></v>
+<v t="ntallen.20090210131028.2"><vh>GraphWindow</vh></v>
 </v>
-<v t="ntallen.20090210131028.4" a="E"><vh>Operations</vh>
+<v t="ntallen.20090210131028.4"><vh>Operations</vh>
 <v t="ntallen.20090210131028.5"><vh>Startup</vh></v>
 <v t="ntallen.20090210131028.6"><vh>Define a variable</vh></v>
 <v t="ntallen.20090210131028.7"><vh>Create a new Graph Window</vh></v>
@@ -455,28 +470,33 @@
 <v t="ntallen.20070404221945.4" a="E"><vh>Drivers</vh>
 <v t="ntallen.20070404221945.5"><vh>Subbus</vh></v>
 <v t="ntallen.20070404221945.6"><vh>SCDC/DCCC</vh></v>
-<v t="ntallen.20070404221945.7"><vh>Indexer</vh></v>
+<v t="ntallen.20070404221945.7" a="E"><vh>Indexer</vh>
+<v t="ntallen.20091015133220"><vh>Define command protocol</vh></v>
+<v t="ntallen.20090804144000" a="E"><vh>IntServ</vh>
+<v t="ntallen.20090810133013"><vh>Separate Process</vh></v>
+</v>
+</v>
 <v t="ntallen.20070404221945.8"><vh>Thompson?</vh></v>
 <v t="ntallen.20070404221945.9"><vh>dacache</vh></v>
 </v>
-<v t="ntallen.20070323134835" a="E"><vh>Resmgr Notes</vh>
+<v t="ntallen.20070323134835"><vh>Resmgr Notes</vh>
 <v t="ntallen.20070323134835.1"><vh>resmgr_attach()</vh>
-<v t="ntallen.20080625171218" a="E"><vh>Meta</vh>
+<v t="ntallen.20080625171218"><vh>Meta</vh>
 <v t="ntallen.20080630113952"><vh>DG_dispatch</vh></v>
 <v t="ntallen.20080626163820"><vh>device semantics</vh></v>
 </v>
 <v t="ntallen.20070323134835.2"><vh>dispatch_t *dpp</vh></v>
 <v t="ntallen.20070323134835.3"><vh>resmgr_attr_t resmgr_attr</vh></v>
 <v t="ntallen.20070323134835.4"><vh>path</vh></v>
-<v t="ntallen.20070323134835.5" a="E"><vh>iofunc_attr_t handle</vh>
+<v t="ntallen.20070323134835.5"><vh>iofunc_attr_t handle</vh>
 <v t="ntallen.20070323134835.6"><vh>iofunc_mount_t mountpoint</vh></v>
 </v>
 </v>
 <v t="ntallen.20070330134656.4"><vh>OCB</vh></v>
 <v t="ntallen.20070330134656.5"><vh>Strategy for multiple readers</vh></v>
 </v>
-<v t="ntallen.20070817133522" a="E"><vh>Documentation</vh>
-<v t="ntallen.20070817133522.1" a="E"><vh>QNX4</vh>
+<v t="ntallen.20070817133522"><vh>Documentation</vh>
+<v t="ntallen.20070817133522.1"><vh>QNX4</vh>
 <v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
 <v t="ntallen.20070817133522.3"><vh>QNX6</vh>
@@ -495,15 +515,15 @@
 <v t="ntallen.20070817133522.5"><vh>DG API and design issues</vh>
 <v t="ntallen.20080624104326"><vh>Interfaces</vh>
 <v t="ntallen.20080625152707"><vh>Command Interfaces</vh></v>
-<v t="ntallen.20080624104326.1" a="E"><vh>Driver Interface</vh>
+<v t="ntallen.20080624104326.1"><vh>Driver Interface</vh>
 <v t="ntallen.20080624104326.2"><vh>Driver Class</vh></v>
 </v>
-<v t="ntallen.20080624104326.3" a="E"><vh>Driver Synchronization</vh>
+<v t="ntallen.20080624104326.3"><vh>Driver Synchronization</vh>
 <v t="ntallen.20080624104326.4"><vh>Blocking writes</vh></v>
 <v t="ntallen.20080624104326.5"><vh>Non-blocking writes and ionotify</vh></v>
 </v>
 </v>
-<v t="ntallen.20080707135523" a="E"><vh>Main</vh>
+<v t="ntallen.20080707135523"><vh>Main</vh>
 <v t="ntallen.20080707135523.1"><vh>Read Thread</vh></v>
 <v t="ntallen.20080708133047"><vh>Write Thread</vh></v>
 </v>
@@ -511,7 +531,7 @@
 <v t="ntallen.20080710162929"><vh>DQ hierarchy</vh>
 <v t="ntallen.20080710162929.1"><vh>Commands</vh></v>
 <v t="ntallen.20080710162929.2"><vh>Collection strategy</vh></v>
-<v t="ntallen.20080908205900" a="E"><vh>rdr (or general extraction) Strategy</vh>
+<v t="ntallen.20080908205900"><vh>rdr (or general extraction) Strategy</vh>
 <v t="ntallen.20080909114112"><vh>Control Thread</vh></v>
 <v t="ntallen.20080710162929.3"><vh>Output Thread</vh></v>
 <v t="ntallen.20080909114112.1"><vh>Input Thread</vh></v>
@@ -519,13 +539,13 @@
 </v>
 <v t="ntallen.20080708165645.1"><vh>Will DQ provide type translation?</vh></v>
 <v t="ntallen.20080623133120"><vh>DQ Semaphore</vh></v>
-<v t="ntallen.20070823131008.1" a="E"><vh>Writer operations</vh>
+<v t="ntallen.20070823131008.1"><vh>Writer operations</vh>
 <v t="ntallen.20080709115758"><vh>Initialization</vh></v>
 <v t="ntallen.20070823131008.2"><vh>allocate_rows(n_rows_max)</vh></v>
 <v t="ntallen.20070823131008.3"><vh>commit_rows(MFCtr, row_start, n_rows)</vh></v>
 <v t="ntallen.20070823131008.4"><vh>commit_tstamp(MFCtr, time)</vh></v>
 </v>
-<v t="ntallen.20070823131008.5" a="E"><vh>Reader operations</vh>
+<v t="ntallen.20070823131008.5"><vh>Reader operations</vh>
 <v t="ntallen.20070823131008.6"><vh>transmit_rows(n_rows)</vh></v>
 </v>
 </v>
@@ -754,9 +774,27 @@ in TMbfr.</t>
 <t tx="ntallen.20070404221945.2"></t>
 <t tx="ntallen.20070404221945.3"></t>
 <t tx="ntallen.20070404221945.4"></t>
-<t tx="ntallen.20070404221945.5"></t>
+<t tx="ntallen.20070404221945.5">The current implementation of the subbus library is not ISR-safe, which means you cannot access the subbus library during an ISR. This will certainly be even more true as we move to a USB-based subbus.
+
+The implication for the IntServ (and hence the Indexer driver) is that the INTA pulse cannot be issued in the ISR, so the interrupt will have to be masked.</t>
 <t tx="ntallen.20070404221945.6"></t>
-<t tx="ntallen.20070404221945.7"></t>
+<t tx="ntallen.20070404221945.7">Include IntServ functionality, including IRQ#
+Open command channel for read
+  Use ionotify() to attach a pulse to the command channel
+Use IntServ code to attach a pulse to the interrupt
+  InterruptAttachEvent()
+  Need a channel ID from ConnectAttach() which requires ChannelCreate()
+Open TM channel for write
+  Use ionotify() to attach a pulse and use non-blocking writes
+  (double-checked to make sure I support ionotify() in collection)
+
+Create a MsgReceive() loop to listen for commands or interrupts
+  When an interrupt pulse arrives, invoke IntServ handler, which
+    identifies the board, then calls the indexer service routine
+  When command pulse arrives, read the command and execute
+  When a TM pulse arrives, write current TM data
+
+</t>
 <t tx="ntallen.20070404221945.8"></t>
 <t tx="ntallen.20070404221945.9"></t>
 <t tx="ntallen.20070409132623">Flash app to display different modes of operation</t>
@@ -1526,14 +1564,14 @@ Driver interfaces to DG (only during collection) have certain common requirement
 
 Since we are looking at a multi-threaded approach, the raw data area for each interface must be protected by a mutex. As such, access to that data must be controlled. In most cases, all the data from a driver will be reported at the same rate and allocated to TM variables in a block:
     Group driver ( driverStat, driverStale, DetA, DetB, DetC, DetD ) {
-      driver.lock();
+      //driver.lock(); // The lock/unlock methods have not been implemented 8/4/09
       driverStale = driver.stale++;
       driverStat = driver.data.status;
       DetA = driver.data.DetA;
       DetB = driver.data.DetB;
       DetC = driver.data.DetC;
       DetD = driver.data.DetD;
-      driver.unlock();
+      //driver.unlock(); // The lock/unlock methods have not been implemented 8/4/09
       driver.synch();
     }
 
@@ -1557,9 +1595,9 @@ More than one writer is fine. Reading from this interface is not defined.
 I don't see any reason to support ionotify or iounblock on this interface, as we will
 not enqueue requests.
 
-In addition, the DGs will attempt to read from /dev/huarp/$Experiment/cmd/DG if it exists.
-Data read from /dev/huarp/$Experiment/cmd/DG or written to
-/dev/huarp/$Experiment/DG/cmd are treated identically.
+###In addition, the DGs will attempt to read from /dev/huarp/$Experiment/cmd/DG if it exists.
+###Data read from /dev/huarp/$Experiment/cmd/DG or written to
+###/dev/huarp/$Experiment/DG/cmd are treated identically.
 ###Collection probably cannot read from /dev/huarp/$Experiment/cmd/DG because cmd may likely be sending to collection, so there is a risk of deadlock. Probably should dispense with that approach for the DG.
 
 Use message_connect(dpp) to create a connection to the device's channel.</t>
@@ -2023,34 +2061,15 @@ For non-blocking synchronization, it's a little trickier.
  Those libraries provide convenience functions that do most of the work.
 </t>
 <t tx="ntallen.20080724120806.3"></t>
-<t tx="ntallen.20080729145409">subbus: Need to write it
-lgr: Need to write it
-rdr: Need to write it
-  tmpplib: DGext.[ch] (Extractor.[ch]*** Has not been tested. It's a DG interface for rdr, Inetin, etc.
-tmphlib/nlphcmd.c: Read from tm_dev_name("cmd/quit");
-qcli:
-  Remember to ask Marco about use of DAC3 for heater, other configuration issues
+<t tx="ntallen.20080729145409">hart driver
+radflt TM
+BMXS driver
 
-TMbfr: Will need further work to support additional data formats
+GSE install kit
 
 2nd Pass:
     memo: add additional tricks, use msg() library
     tmcalgo: need some form of runtime verbosity (nl_cons stuff)
-
-Done: Move the following into tmpplib:
-    DQ.[ch]
-    DGcol.[ch]
-    DC.[ch]
-    DCph.[ch]
-    DG.[ch]
-    DG_Resmgr.[ch]
-    DG_cmd.[ch]
-    DC_data.[ch]
-    DG_tmr.[ch]
-Done: appgen: Port it
-Done: sspdrv
-Done: DG_data.cc: Add synchronization stuff
-Done: memo: oui. provide library hooks into nl_error
 </t>
 <t tx="ntallen.20080908205900">Three threads encapsulated in DG_rdr class:
     Control thread:
@@ -3212,7 +3231,15 @@ Handle the following in Current::none() {
 <t tx="ntallen.20090429153442"></t>
 <t tx="ntallen.20090429153442.1">Had to move that code out of Current::none() into the plot_data::check_limits() where we actually read the data from the file.</t>
 <t tx="ntallen.20090429164601"></t>
-<t tx="ntallen.20090429164601.1"></t>
+<t tx="ntallen.20090429164601.1">Needed to hack common.mk to include definitions for a couple things
+PROJECT_ROOT
+BUILDNAME=phrtg_G
+
+Also the extra include paths are set to $QNX_TARGET/usr/local/include &amp; lib,
+which works under windows. Need to add a soft link on nto
+Also needed to specify additional libs: ph Ap m. Not sure why they aren't included
+Would like to figure out a way to do this unobtrusively.
+</t>
 <t tx="ntallen.20090430095233"></t>
 <t tx="ntallen.20090430131154">Linking and/or Compiling
 
@@ -3234,8 +3261,33 @@ libcpp is Dinkum. Alternative is libstdc++
 
 SOLUTION: ./configure CC=qcc CXX=QCC -I/usr/local/include
 </t>
-<t tx="ntallen.20090505113338">/sbin/tinit is launched by /etc/rc.d/rc.sysinit
+<t tx="ntallen.20090505113338">After installing from the rtkit disk, need to get the network started. Try:
+[Make sure to set up VM bridged networking]
+[On radflt, I had to tweak the enumeration file /etc/system/enum/common to add enumerate(pci)]
+  /etc/net.cfg
+    version v1.2
+    
+    [global]
+    hostname nortflt
+    domain arp.harvard.edu
+    
+    [en0]
+    type ethernet
+    mode dhcp
+    
+  touch /etc/system/config/useqnet
+  reboot
+  copy /etc/passwd /etc/shadow /etc/group from the network
+  copy /etc/sudoers from network
+
+/sbin/tinit is launched by /etc/rc.d/rc.sysinit
 It reads /etc/config/ttys
+  con1 "/bin/login" qansi-m on
+  con2 "/bin/login" qansi-m on
+  ...
+
+I no doubt want to change that to invoke /bin/login -f flight
+That in turn requires that /home/flight exists, etc.
 </t>
 <t tx="ntallen.20090505142020"></t>
 <t tx="ntallen.20090505142020.1"></t>
@@ -3622,5 +3674,171 @@ RTG_Variable_MLF::cfg_load(parser) {
     static void cfg_save(char *filename);
 }
 </t>
+<t tx="ntallen.20090804144000">IntServ is required due to the interrupt-sharing architecture of the subbus.
+BUT the indexer is currently our only interrupt device, and in most configurations,
+we'll only have a single indexer board in a stack, so we aren't even sharing interrupts.
+In any event, I can probably subsume this function into the indexer driver.
+
+Need to know what IRQ the interrupt is connected to.
+
+Register a board
+    int IntSrv_Int_attach( char *cardID, unsigned short address,
+    						int region, pid_t Proxy );
+    int IntSrv_Int_detach( char *cardID );
+    IntSrv_Pulse
+    IntSrv_PulseReceived()
+
+We will use a pulse to communicate the interrupt to the thread, but that goes for all
+interrupts. We don't need to use a board-specific pulse. It's probably sufficient to
+call a general interrupt processing routine with the board ID
+
+Initialization involves writing the interrupt config to the board's base address.
+On interrupt, we will receive a pulse, then the intserv handler will read from
+the interrupt acknowledge address to determine the source of the interrupt.
+Then the appropriate routine will be called.
+</t>
+<t tx="ntallen.20090810133013">If IntServ needed to be in a separate process (because interrupts from different types of boards were required)
+we would need the driver to communicate the parameters of IntSrv_Int_attach() to IntServ, then configure to
+be notified when the interrupt arrives. It would probably make sense to do this as a resource manager,
+write only, where you would write the control information, then set up for ionotify().</t>
+<t tx="ntallen.20090818124956"></t>
+<t tx="ntallen.20090818124956.1"></t>
+<t tx="ntallen.20090818124956.2"></t>
+<t tx="ntallen.20090818124956.3"></t>
+<t tx="ntallen.20090818124956.4">Or alternately, come up with a script to configure and build the list in the correct order.
+QNX6/utils/FullBuild now works on the vast majority of project directories as detailed
+in the "Install 6.4.1" node above. I have a TopFullBuild placeholder which should visit
+all the projects in sequence, doing a FullBuild in each.
+</t>
+<t tx="ntallen.20090824101208">Set hostname
+  How is hostname handled? In /etc/net.cfg (usually via the network config tool)
+  /etc/system/sysinit also looks in /etc/HOSTNAME
+
+Remove non-x86 targets from /usr/qnx641/target/qnx6
+
+Adapted from pkgsrc instructions:
+  http://community.qnx.com/sf/wiki/do/viewPage/projects.pkgsrc/wiki/BinaryPackages
+
+  Edit /etc/profile to add /usr/pkg/bin and /usr/pkg/sbin to PATH
+  Add to /etc/rc.d/rc.local:
+    setconf CS_LIBPATH $(getconf CS_LIBPATH):/usr/pkg/lib
+  mkdir /var/tmp
+  download pkgsrc bootstrap bootstrap.tar.gz and unpack in /
+    ftp://ftp.netbsd.org/pub/pkgsrc/packages/QNX/i386/6.4.1_head_20090724/bootstrap.tar.gz
+  Set PKG_PATH in /root/.profile:
+    export PKG_PATH=ftp://ftp.NetBSD.org/pub/pkgsrc/packages/QNX/&lt;arch&gt;/&lt;vers&gt;/All
+    &lt;arch&gt; is i386
+    &lt;vers&gt; is 6.4.1_head_20090724
+
+Installed:
+    # openssh # Included in 6.4.1
+    perl-5.10.0nb6
+    sudo-1.7.1
+    m4-1.4.13
+    autoconf-2.63
+    automake-1.10
+    gtexinfo 4-12nb1
+    libtool-1.5.26
+
+Setup to use qnet
+  Make sure hostname is set
+  mount -T io-pkt lsm-qnet.so # This is a change from 6.3.2, which used io-net
+  touch /etc/system/config/useqnet # to get it boot up running qnet, referenced from /etc/system/sysinit
+  
+Copy and/or Edit password files from network
+Copy sudoers from network
+
+Install cdrtools from QNX downloads third party page
+
+### Good to here
+    
+    +QNX6/utils  includes a config.site
+    +nortutil (only os-independent: select binaries and select install tool)
+      make sure /usr/bin/perl points to perl (/usr/pkg/bin/perl)
+    +nortlib[2]                FullBuild with internal sudo, stop on error
+    +cmdgen       (lex/yacc)   FullBuild with internal sudo, stop on error
+    +oui          (lex/yacc)   FullBuild with internal sudo, stop on error
+    +QNX6/tmlib   (TM library)  FullBuild with internal sudo, stop on error
+    +QNX6/tmphlib (need for display programs and keyboard client programs) FullBuild+
+    +QNX6/tmpplib (C++ interface for TM) FullBuild+
+    +QNX6/displib (needed for display programs generated via phtable) FullBuild+ Did not specify CC=qcc CXX=QCC
+    +QNX6/tmutil  (checks path of sudo. no configure, make, make install) installed
+
+    +QNX6/tmc (no configure, make, make install)
+    +QNX6/TMbfr/resmgr (no configure, make, make install)
+    +QNX6/lgr (no configure, make, make install)
+    +QNX6/rdr (no configure, make, make install)
+    +QNX6/memo (no configure, make, make install)
+    +QNX6/phrtg-native (make, make install)
+    +tmcalgo (no configure, make, make install)
+    +QNX6/qcliutil (no configure, make, make install)
+    +snafu  FullBuild
+    
+    +QNX6/dccc
+    +QNX6/diagnost (minus scdebug)
+    +QNX6/Diagsuite
+    +QNX6/ssp_driver
+    +QNX6/idx64
+
+    +eli compiler tools (required for table, qclicomp?)
+    
+    +phtable (provide Makefile to invoke eli)
+    +qclicomp (or qclicompsrc?)(provide Makefile to invoke eli)
+
+    Try installing Leo, what the heck!    </t>
+<t tx="ntallen.20090824123722">This procedure is documented in an OS Technote on the QNX website for 6.4.1
+I am creating tools mkrtkit in QNX6/mkrtkit
+Need to install cdrtools binaries available on the QNX Downloads page under
+Third Party.
+</t>
+<t tx="ntallen.20090910171038">I'm trying to find the right balance of compile and link.
+Using cc to compile c++ code seems to tie into the Plauger libraries
+Linking then needs to be done using cc -lang-c++ or there are unresolved symbols
+
+If instead I compile c++ code with CXX=g++, I apparently need to link with g++
+or I have similar problems.
+
+All my libraries are compiled with g++. Not clear if that presents a problem or not.
+
+Programs compiled using the IDE use cc stuff.
+</t>
+<t tx="ntallen.20090911120219">phrtg was designed and built using the windows IDE. To compile under
+neutrino requires some hacking.
+
+  [I believe I should be able to compile under the windows IDE using
+  my libraries that were compiled using gcc. My linking complications
+  seem to be focused on C++ libraries, not C libraries, and -lnort and
+  -ltm are C only.]
+
+Created a separate module called phrtg-native which sets paths for
+native compileation. I did not need to override CXX because I am
+not linking with any of my C++ libs. I no longer need to hack common.mk.
+
+Also the extra include paths are set to $QNX_TARGET/usr/local/include &amp; lib,
+which works under windows. Need to add a soft link on nto
+
+This is all in native.mk now</t>
+<t tx="ntallen.20090930220540">Need to remember to run symlinks after checkout
+Make sure Eli/configure is remade and does not include ELI_PROG_WC
+
+Still observing Odin hangs in QNX6, but ctrl-C and restart does the right thing.
+Should be able to debug using eli -s</t>
+<t tx="ntallen.20091015133220">There are two command protocols: The verbose format that we use in cmdgen and the terse version used to communicate directly with the driver. The translation takes place in idx64.cmd, which will go into /usr/local/share/huarp</t>
+<t tx="ntallen.20091022143321">Many of the options of mkdoit2 are console-specific, so not-applicable
+</t>
+<t tx="ntallen.20091022143321.1">By this I mean all the algorithm status information that was incorporated into the data display in QNX4.
+Did I just punt on this?
+Do I have a grand plan?
+
+We could route algo status through the cmdserver:
+    disp programs would read from both TMbfr and command server
+    algo would get another commandline flag to produce status information:
+        next command/status
+        time until next command
+        current state
+        time in current state
+        holding...
+    This doesn't have to go to disp, it could go to a standalone status utility</t>
+<t tx="ntallen.20091030133630"></t>
 </tnodes>
 </leo_file>
