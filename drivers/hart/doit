@@ -1,0 +1,4 @@
+#! /bin/sh
+trap '' INT
+( date; hart 3; ) | tee -a hart.log
+date | tee -a hart.log

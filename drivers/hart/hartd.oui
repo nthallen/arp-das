@@ -1,0 +1,16 @@
+<package> hartd
+<include> msg
+<include> gpib232
+<include> <stdlib.h>
+<include> "hartd.h"
+
+<opts> "a:"
+<sort>
+	-a <addr> Cache address to which to write
+
+<switch>
+	case 'a': cache_addr = strtoul( optarg, 0, 0 ); break;
+
+<package> msghdr_init
+<init>
+  msg_hdr = "hartd";
