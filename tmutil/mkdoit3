@@ -1,0 +1,60 @@
+#! /bin/sh
+#__USAGE
+#%C	[-o <outputfile>] [ <inputfile> ... ]
+#	Generates a "doit" script for use with ARP Data Acquisition
+#
+#	batchfile <batch file name>
+#	    specifies which script to run on the flight system
+#	playback
+#	inetin
+#	memo [ <log file name> ]
+#	    specifies that "more -e <log file>" should run on a spare console
+#	display <program> <screen file> [ <screen file> ... ]
+#	    specifies a display program to run
+#	extraction <program>
+#	    specifies an extraction to run, including rtg extractions
+#	algorithm <program>
+#	    specifies an algorithm to run
+#	client <program>
+#	    specifies a keyboard client to run
+#	monoconfig <filename>
+#	colorconfig <filename>
+#	    specifies screen configuration files to use
+#	rtg <config file>
+#	    start up rtg if it isn't already running
+#
+#%C also reads .fld files which are specified in a 'display'
+#statement and recognizes FIELDS with the following contents:
+#
+#   %STATUS:<app>   Indicates a field to locate the status
+#                   for the specified application
+#   %STATUS         Indicates a general status field for any
+#                   applications without a specific status field
+#   %CLIENT         Indicates that a keyboard client should run
+#                   on this screen. If none specified, keyboard
+#                   clients run on all display screens.
+#   %TMA:<app>[:#]  Defines a field for the specified TMCALGO.
+#                   One field may be specified for each partition.
+#
+typeset ofile
+while getopts "o:" option; do
+  case $option in
+	o) ofile=$OPTARG;;
+	\?) echo; exit 1;;
+	*) echo Unsupported option: -$option; exit 1;;
+  esac
+done
+let sval=$OPTIND-1
+shift $sval
+if [ -n "$ofile" ]; then
+  /bin/rm -f $ofile
+  if /bin/awk -f /usr/local/lib/src/mkdoit2.awk $* > $ofile; then
+	chmod a+x $ofile
+  else
+	/bin/rm -f $ofile
+	exit 1
+  fi
+else
+  /bin/awk -f /usr/local/lib/src/mkdoit2.awk $*
+fi
+
