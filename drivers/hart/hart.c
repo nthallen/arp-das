@@ -1,4 +1,8 @@
+#include <stdio.h>
+#include <string.h>
 #include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include "nortlib.h"
 #include "gpib232.h"
 
@@ -28,7 +32,7 @@ void sigint_handler( int sig ) {
   done = 1;
 }
 
-void main( int argc, char **argv ) {
+int main( int argc, char **argv ) {
   int n_channels = 3;
   
   if (argc > 1 ) {
@@ -38,7 +42,7 @@ void main( int argc, char **argv ) {
   }
   nl_error( 0, "Starting: %d channels", n_channels );
 
-  gpib232_init( "/dev/ser1" );
+  gpib232_init( "/dev/ser2" );
 
   /* Initialize the gpib232 */
   gpib232_command( -2, "tmo 5\r" );
@@ -76,4 +80,5 @@ void main( int argc, char **argv ) {
 
   /* Sign off */
   nl_error( 0, "Hart finished" );
+  return 0;
 }
