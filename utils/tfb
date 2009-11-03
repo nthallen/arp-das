@@ -1,0 +1,22 @@
+#! /bin/sh
+
+function nl_error {
+  echo tfb: $* >&2
+  exit 1
+}
+
+function do_stuff {
+  if [ "$2" = "fail" ]; then
+    FAILS="$FAILS $1"
+  fi
+}
+
+do_stuff idx64 success
+do_stuff tmpplib success
+do_stuff tmlib fail
+do_stuff tmphlib success
+do_stuff cmdgen fail
+
+for i in $FAILS; do
+  echo $i failed
+done
