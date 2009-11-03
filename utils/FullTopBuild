@@ -1,0 +1,22 @@
+#! /bin/sh
+
+# Bootstrap:
+#  Download the source code. Since this file is in one of the source
+#  directories, it's probably necessary to require that most of the
+#  projects have been downloaded already.
+
+# This should be run in the root of the source tree, which might
+# be ~/BUILD
+
+function nl_error {
+  echo FullTopBuild: $* >&2
+  exit 1
+}
+
+if [ `id -u` != 0 ]; then
+  exec sudo $0
+  nl_error exec failed
+fi
+
+cd QNX/utils
+
