@@ -1,0 +1,56 @@
+#! /bin/sh
+# pkg_copy <tgtnode> <pkg> ...
+# example: pkg_copy radflt perl sudo
+
+function nl_error {
+  echo "pkg_copy: $*" >&2
+  exit 1
+}
+
+tgtnode=$1
+shift
+
+[ -z "$tgtnode" ] && nl_error "Usage: pkg_copy <tgtnode> <pkg> ..."
+[ -d /net/$tgtnode/ ] || nl_error "Cannot locate target node /net/$tgtnode"
+ok=`on -f $tgtnode echo OK 2>&1`
+[ "$ok" = "OK" ] || nl_error "$ok"
+
+for pkg in $*; do
+  pkgcnt=`ls -d /var/db/pkg/$pkg* 2>/dev/null | wc -l`
+  pkgcnt=${pkgcnt##*( )}
+  case $pkgcnt in
+    0) nl_error "No package found matching '$pkg'";;
+    1) ;;
+    *) ls -d /var/db/pkg/$pkg*
+       nl_error "Package '$pkg' is ambiguous";;
+  esac
+  pkgver=`ls -d /var/db/pkg/$pkg*`
+  [ -d "$pkgver" ] || nl_error "Confused by pkg '$pkg': $pkgver"
+  [ -f $pkgver/+CONTENTS ] || nl_error "No +CONTENTS in $pkgver"
+  echo "Processing $pkgver" >&2
+  { cwd=/usr/pkg
+    while read line; do
+      case $line in
+	"@cwd /usr/pkg") cwd=usr/pkg;;
+	"@cwd .") cwd=${pkgver#/};;
+	"@cwd "*) nl_error "Unexpected cwd line: '$line'";;
+	"@pkgdep "*) echo "$line" >&2;; # could check...
+	@*) ;;
+	*) echo $cwd/$line;;
+      esac
+    done <$pkgver/+CONTENTS
+  } | tar -cf- -C / -T- | on -f $tgtnode tar -C / -xf-
+done
+
+# srcbase=/home/nort/test
+# srcdir=tt
+# tgtnode=nortvmgse
+# tgtbase=/home/nort/dtest
+# [ -d $srcdir ] || nl_error Source directory $srcdir not found
+# [ -d $tgtbase ] || mkdir $tgtbase ||
+#   nl_error Cannot create bogus tgtbase $tgtbase
+# [ -d /net/$tgtnode/$tgtbase ] || mkdir /net/$tgtnode/$tgtbase ] ||
+#   nl_error Cannot create tgtbase /net/$tgtnode/$tgtbase
+# [ -d /net/$tgtnode/$tgtbase ] || nl_error Creation of tgtbase failed
+# 
+# find $srcdir ! -type d | tar -cf- -T- | on -f $tgtnode tar -C $tgtbase -xvf-
