@@ -1,0 +1,24 @@
+#! /bin/sh
+# dev_copy <tgtnode>
+# example: dev_copy radflt
+# Copies all sorts of stuff from /usr/qnx641, stripping out
+# stuff we can't use, like eclipse, qcc, anything related to
+# arp|mips|ppc|sh, etc.
+# This could get more restrictive by eliminating lots of help files, etc.
+
+function nl_error {
+  echo "dev_copy: $*" >&2
+  exit 1
+}
+
+tgtnode=$1
+script=/usr/local/share/huarp/dev_copy.sed
+
+[ -z "$tgtnode" ] && nl_error "Usage: dev_copy <tgtnode>"
+[ -d /net/$tgtnode/ ] || nl_error "Cannot locate target node /net/$tgtnode"
+ok=`on -f $tgtnode echo OK 2>&1`
+[ "$ok" = "OK" ] || nl_error "$ok"
+[ -r $script ] || nl_error "Cannot locate sed script '$script'"
+
+find /usr/qnx641 ! -type d | sed -f $script |
+  tar -cf- -C / -T- | on -f $tgtnode tar -C / -xf-

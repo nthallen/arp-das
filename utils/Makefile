@@ -3,14 +3,14 @@
 # compiled.
 BIN=unsu vmutil FullBuild
 SBIN=pkg_copy
-DATA=
+DATA=dev_copy.sed
 OSDATA=config.site
 INSTALL=cp -vn
 PREFIX=$(TGTNODE)/usr/local
 
 .PHONY : all install install-sbin install-bin install-osdata install-data
 all : install
-install : install-bin install-osdata install-sbin
+install : install-bin install-osdata install-sbin install-data
 install-sbin : $(SBIN)
 	mkdir -p $(PREFIX)/sbin
 	@$(INSTALL) $(SBIN) $(PREFIX)/sbin
