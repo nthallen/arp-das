@@ -37,7 +37,7 @@ chmod a+x ./rtinstall
 
 # This is the configuration-specific part of the script.
 # Copy each of the archives you created earlier to ./repository:
-mkrtkitarch repository $pkg || nl_error mkrtkitarch failed
+/usr/local/sbin/mkrtkitarch repository $pkg || nl_error mkrtkitarch failed
 
 mkisofs -r -b instflop.dat -c boot/isocatalog -J -o ../rtkit-$pkg.iso .
 cd ..
