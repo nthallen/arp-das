@@ -29,6 +29,6 @@ find /usr/qnx641 ! -type d | sed -f $script |
   tar -cf- -C / -T- | on -f $tgtnode tar -C / -xf-
 
 cp -vn /etc/profile.d/qnxsdk.sh /net/$tgtnode/etc/profile.d
-ln -s ./qnxsdk.sh /net/$tgtnode/etc/profile.d/qnxsdk.ksh
-ln -s gcc /net/$tgtnode/usr/qnx641/host/qnx6/x86/usr/bin/cc
-
+ln -fs ./qnxsdk.sh /net/$tgtnode/etc/profile.d/qnxsdk.ksh
+ln -fs gcc /net/$tgtnode/usr/qnx641/host/qnx6/x86/usr/bin/cc
+ln -fs /usr/pkg/bin/perl /usr/bin/perl
