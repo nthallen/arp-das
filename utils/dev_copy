@@ -6,6 +6,10 @@
 # arp|mips|ppc|sh, etc.
 # This could get more restrictive by eliminating lots of help files, etc.
 
+if [ `id -u` != 0 ]; then
+  exec /usr/pkg/bin/sudo $0 $*
+fi
+
 function nl_error {
   echo "dev_copy: $*" >&2
   exit 1
@@ -20,5 +24,11 @@ ok=`on -f $tgtnode echo OK 2>&1`
 [ "$ok" = "OK" ] || nl_error "$ok"
 [ -r $script ] || nl_error "Cannot locate sed script '$script'"
 
+echo "Copying development files..."
 find /usr/qnx641 ! -type d | sed -f $script |
   tar -cf- -C / -T- | on -f $tgtnode tar -C / -xf-
+
+cp -vn /etc/profile.d/qnxsdk.sh /net/$tgtnode/etc/profile.d
+ln -s ./qnxsdk.sh /net/$tgtnode/etc/profile.d/qnxsdk.ksh
+ln -s gcc /net/$tgtnode/usr/qnx641/host/qnx6/x86/usr/bin/cc
+

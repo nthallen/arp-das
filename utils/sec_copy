@@ -1,0 +1,27 @@
+#! /bin/sh
+# sec_copy <tgtnode>
+# example: sec_copy radflt
+
+if [ `id -u` != 0 ]; then
+  exec /usr/pkg/bin/sudo $0 $*
+fi
+
+function nl_error {
+  echo "pkg_copy: $*" >&2
+  exit 1
+}
+
+tgtnode=$1
+shift
+
+[ -z "$tgtnode" ] && nl_error "Usage: sec_copy <tgtnode>"
+[ -d /net/$tgtnode/ ] || nl_error "Cannot locate target node /net/$tgtnode"
+ok=`on -f $tgtnode echo OK 2>&1`
+[ "$ok" = "OK" ] || nl_error "$ok"
+
+cp -vn /etc/passwd /etc/group /etc/shadow /net/$tgtnode/etc
+on -f $tgtnode mkdir -p /usr/pkg/etc
+cp -vn /usr/pkg/etc/sudoers /net/$tgtnode/usr/pkg/etc/
+cp -vn /etc/profile.d/pkg.sh /net/$tgtnode/etc/profile.d
+ln -s pkg.sh /net/$tgtnode/etc/profile.d/pkg.ksh
+

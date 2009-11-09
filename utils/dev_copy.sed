@@ -16,9 +16,15 @@
 \%/usr/photon/% d
 \%/usr/include/\(arm\|ppc\|sh\|mips\)/% d
 \%/usr/help/eclipse/% d
-\%/usr/photon/% d
+\%/qnx6/usr/photon/% d
+\%/qnx6/x86/usr/photon/bin/% d
+\%/qnx6/x86/usr/photon/dll/% d
+\%/qnx6/x86/usr/photon/savers/% d
 \%/qnx6/etc/% d
-\%/target/qnx6/x86/% d
+\%/target/qnx6/x86/boot/% d
+\%/target/qnx6/x86/bin/% d
+\%/target/qnx6/x86/usr/% d
+\%/target/qnx6/x86/sbin/% d
 \%/target/qnx6/opt/webkit/% d
 \%usr/qnx641/install/% d
 \%/target/qnx6/var/state/% d

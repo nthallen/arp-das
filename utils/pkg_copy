@@ -2,6 +2,10 @@
 # pkg_copy <tgtnode> <pkg> ...
 # example: pkg_copy radflt perl sudo
 
+if [ `id -u` != 0 ]; then
+  exec /usr/pkg/bin/sudo $0 $*
+fi
+
 function nl_error {
   echo "pkg_copy: $*" >&2
   exit 1
