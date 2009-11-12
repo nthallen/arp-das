@@ -75,7 +75,7 @@ Channel 5 IX5
   Disable Zeroref
   # Swap Limits
   # Invert Step
-  # Invert Direction
+  Invert Direction
   # Invert Run
 
 Channel 6 IX6
