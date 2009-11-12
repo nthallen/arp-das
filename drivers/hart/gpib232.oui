@@ -1,0 +1,23 @@
+<package> gpib232
+
+<include> <stdio.h>
+<include> "nortlib.h"
+<include> "gpib232.h"
+<follow> msg
+
+<opts> "p:"
+
+<sort>
+	-p <port> port of GPIB-232-CT-A. Defaults to /dev/ser1
+
+<vars>
+  char *port = "/dev/ser1";
+
+<switch>
+  case 'p':
+	port = optarg;
+	break;
+
+<inits>
+  if ( gpib232_init( port ) != 0 )
+	nl_error( 3, "Unable to open port %s", port );
