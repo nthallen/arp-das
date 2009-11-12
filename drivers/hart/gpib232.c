@@ -1,6 +1,9 @@
 #include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include "nortlib.h"
+#include "nl_assert.h"
 #include "gpib232.h"
 
 static int gpib_fd = -1;
@@ -25,9 +28,10 @@ int gpib232_cmd_read( const char *cmd, char *rep, int nb ) {
   int nbr;
   int nbw = gpib232_cmd(cmd);
   if ( nbw <= 0 ) return 0;
-  nbr = readcond(gpib_fd, rep, nb, 1, 1, (gpib_tmo+1)*10 );
+  //sleep(1);
+  nbr = readcond(gpib_fd, rep, nb, nb, 1, (gpib_tmo+1)*10 );
   if ( nbr >= 0 && nbr <= nb ) rep[nbr] = '\0';
-  return rbr;
+  return nbr;
 }
 
 int gpib232_wrt( int addr, const char *cmd ) {
@@ -47,11 +51,11 @@ int gpib232_wrt_read( int addr, const char *cmd, char *rep, int nb ) {
   snprintf(buf, OBUFSIZE, "wrt #%d %d\n%s\r\nrd #%d %d\r\n",
             strlen(cmd), addr, cmd, nb, addr );
   nbr = gpib232_cmd_read( buf, rep, nb+10 );
-  if (nbr < nb)
+  if (nbr < nb) {
     nl_error( 2, "Short read on command '%s': Requested %d, got %d",
       cmd, nb, nbr );
       return 0;
-  else {
+  } else {
     int i, nbrr = 0;
     for ( i = nb; i < nbr && isdigit(rep[i]); ++i ) {
       nbrr = nbrr*10 + rep[i] - '0';
@@ -69,7 +73,7 @@ int gpib232_wrt_read( int addr, const char *cmd, char *rep, int nb ) {
 void gpib232_shutdown( void ) {
   /* This issues Untalk and Unlisten commands */
   if ( gpib_fd != -1 ) {
-    gpib232_command( -2, "cmd\n_?\r" );
+    gpib232_cmd( "cmd\n_?\r" ); // Untalk and Unlisten
     close( gpib_fd );
     gpib_fd = -1;
   }
@@ -78,16 +82,37 @@ void gpib232_shutdown( void ) {
 #define IDBUFSIZE 256
 /* gpib232_init(port) returns non-zero on error */
 int gpib232_init( const char *port ) {
-  char buf[IDBUFSIZE+10]
+  char buf[IDBUFSIZE+10];
+  int nb;
+
   gpib_fd = open( port, O_RDWR );
-  atexit( gpib232_shutdown );
   if (gpib_fd == -1) {
     nl_error( 3, "Unable to open gpib232 port %s", port);
     return 1;
   }
+  atexit( gpib232_shutdown );
+  fcntl( gpib_fd, F_SETFL, O_NONBLOCK);
+  for (;;) {
+    nb = read( gpib_fd, buf, IDBUFSIZE );
+    if ( nb <= 0 ) break;
+    nl_error( 0, "GI: Cleared %d bytes", nb );
+  }
+  fcntl( gpib_fd, F_SETFL, 0);
+
   nb = gpib232_cmd_read( "id\r\n", buf, IDBUFSIZE );
   if ( nb == 0 ) nl_error( 3, "GPIB232 initialization ID failed" );
-  else nl_error( 0, "GPIB232 Initialization: %s", buf );
+  else {
+    int i;
+    for ( i = 0; i < nb; ++i ) {
+      if ( buf[i] != '\r' && buf[i] != '\n' ) {
+	char *s = &buf[i];
+	for (++i; i < nb && buf[i] != '\r' && buf[i] != '\n'; ++i);
+	buf[i] = '\0';
+	nl_error( 0, "GI: %s", s );
+      }
+    }
+    // nl_error( 0, "GI(%d): %s", nb, buf );
+  }
   sprintf( buf, "tmo %d\r\n", gpib_tmo );
   gpib232_cmd( buf );
   return 0;
