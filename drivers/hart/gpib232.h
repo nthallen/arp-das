@@ -1,8 +1,7 @@
 /* gpib232.h defines interface to the GPIB232-CTA */
-int gpib232_read_data( char *buf, int count, int addr );
-double gpib232_read_double( int addr );
-short int gpib232_read_status( void );
-void gpib232_command( int lvl, char *msg );
-int gpib232_init( const char *port );
-/* optional: invoked via atexit() after gpib232_init() */
-void gpib232_shutdown( void );
+extern int gpib232_cmd( const char *cmd );
+extern int gpib232_cmd_read( const char *cmd, char *rep, int nb );
+extern int gpib232_wrt( int addr, const char *cmd );
+extern int gpib232_wrt_read( int addr, const char *cmd, char *rep, int nb );
+extern void gpib232_shutdown( void );
+extern int gpib232_init( const char *port );
