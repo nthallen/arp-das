@@ -1,107 +1,102 @@
 #include <stdlib.h>
 #include <signal.h>
-#include <string.h>
+#include <unistd.h>
+#include <ctype.h>
 #include "nortlib.h"
-#include "oui.h"
-#include "da_cache.h"
 #include "gpib232.h"
+#include "collect.h"
 #include "hartd.h"
+#include "oui.h"
 
-/* hartd is a less-configurable version of hart to read
-   a single temperature channel and report it to TM via
-   da_cache. In addition to the standard DAS options,
-   it will take a -a option to specify the cache address.
-   The value it will report will be a double.
-*/
+#define HART_ADDR 22
 
 static int done = 0;
-unsigned short cache_addr = 0;
-
-void hart_output( char *cmd ) {
-  char buf[80];
-  
-  sprintf( buf, "wrt #%d 22\n%s\r", strlen(cmd), cmd );
-  gpib232_command( -2, buf );
-}
-
-int hart_input( char *buf, int count ) {
-  return gpib232_read_data( buf, count, 22 );
-}
-
-/* hart_readwrite() actually writes a command,
-   then reads and finally writes the date to
-   cache.
-*/
-void hart_readwrite( char *cmd ) {
-  char buf[80];
-  int nb;
-
-  hart_output( cmd );
-  nb = hart_input( buf, 32 );
-  if ( strncmp( buf, "1: ", 3 ) == 0 ) {
-    int rv;
-	double val = strtod( buf+3, 0 );
-	rv = cache_writev( cache_addr, sizeof(double), (void *)&val	);
-	if ( rv == CACHE_E_NOCACHE ) {
-	  nl_error( 0, "Cache has terminated: I will too" );
-	  done = 1;
-	} else if ( rv != CACHE_E_OK ) {
-	  nl_error( 1, "Error %d from cache_writev", rv );
-	}
-  } else {
-	nl_error( 1, "Invalid data from hart: '%s'", buf );
-  }
-}
-
 void sigint_handler( int sig ) {
   done = 1;
 }
 
-void main( int argc, char **argv ) {
-  int n_channels = 1;
+void hart_init(void) {
+  char buf[45];
+  int nb;
+  nb = gpib232_wrt_read( 22, "ver\n", buf, 25 );
+  while ( nb > 0 && (buf[nb-1] == '\r' || buf[nb-1] == '\n' ))
+    buf[--nb] = '\0';
+  if (nb > 0 ) nl_error(0, "Hart: %s", buf);
+  else nl_error(1, "Hart: ver request returned %d bytes", nb);
+  // Now program the scanning method, units
+  // This string specifies scanning 2 channels and reading Ohms
+  gpib232_wrt( HART_ADDR, "scn=2 & scmo=1 & un=o & sact=r\n" );
+}
+
+static void hart_shutdown(void) {
+  char buf[50];
   
-  oui_init_options( argc, argv );
-  if ( cache_addr == 0 )
-	nl_error( 3, "Must specify a cache address" );
-  nl_error( 0, "Starting: %d channel at address 0x%04X",
-	n_channels, cache_addr );
+  /* Send shutdown commands to the devices */
+  gpib232_wrt( HART_ADDR, "sact=st\n" );
+  sprintf( buf, "loc %d\r\n", HART_ADDR );
+  gpib232_cmd( buf );
+}
 
-  /* Initialize the gpib232 */
-  gpib232_command( -2, "tmo 5\r" );
+static hartd_t Hart;
 
-  /* Initialize device(s) */
-  /* Set number of channels to n_channels and run */
-  { char buf[80];
-	sprintf( buf, "scn=%d & sact=r\n", n_channels );
-	hart_output( buf );
+void process_reading( send_id id, char *buf, int nb ) {
+  char *s = buf;
+  // buf should contain "^SC\d+:\s*-?\d*\.\d+\S"
+  if ( *s == 'S' && *++s == 'C' && isdigit(*++s) ) {
+    int chan = 0;
+    while ( isdigit(*s) )
+      chan = chan*10 + *s++ - '0';
+    if (chan > 0 && chan < 11 && *s == ':') {
+      while (isspace(*++s) );
+      if ( isdigit(*s) || *s == '-' || *s == '.' ) {
+	Hart.chan = chan;
+	Hart.value = atof(s);
+	if ( Col_send(id) ) {
+	  done = 1;
+	  nl_error( 0, "Received error sending to TM" );
+	}
+	return;
+      }
+    }
   }
+  while ( nb > 0 && (buf[nb-1] == '\r' || buf[nb-1] == '\n' ))
+    buf[--nb] = '\0';
+  nl_error( 1, "tem syntax error: '%s'", buf );
+}
+
+int main( int argc, char **argv ) {
+  send_id hart_id;
+  oui_init_options( argc, argv );
+  hart_id = Col_send_init( "Hart", &Hart, sizeof(Hart), 0 );
 
   signal( SIGINT, sigint_handler );
   signal( SIGHUP, sigint_handler );
-  /* ### ask cmd_ctrl to send a signal on quit */
 
   while ( ! done ) {
-	char buf[80];
-	int nb;
-	
-	hart_output( "new\n" );
-	nb = hart_input( buf, 10 );
-	if ( nb <= 6 ) {
-	  nl_error( 1, "Short read on new" );
-	} else if ( buf[5] == '1' ) {
-	  hart_readwrite( "tem\n" );
-	} else if ( buf[5] != '0' ) {
-	  nl_error( 1, "New returned %d bytes: '%s", nb, buf );
-	}
-	sleep(1);
+    char buf[80];
+    int nb;
+    
+    nb = gpib232_wrt_read( HART_ADDR, "new\n", buf, 10 );
+    while ( nb > 0 && (buf[nb-1] == '\r' || buf[nb-1] == '\n' ))
+      buf[--nb] = '\0';
+    if ( nb < 6 ) {
+      nl_error( 1, "Short read (%d) on new: '%s'", nb, buf );
+    } else if ( buf[5] == '1' ) {
+      nb = gpib232_wrt_read(HART_ADDR, "tem\n", buf, 20 );
+      if ( nb > 0 ) process_reading( hart_id, buf, nb );
+      else nl_error( 2, "tem returned %d", nb );
+    } else if ( buf[5] != '0' ) {
+      nl_error( 1, "New returned %d bytes: '%s", nb, buf );
+    }
+    sleep(1);
   }
 
   /* Send shutdown commands to the devices */
-  hart_output( "sact=st\n" );
-  gpib232_command( -2, "loc 22\r" );
+  hart_shutdown();
 
   /* Close our connections to Collection */
 
   /* Sign off */
-  nl_error( 0, "Finished" );
+  nl_error( 0, "Hart finished" );
+  return 0;
 }

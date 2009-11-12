@@ -1,6 +1,9 @@
 #ifndef HARTD_H_INCLUDED
 #define HARTD_H_INCLUDED
 
-extern unsigned short cache_addr;
+typedef struct {
+  int chan;
+  double value;
+} hartd_t;
 
 #endif

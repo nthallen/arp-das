@@ -11,7 +11,7 @@
 	-p <port> port of GPIB-232-CT-A. Defaults to /dev/ser1
 
 <vars>
-  char *port = "/dev/ser1";
+  char *port = "/dev/ser2";
 
 <switch>
   case 'p':
@@ -19,5 +19,4 @@
 	break;
 
 <inits>
-  if ( gpib232_init( port ) != 0 )
-	nl_error( 3, "Unable to open port %s", port );
+  gpib232_init( port );
