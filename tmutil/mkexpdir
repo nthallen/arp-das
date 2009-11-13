@@ -1,0 +1,31 @@
+#! /bin/sh
+# mkexpdir [-n node] expname
+# Script to create a new experiment dir
+function nl_error {
+  echo "mkexpdir: $*" >&2
+  exit 1
+}
+
+if [ `id -u` != 0 ]; then
+  exec /usr/pkg/bin/sudo $0 $*
+fi
+
+node=""
+if [ "$1" = "-n" ]; then
+  node=$2
+  [ -z "$node" ] && nl_error "No node specified"
+  node=/net/$node
+  [ -d /net/$node ] || nl_error "Cannot located specified node: $node"
+  shift 2
+fi
+
+exp=$1
+[ -z "$exp" ] && nl_error "Usage: mkexpdir [-n node] expname"
+[ -d $node/home/$exp ] && nl_error $node/home/$exp already exists
+[ -e $node/home/$exp ] && nl_error $node/home/$exp is not a directory
+
+for dir in $node/home/$exp $node/home/$exp/src $node/home/$exp/bin; do
+  mkdir $dir
+  chown flight:flight $dir
+  chmod g+w $dir
+done
