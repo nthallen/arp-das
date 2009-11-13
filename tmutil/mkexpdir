@@ -15,7 +15,7 @@ if [ "$1" = "-n" ]; then
   node=$2
   [ -z "$node" ] && nl_error "No node specified"
   node=/net/$node
-  [ -d /net/$node ] || nl_error "Cannot located specified node: $node"
+  [ -d $node ] || nl_error "Cannot located specified node: $node"
   shift 2
 fi
 
