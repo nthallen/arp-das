@@ -46,6 +46,8 @@ int main(int argc, char **argv ) {
   send_id tmid;
   int cmd_fd;
   oui_init_options(argc, argv);
+  nl_error( 0, "Initializing" );
+
   // Initialize connection to telemetry
   tmid = Col_send_init("SpecQ", &SpecQ, sizeof(SpecQ), 0);
   SpecQ.status = 202;

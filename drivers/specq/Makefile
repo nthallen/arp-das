@@ -1,5 +1,5 @@
 SRC=specq.c specq.oui specq.h
-LDFLAGS=-L/usr/local/lib -lsocket -lnort -ltm
+LDFLAGS=-L/usr/local/lib -lsocket -lnort -ltm -Wl,-rpath -Wl,/usr/local/lib
 CPPFLAGS=-I /usr/local/include
 CFLAGS=-Wall -g
 specq : specq.o specqoui.o
@@ -12,6 +12,7 @@ all : specq
 clean :
 	rm -f *.o specqoui.c specq
 install : install-bin
-	@cp -vn specq.h $(TGTNODE)/usr/local/include
+	@[ -d $(TGTNODE)/usr/local/include ] && \
+	cp -vn specq.h $(TGTNODE)/usr/local/include
 install-bin : specq
 	@cp -vn specq $(TGTNODE)/usr/local/bin
