@@ -51,6 +51,17 @@ int gpib232_wrt_read( int addr, const char *cmd, char *rep, int nb ) {
   snprintf(buf, OBUFSIZE, "wrt #%d %d\n%s\r\nrd #%d %d\r\n",
             strlen(cmd), addr, cmd, nb, addr );
   nbr = gpib232_cmd_read( buf, rep, nb+10 );
+  // In order to have a complete record, we need at least nb+3 bytes,
+  // and the last two bytes need to be <cr><lf>
+  while (nbr < nb+3 || rep[nbr-1] != '\n' || rep[nbr-2] != '\r' ) {
+    int nbrr = readcond(gpib_fd, &rep[nbr], nb+10-nbr,
+		  nb+10-nbr, 1, (gpib_tmo+1)*10);
+    if ( nbrr <= 0 ) {
+      nl_error( 1, "received no data from readcond on second try");
+      break;
+    }
+    nbr += nbrr;
+  }
   if (nbr < nb) {
     nl_error( 2, "Short read on command '%s': Requested %d, got %d",
       cmd, nb, nbr );

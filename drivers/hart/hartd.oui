@@ -8,6 +8,6 @@
 <init>
   hart_init();
 
-<package> msghdr_init
-<init>
-  msg_hdr = "hartd";
+<package> msghdr_default
+<var>
+  char *msg_hdr_default = "hartd";
