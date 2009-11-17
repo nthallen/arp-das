@@ -3,6 +3,14 @@
 #__USAGE
 #%C
 export PATH=:/bin:/usr/bin:/usr/local/bin
+if [ "x$1" != "xteed" ]; then
+  touch flight.sh.log
+  if [ -w flight.sh.log ]; then
+    $0 teed 2>&1 | tee -a flight.sh.log
+    exit 0
+  fi
+  echo "Cannot write to flight.sh.log"
+fi
 echo "\nRunning flight.sh: \c"; date
 
 #----------------------------------------------------------------
