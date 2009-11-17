@@ -23,7 +23,6 @@
 
 static int Host_socket;
 static char *HostName = "mattson";
-static unsigned short cache_addr;
 static int specq_host_init( char *RemHost );
 static void main_loop( send_id tmid, int cmd_fd );
 static void read_command(int cmd_fd, send_id tmid);

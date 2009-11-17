@@ -9,6 +9,6 @@
 <init>
   specq_opt_init(argc,argv);
 
-<package> msghdr_init
-<init>
-  msg_hdr = "specq";
+<package> msghdr_default
+<var>
+  char *msg_hdr_default = "specq";

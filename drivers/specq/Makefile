@@ -1,7 +1,7 @@
 SRC=specq.c specq.oui specq.h
 LDFLAGS=-L/usr/local/lib -lsocket -lnort -ltm
 CPPFLAGS=-I /usr/local/include
-CFLAGS=-w4 -g
+CFLAGS=-Wall -g
 specq : specq.o specqoui.o
 	$(LINK.c) -o specq specq.o specqoui.o
 	usemsg specq specqoui.c
