@@ -1,0 +1,14 @@
+<package> specq
+<include> msg
+<follow> msg
+<include> "specq.h"
+
+<opts> "H:"
+<sort>
+	-H host  Host address
+<init>
+  specq_opt_init(argc,argv);
+
+<package> msghdr_init
+<init>
+  msg_hdr = "specq";
