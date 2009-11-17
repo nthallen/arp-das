@@ -33,6 +33,8 @@ static int tmreadline( int socket, int loop );
 static specq_t SpecQ;
 static int busy;
 static int quitting;
+static int chk_select;
+
 // busy values are:
 // 0: read for commands. No outstanding communication with specd
 // 1: data has been written to specd and we're waiting for the reply
@@ -87,7 +89,8 @@ static void main_loop( send_id tmid, int cmd_fd ) {
       return;
     }
     if (FD_ISSET(cmd_fd, &read_fds)) read_command(cmd_fd, tmid);
-    if (FD_ISSET(Host_socket, &read_fds)) {
+    if (FD_ISSET(Host_socket, &read_fds) || chk_select) {
+      chk_select = 0;
       rv = tmreadline(Host_socket, 0);
       if ( rv == 0 ) return; // error already reported
       SpecQ.status = rv;
@@ -126,8 +129,6 @@ static void read_command(int cmd_fd, send_id tmid) {
     quitting = 1;
   } else if ( rv > MAX_PROTOCOL_LINE ) {
     nl_error( 4, "rv > MAX_PROTOCOL_LINE" );
-  } else if ( busy ) {
-    nl_error( 2, "Busy: ignoring command" );
   } else {
     int cmd;
     switch (buf[0]) {
@@ -144,39 +145,49 @@ static void read_command(int cmd_fd, send_id tmid) {
       case 'C':
         if (buf[1] == 'K') cmd = SPECQ_N_CHECK; break;
       case 'S':
-        if (buf[1] == 'C') cmd = SPECQ_N_SCAN; break;
+        if (buf[1] == 'C') cmd = SPECQ_N_SCAN;
+        break;
       default: break;
     }
     switch (cmd) {
       case SPECQ_N_EXIT:
         quitting = 1;
         break;
-      case SPECQ_N_RESET:
-        SpecQ.status = Send_to_spec( "%s\n", "reset" );
-        if ( SpecQ.status/100 != 2 )
-              nl_error( 2, "Reset returned %d", SpecQ.status );
-        break;
-      case SPECQ_N_CHECK:
-        SpecQ.status = Send_to_spec( "%s\n", "check" );
-        if ( SpecQ.status/100 != 2 )
-              nl_error( 2, "Check returned %d", SpecQ.status );
-        break;
-      case SPECQ_N_SCAN:
-        buf[rv] = '\0';
-        snprintf(scan, MAX_PROTOCOL_LINE, &buf[3], ++SpecQ.scannum );
-        SpecQ.status = Send_to_spec( "scan %s\n", scan );
-        if ( SpecQ.status/100 != 2 )
-          nl_error( 2, "Scan returned %d", SpecQ.status );
-        break;
-      case SPECQ_N_RESET_SCAN:
-        SpecQ.scannum = atoi(&buf[3]);
-        break;
-      case SPECQ_N_RESET_STATUS:
-        SpecQ.status = 0;
-        break;
       default:
-        nl_error( 2, "Invalid command" );
-        break;
+	if ( busy ) {
+	  nl_error( 2, "Busy: ignoring command" );
+	  return;
+	}
+	switch (cmd) {
+	  case SPECQ_N_RESET:
+	    SpecQ.status = Send_to_spec( "%s\n", "reset" );
+	    if ( SpecQ.status/100 != 2 )
+		  nl_error( 2, "Reset returned %d", SpecQ.status );
+	    break;
+	  case SPECQ_N_CHECK:
+	    SpecQ.status = Send_to_spec( "%s\n", "check" );
+	    if ( SpecQ.status/100 != 2 )
+		  nl_error( 2, "Check returned %d", SpecQ.status );
+	    break;
+	  case SPECQ_N_SCAN:
+	    buf[rv] = '\0';
+	    snprintf(scan, MAX_PROTOCOL_LINE, &buf[2], ++SpecQ.scannum );
+	    nl_error( -2, "Sending 'scan %s'", scan );
+	    SpecQ.status = Send_to_spec( "scan %s\n", scan );
+	    if ( SpecQ.status/100 != 2 )
+	      nl_error( 2, "Scan returned %d", SpecQ.status );
+	    break;
+	  case SPECQ_N_RESET_SCAN:
+	    SpecQ.scannum = atoi(&buf[2]);
+	    break;
+	  case SPECQ_N_RESET_STATUS:
+	    SpecQ.status = 0;
+	    break;
+	  default:
+	    nl_error( 2, "Invalid command" );
+	    break;
+	}
+	break;
     }
     Col_send(tmid);
   }
@@ -218,7 +229,6 @@ static int specq_host_init( char *RemHost ) {
     return 1;
   }
 
-  nl_error( -2, "Child: host_init getting there" );  
   Host_socket = socket( AF_INET, SOCK_STREAM, 0);
   if ( Host_socket == -1 ) return report_error( "from socket()" );
   server.sin_len = 0;
@@ -230,10 +240,10 @@ static int specq_host_init( char *RemHost ) {
   status = Send_to_spec( "%s\n", "open specd!" );
   if (status/100 == 2)
     status = tmreadline( Host_socket, 1 );
-  if (status/100 != 2) {
+  if (status != 200) {
     nl_error( 2, "Open specd returned %d", status );
     return 1;
-  }
+  } else nl_error( -2, "open specd returned %d", status );
   status = Send_to_spec( "%s\n", "check" );
   if (status/100 != 2) {
     nl_error( 2, "check failed after open specd" );
@@ -281,7 +291,7 @@ static int tmreadline( int socket, int loop ) {
     if (nb == -1) {
       nl_error( 2, "Read returned error: %d", errno );
       return 0;
-    } else if ( nb <= 0 || nb > nbytes ) {
+    } else if ( nb < 0 || nb > nbytes ) {
       nl_error( 2, "Read returned %d, expected %d", nb, nbytes );
       return 0;
     } else {
@@ -289,11 +299,14 @@ static int tmreadline( int socket, int loop ) {
       buf[tb] = '\0';
       /* Did we get a complete line? */
       if ( buf[tb-1] == '\n' || buf[tb-1] == '\r' ) {
+        nbytes = 0;
         if ( isdigit(buf[0]) ) {
           int rv = 0;
           for ( bfr = buf; isdigit(*bfr); bfr++ )
             rv = rv*10 + *bfr - '0';
           busy = 0;
+          buf[tb-1] = '\0';
+          nl_error( -2, "tmr: '%s'", buf );
           return rv;
         } else {
           nl_error( 2, "Expected numeric code, got: '%s'", buf );
@@ -304,7 +317,12 @@ static int tmreadline( int socket, int loop ) {
     /* We didn't get a complete line, so we'll wait for more */
     nbytes -= nb;
     bfr = (void *)(((char *)bfr) + nb);
-    if ( !loop) return 202;
+    if ( !loop) {
+      nl_error( -2, "Returning busy from tmreadline" );
+      buf[tb] = '\0';
+      nl_error( -2, "tb=%d '%s'", tb, buf );
+      return 202;
+    }
   }
   nl_error( 2, "Line too long from specd" );
   return 0;
@@ -313,7 +331,7 @@ static int tmreadline( int socket, int loop ) {
 void specq_opt_init( int argc, char **argv ) {
   int c;
 
-  optind = 0; /* start from the beginning */
+  optind = OPTIND_RESET; /* start from the beginning */
   opterr = 0; /* disable default error message */
   while ((c = getopt( argc, argv, opt_string )) != -1) {
     switch ( c ) {
