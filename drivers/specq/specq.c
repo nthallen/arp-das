@@ -9,8 +9,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/param.h>
-#include <sys/kernel.h>
-#include <sys/name.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <unix.h>
 #include <ctype.h>
@@ -20,6 +19,7 @@
 #include "collect.h"
 #include "specq.h"
 #include "tm.h"
+#include "nl_assert.h"
 
 static int Host_socket;
 static char *HostName = "mattson";
@@ -27,7 +27,6 @@ static unsigned short cache_addr;
 static int specq_host_init( char *RemHost );
 static void main_loop( send_id tmid, int cmd_fd );
 static void read_command(int cmd_fd, send_id tmid);
-static void read_specd(int socket);
 static int report_error( char *txt );
 static int Send_to_spec( char *fmt, char *txt );
 static int tmreadline( int socket, int loop );
@@ -49,14 +48,14 @@ int main(int argc, char **argv ) {
   int cmd_fd;
   oui_init_options(argc, argv);
   // Initialize connection to telemetry
-  tmid = Col_send_init("SpecQ", &SpecQ, sizeof(SpecQ));
+  tmid = Col_send_init("SpecQ", &SpecQ, sizeof(SpecQ), 0);
   SpecQ.status = 202;
   Col_send(tmid);
 
   // Initialize connection to command server
-  nl_set_response(2);
+  set_response(2);
   cmd_fd = ci_cmdee_init("specq");
-  if (cmd_fd >= 0 && specq_host_init(Hostname) == 0) {
+  if (cmd_fd >= 0 && specq_host_init(HostName) == 0) {
     SpecQ.status = 200;
     Col_send(tmid);
     nl_error( 0, "Initialized" );
@@ -70,14 +69,14 @@ int main(int argc, char **argv ) {
 }
 
 static void main_loop( send_id tmid, int cmd_fd ) {
-  int width = ( cmd_fd > Host_Socket ? cmd_fd : Host_Socket ) + 1;
+  int width = ( cmd_fd > Host_socket ? cmd_fd : Host_socket ) + 1;
   for(;;) {
     fd_set read_fds;
     int rv;
     
     FD_ZERO(&read_fds);
     FD_SET(cmd_fd, &read_fds);
-    FD_SET(Host_Socket, &read_fds);
+    FD_SET(Host_socket, &read_fds);
     rv = select( width, &read_fds, NULL, NULL, NULL );
     if ( rv == -1 ) {
       report_error("From select()");
@@ -87,8 +86,8 @@ static void main_loop( send_id tmid, int cmd_fd ) {
       return;
     }
     if (FD_ISSET(cmd_fd, &read_fds)) read_command(cmd_fd, tmid);
-    if (FD_ISSET(Host_Socket, &read_fds)) {
-      rv = tmreadline(Host_Socket, 0);
+    if (FD_ISSET(Host_socket, &read_fds)) {
+      rv = tmreadline(Host_socket, 0);
       if ( rv == 0 ) return; // error already reported
       SpecQ.status = rv;
       Col_send(tmid);
@@ -116,6 +115,7 @@ static void main_loop( send_id tmid, int cmd_fd ) {
 static void read_command(int cmd_fd, send_id tmid) {
   char buf[MAX_PROTOCOL_LINE+1];
   char scan[MAX_PROTOCOL_LINE];
+  int rv;
   
   rv = read(cmd_fd, buf, MAX_PROTOCOL_LINE);
   if ( rv < 0 ) {
@@ -132,45 +132,45 @@ static void read_command(int cmd_fd, send_id tmid) {
     switch (buf[0]) {
       case 'R':
         switch (buf[1]) {
-          case 'E': cmd = SPECQ_RESET; break;
-          case 'N': cmd = SPECQ_RESET_SCAN; break;
-          case 'S': cmd = SPECQ_RESET_STATUS; break;
+          case 'E': cmd = SPECQ_N_RESET; break;
+          case 'N': cmd = SPECQ_N_RESET_SCAN; break;
+          case 'S': cmd = SPECQ_N_RESET_STATUS; break;
           default: break;
         }
         break;
       case 'E':
-        if (buf[1] == 'X') cmd = SPECQ_EXIT; break;
+        if (buf[1] == 'X') cmd = SPECQ_N_EXIT; break;
       case 'C':
-        if (buf[1] == 'K') cmd = SPECQ_CHECK; break;
+        if (buf[1] == 'K') cmd = SPECQ_N_CHECK; break;
       case 'S':
-        if (buf[1] == 'C') cmd = SPECQ_SCAN; break;
+        if (buf[1] == 'C') cmd = SPECQ_N_SCAN; break;
       default: break;
     }
     switch (cmd) {
-      case SPECQ_EXIT:
+      case SPECQ_N_EXIT:
         quitting = 1;
         break;
-      case SPECQ_RESET:
+      case SPECQ_N_RESET:
         SpecQ.status = Send_to_spec( "%s\n", "reset" );
         if ( SpecQ.status/100 != 2 )
               nl_error( 2, "Reset returned %d", SpecQ.status );
         break;
-      case SPECQ_CHECK:
+      case SPECQ_N_CHECK:
         SpecQ.status = Send_to_spec( "%s\n", "check" );
         if ( SpecQ.status/100 != 2 )
               nl_error( 2, "Check returned %d", SpecQ.status );
         break;
-      case SPECQ_SCAN:
+      case SPECQ_N_SCAN:
         buf[rv] = '\0';
         snprintf(scan, MAX_PROTOCOL_LINE, &buf[3], ++SpecQ.scannum );
-        SpecQ.status = Send_to_spec( "scan %s\n", msg.cmdtext );
+        SpecQ.status = Send_to_spec( "scan %s\n", scan );
         if ( SpecQ.status/100 != 2 )
           nl_error( 2, "Scan returned %d", SpecQ.status );
         break;
-      case SPECQ_RESET_SCAN:
-        SpecQ.scannum = atoi(msg.cmdtext);
+      case SPECQ_N_RESET_SCAN:
+        SpecQ.scannum = atoi(&buf[3]);
         break;
-      case SPECQ_RESET_STATUS:
+      case SPECQ_N_RESET_STATUS:
         SpecQ.status = 0;
         break;
       default:
@@ -179,13 +179,6 @@ static void read_command(int cmd_fd, send_id tmid) {
     }
     Col_send(tmid);
   }
-}
-
-static void read_specd(int socket) {
-  rv = tmreadline(socket, 0);
-  if ( rv == 0 ) return; //error already reported
-  status = rv;
-  Col_send(tmid);
 }
 
 /* Prints an error message and returns 1 */
@@ -261,7 +254,7 @@ static int Send_to_spec( char *fmt, char *txt ) {
   }
   rv = write( Host_socket, buf, strlen(buf) );
   if ( rv == -1 ) {
-    child_error( "writing to socket" );
+    report_error( "writing to socket" );
     return 404; /* Don't know what to do! */
   }
   busy = 1;

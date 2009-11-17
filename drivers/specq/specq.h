@@ -27,13 +27,20 @@ typedef struct {
   unsigned short status;
 } specq_t;
 
-#define SPECQ_HDR 'SQ'
-#define SPECQ_EXIT 'EX'
-#define SPECQ_RESET 'RE'
-#define SPECQ_CHECK 'CK'
-#define SPECQ_SCAN  'SC'
-#define SPECQ_RESET_SCAN 'RN'
-#define SPECQ_RESET_STATUS 'RS'
 #define MAX_PROTOCOL_LINE 256
+
+#define SPECQ_EXIT "EX"
+#define SPECQ_RESET "RE"
+#define SPECQ_CHECK "CK"
+#define SPECQ_SCAN  "SC"
+#define SPECQ_RESET_SCAN "RN"
+#define SPECQ_RESET_STATUS "RS"
+
+#define SPECQ_N_EXIT 2 /* 'EX' */
+#define SPECQ_N_RESET 3 /* 'RE' */
+#define SPECQ_N_CHECK 4 /* 'CK' */
+#define SPECQ_N_SCAN  5 /* 'SC' */
+#define SPECQ_N_RESET_SCAN 6 /* 'RN' */
+#define SPECQ_N_RESET_STATUS 7 /* 'RS' */
 
 #endif
