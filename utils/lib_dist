@@ -1,0 +1,41 @@
+#! /bin/sh
+# lib_dist <tgtnode> <lib> ...
+# example: lib_dist radgse tm
+
+if [ `id -u` != 0 ]; then
+  exec /usr/pkg/bin/sudo $0 $*
+fi
+
+function nl_error {
+  echo "lib_dist: $*" >&2
+  exit 1
+}
+
+tgtnode=$1
+shift
+
+[ -z "$tgtnode" ] && nl_error "Usage: lib_dist <tgtnode> <lib> ..."
+dest=/net/$tgtnode/usr/local/lib
+src=/usr/local/lib
+[ -d $dest ] || nl_error "Cannot locate target node $dest"
+[ -d $src ] || nl_error "Cannot locate source directory $src"
+
+for lib in $*; do
+  cd $src
+  links=''
+  for file in lib$lib.*; do
+    if [ -L $file ]; then
+      links="$links $file"
+    else
+      [ -f $file ] &&
+	cp -vn $file $dest/$file
+    fi
+  done
+  for link in $links; do
+    cmd=`find . -name $link -type l -printf "ln -fs %l %p\n"`
+    cd $dest
+    echo $cmd
+    eval $cmd
+    cd $src
+  done
+done
