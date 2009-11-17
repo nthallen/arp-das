@@ -78,6 +78,8 @@ int Col_send(send_id sender) {
       nl_error(-2,"Col_send() write returned errno %d", errno);
       sender->err_code = errno;
       return 1;
+    } else if ( nb == 0 ) {
+      return 1;
     }
     if (sender->armed == 2) {
       int rv = ionotify(sender->fd, _NOTIFY_ACTION_POLLARM,
