@@ -40,7 +40,7 @@ typedef struct {
   tma_state *cmds;
   int next_cmd;
   long int waiting;
-  char *next_str;
+  const char *next_str;
 } tma_prtn;
 extern tma_prtn *tma_partitions;
 extern long int tma_runbasetime;

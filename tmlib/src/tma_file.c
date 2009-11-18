@@ -11,7 +11,7 @@
 char rcsid_tma_file_c[] = 
   "$Header$";
 
-static char *yy_filename;
+static const char *yy_filename;
 static int yy_lineno;
 static char *yy_text;
 static long int yy_val;
@@ -194,7 +194,7 @@ static int tma_strdup( command_t **ptr, const char *str, command_t *next ) {
   return 1;
 }
 
-static slurp_val *find_slurp( char *statename ) {
+static slurp_val *find_slurp( const char *statename ) {
   int i;
   if (statename[0] == '_') statename++;
   for ( i = 0; slurp_vals[i].state != 0; i++ ) {
@@ -227,7 +227,7 @@ static long int last_time;
 */
 
 /* returns non-zero on error (and EOF is an error!) */
-static int read_a_cmd( FILE *fp, command_t **cmdl, char *mycase ) {
+static int read_a_cmd( FILE *fp, command_t **cmdl, const char *mycase ) {
   slurp_val *sv;
   int token;
 
@@ -323,19 +323,19 @@ static int read_a_cmd( FILE *fp, command_t **cmdl, char *mycase ) {
 	  }
 	case KW_RESUME:
 	  if ( yylex(fp) != TK_NAME )
-		synt_err( "Expecting state name after RESUME" );
+	    synt_err( "Expecting state name after RESUME" );
 	  else {
-		sv = find_slurp( yy_text );
-		if ( sv == NULL )
-		  synt_err( "Unknown state after RESUME" );
-		else {
-		  char *s;
-		  for ( s = sv->cmdstr; *s; s++ ) {
-			if ( *s == 'R' )
-			  return tma_strdup( cmdl, s, NULL );
-		  }
-		  synt_err( "Resume code not found" );
-		}
+	    sv = find_slurp( yy_text );
+	    if ( sv == NULL )
+	      synt_err( "Unknown state after RESUME" );
+	    else {
+	      char const * s;
+	      for ( s = sv->cmdstr; *s; s++ ) {
+		if ( *s == 'R' )
+		  return tma_strdup( cmdl, s, NULL );
+	      }
+	      synt_err( "Resume code not found" );
+	    }
 	  }
 	  return 1;
 	default:
@@ -344,8 +344,8 @@ static int read_a_cmd( FILE *fp, command_t **cmdl, char *mycase ) {
   }
 }
 
-static int read_a_tcmd( FILE *fp, char *mycase,
-						long int *dtp, command_t **cmdl ) {
+static int read_a_tcmd( FILE *fp, const char *mycase,
+	  long int *dtp, command_t **cmdl ) {
   int token;
   int delta = 0;
   long int dt = 0;
@@ -393,7 +393,7 @@ static void free_tmacmds( tma_ifile *spec ) {
 
   assert( spec->cmds != 0 );
   for ( cmd = spec->cmds; cmd->cmd != 0; cmd++ )
-	free( cmd->cmd );
+	free( (char *)(cmd->cmd) );
   free( spec->cmds );
   spec->cmds = NULL;
 }
@@ -406,7 +406,7 @@ malloc/free on the strings. Returns 0 on success.
 static int read_tmafile( tma_ifile *spec, FILE *fp ) {
   int max_cmds = 32, n_cmds = 0;
   slurp_val *sv;
-  char *mycase;
+  const char *mycase;
 
   spec->cmds = malloc( max_cmds * sizeof( tma_state ) );
   if ( spec->cmds == 0 ) {
@@ -415,48 +415,48 @@ static int read_tmafile( tma_ifile *spec, FILE *fp ) {
   }
   sv = find_slurp( spec->statename );
   if ( sv == NULL ) {
-	nl_error( 2, "State name '%s' not found in slurp_vals",
-	  spec->statename );
-	free_tmacmds( spec );
-	return 1;
+    nl_error( 2, "State name '%s' not found in slurp_vals",
+      spec->statename );
+    free_tmacmds( spec );
+    return 1;
   }
   mycase = sv->cmdstr + 1;
   yy_lineno = 1;
   yy_filename = spec->filename;
   last_time = 0;
   for (;;) {
-	command_t *cmdl, *old_cmdl;
-	long int dt;
+    command_t *cmdl, *old_cmdl;
+    long int dt;
 
-	spec->cmds[n_cmds].dt = -1;
-	spec->cmds[n_cmds].cmd = NULL;
-	if ( read_a_tcmd( fp, mycase, &dt, &cmdl ) ) {
-	  /* Syntax or other error */
-	  free_tmacmds( spec );
-	  return 1;
-	}
-	if ( cmdl == 0 ) break; /* EOF */
-	while ( cmdl != NULL ) {
-	  spec->cmds[n_cmds].dt = dt;
-	  spec->cmds[n_cmds].cmd = cmdl->cmd;
-	  if ( ++n_cmds == max_cmds ) {
-		tma_state *ncmds;
-		max_cmds *= 2;
-		ncmds = realloc( spec->cmds, max_cmds * sizeof( tma_state ) );
-		if ( ncmds == 0 ) {
-		  if ( cmdl->cmd != 0 ) {
-			free(cmdl->cmd);
-			spec->cmds[n_cmds-1].cmd = NULL;
-		  }
-		  free_tmacmds( spec );
-		  nl_error( 2, "Out of memory reading tma file" );
-		  return 1;
-		} else spec->cmds = ncmds;
+    spec->cmds[n_cmds].dt = -1;
+    spec->cmds[n_cmds].cmd = NULL;
+    if ( read_a_tcmd( fp, mycase, &dt, &cmdl ) ) {
+      /* Syntax or other error */
+      free_tmacmds( spec );
+      return 1;
+    }
+    if ( cmdl == 0 ) break; /* EOF */
+    while ( cmdl != NULL ) {
+      spec->cmds[n_cmds].dt = dt;
+      spec->cmds[n_cmds].cmd = cmdl->cmd;
+      if ( ++n_cmds == max_cmds ) {
+	tma_state *ncmds;
+	max_cmds *= 2;
+	ncmds = realloc( spec->cmds, max_cmds * sizeof( tma_state ) );
+	if ( ncmds == 0 ) {
+	  if ( cmdl->cmd != 0 ) {
+	    free(cmdl->cmd);
+	    spec->cmds[n_cmds-1].cmd = NULL;
 	  }
-	  old_cmdl = cmdl;
-	  cmdl = cmdl->next;
-	  free( old_cmdl );
-	}
+	  free_tmacmds( spec );
+	  nl_error( 2, "Out of memory reading tma file" );
+	  return 1;
+	} else spec->cmds = ncmds;
+      }
+      old_cmdl = cmdl;
+      cmdl = cmdl->next;
+      free( old_cmdl );
+    }
   }
   return 0;
 }

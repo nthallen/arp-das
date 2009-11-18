@@ -42,7 +42,7 @@ int tma_process( long int now ) {
   int partno, success, state_case, Rpartno;
   tma_prtn *p;
   long int dt, pdt, timeout, lastcheck;
-  char *cmd;
+  const char *cmd;
   
   if (tma_runbasetime == 0L) {
 	unsigned int i;
@@ -171,7 +171,7 @@ void tma_succeed( int partno, int statecase ) {
   tma_prtn *p;
   int success, state_case, res_case;
   long int timeout;
-  char *cmd;
+  const char *cmd;
 
   if ( partno < 0 || partno >= tma_n_partitions )
 	nl_error( 4, "Invalid partno in tma_succeed" );
