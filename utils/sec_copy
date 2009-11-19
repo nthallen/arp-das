@@ -13,7 +13,7 @@ function nl_error {
 
 scrnode=''
 if [ -n "$2" ]; then
-  srcnode=/net/$1
+  srcnode=$1
   shift
 fi
 tgtnode=$1
@@ -24,9 +24,31 @@ shift
 ok=`on -f $tgtnode echo OK 2>&1`
 [ "$ok" = "OK" ] || nl_error "$ok"
 
-cp -vn $srcnode/etc/passwd $srcnode/etc/group $srcnode/etc/shadow /net/$tgtnode/etc
+if [ -n "$srcnode" ]; then
+  sn=/net/$srcnode
+else
+  sn=''
+fi
+tn=/net/$tgtnode
+ood=''
+for i in passwd group shadow; do
+  [ $tn/etc/$i -nt $sn/etc/$i ] && ood="$ood /etc/$i"
+done
+[ $tn/usr/pkg/etc/sudoers -nt $sn/usr/pkg/etc/sudoers ] &&
+  ood="$ood /usr/pkg/etc/sudoers"
+[ $tn/etc/profile.d/pkg.sh -nt $sn/etc/profile.d/pkg.sh ] &&
+  ood="$ood /etc/profile.d/pkg.sh"
+if [ -n "$ood" ]; then
+  echo "Some files on target node are newer than source:"
+  for i in $ood; do
+    echo "  $i"
+  done
+  exit 1
+fi
+
+cp -vn $sn/etc/passwd $sn/etc/group $sn/etc/shadow $tn/etc
 on -f $tgtnode mkdir -p /usr/pkg/etc
-cp -vn $srcnode/usr/pkg/etc/sudoers /net/$tgtnode/usr/pkg/etc/
-cp -vn $srcnode/etc/profile.d/pkg.sh /net/$tgtnode/etc/profile.d
-ln -s pkg.sh /net/$tgtnode/etc/profile.d/pkg.ksh
+cp -vn $sn/usr/pkg/etc/sudoers $tn/usr/pkg/etc/
+cp -vn $sn/etc/profile.d/pkg.sh $tn/etc/profile.d
+ln -fs pkg.sh $tn/etc/profile.d/pkg.ksh
 
