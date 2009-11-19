@@ -11,17 +11,22 @@ function nl_error {
   exit 1
 }
 
+scrnode=''
+if [ -n "$2" ]; then
+  srcnode=/net/$1
+  shift
+fi
 tgtnode=$1
 shift
 
-[ -z "$tgtnode" ] && nl_error "Usage: sec_copy <tgtnode>"
+[ -z "$tgtnode" ] && nl_error "Usage: sec_copy [<srcnode>] <tgtnode>"
 [ -d /net/$tgtnode/ ] || nl_error "Cannot locate target node /net/$tgtnode"
 ok=`on -f $tgtnode echo OK 2>&1`
 [ "$ok" = "OK" ] || nl_error "$ok"
 
-cp -vn /etc/passwd /etc/group /etc/shadow /net/$tgtnode/etc
+cp -vn $srcnode/etc/passwd $srcnode/etc/group $srcnode/etc/shadow /net/$tgtnode/etc
 on -f $tgtnode mkdir -p /usr/pkg/etc
-cp -vn /usr/pkg/etc/sudoers /net/$tgtnode/usr/pkg/etc/
-cp -vn /etc/profile.d/pkg.sh /net/$tgtnode/etc/profile.d
+cp -vn $srcnode/usr/pkg/etc/sudoers /net/$tgtnode/usr/pkg/etc/
+cp -vn $srcnode/etc/profile.d/pkg.sh /net/$tgtnode/etc/profile.d
 ln -s pkg.sh /net/$tgtnode/etc/profile.d/pkg.ksh
 
