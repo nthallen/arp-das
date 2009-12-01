@@ -34,6 +34,11 @@
 # variable in Experiment.config and -x or -a has not been
 # selected, the analysis will be run.
 
+function nl_error {
+  echo "reduce: $*" >&2
+  exit 1
+}
+
 cfile=Experiment.config
 unset Experiment Extractions Analysis HomeDir FlightNode fltdir
 unset LogDirs LogFiles SaveFiles RunLog CopyHook
@@ -48,7 +53,7 @@ while getopts "ax" option; do
 	a) opt_anal=no;;
 	x) opt_exts=no;;
 	\?) echo; exit 1;;
-	*) echo reduce: Unsupported option: -$option; exit 1;;
+	*) nl_error "Unsupported option: -$option";;
   esac
 done
 let sval=$OPTIND-1
@@ -57,15 +62,13 @@ shift $sval
 #----------------------------------------------------------------
 # Load the configuration file
 #----------------------------------------------------------------
-if [ ! -f "$cfile" ]; then
-  echo reduce: Unable to locate configuration file $cfile >&2
-  exit 1
-fi
+[ ! -f "$cfile" ] &&
+  nl_error "Unable to locate configuration file $cfile"
+
 . $cfile
-[ -z "$Experiment" ] && {
-  echo reduce: Experiment undefined in $cfile >&2
-  exit 1
-}
+[ -z "$Experiment" ] &&
+  nl_error "Experiment undefined in $cfile"
+
 export Experiment
 
 if [ -n "$1" ]; then
@@ -94,14 +97,13 @@ case "$directory" in
 	if [ -d "$directory" ]; then
 	  CopyData=no
 	elif [ -z "$fltdir" ]; then
-	  [ -z "$FlightNode" ] &&
-		FlightNode=`namewait -n0 -t0 -G parent 2>/dev/null`
-	  [ -n "$FlightNode" ] && fltdir=//$FlightNode$HomeDir
+	  ## Require FlightNode to be defined, not discovered
+	  # [ -z "$FlightNode" ] &&
+	  #    FlightNode=`namewait -n0 -t0 -G parent 2>/dev/null`
+	  [ -n "$FlightNode" ] && fltdir=/net/$FlightNode$HomeDir
 	  [ -z "$fltdir" -o ! -d "$fltdir/$directory" ] && fltdir=$AltDir
-	  if [ ! -d "$fltdir/$directory" ]; then
-		echo reduce: Unable to locate data directory $fltdir/$directory >&2
-		exit 1
-	  fi
+	  [ ! -d "$fltdir/$directory" ] &&
+	      nl_error "Unable to locate data directory $fltdir/$directory"
 	  [ ! "$CopyData" = "yes" ] &&
 		directory=$fltdir/$directory
 	fi;;
@@ -120,8 +122,9 @@ function Copy_Data {
 	DestParent=`dirname $directory`
 	[ -d $DestParent ] || mkdir -p $DestParent ||
 	  nl_error "Unable to create directory '$DestParent'"
+	# pick 4th element of df output (free kb)
 	set X `df $DestParent`
-	let destspace=$6-$CopySpace
+	let destspace=$5-$CopySpace
 	if [ $destspace -ge 0 ]; then
 	  srcmnt=`fullpath -t $SrcDir`
 	  srcnode=${srcmnt#//}
@@ -159,11 +162,8 @@ fi
 
 echo reduce: Extraction Proceeding ...
 export Extractions ExtProducts RDR_OPTS
-until extract $directory
-do
-  echo reduce: Extraction Apparently Failed
-  exit 1
-done
+extract $directory ||
+  nl_error Extraction Apparently Failed
 
 #----------------------------------------------------------------
 # Analysis
