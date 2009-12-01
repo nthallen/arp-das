@@ -1,0 +1,200 @@
+#! /bin/sh
+
+#__USAGE
+#%C [-xa]
+#	Run "saverun fix" to determine the data directory
+#%C [-xa] directory
+#	Operate on the specified directory
+#
+#	-x  Don't run extractions or analysis
+#	-a  Don't run analysis
+#
+# Reduce performs a series of operations following a data run.
+# If the data directory is not specified, reduce invokes saverun
+# to create a new data directory.
+#
+# After the data directory is created and/or located, reduce will
+# copy the data directory from the flight node to the GSE node.
+# This copy step will be skipped if the flight node and the GSE
+# node are the same or if the variable CopyData is set to "no"
+# in Experiment.config. Also, if the target directory is specified
+# using a relative path and it already exists relative to the
+# current directory, no copying will take place. If the
+# path exists relative to the flight directory, it may be copied
+# to the GSE node, following the same rules as for newly created
+# data directories.
+#
+# Next, if any extractions are defined (and -x is not specified),
+# they will be executed, and any spreadsheets created will be moved
+# into the corresponding analysis subdirectory (anal/$dir, where $dir
+# is the name of the new data directory). Extractions are defined via
+# the "Extractions" variable in Experiment.config.
+#
+# Finally, if an analysis script is defined via the "Analysis"
+# variable in Experiment.config and -x or -a has not been
+# selected, the analysis will be run.
+
+cfile=Experiment.config
+unset Experiment Extractions Analysis HomeDir FlightNode fltdir
+unset LogDirs LogFiles SaveFiles RunLog CopyHook
+typeset opt_exts=yes opt_anal=yes CopyData=yes FixDisk=no
+typeset Dircksum=no
+
+#----------------------------------------------------------------
+# Process command line options (-x, -a)
+#----------------------------------------------------------------
+while getopts "ax" option; do
+  case $option in
+	a) opt_anal=no;;
+	x) opt_exts=no;;
+	\?) echo; exit 1;;
+	*) echo reduce: Unsupported option: -$option; exit 1;;
+  esac
+done
+let sval=$OPTIND-1
+shift $sval
+
+#----------------------------------------------------------------
+# Load the configuration file
+#----------------------------------------------------------------
+if [ ! -f "$cfile" ]; then
+  echo reduce: Unable to locate configuration file $cfile >&2
+  exit 1
+fi
+. $cfile
+[ -z "$Experiment" ] && {
+  echo reduce: Experiment undefined in $cfile >&2
+  exit 1
+}
+export Experiment
+
+if [ -n "$1" ]; then
+  directory="$1"
+else
+  echo reduce: Saving Run ...
+  . saverun
+  echo reduce: Run Save Complete
+  directory=$RunDir
+fi
+
+#----------------------------------------------------------------
+# If we ran saverun, the directory name is relative to the
+# flight directory. If it was specified on the command line,
+# it may be relative to the GSE directory, relative to the
+# flight directory, or absolute (beginning with /) In any
+# case, if it is absolute or exists relative to the GSE
+# directory, no copying is indicated.
+#----------------------------------------------------------------
+case "$directory" in
+  \/*)
+	# absolute address
+	CopyData=no;;
+  *)
+	# relative address
+	if [ -d "$directory" ]; then
+	  CopyData=no
+	elif [ -z "$fltdir" ]; then
+	  [ -z "$FlightNode" ] &&
+		FlightNode=`namewait -n0 -t0 -G parent 2>/dev/null`
+	  [ -n "$FlightNode" ] && fltdir=//$FlightNode$HomeDir
+	  [ -z "$fltdir" -o ! -d "$fltdir/$directory" ] && fltdir=$AltDir
+	  if [ ! -d "$fltdir/$directory" ]; then
+		echo reduce: Unable to locate data directory $fltdir/$directory >&2
+		exit 1
+	  fi
+	  [ ! "$CopyData" = "yes" ] &&
+		directory=$fltdir/$directory
+	fi;;
+esac
+
+# Copy_Data srcdir destdir
+# Copies srcdir to destdir if CopySpace condition holds
+# returns true on success, false otherwise.
+function Copy_Data {
+  # CopySpace defines the minimum number of kb that should be
+  # left over after the copy.
+  
+  typeset DoCopy=$CopyData SrcDir=$1 DestDir=$2
+  typeset DestParent destspace hasmtpt srcmnt srcnode
+  if [ "$DoCopy" = "yes" -a -n "$CopySpace" ]; then
+	DestParent=`dirname $directory`
+	[ -d $DestParent ] || mkdir -p $DestParent ||
+	  nl_error "Unable to create directory '$DestParent'"
+	set X `df $DestParent`
+	let destspace=$6-$CopySpace
+	if [ $destspace -ge 0 ]; then
+	  srcmnt=`fullpath -t $SrcDir`
+	  srcnode=${srcmnt#//}
+	  srcnode=${srcnode%%/*}
+	  set X `on -n $srcnode du -sk $SrcDir`
+	  let destspace=destspace-$2
+	fi
+	if [ $destspace -lt 0 ]; then
+	  echo "reduce: Insufficient space, data will not be copied"
+	  DoCopy=no
+	fi
+  fi
+
+  if [ "$DoCopy" = "yes" ]; then
+	echo reduce: Copying from $SrcDir to $DestDir ...
+	cp -frc $SrcDir $DestDir
+	return 0
+  fi
+  return 1
+}
+
+[ ! "$CopyData" = "yes" ] ||
+  Copy_Data $fltdir/$directory $PWD/$directory ||
+  directory=$fltdir/$directory
+
+if [ -n "$CopyHook" ]; then
+  eval $CopyHook
+fi
+
+#----------------------------------------------------------------
+# Do Extractions if defined and not disabled
+#----------------------------------------------------------------
+[ -z "$Extractions" ] && echo reduce: No Extractions Defined && exit 0
+[ "$opt_exts" = "no" ] && echo reduce: Extractions Disabled && exit 0
+
+echo reduce: Extraction Proceeding ...
+export Extractions ExtProducts RDR_OPTS
+until extract $directory
+do
+  echo reduce: Extraction Apparently Failed
+  exit 1
+done
+
+#----------------------------------------------------------------
+# Analysis
+#  Execute $Analysis if defined and not disabled
+#  Analysis must be an executable (or executable script)
+#  including any required options.
+#
+#  Analysis may refer to shell variables $directory and/or
+#  $analdir as follows:
+#    Analysis='anal/script -s $directory $analdir'
+#  (Note the single quotes!)
+#
+#  In the usual case, analdir will simply be anal/950401.1.
+#  The Analysis
+#  will be run from the GSE directory, but the extracted
+#  spreadsheets upon which Analysis will work are probably
+#  located in $analdir, and the script and/or
+#  program should cd there before beginning work. If the
+#  extractions produce something other than spreadsheets,
+#  those files should have been moved into this directory
+#  by suitable definitions of ExtProducts.
+#
+#  It is my practice to store Analysis scripts in the anal
+#  subdirectory, so a natural definition might be:
+#   Analysis=anal/script
+#     or
+#   Analysis='anal/script -f opt $analdir'
+#----------------------------------------------------------------
+[ -z "$Analysis" ] && echo reduce: No Analysis Defined && exit 0
+[ "$opt_anal" = "no" ] && echo reduce: Analysis Disabled && exit 0
+analdir=anal/`basename $directory`
+eval echo "\"reduce: Beginning Analysis: $Analysis\""
+eval $Analysis
+echo reduce: Analysis Completed
