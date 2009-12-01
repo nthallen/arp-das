@@ -39,7 +39,7 @@ function nl_error {
   exit 1
 }
 
-cfile=Experiment.config
+cfile=./Experiment.config
 unset Experiment Extractions Analysis HomeDir FlightNode fltdir
 unset LogDirs LogFiles SaveFiles RunLog CopyHook
 typeset opt_exts=yes opt_anal=yes CopyData=yes FixDisk=no
