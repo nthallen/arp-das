@@ -8,6 +8,15 @@
 #  want to do before suspending, namely shut down the network.
 #%C wakeup
 #  Handles resetting the clock and acquiring an IP address
+#
+#  Windows (XP at least) apparently programs the hardware clock
+#  with the local *standard* time (i.e. not daylight time when
+#  in effect). To work around this on wakeup, we need to set TZ
+#  to the local standard timezone (e.g. EST05) when calling rtc.
+#  This timezone can be specified by setting the environment
+#  variable VMHWRTCTZ (defaults to EST05). In order for this to
+#  work, sudo must be configured to keep this variable (or all
+#  variables.)
 
 if [ `id -u` != 0 ]; then
   exec /usr/pkg/bin/sudo $0 $*
@@ -40,7 +49,7 @@ case $1 in
   suspend)
     slay dhcp.client;;
   wakeup)
-    /sbin/rtc -l hw
+    TZ=${VMHWRTCTZ:-EST05} /sbin/rtc -l hw
     /usr/sbin/dhcp.client -m
     waitforip;;
   *)

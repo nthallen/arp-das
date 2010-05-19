@@ -32,17 +32,20 @@ for pkg in $*; do
   [ -d "$pkgver" ] || nl_error "Confused by pkg '$pkg': $pkgver"
   [ -f $pkgver/+CONTENTS ] || nl_error "No +CONTENTS in $pkgver"
   echo "Processing $pkgver" >&2
-  { cwd=/usr/pkg
+  { cwd=usr/pkg
+    ignore=''
     while read line; do
       case $line in
 	"@cwd /usr/pkg") cwd=usr/pkg;;
 	"@cwd .") cwd=${pkgver#/};;
 	"@cwd "*) nl_error "Unexpected cwd line: '$line'";;
 	"@pkgdep "*) echo "$line" >&2;; # could check...
+	"@ignore") ignore=y;;
 	@*) ;;
-	*) echo $cwd/$line;;
+	*) if [ -n $ignore ]; then ignore=''; else echo $cwd/$line; fi;;
       esac
     done <$pkgver/+CONTENTS
+    find $pkgver -type f | sed -e 's,^/,,'
   } | tar -cf- -C / -T- | on -f $tgtnode tar -C / -xf-
 done
 
