@@ -42,7 +42,7 @@ for pkg in $*; do
 	"@pkgdep "*) echo "$line" >&2;; # could check...
 	"@ignore") ignore=y;;
 	@*) ;;
-	*) if [ -n $ignore ]; then ignore=''; else echo $cwd/$line; fi;;
+	*) if [ -n "$ignore" ]; then ignore=''; else echo $cwd/$line; fi;;
       esac
     done <$pkgver/+CONTENTS
     find $pkgver -type f | sed -e 's,^/,,'
