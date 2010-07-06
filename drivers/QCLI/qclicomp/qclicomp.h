@@ -89,6 +89,7 @@ extern void ptg_output_name( PTG_OUTPUT_FILE file, const char *name );
 #define APS_BIT_OFFSET 32768.
 #define MIN_DAC_BITS 0
 #define MAX_DAC_BITS 65535L
+  
 unsigned short amps_to_bits( double amps, int qclicfg, CoordPtr pos );
 unsigned short aps_to_bits( double aps, int qclicfg, CoordPtr pos );
 #define ICOS_WAVEFORM_CODE 0x3331

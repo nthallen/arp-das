@@ -284,7 +284,7 @@ void messagef( int severity, CoordPtr pos, char *fmt, ... ) {
   va_start(arg, fmt);
   vsnprintf( buf, MFBUFSIZE, fmt, arg );
   va_end(arg);
-  message( severity, buf, 0, pos );
+  message( severity, strdup(buf), 0, pos );
 }
 
 unsigned short amps_to_bits( double amps, int qclicfg, CoordPtr pos ) {
@@ -315,13 +315,15 @@ unsigned short aps_to_bits( double aps, int qclicfg, CoordPtr pos ) {
   bits = aps/aps_per_bit[qclicfg] + APS_BIT_OFFSET;
   sbits = (unsigned short) bits;
   if ( bits < MIN_DAC_BITS )
-    messagef( ERROR, pos, "Ramp DAC Value (%.1lf A/sec) below min (%.1lf A/sec)",
-        aps, (MIN_DAC_BITS-APS_BIT_OFFSET)*aps_per_bit[qclicfg]);
+    messagef( ERROR, pos, "Ramp DAC Value (%.1lf A/sec) %s (%.1lf A/sec)",
+        aps,
+        APS_PER_BIT < 0 ? "above max" : "below min",
+        (MIN_DAC_BITS-APS_BIT_OFFSET)*aps_per_bit[qclicfg]);
   if ( bits > MAX_DAC_BITS )
-    messagef( ERROR, pos, "Ramp DAC Value (%.1lf A/sec) above max (%.1lf A/sec)",
-        aps, (MAX_DAC_BITS-APS_BIT_OFFSET)*aps_per_bit[qclicfg]);
-  //if ( bits < MIN_DAC_BITS || bits > MAX_DAC_BITS )
-  //  message( ERROR, "Ramp DAC Value out of range", 0, pos );
+    messagef( ERROR, pos, "Ramp DAC Value (%.1lf A/sec) %s (%.1lf A/sec)",
+        aps,
+        APS_PER_BIT > 0 ? "above max" : "below min",
+        (MAX_DAC_BITS-APS_BIT_OFFSET)*aps_per_bit[qclicfg]);
   return sbits;
 }
 
