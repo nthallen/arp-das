@@ -1,4 +1,5 @@
 lib_LTLIBRARIES = libnort.la
+libnort_la_LDFLAGS = -version-info 0:1:0
 libnort_la_SOURCES = nl_error.c nl_verr.c nldbg.c \
                      compiler.c ll_of_str.c newmem.c nlresp.c \
                      strdup.c opnifile.c optstr.c yyin.c md5c.c \
