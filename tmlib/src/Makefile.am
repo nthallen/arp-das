@@ -4,7 +4,8 @@ libtm_la_SOURCES = cic.c cicf.c cictrans.c cis.c cis.h \
    tmctime.h colsend.c collect.h tm_info.c msg.c ci_cmdee.c civ.c \
    tma.c tma_file.c tmaR2.c tma_stubs.c tmdac.c
 
-include_HEADERS = tm.h tmctime.h collect.h hsatod.h msg.h tma.h
+include_HEADERS = tm.h tmctime.h collect.h hsatod.h msg.h tma.h \
+   company.h
 
 # Need to set CPPFLAGS when running configure (so it can find
 #  cmdalgo.h) Then this is unnecessary
