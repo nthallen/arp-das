@@ -13,7 +13,7 @@ use Cwd qw(getcwd abs_path);
 # A full package implementation would allow dependency on
 # specific version ranges. I will probably opt for taking the
 # latest version in most cases, particularly at this point
-# where were making initial installs.
+# where we are making initial installs.
 #
 # Later, as new packages are created or old packages are updated,
 # I will want a package install utility that would need to look
@@ -70,7 +70,7 @@ while (@reqlist) {
     print "Creating archive $archive.gz\n";
     for my $Files ( @{$inst->{Files}} ) {
       chdir($Files->{SrcRoot});
-      system( "tar -rf $archive --owner=0 --group=0 " .
+      system( "tar -rf $archive --owner=0 --group=0 --no-recursion " .
             "-T $pkgroot/$inst->{name}/$Files->{List}" ) &&
         die "tar failed creating archive for $inst->{name}\n";
     }
