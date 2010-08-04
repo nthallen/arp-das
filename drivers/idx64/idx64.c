@@ -443,6 +443,7 @@ static void execute_cmd( idx64_bd *bd, int chno ) {
   while ( ch->first != 0 ) {
     im = ch->first;
     if ( im->flags & IXCMD_NEEDS_INIT ) {
+      nl_error( -2, "Init command on channel %d", chno );
       im->flags &= ~IXCMD_NEEDS_INIT;
       if ( im->c.dir_scan == IX64_PRESET_POS ) {
         sbwr( ch->base_addr + 4, im->c.steps );
@@ -461,6 +462,7 @@ static void execute_cmd( idx64_bd *bd, int chno ) {
       }
     } else if ( im->flags &
                 (IXCMD_NEEDS_DRIVE | IXCMD_NEEDS_HYST ) ) {
+      nl_error( -2, "Drive command on channel %d", chno );
       if ( drive_chan( ch, im ) ) return;
       if ( (im->c.dir_scan & IX64_SCAN) == 0 )
         dequeue( ch );
@@ -684,6 +686,7 @@ static int parse_command( char *buf, int nb ) {
     nl_error( 2, "Short command received" );
     return 0;
   }
+  nl_error( -2, "Recd: %s", buf );
   for (i = 2; i < nb; ) {
     if (isdigit(buf[i])) {
       int arg = buf[i++] - '0';
@@ -789,8 +792,9 @@ static int check_command(void) {
   char buf[IDXCMDBUFSIZE];
   for (;;) {
     int rv;
-    rv = read(cmd_fd, buf, IDXCMDBUFSIZE);
+    rv = read(cmd_fd, buf, IDXCMDBUFSIZE-1);
     if ( rv > 0 ) {
+      buf[rv] = '\0';
       if (parse_command( buf, rv )) return 1;
     } else if ( rv == 0 ) return 1; // quit command
     else if ( rv == -1 ) {
