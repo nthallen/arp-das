@@ -2,16 +2,17 @@
 <?xml-stylesheet ekr_test?>
 <leo_file>
 <leo_header file_format="2" tnodes="0" max_tnode_index="0" clone_windows="0"/>
-<globals body_outline_ratio="0.377708978328">
-	<global_window_position top="10" left="10" height="867" width="811"/>
+<globals body_outline_ratio="0.5" body_secondary_ratio="0.5">
+	<global_window_position top="50" left="50" height="500" width="700"/>
 	<global_log_window_position top="0" left="0" height="0" width="0"/>
 </globals>
 <preferences/>
 <find_panel_settings/>
 <vnodes>
+<v t="ntallen.20091104124904.1987"><vh>@chapters</vh></v>
 <v t="ntallen.20070319130904" a="E"><vh>QNX6 Data Acquisition Architecture</vh>
 <v t="ntallen.20070815151915" a="E"><vh>Status</vh>
-<v t="ntallen.20080729145409" a="TV"><vh>Overview</vh></v>
+<v t="ntallen.20080729145409"><vh>Overview</vh></v>
 <v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
@@ -21,9 +22,16 @@
 <v t="ntallen.20090911120219"><vh>phrtg compile hacks</vh></v>
 <v t="ntallen.20090930220540"><vh>Eli 4.6.1 CVS</vh></v>
 </v>
-<v t="ntallen.20090824123722"><vh>Runtime kit Creation</vh></v>
+<v t="ntallen.20100723121747.2023"><vh>Install 6.5.0</vh></v>
+<v t="ntallen.20090824123722" a="E"><vh>Runtime kit Creation</vh>
 <v t="ntallen.20090505113338"><vh>Flight System Configuration</vh></v>
-<v t="ntallen.20090818124956" a="E"><vh>6.4.1 Upgrade and CLARREO IIP</vh>
+<v t="ntallen.20100726093122.2025"><vh>Add pkgs to install CD</vh></v>
+<v t="ntallen.20100726093122.2026"><vh>Add compiler to install CD</vh></v>
+<v t="ntallen.20091104124904.1988"><vh>GSE System Install Kit</vh></v>
+<v t="ntallen.20100720160700.2021"><vh>pkg_copy, pkg_include?</vh></v>
+<v t="ntallen.20091109122106.1991"><vh>GSE Initialization</vh></v>
+</v>
+<v t="ntallen.20090818124956"><vh>6.4.1 Upgrade and CLARREO IIP</vh>
 <v t="ntallen.20090818124956.1"><vh>Install 6.4.1 on Windows</vh></v>
 <v t="ntallen.20090818124956.2"><vh>Install 6.4.1 on VM</vh></v>
 <v t="ntallen.20090818124956.3"><vh>Create flight runtime kit for 6.4.1 and install on IIP flight system</vh></v>
@@ -71,7 +79,7 @@
 </v>
 <v t="ntallen.20070409133739.3"><vh>Implementation</vh></v>
 </v>
-<v t="ntallen.20070413134915"><vh>QNX Development Issues</vh>
+<v t="ntallen.20070413134915" a="E"><vh>QNX Development Issues</vh>
 <v t="ntallen.20070425144317"><vh>Handling more than one executable per project</vh></v>
 <v t="ntallen.20070413134915.1" a="E"><vh>Development Strategy</vh>
 <v t="ntallen.20070425144317.1"><vh>cmdgen</vh>
@@ -84,7 +92,7 @@
 </v>
 </v>
 <v t="ntallen.20070502121159.1" a="E"><vh>Implementation</vh>
-<v t="ntallen.20070320121924"><vh>cmdgen</vh>
+<v t="ntallen.20070320121924" a="E"><vh>cmdgen</vh>
 <v t="ntallen.20070501165557"><vh>Done</vh>
 <v t="ntallen.20070411152334"><vh>Add Interface Definitions</vh>
 <v t="ntallen.20070404111542"><vh>Initialization</vh></v>
@@ -109,7 +117,7 @@
 <v t="ntallen.20070502121159.5"><vh>Memo interface can wait</vh></v>
 <v t="ntallen.20070509151554.3"><vh>Add default .cmd files as appropriate</vh></v>
 </v>
-<v t="ntallen.20070508171951.2" a="E"><vh>Todo</vh>
+<v t="ntallen.20070508171951.2"><vh>Todo</vh>
 <v t="ntallen.20070508171951.6"><vh>Draw polygon</vh></v>
 <v t="ntallen.20070508171951.7"><vh>Get a cursor in cmd_text somehow</vh></v>
 </v>
@@ -121,9 +129,9 @@
 <v t="ntallen.20091022143321"><vh>mkdoit3	</vh></v>
 <v t="ntallen.20091022143321.1"><vh>algorithm status</vh></v>
 </v>
-<v t="ntallen.20070502121159.6"><vh>Design</vh>
+<v t="ntallen.20070502121159.6" a="E"><vh>Design</vh>
 <v t="ntallen.20070319130904.1"><vh>Data</vh>
-<v t="ntallen.20070524163205"><vh>Data Issues</vh>
+<v t="ntallen.20070524163205" a="E"><vh>Data Issues</vh>
 <v t="ntallen.20070524163205.1"><vh>What is the difference between the telemetry stream and the TM stream as returned from TMbfr?</vh>
 <v t="ntallen.20070524163205.2"><vh>TM has no timestamps</vh></v>
 <v t="ntallen.20070524163205.3"><vh>Does not include TM info struct or identifiers</vh></v>
@@ -141,7 +149,7 @@
 <v t="ntallen.20070524163205.9"><vh>TMbfr Client Options</vh>
 <v t="ntallen.20070524163205.11"><vh>Incomplete Data</vh></v>
 </v>
-<v t="ntallen.20080715165457"><vh>tmc Changes</vh></v>
+<v t="ntallen.20080715165457"></v>
 </v>
 <v t="ntallen.20070319130904.2"><vh>TMbfr</vh>
 <v t="ntallen.20070524163205.8"><vh>TMbfr Operation</vh>
@@ -193,7 +201,7 @@
 <v t="ntallen.20070612165620.1"><vh>TMbfr Testing</vh></v>
 </v>
 <v t="ntallen.20070319130904.3"><vh>Data Generators</vh>
-<v t="ntallen.20080516131227"><vh>TMbfr Write Modes: O_NONBLOCK</vh></v>
+<v t="ntallen.20080516131227"></v>
 <v t="ntallen.20070817133522.5"><vh>DG API and design issues</vh>
 <v t="ntallen.20080624104326"><vh>Interfaces</vh>
 <v t="ntallen.20080625152707"><vh>Command Interfaces</vh></v>
@@ -245,7 +253,7 @@
 </v>
 <v t="ntallen.20070319130904.7"><vh>Data Clients</vh>
 <v t="ntallen.20080519132626"><vh>DC API</vh></v>
-<v t="ntallen.20080516131227.1"><vh>TMbfr Read Modes: DCo, DCf</vh></v>
+<v t="ntallen.20080516131227.1"></v>
 <v t="ntallen.20070319130904.8"><vh>lgr</vh></v>
 <v t="ntallen.20070319130904.9"><vh>display</vh></v>
 <v t="ntallen.20070319130904.10"><vh>extractions</vh></v>
@@ -284,10 +292,10 @@
 </v>
 </v>
 <v t="ntallen.20070330134656"><vh>Define data structures for queuing command output</vh>
-<v t="ntallen.20070330134656.1"><vh>Command Type</vh></v>
+<v t="ntallen.20070330134656.1"></v>
 </v>
 <v t="ntallen.20070404165230"><vh>Support SELECT</vh></v>
-<v t="ntallen.20070404165230.1"><vh>Handle Quit</vh></v>
+<v t="ntallen.20070404165230.1"></v>
 <v t="ntallen.20070320150841.4"><vh>Incorporate cmdgen</vh></v>
 <v t="ntallen.20070404165230.2"><vh>Support Signals</vh></v>
 </v>
@@ -317,6 +325,7 @@
 <v t="ntallen.20070322160353.4"><vh>Terminate after at least one client has opened and all have closed</vh></v>
 </v>
 </v>
+<v t="ntallen.20100729115515.2029"><vh>subbus_usb</vh></v>
 <v t="ntallen.20090202133816"><vh>Utilities</vh>
 <v t="ntallen.20090202133816.1"><vh>mkdoit</vh>
 <v t="ntallen.20090202133816.2"><vh>Dedicated Acquisition node</vh></v>
@@ -324,8 +333,8 @@
 </v>
 </v>
 </v>
-<v t="ntallen.20070404221945.3" a="E"><vh>Graphics</vh>
-<v t="ntallen.20090203160910" a="E"><vh>PhRTG</vh>
+<v t="ntallen.20070404221945.3"><vh>Graphics</vh>
+<v t="ntallen.20090203160910"><vh>PhRTG</vh>
 <v t="ntallen.20090316133552"><vh>Bugs</vh>
 <v t="ntallen.20090422104622"><vh>Marking line visible does not redraw...</vh></v>
 <v t="ntallen.20090316133552.1"><vh>Resolved: Divider Issue</vh></v>
@@ -393,7 +402,7 @@
 <v t="ntallen.20090203162108.1"><vh>Photon Issues</vh>
 <v t="ntallen.20090227092327"><vh>Command Line Options</vh></v>
 <v t="ntallen.20090227131711"><vh>Cleanup</vh></v>
-<v t="ntallen.20090204093154"><vh>Data Feed</vh></v>
+<v t="ntallen.20090204093154"></v>
 <v t="ntallen.20090331165341"><vh>Rendering</vh>
 <v t="ntallen.20090401155216"><vh>Root</vh></v>
 <v t="ntallen.20090403102636.1"><vh>Variables</vh></v>
@@ -433,21 +442,21 @@
 <v t="ntallen.20090224102255"><vh>Variables Tab</vh></v>
 <v t="ntallen.20090224102255.1"><vh>Graphs Tab</vh></v>
 <v t="ntallen.20090218161257.1"><vh>Window Tab</vh>
-<v t="ntallen.20090219084511"><vh>Figure Properties</vh></v>
+<v t="ntallen.20090219084511"></v>
 </v>
 <v t="ntallen.20090224110843"><vh>X,Y Tabs</vh>
 <v t="ntallen.20090219084511.6"><vh>Pane Properties</vh>
-<v t="ntallen.20090219084511.2"><vh>Pane Properties</vh></v>
+<v t="ntallen.20090219084511.2"></v>
 </v>
 <v t="ntallen.20090218161257.2"><vh>Axes Properties</vh>
-<v t="ntallen.20090219084511.3"><vh>Axis properties</vh></v>
+<v t="ntallen.20090219084511.3"></v>
 </v>
 <v t="ntallen.20090219085744"><vh>Data Properties</vh>
-<v t="ntallen.20090219084511.4"><vh>Data Properties</vh></v>
+<v t="ntallen.20090219084511.4"></v>
 </v>
 </v>
 <v t="ntallen.20090219085744.1"><vh>Line Properties</vh>
-<v t="ntallen.20090219084511.5"><vh>Line Properties</vh></v>
+<v t="ntallen.20090219084511.5"></v>
 </v>
 </v>
 <v t="ntallen.20090210131028.2"><vh>GraphWindow</vh></v>
@@ -467,17 +476,26 @@
 </v>
 </v>
 </v>
-<v t="ntallen.20070404221945.4" a="E"><vh>Drivers</vh>
+<v t="ntallen.20070404221945.4"><vh>Drivers</vh>
 <v t="ntallen.20070404221945.5"><vh>Subbus</vh></v>
 <v t="ntallen.20070404221945.6"><vh>SCDC/DCCC</vh></v>
-<v t="ntallen.20070404221945.7" a="E"><vh>Indexer</vh>
+<v t="ntallen.20070404221945.7"><vh>Indexer</vh>
 <v t="ntallen.20091015133220"><vh>Define command protocol</vh></v>
-<v t="ntallen.20090804144000" a="E"><vh>IntServ</vh>
+<v t="ntallen.20090804144000"><vh>IntServ</vh>
 <v t="ntallen.20090810133013"><vh>Separate Process</vh></v>
 </v>
 </v>
 <v t="ntallen.20070404221945.8"><vh>Thompson?</vh></v>
 <v t="ntallen.20070404221945.9"><vh>dacache</vh></v>
+<v t="ntallen.20091112115242.1993"><vh>hart</vh>
+<v t="ntallen.20091112115242.1994"><vh>gpib232</vh>
+<v t="ntallen.20091112115242.1995"><vh>gpib232_init</vh></v>
+<v t="ntallen.20091112115242.1996"><vh>gpib232_cmd( const char *cmd )</vh></v>
+<v t="ntallen.20091112115242.1997"><vh>gpib232_cmd_read( const char *cmd, char *rep, int nb)</vh></v>
+<v t="ntallen.20091112115242.1998"><vh>gpib232_write( int addr, const char *cmd )</vh></v>
+<v t="ntallen.20091112115242.1999"><vh>gpib232_write_read( addr, cmd, rep, nb )</vh></v>
+</v>
+</v>
 </v>
 <v t="ntallen.20070323134835"><vh>Resmgr Notes</vh>
 <v t="ntallen.20070323134835.1"><vh>resmgr_attach()</vh>
@@ -512,48 +530,7 @@
 </v>
 </v>
 <v t="ntallen.20070817133522.4"><vh>DC</vh></v>
-<v t="ntallen.20070817133522.5"><vh>DG API and design issues</vh>
-<v t="ntallen.20080624104326"><vh>Interfaces</vh>
-<v t="ntallen.20080625152707"><vh>Command Interfaces</vh></v>
-<v t="ntallen.20080624104326.1"><vh>Driver Interface</vh>
-<v t="ntallen.20080624104326.2"><vh>Driver Class</vh></v>
-</v>
-<v t="ntallen.20080624104326.3"><vh>Driver Synchronization</vh>
-<v t="ntallen.20080624104326.4"><vh>Blocking writes</vh></v>
-<v t="ntallen.20080624104326.5"><vh>Non-blocking writes and ionotify</vh></v>
-</v>
-</v>
-<v t="ntallen.20080707135523"><vh>Main</vh>
-<v t="ntallen.20080707135523.1"><vh>Read Thread</vh></v>
-<v t="ntallen.20080708133047"><vh>Write Thread</vh></v>
-</v>
-<v t="ntallen.20070823131008"><vh>data_queue (DQ)</vh>
-<v t="ntallen.20080710162929"><vh>DQ hierarchy</vh>
-<v t="ntallen.20080710162929.1"><vh>Commands</vh></v>
-<v t="ntallen.20080710162929.2"><vh>Collection strategy</vh></v>
-<v t="ntallen.20080908205900"><vh>rdr (or general extraction) Strategy</vh>
-<v t="ntallen.20080909114112"><vh>Control Thread</vh></v>
-<v t="ntallen.20080710162929.3"><vh>Output Thread</vh></v>
-<v t="ntallen.20080909114112.1"><vh>Input Thread</vh></v>
-</v>
-</v>
-<v t="ntallen.20080708165645.1"><vh>Will DQ provide type translation?</vh></v>
-<v t="ntallen.20080623133120"><vh>DQ Semaphore</vh></v>
-<v t="ntallen.20070823131008.1"><vh>Writer operations</vh>
-<v t="ntallen.20080709115758"><vh>Initialization</vh></v>
-<v t="ntallen.20070823131008.2"><vh>allocate_rows(n_rows_max)</vh></v>
-<v t="ntallen.20070823131008.3"><vh>commit_rows(MFCtr, row_start, n_rows)</vh></v>
-<v t="ntallen.20070823131008.4"><vh>commit_tstamp(MFCtr, time)</vh></v>
-</v>
-<v t="ntallen.20070823131008.5"><vh>Reader operations</vh>
-<v t="ntallen.20070823131008.6"><vh>transmit_rows(n_rows)</vh></v>
-</v>
-</v>
-<v t="ntallen.20070820135203"><vh>Collection</vh></v>
-<v t="ntallen.20070822162630"><vh>rdr</vh></v>
-<v t="ntallen.20070822162630.1"><vh>Inetin</vh></v>
-<v t="ntallen.20070820135203.1"><vh>Everything else</vh></v>
-</v>
+<v t="ntallen.20070817133522.5"></v>
 </v>
 </v>
 </v>
@@ -562,6 +539,13 @@
 <t tx="ntallen.20070319130904">@nocolor
 </t>
 <t tx="ntallen.20070319130904.1"></t>
+<t tx="ntallen.20070319130904.10">Reads data from TMbfr and outputs it in some format. Generally does not process commands.</t>
+<t tx="ntallen.20070319130904.11">Reads data from TMbfr and sends commands. Should receive any command info via TM stream.</t>
+<t tx="ntallen.20070319130904.12">The command architecture consists of Command Sources, the central Command Server and Command Receivers.
+Command Sources include algorithms and the keyboard client
+Command Receivers are client programs that wish to receive commands.
+
+The keyboard client and the command server are both compiled from the same source code generated by cmdgen that knows how to parse text commands and perform actions based on those commands. These are in turn linked with library functions (in tmlib or tmphlib?) to make appropriate executables</t>
 <t tx="ntallen.20070319130904.2">Only a single writer (Data Generator) is allowed.
 </t>
 <t tx="ntallen.20070319130904.3">Data Generators (DGs) are where telemetry data enters the system. These programs open the TMbfr for write. TMbfr is limited to a single writer, so only one DG is allowed per instrument.
@@ -580,13 +564,6 @@ The DG library will need to support basic timing functions. Collection needs tim
 </t>
 <t tx="ntallen.20070319130904.9">Display programs read telemetry data from TMbfr and display it on screen as text or graphics.
 </t>
-<t tx="ntallen.20070319130904.10">Reads data from TMbfr and outputs it in some format. Generally does not process commands.</t>
-<t tx="ntallen.20070319130904.11">Reads data from TMbfr and sends commands. Should receive any command info via TM stream.</t>
-<t tx="ntallen.20070319130904.12">The command architecture consists of Command Sources, the central Command Server and Command Receivers.
-Command Sources include algorithms and the keyboard client
-Command Receivers are client programs that wish to receive commands.
-
-The keyboard client and the command server are both compiled from the same source code generated by cmdgen that knows how to parse text commands and perform actions based on those commands. These are in turn linked with library functions (in tmlib or tmphlib?) to make appropriate executables</t>
 <t tx="ntallen.20070320110353">Command server is experiment-specific, compiled from .cmd input by cmdgen. It accepts ASCII command sequences from clients, parses them and executes the specified code. In this version, that can include making the command available to other client programs.</t>
 <t tx="ntallen.20070320121924">Defines command syntax and code to execute on command reception.
 </t>
@@ -958,6 +935,7 @@ Need to promote, add usage</t>
 <t tx="ntallen.20070524163205">What is the difference between the telemetry stream and the TM stream as returned from TMbfr?
 </t>
 <t tx="ntallen.20070524163205.1"></t>
+<t tx="ntallen.20070524163205.11">This is an idea to facilitate more playback options. Clients that deem incomplete data to be OK could receive only occassional updates during fast forward or search operations. Certain clients are apt to be more sensitive to the complete data set, specifically algorithms that maintain state information. These would be set to receive the complete data set and would also be prevented from seeing non-monotonic data.</t>
 <t tx="ntallen.20070524163205.2">Timestamps allow date/time to high precision without recording YYMMDDHHMMSS in every frame.</t>
 <t tx="ntallen.20070524163205.3">App is assumed to match local definition. Can only check that MFCtr/Synch make sense releative to TM info.</t>
 <t tx="ntallen.20070524163205.4">Might as well use a format similar to TMbfr's output</t>
@@ -986,7 +964,6 @@ Playback control is a feature of the DG now, so TMbfr doesn't really know whethe
 
 In fast forward, DCf and DCo are treated essentially the same. The DG will write largish chunks of data, and they will be passed through to the readers.
 </t>
-<t tx="ntallen.20070524163205.11">This is an idea to facilitate more playback options. Clients that deem incomplete data to be OK could receive only occassional updates during fast forward or search operations. Certain clients are apt to be more sensitive to the complete data set, specifically algorithms that maintain state information. These would be set to receive the complete data set and would also be prevented from seeing non-monotonic data.</t>
 <t tx="ntallen.20070525114357">/dev/huarp/$Experiment/TM/DG write only
 /dev/huarp/$Experiment/TM/DCf read only
 /dev/huarp/$Experiment/TM/DCo read only
@@ -2357,6 +2334,47 @@ However, it may not make sense to use PhAB at all for the graphing windows. The 
 
 I will need to directly identify the PtPane widgets. I could play games by walking the widget hierarchy, but the fact is, I will need to explicitly create other PtPanes and other graph windows, so the only work I would save would be creating the PtDivider.
 </t>
+<t tx="ntallen.20090210131028.10">Separate dialog windows for:
+    Window properties
+    Axes properties
+    Line properties
+    </t>
+<t tx="ntallen.20090210131028.11">lock x (to lock all x-axes)
+Window location and size (set by dragging, but will need to record for stored configuration)
+  win_x
+  win_y
+  win_dx
+  win_dy
+</t>
+<t tx="ntallen.20090210131028.12">This set applies to X and Y independently:
+    Draw axis
+    Draw ticks
+    Draw tick Labels
+    Label axis
+    Reserve tick space
+    Reserve label space
+    Axis color
+    Tick Label Style (precision, font, size, color)
+    Axis Label Style (precision, font, size, color)
+    Major Tick Length (positive is outward, negative inward)
+    Minor Tick Length (i.e. unlabeled ticks. Same units)
+    Label Length (same units. Label is vertically centered in the space?)
+    Label
+    autoscale [on|off]
+    min
+    max
+    log [on|off]
+    grid [on|off]
+    tickmode [auto|manual]
+    ticks
+    lock scale to overlapping axes [on|off]
+    weight (used to decide how to </t>
+<t tx="ntallen.20090210131028.13">Display [on|off]
+Line Color
+Line Thickness
+Marker
+Marker Color
+Marker Size</t>
 <t tx="ntallen.20090210131028.2">What about controls?
   Zoom on/x/y/off
   Detrend
@@ -2435,47 +2453,6 @@ Use something to indicate you want new overlapping axes created (defaulting to l
 <t tx="ntallen.20090210131028.9">Either overlapping the current axes or underneath.
 There is an obvious concept of current axes. Axes can be selected by clicking inside the axes or select the axes in the console. (selecting in the graph should select in the console)
 </t>
-<t tx="ntallen.20090210131028.10">Separate dialog windows for:
-    Window properties
-    Axes properties
-    Line properties
-    </t>
-<t tx="ntallen.20090210131028.11">lock x (to lock all x-axes)
-Window location and size (set by dragging, but will need to record for stored configuration)
-  win_x
-  win_y
-  win_dx
-  win_dy
-</t>
-<t tx="ntallen.20090210131028.12">This set applies to X and Y independently:
-    Draw axis
-    Draw ticks
-    Draw tick Labels
-    Label axis
-    Reserve tick space
-    Reserve label space
-    Axis color
-    Tick Label Style (precision, font, size, color)
-    Axis Label Style (precision, font, size, color)
-    Major Tick Length (positive is outward, negative inward)
-    Minor Tick Length (i.e. unlabeled ticks. Same units)
-    Label Length (same units. Label is vertically centered in the space?)
-    Label
-    autoscale [on|off]
-    min
-    max
-    log [on|off]
-    grid [on|off]
-    tickmode [auto|manual]
-    ticks
-    lock scale to overlapping axes [on|off]
-    weight (used to decide how to </t>
-<t tx="ntallen.20090210131028.13">Display [on|off]
-Line Color
-Line Thickness
-Marker
-Marker Color
-Marker Size</t>
 <t tx="ntallen.20090211110324"></t>
 <t tx="ntallen.20090211110324.1">Figure out how to control PtDivider from code and UI
 Specifically:
@@ -3840,5 +3817,189 @@ We could route algo status through the cmdserver:
         holding...
     This doesn't have to go to disp, it could go to a standalone status utility</t>
 <t tx="ntallen.20091030133630"></t>
+<t tx="ntallen.20091104124904.1987"></t>
+<t tx="ntallen.20091104124904.1988">Trick is to figure out what we need to copy over.
+
+Lots of /usr/bin stuff:
+    /usr/bin
+    /usr/qnx641/host/qnx6/x86/usr/bin
+    /usr/qnx641/target/qnx6/usr/bin
+    /usr/qnx641/target/qnx6/x86/usr/bin
+    /usr/pkg/bin
+
+A lot of the files in /usr/bin are also in one of the other directories
+    (can check using dircompare | grep identical)
+A lot of files from /usr/qnx641/target/qnx6 and qnx6/x86 were installed
+  into /usr/bin already as part of qnx-6.4.1
+We can use some of this stuff, but we don't need all of it 
+
+For the packages installed via pkgadd, we already have manifests in /var/db/pkg,
+so it probably makes sense to simply write a script to duplicate a package
+on another machine. pkg_copy: Add this to utils
+
+I should really break these up into smaller packages:
+    sudo  pkg_copy
+    perl  pkg_copy
+    gcc
+    anything else?
+
+I need something like pkg_copy for gcc, etc., which lives under /usr/qnx641
+I need a heuristic for deciding what files to include:
+    find /usr/qnx641 ! -type d | sed -f gse_select.sed
+
+gse_select.sed
+    Avoid everything for arm|mips|ppc|sh
+    Avoid all of target/qnx6/x86, assuming it's already in qnx-6.4.1, but should check</t>
+<t tx="ntallen.20091109122106.1991">After install, login as root (no password) and start Photon
+If Photon doesn't start, you may need to edit the screen configuration file
+    /etc/system/config/display.conf
+In Photon, run the network configuration tool to set hostname and enable dhcp
+In /etc/system/config:
+    rm -f nophoton
+    touch useqnet
+reboot
+
+    pkg_copy &lt;node&gt; sudo perl
+    dev_copy &lt;node&gt;
+    sec_copy &lt;node&gt; # update security files
+        /etc/passwd
+        /etc/shadow
+        /etc/group
+        /usr/pkg/etc/sudoers
+        /etc/profile.d/pkg.sh
+        /etc/profile.d/pkg.ksh
+
+create my home dir and copy over
+    /home/nort
+    /home/nort/.profile
+    /home/nort/.ssh/*
+    /home/nort/.elvis/elvis.ini</t>
+<t tx="ntallen.20091112115242.1993"></t>
+<t tx="ntallen.20091112115242.1994">Need to rework the gpib232 functions to be more robust, use readcond() instead of getc(), etc.
+</t>
+<t tx="ntallen.20091112115242.1995">gpib232_init()
+    Should open the device and query the GPIB232 using the id function
+    Set up the timeout interval to 5 seconds
+    Complain if it gets no response
+    </t>
+<t tx="ntallen.20091112115242.1996">gpib232_cmd( const char *cmd)</t>
+<t tx="ntallen.20091112115242.1997">int nb = gpib232_cmd_read( const char *cmd, char *repbuf, int nb_rep )
+    calls gpib232_cmd(cmd), then reads up to nb_rep from the device</t>
+<t tx="ntallen.20091112115242.1998">gpib232_write( addr, cmd )
+    Writes the specified command to the device at the specified addr.
+    Formats the command using GPIB232 format "wrt %d\n%s\r\n"
+    and invokes gpib232_cmd()</t>
+<t tx="ntallen.20091112115242.1999">gpib232_write_read( addr, cmd, rep, nb)
+    Writes the specified command to the device at the specified addr
+    and reads the response.
+    Formats the command using GPIB232 format "wrt %d\n%s\r\nrd #%d %d\r\n"
+    and invokes gpib232_cmd_read(fcmd, rep, nb+5),
+
+reply buffer (rep) must be long enough to hold nb+5 characters.
+I will verify that the resulting data is NUL-terminated.</t>
+<t tx="ntallen.20100720160700.2021">pkg_copy is handy, but it seems like we should be able to include the package in the install CD as well, and thereby skip the pkg_copy step on a new install.
+
+dev_copy also could be tweaked to produce MANIFEST for new installation.
+
+sec_copy is something to leave until after the install.</t>
+<t tx="ntallen.20100723121747.2023">Copying procedure from 6.4.1 to annotate here.
+
+Set hostname
+  How is hostname handled? In /etc/net.cfg (usually via the network config tool)
+  /etc/system/sysinit also looks in /etc/HOSTNAME
+
+Setup to use qnet
+  Make sure hostname is set
+  mount -T io-pkt lsm-qnet.so # This is a change from 6.3.2, which used io-net
+  touch /etc/system/config/useqnet # to get it boot up running qnet, referenced from /etc/system/sysinit
+  
+Copy and/or Edit password files from network
+Copy sudoers from network
+  /usr/local/sbin/sec_copy &lt;newhost&gt;
+
+#This really only applies to runtime systems, though not good reason to keep
+#them on the development platform either unless we target another processor
+# Remove non-x86 targets from /usr/qnx641/target/qnx6
+
+Bootstrap pkgsrc
+Adapted from pkgsrc instructions:
+  http://community.qnx.com/sf/wiki/do/viewPage/projects.pkgsrc/wiki/BinaryPackages
+
+  Edit /etc/profile to add /usr/pkg/bin and /usr/pkg/sbin to PATH
+  Add to /etc/rc.d/rc.local:
+    setconf CS_LIBPATH $(getconf CS_LIBPATH):/usr/pkg/lib
+  mkdir /var/tmp
+  download pkgsrc bootstrap bootstrap.tar.gz and unpack in /
+    ftp://ftp.netbsd.org/pub/pkgsrc/packages/QNX/i386/6.5.0_head_20100424/bootstrap.tar.gz
+  Set PKG_PATH in /root/.profile:
+    export PKG_PATH=ftp://ftp.NetBSD.org/pub/pkgsrc/packages/QNX/&lt;arch&gt;/&lt;vers&gt;/All
+    &lt;arch&gt; is i386
+    &lt;vers&gt; is 6.4.1_head_20090724
+
+Installed:
+    # openssh # Included in 6.4.1
+    perl-5.10.0nb6
+    sudo-1.7.1
+    m4-1.4.13
+    autoconf-2.63
+    automake-1.10
+    gtexinfo 4-12nb1
+    libtool-1.5.26
+
+Install cdrtools from QNX downloads third party page
+
+### Good to here
+    
+    +QNX6/utils  includes a config.site
+    +nortutil (only os-independent: select binaries and select install tool)
+      make sure /usr/bin/perl points to perl (/usr/pkg/bin/perl)
+    +nortlib[2]                FullBuild with internal sudo, stop on error
+    +cmdgen       (lex/yacc)   FullBuild with internal sudo, stop on error
+    +oui          (lex/yacc)   FullBuild with internal sudo, stop on error
+    +QNX6/tmlib   (TM library)  FullBuild with internal sudo, stop on error
+    +QNX6/tmphlib (need for display programs and keyboard client programs) FullBuild+
+    +QNX6/tmpplib (C++ interface for TM) FullBuild+
+    +QNX6/displib (needed for display programs generated via phtable) FullBuild+ Did not specify CC=qcc CXX=QCC
+    +QNX6/tmutil  (checks path of sudo. no configure, make, make install) installed
+
+    +QNX6/tmc (no configure, make, make install)
+    +QNX6/TMbfr/resmgr (no configure, make, make install)
+    +QNX6/lgr (no configure, make, make install)
+    +QNX6/rdr (no configure, make, make install)
+    +QNX6/memo (no configure, make, make install)
+    +QNX6/phrtg-native (make, make install)
+    +tmcalgo (no configure, make, make install)
+    +QNX6/qcliutil (no configure, make, make install)
+    +snafu  FullBuild
+    
+    +QNX6/dccc
+    +QNX6/diagnost (minus scdebug)
+    +QNX6/Diagsuite
+    +QNX6/ssp_driver
+    +QNX6/idx64
+
+    +eli compiler tools (required for table, qclicomp?)
+    
+    +phtable (provide Makefile to invoke eli)
+    +qclicomp (or qclicompsrc?)(provide Makefile to invoke eli)
+
+    Try installing Leo, what the heck!    </t>
+<t tx="ntallen.20100726093122.2025">Assumptions (which will be shown false eventually):
+    The packages we wish to install have no dependencies (sudo, perl)
+    The packages we wish to install have simple installations (no setup scripts)
+
+Plan would be to extend the mkrtkit Header Requires line to accept:
+    pkg:sudo pkg:perl
+
+mkrtkitarch would locate the package and do the processing that pkg_copy does in order to include the files in the archive.
+
+A smarter approach would be to install pkg_add and the pkg archives, then run it to install the packages. Running pkg_add during the copying stage would be problematic since the target disk is not /, so I'd need to hook into the post-install stuff.</t>
+<t tx="ntallen.20100726093122.2026">This requires reviewing the logic of dev_copy in order to generate a package containing the GPL compiler tools.
+
+find /usr/qnx641 ! -type d | sed -f dev_copy.sed &gt;MANIFEST
+</t>
+<t tx="ntallen.20100729115515.2029">Will need a library and a driver. Driver's job is simply to arbitrate access to the device.
+
+Where we are really dealing with send/reply interface, it might make sense to use custom messages as opposed to making separate write/read calls</t>
 </tnodes>
 </leo_file>
