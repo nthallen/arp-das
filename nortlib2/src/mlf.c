@@ -7,11 +7,11 @@
   <base>/dd+/dd/dd.dat
 
   Todo:
-	Separate out a type to hold a file as an n-tuple
-	mlf_ntup_t *mlfn;
-	mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, const char *fname );
-	mlf_set_ntup( mlf_def_t *mlf, mlf_ntup_t *mlfn );
-	mlf_compare( mlf_def_t *mlf, mlf_ntup_t *mlfn );
+    Separate out a type to hold a file as an n-tuple
+    mlf_ntup_t *mlfn;
+    mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, const char *fname );
+    mlf_set_ntup( mlf_def_t *mlf, mlf_ntup_t *mlfn );
+    mlf_compare( mlf_def_t *mlf, mlf_ntup_t *mlfn );
 */
 #include <stdlib.h>
 #include <string.h>
@@ -51,7 +51,7 @@ mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, const char *fbase, const char *fn
   mlfn = new_memory( sizeof( mlf_ntup_t ) );
   mlfn->ntup = new_memory( (mlf->n_levels+1) * sizeof(int) );
   for ( level = 0; level <= mlf->n_levels; level++ )
-	mlfn->ntup[level] = -1;
+    mlfn->ntup[level] = -1;
   mlfn->mlf = mlf;
   mlfn->base = fbase;
   mlfn->suffix = NULL;
@@ -60,31 +60,31 @@ mlf_ntup_t *mlf_convert_fname( mlf_def_t *mlf, const char *fbase, const char *fn
   cfg = nl_strdup( fname );
   mlfn->base = mlf_strtok( cfg, "/", &del );
   for ( s = mlfn->base; *s; s++ )
-	if ( ! isalnum(*s) && *s != '_' )
-	  nl_error( 3,
-		"mlf_convert_fname: illegal char '%c' in base '%s'",
-		*s, mlfn->base );
+    if ( ! isalnum(*s) && *s != '_' )
+      nl_error( 3,
+        "mlf_convert_fname: illegal char '%c' in base '%s'",
+        *s, mlfn->base );
 
   for ( level = 0; level <= mlf->n_levels; level++ ) {
-	num = mlf_strtok( NULL, level < mlf->n_levels ? "/" : "/.",	&del );
-	if ( num != NULL && *num != '\0' ) {
-	  char *end;
+    num = mlf_strtok( NULL, level < mlf->n_levels ? "/" : "/.",	&del );
+    if ( num != NULL && *num != '\0' ) {
+      char *end;
 
-	  if ( del == '/' && level == mlf->n_levels )
-		nl_error( 3,
-		  "Too many directory levels specified", level );
-	  mlfn->ntup[level] = strtoul( num, &end, 10 );
-	  if ( *end != '\0' )
-		nl_error( 3,
-		  "mlf_convert_fname: Subdir '%s' at level %d not numeric",
-		  num, level );
-	}
+      if ( del == '/' && level == mlf->n_levels )
+        nl_error( 3,
+          "Too many directory levels specified", level );
+      mlfn->ntup[level] = strtoul( num, &end, 10 );
+      if ( *end != '\0' )
+        nl_error( 3,
+          "mlf_convert_fname: Subdir '%s' at level %d not numeric",
+          num, level );
+    }
   }
   if ( del == '.' ) {
-	mlfn->suffix = mlf_strtok( NULL, "/", &del );
-	for ( s = mlfn->suffix; *s; s++ )
-	  if ( ! isalnum(*s) && *s != '_' )
-		nl_error( 3, "mlf_convert_fname: Illegal char in suffix" );
+    mlfn->suffix = mlf_strtok( NULL, "/", &del );
+    for ( s = mlfn->suffix; *s; s++ )
+      if ( ! isalnum(*s) && *s != '_' )
+        nl_error( 3, "mlf_convert_fname: Illegal char in suffix" );
   }
 
   return mlfn;
@@ -103,36 +103,36 @@ static void mlf_set_ixs( mlf_def_t *mlf, int *ixs ) {
   mlf->index = 0;
   { int end, i;
   
-	for ( i = 0; i <= mlf->n_levels; i++ ) {
-	  if (  mlf->flags & MLF_INITIALIZE ||
-			mlf->flvl[i].index != ixs[i] ) {
-		mlf->flvl[i].index = ixs[i];
-		mlf->flags |= MLF_INITIALIZE;
-		if ( mlf->flags & MLF_WRITING ) {
-		  struct stat buf;
-		  *(mlf->flvl[i].s) = '\0';
-		  if ( stat( mlf->fpath, &buf ) || ! S_ISDIR(buf.st_mode) ) {
-			if ( mkdir( mlf->fpath, 0775 ) != 0 )
-			  nl_error( 3, "Unable to create directory %s", mlf->fpath );
-		  }
-		}
-		if ( ixs[i] < 0 ) {
-		  for ( ; i <= mlf->n_levels; i++ ) {
-			mlf->flvl[i].index = -1;
-			mlf->index *= mlf->n_files;
-		  }
-		  mlf->flags |= MLF_INC_FIRST;
-		  return;
-		}
-		end = sprintf( mlf->flvl[i].s, "/%02d", mlf->flvl[i].index );
-		if ( i < mlf->n_levels )
-		  mlf->flvl[i+1].s = mlf->flvl[i].s + end;
-	  }
-	  if ( mlf->flvl[i].index < 0 )
-	    nl_error( 4, "Assertion failed: mlf->flvl[i].index < 0"	);
-	  mlf->index =
-		mlf->index * mlf->n_files + mlf->flvl[i].index;
-	}
+    for ( i = 0; i <= mlf->n_levels; i++ ) {
+      if (  mlf->flags & MLF_INITIALIZE ||
+            mlf->flvl[i].index != ixs[i] ) {
+        mlf->flvl[i].index = ixs[i];
+        mlf->flags |= MLF_INITIALIZE;
+        if ( mlf->flags & MLF_WRITING ) {
+          struct stat buf;
+          *(mlf->flvl[i].s) = '\0';
+          if ( stat( mlf->fpath, &buf ) || ! S_ISDIR(buf.st_mode) ) {
+            if ( mkdir( mlf->fpath, 0775 ) != 0 )
+              nl_error( 3, "Unable to create directory %s", mlf->fpath );
+          }
+        }
+        if ( ixs[i] < 0 ) {
+          for ( ; i <= mlf->n_levels; i++ ) {
+            mlf->flvl[i].index = -1;
+            mlf->index *= mlf->n_files;
+          }
+          mlf->flags |= MLF_INC_FIRST;
+          return;
+        }
+        end = sprintf( mlf->flvl[i].s, "/%02d", mlf->flvl[i].index );
+        if ( i < mlf->n_levels )
+          mlf->flvl[i+1].s = mlf->flvl[i].s + end;
+      }
+      if ( mlf->flvl[i].index < 0 )
+        nl_error( 4, "Assertion failed: mlf->flvl[i].index < 0"	);
+      mlf->index =
+        mlf->index * mlf->n_files + mlf->flvl[i].index;
+    }
   }
   mlf->index++;
   mlf->flags &= ~(MLF_INC_FIRST | MLF_INITIALIZE);
@@ -144,8 +144,8 @@ void mlf_set_index( mlf_def_t * mlf, unsigned long index ) {
   int ixs[MLF_MAX_LEVELS+1], i, nf = mlf->n_files;
   unsigned long ix = index > 0 ? index - 1 : 0;
   for ( i = mlf->n_levels; i > 0; i-- ) {
-	ixs[i] = ix % nf;
-	ix = ix/nf;
+    ixs[i] = ix % nf;
+    ix = ix/nf;
   }
   ixs[0] = ix;
   mlf_set_ixs( mlf, ixs );
@@ -186,40 +186,40 @@ void mlf_set_index( mlf_def_t * mlf, unsigned long index ) {
  */
 void mlf_set_ntup( mlf_def_t *mlf, mlf_ntup_t *mlfn ) {
   if ( mlfn->mlf != mlf )
-	nl_error( 4, "mlf_set_ntup: Invalid n-tuple" );
+    nl_error( 4, "mlf_set_ntup: Invalid n-tuple" );
   if ( mlfn->suffix != NULL )
-	mlf->fsuffix = mlfn->suffix;
+    mlf->fsuffix = mlfn->suffix;
   if ( mlfn->base != NULL ) {
-	int end = sprintf( mlf->fpath, "%s", mlfn->base );
-	mlf->flvl[0].s = mlf->fpath + end;
+    int end = sprintf( mlf->fpath, "%s", mlfn->base );
+    mlf->flvl[0].s = mlf->fpath + end;
   }
   mlf_set_ixs( mlf, mlfn->ntup );
 }
 
 mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
-	const char *fbase, const char *fsuffix, const char *config ) {
+    const char *fbase, const char *fsuffix, const char *config ) {
   mlf_def_t *mlf;
   mlf_ntup_t *mlfn;
 
   if ( n_levels < 1 || n_levels > MLF_MAX_LEVELS ) {
-	nl_error( 3, "mlf_init: n_levels must be >= 1 and <= %d",
-		MLF_MAX_LEVELS );
-	return NULL;
+    nl_error( 3, "mlf_init: n_levels must be >= 1 and <= %d",
+        MLF_MAX_LEVELS );
+    return NULL;
   }
   if ( n_files < 2 ) {
-	nl_error( 3, "mlf_init: n_files must be >= 2" );
-	return NULL;
+    nl_error( 3, "mlf_init: n_files must be >= 2" );
+    return NULL;
   }
   n_levels--;
   mlf = new_memory( sizeof(mlf_def_t) );
   if ( mlf )
-	mlf->flvl = new_memory( (n_levels+1) * sizeof(mlf_elt_t) );
+    mlf->flvl = new_memory( (n_levels+1) * sizeof(mlf_elt_t) );
   if ( mlf == NULL || mlf->flvl == NULL ) return NULL;
   mlf->n_levels = n_levels;
   mlf->n_files = n_files;
   mlf->flags = ( writing ? MLF_WRITING : 0 ) | MLF_INITIALIZE;
   { int end = sprintf( mlf->fpath, "%s", "DATA" );
-	mlf->flvl[0].s = mlf->fpath+end;
+    mlf->flvl[0].s = mlf->fpath+end;
   }
   mlf->fsuffix = (fsuffix == NULL) ? "log" : nl_strdup(fsuffix);
   mlfn = mlf_convert_fname( mlf, fbase, config );
@@ -234,7 +234,7 @@ mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
 
   #include "mlf.h"
   mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
-	  char *fbase, char *fsuffix, char *config );
+      char *fbase, char *fsuffix, char *config );
 
 =Description
   
@@ -286,34 +286,34 @@ mlf_def_t *mlf_init( int n_levels, int n_files, int writing,
 int mlf_compare( mlf_def_t *mlf, mlf_ntup_t *mlfn ) {
   int i, diff = 0;
   for ( i = 0; diff == 0 && i <= mlf->n_levels; i++ )
-	diff = mlf->flvl[i].index - mlfn->ntup[i];
+    diff = mlf->flvl[i].index - mlfn->ntup[i];
   if ( diff == 0 && ( mlf->flags & MLF_INC_FIRST ) == 0 )
-	diff = -1;
+    diff = -1;
   return diff;
 }
 
 static next_file( mlf_def_t *mlf, int level ) {
   if ( mlf->flags & MLF_INC_FIRST ) {
     int lvlidx;
-	if ( level == mlf->n_levels ) mlf->index++;
-	lvlidx = ++mlf->flvl[level].index;
-	if ( level > 0 &&
-	     (( lvlidx == 0 && mlf->flvl[level-1].index < 0 ) ||
-	      ( lvlidx >= mlf->n_files ))) {
-	  mlf->flvl[level].index = 0;
-	  next_file( mlf, level-1 );
-	}
+    if ( level == mlf->n_levels ) mlf->index++;
+    lvlidx = ++mlf->flvl[level].index;
+    if ( level > 0 &&
+         (( lvlidx == 0 && mlf->flvl[level-1].index < 0 ) ||
+          ( lvlidx >= mlf->n_files ))) {
+      mlf->flvl[level].index = 0;
+      next_file( mlf, level-1 );
+    }
   } else mlf->flags |= MLF_INC_FIRST;
   if ( level < mlf->n_levels ) {
-	int n;
-	
-	n = sprintf( mlf->flvl[level].s, "/%02d", mlf->flvl[level].index );
-	mlf->flvl[level+1].s = mlf->flvl[level].s + n;
-	if ( mlf->flags & MLF_WRITING && mkdir( mlf->fpath, 0775 ) != 0 )
-	  nl_error( 2, "Unable to create directory %s", mlf->fpath );
+    int n;
+    
+    n = sprintf( mlf->flvl[level].s, "/%02d", mlf->flvl[level].index );
+    mlf->flvl[level+1].s = mlf->flvl[level].s + n;
+    if ( mlf->flags & MLF_WRITING && mkdir( mlf->fpath, 0775 ) != 0 )
+      nl_error( 2, "Unable to create directory %s", mlf->fpath );
   } else {
-	sprintf( mlf->flvl[level].s, "/%02d.%s", mlf->flvl[level].index,
-		mlf->fsuffix );
+    sprintf( mlf->flvl[level].s, "/%02d.%s", mlf->flvl[level].index,
+        mlf->fsuffix );
   }
 }
 
@@ -404,12 +404,12 @@ int mlf_next_dir( mlf_def_t *mlf ) {
   struct stat buf;
   next_file( mlf, mlf->n_levels );
   if ( stat( mlf->fpath, &buf ) || ! S_ISDIR(buf.st_mode) ) {
-	if ( mlf->flags & MLF_WRITING ) {
-	  if ( mkdir( mlf->fpath, 0775 ) == 0 ) return 1;
-	  if ( nl_response )
-		nl_error( 2, "Unable to create directory %s", mlf->fpath );
-	}
-	return 0;
+    if ( mlf->flags & MLF_WRITING ) {
+      if ( mkdir( mlf->fpath, 0775 ) == 0 ) return 1;
+      if ( nl_response )
+        nl_error( 2, "Unable to create directory %s", mlf->fpath );
+    }
+    return 0;
   }
   return 1;
 }
