@@ -13,7 +13,7 @@
 <v t="ntallen.20070319130904" a="E"><vh>QNX6 Data Acquisition Architecture</vh>
 <v t="ntallen.20070815151915" a="E"><vh>Status</vh>
 <v t="ntallen.20080729145409"><vh>Overview</vh></v>
-<v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
+<v t="ntallen.20071127160602"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
 <v t="ntallen.20090225110248"><vh>Install 6.4.0</vh></v>
@@ -23,7 +23,7 @@
 <v t="ntallen.20090930220540"><vh>Eli 4.6.1 CVS</vh></v>
 </v>
 <v t="ntallen.20100723121747.2023"><vh>Install 6.5.0</vh></v>
-<v t="ntallen.20090824123722" a="E"><vh>Runtime kit Creation</vh>
+<v t="ntallen.20090824123722"><vh>Runtime kit Creation</vh>
 <v t="ntallen.20090505113338"><vh>Flight System Configuration</vh></v>
 <v t="ntallen.20100726093122.2025"><vh>Add pkgs to install CD</vh></v>
 <v t="ntallen.20100726093122.2026"><vh>Add compiler to install CD</vh></v>
@@ -41,7 +41,7 @@
 </v>
 <v t="ntallen.20070815151915.1"><vh>Command</vh></v>
 <v t="ntallen.20080516115802"><vh>memo</vh></v>
-<v t="ntallen.20070815151915.2"><vh>Data</vh>
+<v t="ntallen.20070815151915.2" a="E"><vh>Data</vh>
 <v t="ntallen.20080715165457"><vh>tmc Changes</vh></v>
 <v t="ntallen.20080716230618"><vh>Timestamp issue</vh></v>
 <v t="ntallen.20080724120806"><vh>To Cache or not to Cache</vh></v>
@@ -91,8 +91,8 @@
 <v t="ntallen.20070425144317.3"><vh>tmphlib</vh></v>
 </v>
 </v>
-<v t="ntallen.20070502121159.1" a="E"><vh>Implementation</vh>
-<v t="ntallen.20070320121924" a="E"><vh>cmdgen</vh>
+<v t="ntallen.20070502121159.1"><vh>Implementation</vh>
+<v t="ntallen.20070320121924"><vh>cmdgen</vh>
 <v t="ntallen.20070501165557"><vh>Done</vh>
 <v t="ntallen.20070411152334"><vh>Add Interface Definitions</vh>
 <v t="ntallen.20070404111542"><vh>Initialization</vh></v>
@@ -130,14 +130,14 @@
 <v t="ntallen.20091022143321.1"><vh>algorithm status</vh></v>
 </v>
 <v t="ntallen.20070502121159.6" a="E"><vh>Design</vh>
-<v t="ntallen.20070319130904.1"><vh>Data</vh>
+<v t="ntallen.20070319130904.1" a="E"><vh>Data</vh>
 <v t="ntallen.20070524163205" a="E"><vh>Data Issues</vh>
-<v t="ntallen.20070524163205.1"><vh>What is the difference between the telemetry stream and the TM stream as returned from TMbfr?</vh>
+<v t="ntallen.20070524163205.1" a="E"><vh>What is the difference between the telemetry stream and the TM stream as returned from TMbfr?</vh>
 <v t="ntallen.20070524163205.2"><vh>TM has no timestamps</vh></v>
 <v t="ntallen.20070524163205.3"><vh>Does not include TM info struct or identifiers</vh></v>
 </v>
 <v t="ntallen.20070524163205.4"><vh>What form should Inetin/Inetout use?</vh></v>
-<v t="ntallen.20080708155309"><vh>What are the optimized data formats that TMbfr supports?</vh>
+<v t="ntallen.20080708155309" a="E"><vh>What are the optimized data formats that TMbfr supports?</vh>
 <v t="ntallen.20080708155309.1"><vh>T1 full minor frames</vh></v>
 <v t="ntallen.20080708155309.2"><vh>T2 full rows with header</vh></v>
 <v t="ntallen.20080708155309.3"><vh>T3 optimized rows with header</vh></v>
@@ -200,9 +200,9 @@
 </v>
 <v t="ntallen.20070612165620.1"><vh>TMbfr Testing</vh></v>
 </v>
-<v t="ntallen.20070319130904.3"><vh>Data Generators</vh>
+<v t="ntallen.20070319130904.3" a="E"><vh>Data Generators</vh>
 <v t="ntallen.20080516131227"></v>
-<v t="ntallen.20070817133522.5"><vh>DG API and design issues</vh>
+<v t="ntallen.20070817133522.5" a="E"><vh>DG API and design issues</vh>
 <v t="ntallen.20080624104326"><vh>Interfaces</vh>
 <v t="ntallen.20080625152707"><vh>Command Interfaces</vh></v>
 <v t="ntallen.20080624104326.1"><vh>Driver Interface</vh>
@@ -217,7 +217,7 @@
 <v t="ntallen.20080707135523.1"><vh>Read Thread</vh></v>
 <v t="ntallen.20080708133047"><vh>Write Thread</vh></v>
 </v>
-<v t="ntallen.20070823131008"><vh>data_queue (DQ)</vh>
+<v t="ntallen.20070823131008" a="E"><vh>data_queue (DQ)</vh>
 <v t="ntallen.20080710162929"><vh>DQ hierarchy</vh>
 <v t="ntallen.20080710162929.1"><vh>Commands</vh></v>
 <v t="ntallen.20080710162929.2"><vh>Collection strategy</vh></v>
@@ -244,14 +244,16 @@
 <v t="ntallen.20070822162630.1"><vh>Inetin</vh></v>
 <v t="ntallen.20070820135203.1"><vh>Everything else</vh></v>
 </v>
-<v t="ntallen.20070319130904.4"><vh>Collection</vh>
+<v t="ntallen.20070319130904.4" a="E"><vh>Collection</vh>
 <v t="ntallen.20070404221945"><vh>Define data interfaces</vh></v>
 </v>
-<v t="ntallen.20070319130904.5"><vh>rdr</vh></v>
+<v t="ntallen.20070319130904.5" a="E"><vh>rdr</vh>
+<v t="ntallen.20100810122935.2031"><vh>rdr options</vh></v>
+</v>
 <v t="ntallen.20070319130904.6"><vh>Inetin</vh></v>
 <v t="ntallen.20080516132543"><vh>TMRelay</vh></v>
 </v>
-<v t="ntallen.20070319130904.7"><vh>Data Clients</vh>
+<v t="ntallen.20070319130904.7" a="E"><vh>Data Clients</vh>
 <v t="ntallen.20080519132626"><vh>DC API</vh></v>
 <v t="ntallen.20080516131227.1"></v>
 <v t="ntallen.20070319130904.8"><vh>lgr</vh></v>
@@ -326,8 +328,8 @@
 </v>
 </v>
 <v t="ntallen.20100729115515.2029"><vh>subbus_usb</vh></v>
-<v t="ntallen.20090202133816"><vh>Utilities</vh>
-<v t="ntallen.20090202133816.1"><vh>mkdoit</vh>
+<v t="ntallen.20090202133816" a="E"><vh>Utilities</vh>
+<v t="ntallen.20090202133816.1" a="E"><vh>mkdoit</vh>
 <v t="ntallen.20090202133816.2"><vh>Dedicated Acquisition node</vh></v>
 <v t="ntallen.20090202133816.3"><vh>Development node</vh></v>
 </v>
@@ -476,7 +478,7 @@
 </v>
 </v>
 </v>
-<v t="ntallen.20070404221945.4"><vh>Drivers</vh>
+<v t="ntallen.20070404221945.4" a="E"><vh>Drivers</vh>
 <v t="ntallen.20070404221945.5"><vh>Subbus</vh></v>
 <v t="ntallen.20070404221945.6"><vh>SCDC/DCCC</vh></v>
 <v t="ntallen.20070404221945.7"><vh>Indexer</vh>
@@ -513,24 +515,24 @@
 <v t="ntallen.20070330134656.4"><vh>OCB</vh></v>
 <v t="ntallen.20070330134656.5"><vh>Strategy for multiple readers</vh></v>
 </v>
-<v t="ntallen.20070817133522"><vh>Documentation</vh>
+<v t="ntallen.20070817133522" a="E"><vh>Documentation</vh>
 <v t="ntallen.20070817133522.1"><vh>QNX4</vh>
 <v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
-<v t="ntallen.20070817133522.3"><vh>QNX6</vh>
-<v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
-<v t="ntallen.20080716155154.1"><vh>DG.h</vh>
+<v t="ntallen.20070817133522.3" a="E"><vh>QNX6</vh>
+<v t="ntallen.20080716155154" a="E"><vh>DataQueue.h</vh>
+<v t="ntallen.20080716155154.1" a="E"><vh>DG.h</vh>
 <v t="ntallen.20080716155154.2"><vh>Collector.h</vh></v>
 <v t="ntallen.20080716155154.3"><vh>Extractor.h</vh></v>
 </v>
-<v t="ntallen.20080716155154.4"><vh>DC.h</vh>
+<v t="ntallen.20080716155154.4" a="E"><vh>DC.h</vh>
 <v t="ntallen.20080720213239"><vh>Simple Data Client</vh></v>
 <v t="ntallen.20080720213239.1"><vh>Photon Data Client</vh></v>
 <v t="ntallen.20080720213239.2"><vh>Data Client with Command Interface</vh></v>
 </v>
 </v>
 <v t="ntallen.20070817133522.4"><vh>DC</vh></v>
-<v t="ntallen.20070817133522.5"></v>
+<v t="ntallen.20070817133522.5" a="E"></v>
 </v>
 </v>
 </v>
@@ -939,7 +941,10 @@ Need to promote, add usage</t>
 <t tx="ntallen.20070524163205.2">Timestamps allow date/time to high precision without recording YYMMDDHHMMSS in every frame.</t>
 <t tx="ntallen.20070524163205.3">App is assumed to match local definition. Can only check that MFCtr/Synch make sense releative to TM info.</t>
 <t tx="ntallen.20070524163205.4">Might as well use a format similar to TMbfr's output</t>
-<t tx="ntallen.20070524163205.5">Same here, although we might choose to add some sort of checksuming</t>
+<t tx="ntallen.20070524163205.5">Same here, although we might choose to add some sort of checksuming.
+
+Both are currently limited to T3.
+</t>
 <t tx="ntallen.20070524163205.6">If Inetin and rdr use the TMbfr format, all DGs should</t>
 <t tx="ntallen.20070524163205.7">TMbfr presumably will understand at least the four basic data formats, TMTYPE_DATA_T[1-4]
 Should it:
@@ -4001,5 +4006,14 @@ find /usr/qnx641 ! -type d | sed -f dev_copy.sed &gt;MANIFEST
 <t tx="ntallen.20100729115515.2029">Will need a library and a driver. Driver's job is simply to arbitrate access to the device.
 
 Where we are really dealing with send/reply interface, it might make sense to use custom messages as opposed to making separate write/read calls</t>
+<t tx="ntallen.20100810122935.2031">Restricting file range:
+    By file/number
+    By time
+
+On initialization, rdr should determine the starting and ending file numbers so process_eof() will know
+whether to keep trying. If they aren't passed in as parameters, rdr could invoke mlf_find itself.
+
+This approach requires rdr to read all the data. It would be nice to have a method to find the time
+more quickly, but that might best be handled by an external app.</t>
 </tnodes>
 </leo_file>

@@ -56,9 +56,9 @@ void data_generator::transmit_data( int single_row ) {
         SETIOV(&iov[1], &dqts->TS, sizeof(dqts->TS));
         lock();
         if ( dg_bfr_fd != -1 ) {
-	  rc = writev(dg_bfr_fd, iov, 2);
-	  check_writev( rc, sizeof(tm_hdr_t)+sizeof(dqts->TS),
-	     "transmitting tstamp" );
+          rc = writev(dg_bfr_fd, iov, 2);
+          check_writev( rc, sizeof(tm_hdr_t)+sizeof(dqts->TS),
+             "transmitting tstamp" );
         }
         unlock();
         retire_tstamp(dqts);
@@ -88,11 +88,11 @@ void data_generator::transmit_data( int single_row ) {
           }
           lock();
           if ( dg_bfr_fd != -1 ) {
-	    rc = writev(dg_bfr_fd, iov, n_iov);
-	    unlock();
-	    check_writev( rc, nbDataHdr + n_rows * nbQrow,
-	       "transmitting data" );
-	  } else unlock();
+            rc = writev(dg_bfr_fd, iov, n_iov);
+            unlock();
+            check_writev( rc, nbDataHdr + n_rows * nbQrow,
+               "transmitting data" );
+          } else unlock();
           retire_rows(dqdr, n_rows);
           if ( single_row ) return;
         }
@@ -196,16 +196,16 @@ int data_generator::execute(const char *cmd) {
       case 's':
         lock();
         if (!started) {
-	  regulated = true;
-	  row_period_nsec_current = 0;
-	  tm_start(0);
+          regulated = true;
+          row_period_nsec_current = 0;
+          tm_start(0);
         } else {
-	  regulated = true;
-	  if ( row_period_nsec_current ) {
-	    row_period_nsec_current = 0;
-	    tmr->settime(0);
-	  }
-	  unlock();
+          regulated = true;
+          if ( row_period_nsec_current ) {
+            row_period_nsec_current = 0;
+            tmr->settime(0);
+          }
+          unlock();
         }
         service_row_timer(); /* single_step(); */
         break;
@@ -214,19 +214,19 @@ int data_generator::execute(const char *cmd) {
         if (regulation_optional) {
           lock();
           if (!started || ( regulated && row_period_nsec_current == 0) )
-	    tm_play(0);
+            tm_play(0);
           else if ( regulated ) {
-	    row_period_nsec_current = row_period_nsec_current * 2 / 3;
-	    if ( row_period_nsec_current < tmr->timer_resolution_nsec ) {
-	      regulated = false;
-	      tmr->settime(0);
-	      unlock();
-	      event(dg_event_fast);
-	    } else {
-	      tmr->settime(row_period_nsec_current);
-	      unlock();
-	    }
-	  } else unlock();
+            row_period_nsec_current = row_period_nsec_current * 2 / 3;
+            if ( row_period_nsec_current < tmr->timer_resolution_nsec ) {
+              regulated = false;
+              tmr->settime(0);
+              unlock();
+              event(dg_event_fast);
+            } else {
+              tmr->settime(row_period_nsec_current);
+              unlock();
+            }
+          } else unlock();
         }
         break;
       case '-': // slower

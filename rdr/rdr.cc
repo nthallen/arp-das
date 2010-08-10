@@ -32,22 +32,22 @@ void rdr_init( int argc, char **argv ) {
   while ((c = getopt(argc, argv, opt_string)) != -1) {
     switch (c) {
       case 'A':
-	opt_autostart = 1;
+        opt_autostart = 1;
         opt_regulate = 0;
         break;
       case 'a':
-	opt_autostart = 1;
-	opt_regulate = 1;
-	break;
+        opt_autostart = 1;
+        opt_regulate = 1;
+        break;
       case 'P':
-	opt_basepath = optarg;
-	break;
+        opt_basepath = optarg;
+        break;
       case 'k':
-      	opt_kluge_a = 1;
-      	break;
+              opt_kluge_a = 1;
+              break;
       case 'q':
-      	opt_autoquit = 1;
-      	break;
+              opt_autoquit = 1;
+              break;
       case '?':
         nl_error(3, "Unrecognized Option -%c", optopt);
     }
@@ -256,6 +256,13 @@ void Reader::process_tstamp() {
   commit_tstamp( tm_info.t_stmp.mfc_num, tm_info.t_stmp.secs );
 }
 
+/**
+ \brief Handles incoming data records
+ 
+ Currently, lgr can only write out data in T3 format, so
+ rdr here assumes the incoming data is T3 format. This is
+ checked by an assertion in Reader::Reader().
+ */
 void Reader::process_data() {
   static int nrows_full_rec = 0;
   static int last_rec_full = 1;
@@ -269,6 +276,8 @@ void Reader::process_data() {
   unsigned char *raw = &data->data[0];
   int n_rows = data->n_rows;
   unsigned short MFCtr = data->mfctr;
+  // This is a work-around for a lgr bug which generated
+  // corrupted log files.
   if ( opt_kluge_a ) {
     if ( nrows_full_rec == 0 )
       nrows_full_rec = n_rows;
@@ -276,22 +285,26 @@ void Reader::process_data() {
       last_rec_full = 1;
     } else {
       if ( n_rows * 2 < nrows_full_rec ||
-	  ((!last_rec_full) && n_rows*2 == nrows_full_rec )) {
-	// We won't use this record, but we might record
-	// the MFCtr
-	if ( last_rec_full ) frac_MFCtr = MFCtr;
-	last_rec_full = 0;
-	return;
+          ((!last_rec_full) && n_rows*2 == nrows_full_rec )) {
+        // We won't use this record, but we might record
+        // the MFCtr
+        if ( last_rec_full ) frac_MFCtr = MFCtr;
+        last_rec_full = 0;
+        return;
       } else {
-	// We'll use this record, but may need to get
-	// MFCtr from the previous fragment
-	if ( !last_rec_full ) MFCtr = frac_MFCtr;
-	last_rec_full = 0;
+        // We'll use this record, but may need to get
+        // MFCtr from the previous fragment
+        if ( !last_rec_full ) MFCtr = frac_MFCtr;
+        last_rec_full = 0;
       }
     }
   }
 
   // Can check here for time limits
+  // Given MFCtr, timestamp, we can calculate the time. We can
+  // simply skip the commit_rows() call until the start time
+  // is reached, and we could trigger termination if the end
+  // time is reached.
   while ( n_rows ) {
     unsigned char *dest;
     lock();

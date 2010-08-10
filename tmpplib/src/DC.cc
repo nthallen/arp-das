@@ -118,58 +118,58 @@ void data_client::process_message() {
   while ( bytes_read >= toread ) {
     switch ( dc_state ) {
       case DC_STATE_HDR:
-	switch ( msg->hdr.tm_type ) {
-	  case TMTYPE_INIT:
-	    if ( tm_info_ready )
-	      nl_error( 3, "Received redundant TMTYPE_INIT" );
-	    toread += sizeof(tm_info);
-	    break;
-	  case TMTYPE_TSTAMP:
-	    if ( !tm_info_ready )
-	      nl_error( 3, "Expected TMTYPE_INIT, received TMTYPE_TSTAMP" );
-	    toread += sizeof(tstamp_t);
-	    break;
-	  case TMTYPE_DATA_T1:
-	  case TMTYPE_DATA_T2:
-	  case TMTYPE_DATA_T3:
-	  case TMTYPE_DATA_T4:
-	    if ( !tm_info_ready )
-	      nl_error( 3, "Expected TMTYPE_INIT, received TMTYPE_DATA_Tn" );
-	    if ( msg->hdr.tm_type != input_tm_type )
-	      nl_error(3, "Invalid data type: %04X", msg->hdr.tm_type );
-	    toread = nbDataHdr + nbQrow * msg->body.data1.n_rows;
-	    break;
-	  default: nl_error( 3, "Invalid TMTYPE: %04X", msg->hdr.tm_type );
-	}
-	dc_state = DC_STATE_DATA;
-	if ( toread > bufsize )
-	  nl_error( 3, "Record size %d exceeds allocated buffer size %d",
-	    toread, bufsize );
-	break;
+        switch ( msg->hdr.tm_type ) {
+          case TMTYPE_INIT:
+            if ( tm_info_ready )
+              nl_error( 3, "Received redundant TMTYPE_INIT" );
+            toread += sizeof(tm_info);
+            break;
+          case TMTYPE_TSTAMP:
+            if ( !tm_info_ready )
+              nl_error( 3, "Expected TMTYPE_INIT, received TMTYPE_TSTAMP" );
+            toread += sizeof(tstamp_t);
+            break;
+          case TMTYPE_DATA_T1:
+          case TMTYPE_DATA_T2:
+          case TMTYPE_DATA_T3:
+          case TMTYPE_DATA_T4:
+            if ( !tm_info_ready )
+              nl_error( 3, "Expected TMTYPE_INIT, received TMTYPE_DATA_Tn" );
+            if ( msg->hdr.tm_type != input_tm_type )
+              nl_error(3, "Invalid data type: %04X", msg->hdr.tm_type );
+            toread = nbDataHdr + nbQrow * msg->body.data1.n_rows;
+            break;
+          default: nl_error( 3, "Invalid TMTYPE: %04X", msg->hdr.tm_type );
+        }
+        dc_state = DC_STATE_DATA;
+        if ( toread > bufsize )
+          nl_error( 3, "Record size %d exceeds allocated buffer size %d",
+            toread, bufsize );
+        break;
       case DC_STATE_DATA:
-	switch ( msg->hdr.tm_type ) {
-	  case TMTYPE_INIT:
-	    process_init();
-	    break;
-	  case TMTYPE_TSTAMP:
-	    process_tstamp();
-	    break;
-	  case TMTYPE_DATA_T1:
-	  case TMTYPE_DATA_T2:
-	  case TMTYPE_DATA_T3:
-	  case TMTYPE_DATA_T4:
-	    process_data();
-	    break;
-	}
-	if ( bytes_read > toread ) {
-	  memmove(buf, buf+toread, bytes_read - toread);
-	  bytes_read -= toread;
-	} else if ( bytes_read == toread ) {
-	  bytes_read = 0;
-	}
-	toread = sizeof(tm_hdr_t);
-	dc_state = DC_STATE_HDR;
-	break;
+        switch ( msg->hdr.tm_type ) {
+          case TMTYPE_INIT:
+            process_init();
+            break;
+          case TMTYPE_TSTAMP:
+            process_tstamp();
+            break;
+          case TMTYPE_DATA_T1:
+          case TMTYPE_DATA_T2:
+          case TMTYPE_DATA_T3:
+          case TMTYPE_DATA_T4:
+            process_data();
+            break;
+        }
+        if ( bytes_read > toread ) {
+          memmove(buf, buf+toread, bytes_read - toread);
+          bytes_read -= toread;
+        } else if ( bytes_read == toread ) {
+          bytes_read = 0;
+        }
+        toread = sizeof(tm_hdr_t);
+        dc_state = DC_STATE_HDR;
+        break;
       default: nl_error( 4, "Invalid dc_state" );
     }
   }
