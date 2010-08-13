@@ -1,5 +1,8 @@
 # edf2ext.awk Converts .edf files to .ext for TMC input.
 # $Log$
+# Revision 1.3  2009/10/05 01:10:21  ntallen
+# const char * remediation
+#
 # Revision 1.2  2008/09/22 16:00:30  ntallen
 # Updates to appgen for extractions
 # mkinp and tomat utilities
@@ -30,41 +33,50 @@ BEGIN { rv = 0 }
 /^ *spreadsheet/ {
   if (written == 1) nsps++
   else {
-	print "%{ /* edf2ext.awk reading " FILENAME " */"
-	print "  #include <stdlib.h>"
-	print "  #include <errno.h>"
-	print "  #include \"ssp.h\""
-	print "  #include \"msg.h\""
-	print "  #include \"tmctime.h\""
-	printf "\n"
-	print "  #define Ct24_Long(x) (0xFFFFFF & *(TMLONG *)&x)"
-	print "  #define Ct24_Double(x) (double)Ct24_Long(x)"
-	print "  #define To_Double(x) (double)(x)"
-	print "  #define EXTRACTION_INIT initialize()"
-	print "  #define EXTRACTION_TERM terminate()"
-	print "  #define ALL_SPSS"
-	printf "\n"
-	print "  static double ext_delta = 0.;"
-	printf "\n"
-	print "  static sps_ptr edf_ss_open( const char *name, int width ) {"
-	print "\tsps_ptr ss;"
-	printf "\n"
-	print "\tss = ss_open( name );"
-	print "\tif ( ss_error( ss ) ) {"
-	print "\t  ss = ss_create( name, SPT_INCREASING, width, 0 );"
-	print "\t  if ( ss_error( ss ) )"
-	print "\t    msg( 3, \"Unable to create spreadsheet %s\", name );"
-	print "\t  errno = 0;"
-	print "\t  msg( 0, \"Creating spreadsheet %s.sps\", name );"
-	print "\t} else if ( ss_width( ss ) != width )"
-	print "\t  msg( 3,"
-	print "\t    \"Existing spreadsheet %s.sps not of width %d\", width );"
-	print "\telse msg( 0, \"Appending to spreadsheet %s.sps\", name );"
-	print "\treturn ss;"
-	print "  }"
-	printf "\n"
-	written = 1;
-	nsps = 0;
+    print "%{ /* edf2ext.awk reading " FILENAME " */"
+    print "  #include <stdlib.h>"
+    print "  #include <errno.h>"
+    print "  #include \"ssp.h\""
+    pinrt "  #include \"snafuerr.h\""
+    print "  #include \"msg.h\""
+    print "  #include \"tmctime.h\""
+    printf "\n"
+    print "  #define Ct24_Long(x) (0xFFFFFF & *(TMLONG *)&x)"
+    print "  #define Ct24_Double(x) (double)Ct24_Long(x)"
+    print "  #define To_Double(x) (double)(x)"
+    print "  #define EXTRACTION_INIT initialize()"
+    print "  #define EXTRACTION_TERM terminate()"
+    print "  #define ALL_SPSS"
+    printf "\n"
+    print "  static double ext_delta = 0.;"
+    printf "\n"
+    print "  static sps_ptr edf_ss_open( const char *name, int width ) {"
+    print "    sps_ptr ss;"
+    printf "\n"
+    print "    ss = ss_open( name );"
+    print "    if ( ss_error( ss ) ) {"
+    print "      ss = ss_create( name, SPT_INCREASING, width, 0 );"
+    print "      if ( ss_error( ss ) )"
+    print "        msg( 3, \"Unable to create spreadsheet %s\", name );"
+    print "      errno = 0;"
+    print "      msg( 0, \"Creating spreadsheet %s.sps\", name );"
+    print "    } else if ( ss_width( ss ) != width )"
+    print "      msg( 3,"
+    print "        \"Existing spreadsheet %s.sps not of width %d\", width );"
+    print "    else msg( 0, \"Appending to spreadsheet %s.sps\", name );"
+    print "    return ss;"
+    print "  }"
+    printf "\n"
+    print "  static void edf_ss_insert_val( sps_ptr ssp, double V, double delta ) {"
+    print "    int rv = ss_insert_value( ssp, V, delta );"
+    print "    if (rv != 0 ) {"
+    print "      if ( rv == SFU_SPDSHT_FULL ) nl_error( 3, \"Spreadsheet full\");"
+    print "      else nl_error( 3, \"SNAFU Error %d on insert\", rv );"
+    print "    }"
+    print "  }"
+    printf "\n"
+    written = 1;
+    nsps = 0;
   }
   sps[nsps] = $2
   ncols[nsps] = $3
@@ -100,50 +112,50 @@ END {
 
   # print the initializations
   print "  void initialize(void) {"
-  print "\t{"
-  print "\t  char *s;"
-  print "\t  s = getenv(\"EXT_DELTA\");"
-  print "\t  if (s != NULL) {"
-  print "\t\text_delta=atof(s);"
-  print "\t\tmsg(MSG, \"Using Time Delta of %lf\", ext_delta);"
-  print "\t  }"
-  print "\t}"
+  print "    {"
+  print "      char *s;"
+  print "      s = getenv(\"EXT_DELTA\");"
+  print "      if (s != NULL) {"
+  print "        ext_delta=atof(s);"
+  print "        msg(MSG, \"Using Time Delta of %lf\", ext_delta);"
+  print "      }"
+  print "    }"
   for (i = 0; i <= nsps; i++) {
-	print "\t" sps[i] " = edf_ss_open( \"" sps[i] "\", " ncols[i] " );"
-	print "\tss_set_column(" sps[i] ", 0, \"%14.11lt\", \"Time\");"
-	for (j = 1; j < ncols[i]; j++) {
-	  if (datfmt[i,j] == "") datfmt[i,j] = "%9.2e"
-	  printf "\tss_set_column(" sps[i] ", " j ", "
-	  print "\"" datfmt[i,j] "\", \"" datum[i,j] "\");"
-	}
+    print "    " sps[i] " = edf_ss_open( \"" sps[i] "\", " ncols[i] " );"
+    print "    ss_set_column(" sps[i] ", 0, \"%14.11lt\", \"Time\");"
+    for (j = 1; j < ncols[i]; j++) {
+      if (datfmt[i,j] == "") datfmt[i,j] = "%9.2e"
+      printf "    ss_set_column(" sps[i] ", " j ", "
+      print "\"" datfmt[i,j] "\", \"" datum[i,j] "\");"
+    }
   }
   print "  }"
   
   # print the terminations
   print "  void terminate(void) {"
   for (i = 0; i <= nsps; i++) {
-	print "\tss_close(" sps[i] ");"
+    print "    ss_close(" sps[i] ");"
   }
   print "  }"
   print "%}"
 
   # print the extraction statements
   if (init_only != "yes") {
-	for (i = 0; i <= nsps; i++) {
-	  k = 0;
-	  for (j = 1; j < ncols[i]; j++) {
-		if (datum[i,j] != "") {
-		  if (k > 0 && sep[i] == "y") print "}"
-		  if (k == 0 || sep[i] == "y") {
-			print cond[i] "{"
-			print "  ss_insert_value(" sps[i] ", dtime()+ext_delta, 0);"
-		  }
-		  printf "  ss_set(" sps[i] ", " j ", "
-		  print datcnv[i,j] "(", datum[i,j] "));"
-		  k++;
-		}
-	  }
-	  print "}"
-	}
+    for (i = 0; i <= nsps; i++) {
+      k = 0;
+      for (j = 1; j < ncols[i]; j++) {
+        if (datum[i,j] != "") {
+          if (k > 0 && sep[i] == "y") print "}"
+          if (k == 0 || sep[i] == "y") {
+            print cond[i] "{"
+            print "  edf_ss_insert_val(" sps[i] ", dtime()+ext_delta, 0);"
+          }
+          printf "  ss_set(" sps[i] ", " j ", "
+          print datcnv[i,j] "(", datum[i,j] "));"
+          k++;
+        }
+      }
+      print "}"
+    }
   }
 }
