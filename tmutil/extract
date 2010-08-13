@@ -217,7 +217,8 @@ cd $extdir
 export TMLOGDIR=$dir
 export TMBINPATH=$MYPATH
 rv=0
-memo -o extract.log &
+# Just output to stdout until I can do both:
+memo &
 waitfor /dev/huarp/$Experiment/memo || exit 1
 TMbfr &
 waitfor /dev/huarp/$Experiment/TM/DCo || exit 1
@@ -226,8 +227,8 @@ for ext in ; do
   $ext -h "$ext" &
   shift
 done
-echo "extract: rdr -AkqP $dir" >/dev/huarp/$Experiment/memo
-rdr -AqP $dir || rv=1
+echo "extract: rdr $RDR_OPTS -AqP $dir" >/dev/huarp/$Experiment/memo
+rdr $RDR_OPTS -AqP $dir || rv=1
 
 # rdr -v -c0 -n $# -Q $RDR_OPTS $time_opts -d $dir -f $dir/tm.dac &
 cd $rootdir
