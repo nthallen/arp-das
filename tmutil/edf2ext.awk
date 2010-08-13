@@ -1,5 +1,8 @@
 # edf2ext.awk Converts .edf files to .ext for TMC input.
 # $Log$
+# Revision 1.4  2010/08/13 18:00:24  ntallen
+# check ss_insert_value() return code.
+#
 # Revision 1.3  2009/10/05 01:10:21  ntallen
 # const char * remediation
 #
@@ -37,7 +40,7 @@ BEGIN { rv = 0 }
     print "  #include <stdlib.h>"
     print "  #include <errno.h>"
     print "  #include \"ssp.h\""
-    pinrt "  #include \"snafuerr.h\""
+    print "  #include \"snafuerr.h\""
     print "  #include \"msg.h\""
     print "  #include \"tmctime.h\""
     printf "\n"
