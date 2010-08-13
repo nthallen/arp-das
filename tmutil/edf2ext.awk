@@ -1,5 +1,8 @@
 # edf2ext.awk Converts .edf files to .ext for TMC input.
 # $Log$
+# Revision 1.5  2010/08/13 18:10:47  ntallen
+# Typo
+#
 # Revision 1.4  2010/08/13 18:00:24  ntallen
 # check ss_insert_value() return code.
 #
@@ -73,6 +76,7 @@ BEGIN { rv = 0 }
     print "  static void edf_ss_insert_val( sps_ptr ssp, double V, double delta ) {"
     print "    int rv = ss_insert_value( ssp, V, delta );"
     print "    if (rv != 0 ) {"
+    print "      ss_close_all();"
     print "      if ( rv == SFU_SPDSHT_FULL ) nl_error( 3, \"Spreadsheet full\");"
     print "      else nl_error( 3, \"SNAFU Error %d on insert\", rv );"
     print "    }"
