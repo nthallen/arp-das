@@ -1,0 +1,21 @@
+# After downloading from the CVS repository:
+
+  aclocal                # to generate aclocal.m4
+  libtoolize             # to link in libtool files
+  automake --add-missing # to generate Makefile.in src/Makefile.in
+                         # May need to copy in ltmain.sh from
+                         # /usr/local/share/libtool
+  autoconf               # to generate configure
+                         # to generate Makefile src/Makefile:
+  ./configure CPPFLAGS=-I/usr/local/include
+  make
+  # make install
+
+# I used autoscan to get started on configure.ac
+# I used autoheader to generate config.h.in (which may not be necessary)
+
+# To clean totally:
+# make distclean
+# rm -rf autom4te.cache
+# rm aclocal.m4 configure Makefile.in src/Makefile.in
+# find . -type l | xargs rm

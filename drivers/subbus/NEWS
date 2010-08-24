@@ -1,0 +1,9 @@
+August 24, 2010
+
+Established new source code hierarchy, reflecting new architecture.
+The new approach is to create hardware-specific drivers and a single
+library to define the API. This means we don't have to play games
+to swap libraries around, just need to start the correct driver.
+Applications can be linked against the single library yet work
+with different hardware.
+

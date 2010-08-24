@@ -1,0 +1,10 @@
+August 24, 2010
+
+New source hierarchy for the subbus drivers and library
+reflecting the new structure:
+
+   subbus: Base directory with configuration
+     lib: Source code for libsubbus
+     subbusd: Source code common to subbus drivers
+       usb: Build directory for subbusd_usb
+       sc104: Build directory for subbusd_sc104
