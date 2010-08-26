@@ -27,44 +27,54 @@ static int n_part_reads = 0;
 // request has not been transmitted.
 static void process_request(void) {
   int cmdlen, n;
+  int no_response = 0;
   sbd_request_t *sbr;
-  if ( sbdrq_head == sbdrq_tail || cur_req != NULL)
-    return;
-  nl_assert( sbdrq_head < SUBBUS_MAX_REQUESTS );
-  sbr = &sbdrq[sbdrq_head];
-  nl_assert( sbr->status == SBDR_STATUS_QUEUED );
-  switch (sbr->type) {
-    case SBDR_TYPE_INTERNAL:
-      switch (sbr->request[0]) {
-        case '\n': // NOP
-        case 'V':  // Board Revision
-          break;
-        default:
-          nl_error( 4, "Invalid internal request" );
-      }
-      break;
-    case SBDR_TYPE_CLIENT:
-      switch (sbr->request[0]) {
-        case 'R':
-        case 'W':
-        case 'V':
-        case 'S':
-        case 'C':
-          break;
-        default:
-          nl_error( 4, "Invalid client request: '%c'", sbr->request[0] );
-      }
-      break;
-    default:
-      nl_error(4, "Invalid request type" );
+  while ( sbdrq_head != sbdrq_tail && cur_req == NULL ) {
+    nl_assert( sbdrq_head < SUBBUS_MAX_REQUESTS );
+    sbr = &sbdrq[sbdrq_head];
+    nl_assert( sbr->status == SBDR_STATUS_QUEUED );
+    switch (sbr->type) {
+      case SBDR_TYPE_INTERNAL:
+	switch (sbr->request[0]) {
+	  case '\n': // NOP
+	  case 'V':  // Board Revision
+	    break;
+	  default:
+	    nl_error( 4, "Invalid internal request" );
+	}
+	break;
+      case SBDR_TYPE_CLIENT:
+	switch (sbr->request[0]) {
+	  case 'T':
+	  case 'A':
+	    no_response = 1; break;
+	  case 'R':
+	  case 'W':
+	  case 'V':
+	  case 'S':
+	  case 'C':
+	  case 'B':
+	  case 'I':
+	  case 'D':
+	  case 'F':
+	    break;
+	  default:
+	    nl_error( 4, "Invalid client request: '%c'", sbr->request[0] );
+	}
+	break;
+      default:
+	nl_error(4, "Invalid request type" );
+    }
+    cmdlen = strlen( sbr->request );
+    nl_error(-2, "Request: '%*.*s'", cmdlen-1, cmdlen-1, sbr->request );
+    n = write(sb_fd, sbr->request, cmdlen);
+    ++n_writes;
+    nl_assert( n == cmdlen );
+    sbr->status = SBDR_STATUS_SENT;
+    cur_req = sbr;
+    if ( no_response )
+      dequeue_request( "", 0 );
   }
-  cmdlen = strlen( sbr->request );
-  nl_error(-2, "Request: '%*.*s'", cmdlen-1, cmdlen-1, sbr->request );
-  n = write(sb_fd, sbr->request, cmdlen);
-  ++n_writes;
-  nl_assert( n == cmdlen );
-  sbr->status = SBDR_STATUS_SENT;
-  cur_req = sbr;
 }
 
 /**
@@ -96,6 +106,7 @@ static void enqueue_sbreq( int type, int rcvid, char *req ) {
   sbr->status = SBDR_STATUS_QUEUED;
   old_tail = sbdrq_tail;
   sbdrq_tail = new_tail;
+  /* If the queue was empty, process this first request */
   if ( sbdrq_head == old_tail ) process_request();
 }
 
@@ -268,6 +279,10 @@ static void sb_read_usb(void) {
           // in order to preserve causality
         } else {
           sb_ibuf_idx = 0;
+          /* I'm assuming the previous process_response()
+             managed to dequeue the current request,
+             but process_request() will quietly return
+             if that is not the case. */
           process_request();
         }
       } else {

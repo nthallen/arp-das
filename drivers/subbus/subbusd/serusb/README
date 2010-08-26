@@ -23,6 +23,7 @@ the DACS.
     F <data>   // Set failure: response: F | E
     F          // Read failure: response F <data> | E
     T          // Tick to reset 2-minute timeout: No response
+    A          // Disarm reboot timer (if present): A response
 
 Responses:
     R <data> '\n'  // Read data with acknowledge asserted
