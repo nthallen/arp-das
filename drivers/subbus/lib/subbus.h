@@ -1,9 +1,8 @@
-/* subbus.h defines the interface to the subbus resident library
- * Before calling the subbus routines, you must first call
- * load_subbus().  This returns the subfunction of the resident
- * subbus library or 0 if none is installed.  If you call a
- * subbus function without initializing, or if the initialization
- * fails, you are guaranteed to crash.
+/** @file
+ subbus.h defines the interface to the subbus resident library
+ Before calling the subbus routines, you must first call
+ load_subbus().  This returns the subfunction of the resident
+ subbus library or 0 if none is installed.
  */
 #ifndef SUBBUS_H_INCLUDED
 #define SUBBUS_H_INCLUDED
@@ -14,12 +13,15 @@ extern "C" {
 #endif
 
 
-/* Subbus version codes */
+/* Subbus subfunction codes: These define the hardware that talks
+   to the subbus. It does not talk about the interface between
+   the library and the system controller itself.
+ */
 #define SB_PCICC 1
 #define SB_PCICCSIC 2
 #define SB_SYSCON 3
 #define SB_SYSCON104 4
-#define SB_SYSCOND 5
+#define SB_SYSCONDACS 5
 
 /* subbus_features: */
 #define SBF_SIC 1		/* SIC Functions */
@@ -34,29 +36,29 @@ extern "C" {
 
 extern int load_subbus(void);
 
-extern unsigned int subbus_version;
-extern unsigned int subbus_features;
-extern unsigned int subbus_subfunction;
+extern unsigned short subbus_version;
+extern unsigned short subbus_features;
+extern unsigned short subbus_subfunction;
 extern unsigned short read_subbus(unsigned short addr);
 extern int write_ack(unsigned short addr, unsigned short data);
 extern int read_ack(unsigned short addr, unsigned short *data);
 #define write_subbus(x,y) write_ack(x,y)
-extern void set_cmdenbl(int value);
-extern unsigned int read_switches(void);
-extern void set_failure(int value);
-extern unsigned char read_failure(void);
-extern short int set_cmdstrobe(short int value);
+extern int set_cmdenbl(int value);
+extern int set_cmdstrobe(int value);
+extern unsigned short read_switches(void);
+extern int set_failure(unsigned short value);
+extern unsigned short read_failure(void);
 extern int  tick_sic(void);
-extern void disarm_sic(void);
+extern int disarm_sic(void);
 extern char *get_subbus_name(void);
 #define subbus_name get_subbus_name()
 
-#define sbw(x) read_subbus(x)
+unsigned short sbrb(unsigned short addr);
+unsigned short sbrba(unsigned short addr);
+#define sbrw(x) read_subbus(x)
+unsigned int sbrwa(unsigned short addr);
 #define sbwr(x,y) write_ack(x,y)
 #define sbwra(x,y) write_ack(x,y)
-unsigned int sbb(unsigned short addr);
-unsigned int sbba(unsigned short addr);
-unsigned int sbwa(unsigned short addr);
 
 int subbus_int_attach( char *cardID, unsigned short address,
       unsigned short region, struct sigevent *event );

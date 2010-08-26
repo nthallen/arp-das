@@ -10,84 +10,117 @@
 #include "nl_assert.h"
 #include "subbusd.h"
 
-#define LIBRARY_SUB SB_SUBBUSD
 #define SUBBUS_VERSION 0x501 /* subbus version 5.01 QNX6 */
 
 static int sb_fd = -1;
 static iov_t sb_iov[3];
-static struct _io_msg sb_hdr;
-static char sb_buf[SUBBUSD_MAX_REQUEST];
+static subbusd_req_hdr_t sb_req_hdr;
+static subbusd_rep_t sb_reply;
+static char local_subbus_name[SUBBUS_NAME_MAX];
 
-int load_subbus(void) {
-  sb_fd = open("/dev/huarp/subbus", O_RDWR );
-  if ( sb_fd == -1 )
-    nl_error( 3, "Error opening subbusd: %s", strerror(errno));
-  SETIOV( &sb_iov[0], &sb_hdr, sizeof(sb_hdr) );
-  sb_hdr.type = _IO_MSG;
-  sb_hdr.combine_len = 0;
-  sb_hdr.mgrid = SUBBUSD_MGRID;
-  sb_hdr.subtype = 0;
-  SETIOV( &sb_iov[2], sb_buf, SUBBUSD_MAX_REQUEST );
-  return LIBRARY_SUB;
-}
+unsigned short subbus_version = SUBBUS_VERSION;
+unsigned short subbus_subfunction; // undefined until initialization
+unsigned short subbus_features; // ditto
 
-unsigned int subbus_version = SUBBUS_VERSION;
-unsigned int subbus_features = SUBBUS_FEATURES;
-unsigned int subbus_subfunction = LIBRARY_SUB;
-
-
-#define SB_BASE_NAME "Subbus Library V5.01"
 /**
- * Should be expanded to query subbusd.
+ @return Number of bytes in reply or -1 on error.
  */
-char *get_subbus_name(void) {
-  return SB_BASE_NAME;
+static int send_to_subbusd( unsigned short command, void *data,
+		int data_size, unsigned short exp_type ) {
+  int rv;
+  if ( sb_fd == -1 )
+    nl_error( 4, "Attempt to access subbusd before initialization" );
+  int n_iov = 1;
+  sb_req_hdr.command = command;
+  if ( data_size > 0 ) {
+    SETIOV( &sb_iov[1], data, data_size );
+    ++n_iov;
+  }
+  rv = MsgSendv( sb_fd, sb_iov, n_iov, &sb_iov[2], 1 );
+  if ( rv == -1 )
+    nl_error( 3, "Error sending to subbusd: %s",
+      strerror(errno) );
+  nl_assert( rv >= sizeof(subbusd_rep_hdr_t) );
+  if ( sb_reply.hdr.status < 0 ) 
+    exp_type = SBRT_NONE;
+  nl_assert( sb_reply.hdr.ret_type == exp_type );
+  switch ( sb_reply.hdr.ret_type ) {
+    case SBRT_NONE:
+      nl_assert( rv == sizeof(subbusd_rep_hdr_t));
+      break;
+    case SBRT_US:
+      nl_assert( rv == sizeof(subbusd_rep_hdr_t) + sizeof(unsigned short));
+      break;
+    case SBRT_CAP:
+      nl_assert( rv == sizeof(subbusd_rep_hdr_t) + sizeof(subbusd_cap_t));
+      break;
+    default:
+      nl_error( 4, "Unknown return type: %d", sb_reply.hdr.ret_type );
+  }
+  return sb_reply.hdr.status;
 }
 
-static int send_to_subbusd( char *buf, int nb ) {
+
+/** Initializes communications with subbusd driver.
+    Returns library subfunction on success,
+    zero on failure.
+ */
+int load_subbus(void) {
   int rv;
   if ( sb_fd != -1 ) {
-    SETIOV( &sb_iov[1], buf, nb );
-    rv = MsgSendv( sb_fd, sb_iov, 2, &sb_iov[2], 1 );
-  } else {
-    errno = EBADF;
-    rv = -1;
+    nl_error( 2, "Attempt to reload subbus" );
+    return subbus_subfunction;
   }
-  return rv;
+  sb_fd = open("/dev/huarp/subbus", O_RDWR );
+  if ( sb_fd == -1 ) {
+    nl_error( -2, "Error opening subbusd: %s", strerror(errno));
+    return 0;
+  }
+  SETIOV( &sb_iov[0], &sb_req_hdr, sizeof(sb_req_hdr) );
+  sb_req_hdr.iohdr.type = _IO_MSG;
+  sb_req_hdr.iohdr.combine_len = 0;
+  sb_req_hdr.iohdr.mgrid = SUBBUSD_MGRID;
+  sb_req_hdr.iohdr.subtype = 0;
+  sb_req_hdr.sb_kw = SB_KW;
+  SETIOV( &sb_iov[2], &sb_reply, sizeof(sb_reply) );
+  rv = send_to_subbusd( SBC_GETCAPS, NULL, 0, SBRT_CAP );
+  if ( rv != SBS_OK )
+    nl_error( 4, "Expected SBS_OK while getting capabilities" );
+  subbus_subfunction = sb_reply.data.capabilities.subfunc;
+  subbus_features = sb_reply.data.capabilities.features;
+  strncpy(local_subbus_name, sb_reply.data.capabilities.name, SUBBUS_NAME_MAX);
+  local_subbus_name[SUBBUS_NAME_MAX-1] = '\0'; // guarantee nul-term.
+  return subbus_subfunction;
 }
 
+/**
+ * Returns the hardware name string as originally retrieved from
+ * subbusd during load_subbus().
+ */
+char *get_subbus_name(void) {
+  if ( sb_fd == -1 )
+    nl_error( 4, "Attempt to read subbus_name before initialization" );
+  return( local_subbus_name );
+}
 
+/**
+ @return non-zero if hardware read acknowledge was observed.
+ */
 int read_ack( unsigned short addr, unsigned short *data ) {
-  int n_out, n_in;
-  char buf[SUBBUSD_MAX_REQUEST];
+  int rv, rc;
+  subbusd_req_data1 rdata;
 
-  sprintf( buf, "R%04X\n", addr & 0xFFFF );
-  n_in = send_to_subbusd( buf, 7 );
-  if ( n_in < 1 )
-    nl_error( 3, "Error reading from subbusd: %s", strerror(errno) );
-  else if (n_in != 6 ) {
-    if ( sb_buf[0] == 'E' )
-      nl_error( 1, "Error %c from syscon in read_ack", buf[1] ); 
-    else nl_error( 3,
-	"Unexpected input count in read_ack: %d (expected 6)", n_in );
-  } else {
-    int i, nv;
-    unsigned short idata = 0;
-    for ( i = 1; i <= 4; i++ ) {
-      int c = sb_buf[i];
-      if ( isdigit(c) ) nv = c - '0';
-      else if (isxdigit(c)) {
-        if (isupper(c)) nv = c - 'A' + 10;
-        else nv = c - 'a' + 10;
-      } else {
-        nl_error( 1, "Invalid character in read_ack" );
-        nv = 0;
-      }
-      idata = (idata<<4) + nv;
-    }
-    *data = idata;
+  rdata.data = addr;
+  rv = send_to_subbusd( SBC_READACK, &rdata, sizeof(rdata), SBRT_US );
+  *data = sb_reply.data.value;
+  switch ( rv ) {
+    case SBS_ACK: rc = 1;
+    case SBS_NOACK: rc = 0;
+    default:
+      nl_error( 4, "Invalid status response to read_ack(): %d",
+	rv );
   }
-  return((sb_buf[0] == 'R') ? 1 : 0 );
+  return rc;
 }
 
 unsigned short read_subbus(unsigned short addr) {
@@ -96,7 +129,7 @@ unsigned short read_subbus(unsigned short addr) {
   return data;
 }
 
-unsigned int sbb(unsigned short addr) {
+unsigned short sbrb(unsigned short addr) {
   unsigned int word;
   
   word = read_subbus(addr);
@@ -105,17 +138,17 @@ unsigned int sbb(unsigned short addr) {
 }
 
 /* returns zero if no acknowledge */
-unsigned int sbba(unsigned short addr) {
+unsigned short sbrba(unsigned short addr) {
   unsigned short word;
   
   if ( read_ack( addr, &word ) ) {
-  	if (addr & 1) word >>= 8;
-  	return( word & 0xFF );
+    if (addr & 1) word >>= 8;
+    return( word & 0xFF );
   } else return 0;
 }
 
 /* returns zero if no acknowledge */
-unsigned int sbwa(unsigned short addr) {
+unsigned int sbrwa(unsigned short addr) {
   unsigned short word;
   
   if ( read_ack( addr, &word ) )
@@ -123,83 +156,70 @@ unsigned int sbwa(unsigned short addr) {
   else return 0;
 }
 
+/**
+ @return non-zero value if the hardware acknowledge is
+ observed. Historically, the value recorded the number
+ of iterations in the software loop waiting for
+ the microsecond timeout.
+ */
 int write_ack(unsigned short addr, unsigned short data) {
-  int n_out, n_in;
-  char buf[12];
+  int rv, rc;
+  subbusd_req_data0 wdata;
 
-  sprintf( buf, "W%04X:%04X\n", addr, data );
-  n_in = send_to_subbusd( buf, 11 );
-  switch (n_in) {
-    case -1:
-      nl_error( 3, "Error writing to subbusd in write_ack: %s",
-	      strerror(errno) );
-    case 0:
-      nl_error( 3, "Empty response from subbusd in write_ack" );
-    case 2:
-      switch ( sb_buf[0] ) {
-	case 'w': return 0;
-	case 'W': return 1;
-	case 'E':
-	  nl_error( 1, "Error '%c' from subbusd in write_ack", sb_buf[1] );
-	  return 0;
-	default:
-	  nl_error( 3, "Unexpected response '%c' in write_ack", sb_buf[0] );
-      }
+  wdata.address = addr;
+  wdata.data = data;
+  rv = send_to_subbusd( SBC_WRITEACK, &wdata, sizeof(wdata), SBRT_NONE );
+  switch (rv ) {
+    case SBS_ACK: rc = 1;
+    case SBS_NOACK: rc = 0;
+    default:
+      nl_error( 4, "Invalid status response to read_ack(): %d",
+	rv );
+  }
+  return rc;
+}
+
+/** This is an internal function for sending messages
+ * with a single unsigned short argument and a simple
+ * status return.
+ @return non-zero on success. Zero if unsupported.
+ */
+static int set_CSF( unsigned short command, unsigned short val ) {
+  int rv;
+  subbusd_req_data1 csf_data;
+
+  switch ( command ) {
+    case SBC_SETCMDENBL:
+    case SBC_SETCMDSTRB:
+    case SBC_SETFAIL:
       break;
-    case 1:
     default:
-      nl_error( 3, "Unexpected response '%c' length %d in write_ack",
-	sb_buf[0], n_in );
+      nl_error( 4, "Invalid command in set_CSF: %d", command );
   }
-  return 0;
+  csf_data.data = val;
+  rv = send_to_subbusd( command, &csf_data, sizeof(csf_data), SBRT_NONE );
+  return( (rv == SBS_OK) ? 1 : 0 );
 }
 
-static void send_CS( char code, int val ) {
-  int n_in;
-  char buf[12];
 
-  nl_assert( code == 'S' || code == 'C' );
-  sprintf( buf, "%c%d\n", code, val ? 1 : 0 );
-  
-  n_in = send_to_subbusd( buf, 3 );
-  switch (n_in) {
-    case -1:
-      nl_error( 3, "Error writing to subbusd in send_CS(): %s",
-	      strerror(errno) );
-    case 0:
-      nl_error( 3, "Empty response from subbusd in send_CS()" );
-    case 1:
-      nl_error( 3, "Unexpected response '%c' in send_CS()", sb_buf[0] );
-    case 3:
-      if ( sb_buf[0] == code ) {
-	if ( sb_buf[1] - '0' != (val ? 1 : 0)) {
-	  nl_error( 1, "send_CS() returned wrong value" );
-	}
-	break;
-      } else if (sb_buf[0] == 'E') {
-	nl_error( 1, "Error '%c' from subbusd in send_CS()", sb_buf[1] );
-	break;
-      }
-    case 2:
-    default:
-      nl_error( 3, "Unexpected response '%c' length %d in send_CS()",
-	sb_buf[0], n_in );
-  }
-}
-
-/* CMDENBL "Cn\n" where n = 0 or 1. Response should be the same */
-void set_cmdenbl(int val) {
-  send_CS( 'C', val );
+/** Set cmdenbl value.
+ @return non-zero on success. Zero if not supported.
+ */
+int set_cmdenbl(int val) {
+  return send_CSF( SBC_SETCMDENBL, val ? 1 : 0);
 }
 
 /**
- Reads the positions of a dedicated set of system mode switches,
- usually located on a control panel on the instrument.
- @return The binary-encoded switch positions, or zero on error.
+  Function did not exist at all before version 3.10, so
+  programs intending to use this function should verify that
+  the resident library version is at least 3.10. The feature
+  word can also be checked for support, and that is consistent
+  back to previous versions.
+ @param value 1 turns on cmdstrobe, 0 turns off cmdstrobe
+ @return non-zero on success, zero if operation isn't supported.
  */
-unsigned int read_switches(void) {
-  // Send 'D' command
-  return 0;
+int set_cmdstrobe(int val) {
+  return send_CSF(SBC_SETCMDSTRB, val ? 1 : 0);
 }
 
 /**
@@ -217,16 +237,27 @@ unsigned int read_switches(void) {
  @see read_failure()
  @param value Binary-encoded light settings.
  */
-void set_failure(int value) {
-  #if SET_FAIL
-    #if SIC
-      if ( value ) in8(SC_LAMP);
-      else out8(SC_LAMP,0);
-    #endif
-    #if SYSCON
-      out8(SC_LAMP,value);
-    #endif
-  #endif
+int set_failure(unsigned short value) {
+  return send_CSF( SBC_SETFAIL, value );
+}
+
+/** Internal function to handle read_switches() and read_failure(),
+  which take no arguments, return unsigned short or zero if
+  the function is not supported.
+  */
+static unsigned short read_special( unsigned short command ) {
+  int rv;
+  rv = send_to_subbusd( command, NULL, 0, SBRT_US );
+  return (rv == SBS_OK) ? sb_reply.data.value : 0;
+}
+
+/**
+ Reads the positions of a dedicated set of system mode switches,
+ usually located on a control panel on the instrument.
+ @return The binary-encoded switch positions, or zero on error.
+ */
+unsigned short read_switches(void) {
+  return read_special( SBC_READSW );
 }
 
 /**
@@ -238,26 +269,8 @@ void set_failure(int value) {
  report the actual state of the light.
  @return The binary-encoded value of the indicator light settings.
  */
-unsigned char read_failure(void) {
-  #if SET_FAIL && SYSCON
-    return in8(SC_LAMP);
-  #else
-    return 0;
-  #endif
-}
-
-/**
-  Function did not exist at all before version 3.10, so
-  programs intending to use this function should verify that
-  the resident library version is at least 3.10. The feature
-  word can also be checked for support, and that is consistent
-  back to previous versions.
- @param value 1 turns on cmdstrobe, 0 turns off cmdstrobe
- @return non-zero on success, zero if operation isn't supported.
- */
-short int set_cmdstrobe(short int value) {
-  send_CS('S', value);
-  return 1;
+unsigned short read_failure(void) {
+  return read_special( SBC_READFAIL );
 }
 
 /**
@@ -270,8 +283,8 @@ short int set_cmdstrobe(short int value) {
  reboot timer or rely on a motherboard-specific watchdog
  timer.
  */
-int  tick_sic(void) {
-  return 0;
+int tick_sic( void ) {
+  return send_to_subbusd( SBC_TICK, NULL, 0, SBRT_NONE );
 }
 
 /**
@@ -279,5 +292,25 @@ int  tick_sic(void) {
  that can reboot the system, this command disables that
  timer.
  */
-void disarm_sic(void) {
+int disarm_sic(void) {
+  return send_to_subbusd( SBC_DISARM, NULL, 0, SBRT_NONE );
 }
+
+int subbus_int_attach( char *cardID, unsigned short address,
+      unsigned short region, struct sigevent *event ) {
+  subbusd_req_data2 idata;
+  nl_assert(cardID != NULL);
+  strncpy( idata.cardID, cardID, 8);//possibly not nul-terminated
+  idata.address = address;
+  idata.region = region;
+  idata.event = *event;
+  return send_to_subbusd( SBC_INTATT, &idata, sizeof(idata), SBRT_NONE );
+}
+
+int subbus_int_detach( char *cardID ) {
+  subbusd_req_data3 idata;
+  nl_assert(cardID != NULL);
+  strncpy( idata.cardID, cardID, 8);//possibly not non-terminated
+  return send_to_subbusd( SBC_INTDET, &idata, sizeof(idata), SBRT_NONE );
+}
+

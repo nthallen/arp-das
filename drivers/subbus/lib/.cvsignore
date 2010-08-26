@@ -1,1 +1,6 @@
 Makefile.in
+Makefile
+.deps
+.libs
+libsubbus.la
+subbus.lo
