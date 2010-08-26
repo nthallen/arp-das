@@ -5,6 +5,8 @@ the DACS.
 <hex16> : [0-9A-F]{4}
 <addr> : <hex16>
 <data> : <hex16>
+<subfunc> : <digit>
+<features> : <hex16>
 <cmdline> : <cmd> '\n'
 <bit> : '0' | '1'
 <cmd> :
@@ -29,7 +31,7 @@ Responses:
     w '\n'         // Write without acknowledge
     S <bit> '\n'   // CMDSTRB value
     C <bit> '\n'   // CMDENBL value
-    V <version> '\n' // Version string
+    V <subfunc>:<features>:<version> '\n' // Version string
     I <data> '\n'  // Interrupt string
     i <digit> '\n' // Acknowledge Interrupt config command
     0 '\n'         // NOP
