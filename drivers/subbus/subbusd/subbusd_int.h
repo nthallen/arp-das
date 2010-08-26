@@ -9,7 +9,7 @@
   * A different hardware architecture can be supported by reimplementing these
   * functions.
   */
-extern void incoming_sbreq( int rcvid, char *req );
+extern void incoming_sbreq( int rcvid, subbusd_req_t *req );
 extern void init_subbus(dispatch_t *dpp );
 extern void shutdown_subbus(void);
 

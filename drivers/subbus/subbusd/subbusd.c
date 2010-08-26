@@ -23,11 +23,40 @@ static int saw_int = 0;
 
 static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
                RESMGR_OCB_T *ocb) {
-  subbusd_msg_t sbdmsg;
+  subbusd_req_t sbdmsg;
+  int nb, nb_exp;
   
-  MsgRead (ctp->rcvid, &sbdmsg, sizeof (sbdmsg), 0);
-  if (sbdmsg.hdr.mgrid != SUBBUSD_MGRID)
-    return (ENOSYS);
+  nb = MsgRead(ctp->rcvid, &sbdmsg, sizeof(sbdmsg), 0);
+  if ( nb < sizeof(subbusd_req_hdr_t ||
+	sbdmsg.sbhdr.iohdr.mgrid != SUBBUSD_MGRID ||
+	sbdmsg.sbhdr.sb_kw != SB_KW)
+    return ENOSYS;
+  /* check the size of the incoming message */
+  switch ( sbdmsg.sbhdr.command ) {
+    case SBC_WRITEACK:
+      nb_exp = sizeof(subbusd_req_data1); break;
+    case SBC_SETCMDENBL:
+    case SBC_SETCMDSTRB:
+    case SBC_SETFAIL:
+    case SBC_READACK:
+      nb_exp = sizeof(subbusd_req_data0); break;
+    case SBC_READSW:
+    case SBC_READFAIL:
+    case SBC_GETCAPS:
+    case SBC_TICK:
+    case SBC_DISARM:
+      nb_exp = 0; break;
+    case SBC_INTATT:
+      nb_exp = sizeof(subbusd_req_data2); break;
+    case SBC_INTDET:
+      nb_exp = sizeof(subbusd_req_data3); break;
+    default:
+      return ENOSYS;
+  }
+  nb_exp += sizeof(subbusd_req_hdr_t);
+  if ( nb < nb_exp )
+    nl_error( 4, "Received short message for command %d",
+      sbdmsg.sbhdr.command );
   incoming_sbreq( ctp->rcvid, sbdmsg.request );
   return (_RESMGR_NOREPLY);
 }

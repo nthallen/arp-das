@@ -4,7 +4,6 @@
 #include <sys/siginfo.h>
 
 #define SUBBUSD_MGRID_OFFSET 1
-#define SUBBUSD_MAX_REQUEST 25
 #define SUBBUSD_MGRID (_IOMGR_PRIVATE_BASE + SUBBUSD_MGRID_OFFSET)
 
 #define SUBBUS_NAME_MAX 80
