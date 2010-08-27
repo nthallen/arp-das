@@ -16,8 +16,8 @@ the DACS.
     S <bit>    // CMDSTRB: response codes: SE
     V          // Board Revision: response codes VE
     B          // Board Logical Reset: response: 0? ###
-    I <digit> : <addr> // Define and enable Interrupt: response: i <digit>
-    I <digit>  // Undefine and disable Interrupt: response: i <digit>
+    i <digit> : <addr> // Define and enable Interrupt: response: i <digit>
+    u <digit>  // Undefine and disable Interrupt: response: i <digit>
     ''         // NOP: response code: 0
     D          // Read switches: response: D<data> | E<digit> (no switches)
     F <data>   // Set failure: response: F | E
@@ -34,7 +34,8 @@ Responses:
     C <bit> '\n'   // CMDENBL value
     V <subfunc>:<features>:<version> '\n' // Version string
     I <data> '\n'  // Interrupt string
-    i <digit> '\n' // Acknowledge Interrupt config command
+    i <digit> '\n' // Acknowledge Interrupt config/enable command
+    u <digit> '\n' // Acknowledge Interrupt disable
     0 '\n'         // NOP
     D <data> '\n'  // Switch data
     E <digit> '\n' // Error--not obviously associated with a specific request

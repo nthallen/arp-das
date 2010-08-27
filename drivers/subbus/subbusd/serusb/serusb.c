@@ -23,6 +23,8 @@ static int n_writes = 0;
 static int n_reads = 0;
 static int n_part_reads = 0;
 
+static subbusd_cap_t subbus_caps;
+
 // Transmits a request if the currently queued
 // request has not been transmitted.
 static void process_request(void) {
@@ -73,7 +75,7 @@ static void process_request(void) {
     sbr->status = SBDR_STATUS_SENT;
     cur_req = sbr;
     if ( no_response )
-      dequeue_request( "", 0 );
+      dequeue_request( "", 0 ); // ret_status = SBS_OK, ret_type = SBRT_NONE
   }
 }
 
@@ -119,25 +121,58 @@ static int sb_data_arm(void) {
   return cond;
 }
 
-// dequeue_request() sends the response to client
-// requests and dequeues the current request.
-static void dequeue_request( char *response, int nb ) {
-  int rv;
+/**
+ * Sends the response to the client (if any) and
+ * removes it from the queue. Does not initiate
+ * processing of the next command.
+ * Current assumption:
+ *    n_args maps 1:1 onto SBRT_ codes
+ *    n_args == 3 is only for 'V' request/response
+ */
+static void dequeue_request( signed short status, int n_args,
+  unsigned short arg0, unsigned short arg1, char *s ) {
+  int rv, rsize;
+  subbus_rep_t rep;
 
   nl_assert( cur_req != NULL);
-  switch( cur_req->type ) {
-    case SBDR_TYPE_INTERNAL:
-      switch (response[0]) {
-        case '0': break;
-        case 'V':
-          nl_error( 0, "Version %s", response+1 );
-          break;
-        default:
-          nl_error( 4, "Invalid response in dequeue_request" );
+  rep.hdr.status = status;
+  switch (n_args) {
+    case 0:
+      rep.hdr.ret_type = SBRT_NONE;
+      rsize = sizeof(subbusd_rep_hdr_t);
+      break;
+    case 1:
+      rep.hdr.ret_type = SBRT_US;
+      rep.data.value = arg0;
+      rsize = sizeof(subbusd_rep_hdr_t)+sizeof(unsigned short);
+      break;
+    case 3:
+      nl_assert( cur_req->request[0] == 'V' );
+      switch ( cur_req->type ) {
+	case SBDR_TYPE_INTERNAL:
+	  nl_error( 0, "Features: %d:%03X Version: %s",
+	    arg0, arg1, s);
+	  break;
+	case SBDR_TYPE_CLIENT:
+	  rep.hdr.ret_type = SBRT_CAP;
+	  rep.data.capabilities.subfunc = arg0;
+	  rep.data.capabilities.features = arg1;
+	  strncpy(rep.data.capabilities.name, s, SUBBUS_NAME_MAX );
+	  rsize = sizeof(subbusd_rep_t);
+	  break;
+	default: 
+	  break; // picked up and reported below
       }
       break;
+    case 2:
+      nl_error( 4, "Invalid n_args in dqueue_request" );
+  }
+  switch( cur_req->type ) {
+    case SBDR_TYPE_INTERNAL:
+      rv = 0;
+      break;
     case SBDR_TYPE_CLIENT:
-      rv = MsgReply( cur_req->rcvid, nb+1, response, nb+1 );
+      rv = MsgReply( cur_req->rcvid, rsize, rep, rsize );
       break;
     default:
       nl_error( 4, "Invalid command type in dequeue_request" );
@@ -153,6 +188,9 @@ static void dequeue_request( char *response, int nb ) {
       strerror(errno) );
 }
 
+static void process_interrupt(char *resp, int nb ) {
+}
+
 /* process_response() reviews the response in
    the buffer to determine if it is a suitable
    response to the current request. If so, it
@@ -161,74 +199,115 @@ static void dequeue_request( char *response, int nb ) {
    advancing to the next request, but it is
    responsible for dequeuing the current
    request if it has been completed.
+
+   The string in resp is guaranteed to have had
+   a newline at the end, which was replaced with
+   a NUL, so we are guaranteed to have a NUL-
+   terminated string.
  */
 #define RESP_OK 0
-#define RESP_UNRECK 1
-#define RESP_UNEXP 2
-#define RESP_INV 3
-#define RESP_INTR 4
+#define RESP_UNRECK 1 /* Unrecognized code */
+#define RESP_UNEXP 2 /* Unexpected code */
+#define RESP_INV 3 /* Invalid response syntax */
+#define RESP_INTR 4 /* Interrupt code */
+#define RESP_ERR 5 /* Error from serusb */
 
-static void process_interrupt(char *resp, int nb ) {
-}
-
-/** ###
+/** parses the ASCII response from serusb
+ * and prepares it for dequeue_request()
  */
-static void process_response( char *buf, int nb ) {
+static void process_response( char *buf ) {
   int status = RESP_OK;
-  char curcmd = '\0';
-  nl_assert( nb > 0 );
-  if ( cur_req ) {
-    curcmd = cur_req->request[0];
-    switch ( buf[0] ) {
-      case 'R':
-      case 'r':
-        if ( curcmd != 'R' ) status = RESP_UNEXP;
-        else if ( nb != 5 ) status = RESP_INV;
-        else {
-          int i;
-          for (i = 1; i < 5; i++) {
-            if ( ! isxdigit(buf[i]))
-              status = RESP_INV;
-          }
-        }
-        break;
-      case 'W':
-      case 'w':
-        if ( curcmd != 'W' ) status = RESP_UNEXP;
-        else if (nb != 1) status = RESP_INV;
-        break;
-      case 'S':
-      case 'C':
-        if ( curcmd != buf[0] ) status = RESP_UNEXP;
-        else if ( ( buf[1] != '0' && buf[1] != '1' ) || nb != 2 )
-          status = RESP_INV;
-        break;
-      case 'V':
-        if ( curcmd != 'V' ) status = RESP_UNEXP;
-        break;
-      case '0':
-        if ( curcmd != '\n' ) status = RESP_UNEXP;
-        break;
-      case 'I':
-        status = RESP_INTR; break;
-      default:
-        status = RESP_UNRECK; break;
+  unsigned short arg0, arg1;
+  int n_args = 0;
+  char *s = buf;
+  char resp_code = *s++;
+  char exp_req = '\0';
+  int exp_args = 0;
+  nl_assert( resp_code != '\0' );
+  if (read_hex( &s, &arg0 )) {
+    ++n_args;
+    if (*s == ':' && read_hex( &++s, &arg1 ) ) {
+      ++n_args;
+      if ( *s == ':' ) {
+	++s; // points to name
+	++n_args;
+      } else {
+	status = RESP_INV;
+      }
+    } else if ( *s != '\0' ) {
+      status = RESP_INV;
     }
-  } else {
-    switch ( buf[0] ) {
-      case 'I':
-        status = RESP_INTR; break;
-      default:
-              status = RESP_UNEXP; break;
-    }
+  } else if ( *s != '\0' ) {
+    status = RESP_INV;
+  }
+  // Check response for self-consistency
+  // Check that response is appropriate for request
+  switch (resp_code) {
+    case 'R':
+    case 'r':
+      exp_req = 'R';
+      exp_args = 1;
+      break;
+    case 'W':
+    case 'w':
+      exp_req = 'W';
+      exp_args = 0;
+      break;
+    case 'S':
+    case 'C':
+      exp_req = resp_code;
+      exp_args = 1;
+      break;
+    case 'V':
+      exp_req = 'V';
+      exp_args = 3;
+      break;
+    case 'I':
+      status = RESP_INTR;
+      exp_req = '\0';
+      exp_args = 1;
+      break;
+    case 'i':
+    case 'u':
+      exp_req = 'i';
+      exp_args = 1;
+      break;
+    case '0':
+      exp_req = '\n';
+      exp_args = 0;
+      break;
+    case 'D':
+    case 'F':
+      exp_req = resp_code;
+      exp_args = 1;
+      break;
+    case 'E':
+      status = RESP_ERR;
+      exp_req = '\0';
+      exp_args = 1;
+      break;
+    default:
+      status = RESP_UNRECK;
+      break;
   }
   switch (status) {
     case RESP_OK:
-      nl_error( -2, "Response: '%s'", buf );
-      dequeue_request(buf, nb);
+      if ( cur_req == NULL || cur_req->request[0] != exp_req) {
+	status = RESP_UNEXP;
+	break;
+      } // fall through
+    case RESP_INTR:
+    case RESP_ERR:
+      if (n_args != exp_args)
+	status = RESP_INV;
+      break;
+  }
+  switch (status) {
+    case RESP_OK:
+      dequeue_request(SBS_OK, n_args, arg0, arg1, s);
       break;
     case RESP_INTR:
-      process_interrupt(buf, nb);
+      process_interrupt(arg0);
       break;
     case RESP_UNRECK:
       nl_error( 2, "Unreckognized response: '%s'", buf );
@@ -251,7 +330,6 @@ static void process_response( char *buf, int nb ) {
 /* sb_read_usb() reads data from the serusb device and
    decides what to do with it. If it satisfies the current
    request, we reply to the caller.
-   ###
  */
 static void sb_read_usb(void) {
   do {
@@ -271,7 +349,7 @@ static void sb_read_usb(void) {
     while ( nb > 0 ) {
       if ( sb_ibuf[sb_ibuf_idx] == '\n' ) {
         sb_ibuf[sb_ibuf_idx] = '\0';
-        process_response(sb_ibuf, sb_ibuf_idx);
+        process_response(sb_ibuf);
         if (--nb > 0) {
           memmove( sb_ibuf, &sb_ibuf[sb_ibuf_idx+1], nb );
           sb_ibuf_idx = nb;
@@ -396,8 +474,8 @@ void init_subbus(dispatch_t *dpp ) {
   // pulse_attach();
 
   /* Enqueue initialization requests */
-  ### enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "\n" );
-  ### enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "V\n" );
+  enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "\n" );
+  enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "V\n" );
 }
 
 void shutdown_subbus(void) {
