@@ -13,7 +13,7 @@
 
 static char sb_ibuf[SB_SERUSB_MAX_REQUEST];
 static int sb_ibuf_idx = 0;
-static sbd_request_t sbdrq[SUBBUS_MAX_REQUESTS];
+static sbd_request_t sbdrq[SUBBUSD_MAX_REQUESTS];
 static sbd_request_t *cur_req;
 static unsigned int sbdrq_head = 0, sbdrq_tail = 0;
 static int sb_fd;
@@ -25,6 +25,9 @@ static int n_part_reads = 0;
 
 static subbusd_cap_t subbus_caps;
 
+static void dequeue_request( signed short status, int n_args,
+  unsigned short arg0, unsigned short arg1, char *s );
+
 // Transmits a request if the currently queued
 // request has not been transmitted.
 static void process_request(void) {
@@ -32,7 +35,7 @@ static void process_request(void) {
   int no_response = 0;
   sbd_request_t *sbr;
   while ( sbdrq_head != sbdrq_tail && cur_req == NULL ) {
-    nl_assert( sbdrq_head < SUBBUS_MAX_REQUESTS );
+    nl_assert( sbdrq_head < SUBBUSD_MAX_REQUESTS );
     sbr = &sbdrq[sbdrq_head];
     nl_assert( sbr->status == SBDR_STATUS_QUEUED );
     switch (sbr->type) {
@@ -75,7 +78,7 @@ static void process_request(void) {
     sbr->status = SBDR_STATUS_SENT;
     cur_req = sbr;
     if ( no_response )
-      dequeue_request( "", 0 ); // ret_status = SBS_OK, ret_type = SBRT_NONE
+      dequeue_request( SBS_OK, 0, 0, 0, "" ); // ret_status = SBS_OK, ret_type = SBRT_NONE
   }
 }
 
@@ -87,7 +90,7 @@ static void enqueue_sbreq( int type, int rcvid, char *req ) {
   int i;
   int new_tail = sbdrq_tail+1;
   int old_tail;
-  if ( new_tail >= SUBBUS_MAX_REQUESTS ) new_tail = 0;
+  if ( new_tail >= SUBBUSD_MAX_REQUESTS ) new_tail = 0;
   if ( new_tail == sbdrq_head )
     nl_error( 4, "Request queue overflow" );
   for ( i = 0; i < SB_SERUSB_MAX_REQUEST; ) {
@@ -172,7 +175,7 @@ static void dequeue_request( signed short status, int n_args,
       rv = 0;
       break;
     case SBDR_TYPE_CLIENT:
-      rv = MsgReply( cur_req->rcvid, rsize, rep, rsize );
+      rv = MsgReply( cur_req->rcvid, rsize, &rep, rsize );
       break;
     default:
       nl_error( 4, "Invalid command type in dequeue_request" );
@@ -181,7 +184,7 @@ static void dequeue_request( signed short status, int n_args,
     nl_error( -2, "Dequeued: '%*.*s'", n, n, cur_req->request ); 
   }
   cur_req = NULL;
-  if ( ++sbdrq_head >= SUBBUS_MAX_REQUESTS )
+  if ( ++sbdrq_head >= SUBBUSD_MAX_REQUESTS )
     sbdrq_head = 0;
   if (rv == -1)
     nl_error(2, "Error from MsgReply: %s",
@@ -197,13 +200,13 @@ static void process_interrupt( unsigned int nb ) {
   
   for ( cd = carddefs; cd != NULL && cd->bitno != nb; cd = cd->next ) {}
   if ( cd != NULL ) {
-    int rv = MsgDeliverEvent( cd->rcvid, &cd->event );
+    int rv = MsgDeliverEvent( cd->owner, &cd->event );
     if ( rv == -1 ) {
       switch (errno) {
         case EBADF:
         case ESRCH:
           nl_error( 1, "Thread or process attached to '%s' interrupt not found", cd->cardID );
-          rv = expint_detach( cd->rcvid, cd->cardID, &addr, &bn );
+          rv = expint_detach( cd->owner, cd->cardID, &addr, &bn );
           nl_assert( rv == EOK );
           nl_assert( nb == bn );
           snprintf( sreq, 8, "u%d\n", nb );
@@ -255,14 +258,17 @@ static void process_response( char *buf ) {
   nl_assert( resp_code != '\0' );
   if (read_hex( &s, &arg0 )) {
     ++n_args;
-    if (*s == ':' && read_hex( &++s, &arg1 ) ) {
-      ++n_args;
-      if ( *s == ':' ) {
-        ++s; // points to name
-        ++n_args;
-      } else {
-        status = RESP_INV;
-      }
+    if (*s == ':') {
+      ++s;
+      if ( read_hex( &s, &arg1 ) ) {
+	++n_args;
+	if ( *s == ':' ) {
+	  ++s; // points to name
+	  ++n_args;
+	} else {
+	  status = RESP_INV;
+	}
+      } else status = RESP_INV;
     } else if ( *s != '\0' ) {
       status = RESP_INV;
     }
@@ -445,7 +451,7 @@ static void ErrorReply( int rcvid, int rv ) {
   nl_assert( rv > 0 );
   rep.status = -rv;
   rep.ret_type = SBRT_NONE;
-  rv = MsgReply( rcvid, sizeof(rep), rep, sizeof(rep) );
+  rv = MsgReply( rcvid, sizeof(rep), &rep, sizeof(rep) );
 }
 
 /**
@@ -457,28 +463,28 @@ static void ErrorReply( int rcvid, int rv ) {
  and that the message type is defined.
  */
 void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
-  char sreq[SB_SERUSB_MAX_REQ];
+  char sreq[SB_SERUSB_MAX_REQUEST];
   int rv;
   
   switch ( req->sbhdr.command ) {
     case SBC_READACK:
-      snprintf( sreq, SB_SERUSB_MAX_REQ, "R%04X\n",
-        req->data.d1.address );
+      snprintf( sreq, SB_SERUSB_MAX_REQUEST, "R%04X\n",
+        req->data.d1.data );
       break;
     case SBC_WRITEACK:
-      snprintf( sreq, SB_SERUSB_MAX_REQ, "W%04X:%04X\n",
+      snprintf( sreq, SB_SERUSB_MAX_REQUEST, "W%04X:%04X\n",
         req->data.d0.address, req->data.d0.data );
       break;
     case SBC_SETCMDENBL:
-      snprintf( sreq, SB_SERUSB_MAX_REQ, "C%c\n",
+      snprintf( sreq, SB_SERUSB_MAX_REQUEST, "C%c\n",
         req->data.d1.data ? '1' : '0');
       break;
     case SBC_SETCMDSTRB:
-      snprintf( sreq, SB_SERUSB_MAX_REQ, "S%c\n",
+      snprintf( sreq, SB_SERUSB_MAX_REQUEST, "S%c\n",
         req->data.d1.data ? '1' : '0');
       break;
     case SBC_SETFAIL:
-      snprintf( sreq, SB_SERUSB_MAX_REQ, "F%04X\n",
+      snprintf( sreq, SB_SERUSB_MAX_REQUEST, "F%04X\n",
         req->data.d1.data );
       break;
     case SBC_READSW:
@@ -499,7 +505,7 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
       }
       break;
     case SBC_INTDET:
-      rv = int_detach(req, sreq);
+      rv = int_detach(rcvid, req, sreq);
       if (rv != EOK) {
         ErrorReply(rcvid, rv);
         return; // i.e. don't enqueue

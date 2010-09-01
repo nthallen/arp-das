@@ -27,7 +27,7 @@ static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
   int nb, nb_exp;
   
   nb = MsgRead(ctp->rcvid, &sbdmsg, sizeof(sbdmsg), 0);
-  if ( nb < sizeof(subbusd_req_hdr_t ||
+  if ( nb < sizeof(subbusd_req_hdr_t) ||
 	sbdmsg.sbhdr.iohdr.mgrid != SUBBUSD_MGRID ||
 	sbdmsg.sbhdr.sb_kw != SB_KW)
     return ENOSYS;
@@ -57,7 +57,7 @@ static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
   if ( nb < nb_exp )
     nl_error( 4, "Received short message for command %d",
       sbdmsg.sbhdr.command );
-  incoming_sbreq( ctp->rcvid, sbdmsg.request );
+  incoming_sbreq( ctp->rcvid, &sbdmsg );
   return (_RESMGR_NOREPLY);
 }
 

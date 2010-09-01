@@ -7,7 +7,7 @@
 #define SUBBUSD_MGRID (_IOMGR_PRIVATE_BASE + SUBBUSD_MGRID_OFFSET)
 
 #define SUBBUS_NAME_MAX 80
-#define cardID_MAX 32
+#define CardID_MAX 32
 
 /*
  * Limit definition to what is strictly required

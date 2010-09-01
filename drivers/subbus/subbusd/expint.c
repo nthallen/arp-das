@@ -14,10 +14,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/kernel.h>
 #include <signal.h>
 #include "nortlib.h"
-#include "subbus_int.h"
+#include "subbusd_int.h"
 
 typedef struct {
  unsigned short address;
@@ -47,7 +46,7 @@ static card_def **find_card( char *cardID, unsigned short address ) {
   for ( cdp = &carddefs, cd = carddefs;
         cd != 0;
         cdp = &cd->next, cd = cd->next ) {
-    if ( strncmp( cd->cardID, cardID, cardID_MAX ) == 0
+    if ( strncmp( cd->cardID, cardID, CardID_MAX ) == 0
           || cd->address == address ) {
       return cdp;
     }
@@ -113,8 +112,8 @@ int expint_attach( int rcvid, char *cardID, unsigned short address,
     nl_error( 2, "Out of memory in expint_attach" );
     return ENOMEM;
   }
-  strncpy( cd->cardID, cardID, cardID_MAX );
-  cd->cardID[ cardID_MAX - 1 ] = '\0';
+  strncpy( cd->cardID, cardID, CardID_MAX );
+  cd->cardID[ CardID_MAX - 1 ] = '\0';
   cd->address = address;
   cd->reg_id = i;
   cd->bitno = bitno;
@@ -136,16 +135,14 @@ int expint_detach( int rcvid, char *cardID, unsigned short *addr, unsigned int *
   cdp = find_card( cardID, 0 );
   if ( cdp == 0 ) {
     return ENOENT;
+  } else if ( (*cdp)->owner != rcvid ) {
+    nl_error( 1, "Non-owner %d attempted detach for %s",
+	      rcvid, cardID );
+    return EPERM;
   } else {
-    if ( (*cdp)->owner != rcvid ) {
-      nl_error( 1, "Non-owner %d attempted detach for %s",
-                who, cardID );
-      return EPERM;
-    } else {
-      *addr = cdp->address;
-      *bn = cdp->bitno;
-      delete_card( cdp );
-      rep->status = EOK;
-    }
+    *addr = (*cdp)->address;
+    *bn = (*cdp)->bitno;
+    delete_card( cdp );
+    return EOK;
   }
 }
