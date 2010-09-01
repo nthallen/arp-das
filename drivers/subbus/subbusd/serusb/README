@@ -16,8 +16,8 @@ the DACS.
     S <bit>    // CMDSTRB: response codes: SE
     V          // Board Revision: response codes VE
     B          // Board Logical Reset: response: 0? ###
-    i <digit> : <addr> // Define and enable Interrupt: response: i <digit>
-    u <digit>  // Undefine and disable Interrupt: response: i <digit>
+    i <digit> : <addr> // Define and enable Interrupt: response: i
+    u <digit>  // Undefine and disable Interrupt: response: u
     ''         // NOP: response code: 0
     D          // Read switches: response: D<data> | E<digit> (no switches)
     F <data>   // Set failure: response: F | E

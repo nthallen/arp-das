@@ -7,6 +7,7 @@
 #define SUBBUSD_MGRID (_IOMGR_PRIVATE_BASE + SUBBUSD_MGRID_OFFSET)
 
 #define SUBBUS_NAME_MAX 80
+#define cardID_MAX 32
 
 /*
  * Limit definition to what is strictly required
@@ -50,14 +51,14 @@ typedef struct {
 } subbusd_req_data1;
 
 typedef struct {
-  char cardID[8];
+  char cardID[CardID_MAX];
   unsigned short address;
   unsigned short region;
   struct sigevent event;
 } subbusd_req_data2;
 
 typedef struct {
-  char cardID[8];
+  char cardID[CardID_MAX];
 } subbusd_req_data3;
 
 typedef struct {

@@ -31,4 +31,7 @@ typedef struct {
    not an unreasonable upper bound */
 #define SUBBUSD_MAX_REQUESTS 20
 
+extern int int_attach(int rcvid, subbusd_req_t *req, char *sreq);
+extern int int_detach(int rcvid, subbusd_req_t *req, char *sreq);
+
 #endif

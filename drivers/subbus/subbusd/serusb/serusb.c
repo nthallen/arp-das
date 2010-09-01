@@ -37,35 +37,35 @@ static void process_request(void) {
     nl_assert( sbr->status == SBDR_STATUS_QUEUED );
     switch (sbr->type) {
       case SBDR_TYPE_INTERNAL:
-	switch (sbr->request[0]) {
-	  case '\n': // NOP
-	  case 'V':  // Board Revision
-	    break;
-	  default:
-	    nl_error( 4, "Invalid internal request" );
-	}
-	break;
-      case SBDR_TYPE_CLIENT:
-	switch (sbr->request[0]) {
-	  case 'T':
-	  case 'A':
-	    no_response = 1; break;
-	  case 'R':
-	  case 'W':
-	  case 'V':
-	  case 'S':
-	  case 'C':
-	  case 'B':
-	  case 'I':
-	  case 'D':
-	  case 'F':
-	    break;
-	  default:
-	    nl_error( 4, "Invalid client request: '%c'", sbr->request[0] );
-	}
-	break;
+    switch (sbr->request[0]) {
+      case '\n': // NOP
+      case 'V':  // Board Revision
+        break;
       default:
-	nl_error(4, "Invalid request type" );
+        nl_error( 4, "Invalid internal request" );
+    }
+    break;
+      case SBDR_TYPE_CLIENT:
+    switch (sbr->request[0]) {
+      case 'T':
+      case 'A':
+        no_response = 1; break;
+      case 'R':
+      case 'W':
+      case 'V':
+      case 'S':
+      case 'C':
+      case 'B':
+      case 'I':
+      case 'D':
+      case 'F':
+        break;
+      default:
+        nl_error( 4, "Invalid client request: '%c'", sbr->request[0] );
+    }
+    break;
+      default:
+    nl_error(4, "Invalid request type" );
     }
     cmdlen = strlen( sbr->request );
     nl_error(-2, "Request: '%*.*s'", cmdlen-1, cmdlen-1, sbr->request );
@@ -132,7 +132,7 @@ static int sb_data_arm(void) {
 static void dequeue_request( signed short status, int n_args,
   unsigned short arg0, unsigned short arg1, char *s ) {
   int rv, rsize;
-  subbus_rep_t rep;
+  subbusd_rep_t rep;
 
   nl_assert( cur_req != NULL);
   rep.hdr.status = status;
@@ -149,19 +149,19 @@ static void dequeue_request( signed short status, int n_args,
     case 3:
       nl_assert( cur_req->request[0] == 'V' );
       switch ( cur_req->type ) {
-	case SBDR_TYPE_INTERNAL:
-	  nl_error( 0, "Features: %d:%03X Version: %s",
-	    arg0, arg1, s);
-	  break;
-	case SBDR_TYPE_CLIENT:
-	  rep.hdr.ret_type = SBRT_CAP;
-	  rep.data.capabilities.subfunc = arg0;
-	  rep.data.capabilities.features = arg1;
-	  strncpy(rep.data.capabilities.name, s, SUBBUS_NAME_MAX );
-	  rsize = sizeof(subbusd_rep_t);
-	  break;
-	default: 
-	  break; // picked up and reported below
+        case SBDR_TYPE_INTERNAL:
+          nl_error( 0, "Features: %d:%03X Version: %s",
+            arg0, arg1, s);
+          break;
+        case SBDR_TYPE_CLIENT:
+          rep.hdr.ret_type = SBRT_CAP;
+          rep.data.capabilities.subfunc = arg0;
+          rep.data.capabilities.features = arg1;
+          strncpy(rep.data.capabilities.name, s, SUBBUS_NAME_MAX );
+          rsize = sizeof(subbusd_rep_t);
+          break;
+        default: 
+          break; // picked up and reported below
       }
       break;
     case 2:
@@ -188,7 +188,36 @@ static void dequeue_request( signed short status, int n_args,
       strerror(errno) );
 }
 
-static void process_interrupt(char *resp, int nb ) {
+static void process_interrupt( unsigned int nb ) {
+  card_def *cd;
+  unsigned short addr;
+  int rv;
+  unsigned int bn;
+  char sreq[8];
+  
+  for ( cd = carddefs; cd != NULL && cd->bitno != nb; cd = cd->next ) {}
+  if ( cd != NULL ) {
+    int rv = MsgDeliverEvent( cd->rcvid, &cd->event );
+    if ( rv == -1 ) {
+      switch (errno) {
+        case EBADF:
+        case ESRCH:
+          nl_error( 1, "Thread or process attached to '%s' interrupt not found", cd->cardID );
+          rv = expint_detach( cd->rcvid, cd->cardID, &addr, &bn );
+          nl_assert( rv == EOK );
+          nl_assert( nb == bn );
+          snprintf( sreq, 8, "u%d\n", nb );
+          enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, sreq );
+          break;
+        default:
+          nl_error( 4, "Unexpected error %d from MsgDeliverEvent: %s", errno, strerror(errno));
+      }
+    }
+  } else {
+    nl_error( 1, "Unexpected interrupt #%d", nb );
+    snprintf(sreq, 8, "u%d\n", nb );
+    enqueue_sbreq(SBDR_TYPE_INTERNAL, 0, sreq );
+  }
 }
 
 /* process_response() reviews the response in
@@ -206,7 +235,7 @@ static void process_interrupt(char *resp, int nb ) {
    terminated string.
  */
 #define RESP_OK 0
-#define RESP_UNRECK 1 /* Unrecognized code */
+#define RESP_UNREC 1 /* Unrecognized code */
 #define RESP_UNEXP 2 /* Unexpected code */
 #define RESP_INV 3 /* Invalid response syntax */
 #define RESP_INTR 4 /* Interrupt code */
@@ -229,10 +258,10 @@ static void process_response( char *buf ) {
     if (*s == ':' && read_hex( &++s, &arg1 ) ) {
       ++n_args;
       if ( *s == ':' ) {
-	++s; // points to name
-	++n_args;
+        ++s; // points to name
+        ++n_args;
       } else {
-	status = RESP_INV;
+        status = RESP_INV;
       }
     } else if ( *s != '\0' ) {
       status = RESP_INV;
@@ -269,8 +298,8 @@ static void process_response( char *buf ) {
       break;
     case 'i':
     case 'u':
-      exp_req = 'i';
-      exp_args = 1;
+      exp_req = resp_code;
+      exp_args = 0;
       break;
     case '0':
       exp_req = '\n';
@@ -287,19 +316,19 @@ static void process_response( char *buf ) {
       exp_args = 1;
       break;
     default:
-      status = RESP_UNRECK;
+      status = RESP_UNREC;
       break;
   }
   switch (status) {
     case RESP_OK:
       if ( cur_req == NULL || cur_req->request[0] != exp_req) {
-	status = RESP_UNEXP;
-	break;
+        status = RESP_UNEXP;
+        break;
       } // fall through
     case RESP_INTR:
     case RESP_ERR:
       if (n_args != exp_args)
-	status = RESP_INV;
+        status = RESP_INV;
       break;
   }
   switch (status) {
@@ -309,8 +338,8 @@ static void process_response( char *buf ) {
     case RESP_INTR:
       process_interrupt(arg0);
       break;
-    case RESP_UNRECK:
-      nl_error( 2, "Unreckognized response: '%s'", buf );
+    case RESP_UNREC:
+      nl_error( 2, "Unrecognized response: '%s'", buf );
       break;
     case RESP_UNEXP:
       nl_error( 2, "Unexpected response: '%s'", buf );
@@ -411,6 +440,14 @@ static void init_serusb(dispatch_t *dpp, int ionotify_pulse) {
   sb_read_usb();
 }
 
+static void ErrorReply( int rcvid, int rv ) {
+  subbusd_rep_hdr_t rep;
+  nl_assert( rv > 0 );
+  rep.status = -rv;
+  rep.ret_type = SBRT_NONE;
+  rv = MsgReply( rcvid, sizeof(rep), rep, sizeof(rep) );
+}
+
 /**
  This is where we serialize the request
  The basic sanity of the incoming message has been
@@ -421,26 +458,28 @@ static void init_serusb(dispatch_t *dpp, int ionotify_pulse) {
  */
 void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
   char sreq[SB_SERUSB_MAX_REQ];
+  int rv;
+  
   switch ( req->sbhdr.command ) {
     case SBC_READACK:
       snprintf( sreq, SB_SERUSB_MAX_REQ, "R%04X\n",
-	req->data.d1.address );
+        req->data.d1.address );
       break;
     case SBC_WRITEACK:
       snprintf( sreq, SB_SERUSB_MAX_REQ, "W%04X:%04X\n",
-	req->data.d0.address, req->data.d0.data );
+        req->data.d0.address, req->data.d0.data );
       break;
     case SBC_SETCMDENBL:
       snprintf( sreq, SB_SERUSB_MAX_REQ, "C%c\n",
-	req->data.d1.data ? '1' : '0');
+        req->data.d1.data ? '1' : '0');
       break;
     case SBC_SETCMDSTRB:
       snprintf( sreq, SB_SERUSB_MAX_REQ, "S%c\n",
-	req->data.d1.data ? '1' : '0');
+        req->data.d1.data ? '1' : '0');
       break;
     case SBC_SETFAIL:
       snprintf( sreq, SB_SERUSB_MAX_REQ, "F%04X\n",
-	req->data.d1.data );
+        req->data.d1.data );
       break;
     case SBC_READSW:
       strcpy( sreq, "D\n" ); break;
@@ -453,10 +492,18 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
     case SBC_DISARM:
       strcpy( sreq, "A\n" ); break;
     case SBC_INTATT:
-      int_attach(req, sreq);
+      rv = int_attach(rcvid, req, sreq);
+      if (rv != EOK) {
+        ErrorReply(rcvid, rv);
+        return; // i.e. don't enqueue
+      }
       break;
     case SBC_INTDET:
-      int_detach(req, sreq);
+      rv = int_detach(req, sreq);
+      if (rv != EOK) {
+        ErrorReply(rcvid, rv);
+        return; // i.e. don't enqueue
+      }
       break;
     default:
       nl_error(4, "Undefined command in incoming_sbreq!" );
