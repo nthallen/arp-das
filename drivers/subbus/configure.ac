@@ -25,5 +25,8 @@ AC_TYPE_PID_T
 AC_CHECK_FUNCS([strerror])
 
 AC_CONFIG_FILES([Makefile
-                 lib/Makefile])
+                 lib/Makefile
+                 subbusd/Makefile
+                 subbusd/serusb/Makefile
+                 subbusd/syscon104/Makefile])
 AC_OUTPUT
