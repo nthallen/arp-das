@@ -244,6 +244,27 @@ static void process_interrupt( unsigned int nb ) {
 #define RESP_INTR 4 /* Interrupt code */
 #define RESP_ERR 5 /* Error from serusb */
 
+/**
+ Parses the input string for a hexadecimal integer.
+ @return zero on failure.
+ */
+static int read_hex( char **sp, unsigned short *arg ) {
+  char *s = *sp;
+  unsigned short val = 0;
+  if ( ! isxdigit(*s) )
+    return 0;
+  while ( isxdigit(*s) ) {
+    val *= 16;
+    if ( isdigit(*s) )
+      val += *s - '0';
+    else
+      val += tolower(*s) - 'a' + 10;
+    ++s;
+  }
+  *sp = s;
+  return 1;
+}
+
 /** parses the ASCII response from serusb
  * and prepares it for dequeue_request()
  */
