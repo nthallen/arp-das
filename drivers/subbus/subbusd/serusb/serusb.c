@@ -18,6 +18,9 @@ static sbd_request_t *cur_req;
 static unsigned int sbdrq_head = 0, sbdrq_tail = 0;
 static int sb_fd;
 static struct sigevent ionotify_event;
+static timer_t timeout_timer;
+static struct itimerspec timeout_enable, timeout_disable;
+static int n_timeouts = 0;
 
 static int n_writes = 0;
 static int n_reads = 0;
@@ -27,6 +30,15 @@ static subbusd_cap_t subbus_caps;
 
 static void dequeue_request( signed short status, int n_args,
   unsigned short arg0, unsigned short arg1, char *s );
+
+static void set_timeout( int enable ) {
+  if ( timer_settime( timeout_timer, 0,
+	  enable ? &timeout_enable : &timeout_disable,
+	  NULL ) == -1 ) {
+    nl_error( 4, "Error setting timer: %s",
+      strerror(errno) );
+  }
+}
 
 // Transmits a request if the currently queued
 // request has not been transmitted.
@@ -78,7 +90,8 @@ static void process_request(void) {
     sbr->status = SBDR_STATUS_SENT;
     cur_req = sbr;
     if ( no_response )
-      dequeue_request( SBS_OK, 0, 0, 0, "" ); // ret_status = SBS_OK, ret_type = SBRT_NONE
+      dequeue_request( SBS_OK, 0, 0, 0, "" );
+    else set_timeout(1);
   }
 }
 
@@ -138,6 +151,7 @@ static void dequeue_request( signed short status, int n_args,
   subbusd_rep_t rep;
 
   nl_assert( cur_req != NULL);
+  set_timeout(0);
   rep.hdr.status = status;
   switch (n_args) {
     case 0:
@@ -168,7 +182,7 @@ static void dequeue_request( signed short status, int n_args,
       }
       break;
     case 2:
-      nl_error( 4, "Invalid n_args in dqueue_request" );
+      nl_error( 4, "Invalid n_args in dequeue_request" );
   }
   switch( cur_req->type ) {
     case SBDR_TYPE_INTERNAL:
@@ -223,26 +237,6 @@ static void process_interrupt( unsigned int nb ) {
   }
 }
 
-/* process_response() reviews the response in
-   the buffer to determine if it is a suitable
-   response to the current request. If so, it
-   is returned to the requester.
-   process_response() is not responsible for
-   advancing to the next request, but it is
-   responsible for dequeuing the current
-   request if it has been completed.
-
-   The string in resp is guaranteed to have had
-   a newline at the end, which was replaced with
-   a NUL, so we are guaranteed to have a NUL-
-   terminated string.
- */
-#define RESP_OK 0
-#define RESP_UNREC 1 /* Unrecognized code */
-#define RESP_UNEXP 2 /* Unexpected code */
-#define RESP_INV 3 /* Invalid response syntax */
-#define RESP_INTR 4 /* Interrupt code */
-#define RESP_ERR 5 /* Error from serusb */
 
 /**
  Parses the input string for a hexadecimal integer.
@@ -265,12 +259,34 @@ static int read_hex( char **sp, unsigned short *arg ) {
   return 1;
 }
 
+/* process_response() reviews the response in
+   the buffer to determine if it is a suitable
+   response to the current request. If so, it
+   is returned to the requester.
+   process_response() is not responsible for
+   advancing to the next request, but it is
+   responsible for dequeuing the current
+   request if it has been completed.
+
+   The string in resp is guaranteed to have had
+   a newline at the end, which was replaced with
+   a NUL, so we are guaranteed to have a NUL-
+   terminated string.
+ */
+#define RESP_OK 0
+#define RESP_UNREC 1 /* Unrecognized code */
+#define RESP_UNEXP 2 /* Unexpected code */
+#define RESP_INV 3 /* Invalid response syntax */
+#define RESP_INTR 4 /* Interrupt code */
+#define RESP_ERR 5 /* Error from serusb */
+
 /** parses the ASCII response from serusb
  * and prepares it for dequeue_request()
  */
 static void process_response( char *buf ) {
   int status = RESP_OK;
   unsigned short arg0, arg1;
+  signed short sbs_ok_status = SBS_OK;
   int n_args = 0;
   char *s = buf;
   char resp_code = *s++;
@@ -300,14 +316,24 @@ static void process_response( char *buf ) {
   // Check that response is appropriate for request
   switch (resp_code) {
     case 'R':
+      exp_req = 'R';
+      exp_args = 1;
+      sbs_ok_status = SBS_ACK;
+      break;
     case 'r':
       exp_req = 'R';
       exp_args = 1;
+      sbs_ok_status = SBS_NOACK;
       break;
     case 'W':
+      exp_req = 'W';
+      exp_args = 0;
+      sbs_ok_status = SBS_ACK;
+      break;
     case 'w':
       exp_req = 'W';
       exp_args = 0;
+      sbs_ok_status = SBS_NOACK;
       break;
     case 'S':
     case 'C':
@@ -325,6 +351,7 @@ static void process_response( char *buf ) {
       break;
     case 'i':
     case 'u':
+    case 'B':
       exp_req = resp_code;
       exp_args = 0;
       break;
@@ -360,7 +387,7 @@ static void process_response( char *buf ) {
   }
   switch (status) {
     case RESP_OK:
-      dequeue_request(SBS_OK, n_args, arg0, arg1, s);
+      dequeue_request(sbs_ok_status, n_args, arg0, arg1, s);
       break;
     case RESP_INTR:
       process_interrupt(arg0);
@@ -437,7 +464,17 @@ static int sb_data_ready( message_context_t * ctp, int code,
   return 0;
 }
 
-static void init_serusb(dispatch_t *dpp, int ionotify_pulse) {
+static int sb_timeout( message_context_t * ctp, int code,
+        unsigned flags, void * handle ) {
+  if ( ++n_timeouts > 1 ) {
+    n_timeouts = 0;
+    if ( cur_req != NULL )
+      dequeue_request( -ETIMEDOUT, 0, 0, 0, "" );
+  }
+}
+
+static void init_serusb(dispatch_t *dpp, int ionotify_pulse, int timeout_pulse) {
+  struct sigevent timeout_event;
   sb_fd = open("/dev/serusb2", O_RDWR | O_NONBLOCK);
   if (sb_fd == -1)
     nl_error(3,"Error opening USB subbus: %s", strerror(errno));
@@ -462,6 +499,23 @@ static void init_serusb(dispatch_t *dpp, int ionotify_pulse) {
   if ( ionotify_event.sigev_coid == -1 )
     nl_error(3, "Could not connect to our channel: %s",
       strerror(errno));
+  timeout_event.sigev_notify = SIGEV_PULSE;
+  timeout_event.sigev_code = ionotify_pulse;
+  timeout_event.sigev_priority = getprio(0);
+  timeout_event.sigev_value.sival_int = 0;
+  timeout_event.sigev_coid = ionotify_event.sigev_coid;
+  if ( timer_create( CLOCK_REALTIME, &timeout_event,
+	  &timeout_timer ) == -1 )
+    nl_error(3, "Could not create timer: %s",
+      strerror(errno));
+  timeout_enable.it_value.tv_sec = 0;
+  timeout_enable.it_value.tv_nsec = 100000000L;
+  timeout_enable.it_value.tv_sec = 0;
+  timeout_enable.it_value.tv_nsec = 100000000L;
+  timeout_disable.it_value.tv_sec = 0;
+  timeout_disable.it_value.tv_nsec = 0;
+  timeout_disable.it_value.tv_sec = 0;
+  timeout_disable.it_value.tv_nsec = 0;
 
   /* now arm for input */
   sb_read_usb();
@@ -542,7 +596,9 @@ void init_subbus(dispatch_t *dpp ) {
   /* Setup ionotify pulse handler */
   int ionotify_pulse =
     pulse_attach(dpp, MSG_FLAG_ALLOC_PULSE, 0, sb_data_ready, NULL);
-  init_serusb(dpp, ionotify_pulse);
+  int timer_pulse =
+    pulse_attach(dpp, MSG_FLAG_ALLOC_PULSE, 0, sb_timeout, NULL);
+  init_serusb(dpp, ionotify_pulse, timer_pulse);
 
   /* Setup timer pulse handler */
   // pulse_attach();

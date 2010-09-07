@@ -114,8 +114,9 @@ int read_ack( unsigned short addr, unsigned short *data ) {
   rv = send_to_subbusd( SBC_READACK, &rdata, sizeof(rdata), SBRT_US );
   *data = sb_reply.data.value;
   switch ( rv ) {
-    case SBS_ACK: rc = 1;
-    case SBS_NOACK: rc = 0;
+    case SBS_ACK: rc = 1; break;
+    case -ETIMEDOUT:
+    case SBS_NOACK: rc = 0; break;
     default:
       nl_error( 4, "Invalid status response to read_ack(): %d",
 	rv );

@@ -15,7 +15,7 @@ the DACS.
     C <bit>    // CMDENBL: response codes: CE
     S <bit>    // CMDSTRB: response codes: SE
     V          // Board Revision: response codes VE
-    B          // Board Logical Reset: response: 0? ###
+    B          // Board Logical Reset: response: B
     i <digit> : <addr> // Define and enable Interrupt: response: i
     u <digit>  // Undefine and disable Interrupt: response: u
     ''         // NOP: response code: 0
@@ -26,6 +26,7 @@ the DACS.
     A          // Disarm reboot timer (if present): A response
 
 Responses:
+    B '\n'         // Board logical reset
     R <data> '\n'  // Read data with acknowledge asserted
     r <data> '\n'  // Read data without acknowledge asserted
     W '\n'         // Write with acknowledge
