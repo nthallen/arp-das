@@ -1,6 +1,9 @@
 /*
  * Discrete command card controller program.
  * $Log$
+ * Revision 1.5  2008/09/04 21:25:29  ntallen
+ * Added explicit delay, just in case.
+ *
  * Revision 1.4  2008/08/24 15:20:19  ntallen
  * Compile clean
  *
@@ -253,7 +256,8 @@ int main(int argc, char **argv) {
 
   /* subbus */
   if (subbus_subfunction == SB_SYSCON || 
-      subbus_subfunction == SB_SYSCON104) sb_syscon = 1;
+      subbus_subfunction == SB_SYSCON104 ||
+      subbus_subfunction == SB_SYSCONDACS) sb_syscon = 1;
   if (subbus_features & SBF_CMDSTROBE) use_cmdstrobe = 1;
   else if (sb_syscon) 
     nl_error(MSG_WARN,"Out of date resident subbus library: please upgrade");

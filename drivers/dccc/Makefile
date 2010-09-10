@@ -8,9 +8,8 @@ include /usr/local/share/huarp/appgen.mk
 
 all : dccc
 dccc : $(OBJS)
-	$(LINK.priv) $(OBJS) $(LIBS)
+	$(LINK.norm) $(OBJS) $(LIBS)
 	usemsg dccc dcccoui.c
-	/usr/local/sbin/promote dccc
 dc_read.o: dc_read.c disc_cmd.h
 dccc.o: dccc.c disc_cmd.h
 dcccoui.c : dccc.oui

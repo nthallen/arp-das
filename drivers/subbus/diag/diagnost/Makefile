@@ -1,4 +1,7 @@
 # $Log$
+# Revision 1.4  2009/09/30 15:19:30  ntallen
+# Removed scdebug from target list
+#
 # Revision 1.3  2008/09/09 13:20:44  ntallen
 # Port failtest to NTO
 #
@@ -49,9 +52,8 @@ failtest.o : failtest.c
 
 sbswitch.o : sbswitch.c
 sbswitch : sbswitch.o
-	$(LINK.priv) sbswitch.o -lsubbus -lnort
+	$(LINK.norm) sbswitch.o -lsubbus -lnort
 	usemsg sbswitch sbswitch.c
-	/usr/local/sbin/promote sbswitch
 
 .PHONY : clean install all
 clean :
