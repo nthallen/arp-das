@@ -34,12 +34,12 @@ static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
   /* check the size of the incoming message */
   switch ( sbdmsg.sbhdr.command ) {
     case SBC_WRITEACK:
-      nb_exp = sizeof(subbusd_req_data1); break;
+      nb_exp = sizeof(subbusd_req_data0); break;
     case SBC_SETCMDENBL:
     case SBC_SETCMDSTRB:
     case SBC_SETFAIL:
     case SBC_READACK:
-      nb_exp = sizeof(subbusd_req_data0); break;
+      nb_exp = sizeof(subbusd_req_data1); break;
     case SBC_READSW:
     case SBC_READFAIL:
     case SBC_GETCAPS:
@@ -55,8 +55,8 @@ static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
   }
   nb_exp += sizeof(subbusd_req_hdr_t);
   if ( nb < nb_exp )
-    nl_error( 4, "Received short message for command %d",
-      sbdmsg.sbhdr.command );
+    nl_error( 4, "Received short message for command %d: Expected %d received %d",
+      sbdmsg.sbhdr.command, nb_exp, nb );
   incoming_sbreq( ctp->rcvid, &sbdmsg );
   return (_RESMGR_NOREPLY);
 }

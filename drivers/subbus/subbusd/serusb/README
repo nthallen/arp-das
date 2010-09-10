@@ -17,11 +17,11 @@ the DACS.
     V          // Board Revision: response codes VE
     B          // Board Logical Reset: response: B
     i <digit> : <addr> // Define and enable Interrupt: response: i
-    u <digit>  // Undefine and disable Interrupt: response: u
+    u <addr>   // Undefine and disable Interrupt: response: u
     ''         // NOP: response code: 0
     D          // Read switches: response: D<data> | E<digit> (no switches)
     F <data>   // Set failure: response: F | E
-    F          // Read failure: response F <data> | E
+    f          // Read failure: response f <data> | E
     T          // Tick to reset 2-minute timeout: No response
     A          // Disarm reboot timer (if present): A response
 
@@ -31,16 +31,18 @@ Responses:
     r <data> '\n'  // Read data without acknowledge asserted
     W '\n'         // Write with acknowledge
     w '\n'         // Write without acknowledge
-    S <bit> '\n'   // CMDSTRB value
-    C <bit> '\n'   // CMDENBL value
+    C       '\n'   // CMDENBL
+    S       '\n'   // CMDSTRB
+    F       '\n'   // Write Failure
     V <subfunc>:<features>:<version> '\n' // Version string
     I <data> '\n'  // Interrupt string
     i <digit> '\n' // Acknowledge Interrupt config/enable command
-    u <digit> '\n' // Acknowledge Interrupt disable
+    u <addr> '\n'  // Acknowledge Interrupt disable
     0 '\n'         // NOP
     D <data> '\n'  // Switch data
     E <digit> '\n' // Error--not obviously associated with a specific request
-    F <data> '\n'  // Failure status
+    f <data> '\n'  // Read Failure data
+    A '\n'         // Disarm
 
 B - Board Logical Reset: issue hardware reset to syscon, disable all interrupts.
     Does *not* reset the two-minute timer. (that's what "tick" does.) The reason for

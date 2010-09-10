@@ -52,35 +52,37 @@ static void process_request(void) {
     nl_assert( sbr->status == SBDR_STATUS_QUEUED );
     switch (sbr->type) {
       case SBDR_TYPE_INTERNAL:
-    switch (sbr->request[0]) {
-      case '\n': // NOP
-      case 'V':  // Board Revision
-        break;
-      default:
-        nl_error( 4, "Invalid internal request" );
-    }
-    break;
+	switch (sbr->request[0]) {
+	  case '\n': // NOP
+	  case 'V':  // Board Revision
+	    break;
+	  default:
+	    nl_error( 4, "Invalid internal request" );
+	}
+	break;
       case SBDR_TYPE_CLIENT:
-    switch (sbr->request[0]) {
-      case 'T':
-      case 'A':
-        no_response = 1; break;
-      case 'R':
-      case 'W':
-      case 'V':
-      case 'S':
-      case 'C':
-      case 'B':
-      case 'I':
-      case 'D':
-      case 'F':
-        break;
+	switch (sbr->request[0]) {
+	  case 'T':
+	  case 'A':
+	    no_response = 1; break;
+	  case 'R':
+	  case 'W':
+	  case 'V':
+	  case 'S':
+	  case 'C':
+	  case 'B':
+	  case 'i':
+	  case 'u':
+	  case 'D':
+	  case 'F':
+	  case 'f':
+	    break;
+	  default:
+	    nl_error( 4, "Invalid client request: '%c'", sbr->request[0] );
+	}
+	break;
       default:
-        nl_error( 4, "Invalid client request: '%c'", sbr->request[0] );
-    }
-    break;
-      default:
-    nl_error(4, "Invalid request type" );
+	nl_error(4, "Invalid request type" );
     }
     cmdlen = strlen( sbr->request );
     nl_error(-2, "Request: '%*.*s'", cmdlen-1, cmdlen-1, sbr->request );
@@ -219,21 +221,24 @@ static void process_interrupt( unsigned int nb ) {
       switch (errno) {
         case EBADF:
         case ESRCH:
-          nl_error( 1, "Thread or process attached to '%s' interrupt not found", cd->cardID );
+          nl_error( 1,
+	    "Process attached to '%s' interrupt not found",
+	    cd->cardID );
           rv = expint_detach( cd->owner, cd->cardID, &addr, &bn );
           nl_assert( rv == EOK );
           nl_assert( nb == bn );
-          snprintf( sreq, 8, "u%d\n", nb );
+          snprintf( sreq, 8, "u%X\n", addr );
           enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, sreq );
           break;
         default:
-          nl_error( 4, "Unexpected error %d from MsgDeliverEvent: %s", errno, strerror(errno));
+          nl_error( 4, "Unexpected error %d from MsgDeliverEvent: %s",
+	      errno, strerror(errno));
       }
     }
   } else {
     nl_error( 1, "Unexpected interrupt #%d", nb );
-    snprintf(sreq, 8, "u%d\n", nb );
-    enqueue_sbreq(SBDR_TYPE_INTERNAL, 0, sreq );
+    // We don't know the address, so can't disable it.
+    // Probably a late hit.
   }
 }
 
@@ -255,6 +260,7 @@ static int read_hex( char **sp, unsigned short *arg ) {
       val += tolower(*s) - 'a' + 10;
     ++s;
   }
+  *arg = val;
   *sp = s;
   return 1;
 }
@@ -335,11 +341,6 @@ static void process_response( char *buf ) {
       exp_args = 0;
       sbs_ok_status = SBS_NOACK;
       break;
-    case 'S':
-    case 'C':
-      exp_req = resp_code;
-      exp_args = 1;
-      break;
     case 'V':
       exp_req = 'V';
       exp_args = 3;
@@ -349,9 +350,10 @@ static void process_response( char *buf ) {
       exp_req = '\0';
       exp_args = 1;
       break;
-    case 'i':
-    case 'u':
     case 'B':
+    case 'S':
+    case 'C':
+    case 'F':
       exp_req = resp_code;
       exp_args = 0;
       break;
@@ -360,7 +362,9 @@ static void process_response( char *buf ) {
       exp_args = 0;
       break;
     case 'D':
-    case 'F':
+    case 'f':
+    case 'i':
+    case 'u':
       exp_req = resp_code;
       exp_args = 1;
       break;
@@ -468,12 +472,17 @@ static int sb_timeout( message_context_t * ctp, int code,
         unsigned flags, void * handle ) {
   if ( ++n_timeouts > 1 ) {
     n_timeouts = 0;
-    if ( cur_req != NULL )
+    if ( cur_req != NULL ) {
+      nl_error( 1, "%sUSB request '%c' timed out",
+	(cur_req->type == SBDR_TYPE_INTERNAL) ? "Internal " : "",
+	cur_req->request[0] );
       dequeue_request( -ETIMEDOUT, 0, 0, 0, "" );
+    }
   }
 }
 
-static void init_serusb(dispatch_t *dpp, int ionotify_pulse, int timeout_pulse) {
+static void init_serusb(dispatch_t *dpp, int ionotify_pulse,
+			  int timeout_pulse) {
   struct sigevent timeout_event;
   sb_fd = open("/dev/serusb2", O_RDWR | O_NONBLOCK);
   if (sb_fd == -1)
@@ -565,7 +574,7 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
     case SBC_READSW:
       strcpy( sreq, "D\n" ); break;
     case SBC_READFAIL:
-      strcpy( sreq, "F\n" ); break;
+      strcpy( sreq, "f\n" ); break;
     case SBC_GETCAPS:
       strcpy( sreq, "V\n" ); break;
     case SBC_TICK:

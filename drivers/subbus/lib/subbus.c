@@ -43,7 +43,10 @@ static int send_to_subbusd( unsigned short command, void *data,
   nl_assert( rv >= sizeof(subbusd_rep_hdr_t) );
   if ( sb_reply.hdr.status < 0 ) 
     exp_type = SBRT_NONE;
-  nl_assert( sb_reply.hdr.ret_type == exp_type );
+  if ( sb_reply.hdr.ret_type != exp_type ) {
+    nl_error( 4, "Return type for command %u should be %d, is %d",
+      command, exp_type, sb_reply.hdr.ret_type );
+  }
   switch ( sb_reply.hdr.ret_type ) {
     case SBRT_NONE:
       nl_assert( rv == sizeof(subbusd_rep_hdr_t));
@@ -68,7 +71,7 @@ static int send_to_subbusd( unsigned short command, void *data,
 int load_subbus(void) {
   int rv;
   if ( sb_fd != -1 ) {
-    nl_error( 2, "Attempt to reload subbus" );
+    nl_error( -2, "Attempt to reload subbus" );
     return subbus_subfunction;
   }
   sb_fd = open("/dev/huarp/subbus", O_RDWR );
@@ -171,10 +174,11 @@ int write_ack(unsigned short addr, unsigned short data) {
   wdata.data = data;
   rv = send_to_subbusd( SBC_WRITEACK, &wdata, sizeof(wdata), SBRT_NONE );
   switch (rv ) {
-    case SBS_ACK: rc = 1;
-    case SBS_NOACK: rc = 0;
+    case SBS_ACK: rc = 1; break;
+    case -ETIMEDOUT:
+    case SBS_NOACK: rc = 0; break;
     default:
-      nl_error( 4, "Invalid status response to read_ack(): %d",
+      nl_error( 4, "Invalid status response to write_ack(): %d",
 	rv );
   }
   return rc;
@@ -185,7 +189,7 @@ int write_ack(unsigned short addr, unsigned short data) {
  * status return.
  @return non-zero on success. Zero if unsupported.
  */
-static int set_CSF( unsigned short command, unsigned short val ) {
+static int send_CSF( unsigned short command, unsigned short val ) {
   int rv;
   subbusd_req_data1 csf_data;
 
