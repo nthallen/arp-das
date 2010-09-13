@@ -205,6 +205,7 @@ static void dequeue_request( signed short status, int n_args,
   if (rv == -1)
     nl_error(2, "Error from MsgReply: %s",
       strerror(errno) );
+  process_request(); // if one is pending...
 }
 
 static void process_interrupt( unsigned int nb ) {
@@ -405,6 +406,9 @@ static void process_response( char *buf ) {
     case RESP_INV:
       nl_error( 2, "Invalid response: '%s'", buf );
       break;
+    case RESP_ERR:
+      nl_error( 2, "Error code %d from DACS", arg0 );
+      break;
     default:
       nl_error( 4, "Invalid status: %d", status );
   }
@@ -448,7 +452,7 @@ static void sb_read_usb(void) {
              managed to dequeue the current request,
              but process_request() will quietly return
              if that is not the case. */
-          process_request();
+          // process_request();
         }
       } else {
         ++sb_ibuf_idx;
@@ -509,7 +513,7 @@ static void init_serusb(dispatch_t *dpp, int ionotify_pulse,
     nl_error(3, "Could not connect to our channel: %s",
       strerror(errno));
   timeout_event.sigev_notify = SIGEV_PULSE;
-  timeout_event.sigev_code = ionotify_pulse;
+  timeout_event.sigev_code = timeout_pulse;
   timeout_event.sigev_priority = getprio(0);
   timeout_event.sigev_value.sival_int = 0;
   timeout_event.sigev_coid = ionotify_event.sigev_coid;
@@ -519,12 +523,12 @@ static void init_serusb(dispatch_t *dpp, int ionotify_pulse,
       strerror(errno));
   timeout_enable.it_value.tv_sec = 0;
   timeout_enable.it_value.tv_nsec = 100000000L;
-  timeout_enable.it_value.tv_sec = 0;
-  timeout_enable.it_value.tv_nsec = 100000000L;
+  timeout_enable.it_interval.tv_sec = 0;
+  timeout_enable.it_interval.tv_nsec = 100000000L;
   timeout_disable.it_value.tv_sec = 0;
   timeout_disable.it_value.tv_nsec = 0;
-  timeout_disable.it_value.tv_sec = 0;
-  timeout_disable.it_value.tv_nsec = 0;
+  timeout_disable.it_interval.tv_sec = 0;
+  timeout_disable.it_interval.tv_nsec = 0;
 
   /* now arm for input */
   sb_read_usb();

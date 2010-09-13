@@ -26,6 +26,6 @@ int int_detach(int rcvid, subbusd_req_t *req, char *sreq) {
 
   int rv = expint_detach( rcvid, ireq->cardID, &addr, &bn );
   if (rv != 0) return rv;
-  snprintf(sreq, SB_SERUSB_MAX_REQUEST, "u%d\n", bn);
+  snprintf(sreq, SB_SERUSB_MAX_REQUEST, "u%X\n", addr);
   return EOK;
 }

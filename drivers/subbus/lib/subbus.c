@@ -309,13 +309,13 @@ int subbus_int_attach( char *cardID, unsigned short address,
   idata.address = address;
   idata.region = region;
   idata.event = *event;
-  return send_to_subbusd( SBC_INTATT, &idata, sizeof(idata), SBRT_NONE );
+  return send_to_subbusd( SBC_INTATT, &idata, sizeof(idata), SBRT_US );
 }
 
 int subbus_int_detach( char *cardID ) {
   subbusd_req_data3 idata;
   nl_assert(cardID != NULL);
   strncpy( idata.cardID, cardID, 8);//possibly not non-terminated
-  return send_to_subbusd( SBC_INTDET, &idata, sizeof(idata), SBRT_NONE );
+  return send_to_subbusd( SBC_INTDET, &idata, sizeof(idata), SBRT_US );
 }
 
