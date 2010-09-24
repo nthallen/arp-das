@@ -1,4 +1,5 @@
 /* nparam.c Parametrized values for ntable (the text version ) */
+#include <string.h>
 #include "param.h"
 
 int ColSpace = 1;

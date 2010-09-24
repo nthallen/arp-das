@@ -6,6 +6,11 @@
  +lib=tmph ph tm nort
  +lib_sp=(/usr/local/lib)
 
+%nflags == <<
+ +cc_flags='-I/usr/local/include -Wl,-rpath -Wl,/usr/local/lib'
+ +lib=nort
+ +lib_sp=(/usr/local/lib)
+
 phtable.exe == phtable.specs +(%phflags) :exe
 dbphtable == phtable.specs +(%phflags) +debug :exe
-
+ntable.exe == ntable.specs +(%nflags) :exe
