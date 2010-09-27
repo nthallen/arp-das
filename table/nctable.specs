@@ -9,7 +9,7 @@ dim.c
 table_name.c
 nbox.c
 nparam.c
-modprint.c
+ncmodprint.c
 ntable.pdl
 nctable.ptg
 $/Name/CScope.gnrc +instance=Col :inst

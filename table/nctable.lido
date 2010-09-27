@@ -413,10 +413,10 @@ SYMBOL Datum COMPUTE
 		SPACE(THIS.Height)));
 
   THIS.StringPrint =
-	PTGSeq(THIS.StringPrint,
-	  print_field_string(
-		THIS.Row, THIS.PrintCol,
-		SPACE(THIS.Width), SPACE(THIS.Height)));
+    PTGSeq(THIS.StringPrint,
+      print_field_string( INCLUDING Program.TableName,
+        THIS.Row, THIS.PrintCol,
+        SPACE(THIS.Width), SPACE(THIS.Height)));
 END;
 
 ATTR IsEmpty : int;
