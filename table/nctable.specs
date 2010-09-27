@@ -1,0 +1,17 @@
+ntable.clp
+ntable.con
+ntable.gla
+nctable.lido
+mod.lido
+ntable.HEAD.phi
+ntable.map
+dim.c
+table_name.c
+nbox.c
+nparam.c
+modprint.c
+ntable.pdl
+nctable.ptg
+$/Name/CScope.gnrc +instance=Col :inst
+$/Name/CScope.gnrc +instance=Table :inst
+$/Output/PtgCommon.fw
