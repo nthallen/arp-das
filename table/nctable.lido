@@ -1,7 +1,7 @@
 ATTR Dimension, MinWidth, MinHeight: dim_t;
 TERM BareWord, CString, Integer: int;
 ATTR String: int;
-ATTR TableName: int
+ATTR TableName: int;
 
 SYMBOL Program COMPUTE
   SYNT.TableName = get_table_name(InputFile);
@@ -382,7 +382,7 @@ SYMBOL Program COMPUTE
   CHAINSTART HEAD.StringPrint = PTGNULL;
   PTGOut(PTGFile(
     TAIL.StringPrint,
-    TAIL.RulePrint,
+    THIS.RulePrint,
     TAIL.FieldPrint,
     StringTable(THIS.TableName),
     ADD(SPACE(THIS.Height),1),
