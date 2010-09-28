@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "modprint.h"
+#include "ncmodprint.h"
 #include "ptg_gen.h"
 #include "csm.h"
 

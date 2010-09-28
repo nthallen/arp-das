@@ -14,3 +14,4 @@
 phtable.exe == phtable.specs +(%phflags) :exe
 dbphtable == phtable.specs +(%phflags) +debug :exe
 ntable.exe == ntable.specs +(%nflags) :exe
+nctable.exe == nctable.specs +(%nflags) :exe

@@ -3,11 +3,11 @@ ntable.con
 ntable.gla
 nctable.lido
 mod.lido
-ntable.HEAD.phi
+nctable.HEAD.phi
 ntable.map
 dim.c
 table_name.c
-nbox.c
+ncbox.c
 nparam.c
 ncmodprint.c
 ntable.pdl

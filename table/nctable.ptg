@@ -14,7 +14,7 @@ File:
   "  nct_clear(" $4 string "_winnum);\n"
   $1
   $2
-  "}\n%}\n\n"
+  "}\n\n"
   "void " $4 string "_init(void) {\n"
   "  " $4 string "_winnum = nct_init(\"" $4 string "\"," $5 int "," $6 int ");\n"
   "  " $4 string "_redraw();\n"
@@ -26,10 +26,10 @@ File:
 /* PTGField(table_name,name,r,c,w,h) */
 Field:
   "nct_string(" $1 string "_winnum," $3 int "," $4 int
-    ",nct_fld_attr,text(" $2 string "));\n"
+    ",2,text(" $2 "));\n"
 
 /* row, col, attr, string, window */
 /*  Produce output only if string is non-empty */
 String: "nct_string(" $5 string "_winnum,"
 	  $1 int "," $2 int "," $3 int
-	  ",\"" $4 string "\");\n"
+	  ",\"" $4 "\");\n"
