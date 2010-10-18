@@ -11,7 +11,7 @@
 
 typedef struct tblrule {
   struct tblrule *next;
-  int Row, Col, Width, Height;
+  int Row, Col, Width, Height, ID;
   int Vertical, Lines, preplus, postplus;
   int Attr;
   unsigned char *rule;
@@ -24,13 +24,13 @@ int IsVertical(int index) {
   char *rule = StringTable(index);
   if ( *rule == '+' ) rule++;
   switch ( *rule ) {
-	case '-':
-	case '=':
-	  return 0;
-	case '|':
-	  return 1;
-	default:
-	  message(DEADLY, "Bad character in rule string", 0, &curpos );
+    case '-':
+    case '=':
+      return 0;
+    case '|':
+      return 1;
+    default:
+      message(DEADLY, "Bad character in rule string", 0, &curpos );
   }
 }
 
@@ -41,6 +41,7 @@ void NewRule( int Row, int Col, int Width, int Height,
   unsigned char middle;
   int Length, Vertical, Lines;
   int preplus = 0, postplus = 0;
+  static rule_id = 0;
 
   rulecode = StringTable(index);
   if ( *rulecode == '+' ) {
@@ -78,6 +79,7 @@ void NewRule( int Row, int Col, int Width, int Height,
   new->preplus = preplus;
   new->postplus = postplus;
   new->Attr = Attr;
+  new->ID = rule_id++;
 
   middle = ( Vertical ? RL_TP+RL_BT : RL_LT+RL_RT ) * Lines;
   if (Length == 1) {
@@ -222,17 +224,36 @@ PTGNode print_rules( int tblname ) {
 
   connect_rules();
   for ( Rule = TableRules; Rule != 0; Rule = Rule->next ) {
-	int i = Rule->Width * Rule->Height;
-	if ( i > 0 ) {
-	  for ( i--; i >= 0; i-- ) {
-		Rule->rule[i] = scrchar[Rule->rule[i]];
-	  }
-	  nptg = Rule->Vertical ?
-	    print_vword(Rule->rule, tblname, Rule->Row, Rule->Col, Rule->Attr) :
-	    PTGString( Rule->Row, Rule->Col, Rule->Attr, PTGAsIs(Rule->rule),
-	      StringTable(tblname));
-	  rv = PTGSeq(rv, nptg);
-	}
+    int i = Rule->Width * Rule->Height;
+    if ( i > 0 ) {
+      nptg = Rule->Vertical ?
+	PTGVRule( Rule->ID, PTGId(tblname), Rule->Row, Rule->Col, Rule->Attr ):
+	PTGHRule( Rule->ID, PTGId(tblname), Rule->Row, Rule->Col, Rule->Attr );
+      rv = PTGSeq(rv, nptg);
+    }
   }
   return rv;
 }
+
+PTGNode define_rules( void ) {
+  TableRule Rule;
+  PTGNode rv = PTGNULL;
+
+  for ( Rule = TableRules; Rule != 0; Rule = Rule->next ) {
+    PTGNode nptg, numlist = PTGNULL;
+    int i = Rule->Width * Rule->Height;
+    if ( i > 0 ) {
+      int j;
+      for ( j = 0; j < i; j++ ) {
+        if ( Rule->rule[j] == '0' )
+	  message( DEADLY, "Unexpected zero in rule", 0, &curpos );
+	numlist = PTGCommaSeq( numlist, PTGNumb(Rule->rule[j]) );
+      }
+      nptg = PTGRuleDef( Rule->ID, numlist );
+      rv = PTGSeq(rv, nptg);
+    }
+  }
+  return rv;
+}
+
+

@@ -386,7 +386,8 @@ SYMBOL Program COMPUTE
     TAIL.FieldPrint,
     StringTable(THIS.TableName),
     ADD(SPACE(THIS.Height),1),
-    ADD(SPACE(THIS.Width),1)));
+    ADD(SPACE(THIS.Width),1),
+    THIS.RuleDef));
 END;
 
 SYMBOL Table COMPUTE
@@ -430,10 +431,12 @@ END;
 
 ATTR RulePlace : VOID;
 ATTR RulePrint : PTGNode;
+ATTR RuleDef   : PTGNode;
 
 SYMBOL Program COMPUTE
   SYNT.RulePlace = CONSTITUENTS Rule.RulePlace;
   SYNT.RulePrint = print_rules(THIS.TableName) <- SYNT.RulePlace;
+  SYNT.RuleDef = define_rules() <- SYNT.RulePrint;
 END;
 
 ATTR ForReal : int;
