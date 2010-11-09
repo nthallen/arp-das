@@ -6,7 +6,7 @@ use strict;
 # terms of the GNU Public License.
 
 #__USAGE
-#%C	[ -w ] [ -o outputfile ] [-v] [-c] dir [ dir ... ]
+#%C	[ -w ] [ -o outputfile ] [-v] [-l] [-c] dir [ dir ... ]
 #	Generates a listing of CRCs of the contents of the directory
 #	and all its subdirectories. This file should be sensitive
 #	only to the file names and their contents, not to the dates
@@ -25,6 +25,8 @@ use strict;
 #	-c indicates the cksum program should be used to generate
 #	the hash. By default, and MD5 hash is used. -c is implicit
 #	when -w is not specified and a .CKSUM file exists.
+#
+# -l specifies that soft links should not be followed.
 #
 #	-v indicates that the results should be written to STDOUT
 #	in addition to any file specified via -w or -o or the temp
@@ -54,87 +56,95 @@ use IPC::Open2;
 use Digest::MD5;
 
 sub dircksum {
-  my ( $dir, $do_md5 ) = @_;
+  my ( $dir, $do_md5, $nofollow ) = @_;
   -d $dir || die "$dir is not a directory\n";
   opendir(DIR, $dir) || die "Unable to opendir $dir\n";
   my ( @entries ) = readdir(DIR);
   closedir(DIR);
 
   @entries = sort @entries;
-  my ( @files, @dirs );
+  my ( @files, @dirs, @links );
   foreach my $file ( @entries ) {
-	if ( ! ( $file =~ /^\./ ) ) {
-	  if ( -d "$dir/$file" ) {
-		push( @dirs, $file );
-	  } elsif ( -f "$dir/$file" ) {
-		push( @files, $file );
-	  } elsif ( -l "$dir/$file" ) {
-		warn "Broken link $dir/$file\n";
-	  } else {
-		warn "Non-dir non-file non-link $dir/$file\n";
-	  }
-	}
+    if ( ! ( $file =~ /^\./ ) ) {
+      if ( $nofollow && -l "$dir/$file" ) {
+        push( @links, $file );
+      } elsif ( -d "$dir/$file" ) {
+        push( @dirs, $file );
+      } elsif ( -f "$dir/$file" ) {
+        push( @files, $file );
+      } elsif ( -l "$dir/$file" ) {
+        warn "Broken link $dir/$file\n";
+      } else {
+        warn "Non-dir non-file non-link $dir/$file\n";
+      }
+    }
   }
   
   my $cksum;
   if ( $do_md5 ) {
-	my $md5 = Digest::MD5->new;
-	my $sum = 0;
-	foreach my $file ( @files ) {
-	  $md5->add("$file\n");
-	  $sum += length($file) + 1;
-	  open( FILE, "<$dir/$file" ) ||
-		die "Unable to open file $dir/$file\n";
-	  binmode(FILE);
-	  my $bufsize = 4096;
-	  for (;;) {
-		my ( $buf, $bytes );
-		$bytes = read FILE, $buf, $bufsize;
-		last unless defined $bytes && $bytes > 0;
-		$sum += $bytes;
-		$md5->add($buf);
-	  }
-	  close FILE;
-	}
-	$sum = 4294967295 if $sum > 4294967295;
-	$cksum = sprintf( "%s %10u: %s\n", $md5->hexdigest, $sum, $dir );
+    my $md5 = Digest::MD5->new;
+    my $sum = 0;
+    foreach my $link ( @links ) {
+      $md5->add("$link\n");
+      my $target = readlink("$dir/$link");
+      $md5->add("$target\n");
+      $sum += length($link) + length($target) + 2;
+    }
+    foreach my $file ( @files ) {
+      $md5->add("$file\n");
+      $sum += length($file) + 1;
+      open( FILE, "<$dir/$file" ) ||
+        die "Unable to open file $dir/$file\n";
+      binmode(FILE);
+      my $bufsize = 4096;
+      for (;;) {
+        my ( $buf, $bytes );
+        $bytes = read FILE, $buf, $bufsize;
+        last unless defined $bytes && $bytes > 0;
+        $sum += $bytes;
+        $md5->add($buf);
+      }
+      close FILE;
+    }
+    $sum = 4294967295 if $sum > 4294967295;
+    $cksum = sprintf( "%s %10u: %s\n", $md5->hexdigest, $sum, $dir );
   } else {
-	open2( \*PIPEIN, \*PIPEOUT, "cksum" ) ||
-	  die "Unable to open pipes\n";
-	foreach my $file ( @files ) {
-	  print PIPEOUT "$file\n";
-	  open( FILE, "<$dir/$file" ) ||
-		die "Unable to open file $dir/$file\n";
-	  my $bufsize = 512;
-	  for (;;) {
-		my ( $buf, $bytes );
-		$bytes = read FILE, $buf, $bufsize;
-		last unless defined $bytes && $bytes > 0;
-		syswrite PIPEOUT,$buf,$bytes || die "Error writing to pipe\n";
-	  }
-	  close FILE;
-	}
-	close PIPEOUT;
-	$cksum = <PIPEIN>;
-	close PIPEIN;
-	wait;
-	chomp $cksum;
-	$cksum =~ m/^\s*(\d+)\s+(\d+)(\s+STDIN)?$/ ||
-	  warn "Don't recognize cksum output: $cksum\n";
-	$cksum = sprintf "%10u %10u: $dir\n", $1, $2;
+    open2( \*PIPEIN, \*PIPEOUT, "cksum" ) ||
+      die "Unable to open pipes\n";
+    foreach my $file ( @files ) {
+      print PIPEOUT "$file\n";
+      open( FILE, "<$dir/$file" ) ||
+        die "Unable to open file $dir/$file\n";
+      my $bufsize = 512;
+      for (;;) {
+        my ( $buf, $bytes );
+        $bytes = read FILE, $buf, $bufsize;
+        last unless defined $bytes && $bytes > 0;
+        syswrite PIPEOUT,$buf,$bytes || die "Error writing to pipe\n";
+      }
+      close FILE;
+    }
+    close PIPEOUT;
+    $cksum = <PIPEIN>;
+    close PIPEIN;
+    wait;
+    chomp $cksum;
+    $cksum =~ m/^\s*(\d+)\s+(\d+)(\s+STDIN)?$/ ||
+      warn "Don't recognize cksum output: $cksum\n";
+    $cksum = sprintf "%10u %10u: $dir\n", $1, $2;
   }
   print $cksum if $verbose_flag;
   print OUTFILE $cksum if $write_flag;
 
   foreach my $file ( @dirs ) {
-	dircksum( "$dir/$file", $do_md5 );
+    dircksum( "$dir/$file", $do_md5, $nofollow );
   }
 }
 
 # Process command-line args
 require "getopts.pl";
-use vars qw($opt_c $opt_o $opt_w $opt_v);
-Getopts('wvco:');
+use vars qw($opt_c $opt_o $opt_w $opt_v $opt_l);
+Getopts('wvclo:');
 use Cwd;
 use File::Compare;
 
@@ -157,59 +167,59 @@ foreach my $arg ( @ARGV ) {
   $verbose_flag = 1 if defined $opt_v;
   $write_flag = 1;
   if ( $opt_c ||
-	   ( ! $opt_w && ! -f $md5_file && -f $cksum_file ) ) {
-	$do_md5 = 0;
-	$compare_file = $cksum_file;
+       ( ! $opt_w && ! -f $md5_file && -f $cksum_file ) ) {
+    $do_md5 = 0;
+    $compare_file = $cksum_file;
   }
   if ( defined $opt_o ) {
-	if ( $opt_o =~ m|^((//\d+/)?[/\w\d.]+)$| ) {
-	  $output_file = $1;
-	} else { die "Bad output file name: $opt_o\n"; }
+    if ( $opt_o =~ m|^((//\d+/)?[/\w\d.]+)$| ) {
+      $output_file = $1;
+    } else { die "Bad output file name: $opt_o\n"; }
   } elsif ( defined $opt_w ) {
-	$output_file = $compare_file;
+    $output_file = $compare_file;
   } elsif ( -f $compare_file ) {
-	my $tmpdir = $ENV{TMPDIR} || '/tmp';
-	$tmpdir =~ m|^((//\d+)?/tmp)$| ||
-	  die "Insecure TMPDIR value: '$tmpdir'\n";
-	$output_file = $1;
-	$arg =~ m|^(.*/)?([^/]+)$| || die "Bad argument: $arg\n";
-	$output_file .= "/$2.$$" . ( $do_md5 ? ".MD5SUM" : ".CKSUM" );
-	$output_is_temp = 1;
+    my $tmpdir = $ENV{TMPDIR} || '/tmp';
+    $tmpdir =~ m|^((//\d+)?/tmp)$| ||
+      die "Insecure TMPDIR value: '$tmpdir'\n";
+    $output_file = $1;
+    $arg =~ m|^(.*/)?([^/]+)$| || die "Bad argument: $arg\n";
+    $output_file .= "/$2.$$" . ( $do_md5 ? ".MD5SUM" : ".CKSUM" );
+    $output_is_temp = 1;
   } else { $write_flag = 0; $verbose_flag = 1; }
   if ( $do_md5 ) {
-	$dirname = $arg; $basename = ".";
+    $dirname = $arg; $basename = ".";
   } elsif ( $arg =~ m|^[^/]+$| ) {
-	$dirname = "."; $basename = $arg;
+    $dirname = "."; $basename = $arg;
   } elsif ( $arg =~ m|^(.+)/([^/]+)$| ) {
-	$dirname = $1; $basename = $2;
+    $dirname = $1; $basename = $2;
   } elsif ( $arg =~ m|^/([^/]+)$| ) {
-	$dirname = "/"; $basename = $1;
+    $dirname = "/"; $basename = $1;
   } else {
-	die "I cannot parse directory $arg\n";
+    die "I cannot parse directory $arg\n";
   }
   if ( $write_flag ) {
-	open( OUTFILE, ">$output_file" ) ||
-	  die "Unable to open output file $output_file\n";
+    open( OUTFILE, ">$output_file" ) ||
+      die "Unable to open output file $output_file\n";
   }
   chdir( $dirname ) || die "Unable to chdir to $dirname\n";
   print "dircksum $arg\n" if defined $opt_v;
-  dircksum($basename, $do_md5);
+  dircksum($basename, $do_md5, $opt_l);
   chdir( $pwd ) || die "Unable to chdir back to $pwd\n";
   if ( $write_flag ) {
-	close( OUTFILE );
-	if ( ! defined $opt_w && -f $compare_file ) {
-	  if ( compare( $compare_file, $output_file ) ) {
-		print "Checksums are different for $arg\n";
-		system( "diff $compare_file $output_file" );
-		if ( $output_is_temp ) {
-		  print "New values are in $output_file\n";
-		}
-	  } else {
-		print "Checksums agree with archived $compare_file\n";
-		if ( $output_is_temp ) {
-		  unlink( $output_file );
-		}
-	  }
-	}
+    close( OUTFILE );
+    if ( ! defined $opt_w && -f $compare_file ) {
+      if ( compare( $compare_file, $output_file ) ) {
+        print "Checksums are different for $arg\n";
+        system( "diff $compare_file $output_file" );
+        if ( $output_is_temp ) {
+          print "New values are in $output_file\n";
+        }
+      } else {
+        print "Checksums agree with archived $compare_file\n";
+        if ( $output_is_temp ) {
+          unlink( $output_file );
+        }
+      }
+    }
   }
 }
