@@ -43,6 +43,7 @@ static int chk_select;
 // 0: not quitting
 // 1: A quit request came in while busy, and has not been forwarded to specd
 // 2: A quit request has been forwarded to specd; waiting for reply
+// 3: A second quit request has come in: forget about Bomem
 
 int main(int argc, char **argv ) {
   send_id tmid;
@@ -73,7 +74,7 @@ int main(int argc, char **argv ) {
 
 static void main_loop( send_id tmid, int cmd_fd ) {
   int width = ( cmd_fd > Host_socket ? cmd_fd : Host_socket ) + 1;
-  for(;;) {
+  for (;;) {
     fd_set read_fds;
     int rv;
     
@@ -110,6 +111,9 @@ static void main_loop( send_id tmid, int cmd_fd ) {
       case 2:
         if (!busy) return;
         break;
+      case 3:
+	nl_error( 0, "Force Quit" );
+	return;
       default:
         nl_error( 4, "Invalid quitting code: %d", quitting );
     }
@@ -151,7 +155,7 @@ static void read_command(int cmd_fd, send_id tmid) {
     }
     switch (cmd) {
       case SPECQ_N_EXIT:
-        quitting = 1;
+        quitting = quitting ? 3 : 1;
         break;
       default:
 	if ( busy ) {
