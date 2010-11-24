@@ -50,16 +50,13 @@ if [ "$2" != "" ]; then
   for arg in $*; do
     case "$arg" in
       configure)
-        [ -n "$FORCE" ] && rm -f FullBuild.config
-        [ -f FullBuild.config ] || $unsu $0 $arg
+        $unsu $0 $FORCE $arg
         [ -f FullBuild.config ] || nl_error "$unsu $0 $arg failed";;
       make)
-        [ -n "$FORCE" ] && rm -f FullBuild.made
-        [ -f FullBuild.made ] || $unsu $0 $arg
+        $unsu $0 $FORCE $arg
         [ -f FullBuild.made ] || nl_error "$unsu $0 $arg failed";;
       install)
-        [ -n "$FORCE" ] && rm -f FullBuild.installed
-        [ -f FullBuild.installed ] || $0 $arg
+        $0 $FORCE $arg
         [ -f FullBuild.installed ] || nl_error "$0 $arg failed";;
       *)
         nl_error "Unexpected argument '$arg' in second case";;
@@ -70,18 +67,30 @@ if [ "$2" != "" ]; then
 fi
 
 # Now we should have just a single argument
-(
-  case "$1" in
-    configure)
-      [ -f configure.ac -o -f configure.in ] && compile autoreconf -i
-      [ -x configure ] && compile ./configure
-      touch FullBuild.config;;
-    make)
-      compile make
-      touch FullBuild.made;;
-    install)
-      compile make install
-      touch FullBuild.installed;;
-    *) nl_error "usage: $0 configure|make|install|all";;
-  esac
-) 2>&1 | tee -a FullBuild.log
+targetfile=''
+case "$1" in
+  configure) targetfile=FullBuild.config;;
+  make) targetfile=FullBuild.made;;
+  install) targetfile=FullBuild.installed;;
+  *) nl_error "usage: $0 configure|make|install|all";;
+esac
+
+[ -n "$FORCE" ] && rm -f $targetfile
+if [ ! -f $targetfile ]; then
+  (
+    case "$1" in
+      configure)
+	[ -f configure.ac -o -f configure.in ] && compile autoreconf -i
+	[ -x configure ] && compile ./configure
+	touch $targetfile;;
+      make)
+	compile make
+	touch $targetfile;;
+      install)
+	compile make install
+	touch $targetfile;;
+      *) nl_error "usage: $0 configure|make|install|all";;
+    esac
+  ) 2>&1 | tee -a FullBuild.log
+fi
+[ -f $targetfile ] || nl_error "$targetfile not created"

@@ -56,7 +56,7 @@ function process {
 
 logresult Start
 process QNX6/utils make install || nl_error "Cannot continue"
-process nortutil FullBuild install
+process nortutil/bin FullBuild install
 OK=no
 process nortlib2 FullBuild all &&
   process cmdgen FullBuild all &&
