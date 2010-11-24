@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
 #include "rdr.h"
 #include "nortlib.h"
 #include "oui.h"
@@ -12,6 +13,7 @@ static int opt_autostart;
 static int opt_regulate;
 static int opt_kluge_a;
 static int opt_autoquit;
+static unsigned long opt_start_file = 1;
 
 //  opt_basepath = "/home/tilde/raw/flight/080908.4";
 
@@ -43,11 +45,14 @@ void rdr_init( int argc, char **argv ) {
         opt_basepath = optarg;
         break;
       case 'k':
-              opt_kluge_a = 1;
-              break;
+	opt_kluge_a = 1;
+	break;
       case 'q':
-              opt_autoquit = 1;
-              break;
+	opt_autoquit = 1;
+	break;
+      case 's':
+	opt_start_file = strtoul(optarg, NULL, 10);
+	break;
       case '?':
         nl_error(3, "Unrecognized Option -%c", optopt);
     }
@@ -81,6 +86,7 @@ Reader::Reader(int nQrows, int low_water, int bufsize, const char *path) :
   char mlf_base[PATH_MAX];
   snprintf(mlf_base, PATH_MAX, "%s/LOG", path );
   mlf = mlf_init( 3, 60, 0, mlf_base, "dat", NULL );
+  mlf_set_index( mlf, opt_start_file );
   regulated = opt_regulate;
   autostart = opt_autostart;
 }
