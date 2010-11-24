@@ -17,6 +17,7 @@
 resmgr_connect_funcs_t DG_data::connect_funcs;
 resmgr_io_funcs_t DG_data::io_funcs;
 bool DG_data::funcs_initialized = false;
+bool DG_data::quitting = false;
 
 extern "C" {
   static struct data_dev_ocb *ocb_calloc(resmgr_context_t *ctp,
@@ -104,9 +105,10 @@ DG_data::~DG_data() {}
 // client.
 int DG_data::io_write( resmgr_context_t *ctp, IOFUNC_OCB_T *ocb,
 			  int nonblock ) {
-  int msgsize = resmgr_msgread( ctp, dptr, dsize, sizeof(io_write_t) );
+  int msgsize = quitting ? 0 :
+      resmgr_msgread( ctp, dptr, dsize, sizeof(io_write_t) );
   data_attr.written = synched;
-  if (synched && !nonblock) {
+  if (!quitting && synched && !nonblock) {
     if (blocked && blocked != ocb)
       return EBUSY;
     ocb->rcvid = ctp->rcvid;
@@ -169,6 +171,7 @@ int DG_data_io_close_ocb(resmgr_context_t *ctp, void *rsvd,
 */
 int DG_data::ready_to_quit() {
   // unlink the name
+  quitting = true;
   if ( dev_id != -1 ) {
     int rc = resmgr_detach( dispatch->dpp, dev_id, _RESMGR_DETACH_PATHNAME );
     if ( rc == -1 )

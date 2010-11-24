@@ -38,6 +38,7 @@ class DG_data : public DG_dispatch_client {
     static resmgr_connect_funcs_t connect_funcs;
     static resmgr_io_funcs_t io_funcs;
     static bool funcs_initialized;
+    static bool quitting;
   public:
     // DG_data(data_generator *data_gen); // perhaps I only need the dispatch
     DG_data(DG_dispatch *disp, const char *name, void *data,
