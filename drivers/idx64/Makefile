@@ -2,7 +2,7 @@ SUBDIRS=config IdxC
 TOOL=Makefile todo
 SRC=idx64.c idx64int.h
 SRC+=idx64.oui
-OBJ=idx64.o idx64oui.o hint.o expint.o
+OBJ=idx64.o idx64oui.o
 INTERM=idx64oui.c
 TEMP=*.err
 
@@ -24,16 +24,12 @@ LIBS=-lsubbus -lnort -ltm
 
 
 idx64 : $(OBJ)
-	rm -f idx64
 	$(CC) $(CFLAGS) $(LDFLAGS) -o idx64 $(OBJ) $(LIBS)
 	usemsg idx64 idx64oui.c
-	/usr/local/sbin/promote idx64
 idx64.o : idx64.c idx64int.h idx64.h
 idx64oui.o : idx64oui.c idx64int.h
 idx64oui.c : idx64.oui
 	oui -o idx64oui.c idx64.oui
-expint.o : expint.c
-hint.o : hint.c
 
 .PHONY : all clean install install-bin install-data install-config install-include
 all : idx64

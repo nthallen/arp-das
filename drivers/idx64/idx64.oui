@@ -1,16 +1,10 @@
 <package> idx64
 <include> msg subbus
 <include> "idx64.h" "idx64int.h" "intserv.h"
-<opts> "i:"
-<sort>
-	-i <sbirq>[:<spirq>[:<pfirq>]] Specify IRQ levels
 <args>
 	if ( idx64_cfg_string != 0 )
 	  nl_error( 3, "Only one configuration string allowed" );
 	idx64_cfg_string = optarg;
-
-<switch>
-  case 'i': process_IRQs( optarg ); break;
 
 <synopsis>
 %C	[options] [cfg string]
@@ -48,6 +42,7 @@ in the configuration string.
 <blank>
 June 9, 1999: added a hysteresis defeat mechanism.
 October 15, 2009: ported to QNX6
+September 10, 2010: modified for QNX6 Subbus Library V1.0
 
 <package> msghdr_default
 <init>

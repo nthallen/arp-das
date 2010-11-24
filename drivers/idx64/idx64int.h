@@ -40,7 +40,6 @@ typedef struct {
 
 /* This is the structure for boards actually in use */
 typedef struct {
-  short pulse_code; /* proxy for intserv for this board */
   int pulse_value;
   unsigned short request; /* bit-map of drive requests */
   unsigned short scans; /* bit-map of scans */

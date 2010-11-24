@@ -9,7 +9,6 @@
 #include "nortlib.h"
 #include "oui.h"
 #include "collect.h"
-#include "intserv.h"
 #include "subbus.h"
 #include "idx64.h"
 #include "idx64int.h"
@@ -103,8 +102,7 @@ static int n_scans = 0;
 
 #define CMD_PULSE_CODE (_PULSE_CODE_MINAVAIL + 0)
 #define SCAN_PULSE_CODE (_PULSE_CODE_MINAVAIL + 1)
-#define INTR_PULSE_CODE (_PULSE_CODE_MINAVAIL + 2)
-#define EXPINT_PULSE_CODE (_PULSE_CODE_MINAVAIL + 3)
+#define EXPINT_PULSE_CODE (_PULSE_CODE_MINAVAIL + 2)
 
 /* Channel_init() initializes the channel's data structure,
    zeros the hardware's counters and performs default
@@ -140,11 +138,17 @@ static void Channel_init( chandef *chan, unsigned short base ) {
   If intserv doesn't allow us, it is probably because the board
   is already owned by someone else, a pretty good fatal error.
 */
-static void init_boards( void ) {
+static void init_boards( int coid ) {
   int i, j;
   idx64_bd *bd;
   idx64_def *bddef;
+  struct sigevent event;
 
+  event.sigev_notify = SIGEV_PULSE;
+  event.sigev_coid = coid;
+  event.sigev_priority = SIGEV_PULSE_PRIO_INHERIT;
+  event.sigev_code = EXPINT_PULSE_CODE;
+  // event.sigev_value.sival_int = 0; //redefined for each board.
   for ( i = 0; i < MAX_IDXRS; i++ ) {
     unsigned short val;
 
@@ -153,10 +157,9 @@ static void init_boards( void ) {
     if ( read_ack( bddef->card_base, &val ) != 0 ) {
       nl_error( -2, "Board %s present", bddef->cardID );
       bd = boards[i] = new_memory( sizeof( idx64_bd ) );
-      bd->pulse_code = EXPINT_PULSE_CODE;
-      bd->pulse_value = i;
-      expint_attach( bddef->cardID, bddef->card_base, idx64_region,
-                          bd->pulse_code, bd->pulse_value );
+      event.sigev_value.sival_int = bd->pulse_value = i;
+      subbus_int_attach( bddef->cardID, bddef->card_base,
+      	idx64_region, &event );
       bd->request = bd->scans = 0;
       for ( j = 0; j < MAX_IDXR_CHANS; j++ )
         Channel_init( &bd->chans[j], bddef->card_base + 8 * ( j + 1 ) );
@@ -323,8 +326,7 @@ static void shutdown_boards( void ) {
       /* Stop each channel */
       for ( j = 0; j < MAX_IDXR_CHANS; j++ )
         stop_channel( bd, j );
-      expint_detach( idx_defs[i].cardID );
-      // qnx_proxy_detach( bd->proxy );
+      subbus_int_detach( idx_defs[i].cardID );
     }
   }
 }
@@ -351,7 +353,7 @@ step_t translate_steps( chandef *ch, byte_t *cmd, step_t *steps ) {
       break;
   }
   /* Translate IX64_TO to IX64_IN or IX64_OUT */
-  curpos = sbw( ch->base_addr + 4 );
+  curpos = sbrw( ch->base_addr + 4 );
   if (*cmd & IX64_TO) {
     dest = *steps;
     *cmd &= ~IX64_DIR;
@@ -398,7 +400,7 @@ drive_chan( chandef *ch, ixcmdl *im ) {
     }
     tm_status_set( ch->tm_ptr, ch->supp_bit | ch->on_bit, 0 );
   } else if ( im->flags & IXCMD_NEEDS_HYST ) {
-    step_t curstep =  sbw( ch->base_addr + 4 );
+    step_t curstep =  sbrw( ch->base_addr + 4 );
     im->flags &= ~IXCMD_NEEDS_HYST;
     if ( im->dest > curstep ) {
       cmd = IX64_OUT;
@@ -412,7 +414,7 @@ drive_chan( chandef *ch, ixcmdl *im ) {
   }
   
   /* Check limits and don't drive if we're against one */
-  stat = sbb( ch->base_addr + 6 );
+  stat = sbrba( ch->base_addr + 6 );
   if ( ( cmd & IX64_DIR) == IX64_OUT ) {
     if ( stat & 2 ) return 0;
     addr = ch->base_addr + 2;
@@ -503,7 +505,7 @@ static void service_board( int bdno ) {
   if ( bdno >= MAX_IDXRS || boards[bdno] == 0 )
     nl_error( 4, "Invalid bdno in service_board" );
   bd = boards[ bdno ];
-  mask = bd->request & ~sbb( idx_defs[ bdno ].card_base );
+  mask = bd->request & ~sbrba( idx_defs[ bdno ].card_base );
   /* Mask should now have a non-zero bit for each channel
      which is ready to be serviced. */
   for ( chno = 0; mask != 0 && chno < MAX_IDXR_CHANS; chno++ ) {
@@ -602,7 +604,7 @@ static void scan_pulse( void ) {
 
 	/* Clear bd->request for any scans no longer running */
 	svc = bd->scans & bd->request &
-	      ~sbb( idx_defs[ bdno ].card_base );
+	      ~sbrba( idx_defs[ bdno ].card_base );
 	bd->request &= ~svc;
 
 	/* Now find out which scans are not running */
@@ -814,7 +816,6 @@ int service_pulse(short code, int value ) {
   switch (code) {
     case CMD_PULSE_CODE: return check_command(); break;
     case SCAN_PULSE_CODE: scan_pulse(); break;
-    case INTR_PULSE_CODE: expint_svc(); break;
     case EXPINT_PULSE_CODE: service_board(value); break;
     default: nl_error( 3, "Invalid pulse_code in service_pulse()" );
   }
@@ -877,10 +878,8 @@ int main( int argc, char **argv ) {
   if ( coid == -1 )
     nl_error( 3, "Error %d from ConnectAttach()", errno );
 
-  ThreadCtl( _NTO_TCTL_IO, 0 ); // required for interrupt handling
   open_cmd_fd( coid, CMD_PULSE_CODE, 0 );
-  expint_init( coid, INTR_PULSE_CODE, 0 ); /* Define the IRQ */
-  init_boards(); /* Configure each board */
+  init_boards(coid); /* Configure each board */
   if ( idx64_cfg_string != 0 )
     config_channels( idx64_cfg_string );
   /* boards[0]->chans[1].hysteresis = 100; */
@@ -896,7 +895,6 @@ int main( int argc, char **argv ) {
   operate(chid);
 
   /* cleanup: */
-  expint_reset();
   close_cmd_fd();
   shutdown_boards();
   Col_send_reset( tm_data );
