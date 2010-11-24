@@ -1,9 +1,25 @@
 #! /bin/sh
 
 # Bootstrap:
-#  Download the source code. Since this file is in one of the source
-#  directories, it's probably necessary to require that most of the
-#  projects have been downloaded already.
+#  Download the source code:
+# cd $BUILDROOT
+# export CVSROOT=:ext:forge.abcd.harvard.edu:/cvsroot/arp-das
+# cvs checkout QNX6BUILD
+# cd QNX6BUILD
+# QNX6/utils/FullTopBuild
+
+# This expects to find the directories arranged as they are in the CVS
+# repository. Specifically, it is looking for:
+#     nortutil
+#     nortlib2
+#     cmdgen
+#     oui
+#     tmcalgo
+#     snafu
+#     table
+#     qclicomp
+#     QNX6/*
+
 
 # This should be run in the root of the source tree, which might
 # be ~/BUILD
@@ -18,5 +34,69 @@ if [ `id -u` != 0 ]; then
   nl_error exec failed
 fi
 
-cd QNX/utils
+function logresult {
+  dt=`date`
+  echo "$dt: $*" >>FullTopBuild.log
+}
 
+function process {
+  dir=$1
+  shift
+  curdir=$PWD
+  [ -d $dir ] || nl_error "Directory '$dir' not found"
+  cd $dir
+  result=OK
+  $* || result=FAIL
+  cd $curdir
+  logresult "$dir $result"
+  rv=0
+  [ $result = OK ] || rv=1
+  return $rv
+}
+
+logresult Start
+process QNX6/utils make install || nl_error "Cannot continue"
+process nortutil FullBuild install
+OK=no
+process nortlib2 FullBuild all &&
+  process cmdgen FullBuild all &&
+  process oui FullBuild all &&
+  process QNX6/tmlib FullBuild all &&
+  process QNX6/tmphlib FullBuild all &&
+  process QNX6/tmpplib FullBuild all &&
+  process QNX6/displib FullBuild all &&
+  OK=yes
+[ OK = yes ] || nl_error "Cannot continue"
+process QNX6/tmutil FullBuild make install
+process QNX6/tmc FullBuild make install
+process QNX6/TMbfr/resmgr FullBuild make install
+process QNX6/lgr FullBuild make install
+process QNX6/rdr FullBuild make install
+process QNX6/memo FullBuild make install
+process QNX6/phrtg-native FullBuild make install
+process tmcalgo FullBuild make install
+process QNX6/qcliutil FullBuild make install
+process snafu FullBuild all
+process QNX6/dccc FullBuild make install
+process QNX6/diagnost FullBuild make install
+process QNX6/diagsuite FullBuild make install
+process QNX6/ssp_driver FullBuild make install
+process QNX6/idx64 FullBuild make install
+
+# The eli build is somewhat more interactive due to some latent
+# bug in odin... Ideally eli should be build before FullTopBuild
+if which eli >/dev/null 2>&1; then
+  process table FullBuild make install
+  process qclicomp FullBuild make install
+else
+  echo "eli not found: table and qclicomp not processed"
+  echo "Build eli in order to finish installation, or"
+  echo "consider using qclicompsrc"
+  logresult table SKIPPED
+  logresult qclicomp SKIPPED
+fi
+
+logresult End
+echo FullTopBuild Processing Completed
+echo Review FullTopBuild.log and also FullBuild logs in all
+echo directories for more details.

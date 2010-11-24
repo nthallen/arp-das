@@ -17,6 +17,11 @@ install-sbin : $(SBIN)
 install-bin : $(BIN)
 	mkdir -p $(PREFIX)/bin
 	@$(INSTALL) $(BIN) $(PREFIX)/bin
+  @if [ ! -x /usr/bin/perl ]; then \
+    perlexe=`which perl 2>/dev/null`; \
+    if [ -n "$perlexe" ]; then ln -s $perlexe /usr/bin/perl; \
+    else echo "No perl found"; exit 1; fi; \
+  else true; fi
 install-data : $(DATA)
 	mkdir -p $(PREFIX)/share/huarp
 	@$(INSTALL) $(DATA) $(PREFIX)/share/huarp

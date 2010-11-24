@@ -18,6 +18,12 @@ function compile {
   $* || nl_error $* failed
 }
 
+FORCE=''
+if [ "$1" = "-f" ]; then
+  FORCE='-f'
+  shift
+fi
+  
 [ "$1" = "all" ] && set - configure make install
 
 # First make sure we have root access if necessary
@@ -27,10 +33,10 @@ for arg in $*; do
     make) ;;
     install)
       if [ `id -u` != 0 ]; then
-	exec sudo -E $0 $*
-	nl_error exec failed
+        exec sudo -E $0 $FORCE $*
+        nl_error exec failed
       fi;;
-    *) nl_error "usage: ./FullBuild [configure|make|install|all]";;
+    *) nl_error "usage: ./FullBuild [-f] [configure|make|install|all]";;
   esac
 done
 
@@ -44,19 +50,19 @@ if [ "$2" != "" ]; then
   for arg in $*; do
     case "$arg" in
       configure)
-	rm -f FullBuild.config
-	$unsu $0 $arg
-	[ -f FullBuild.config ] || nl_error "$unsu $0 $arg failed";;
+        [ -n "$FORCE" ] && rm -f FullBuild.config
+        [ -f FullBuild.config ] || $unsu $0 $arg
+        [ -f FullBuild.config ] || nl_error "$unsu $0 $arg failed";;
       make)
-	rm -f FullBuild.made
-	$unsu $0 $arg
-	[ -f FullBuild.made ] || nl_error "$unsu $0 $arg failed";;
+        [ -n "$FORCE" ] && rm -f FullBuild.made
+        [ -f FullBuild.made ] || $unsu $0 $arg
+        [ -f FullBuild.made ] || nl_error "$unsu $0 $arg failed";;
       install)
-	rm -f FullBuild.installed
-	$0 $arg
-	[ -f FullBuild.installed ] || nl_error "$0 $arg failed";;
+        [ -n "$FORCE" ] && rm -f FullBuild.installed
+        [ -f FullBuild.installed ] || $0 $arg
+        [ -f FullBuild.installed ] || nl_error "$0 $arg failed";;
       *)
-	nl_error "Unexpected argument '$arg' in second case";;
+        nl_error "Unexpected argument '$arg' in second case";;
     esac
   done
   echo "$0 $* Completed"
