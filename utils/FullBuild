@@ -94,3 +94,4 @@ if [ ! -f $targetfile ]; then
   ) 2>&1 | tee -a FullBuild.log
 fi
 [ -f $targetfile ] || nl_error "$targetfile not created"
+exit 0

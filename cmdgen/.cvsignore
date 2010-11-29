@@ -26,6 +26,4 @@ ylwrap
 x86
 .deps
 *.tar.gz
-FullBuild.log
-FullBuild.made
-FullBuild.installed
+FullBuild.*

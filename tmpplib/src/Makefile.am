@@ -13,4 +13,5 @@ oui_HEADERS = dc.oui
 # AM_CPPFLAGS = -I /usr/local/include
 
 # CXX = QCC
-AM_CXXFLAGS = -lang-c++
+# Commenting out for QNX 6.5.0
+#AM_CXXFLAGS = -lang-c++

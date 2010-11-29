@@ -37,6 +37,8 @@ fi
 function logresult {
   dt=`date`
   echo "$dt: $*" >>FullTopBuild.log
+  echo "$dt: $*"
+  [ "$1" = "End" ] && echo >>FullTopBuild.log
 }
 
 function process {
@@ -66,7 +68,7 @@ process nortlib2 FullBuild all &&
   process QNX6/tmpplib FullBuild all &&
   process QNX6/displib FullBuild all &&
   OK=yes
-[ OK = yes ] || nl_error "Cannot continue"
+[ $OK = yes ] || nl_error "Cannot continue"
 process QNX6/tmutil FullBuild make install
 process QNX6/tmc FullBuild make install
 process QNX6/TMbfr/resmgr FullBuild make install
@@ -77,6 +79,8 @@ process QNX6/phrtg-native FullBuild make install
 process tmcalgo FullBuild make install
 process QNX6/qcliutil FullBuild make install
 process snafu FullBuild all
+process QNX6/subbus_2010 FullBuild all # probably should be with the libs
+process QNX6/subbusd FullBuild make install
 process QNX6/dccc FullBuild make install
 process QNX6/diagnost FullBuild make install
 process QNX6/diagsuite FullBuild make install
@@ -96,7 +100,7 @@ else
   logresult qclicomp SKIPPED
 fi
 
-logresult End
+logresult "End"
 echo FullTopBuild Processing Completed
 echo Review FullTopBuild.log and also FullBuild logs in all
 echo directories for more details.

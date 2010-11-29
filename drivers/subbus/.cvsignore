@@ -4,5 +4,15 @@ Makefile.in
 Makefile
 config.log
 config.status
+config.guess
+config.sub
+depcomp
+install-sh
+ltmain.sh
+missing
 configure
 libtool
+COPYING
+INSTALL
+FullBuild.*
+
