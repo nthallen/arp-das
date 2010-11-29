@@ -3,6 +3,6 @@ case `uname -r` in
   6.4.*)
     [ x$LDFLAGS = x ] && LDFLAGS='-Wl,-rpath -Wl,/usr/local/lib -L/usr/local/lib';;
   6.5.*)
-    [ x$LDFLAGS = x ] && LDFLAGS='-L/usr/local/lib -L$(QNX_TARGET)/x86/lib/gcc/4.4.2 -L$(QNX_TARGET)/x86/usr/lib -L$(QNX_TARGET)/x86/lib';;
+    [ x$LDFLAGS = x ] && LDFLAGS='-Wl,-rpath -Wl,/usr/local/lib -L/usr/local/lib -L$(QNX_TARGET)/x86/lib/gcc/4.4.2 -L$(QNX_TARGET)/x86/usr/lib -L$(QNX_TARGET)/x86/lib';;
 esac
 [ x$CPPFLAGS = x ] && CPPFLAGS='-I/usr/local/include'
