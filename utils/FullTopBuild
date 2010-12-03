@@ -29,6 +29,16 @@ function nl_error {
   exit 1
 }
 
+alldirs=yes
+for dir in QNX6 nortutil nortlib2 cmdgen oui tmcalgo snafu table qclicomp; do
+  if [ ! -d $dir ]; then
+    echo "Directory $dir not found" >&2
+    alldirs=no
+  fi
+done
+[ $alldirs = yes ] || nl_error "Are you in the correct directory?"
+
+
 if [ `id -u` != 0 ]; then
   exec sudo $0
   nl_error exec failed
