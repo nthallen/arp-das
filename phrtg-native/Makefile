@@ -7,6 +7,7 @@ phrtg : $(EXE)
 $(EXE) : native.mk
 	@echo PWD is $(PWD)
 	@echo EXE is $(EXE)
+	@echo MAKEPATH is $(MAKEPATH)
 	@if [ ! -f $$QNX_TARGET/usr/local/include/nortlib.h ]; then \
 	  echo "Must ln -s /usr/local \$$QNX_TARGET/usr/local"; \
 	  exit 1; fi
