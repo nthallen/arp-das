@@ -60,7 +60,7 @@ function process {
   result=OK
   $* || result=FAIL
   cd $curdir
-  logresult "$dir $result"
+  logresult "$result $dir"
   rv=0
   [ $result = OK ] || rv=1
   return $rv
