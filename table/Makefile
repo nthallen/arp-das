@@ -1,8 +1,9 @@
-.PHONY : install clean
+.PHONY : install clean all
 
 SRCS := Odinfile phtable.specs $(shell grep -v '^\$$' phtable.specs)
 NCSRCS := Odinfile nctable.specs $(shell grep -v '^\$$' nctable.specs)
 
+all : phtable nctable
 phtable : phtable.exe
 	cp -f phtable.exe phtable
 	chmod +w phtable
@@ -17,7 +18,7 @@ nctable : nctable.exe
 	chmod -w nctable
 nctable.exe : $(NCSRCS)
 	eli nctable.exe
-install : phtable nctable
+install : all
 	@cp -v phtable nctable /usr/local/bin/
 clean :
 	rm -f phtable phtable.exe dbphtable nctable nctable.exe
