@@ -1,0 +1,6 @@
+# Package qnx
+Version: 6.4.1
+Files: MANIFEST @ /usr/qnx641/target/qnx6
+Files: MANIFEST_x86 @ /usr/qnx641/target/qnx6/x86
+Files: MANIFEST_other @ /
+Files: MANIFEST_pkg @ /
