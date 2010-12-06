@@ -1,0 +1,6 @@
+# Package gcc
+Version: 6.4.1
+# gcc-6.4.1 gcc files
+Requires: qnx-6.4.1
+Files: MANIFEST @ /
+Files: MANIFEST_pkg @ /
