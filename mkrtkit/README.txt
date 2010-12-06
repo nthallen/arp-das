@@ -7,14 +7,14 @@ to keep systems up to date.
 
 The assumption is that all of these tools are run against a system that
 is a full licensed installation of the QNX development system. The target
-systems are runtime systems, which may include some open source
+systems are runtime systems, which may include some free open source
 development tools.
 
 Package definitions are stored under the pkgs directory. Each package
 contains a Header file and one or more MANIFEST files.
 
 The Header may include comments, dependencies and reference to the
-MANIFSET files. Comments appear on lines starting with the '#' character.
+MANIFEST files. Comments appear on lines starting with the '#' character.
 Dependencies are specified with the 'Requires:' keyword and list
 the names of one or more packages. The 'Files:' keyword identifies
 the MANIFEST files:
