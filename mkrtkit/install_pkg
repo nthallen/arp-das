@@ -1,0 +1,80 @@
+#! /usr/bin/perl -w
+use strict;
+use File::Path;
+use File::Copy;
+
+# install_pkg <pkg>
+#
+# Reads Header to identify Version and list of manifest files
+# Creates destination directory
+# Copies files into the destination directory
+# Creates MANIFEST_pkg, which identifies the files in the
+# destination directory.
+#
+# It should be an error if MANIFEST_pkg is not listed in the Header.
+
+my $pkgname = shift(@ARGV) || die "No package argument\n";
+my $pkgroot = "/var/huarp/pkg";
+my $pkg = pkg_read_header($pkgname);
+my $src = "pkgs/$pkgname";
+my $dest = "$pkgroot/$pkgname-$pkg->{Version}";
+my $rdest = $dest; $rdest =~ s|^/||;
+
+-d $pkgroot || mkpath($pkgroot) ||
+  die "Fatal: Unable to create pkgroot $pkgroot\n";
+-d $dest || mkpath($dest) ||
+  die "Fatal: Unable to create package destination $dest\n";
+my $MP = "$dest/MANIFEST_pkg";
+open( my $MPfh, ">$MP" ) || die "Unable to write $MP\n";
+print $MPfh "$rdest/Header\n";
+copy( "$src/Header", "$dest/Header" );
+for my $mf ( @{$pkg->{Files}} ) {
+  my $manifest = $mf->{List};
+  print $MPfh "$rdest/$manifest\n";
+  if ( $manifest ne "MANIFEST_pkg" ) {
+    copy( "$src/$manifest", "$dest/$manifest" ) ||
+      die "Copy $src/$manifest $dest/$manifest failed\n";
+  }
+}
+close $MPfh || warn "Error closing $dest/MANIFEST_pkg\n";
+print "Installed: $dest\n";
+exit(0);
+
+sub pkg_read_header {
+  # Now read the header
+  #  ^Requires: Add packages to reqlist in reverse order
+  #  ^Files: <file> @ <SrcRoot>
+  my $pkg;
+  $pkg->{name} = shift || die "No package arg to pkg_read_header\n";
+  $pkg->{Files} = [];
+  my $hdr = "pkgs/$pkg->{name}/Header";
+  open( HDR, "<$hdr" ) ||
+    die "Unable to read Header for package $pkg->{name}\n";
+  my $has_pkg = 0;
+  while ( my $line = <HDR> ) {
+    chomp $line;
+    # We ignore comments and dependencies
+    next if $line =~ m/^\s*(?:#.*)?$/;
+    next if $line =~ m/^\s*Requires:((?:\s+[-\w.]+)*)$/;
+    if ( $line =~ m|^\s*Files:\s*(\w+)\s*\@\s*(/(?:(?:\w+/)*\w+)?)$| ) {
+      my $List = $1;
+      my $SrcRoot = $2;
+      if ( $List eq "MANIFEST_pkg" ) {
+	$has_pkg = 1;
+      } else {
+	-f "pkgs/$pkg->{name}/$List" ||
+	  die "Unable to find filelist '$List' specified in $hdr\n";
+	-d $SrcRoot ||
+	  die "Invalid SrcRoot path '$SrcRoot' specified in $hdr\n";
+      }
+      push(@{$pkg->{Files}}, { List => $List, SrcRoot => $SrcRoot } );
+    } elsif ( $line =~ m|^Version:\s*([.\d]+)$| ) {
+      $pkg->{Version} = $1;
+    } else {
+      die "Syntax error in $hdr: '$line'\n";
+    }
+  }
+  die "$hdr does not list MANIFEST_pkg\n" unless $has_pkg;
+  die "$hdr does not specify Version\n" unless $pkg->{Version};
+  return $pkg;
+}

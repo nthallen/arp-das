@@ -23,8 +23,5 @@ install-data : $(DATA)
 install-pkgs :
 	mkdir -p $(PKGPREFIX)/pkg
 	@for pkg in $(PKGS); do \
-	  mkdir $(PKGPREFIX)/pkg/$$pkg; \
-	  for file in pkgs/$$pkg/*; do \
-	    [ -f $$file ] && cp -v $$file $(PKGPREFIX)/pkg/$$pkg/; \
-	  done; \
+	  ./install_pkg $$pkg || exit 1; \
 	done
