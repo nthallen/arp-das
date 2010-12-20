@@ -16,15 +16,14 @@ while read hdr; do
       */) ;;
       *) root="$root/";;
     esac
-    [ -f $pkg/$manif ] || nl_error "Cannot locate $pkg/$manif"
-    while read fspec; do
-      if [ -d $root$fspec ]; then
-	[ -L $root$fspec ] ||
-	  echo "$pkg/$manif: Directory $root $fspec"
-      elif [ ! -f $root$fspec ]; then
-	echo "$pkg/$manif: File not found: $root $fspec"
-      fi
-    done < $pkg/$manif
+    if [ ! $manif = MANIFEST_pkg ]; then
+      [ -f $pkg/$manif ] || nl_error "Cannot locate $pkg/$manif"
+      while read fspec; do
+	if [ ! -d $root$fspec -a ! -f $root$fspec -a ! -h $root$fspec ]; then
+	  echo "$pkg/$manif: File not found: $root$fspec"
+	fi
+      done < $pkg/$manif
+    fi
   done
 done
 
