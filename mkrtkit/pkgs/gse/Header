@@ -1,6 +1,6 @@
 # Package gse
-Version: 1.0
-# gse-1.0
+Version: 1.1
+# gse-1.1
 #  OS Installation package for a GSE system
-Requires: develop-1.0 mozilla-6.4.1
+Requires: develop-1.0 mozilla-6.5.0
 Files: MANIFEST_pkg @ /
