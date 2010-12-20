@@ -1,0 +1,8 @@
+#! /bin/sh
+ver=650
+script=/usr/local/share/huarp/dev_copy.sed
+find /usr/qnx$ver | sed -f $script | sort >MANIFEST
+cat <<EOF >>MANIFEST
+etc/profile.d/qnxsdk.sh
+etc/profile.d/qnxsdk.ksh
+EOF
