@@ -1,0 +1,9 @@
+#! /bin/sh
+{ cat <<EOF
+usr/local/bin/eli
+usr/local/bin/odin
+usr/local/man/man1/odin.1
+EOF
+  find /usr/local/lib/Eli | sed -e 's,^/,,'
+  find /usr/local/lib/Odin | sed -e 's,^/,,'
+} > MANIFEST_eli
