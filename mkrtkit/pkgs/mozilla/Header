@@ -1,5 +1,5 @@
 # Package mozilla
-Version: 6.4.1
+Version: 6.5.0
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
-Requires: photon-6.4.1
+Requires: photon-6.5.0

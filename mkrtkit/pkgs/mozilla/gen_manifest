@@ -1,0 +1,9 @@
+#! /bin/sh
+
+find /opt/mozilla >MANIFEST
+cat <<EOF >>MANIFEST
+etc/photon/launchmenu/Internet/bonecho.tgt
+usr/photon/bin/firefox
+usr/photon/bin/firefox.res
+EOF
+
