@@ -1,6 +1,6 @@
 #! /bin/sh
 
-find /opt/mozilla >MANIFEST
+find /opt/mozilla | sed -e 's,^/,,' >MANIFEST
 cat <<EOF >>MANIFEST
 etc/photon/launchmenu/Internet/bonecho.tgt
 usr/photon/bin/firefox
