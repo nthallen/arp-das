@@ -12,6 +12,10 @@ use File::Copy;
 # destination directory.
 #
 # It should be an error if MANIFEST_pkg is not listed in the Header.
+#
+# Note that since the files to install are read from the Header,
+# additional files used to generate the MANIFESTs can be stored
+# in the pkg source directory.
 
 my $pkgname = shift(@ARGV) || die "No package argument\n";
 my $pkgroot = "/var/huarp/pkg";

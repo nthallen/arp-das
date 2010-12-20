@@ -23,5 +23,6 @@ install-data : $(DATA)
 install-pkgs :
 	mkdir -p $(PKGPREFIX)/pkg
 	@for pkg in $(PKGS); do \
+	  [ -f pkgs/$$pkg/Makefile ] && make -C pkgs/$$pkg install; \
 	  ./install_pkg $$pkg || exit 1; \
 	done
