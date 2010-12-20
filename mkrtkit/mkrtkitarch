@@ -25,7 +25,7 @@ use Cwd qw(getcwd abs_path);
 #    Directory to cd to before creating archive
 #    More than one Files: line is supported (and usually required)
 
-my $create_bundle = 1;
+my $create_bundle = 0;
 my $pkgroot = "/var/huarp/pkg";
 my $pkgcache = "/var/huarp/pkgcache";
 
