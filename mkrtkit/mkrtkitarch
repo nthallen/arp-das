@@ -162,6 +162,8 @@ sub pkg_read_header {
       -d $2 ||
         die "Invalid SrcRoot path '$2' specified in $pkg->{name}/Header\n";
       push(@{$pkg->{Files}}, { List => $1, SrcRoot => $2 } );
+    } elsif ( $line =~ m|^\s*Version:\s*\d+(?:\.\d+)*$| ) {
+      # OK
     } else {
       die "Syntax error in $pkg->{name}/Header: '$line'\n";
     }
