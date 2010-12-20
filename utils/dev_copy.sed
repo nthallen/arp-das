@@ -29,6 +29,6 @@
 \%/target/qnx6/x86/bin/% d
 \%/target/qnx6/x86/sbin/% d
 \%/target/qnx6/opt/webkit/% d
-\%usr/qnx[0-9]+/install% d
+\%usr/qnx6[0-9]*/install% d
 \%/target/qnx6/var/state/% d
 s,^/,,

@@ -1,0 +1,63 @@
+#! /bin/sh
+# pkg2pkg <pkg> ...
+# example: pkg2pkg perl sudo
+
+if [ `id -u` != 0 ]; then
+  exec /usr/pkg/bin/sudo $0 $*
+fi
+
+function nl_error {
+  echo "pkg2pkg: $*" >&2
+  exit 1
+}
+
+proot=/var/huarp/pkg
+
+
+[ -z "$1" ] && nl_error "Usage: pkg2pkg <pkg> ..."
+[ -d $proot ] || mkdir $proot || nl_error Unable to create $proot
+
+for pkg in $*; do
+  pkgcnt=`ls -d /var/db/pkg/$pkg* 2>/dev/null | wc -l`
+  pkgcnt=${pkgcnt##*( )}
+  case $pkgcnt in
+    0) nl_error "No package found matching '$pkg'";;
+    1) ;;
+    *) ls -d /var/db/pkg/$pkg*
+       nl_error "Package '$pkg' is ambiguous";;
+  esac
+  pkgver=`ls -d /var/db/pkg/$pkg*`
+  [ -d "$pkgver" ] || nl_error "Confused by pkg '$pkg': $pkgver"
+  [ -f $pkgver/+CONTENTS ] || nl_error "No +CONTENTS in $pkgver"
+  echo "pkg is '$pkg' pkgver is '$pkgver'" >&2
+  echo "Processing $pkgver" >&2
+  pver=`expr $pkgver : "/var/db/pkg/$pkg-\\([0-9][0-9.]*\\)"`
+  [ -n "$pver" ] || nl_error "Could not discern valid version from $pkgver"
+  [ "$proot/$pkg-$pver" = "$pkgver" ] ||
+    echo "Truncating $pkgver to $pkg-$pver" >&2
+  [ -d "$proot/$pkg-$pver" ] || mkdir "$proot/$pkg-$pver" ||
+    nl_error Unable to create $proot/$pkg-$pver
+  { cwd=usr/pkg
+    ignore=''
+    while read line; do
+      case $line in
+	"@cwd /usr/pkg") cwd=usr/pkg;;
+	"@cwd .") cwd=${pkgver#/};;
+	"@cwd "*) nl_error "Unexpected cwd line: '$line'";;
+	"@pkgdep "*) echo "$line" >&2;; # could check...
+	"@ignore") ignore=y;;
+	@*) ;;
+	*) if [ -n "$ignore" ]; then ignore=''; else echo $cwd/$line; fi;;
+      esac
+    done <$pkgver/+CONTENTS
+    find $pkgver -type f | sed -e 's,^/,,'
+  } > $proot/$pkg-$pver/MANIFEST
+  { echo "# Package $pkg-$pver via pkg2pkg $pkgver"
+    echo "Version: $pver"
+    echo "Files: MANIFEST @ /"
+    echo "Files: MANIFEST_pkg @ /"
+  } > $proot/$pkg-$pver/Header
+  for i in Header MANIFEST MANIFEST_pkg; do
+    echo $proot/$pkg-$pver/$i | sed -e 's,^/,,'
+  done > $proot/$pkg-$pver/MANIFEST_pkg
+done

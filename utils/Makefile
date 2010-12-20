@@ -2,7 +2,7 @@
 # This directory contains miscellaneous utilities that need to be
 # compiled.
 BIN=unsu vmutil FullBuild
-SBIN=pkg_copy dev_copy sec_copy lib_dist
+SBIN=pkg_copy dev_copy sec_copy lib_dist pkg2pkg
 DATA=dev_copy.sed
 OSDATA=config.site
 INSTALL=cp -vn
