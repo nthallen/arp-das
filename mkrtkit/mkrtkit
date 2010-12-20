@@ -9,6 +9,10 @@ function nl_error {
 pkg=$1
 [ -n "$pkg" ] || nl_error No package specified
 
+if [ `id -u` != 0 ]; then
+  exec /usr/pkg/bin/sudo $0 $*
+fi
+
 # This needs a lot of work
 #   could skip initializing the working directory if it already exists
 #   Decide how to specify what packages to include (command line)
