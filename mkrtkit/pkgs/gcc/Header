@@ -1,7 +1,7 @@
 # Package gcc
 Version: 6.4.1
 # gcc-6.4.1 gcc files
-Requires: qnx-6.4.1
+Requires: qnx-6.5.0
 Files: MANIFEST @ /
 Files: MANIFEST_cc @ /usr/local/share/huarp/mkrtkit
 Files: MANIFEST_pkg @ /
