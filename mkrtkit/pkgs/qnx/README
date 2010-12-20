@@ -1,0 +1,32 @@
+The qnx package includes core operating system files
+that we need on most systems, both flight and ground
+support. These will be extracted from the /rtkit lists
+as follows:
+
+I will take all of:
+  650-os.txt except for some usr/photon stuff
+  650-fsys.txt
+  650-net.txt
+  650-gpl.txt
+  650-multicore.txt
+but will split them into MANIFEST and MANIFEST_x86,
+depending on whether the source files are in the
+x86 subtree or not.
+
+I will review 650-complete.txt to see what from there
+should be included.
+
+  I don't need opt/webkit, but note that it includes
+  a bunch of potentially useful libraries in
+  opt/webkit/x86/lib
+
+  Almost everything else should go into photon
+  photon will also need the usr/photon stuff
+  from 650-os.txt that we left out.
+
+MANIFEST_other will include other basic utilities that
+do not reside under /usr/qnx650/target/qnx6
+
+gen_manifests will generate MANIFEST and MANIFEST_x86.
+It needs to be editted to update the version (at least).
+Header needs to be editted manually to update the version.

@@ -1,5 +1,4 @@
 bin/split
-bin/split
 usr/bin/funzip
 usr/bin/rpcgen
 usr/bin/unzip

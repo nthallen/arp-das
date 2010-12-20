@@ -1,0 +1,28 @@
+#! /bin/sh
+
+ver=650
+srcs="os fsys net gpl multicore"
+missing=''
+for i in $srcs; do
+  file=/fs/cd0/rtkit/$ver-$i.txt
+  [ -f $file ] || missing="$missing $file"
+done
+if [ -n "$missing" ]; then
+  echo "The following source files were not found:"
+  for file in $missing; do
+    echo "  $file"
+  done
+  exit 1
+fi
+for i in $srcs; do
+  file=/fs/cd0/rtkit/$ver-$i.txt
+  cat $file | grep -v usr/photon
+done | sort -u >all.txt
+grep -v "^x86/" all.txt >MANIFEST
+grep "^x86/" all.txt | sed -e 's,^x86/,,' >MANIFEST_x86
+
+# cat /fs/cd0/rtkit/$ver-complete.txt | sed -e 's,^/,,' | sort -u >complete.txt
+# join -o 1.1 -v 1 complete.txt
+
+rm all.txt
+
