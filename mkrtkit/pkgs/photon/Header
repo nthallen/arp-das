@@ -1,6 +1,6 @@
 # Package photon
-Version: 6.4.1
-Files: MANIFEST @ /usr/qnx641/target/qnx6
-Files: MANIFEST_x86 @ /usr/qnx641/target/qnx6/x86
+Version: 6.5.0
+Files: MANIFEST @ /usr/qnx650/target/qnx6
+Files: MANIFEST_x86 @ /usr/qnx650/target/qnx6/x86
 Files: MANIFEST_pkg @ /
-Requires: qnx-6.4.1
+Requires: qnx-6.5.0

@@ -1,0 +1,28 @@
+The photon package includes GUI files required on
+ground support systems but not on flight systems.
+
+I will use the file listings in /fs/cd0/rtkit
+as follows:
+
+I will take:
+  650-os.txt only the usr/photon stuff
+  650-complete.txt but only those files not in:
+    650-os.txt
+    650-fsys.txt
+    650-net.txt
+    650-gpl.txt
+    650-multicore.txt
+
+    I will also exclude the opt/webkit stuff
+    and a few other utilities
+
+  650-complete.txt has leading slashes, so needs
+  to be filtered first.
+
+I will split these into MANIFEST and MANIFEST_x86,
+depending on whether the source files are in the
+x86 subtree or not.
+
+gen_manifests will generate MANIFEST and MANIFEST_x86.
+It needs to be editted to update the version (at least).
+Header needs to be editted manually to update the version.
