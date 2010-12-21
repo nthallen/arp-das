@@ -23,6 +23,10 @@ function compile {
   $* || nl_error $* failed
 }
 
+# Create FullBuild.log before sudo to make sure
+# user can write to it.
+[ -f FullBuild.log ] || touch FullBuild.log
+
 FORCE=''
 if [ "$1" = "-f" ]; then
   FORCE='-f'
