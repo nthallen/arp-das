@@ -22,6 +22,7 @@ usr/local/bin/rdr
 usr/local/bin/saverun
 usr/local/bin/sbswitch
 usr/local/bin/sspdrv
+usr/local/bin/subbusd_serusb
 usr/local/bin/syscon
 usr/local/bin/unsu
 usr/local/lib/libdisp.a
