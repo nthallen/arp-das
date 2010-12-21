@@ -27,6 +27,11 @@ should be included.
 MANIFEST_other will include other basic utilities that
 do not reside under /usr/qnx650/target/qnx6
 
+  lib/dll/devn-ns83815.so needed on at least one of our
+  machines but no longer included in the OS distribution
+
+  bin/split: mysteriously missing from the OS
+
 gen_manifests will generate MANIFEST and MANIFEST_x86.
 It needs to be editted to update the version (at least).
 Header needs to be editted manually to update the version.

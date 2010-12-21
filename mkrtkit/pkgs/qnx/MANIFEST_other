@@ -1,4 +1,5 @@
 bin/split
+lib/dll/devn-ns83815.so
 usr/bin/funzip
 usr/bin/rpcgen
 usr/bin/unzip
