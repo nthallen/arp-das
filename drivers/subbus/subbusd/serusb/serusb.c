@@ -63,8 +63,8 @@ static void process_request(void) {
       case SBDR_TYPE_CLIENT:
 	switch (sbr->request[0]) {
 	  case 'T':
-	  case 'A':
 	    no_response = 1; break;
+	  case 'A':
 	  case 'R':
 	  case 'W':
 	  case 'V':
@@ -351,6 +351,7 @@ static void process_response( char *buf ) {
       exp_req = '\0';
       exp_args = 1;
       break;
+    case 'A':
     case 'B':
     case 'S':
     case 'C':
