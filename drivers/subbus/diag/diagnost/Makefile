@@ -1,4 +1,7 @@
 # $Log$
+# Revision 1.5  2010/09/10 13:09:14  ntallen
+# Minor edit and relink for libsubbus.so.1
+#
 # Revision 1.4  2009/09/30 15:19:30  ntallen
 # Removed scdebug from target list
 #
@@ -45,9 +48,8 @@ scdebug : scdebug.o $(LLIB)/diaglibs.lib
 scdebug.o : scdebug.c
 
 failtest : failtest.o
-	$(LINK.priv) failtest.o -l nort
+	$(LINK.priv) failtest.o -lsubbus -lnort
 	usemsg failtest failtest.c
-	/usr/local/sbin/promote failtest
 failtest.o : failtest.c
 
 sbswitch.o : sbswitch.c

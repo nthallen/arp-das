@@ -1,5 +1,8 @@
 /* failtest.c
  * $Log$
+ * Revision 1.2  2008/09/09 13:20:44  ntallen
+ * Port failtest to NTO
+ *
  * Revision 1.1  2008/08/24 15:35:38  ntallen
  * Diagnostics I want to port
  *
@@ -8,18 +11,11 @@
  *
  *
  */
+#include <stdio.h>
 #include <stdlib.h>
 #include "nortlib.h"
-#ifdef __QNXNTO__
-  #include <string.h>
-  #include <errno.h>
-  #include <sys/neutrino.h>
-  #include <hw/inout.h>
-  #define outp(x,y) out8(x,y)
-#else
-  #include <conio.h>
-#endif
-char failtest_c_rcsid[] = "$Id$";
+#include "subbus.h"
+
 
 #ifdef __USAGE
 %C	n
@@ -30,19 +26,13 @@ char failtest_c_rcsid[] = "$Id$";
 	3 - Turn on both fail indicators
 #endif
 
-int main(int argc, char **argv) {
-  int mask;
-
-  if (argc < 2) nl_error( 3, "Must specify fail value" );
-  else {
-    #ifdef __QNXNTO__
-      if (ThreadCtl(_NTO_TCTL_IO,0) == -1 )
-          nl_error( 3, "Error requesting I/O priveleges: %s", strerror(errno) );
-    #endif
-    mask = atoi(argv[1]);
-    outp(0x319, 0); /* tick to turn of 2-minute failure */
-    outp(0x311, 0);
-    outp(0x317, mask & 3);
-  }
-  return(0);
+int main( int argc, char **argv ) {
+  unsigned int mask, rv;
+  if ( load_subbus() == 0 )
+	nl_error( 3, "Unable to load subbus library" );
+  if ( argc < 2 ) nl_error(3, "Must specify fail value" );
+  mask = atoi(argv[1]);
+  rv = set_failure( mask );
+  printf("set_failure(%d) returned %d\n", mask, rv );
+  return 0;
 }
