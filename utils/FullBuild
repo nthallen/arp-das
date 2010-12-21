@@ -1,7 +1,12 @@
 #! /bin/sh
-#  ./FullBuild all
-#  ./FullBuild make
-#  ./FullBuild install
+#ifdef __USAGE
+#  ./FullBuild [-f] all
+#  ./FullBuild [-f] [configure] [make] [install]
+#
+#  -f forces the command to run even if the FullBuild.*
+#     sentinel files exist
+#endif
+
 function nl_error {
   echo "FullBuild: $*" >&2
   exit 1
