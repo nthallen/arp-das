@@ -103,10 +103,16 @@ if ( $create_bundle ) {
 } else {
   # Go through @pkglist and link to the archives from the repository directory
   for my $pkg ( @pkglist ) {
-    print "Copying archive $pkg->{name}.tar.gz into repository\n";
-    symlink( "$pkgcache/$pkg->{name}.tar.gz",
-	     "$pkgdest/$pkg->{name}.tar.gz" ) ||
-      die "symlink for $pkg->{name}.tar.gz failed\n";
+    print "Linking archive $pkg->{name}.tar.gz into repository\n";
+    unless ( symlink( "$pkgcache/$pkg->{name}.tar.gz",
+		     "$pkgdest/$pkg->{name}.tar.gz" ) ) {
+      if ( -l "$pkgdest/$pkg->{name}.tar.gz" ) {
+	warn "symlink for $pkg->{name}.tar.gz returned an error,\n",
+	    "but the link exists.\n";
+      } else {
+	die "symlink for $pkg->{name}.tar.gz failed\n";
+      }
+    }
   }
 }
 

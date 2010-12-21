@@ -27,13 +27,26 @@ rm -f repository/*
 [ -d boot/fs ] || mkdir -p boot/fs
 
 # Should probably stow this stuff on a non-CD somewhere
-# Copy the following required files from the original Installation and Boot CD to working_dir/boot/fs:
-cp -n /fs/cd0/boot/fs/qnxbase.qfs /fs/cd0/boot/fs/*.ifs ./boot/fs
+# Copy the following required files from the original
+# Installation and Boot CD to working_dir/boot/fs:
+# Since we copy them into the new CD, this will work
+# with our CDs as a source as well.
+if [ ! -f ./boot/fs/qnxbase.qfs ]; then
+  [ -f /fs/cd0/boot/fs/qnxbase.qfs ] ||
+    nl_error "Unable to locate qnxbase.qfs. Need an install CD source\n";
+  cp -n /fs/cd0/boot/fs/qnxbase.qfs /fs/cd0/boot/fs/*.ifs ./boot/fs
+fi
 
 # Copy the Runtime Kit version of the CD boot image (instflop-rtkit.dat) from the
 # rtkit directory in the root directory of the Installation and Boot CD to the
 # working_dir directory:
-cp -n /fs/cd0/rtkit/instflop-rtkit.dat ./instflop.dat
+if [ ! -f instflop.dat ]; then
+  instflop=/fs/cd0/rtkit/instflop-rtkit.dat
+  [ -f $instflop ] || instflop=/fs/cd0/instflop.dat
+  [ -f $instflop ] ||
+    nl_error "Unable to locate instflop-rtkit.dat. Need an install CD source\n";
+  cp -n $instflop ./instflop.dat
+fi
 
 # Create or copy the installation script and call it rtinstall.
 cp /usr/local/share/huarp/rtinstall .
