@@ -63,6 +63,9 @@ while (@reqlist) {
   $inst->{name} = "$inst->{root}-" . join( '.', @{$inst->{ver}});
   pkg_read_header( $inst );
   my $archive = "$pkgcache/$inst->{name}.tar";
+  # Ideally we could also check that the archive is
+  # newer than any of the input MANIFESTs, and better
+  # yet, any of the input files.
   if ( !$create_bundle && ! -f "$archive.gz" ) {
     ### Create individual archives
     my $cwd = getcwd();
@@ -98,10 +101,12 @@ if ( $create_bundle ) {
   }
   system( "gzip $archive" ) && die "gzip $archive failed\n";
 } else {
-  # Go through @pkglist and copy the archives into the repository directory
+  # Go through @pkglist and link to the archives from the repository directory
   for my $pkg ( @pkglist ) {
     print "Copying archive $pkg->{name}.tar.gz into repository\n";
-    copy( "$pkgcache/$pkg->{name}.tar.gz", "$pkgdest/$pkg->{name}.tar.gz" );
+    symlink( "$pkgcache/$pkg->{name}.tar.gz",
+	     "$pkgdest/$pkg->{name}.tar.gz" ) ||
+      die "symlink for $pkg->{name}.tar.gz failed\n";
   }
 }
 

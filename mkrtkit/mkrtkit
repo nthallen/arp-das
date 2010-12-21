@@ -46,6 +46,13 @@ pkgtgz=`ls repository/$pkg-*`
 pver=`expr $pkgtgz : "repository/$pkg-\([0-9][0-9.]*\).tar.gz"`
 echo "pkgtgz = $pkgtgz, pver = $pver"
 
-mkisofs -r -b instflop.dat -c boot/isocatalog -J -o ../rtkit-$pkg-$pver.iso .
+# mkisofs options:
+#  -r create rationalized Rock Ridge directory
+#  -b <image> Set El Torito boot image name
+#  -c <cat>   Set El Torito boot catalog name
+#  -J         Joliet directory (relaxed file name restrictions)
+#  -f         Follow symlinks (for repositories)
+#  -o <iso>   Output .iso
+mkisofs -r -b instflop.dat -c boot/isocatalog -J -f -o ../rtkit-$pkg-$pver.iso .
 cd ..
 # rm -r rtkit_image
