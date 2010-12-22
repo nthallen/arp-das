@@ -13,23 +13,35 @@
 <v t="ntallen.20070319130904" a="E"><vh>QNX6 Data Acquisition Architecture</vh>
 <v t="ntallen.20070815151915" a="E"><vh>Status</vh>
 <v t="ntallen.20080729145409"><vh>Overview</vh></v>
-<v t="ntallen.20071127160602"><vh>OS Install</vh>
+<v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
 <v t="ntallen.20090225110248"><vh>Install 6.4.0</vh></v>
-<v t="ntallen.20090824101208" a="E"><vh>Install 6.4.1</vh>
+<v t="ntallen.20090824101208"><vh>Install 6.4.1</vh>
 <v t="ntallen.20090910171038"><vh>C++ Compiling and Linking</vh></v>
 <v t="ntallen.20090911120219"><vh>phrtg compile hacks</vh></v>
 <v t="ntallen.20090930220540"><vh>Eli 4.6.1 CVS</vh></v>
 </v>
-<v t="ntallen.20100723121747.2023"><vh>Install 6.5.0</vh></v>
-<v t="ntallen.20090824123722"><vh>Runtime kit Creation</vh>
+<v t="ntallen.20100723121747.2023"><vh>Install 6.5.0</vh>
+<v t="ntallen.20101124082052.2043"><vh>C++ Compile issue</vh></v>
+</v>
+<v t="ntallen.20101129134921.2045"><vh>Eli</vh></v>
+<v t="ntallen.20090824123722" a="E"><vh>Runtime kit Creation</vh>
 <v t="ntallen.20090505113338"><vh>Flight System Configuration</vh></v>
-<v t="ntallen.20100726093122.2025"><vh>Add pkgs to install CD</vh></v>
+<v t="ntallen.20091109122106.1991"><vh>GSE Initialization</vh></v>
+<v t="ntallen.20100726093122.2025"><vh>Add pkgs to install CD: done</vh>
+<v t="ntallen.20100720160700.2021"><vh>pkg_copy, pkg_include?</vh></v>
 <v t="ntallen.20100726093122.2026"><vh>Add compiler to install CD</vh></v>
 <v t="ntallen.20091104124904.1988"><vh>GSE System Install Kit</vh></v>
-<v t="ntallen.20100720160700.2021"><vh>pkg_copy, pkg_include?</vh></v>
-<v t="ntallen.20091109122106.1991"><vh>GSE Initialization</vh></v>
+</v>
+<v t="ntallen.20101206091106.2047"><vh>QNX650 Update</vh>
+<v t="ntallen.20101207141953.2053"><vh>qnx package</vh></v>
+<v t="ntallen.20101207141953.2054"><vh>photon package</vh></v>
+</v>
+<v t="ntallen.20101206091106.2048" a="E"><vh>Organizing my pkgs</vh>
+<v t="ntallen.20101206091106.2049"><vh>Versions</vh></v>
+<v t="ntallen.20101222082748.2057"><vh>Versions II</vh></v>
+</v>
 </v>
 <v t="ntallen.20090818124956"><vh>6.4.1 Upgrade and CLARREO IIP</vh>
 <v t="ntallen.20090818124956.1"><vh>Install 6.4.1 on Windows</vh></v>
@@ -41,7 +53,7 @@
 </v>
 <v t="ntallen.20070815151915.1"><vh>Command</vh></v>
 <v t="ntallen.20080516115802"><vh>memo</vh></v>
-<v t="ntallen.20070815151915.2" a="E"><vh>Data</vh>
+<v t="ntallen.20070815151915.2"><vh>Data</vh>
 <v t="ntallen.20080715165457"><vh>tmc Changes</vh></v>
 <v t="ntallen.20080716230618"><vh>Timestamp issue</vh></v>
 <v t="ntallen.20080724120806"><vh>To Cache or not to Cache</vh></v>
@@ -79,9 +91,9 @@
 </v>
 <v t="ntallen.20070409133739.3"><vh>Implementation</vh></v>
 </v>
-<v t="ntallen.20070413134915" a="E"><vh>QNX Development Issues</vh>
+<v t="ntallen.20070413134915"><vh>QNX Development Issues</vh>
 <v t="ntallen.20070425144317"><vh>Handling more than one executable per project</vh></v>
-<v t="ntallen.20070413134915.1" a="E"><vh>Development Strategy</vh>
+<v t="ntallen.20070413134915.1"><vh>Development Strategy</vh>
 <v t="ntallen.20070425144317.1"><vh>cmdgen</vh>
 <v t="ntallen.20070430134037"><vh>QNX4</vh></v>
 </v>
@@ -89,6 +101,8 @@
 <v t="ntallen.20070425144317.4"><vh>nortlib</vh></v>
 <v t="ntallen.20070425144317.2"><vh>tmlib</vh></v>
 <v t="ntallen.20070425144317.3"><vh>tmphlib</vh></v>
+<v t="ntallen.20100927130121.2034"><vh>displib</vh></v>
+<v t="ntallen.20100927130121.2033"><vh>tmnclib</vh></v>
 </v>
 </v>
 <v t="ntallen.20070502121159.1"><vh>Implementation</vh>
@@ -129,15 +143,15 @@
 <v t="ntallen.20091022143321"><vh>mkdoit3	</vh></v>
 <v t="ntallen.20091022143321.1"><vh>algorithm status</vh></v>
 </v>
-<v t="ntallen.20070502121159.6" a="E"><vh>Design</vh>
-<v t="ntallen.20070319130904.1" a="E"><vh>Data</vh>
-<v t="ntallen.20070524163205" a="E"><vh>Data Issues</vh>
-<v t="ntallen.20070524163205.1" a="E"><vh>What is the difference between the telemetry stream and the TM stream as returned from TMbfr?</vh>
+<v t="ntallen.20070502121159.6"><vh>Design</vh>
+<v t="ntallen.20070319130904.1"><vh>Data</vh>
+<v t="ntallen.20070524163205"><vh>Data Issues</vh>
+<v t="ntallen.20070524163205.1"><vh>What is the difference between the telemetry stream and the TM stream as returned from TMbfr?</vh>
 <v t="ntallen.20070524163205.2"><vh>TM has no timestamps</vh></v>
 <v t="ntallen.20070524163205.3"><vh>Does not include TM info struct or identifiers</vh></v>
 </v>
 <v t="ntallen.20070524163205.4"><vh>What form should Inetin/Inetout use?</vh></v>
-<v t="ntallen.20080708155309" a="E"><vh>What are the optimized data formats that TMbfr supports?</vh>
+<v t="ntallen.20080708155309"><vh>What are the optimized data formats that TMbfr supports?</vh>
 <v t="ntallen.20080708155309.1"><vh>T1 full minor frames</vh></v>
 <v t="ntallen.20080708155309.2"><vh>T2 full rows with header</vh></v>
 <v t="ntallen.20080708155309.3"><vh>T3 optimized rows with header</vh></v>
@@ -200,9 +214,9 @@
 </v>
 <v t="ntallen.20070612165620.1"><vh>TMbfr Testing</vh></v>
 </v>
-<v t="ntallen.20070319130904.3" a="E"><vh>Data Generators</vh>
+<v t="ntallen.20070319130904.3"><vh>Data Generators</vh>
 <v t="ntallen.20080516131227"></v>
-<v t="ntallen.20070817133522.5" a="E"><vh>DG API and design issues</vh>
+<v t="ntallen.20070817133522.5"><vh>DG API and design issues</vh>
 <v t="ntallen.20080624104326"><vh>Interfaces</vh>
 <v t="ntallen.20080625152707"><vh>Command Interfaces</vh></v>
 <v t="ntallen.20080624104326.1"><vh>Driver Interface</vh>
@@ -217,7 +231,7 @@
 <v t="ntallen.20080707135523.1"><vh>Read Thread</vh></v>
 <v t="ntallen.20080708133047"><vh>Write Thread</vh></v>
 </v>
-<v t="ntallen.20070823131008" a="E"><vh>data_queue (DQ)</vh>
+<v t="ntallen.20070823131008"><vh>data_queue (DQ)</vh>
 <v t="ntallen.20080710162929"><vh>DQ hierarchy</vh>
 <v t="ntallen.20080710162929.1"><vh>Commands</vh></v>
 <v t="ntallen.20080710162929.2"><vh>Collection strategy</vh></v>
@@ -244,20 +258,25 @@
 <v t="ntallen.20070822162630.1"><vh>Inetin</vh></v>
 <v t="ntallen.20070820135203.1"><vh>Everything else</vh></v>
 </v>
-<v t="ntallen.20070319130904.4" a="E"><vh>Collection</vh>
+<v t="ntallen.20070319130904.4"><vh>Collection</vh>
 <v t="ntallen.20070404221945"><vh>Define data interfaces</vh></v>
 </v>
-<v t="ntallen.20070319130904.5" a="E"><vh>rdr</vh>
+<v t="ntallen.20070319130904.5"><vh>rdr</vh>
 <v t="ntallen.20100810122935.2031"><vh>rdr options</vh></v>
 </v>
 <v t="ntallen.20070319130904.6"><vh>Inetin</vh></v>
 <v t="ntallen.20080516132543"><vh>TMRelay</vh></v>
 </v>
-<v t="ntallen.20070319130904.7" a="E"><vh>Data Clients</vh>
+<v t="ntallen.20070319130904.7"><vh>Data Clients</vh>
 <v t="ntallen.20080519132626"><vh>DC API</vh></v>
 <v t="ntallen.20080516131227.1"></v>
 <v t="ntallen.20070319130904.8"><vh>lgr</vh></v>
-<v t="ntallen.20070319130904.9"><vh>display</vh></v>
+<v t="ntallen.20070319130904.9"><vh>display</vh>
+<v t="ntallen.20100927130121.2035"><vh>ncurses</vh>
+<v t="ntallen.20100927130121.2037"><vh>table mods</vh></v>
+<v t="ntallen.20100927130121.2038"><vh>appgen mods</vh></v>
+</v>
+</v>
 <v t="ntallen.20070319130904.10"><vh>extractions</vh></v>
 <v t="ntallen.20070319130904.11"><vh>algorithms</vh></v>
 </v>
@@ -328,8 +347,8 @@
 </v>
 </v>
 <v t="ntallen.20100729115515.2029"><vh>subbus_usb</vh></v>
-<v t="ntallen.20090202133816" a="E"><vh>Utilities</vh>
-<v t="ntallen.20090202133816.1" a="E"><vh>mkdoit</vh>
+<v t="ntallen.20090202133816"><vh>Utilities</vh>
+<v t="ntallen.20090202133816.1"><vh>mkdoit</vh>
 <v t="ntallen.20090202133816.2"><vh>Dedicated Acquisition node</vh></v>
 <v t="ntallen.20090202133816.3"><vh>Development node</vh></v>
 </v>
@@ -478,7 +497,7 @@
 </v>
 </v>
 </v>
-<v t="ntallen.20070404221945.4" a="E"><vh>Drivers</vh>
+<v t="ntallen.20070404221945.4"><vh>Drivers</vh>
 <v t="ntallen.20070404221945.5"><vh>Subbus</vh></v>
 <v t="ntallen.20070404221945.6"><vh>SCDC/DCCC</vh></v>
 <v t="ntallen.20070404221945.7"><vh>Indexer</vh>
@@ -515,24 +534,24 @@
 <v t="ntallen.20070330134656.4"><vh>OCB</vh></v>
 <v t="ntallen.20070330134656.5"><vh>Strategy for multiple readers</vh></v>
 </v>
-<v t="ntallen.20070817133522" a="E"><vh>Documentation</vh>
+<v t="ntallen.20070817133522"><vh>Documentation</vh>
 <v t="ntallen.20070817133522.1"><vh>QNX4</vh>
 <v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
-<v t="ntallen.20070817133522.3" a="E"><vh>QNX6</vh>
-<v t="ntallen.20080716155154" a="E"><vh>DataQueue.h</vh>
-<v t="ntallen.20080716155154.1" a="E"><vh>DG.h</vh>
+<v t="ntallen.20070817133522.3"><vh>QNX6</vh>
+<v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
+<v t="ntallen.20080716155154.1"><vh>DG.h</vh>
 <v t="ntallen.20080716155154.2"><vh>Collector.h</vh></v>
 <v t="ntallen.20080716155154.3"><vh>Extractor.h</vh></v>
 </v>
-<v t="ntallen.20080716155154.4" a="E"><vh>DC.h</vh>
+<v t="ntallen.20080716155154.4"><vh>DC.h</vh>
 <v t="ntallen.20080720213239"><vh>Simple Data Client</vh></v>
 <v t="ntallen.20080720213239.1"><vh>Photon Data Client</vh></v>
 <v t="ntallen.20080720213239.2"><vh>Data Client with Command Interface</vh></v>
 </v>
 </v>
 <v t="ntallen.20070817133522.4"><vh>DC</vh></v>
-<v t="ntallen.20070817133522.5" a="E"></v>
+<v t="ntallen.20070817133522.5"></v>
 </v>
 </v>
 </v>
@@ -565,6 +584,7 @@ The DG library will need to support basic timing functions. Collection needs tim
 <t tx="ntallen.20070319130904.8">The Logger (lgr) writes telemetry data to disk. It reads commands from the Command Server for 'logging suspend/resume'.
 </t>
 <t tx="ntallen.20070319130904.9">Display programs read telemetry data from TMbfr and display it on screen as text or graphics.
+Display programs could read commands from srvr e.g. to redraw screens
 </t>
 <t tx="ntallen.20070320110353">Command server is experiment-specific, compiled from .cmd input by cmdgen. It accepts ASCII command sequences from clients, parses them and executes the specified code. In this version, that can include making the command available to other client programs.</t>
 <t tx="ntallen.20070320121924">Defines command syntax and code to execute on command reception.
@@ -3259,8 +3279,14 @@ SOLUTION: ./configure CC=qcc CXX=QCC -I/usr/local/include
     
   touch /etc/system/config/useqnet
   reboot
-  copy /etc/passwd /etc/shadow /etc/group from the network
-  copy /etc/sudoers from network
+  
+    sec_copy &lt;node&gt; # update security files. Run from source node
+        /etc/passwd
+        /etc/shadow
+        /etc/group
+        /usr/pkg/etc/sudoers
+        /etc/profile.d/pkg.sh
+        /etc/profile.d/pkg.ksh
 
 /sbin/tinit is launched by /etc/rc.d/rc.sysinit
 It reads /etc/config/ttys
@@ -3864,9 +3890,9 @@ In /etc/system/config:
     touch useqnet
 reboot
 
-    pkg_copy &lt;node&gt; sudo perl
-    dev_copy &lt;node&gt;
-    sec_copy &lt;node&gt; # update security files
+    # pkg_copy &lt;node&gt; sudo perl (no longer necessary)
+    # dev_copy is now obsolete.
+    sec_copy &lt;node&gt; # update security files. Run from source node
         /etc/passwd
         /etc/shadow
         /etc/group
@@ -3874,7 +3900,7 @@ reboot
         /etc/profile.d/pkg.sh
         /etc/profile.d/pkg.ksh
 
-create my home dir and copy over
+create my home dir and copy over # I have a script... where is it?
     /home/nort
     /home/nort/.profile
     /home/nort/.ssh/*
@@ -3904,7 +3930,7 @@ reply buffer (rep) must be long enough to hold nb+5 characters.
 I will verify that the resulting data is NUL-terminated.</t>
 <t tx="ntallen.20100720160700.2021">pkg_copy is handy, but it seems like we should be able to include the package in the install CD as well, and thereby skip the pkg_copy step on a new install.
 
-dev_copy also could be tweaked to produce MANIFEST for new installation.
+dev_copy has been tweaked to produce MANIFEST for new installation, so is now obsolete
 
 sec_copy is something to leave until after the install.</t>
 <t tx="ntallen.20100723121747.2023">Copying procedure from 6.4.1 to annotate here.
@@ -3921,6 +3947,8 @@ Setup to use qnet
 Copy and/or Edit password files from network
 Copy sudoers from network
   /usr/local/sbin/sec_copy &lt;newhost&gt;
+
+Nort has a dup_homedir script to run as well.
 
 #This really only applies to runtime systems, though not good reason to keep
 #them on the development platform either unless we target another processor
@@ -3939,21 +3967,49 @@ Adapted from pkgsrc instructions:
   Set PKG_PATH in /root/.profile:
     export PKG_PATH=ftp://ftp.NetBSD.org/pub/pkgsrc/packages/QNX/&lt;arch&gt;/&lt;vers&gt;/All
     &lt;arch&gt; is i386
-    &lt;vers&gt; is 6.4.1_head_20090724
+    &lt;vers&gt; is 6.5.0_head_20100424
 
-Installed:
+Install: These packages need to be identified individually by going to the site and
+  seeing what the current version is. These are accurate as of 101124.
     # openssh # Included in 6.4.1
-    perl-5.10.0nb6
-    sudo-1.7.1
-    m4-1.4.13
-    autoconf-2.63
-    automake-1.10
-    gtexinfo 4-12nb1
-    libtool-1.5.26
+    perl-5.10.1nb1
+    sudo-1.7.2p6
+    m4-1.4.14
+    autoconf-2.65nb1
+    automake-1.11.1
+    gtexinfo 4-13
+    libtool-2.2.6b
 
-Install cdrtools from QNX downloads third party page
+Install cdrtools from QNX downloads third party page:
+    This is a version compiled for 6.3.2, but hopefully still works.
+    Interesting to know if this will be rebuilt.
 
 ### Good to here
+For FullBuild to work reliabily, we need to allow some environment variables
+through sudo:
+    
+    Defaults env_keep = "QNX_HOST QNX_TARGET MAKEFLAGS PATH"
+    root  ALL=(ALL) SETENV: ALL
+    nort  ALL=(ALL) SETENV: ALL
+
+We will also want to grant sudo NOPASSWD to group flight for several utilities:
+    
+    %flight ALL= NOPASSWD: \
+        /usr/local/bin/fixdisk, \
+        /usr/local/sbin/promote, \
+        /usr/local/sbin/signal_parent, \
+        /usr/local/bin/distribute
+
+These should be in the sudoers file that is copied over.
+
+For FullTopBuild, first need to check out a bunch of things
+  # make sure CVS_RSH is defined
+  export CVS_RSH=ssh
+  set CVSROOT=:ext:forge.abcd.harvard.edu:/cvsroot/arp-das
+  cvs checkout QNX6Build
+  cd QNX6Build
+  QNX6/utils/FullTopBuild
+  
     
     +QNX6/utils  includes a config.site
     +nortutil (only os-independent: select binaries and select install tool)
@@ -3989,7 +4045,9 @@ Install cdrtools from QNX downloads third party page
     +qclicomp (or qclicompsrc?)(provide Makefile to invoke eli)
 
     Try installing Leo, what the heck!    </t>
-<t tx="ntallen.20100726093122.2025">Assumptions (which will be shown false eventually):
+<t tx="ntallen.20100726093122.2025">Done: using pkg2pkg, which simply generates a huarp package def from a pkgsrc def
+
+Assumptions (which will be shown false eventually):
     The packages we wish to install have no dependencies (sudo, perl)
     The packages we wish to install have simple installations (no setup scripts)
 
@@ -3999,9 +4057,12 @@ Plan would be to extend the mkrtkit Header Requires line to accept:
 mkrtkitarch would locate the package and do the processing that pkg_copy does in order to include the files in the archive.
 
 A smarter approach would be to install pkg_add and the pkg archives, then run it to install the packages. Running pkg_add during the copying stage would be problematic since the target disk is not /, so I'd need to hook into the post-install stuff.</t>
-<t tx="ntallen.20100726093122.2026">This requires reviewing the logic of dev_copy in order to generate a package containing the GPL compiler tools.
+<t tx="ntallen.20100726093122.2026">This has been done, but the methodology may be useful when updating to a new version of QNX.
+
+This requires reviewing the logic of dev_copy in order to generate a package containing the GPL compiler tools.
 
 find /usr/qnx641 ! -type d | sed -f dev_copy.sed &gt;MANIFEST
+
 </t>
 <t tx="ntallen.20100729115515.2029">Will need a library and a driver. Driver's job is simply to arbitrate access to the device.
 
@@ -4015,5 +4076,119 @@ whether to keep trying. If they aren't passed in as parameters, rdr could invoke
 
 This approach requires rdr to read all the data. It would be nice to have a method to find the time
 more quickly, but that might best be handled by an external app.</t>
+<t tx="ntallen.20100927130121.2033">Library extending data_client for operation under ncurses.
+</t>
+<t tx="ntallen.20100927130121.2034">Library extending data_client for operation under Photon.</t>
+<t tx="ntallen.20100927130121.2035">tmnclib
+  class nc_data_client : public data_client {
+  }
+  
+  Provide for:
+      initializing windows
+      displaying data
+        override operate to flush after each read()
+      cleanup on termination
+</t>
+<t tx="ntallen.20100927130121.2037">Instead of generating FLD file, generate something more like the current tbl.tmc from phtable.
+</t>
+<t tx="ntallen.20100927130121.2038">Depending on target, decide whether to run $(TABLE) or $(NCTABLE)
+Alternately, we could generate both types of clients and decide which to run depending on term type?</t>
+<t tx="ntallen.20101124082052.2043">tmpplib choked because paths were missing from library search path.
+Will try soft-linking /opt/qnx650 -&gt; /usr/qnx650. No good
+Need:
+    $(QNX_TARGET)/x86/lib
+    $(QNX_TARGET)/x86/usr/lib
+    $(QNX_TARGET)/x86/lib/gcc/4.4.2</t>
+<t tx="ntallen.20101129134921.2045">cvs -d:pserver:anonymous@eli-project.cvs.sourceforge.net:/cvsroot/eli-project login
+# empty password
+cvs -z3 -d:pserver:anonymous@eli-project.cvs.sourceforge.net:/cvsroot/eli-project co -P Elidistrib
+unset ODIN_LOCALIPC # default is supposed to be TCP/IP
+cd Elidistrib
+./symlinks # need to do this once after checkout. Runs autoconf
+./configure --prefix=/usr/local --without-XView --without-Xaw --without-tcltk
+./BUILD [-nobrowsers]
+</t>
+<t tx="ntallen.20101206091106.2047">Document how to generate manifests for a new version of the operating system.
+
+Start by reviewing the rtkit technote in the standard QNX Documentation set:
+    QNX Neutrino Realtime Operating System:
+        Technical Notes:
+            How to create a Runtime Kit from the QNX Software Development Platform
+
+The rtkit files are located on the QNX install CD under /rtkit, including
+various example file lists. The modules in 6.5.0 listed include:
+    650-os.txt # basic OS files
+    650-fsys.txt #  mass storage
+    650-net.txt # networking
+    650-gpl.txt # GPL stuff
+    650-graphics.txt # core graphics: not what we need?
+    650-internat.txt # asian languages
+    650-ap.txt # adaptive partioning
+    650-complete.txt # A complete list
+
+There are things in complete that are not in any of the others, including most of photon.
+
+I have recombined these into pkgs:
+    qnx-  # basic OS files
+    photon-
+    mozilla-
+
+In addition, I have a gcc- pkg, which is not included in complete.
+I would like to automate or at least semi-automate the process of going
+from the rtkit lists to the pkg lists</t>
+<t tx="ntallen.20101206091106.2048">I currently have three packages:
+    flight
+    gse
+    develop
+
+flight and gse are intend as complete installations, pulling in OS packages
+as required. gse brings in develop, which brings in flight and gcc.
+gse is pure in that it does not include any files of its own.
+
+It might make good sense to split out Eli as a separate package, pulled in
+from develop.
+
+It could be useful to have a mechanism or tool for collecting the manifests for
+flight and develop from the build. I could include a mkrtkit definition file in
+each directory which would define which install files go into which package.
+
+    find QNX6Build -name mkrtkit.cfg | xargs sed -ne 's!^flight: *!!p' mkrtkit.cfg</t>
+<t tx="ntallen.20101206091106.2049">The version mechanism I have adopted that includes the version in the directory name is not readily compatible with CVS. To create a new version, you have to duplicate the directory structure. Note that the tools all use the copies installed in /var/huarp/pkg, so keeping the version in the mkrtkit hierarchy naming is counter productive. I will instead add a VERSION specification to the Header and improve the installation process to pull out the version.
+
+Among other things, this will ensure that old versions which will no longer work (e.g. qnx-6.4.1 addresses many files with qnx641 in their path) need not be kept around but can be upgraded instead. They can of course be recovered via CVS, but probably never will be.
+
+It should be reasonable to include a Makefile in a package definition in order to generate some of the manifests. The install would then only copy down the Header and any manifests mentioned. Presumably the MANIFEST_pkg could then be auto generated as well. Of course I would like to do that without requiring a Makefile in every package.
+
+    make -f $MANIFEST_pkg.mk
+
+Install could be handled via make in the same way.
+
+Could include a local Makefile if it exists to handle the case where MANIFEST are built from other targets.
+
+
+</t>
+<t tx="ntallen.20101207141953.2053">Automatically take /rtkit/650-os.txt split into MANIFEST and MANIFEST_x86
+Same with 650-fsys.txt and 650-net.txt
+Include 650-gpl.txt
+Throw in multicore?
+
+Look at complete and figure out what is in there that isn't in the others</t>
+<t tx="ntallen.20101207141953.2054">Take list from 650-complete.txt where /usr/photon is listed
+Anything else?
+</t>
+<t tx="ntallen.20101222082748.2057">When should a package's version be incremented?
+    When the Header changes, affecting the contents
+    When any of the MANIFESTs change
+    When any of the source files listed in the MANIFESTs are updated
+    
+    For an installation CD package, whenever any of the component
+    archives is updated.
+    
+The last rule implies that the installation CD packages should probably not
+contain any files, just references to other packages. The gse package is
+pretty close to this ideal. The flight package is not, but I could easily
+create flight-inst, referencing flight.
+
+I should move the perl kluge out of gse into it's own package.</t>
 </tnodes>
 </leo_file>
