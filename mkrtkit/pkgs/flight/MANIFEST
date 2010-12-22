@@ -10,6 +10,7 @@ usr/local/bin/distribute
 usr/local/bin/extract
 usr/local/bin/failtest
 usr/local/bin/fixdisk
+usr/local/bin/hartd
 usr/local/bin/idx64
 usr/local/bin/lgr
 usr/local/bin/memo

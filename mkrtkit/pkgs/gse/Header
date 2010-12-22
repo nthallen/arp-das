@@ -1,5 +1,5 @@
 # Package gse
 #  OS CD Installation package for a GSE system
-Version: 1.1
+Version: 2.0
 Requires: develop-1.0 mozilla-6.5.0 sudo perllink
 Files: MANIFEST_pkg @ /

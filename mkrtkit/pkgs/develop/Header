@@ -1,5 +1,5 @@
 # develop package
-Version: 1.1
+Version: 2.0
 Requires: flight-1.0 gcc-6.5.0
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
