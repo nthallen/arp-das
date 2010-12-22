@@ -25,9 +25,9 @@ install-data : $(DATA)
 	mkdir -p $(PREFIX)/share/huarp
 	$(INSTALL) $(DATA) $(PREFIX)/share/huarp
 install-pkgs :
-	chkpkgs
 	mkdir -p $(PKGPREFIX)/pkg
 	@for pkg in $(PKGS); do \
 	  [ -f pkgs/$$pkg/Makefile ] && make -C pkgs/$$pkg install; \
+	  ./chkpkgs $$pkg || exit 1; \
 	  ./install_pkg $$pkg || exit 1; \
 	done
