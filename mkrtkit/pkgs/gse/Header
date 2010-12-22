@@ -1,7 +1,5 @@
 # Package gse
+#  OS CD Installation package for a GSE system
 Version: 1.1
-# gse-1.1
-#  OS Installation package for a GSE system
-Requires: develop-1.0 mozilla-6.5.0 sudo perl
-Files: MANIFEST_perl @ /usr/local/share/huarp/mkrtkit
+Requires: develop-1.0 mozilla-6.5.0 sudo perllink
 Files: MANIFEST_pkg @ /
