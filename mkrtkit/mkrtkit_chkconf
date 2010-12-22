@@ -1,0 +1,121 @@
+#! /usr/bin/perl -w
+use strict;
+
+# mkrtkit_chkconf
+# reads mkrtkit.conf in the current directory
+# Looks for lines of the format:
+#   pkgname: path
+# and verifies that the path exists in the current
+# version of the package's MANIFEST file.
+# I should also check to make sure files do not appear
+# in other packages.
+
+my @pkgs = qw(flight develop);
+my %pkgs = map { ( $_ => 1 ) } @pkgs;
+my $pkgroot = "/var/huarp/pkg";
+
+my %comp; # Components of this package
+
+open(my $fh, '<', "mkrtkit.conf") or
+  die "Unable to read mkrtkit.conf\n";
+
+while ( <$fh> ) {
+  next if m/^\s*(?:#.*)$/;
+  if ( m/^\s*(\w+)\s*:\s*(\S+)\s*$/ ) {
+    my $pkg = $1;
+    my $comp = $2;
+    if ( defined $comp{$comp} ) {
+      if ( $comp{$comp}->{pkg} ne $pkg ) {
+	warn "Component $comp specified for $comp{$comp}->{pkg} and $pkg\n";
+      } else {
+	warn "Component $comp listed more than once for package $pkg\n";
+      }
+    } else {
+      $comp{$comp} = { pkg => $pkg, found => 0 };
+    }
+    unless ( $pkgs{$pkg} ) {
+      warn "Unsupported package '$pkg' specified for component $comp\n";
+      push @pkgs, $pkg;
+      $pkgs{$pkg} = 1;
+    }
+  }
+}
+
+close($fh) || warn "Error closing mkrtkit.conf\n";
+
+for my $pkg ( @pkgs ) {
+  my @opts;
+  @opts = sort { vercmp($a,$b) } map s|^.*/|| &&
+     pkg_check($_, "Package directory: $pkgroot"),
+     glob "$pkgroot/$pkg-*";
+  # These are sorted in ascending order, so the last element is the one we want
+  if ( @opts ) {
+    my $p = pop(@opts);
+    my $mani = "$pkgroot/$pkg-$p->{verstr}/MANIFEST";
+    open($fh, '<', $mani) or
+      die "Unable to read $mani\n";
+    while (<$fh>) {
+      chomp;
+      if (defined $comp{$_}) {
+	if ( $comp{$_}->{pkg} ne $pkg ) {
+	  warn "Component $_ found in package $pkg instead of",
+	       "$comp{$_}->{pkg}\n";
+	}
+	++$comp{$_}->{found};
+      }
+    }
+    close($fh) || warn "Error closing $mani\n";
+  } else {
+    warn "Unable to locate package $pkg\n";
+  }
+}
+
+my @missing = grep $comp{$_} && ! $comp{$_}->{found},
+  keys %comp;
+if ( @missing ) {
+  warn "Missing components:\n",
+    map "  $comp{$_}->{pkg}: $_\n", @missing;
+}
+my @mult = grep $comp{$_} && $comp{$_}->{found} > 1,
+  keys %comp;
+if ( @mult ) {
+  warn "Components found more than once:\n",
+    map "  $_\n", @mult;
+}
+
+# pkg_check(name) verifies the syntax of a package reference
+# and returns a hashref with $root and @ver elements
+sub pkg_check {
+  my ( $pkg, $src ) = @_;
+  if ( $pkg =~ m/^(\w+)(?:-(\d+(?:\.\d+)*))?$/ ) {
+    my $root = $1;
+    my $verstr = $2;
+    my @ver;
+    @ver = split( /\./, $2 ) if $2;
+    return { root => $root, verstr => $verstr, ver => \@ver, src => $src };
+  } else {
+    die "Invalid package reference: '$pkg' from $src\n";
+  }
+}
+
+sub vercmp {
+  # I am going with slow so I can call this function
+  # outside sort.
+  my ( $a, $b ) = @_;
+  my $i = 0;
+  my $va = $a->{ver};
+  my $vb = $b->{ver};
+  for ( my $i = 0; ; ++$i ) {
+    if ( $i >= @$va ) {
+      if ( $i >= @$vb ) {
+        return 0;
+      } else {
+        return -1;
+      }
+    } elsif ( $i >= @$vb ) {
+      return 1;
+    }
+    my $rv = $va->[$i] <=> $vb->[$i];
+    return $rv if $rv;
+  }
+}
