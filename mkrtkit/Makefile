@@ -1,6 +1,6 @@
 # QNX6/mkrtkit
 # This directory contains scripts for building runtime install CDs
-BIN=mkrtkit_chkconf
+BIN=mkrtkit_chkconf mkrtkit_chkconfs
 SBIN=mkrtkit mkrtkitarch
 DATA=rtinstall
 OSDATA=

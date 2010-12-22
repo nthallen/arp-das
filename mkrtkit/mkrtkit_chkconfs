@@ -1,0 +1,17 @@
+#! /bin/sh
+#ifdef __USAGE
+# mkrtkit_chkconfs
+# Finds all the mkrtkit.conf files in the subtree and runs
+# mkrtkit_chkconf on them.
+#endif
+
+home=`pwd`
+find . -name mkrtkit.conf |
+while read f; do
+  d=`dirname $f`
+  echo Checking in $d
+  [ -d "$d" ] || nl_error "'$d' is not a directory: PWD is $PWD\n"
+  cd $d
+  mkrtkit_chkconf
+  cd $home
+done
