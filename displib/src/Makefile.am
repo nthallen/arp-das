@@ -1,5 +1,6 @@
 lib_LTLIBRARIES = libdisp.la
 libdisp_la_SOURCES = DCph.cc
+libdisp_la_LDFLAGS = -version-info 0:0:0
 include_HEADERS = DCph.h
 
 AM_LDFLAGS = -ltmpp -ltmph -lnort -lph -lnort
