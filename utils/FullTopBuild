@@ -77,6 +77,7 @@ process nortlib2 FullBuild all &&
   process QNX6/tmphlib FullBuild all &&
   process QNX6/tmpplib FullBuild all &&
   process QNX6/displib FullBuild all &&
+  process QNX6/subbus_2010 FullBuild all &&
   OK=yes
 [ $OK = yes ] || nl_error "Cannot continue"
 process QNX6/tmutil FullBuild make install
@@ -89,13 +90,13 @@ process QNX6/phrtg-native FullBuild make install
 process tmcalgo FullBuild make install
 process QNX6/qcliutil FullBuild make install
 process snafu FullBuild all
-process QNX6/subbus_2010 FullBuild all # probably should be with the libs
-process QNX6/subbusd FullBuild make install
+# process QNX6/subbusd FullBuild make install
 process QNX6/dccc FullBuild make install
 process QNX6/diagnost FullBuild make install
 process QNX6/diagsuite FullBuild make install
 process QNX6/ssp_driver FullBuild make install
 process QNX6/idx64 FullBuild make install
+process QNX6/hart FullBuild make install
 
 # The eli build is somewhat more interactive due to some latent
 # bug in odin... Ideally eli should be build before FullTopBuild
