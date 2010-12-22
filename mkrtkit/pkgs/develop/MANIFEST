@@ -13,6 +13,8 @@ usr/local/bin/mkexpdir
 usr/local/bin/mkinp
 usr/local/bin/mkpatch
 usr/local/bin/mkrtkit_chkconf
+usr/local/bin/mkrtkit_chkconfs
+usr/local/bin/nctable
 usr/local/bin/oui
 usr/local/bin/phrtg
 usr/local/bin/phtable
