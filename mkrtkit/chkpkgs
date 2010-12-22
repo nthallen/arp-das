@@ -4,9 +4,17 @@ function nl_error {
   exit 1
 }
 
-find pkgs -name Header |
+{ if [ x"$1" != x ]; then
+    for i in $*; do
+      echo pkgs/$i/Header
+    done
+  else
+    find pkgs -name Header
+  fi
+} |
 while read hdr; do
   pkg=${hdr%/Header}
+  echo "Checking $pkg"
   grep "^Files:" $hdr |
   while read fline; do
     fline=${fline#Files: }
