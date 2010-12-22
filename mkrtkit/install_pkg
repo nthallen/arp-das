@@ -18,6 +18,10 @@ use File::Copy;
 # in the pkg source directory.
 
 my $pkgname = shift(@ARGV) || die "No package argument\n";
+
+$pkgname =~ m/^\w+$/ or
+  die "Invalid package name: '$pkgname'\n";
+
 my $pkgroot = "/var/huarp/pkg";
 my $pkg = pkg_read_header($pkgname);
 my $src = "pkgs/$pkgname";
