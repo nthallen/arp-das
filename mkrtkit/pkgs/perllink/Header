@@ -1,0 +1,6 @@
+# Package perllink
+# Just established the /usr/bin/perl soft link
+Version: 1.0
+Requires: perl
+Files: MANIFEST_perl @ /usr/local/share/huarp/mkrtkit
+Files: MANIFEST_pkg @ /
