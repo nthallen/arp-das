@@ -8,6 +8,22 @@
 #include "tm.h"
 #include "nl_assert.h"
 
+/** \brief Build a standard name for QNX6 resource
+
+<code>#include "tm.h"<br>
+char *tm_dev_name(const char *base);</code>
+
+tm_dev_name() returns a string of the form:
+/dev/huarp/exp/base where exp is the current value of the
+environment variable "Experiment" and base is the input
+argument string. This is the standard means of building
+resource names within the ARP Data Acquisition System
+architecture.
+
+Returns a pointer to a static buffer containing the expanded name.
+You must save the string if it is needed for long.
+
+*/
 char *tm_dev_name(const char *base) {
   static char name[PATH_MAX];
   char *exp;
