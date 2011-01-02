@@ -568,7 +568,8 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = displib/src subbus/src tmlib/src tmpplib/src tmphlib/src
+INPUT = displib/src subbus_2010/lib subbus_2010/subbusd subbus_2010/subbusd/syscon104
+INPUT += tmlib/src tmpplib/src tmphlib/src
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is

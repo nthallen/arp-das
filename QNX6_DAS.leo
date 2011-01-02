@@ -11,9 +11,9 @@
 <vnodes>
 <v t="ntallen.20091104124904.1987"><vh>@chapters</vh></v>
 <v t="ntallen.20070319130904" a="E"><vh>QNX6 Data Acquisition Architecture</vh>
-<v t="ntallen.20070815151915" a="E"><vh>Status</vh>
+<v t="ntallen.20070815151915"><vh>Status</vh>
 <v t="ntallen.20080729145409"><vh>Overview</vh></v>
-<v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
+<v t="ntallen.20071127160602"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
 <v t="ntallen.20090225110248"><vh>Install 6.4.0</vh></v>
@@ -26,7 +26,7 @@
 <v t="ntallen.20101124082052.2043"><vh>C++ Compile issue</vh></v>
 </v>
 <v t="ntallen.20101129134921.2045"><vh>Eli</vh></v>
-<v t="ntallen.20090824123722" a="E"><vh>Runtime kit Creation</vh>
+<v t="ntallen.20090824123722"><vh>Runtime kit Creation</vh>
 <v t="ntallen.20090505113338"><vh>Flight System Configuration</vh></v>
 <v t="ntallen.20091109122106.1991"><vh>GSE Initialization</vh></v>
 <v t="ntallen.20100726093122.2025"><vh>Add pkgs to install CD: done</vh>
@@ -38,7 +38,7 @@
 <v t="ntallen.20101207141953.2053"><vh>qnx package</vh></v>
 <v t="ntallen.20101207141953.2054"><vh>photon package</vh></v>
 </v>
-<v t="ntallen.20101206091106.2048" a="E"><vh>Organizing my pkgs</vh>
+<v t="ntallen.20101206091106.2048"><vh>Organizing my pkgs</vh>
 <v t="ntallen.20101206091106.2049"><vh>Versions</vh></v>
 <v t="ntallen.20101222082748.2057"><vh>Versions II</vh></v>
 </v>
@@ -105,7 +105,7 @@
 <v t="ntallen.20100927130121.2033"><vh>tmnclib</vh></v>
 </v>
 </v>
-<v t="ntallen.20070502121159.1"><vh>Implementation</vh>
+<v t="ntallen.20070502121159.1" a="E"><vh>Implementation</vh>
 <v t="ntallen.20070320121924"><vh>cmdgen</vh>
 <v t="ntallen.20070501165557"><vh>Done</vh>
 <v t="ntallen.20070411152334"><vh>Add Interface Definitions</vh>
@@ -143,8 +143,8 @@
 <v t="ntallen.20091022143321"><vh>mkdoit3	</vh></v>
 <v t="ntallen.20091022143321.1"><vh>algorithm status</vh></v>
 </v>
-<v t="ntallen.20070502121159.6"><vh>Design</vh>
-<v t="ntallen.20070319130904.1"><vh>Data</vh>
+<v t="ntallen.20070502121159.6" a="E"><vh>Design</vh>
+<v t="ntallen.20070319130904.1" a="E"><vh>Data</vh>
 <v t="ntallen.20070524163205"><vh>Data Issues</vh>
 <v t="ntallen.20070524163205.1"><vh>What is the difference between the telemetry stream and the TM stream as returned from TMbfr?</vh>
 <v t="ntallen.20070524163205.2"><vh>TM has no timestamps</vh></v>
@@ -267,12 +267,13 @@
 <v t="ntallen.20070319130904.6"><vh>Inetin</vh></v>
 <v t="ntallen.20080516132543"><vh>TMRelay</vh></v>
 </v>
-<v t="ntallen.20070319130904.7"><vh>Data Clients</vh>
+<v t="ntallen.20070319130904.7" a="E"><vh>Data Clients</vh>
 <v t="ntallen.20080519132626"><vh>DC API</vh></v>
 <v t="ntallen.20080516131227.1"></v>
 <v t="ntallen.20070319130904.8"><vh>lgr</vh></v>
-<v t="ntallen.20070319130904.9"><vh>display</vh>
-<v t="ntallen.20100927130121.2035"><vh>ncurses</vh>
+<v t="ntallen.20070319130904.9" a="E"><vh>display</vh>
+<v t="ntallen.20100927130121.2035" a="E"><vh>ncurses</vh>
+<v t="ntallen.20101229203740.2059"><vh>Start Up</vh></v>
 <v t="ntallen.20100927130121.2037"><vh>table mods</vh></v>
 <v t="ntallen.20100927130121.2038"><vh>appgen mods</vh></v>
 </v>
@@ -534,11 +535,12 @@
 <v t="ntallen.20070330134656.4"><vh>OCB</vh></v>
 <v t="ntallen.20070330134656.5"><vh>Strategy for multiple readers</vh></v>
 </v>
-<v t="ntallen.20070817133522"><vh>Documentation</vh>
+<v t="ntallen.20070817133522" a="E"><vh>Documentation</vh>
 <v t="ntallen.20070817133522.1"><vh>QNX4</vh>
 <v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
-<v t="ntallen.20070817133522.3"><vh>QNX6</vh>
+<v t="ntallen.20070817133522.3" a="E"><vh>QNX6</vh>
+<v t="ntallen.20110102095209.2061"><vh>cmdgen</vh></v>
 <v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
 <v t="ntallen.20080716155154.1"><vh>DG.h</vh>
 <v t="ntallen.20080716155154.2"><vh>Collector.h</vh></v>
@@ -1339,7 +1341,10 @@ DG_get_data() -&gt; DG_s_data(), DG_s_tstamp()
 Collect_row()
 
 </t>
-<t tx="ntallen.20070817133522.3"></t>
+<t tx="ntallen.20070817133522.3">Doxygen set up to run in QNX6 directory. Simply run "doxygen" in the QNX6 directory. Output goes into ../doc/html etc.
+
+Note here items that need more documentation.
+</t>
 <t tx="ntallen.20070817133522.4">library functions:
     TM_read_stream() Opens fd and reads until EOF. Calls:
         TM_quit()
@@ -3833,7 +3838,35 @@ Still observing Odin hangs in QNX6, but ctrl-C and restart does the right thing.
 Should be able to debug using eli -s</t>
 <t tx="ntallen.20091015133220">There are two command protocols: The verbose format that we use in cmdgen and the terse version used to communicate directly with the driver. The translation takes place in idx64.cmd, which will go into /usr/local/share/huarp</t>
 <t tx="ntallen.20091022143321">Many of the options of mkdoit2 are console-specific, so not-applicable
-</t>
+But now I need to support some console-specific stuff as well
+First challenge, come up with a good doit script:
+    FlightNode
+        Defined: dedicated hardware, must invoke flight.sh from tinit
+        Undefined: run on local machine
+            /net/nortvm650/home/nort/test/demo/doit now handles these two cases pretty well
+            starts flight.sh using on -t $tty in order to get it in a separate session, allowing
+            the parent -qt3 to not terminate it in the case of an exit command.
+        Playback : don't need a separate flight tree, just start rdr, possibly passing in options
+            probably use a different client as well
+    Commands
+        stop
+        not
+        start (default)
+        wait
+    Modes
+        Photon w/ photon apps
+            Just run the apps
+            Launch flight.sh with on -t $tty pterm
+            Launch less with pterm
+        Photon, pterm w/ ncurses apps
+            Invoke pterm /usr/local/sbin/getcon to allocate ttys, then
+            run the apps with explicit args specifying the tty
+            Launch flight.sh with on -t $tty [pterm]
+            Launch less with on -t ? pterm
+                These last two are a little problematic: I/O works OK, but ^C does not
+        console (or pterm), screen w/ ncurses apps
+            Create screen config file to run getcon on multiple ttys and
+            re-run the doit within screen</t>
 <t tx="ntallen.20091022143321.1">By this I mean all the algorithm status information that was incorporated into the data display in QNX4.
 Did I just punt on this?
 Do I have a grand plan?
@@ -4079,16 +4112,36 @@ more quickly, but that might best be handled by an external app.</t>
 <t tx="ntallen.20100927130121.2033">Library extending data_client for operation under ncurses.
 </t>
 <t tx="ntallen.20100927130121.2034">Library extending data_client for operation under Photon.</t>
-<t tx="ntallen.20100927130121.2035">tmnclib
+<t tx="ntallen.20100927130121.2035">dispnclib ala displib (and possibly in the same source directory)
   class nc_data_client : public data_client {
   }
-  
+
+C Support routines in tmnclib ala tmphlib (and possibly in the same source directory)
   Provide for:
       initializing windows
       displaying data
         override operate to flush after each read()
       cleanup on termination
-</t>
+  prototype currently in
+    /net/nortvm650/home/nort/test/nc
+
+For handling multiple terminals, call newterm() instead of initscr() as per
+http://invisible-island.net/ncurses/ncurses-intro.html#functions
+
+Need to write a test app (or test apps)
+    Use pterm to allocate additional screens
+      pterm -N3 3&gt;pterm.dev &amp;
+      # device is written to pterm.dev. Probably a race condition...
+    Invoke one app to display on all screens but one
+    Invoke another app to listen on all screens, display on one.
+    
+    Actually, for the purpose of the test, all this can be done in a single app.
+    Take as args list of devices. fopen all for writing and pass to newterm
+    as ofp. open all for reading and set up a select() loop.
+    
+    Having some trouble getting the screen reset to default modes.
+
+    </t>
 <t tx="ntallen.20100927130121.2037">Instead of generating FLD file, generate something more like the current tbl.tmc from phtable.
 </t>
 <t tx="ntallen.20100927130121.2038">Depending on target, decide whether to run $(TABLE) or $(NCTABLE)
@@ -4190,5 +4243,73 @@ pretty close to this ideal. The flight package is not, but I could easily
 create flight-inst, referencing flight.
 
 I should move the perl kluge out of gse into it's own package.</t>
+<t tx="ntallen.20101229203740.2059">Need to allocate ptys for each screen of each display program and for the cmdclt.
+The cmdclt needs a pty for output, but can also read from all the display ptys as well
+An algo might also use a display
+
+ptys are allocated by running programs on them (getcon). This program has to report
+back what pty it is on, and that information has to get back to the programs that
+need to use them.
+
+We could allocate all the ptys before invoking the programs, but the trick
+is figuring out that we have collected all the information we need.
+In the case of screen, all of the getcon programs will be started more
+or less simultaneously, so we need to serialize their responses somehow.
+Each could write to its own file, but we need a way to know when the writing
+is complete.
+    could write to an intermediate file, close it, then rename it. Just
+    need to wait for the file to exist, then we can read its contents.
+So then the idea would be:
+    Allocate the ptys by invoking either pterm or screen to run getcon
+    on each pty. Each getcon will be given a screen name, and they will
+    write their tty name to a file:
+        write to pty.ttyname.tmp
+        mv pty.ttyname.tmp pty.ttyname
+    The startup script will wait for each file in turn and copy its contents.
+    Then it can start up the display programs and the kbdclt on the appropriate
+    ptys.
+    
+    For screen, we need to generate a startup script, then invoke screen,
+    and have it pick up at the next part of the startup, namely where
+    the ttynames are collected and the programs are started up.
+    
+    Note that this would be less complicated if display programs all
+    had only one screen, which is probably a common case. Also if
+    I didn't want to have the kbdclt read from all the display ptys,
+    but I think those will be very useful options.
+    In those cases, I would not need getcon at all, and could just
+    start the display programs and the kbdclt on their own ptys.
+    
+Screen invocation
+    doit: same current invocation up until we can contact the cmdsrvr
+    then create screen config file which will:
+        Invoke less +F $Experiment.log
+        Invoke getcon for each display screen
+        Re-Invoke doit on what will be the kbdclt pty
+            doit will skip to the post-screen section, where it will
+            collect all the ttynames for the display screens
+            invoke each of the display programs with their screen args
+            run kbdclt with all of the display ttynames
+            clean up on exit
+    
+    getcon &lt;windowname&gt;
+        Write ttyname to pty.&lt;windowname&gt;.tmp
+        rename pty.&lt;windowname&gt;.tmp pty.&lt;windowname&gt;
+        listen on /dev/huarp/$Experiment/.../Quit for quit
+    
+    for each display
+        waitfor pty.&lt;windowname&gt;
+        &lt;windowname&gt;_pty=`cat pty.&lt;windowname&gt;`
+        rm pty.&lt;windowname&gt;
+        
+    There is a potential collision if more than one session is started from the same directory.
+    To avoid that, the 'pty' portion should be customized for each session. The simplest
+    approach is to use the pid of the launching script, e.g. pty2341534.&lt;windowname&gt;.tmp
+    or pty.&lt;windowname&gt;.&lt;pid&gt;.tmp (to alphabetize more neatly). So getcon should take two
+    arguments, the &lt;windowname&gt; and the &lt;pid&gt;. They could be passed as one, but this way,
+    getcon could conceivably do something else with the name if necessary.
+        </t>
+<t tx="ntallen.20110102095209.2061">Need documentation for the new interface keywords and the associated library function, cis_turf() in cis.c.
+</t>
 </tnodes>
 </leo_file>
