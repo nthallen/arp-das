@@ -3,7 +3,7 @@
 #  The Anderson Group Data Acquisition System/QNX6
 BIN=TM appgen distribute parent saverun fixdisk mkinp tomat extract
 BIN+=mkcvsignore mkdoit3 mkexpdir reduce
-SBIN=promote flight.sh signal_parent
+SBIN=promote flight.sh signal_parent getcon
 DATA=appgen.mk edf2ext.awk edf2oui.awk Makefile.pm
 DATA+=mkdoit3.sh mkdoit3.awk
 OUI=seteuid.oui
@@ -37,6 +37,12 @@ DCtap : DCtap.o DCtapoui.o
 DCtap.o : DCtap.cc
 DCtapoui.c : DCtap.oui
 	oui -o DCtapoui.c DCtap.oui
+
+getcon : getcon.o getconoui.o
+	$(LINK.c) -o getcon getcon.o getconoui.o -lnort -ltm
+	usemsg getcon getconoui.c
+getconoui.c : getcon.oui
+	oui -o getconoui.c getcon.oui
 
 # Trivial check for the existence of sudo where these utilities
 # expect to find it

@@ -1,6 +1,9 @@
 #! /bin/sh
+#ifdef __USAGE
 # mkexpdir [-n node] expname
 # Script to create a new experiment dir
+#endif
+
 function nl_error {
   echo "mkexpdir: $*" >&2
   exit 1
