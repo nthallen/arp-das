@@ -16,7 +16,7 @@ LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 .PHONY : all install install-sbin install-bin install-data
 .PHONY : checksudo
 
-all : parent
+all : parent getcon
 install : install-sbin install-bin install-data install-oui
 install-sbin : checksudo
 	@$(INSTALL) $(SBIN) $(TGTNODE)/usr/local/sbin

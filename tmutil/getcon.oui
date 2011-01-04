@@ -1,0 +1,21 @@
+<package> getcon
+<include> "getcon.h"
+<include> msg
+
+<synopsis>
+%C [options] <windowname> [<session_id>]
+
+<args>
+  getcon_args(optarg);
+
+<unsort>
+	windowname is a unique name for the window
+	session_id uniquely defines the session
+<blank>
+getcon writes the name of the terminal to the file
+pty.<windowname>.<session_id>, then waits for the
+"Quit" command, SIGHUP or SIGINT to terminate.
+
+<package> msghdr_default
+<vars>
+  char *msg_hdr_default = "getcon";

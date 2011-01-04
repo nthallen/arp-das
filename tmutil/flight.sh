@@ -87,5 +87,5 @@ fi
 # [ -z "$launch_error" ] && pick_file -q
 
 typeset qoc
-# [ -n "$FlightNode" ] && qoc="-q"
+[ -z "$FlightNode" ] && qoc="-q"
 exec parent $qoc
