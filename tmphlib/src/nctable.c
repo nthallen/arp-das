@@ -348,6 +348,7 @@ char nct_getch(void) {
     d->ifd = open( d->dev_name, O_RDONLY|O_NONBLOCK );
     if ( d->ifd == -1 )
       nl_error(3, "Unable to read from %s: %d", d->dev_name, errno );
+    curs_set(1); // Turn on the cursor
   }
   for (;;) {
     if ( nc > 0 && bp < nc ) {
