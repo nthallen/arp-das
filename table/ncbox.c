@@ -9,6 +9,12 @@
 #define RL_RT  9
 #define RL_LT 27
 
+/**
+ * Rules are essentially encode in base 3, where the
+ * ones digit indicates the number of rules exiting
+ * the cell on the bottom (0, 1 or 2). The next three
+ * digits correspond to the top, right and left.
+ */
 typedef struct tblrule {
   struct tblrule *next;
   int Row, Col, Width, Height, ID;
@@ -19,7 +25,10 @@ typedef struct tblrule {
 
 static TableRule TableRules;
 
-/* index is the StringTable index of the rule string */
+/**
+ * Returns true if the specified rule is vertical.
+ * The index argument is the StringTable index of the rule string.
+ */
 int IsVertical(int index) {
   char *rule = StringTable(index);
   if ( *rule == '+' ) rule++;
@@ -35,7 +44,7 @@ int IsVertical(int index) {
 }
 
 void NewRule( int Row, int Col, int Width, int Height,
-				int Attr, int index ) {
+                                int Attr, int index ) {
   TableRule new;
   unsigned char *rule, *rulecode;
   unsigned char middle;
@@ -45,23 +54,23 @@ void NewRule( int Row, int Col, int Width, int Height,
 
   rulecode = StringTable(index);
   if ( *rulecode == '+' ) {
-	preplus = 1;
-	rulecode++;
+        preplus = 1;
+        rulecode++;
   }
   switch (*rulecode) {
-	case '-':
-	  Vertical = 0; Lines = 1; break;
-	case '=':
-	  Vertical = 0; Lines = 2; break;
-	case '|':
-	  Vertical = 1;
-	  if ( rulecode[1] == '|' ) {
-		rulecode++;
-		Lines = 2;
-	  } else Lines = 1;
-	  break;
-	default:
-	  message( DEADLY, "Unknown code in New Rule", 0, &curpos );
+    case '-':
+      Vertical = 0; Lines = 1; break;
+    case '=':
+      Vertical = 0; Lines = 2; break;
+    case '|':
+      Vertical = 1;
+      if ( rulecode[1] == '|' ) {
+        rulecode++;
+        Lines = 2;
+      } else Lines = 1;
+      break;
+    default:
+      message( DEADLY, "Unknown code in New Rule", 0, &curpos );
   }
   if ( rulecode[1] == '+' ) postplus = 1;
 
@@ -69,7 +78,7 @@ void NewRule( int Row, int Col, int Width, int Height,
   new = malloc(sizeof(struct tblrule));
   rule = malloc( Length+1 );
   if ( new == 0 || rule == 0 )
-	message(DEADLY, "Out of memory in NewRule", 0, &curpos );
+    message(DEADLY, "Out of memory in NewRule", 0, &curpos );
   new->Row = Row;
   new->Col = Col;
   new->Width = Width;
@@ -83,18 +92,18 @@ void NewRule( int Row, int Col, int Width, int Height,
 
   middle = ( Vertical ? RL_TP+RL_BT : RL_LT+RL_RT ) * Lines;
   if (Length == 1) {
-	if (preplus) {
-	  if (postplus) rule[0] = middle;
-	  else rule[0] = (Vertical ? RL_TP : RL_LT)*Lines;
-	} else if ( postplus ) {
-	  rule[0] = (Vertical ? RL_BT : RL_RT)*Lines;
-	} else rule[0] = 0;
+    if (preplus) {
+      if (postplus) rule[0] = middle;
+      else rule[0] = (Vertical ? RL_TP : RL_LT)*Lines;
+    } else if ( postplus ) {
+      rule[0] = (Vertical ? RL_BT : RL_RT)*Lines;
+    } else rule[0] = 0;
   } else if (Length > 0) {
-	rule[0] = preplus ? middle : ((Vertical ? RL_BT : RL_RT)*Lines);
-	{ int i;
-	  for ( i = 1; i < Length-1; i++ ) rule[i] = middle;
-	}
-	rule[Length-1] = postplus ? middle : ((Vertical ? RL_TP : RL_LT)*Lines);
+    rule[0] = preplus ? middle : ((Vertical ? RL_BT : RL_RT)*Lines);
+    { int i;
+      for ( i = 1; i < Length-1; i++ ) rule[i] = middle;
+    }
+    rule[Length-1] = postplus ? middle : ((Vertical ? RL_TP : RL_LT)*Lines);
   }
   rule[Length] = '\0';
   new->rule = rule;
@@ -105,32 +114,36 @@ void NewRule( int Row, int Col, int Width, int Height,
 static void add_bits( TableRule S, int row, int col, int t, int lines ) {
   int c, i;
   if ( row >= S->Row && row < S->Row + S->Height &&
-	   col >= S->Col && col < S->Col + S->Width ) {
-	i = row-S->Row+col-S->Col;
-	c = (S->rule[i]/t)%3;
-	if ( c < lines )
-	  S->rule[i] += t * (lines-c);
+       col >= S->Col && col < S->Col + S->Width ) {
+    i = row-S->Row+col-S->Col;
+    c = (S->rule[i]/t)%3;
+    if ( c < lines )
+      S->rule[i] += t * (lines-c);
   }
 }
 
+/**
+ * Identifies the intersection of rules and correctly
+ * decorates the intersections.
+ */
 static void connect_rules( void ) {
   TableRule R, S;
   unsigned char c, cc;
   
   for ( R = TableRules; R != 0; R = R->next ) {
-	for ( S = TableRules; S != 0; S = S->next ) {
-	  if ( R->Vertical ) {
-		if ( R->preplus )
-		  add_bits( S, R->Row-1, R->Col, RL_BT, R->Lines );
-		if ( R->postplus )
-		  add_bits( S, R->Row+R->Height, R->Col, RL_TP, R->Lines );
-	  } else {
-		if ( R->preplus )
-		  add_bits( S, R->Row, R->Col-1, RL_RT, R->Lines );
-		if ( R->postplus )
-		  add_bits( S, R->Row, R->Col+R->Width, RL_LT, R->Lines );
-	  }
-	}
+    for ( S = TableRules; S != 0; S = S->next ) {
+      if ( R->Vertical ) {
+        if ( R->preplus )
+          add_bits( S, R->Row-1, R->Col, RL_BT, R->Lines );
+        if ( R->postplus )
+          add_bits( S, R->Row+R->Height, R->Col, RL_TP, R->Lines );
+      } else {
+        if ( R->preplus )
+          add_bits( S, R->Row, R->Col-1, RL_RT, R->Lines );
+        if ( R->postplus )
+          add_bits( S, R->Row, R->Col+R->Width, RL_LT, R->Lines );
+      }
+    }
   }
 }
 
@@ -227,8 +240,8 @@ PTGNode print_rules( int tblname ) {
     int i = Rule->Width * Rule->Height;
     if ( i > 0 ) {
       nptg = Rule->Vertical ?
-	PTGVRule( Rule->ID, PTGId(tblname), Rule->Row, Rule->Col, Rule->Attr ):
-	PTGHRule( Rule->ID, PTGId(tblname), Rule->Row, Rule->Col, Rule->Attr );
+        PTGVRule( Rule->ID, PTGId(tblname), Rule->Row, Rule->Col, Rule->Attr ):
+        PTGHRule( Rule->ID, PTGId(tblname), Rule->Row, Rule->Col, Rule->Attr );
       rv = PTGSeq(rv, nptg);
     }
   }
@@ -246,8 +259,8 @@ PTGNode define_rules( void ) {
       int j;
       for ( j = 0; j < i; j++ ) {
         if ( Rule->rule[j] == '0' )
-	  message( DEADLY, "Unexpected zero in rule", 0, &curpos );
-	numlist = PTGCommaSeq( numlist, PTGNumb(Rule->rule[j]) );
+          message( DEADLY, "Unexpected zero in rule", 0, &curpos );
+        numlist = PTGCommaSeq( numlist, PTGNumb(Rule->rule[j]) );
       }
       nptg = PTGRuleDef( Rule->ID, numlist );
       rv = PTGSeq(rv, nptg);
