@@ -8,4 +8,4 @@ include_HEADERS = tmph.h tablelib.h nlphcmd.h nctable.h
 AM_LDFLAGS = -ltm -lnort
 
 ouidir = $(datadir)/oui
-oui_HEADERS = dispnc.oui
+oui_HEADERS = nctable.oui

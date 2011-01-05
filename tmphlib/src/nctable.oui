@@ -1,5 +1,4 @@
 <package> dispnc
-<include> dc
 <include> "nctable.h"
 
 <args>
