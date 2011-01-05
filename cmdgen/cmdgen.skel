@@ -207,7 +207,7 @@ static char ibuf[CG_IBUF_SIZE];
   #define DISPLAY_CHAR(c) nct_dispc(c?c:' ')
   #define UNDISPLAY_CHAR nct_undispc()
   #define CLEAR_DISPLAY_LINE clear(); nct_col = 0
-  #define DISPLAY_INPUT_PROMPT mvaddch(0,0,'>'); nct_col = 0;
+  #define DISPLAY_INPUT_PROMPT mvaddch(0,0,'>'); nct_col = 1;
   #define DISPLAY_PROMPT(x) nct_prompt(prmt_text[x])
   #define UPDATE_OUTPUT refresh()
 #endif
@@ -645,6 +645,7 @@ static void con_cleanup( void ) {
 
   void nct_prompt(const char *text) {
     mvaddstr( 1, 0, text );
+    clrtoeol();
     move( 0, nct_col );
   }
 #endif /* NCT_INTERFACE */
