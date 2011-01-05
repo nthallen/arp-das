@@ -17,4 +17,4 @@ oui_HEADERS = cic.oui cis.oui msghdr.oui msg.oui kbdclt.oui civ.oui \
   tma.oui collect.oui
 
 tmcdir = $(datadir)/huarp
-tmc_HEADERS = flttime.tmc root.cmd
+tmc_HEADERS = flttime.tmc root.cmd getcon.cmd
