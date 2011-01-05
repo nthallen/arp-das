@@ -19,6 +19,7 @@ extern void nct_hrule( int winnum, int attr, int row, int col,
 		unsigned char *rule );
 extern void nct_vrule( int winnum, int attr, int row, int col,
 		unsigned char *rule );
+extern char nct_getch(void);
 
 #ifdef __cplusplus
   }
