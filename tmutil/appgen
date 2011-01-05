@@ -41,7 +41,9 @@
 #   *col    TMCBASE  dg usage privileged etc.
 #   *ext    TMCBASE  dc usage
 #   *disp   TMCBASE  dc usage
-#   *clt    CMDBASE  nl_cons, client usage
+#   *dispnc TMCBASE  nctable usage
+#   *clt    CMDBASE  client usage
+#   *cltnc  CMDBASE  nctable client usage
 #   *srvr   CMDBASE  privileged
 #   *doit
 #   *.dccc
@@ -228,7 +230,9 @@ while read tgt mode deps; do
 	   *col) deps="$tmcbase $deps";;
 	   *ext) deps="$tmcbase $deps";;
 	   *disp) deps="$tmcbase $deps";;
+	   *dispnc) deps="$tmcbase $deps";;
 	   *clt) deps="$cmdbase $deps";;
+	   *cltnc) deps="$cmdbase $deps";;
 	   *srvr) deps="$cmdbase $deps"; SERVER=$tgt;;
 	   *doit) : ;;
 	   *.dccc) : ;;
@@ -361,7 +365,7 @@ for i in $basetargets; do
   unset ouis
   ltmpp='' # will become ' -ltmpp'
   ltmph='' # will become ' -ltmph -lph'
-  ldisp='' # will become ' -ldisp -ltmph -lph'
+  ldisp='' # will become ' -ldisp -ltmph -lph' or nc equiv
   lssp='' # will become ' -lssp -lmem -lm'
   cxx=''
   add_member TGT $i
@@ -372,10 +376,15 @@ for i in $basetargets; do
     lssp=' -lssp -lmem -lm'
   # replace_each .cfg attr.tmc "\$(DATAATTR)" $deps
   replace_each .cyc cyc.tmc  "\$(CYCLE)" $deps
-  replace_each .tbl tbl.tmc "\$(TABLE)" $deps &&
-    ldisp=' -ldisp -ltmph -lph'
-  # replace_all .fld $i.tmc "\n\t\$(FLD2DISP)" $deps &&
-  #   add_member ouis nl_cons
+  case $i in
+    *disp)
+      replace_each .tbl tbl.tmc "\$(TABLE)" $deps &&
+	ldisp=' -ldisp -ltmph -lph';;
+    *dispnc)
+      replace_each .tbl tblnc.tmc "\$(NCTABLE)" $deps &&
+	ldisp=' -ldispnc -ltmnc -lncurses' &&
+	add_member ouis nctable;;
+  esac
   replace_all .tmg ${i}tmg.tmc "\n\t\$(TMG2TMC)" $deps &&
 	add_member ouis tmg
   replace_each .DR ${i}DR.tmc 'DR2tmc >$@' $deps &&
@@ -417,6 +426,14 @@ for i in $basetargets; do
       if replace_all cmd.c $i.o "\n\t\$(COMPILE.clt)" $deps; then
 	add_member ouis kbdclt
 	ltmph=' -ltmph -lph'
+      else
+	nl_error Client $i with no cmd.c files
+      fi;;
+    *cltnc)
+      if replace_all cmd.c $i.o "\n\t\$(COMPILE.cltnc)" $deps; then
+	add_member ouis kbdclt
+	add_member ouis nctable
+	ltmph=' -ltmnc -lncurses'
       else
 	nl_error Client $i with no cmd.c files
       fi;;

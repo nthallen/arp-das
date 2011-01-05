@@ -12,7 +12,7 @@ CXXLINK=$(CXX)
 # CXX=cc
 # CXXLINK=cc -lang-c++
 
-AG_LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
+AG_LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib -L/usr/pkg/lib -Wl,-rpath -Wl,/usr/pkg/lib
 LINK.args=$(CPPFLAGS) $(CFLAGS) $(AG_LDFLAGS) $(LDFLAGS) -o $@
 LINK.norm=$(CC) $(LINK.args)
 LINK.priv=/bin/rm -f $@; $(LINK.norm)
@@ -27,6 +27,7 @@ OUIUSE=usemsg $@
 LIBSRC=/usr/local/share/huarp
 CMDGEN=cmdgen -o $@
 COMPILE.clt=$(COMPILE.c) -o $@ -D CLIENT
+COMPILE.cltnc=$(COMPILE.c) -o $@ -D CLIENT -D NCT_INTERFACE=1
 COMPILE.srvr=$(COMPILE.c) -o $@ -D SERVER
 AWK=awk > $@ -f $(LIBSRC)
 FLD2DISP=$(AWK)/fld2disp.awk
@@ -38,6 +39,7 @@ EDF2OUI=$(AWK)/edf2oui.awk
 TMG2TMC=tmg2tmc > $@
 CYCLE=$(AWK)/cycle.awk
 TABLE=phtable > $@
+NCTABLE=nctable > $@
 DATAATTR=data_attr > $@
 SERVER=srvr() { $$1 -V 2>/dev/null & waitfor /dev/huarp/none/cmd/server 3 || { echo $$1 failed >&2; return 1; }; }; srvr
 TMAREV=tmcalgo
