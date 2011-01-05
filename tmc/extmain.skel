@@ -1,5 +1,8 @@
 /* extmain.skel include file for extraction
  * $Log$
+ * Revision 1.9  2009/05/04 15:52:04  ntallen
+ * debugged
+ *
  * Revision 1.8  2008/08/25 15:37:55  ntallen
  * Use atexit() for shutdown message
  *
@@ -60,7 +63,12 @@ static char emrcsid[] =
   #include "DCph.h"
   typedef ph_data_client DATA_CLIENT;
 #else
-  typedef ext_data_client DATA_CLIENT;
+  #ifdef NCTABLE_H_INCLUDED
+    #include "DCnc.h"
+    typedef nc_data_client DATA_CLIENT;
+  #else
+    typedef ext_data_client DATA_CLIENT;
+  #endif
 #endif
 
 extern "C" {
