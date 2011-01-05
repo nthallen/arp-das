@@ -206,7 +206,7 @@ static char ibuf[CG_IBUF_SIZE];
   #define GETCH() nct_getch()
   #define DISPLAY_CHAR(c) nct_dispc(c?c:' ')
   #define UNDISPLAY_CHAR nct_undispc()
-  #define CLEAR_DISPLAY_LINE clear(); nct_col = 0
+  #define CLEAR_DISPLAY_LINE move(0,0); clrtoeol(); nct_col = 0
   #define DISPLAY_INPUT_PROMPT mvaddch(0,0,'>'); nct_col = 1;
   #define DISPLAY_PROMPT(x) nct_prompt(prmt_text[x])
   #define UPDATE_OUTPUT refresh()
