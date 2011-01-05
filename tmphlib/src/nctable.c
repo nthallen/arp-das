@@ -3,6 +3,7 @@
 #include <ncurses.h>
 #include "nortlib.h"
 #include "nctable.h"
+#include "nl_assert.h"
 
 #define MAX_DEVS 34
 
@@ -56,7 +57,7 @@ static void nct_shutdown(void) {
   }
 }
 
-int nct_init( char *winname, int n_rows, int n_cols ) {
+int nct_init( const char *winname, int n_rows, int n_cols ) {
   FILE *ofp, *ifp;
   char *dev_name;
   SCREEN *scr;
@@ -106,7 +107,7 @@ void nct_refresh(void) {
  * the implementation of that will have to wait.
  *
  */
-void nct_string( int winnum, int attr, int row, int col, char *text ) {
+void nct_string( int winnum, int attr, int row, int col, const char *text ) {
   nct_select(winnum);
   // color_set(color_pair_table(attr), NULL);
   mvaddstr(row, col, text);
