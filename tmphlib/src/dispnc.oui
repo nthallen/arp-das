@@ -1,0 +1,12 @@
+<package> dispnc
+<include> dc
+<include> "nctable.h"
+
+<args>
+  nct_args(optarg);
+
+<synopsis>
+%C [options] term ...
+
+<unsort>
+	term tty on which to display the first screen
