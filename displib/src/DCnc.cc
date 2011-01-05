@@ -3,7 +3,7 @@
 #include "nortlib.h"
 
 nc_data_client::nc_data_client( int bufsize_in, int fast, int non_block )
-    : data_client(bufsize_in, 1, 1 ) {
+    : data_client(bufsize_in, 1, 0 ) {
 }
 
 void nc_data_client::read() {
