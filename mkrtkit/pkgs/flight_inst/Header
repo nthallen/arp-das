@@ -1,4 +1,4 @@
 # flight_inst system OS Installation package
-Version: 2.0
+Version: 2.1
 Requires: flight
 Files: MANIFEST_pkg @ /

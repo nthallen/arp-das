@@ -16,6 +16,9 @@ usr/local/bin/lgr
 usr/local/bin/memo
 usr/local/bin/mlf_find
 usr/local/bin/parent
+usr/local/bin/playbackclt
+usr/local/bin/playbackcltnc
+usr/local/bin/playbacksrvr
 usr/local/bin/qclisd
 usr/local/bin/qclisprog
 usr/local/bin/qclistest
