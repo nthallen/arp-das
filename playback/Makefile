@@ -1,4 +1,4 @@
-# Makefile Generated Tue Jan 11 15:21:32 EST 2011
+# Makefile Generated Tue Jan 11 15:24:08 EST 2011
 MNC=playback
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/playback
 SPECFILE=playback.spec
@@ -69,6 +69,6 @@ clean : tidy
 	rm -f $(TARGET)
 .cvsignore :
 	@for i in Makefile '.B4*' $(OBJECT) $(TARGET); do echo "$$i"; done >.cvsignore
-binPrograms = playbacksrvr playbackclt
+binPrograms = playbacksrvr playbackclt playbackcltnc
 install : $(binPrograms)
 	cp $(binPrograms) $(TGTNODE)/usr/local/bin
