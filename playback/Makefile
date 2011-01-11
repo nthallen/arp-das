@@ -1,14 +1,14 @@
-# Makefile Generated Tue Jan 11 15:24:08 EST 2011
+# Makefile Generated Tue Jan 11 15:25:59 EST 2011
 MNC=playback
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/playback
 SPECFILE=playback.spec
 SRC=playback.cmd
 TOOL=playback.spec Makefile
 SCRIPT=
-OBJ=playbackcmd.c playbackcmd.dat playbackclt.o playbackcltoui.c
-OBJ+=playbackcltoui.o playbackcltnc.o playbackcltncoui.c
-OBJ+=playbackcltncoui.o playbacksrvr.o playbacksrvroui.c
-OBJ+=playbacksrvroui.o
+OBJ=FullBuild.installed FullBuild.log FullBuild.made playbackcmd.c
+OBJ+=playbackcmd.dat playbackclt.o playbackcltoui.c playbackcltoui.o
+OBJ+=playbackcltnc.o playbackcltncoui.c playbackcltncoui.o
+OBJ+=playbacksrvr.o playbacksrvroui.c playbacksrvroui.o
 TGT=playbackclt playbackcltnc playbacksrvr
 DISTRIB=
 IDISTRIB=Experiment.config VERSION
