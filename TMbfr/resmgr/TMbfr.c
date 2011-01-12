@@ -994,6 +994,7 @@ static void read_reply( RESMGR_OCB_T *ocb, int nonblock ) {
       assert( nQrows_ready >= 0 );
       if ( nQrows_ready > 0 ) {
         // ### make sure rw.read.maxQrows < Data_Queue.total_Qrows
+        // (it was not! fixed in io_read().
         if ( dqd->next == 0 && nQrows_ready < ocb->rw.read.maxQrows
              && ocb->hdr.attr->node_type == TM_DCo && !nonblock ) {
           // We want to wait for more
@@ -1083,7 +1084,10 @@ static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb) {
   ocb->rw.read.nbytes = msg->i.nbytes;
   if ( ocb->data.dqd ) {
     int nbData = ocb->rw.read.nbytes - Data_Queue.nbDataHdr;
-    ocb->rw.read.maxQrows = nbData < Data_Queue.nbQrow ? 1 : nbData/Data_Queue.nbQrow;
+    ocb->rw.read.maxQrows =
+      nbData < Data_Queue.nbQrow ? 1 : nbData/Data_Queue.nbQrow;
+    if ( ocb->rw.read.maxQrows > Data_Queue.total_Qrows )
+      ocb->rw.read.maxQrows = Data_Queue.total_Qrows;
   }
   read_reply( ocb, nonblock );
   run_write_queue();
