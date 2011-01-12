@@ -242,7 +242,11 @@ while read tgt mode deps; do
 	 for i in $deps; do
 	   def_source $i
 	 done
-	 def_target $tgt $deps;;
+	 def_target $tgt $deps
+	 case $tgt in
+	   *disp) def_target ${tgt}nc $deps;;
+	   *clt) def_target ${tgt}nc $deps;;
+	 esac;;
       *) echo Unknown mode $mode >&2 ;;
     esac
   fi
@@ -263,6 +267,7 @@ fi
 if [ -n "$cmdbase" ]; then
   is_member targets ${prefix}clt || {
     def_target ${prefix}clt $cmdbase
+    def_target ${prefix}cltnc $cmdbase
     for i in $cmdbase; do def_source $i; done
   }
   is_member targets ${prefix}srvr || {
