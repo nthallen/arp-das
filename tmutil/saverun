@@ -48,6 +48,7 @@ cfile=./Experiment.config
 unset Experiment HomeDir FlightNode SaverunHook RunType
 unset FixDisk Dircksum
 . $cfile
+[ -z "$FlightNode" ] && FlightNode=`hostname`
 [ -z "$Experiment" -o -z "$HomeDir" -o -z "$FlightNode" ] &&
   sv_error "Experiment, HomeDir or FlightNode not defined in $cfile"
 unset zbase cfile
