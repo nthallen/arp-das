@@ -375,9 +375,10 @@ char nct_getch(void) {
 	  int ifd = nct_display[i].ifd;
 	  if ( FD_ISSET( ifd, &fs ) ) {
 	    int nb = read( ifd, &ibuf[nc], IBUFSIZE-nc );
-	    if ( nb == -1 )
-	      nl_error( 3, "Error %d from read()", errno );
-	    else if ( nb == 0 )
+	    if ( nb == -1 ) {
+	      if (errno != EAGAIN && errno != EINTR)
+		nl_error( 3, "Error %d from read()", errno );
+	    } else if ( nb == 0 )
 	      nl_error( 1, "Read 0 bytes" );
 	    else {
 	      nc += nb;
