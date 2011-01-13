@@ -5,7 +5,6 @@ BIN=TM appgen distribute parent saverun fixdisk mkinp tomat extract
 BIN+=mkcvsignore mkdoit3 mkexpdir reduce
 SBIN=promote flight.sh signal_parent getcon
 DATA=appgen.mk edf2ext.awk edf2oui.awk Makefile.pm
-DATA+=mkdoit3.sh mkdoit3.awk
 OUI=seteuid.oui
 INSTALL=cp -vn
 CFLAGS=-Wall -g -I/usr/local/include
