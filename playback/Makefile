@@ -1,21 +1,22 @@
-# Makefile Generated Tue Jan 11 15:25:59 EST 2011
+# Makefile Generated Thu Jan 13 12:20:36 EST 2011
 MNC=playback
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/playback
 SPECFILE=playback.spec
 SRC=playback.cmd
 TOOL=playback.spec Makefile
 SCRIPT=
-OBJ=FullBuild.installed FullBuild.log FullBuild.made playbackcmd.c
-OBJ+=playbackcmd.dat playbackclt.o playbackcltoui.c playbackcltoui.o
-OBJ+=playbackcltnc.o playbackcltncoui.c playbackcltncoui.o
-OBJ+=playbacksrvr.o playbacksrvroui.c playbacksrvroui.o
+OBJ=FullBuild.* playbackcmd.c playbackcmd.dat playbackclt.o
+OBJ+=playbackcltoui.c playbackcltoui.o playbackcltnc.o
+OBJ+=playbackcltncoui.c playbackcltncoui.o playbacksrvr.o
+OBJ+=playbacksrvroui.c playbacksrvroui.o
 TGT=playbackclt playbackcltnc playbacksrvr
 DISTRIB=
 IDISTRIB=Experiment.config VERSION
 SRCDIST=
 NONRCS=
 TMCBASE=
-CMDBASE=/usr/local/share/huarp/root.cmd playback.cmd
+CMDBASE=/usr/local/share/huarp/root.cmd
+CMDBASE+=/usr/local/share/huarp/getcon.cmd playback.cmd
 RCS=$(SRC) $(TOOL) $(SCRIPT)
 SOURCE=$(RCS) $(NONRCS)
 OBJECT=$(OBJ) *.err
@@ -45,8 +46,8 @@ playbacksrvr : playbacksrvr.o playbacksrvroui.o
 	$(LINK.priv) playbacksrvr.o playbacksrvroui.o -ltm -lnort
 	$(OUIUSE) playbacksrvroui.c
 	$(PROMOTE) playbacksrvr
-playbackcmd.c : /usr/local/share/huarp/root.cmd playback.cmd
-	$(CMDGEN) -d playbackcmd.dat /usr/local/share/huarp/root.cmd playback.cmd
+playbackcmd.c : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd playback.cmd
+	$(CMDGEN) -d playbackcmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd playback.cmd
 playbackclt.o : playbackcmd.c
 	$(COMPILE.clt) playbackcmd.c
 playbackcltoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui
@@ -71,4 +72,4 @@ clean : tidy
 	@for i in Makefile '.B4*' $(OBJECT) $(TARGET); do echo "$$i"; done >.cvsignore
 binPrograms = playbacksrvr playbackclt playbackcltnc
 install : $(binPrograms)
-	cp $(binPrograms) $(TGTNODE)/usr/local/bin
+	cp -pnv $(binPrograms) $(TGTNODE)/usr/local/bin
