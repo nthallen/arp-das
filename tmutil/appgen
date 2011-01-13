@@ -572,7 +572,11 @@ echo 'DSTRB=$(TGT) $(DISTRIB) $(SCRIPT)'
 
 # Output selected macros if they have been defined
 if [ -n "$TGTNODE" ]; then echo TGTNODE=$TGTNODE; fi
-if [ -n "$TGTDIR" ]; then echo TGTDIR=$TGTDIR; fi
+if [ -n "$TGTDIR" ]; then
+  echo TGTDIR=$TGTDIR
+else
+  nl_error "TGTDIR definition is required"
+fi
 
 echo 'include /usr/local/share/huarp/appgen.mk'
 echo
