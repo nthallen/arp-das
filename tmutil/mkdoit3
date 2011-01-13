@@ -1,60 +1,512 @@
-#! /bin/sh
-#__USAGE
-#%C	[-o <outputfile>] [ <inputfile> ... ]
-#	Generates a "doit" script for use with ARP Data Acquisition
+#! /usr/bin/perl -w
+use strict;
+
+#ifdef __USAGE
+#%C -M -o <doit_name> <srcfile>
+#%C -o <doit_name> <srcfile>
+#	-M Write dependency information to <doit_name>.dep
+#endif
+
+use Getopt::Std;
+
+my %opts;
+getopts("Mo:", \%opts) || die "mkdoit3: Fatal\n";
+my $srcfile = shift @ARGV ||
+  die "mkdoit3: Must specify input filename\n";
+die "mkdoit3: Excess command line arguments\n"
+  if @ARGV;
+die "mkdoit3: Must specify output file with -o option\n"
+  unless $opts{o};
+open( my $fh, "<", $srcfile ) ||
+  die "mkdoit3: Unable to read input file '$srcfile'\n";
+
+my %progopts;
+my @display;
+my $client;
+my $phrtg;
+my $batchfile;
+my $memo;
+my $logfileroot = '$Experiment';
+while (<$fh>) {
+  next if m/^\s*(?:#.*)$/;
+  s/\s*$//;
+  # display <name> [options]
+  # client <name> [options]
+  # phrtg [options]
+  # batchfile <name>
+  # memo [<logfilename>]
+  if ( m/^\s*display\s+(\w+)(?:\s+(.*))?$/ ) {
+    my $dispprog = $1;
+    my $opts = $2 ? " $2" : '';
+    $dispprog =~ m/^\w+disp$/ ||
+      die "mkdoit3: Invalid display name: '$dispprog'\n";
+    push @display, $dispprog;
+    $progopts{$dispprog} = $opts;
+  } elsif ( m/^\s*client\s+(\w+)(?:\s+(.*))?$/ ) {
+    my $cltprog = $1;
+    my $opts = $2 ? " $2" : '';
+    $cltprog =~ m/^\w+clt$/ || die "Invalid client name: '$cltprog'\n";
+    die "mkdoit3: Only one client allowed\n" if $client;
+    $client = $cltprog;
+    $progopts{$cltprog} = $opts;
+  } elsif ( m/^\s*phrtg(?:\s+(.*))?$/ ) {
+    my $opts = $1 ? " $1" : '';
+    die "mkdoit3: phrtg specified more than once\n" if defined $phrtg;
+    $phrtg = 1;
+    $progopts{phrtg} = $opts;
+  } elsif ( m/^\s*batchfile\s+(\w+)\s*$/ ) {
+    die "mkdoit3: Only one batchfile allowed\n" if defined $batchfile;
+    $batchfile = $1;
+  } elsif ( m/^\s*memo(?:\s+(\w+)\.log)?\s*$/ ) {
+    $memo = 1;
+    $logfileroot = $1 if $1;
+  } else {
+    die "mkdoit3: Unrecognized syntax: '$_'\n";
+  }
+}
+close $fh || warn "Error closing source file\n";
+if ( $opts{M} ) {
+  open( $fh, ">", "$opts{o}.dep" ) ||
+    die "mkdoit3: Unable to write to $opts{o}.dep\n";
+  print $fh "$opts{o} :", map( " ${_}nc.cc", @display ), "\n";
+  close $fh || warn "Error closing $opts{o}.dep\n";
+  exit(0);
+}
+
+# %screen = display => [ { varname => Scr$scrnum,
+#                          screenname => 'demo',
+#                          width => 28,
+#                          height => 5 } ]
+my %screen;
+my $scrnum = 1;
+for my $disp ( @display ) {
+  open( $fh, "<", "${disp}nc.cc" ) ||
+    die "mkdoit3: Unable to read ${disp}nc.cc\n";
+  my $scr = $screen{$disp} = [];
+  while (<$fh>) {
+    if ( m/nct_init\("(\w+)",(\d+),(\d+)\);/ ) {
+      push @$scr, { varname => "scr$scrnum",
+		    screenname => $1,
+		    height => $2,
+		    width => $3 };
+      ++$scrnum;
+    }
+  }
+}
+
+open( $fh, ">", $opts{o} ) ||
+  die "mkdoit3: Unable to write to $opts{o}\n";
+
+print $fh <<'EOF';
+#! /bin/ksh
+#ifdef __USAGE
+#%C [options]
+#  Starts Instrument operation
+#%C [options] not
+#  Shuts down any straggling processes after system has stopped
+#%C [options] wait
+#  Does not interact with instrument until it is up and operating
 #
-#	batchfile <batch file name>
-#	    specifies which script to run on the flight system
-#	playback
-#	inetin
-#	memo [ <log file name> ]
-#	    specifies that "more -e <log file>" should run on a spare console
-#	display <program> <screen file> [ <screen file> ... ]
-#	    specifies a display program to run
-#	extraction <program>
-#	    specifies an extraction to run, including rtg extractions
-#	algorithm <program>
-#	    specifies an algorithm to run
-#	client <program>
-#	    specifies a keyboard client to run
-#	monoconfig <filename>
-#	colorconfig <filename>
-#	    specifies screen configuration files to use
-#	rtg <config file>
-#	    start up rtg if it isn't already running
-#
-#%C also reads .fld files which are specified in a 'display'
-#statement and recognizes FIELDS with the following contents:
-#
-#   %STATUS:<app>   Indicates a field to locate the status
-#                   for the specified application
-#   %STATUS         Indicates a general status field for any
-#                   applications without a specific status field
-#   %CLIENT         Indicates that a keyboard client should run
-#                   on this screen. If none specified, keyboard
-#                   clients run on all display screens.
-#   %TMA:<app>[:#]  Defines a field for the specified TMCALGO.
-#                   One field may be specified for each partition.
-#
-typeset ofile
-while getopts "o:" option; do
-  case $option in
-	o) ofile=$OPTARG;;
-	\?) echo; exit 1;;
-	*) echo Unsupported option: -$option; exit 1;;
+#options:
+#	-s use screen for text-mode data display
+#	-n use photon pterms for text-mode data display
+#	-p <run> play back <run>
+#	-S <session> specify the session (used internally)
+#endif
+
+umask 2
+. ./Experiment.config
+[ -z "$Experiment" ] && Experiment=none
+export Experiment
+
+function nl_error {
+  echo doit: $* >&2
+  exit 1
+}
+
+# Parse options to select
+#   srcmode as one of realtime, InetIn or playback
+#   dispmode as one of screen, pterm or photon
+session=$$
+while getopts "i:p:S:sn" opt; do
+  case $opt in
+    i) srcmode=InetIn; InetSrc=$OPTARG;;
+    p) srcmode=playback; Run=$OPTARG;;
+    s) dispmode=screen; dispmodescreen=1;;
+    S) session=$OPTARG;;
+    n) dispmode=pterm; dispmodepterm=1;;
+    \?) exit 1;; # getopts reports the error
+    :) exit 1;; # getopts reports the error
   esac
 done
-let sval=$OPTIND-1
-shift $sval
-if [ -n "$ofile" ]; then
-  /bin/rm -f $ofile
-  if /bin/awk -f /usr/local/lib/src/mkdoit2.awk $* > $ofile; then
-	chmod a+x $ofile
-  else
-	/bin/rm -f $ofile
-	exit 1
-  fi
+if [ -n "$srcmode" ]; then
+  [ -n "$InetSrc" -a -n "$Run" ] &&
+    nl_error "Cannot specify both -i and -p"
 else
-  /bin/awk -f /usr/local/lib/src/mkdoit2.awk $*
+  srcmode=realtime
+fi
+if [ -n "$dispmode" ]; then
+  [ -n "$dispmodescreen" -a -n "$dispmodepterm" ] &&
+    nl_error "Cannot specify both -s and -n"
+else
+  dispmode=photon
+  dispmodephoton=1
 fi
 
+let sval=$OPTIND-1
+shift $sval
+option=${1:-start}
+
+if [ -n "$FlightNode" ]; then
+  FltNd=/net/$FlightNode
+else
+  FlightNode=`hostname`
+  FltNd=""
+fi
+
+case $dispmode in
+  screen) nc=nc;;
+  pterm) nc=nc;;
+  photon) nc='';;
+  *) nl_error "Unknown dispmode: '$dispmode'";;
+esac
+EOF
+
+print $fh
+  "logfileroot=$logfileroot\n",
+  "logfilesuffix=.log\n",
+  '[ $srcmode = realtime ] || logfilesuffix=.PB.$session.log', "\n",
+  "interacts='", join( ' ', @display, $client ), "';\n";
+
+print $fh <<'EOF';
+
+if [ $srcmode = realtime ]; then
+  # SCRIPT_OVERRIDE is the name of a file that will
+  # contain the name of the flight script and will
+  # be read by flight.sh. Setting it to /dev/null
+  # means we can write to it and it won't have any
+  # effect.
+  [ -z "$SCRIPT_OVERRIDE" ] && SCRIPT_OVERRIDE=/dev/null
+  cmdsrvr=$FltNd/dev/huarp/$Experiment/cmd/server 
+
+  if [ ! -d $FltNd/ ]; then
+    echo "Waiting for Flight Node $FlightNode"
+    while [ ! -d $FltNd/ ]; do
+      waitfor $FltNd/ 2>/dev/null
+    done
+  fi
+  echo "Node $FlightNode is on the network"
+
+  # np < 2 means parent is not running
+  np=`pidin -n $FlightNode -p parent -fa 2>/dev/null | wc -l`
+  if [ $np -lt 2 ]; then
+    if [ -n "$FltNd" ]; then
+      echo Waiting for parent on node $FlightNode
+      while [ $np -lt 2 ]; do
+	sleep 2
+	np=`pidin -n $FlightNode -p parent -fa 2>/dev/null | wc -l`
+      done
+      echo "I see Flight Node's parent"
+    fi
+  else
+    echo "I see Flight Node's parent"
+  fi
+  logfile=$FltNd$HomeDir/$logfileroot$logfilesuffix
+else  # not realtime
+  RemEx=$Experiment
+  Experiment=$RemEx.PB.$session
+  cmdsrvr=/dev/huarp/$Experiment/cmd/server
+  logfile=$logfileroot$logfilesuffix
+fi
+
+# Determine the path. Strictly speaking, this does
+# not have to happen before start, but I'd like
+# to check that the required applications exist
+VERSION=1.0
+case $option in
+  not);;
+  stop);;
+  *)
+    case $srcmode in
+      playback)
+	# Need to find the data
+	ddir=$Run
+	if [ ! -d $ddir ]; then
+	  for base in . $FltNd$HomeDir; do
+	    ddir=$base/$Run
+	    [ -d $ddir ] && break;
+	    ddir=$base/raw/$Run
+	    [ -d $ddir ] && break;
+	    for runtype in Flight Cal Data Junk; do
+	      ddir=$base/raw/$runtype/$Run
+	      [ -d $ddir ] && break;
+	    done
+	    [ -d $ddir ] && break;
+	  done
+	fi
+	[ -d $ddir ] || nl_error "Unable to locate run $Run"
+	[ -f $ddir/VERSION ] && VERSION=`cat $ddir/VERSION`
+	TMBINDIR=$PWD/bin/$VERSION;;
+      *)
+	ddir=$FltNd$HomeDir
+	[ -f VERSION ] && VERSION=`cat VERSION`
+	TMBINDIR=$PWD/bin/$VERSION;;
+    esac
+
+    [ -d $TMBINDIR ] ||
+      nl_error "Unable to locate bin dir for VERSION $VERSION"
+    export PATH=$TMBINDIR:$PATH
+
+    missing=''
+    for app in $interacts; do
+      [ -x $TMBINDIR/$app$nc ] || missing="$missing $app$nc"
+    done
+    [ -n "$missing" ] &&
+      nl_error "Unable to locate required application(s):$missing"
+    ;;
+esac
+
+function Launch {
+  name=$1
+  shift
+  [ -n "$launch_error" ] && return 1
+  [ -n "$VERBOSE" ] && echo "Launch: $*"
+  if { $* & }; then
+    if [ "$name" != "-" ]; then
+      [ "${name#/}" = "$name" ] && name="/dev/huarp/$Experiment/$name"
+      [ -n "$VERBOSE" ] && echo "Launch: Waiting for $!:$name"
+      waitfor $name 10 || {
+        echo "Launch namewait failure: $*" >&2
+        launch_error=yes
+        return 1
+      }
+    fi
+  else
+    echo "Launch Error: $*" >&2
+    launch_error=yes
+    return 1
+  fi
+  return 0
+}
+
+case $option in
+  not)
+    [ -e $cmdsrvr ] && nl_error "Instrument is in operation: quit first"
+    echo /dev/null >$SCRIPT_OVERRIDE
+    echo signaling parent
+    sudo /usr/local/sbin/signal_parent $FlightNode
+    exit 0 ;;
+  stop)
+    if [ -e $cmdsrvr ]; then
+      echo "Quit" >$cmdsrvr
+    else
+      nl_error "Could not locate $Experiment's command server"
+    fi
+    exit 0;;
+  start)
+    if [ ! -e $cmdsrvr ]; then
+      if [ $srcmode = realtime ]; then
+	[ -n "$RUNFILE" ] && echo $RUNFILE > $SCRIPT_OVERRIDE
+	if [ -n "$FltNd" ]; then
+	  echo signaling parent
+	  sudo /usr/local/sbin/signal_parent $FlightNode
+	elif [ $dispmode = screen ]; then
+	  echo "Starting flight.sh on /dev/con1"
+	  on -t /dev/con1 /usr/local/sbin/flight.sh &
+	else
+	  tty=`tty`
+	  echo "Starting flight.sh in a pterm"
+	  on -t $tty pterm /usr/local/sbin/flight.sh &
+	fi
+      else
+	Launch memo memo -o $logfile 
+	Launch TM/DCo TMbfr
+	Launch cmd/server playbacksrvr
+	# start pbcmdsrvr
+	if [ $srcmode = playback ]; then
+	  Launch DG/cmd rdr -P $ddir -a
+	elif [ $srcmode = InetIn ]; then
+	  Launch DG/cmd InetIn
+	fi
+	if [ -n "$launch_error" ]; then
+	  echo "Launch failed: cleaning up"
+	  exec parent -qt1
+	fi
+      fi
+    fi;;
+  wait) ;;
+  screen) ;;
+  *) nl_error "Unrecognized option '$option'";;
+esac
+
+# Now we can assume that the DG stack has been
+# started one way or another.
+[ -f $logfile ] || touch $logfile
+
+if [ ! -e $cmdsrvr ]; then
+  echo "doit: Waiting for cmd/server" 
+  while [ ! -e $cmdsrvr ]; do 
+    waitfor $cmdsrvr 2>/dev/null || sleep 2
+  done
+  echo "doit: Continuing"
+fi
+
+# allocate consoles as necessary
+case $dispmode in
+  screen)
+    if [ $option != screen ]; then
+      rc=screenrc.$session
+      { echo startup_message off
+        echo split
+	# can't easily do this in a loop, as we need
+	# width and height for each screen
+EOF
+
+for my $disp ( @display ) {
+  for my $scr ( @{$screen{$disp}} ) {
+    print $fh " "x8,
+      "echo screen -t $scr->{screenname} /usr/local/sbin/getcon ",
+      "$scr->{varname} \$session\n",
+      " "x8, "echo width -w $scr->{width}\n",
+      " "x8, "echo height -w $scr->{height}\n";
+  }
+}
+
+print $fh <<'EOF';
+	echo focus
+	echo resize 2
+	echo screen -t clt /usr/local/sbin/getcon clt $session
+	echo height -w 2
+	echo width -w 80
+	echo focus
+EOF
+
+if ( $memo ) {
+  print $fh <<'EOF';
+	if [ -r $logfile ]; then
+	  echo screen -t $logfileroot$logfilesuffix less +F $logfile
+	fi
+EOF
+}
+
+print $fh <<'EOF';
+	pbarg=''
+	[ $srcmode = playback ] && pbarg=" -p $Run"
+	echo screen -t doit $0 $pbarg -sS $session screen
+      } >$rc
+      screen -c $rc
+      clear
+      rm $rc
+      exit 0
+    fi;;
+  pterm)
+    ### Start pterms for each disp screen and clt
+EOF
+
+for my $disp ( @display ) {
+  for my $scr ( @{$screen{$disp}} ) {
+    my $dim = "$scr->{height}x$scr->{width}";
+    print $fh
+      "    pterm -t $scr->{screenname} -m $dim -g $dim -U ",
+      "/usr/local/sbin/getcon $scr->{varname} \$session &\n";
+  }
+}
+
+print $fh <<'EOF';
+    pterm -t clt -m 2x80 -g 2x80 -y 90% -x 0 -U /usr/local/sbin/getcon clt $session &
+    ;;
+  *)
+esac
+    
+pterm_pid=''
+EOF
+
+if ( $memo ) {
+  print $fh <<'EOF';
+if [ -r $logfile -a $dispmode != screen ]; then
+  pterm -t $logfileroot$logfilesuffix less +F $logfile &
+  pterm_pid=$!
+fi
+EOF
+}
+
+print $fh <<'EOF';
+
+# Now we want the display and client programs to
+# talk to a local memo to avoid cluttering up
+# the flight log
+memo=/dev/huarp/$Experiment/memo
+if [ ! -e $memo ]; then
+  Launch memo memo -o $logfileroot.clt.log
+fi
+
+# Now collect display consoles for each disp screen and clt
+EOF
+
+print $fh "for screen in ",
+  join( ' ', map( "$_->{varname}",
+		  map( @{$screen{$_}}, @display ) ),
+	     'clt' ), "; do\n";
+
+print $fh <<'EOF';
+  term=''
+  if [ $dispmode != photon ]; then
+    waitfor pty.$screen.$session || nl_error pty.$screen.$session did not appear
+    term=`cat pty.$screen.$session`
+    rm pty.$screen.$session
+  fi
+  eval ${screen}_term=$term
+done
+
+EOF
+
+if ( $phrtg ) {
+  print $fh '[ $dispmode = screen ] || Launch - phrtg -C $FlightNode',
+    $progopts{phrtg}, "\n";
+}
+
+for my $disp ( @display ) {
+  my $scr = $screen{$disp};
+  print $fh "Launch - $disp\$nc -t \$FlightNode$progopts{$disp}",
+    map( " \$$_->{varname}_term", @$scr ), "\n";
+}
+
+## Algos probably won't be implemented quite like this:
+## demoalgo &
+
+my $termlist =
+  join( '',
+    map( " \$$_->{varname}_term",
+      map( @{$screen{$_}}, @display ) ) );
+print $fh
+  'if [ $srcmode = realtime ]; then', "\n",
+  "  $client", '$nc -C $FlightNode $clt_term', "$termlist\n",
+  "else\n",
+  '  playbackclt$nc $clt_term', "$termlist\n",
+  "fi\n";
+
+print $fh <<'EOF';
+
+# This is where we run. When the client quits,
+# we are done and need to clean up
+
+[ $dispmode != photon -a -e $cmdsrvr ] &&
+  echo "getcon end session $session" >$cmdsrvr
+
+# Leave the log up for a few seconds to view shutdown status
+if [ -n "$pterm_pid" ]; then
+  sleep 2
+  kill -sINT $pterm_pid
+  # wait a bit so parent needn't report the termination
+  sleep 1
+  echo "doit: Invoking parent for cleanup"
+  exec parent -qt1
+else
+  echo "doit: Invoking parent for cleanup"
+  exec parent -qt3
+fi
+EOF
+
+my $perm = (stat $opts{o})[2] & 07777;
+my $umask = umask;
+chmod( $perm | (0111 & ~$umask), $opts{o} );
