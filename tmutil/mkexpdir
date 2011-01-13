@@ -23,6 +23,10 @@ if [ "$1" = "-n" ]; then
 fi
 
 exp=$1
+if [ -z "$exp" -a -r Experiment.config ]; then
+  . ./Experiment.config
+  exp=$Experiment
+fi
 [ -z "$exp" ] && nl_error "Usage: mkexpdir [-n node] expname"
 [ -d $node/home/$exp ] && nl_error $node/home/$exp already exists
 [ -e $node/home/$exp ] && nl_error $node/home/$exp is not a directory
