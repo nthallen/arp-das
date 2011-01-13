@@ -9,6 +9,7 @@ usr/local/bin/genui_chk
 usr/local/bin/install_app
 usr/local/bin/idx64cfg
 usr/local/bin/mkcvsignore
+usr/local/bin/mkdoit3
 usr/local/bin/mkexpdir
 usr/local/bin/mkinp
 usr/local/bin/mkpatch
