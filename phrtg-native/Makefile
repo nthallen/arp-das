@@ -15,7 +15,8 @@ $(EXE) : native.mk
 native.mk : native.mk.in
 	./mkmk native.mk.in >native.mk
 install : phrtg
-	cp -vn phrtg /usr/local/bin
+	@cp -vn phrtg /usr/local/bin
+	@cp -vn phrtg.cmd /usr/local/share/huarp
 clean :
-	rm -f phrtg
+	rm -f phrtg FullBuild.*
 	make -C../phrtg -f../phrtg-native/native.mk clean
