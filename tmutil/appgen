@@ -52,7 +52,6 @@
 #   *.edf
 #   *.cfg
 #   *.tbl
-#   *.fld
 #   *.tma
 #   *.cyc
 #   *.tmc
@@ -182,9 +181,6 @@ function def_target {
     [ -n "$basetargets" ] && OBJ="$OBJ $tgt"
     set_depname $tgt
     eval $depname=\"\$deps\"
-    case $tgt in
-      *.fld) add_member DISTRIB $tgt;;
-    esac
   else
     set_depname $tgt
     eval dtdeps=\"\$$depname\"
@@ -202,7 +198,7 @@ function def_source {
     nl_error Source File $1 previously identified as target.
   in_this_dir $1 && add_member SRC $1
   case $1 in
-    *.fld) add_member DISTRIB $1;;
+    *.tbl) add_member SRCDIST $1;;
     *.tma) add_member SRCDIST $1;;
     *.sol) add_member SRCDIST $1;;
   esac
@@ -472,8 +468,11 @@ for i in $basetargets; do
 	    else
 	      deps="$deps\n\tsolfmt -o$i $deps"
 	    fi;;
-    *doit)	deps="$deps\n\tmkdoit2 -o $i $deps && chmod a+x $i"
-	      add_member IDISTRIB $i;;
+    *doit)  def_target $i.dep "$deps\n\tmkdoit3 -M -o $i $deps\n-include $i.dep"
+	    deps="$deps\n\tmkdoit3 -o $i $deps"
+	    add_member IDISTRIB $i;;
+    *doit.dep)
+	    deps="$deps\n\tmkdoit3 -M -o ${i%.dep} $deps\ninclude $i";;
     *)      LINK=norm;;
   esac
 
