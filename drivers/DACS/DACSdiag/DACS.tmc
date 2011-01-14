@@ -1,0 +1,10 @@
+TM typedef unsigned short UINT { text "%5d;"; }
+TM 4 Hz UINT Synch, MFCtr;
+
+/* Indexer: 3 Channels */
+/* Counters: 8 Channels? */
+/* Analog Input: 128 Channels (2 banks of 8 port mux X 8 A/D) */
+/* [Analog Output] */
+/* [Digital I/O] */
+/* [PTRH] */
+/* [Double-muxed Analog Inputs] */

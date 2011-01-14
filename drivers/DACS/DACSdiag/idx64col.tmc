@@ -1,0 +1,9 @@
+%{
+  #include "subbus.h"
+%}
+IndxrPos Idx64;
+TM "Receive" Idx64 1;
+Collect IXStt {
+  IXStt = Idx64;
+  Idx64_obj->synch();
+}

@@ -1,0 +1,41 @@
+State Initialize {
+    > Telemetry Start
+}
+
+Partition
+# Software Status
+
+State SW_Stat_Wait NoLog {
+  { int reset_it;
+    reset_it = 1;
+    switch (SWStat) {
+      default:
+      case 0: reset_it = 0; break;
+      case SWS_IDX_TEST0:
+	Validate Indexer_Test_0; break;
+    }
+    if (reset_it) Validate SW_Stat_Reset;
+  }
+}
+
+State SW_Stat_Reset NoLog {
+    > _SW Status Set 0
+    Hold until (SWStat == 0) or 10;
+    Validate SW_Stat_Wait;
+}
+
+Partition
+# Indexer tests
+State Indexer_Idle {
+}
+
+State Indexer_Test_0 {
+      > Drive IX0 to 20000
+   +5 > Drive IX1 to 20000
+   +5 > Drive IX2 to 20000
+  +10 > Scan IX0 in 20000 by 20
+   +5 > Scan IX1 in 20000 by 40
+  +10 > Scan IX2 in 20000 by 100
+      Validate Indexer_Idle;
+}
+

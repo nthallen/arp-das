@@ -1,0 +1,12 @@
+# Startup script for DACS Diagnostic
+  Launch memo memo -o $Experiment.log
+  Launch TM/DCo TMbfr
+  memo=/dev/huarp/$Experiment/memo
+  echo "Running script interact" >$memo
+  Launch cmd/server DACSsrvr
+  Launch - lgr -N `mlf_find LOG`
+# Launch - dccc -f $TMBINDIR/dccc.dccc
+  Launch DG/cmd DACScol
+  Launch - idx64 `cat $TMBINDIR/idx64.idx64`
+  Launch - DACSalgo -v
+

@@ -1,0 +1,8 @@
+%{
+  #include "swstat.h"
+  swstat_t SWData;
+%}
+TM "Receive" SWData 0;
+
+TM 1 Hz UINT SWStat; collect SWStat = SWData.SWStat;
+
