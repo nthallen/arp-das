@@ -299,7 +299,6 @@ static void process_response( char *buf ) {
   char resp_code = *s++;
   char exp_req = '\0';
   int exp_args = 0;
-  nl_assert( resp_code != '\0' );
   if ( resp_code != '\0' ) {
     if (read_hex( &s, &arg0 )) {
       ++n_args;
