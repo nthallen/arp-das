@@ -119,6 +119,26 @@ function nl_error( level, msg ) {
   set_value( "flag", "inv_run", curr_chan, 1 )
   next
 }
+/^ *[Ii]nvert +[Ii]n +[Ll]im/ {
+  set_value( "flag", "inv_inlim", curr_chan, 1 )
+  next
+}
+/^ *[Ii]nvert +[Oo]ut +[Ll]im/ {
+  set_value( "flag", "inv_outlim", curr_chan, 1 )
+  next
+}
+/^ *[Ii]nvert +[Zz]ero +[Rr]ef/ {
+  set_value( "flag", "inv_zeroref", curr_chan, 1 )
+  next
+}
+/^ *[Ii]nvert +[Kk]ill +[Aa]/ {
+  set_value( "flag", "inv_killa", curr_chan, 1 )
+  next
+}
+/^ *[Ii]nvert +[Kk]ill +[Bb]/ {
+  set_value( "flag", "inv_killb", curr_chan, 1 )
+  next
+}
 /^ *[Ss]can *$/ {
   set_value( "flag", "scan", curr_chan, 1 )
   next
@@ -167,11 +187,11 @@ END {
   if ( basetmc ) {
 	print "TM typedef unsigned short IndxrPos {"
 	print "  text \"%5d\";"
-	print "  collect x = sbwa(x.address);"
+	print "  collect x = sbrwa(x.address);"
 	print "}"
 	print "TM typedef unsigned char IndxrStat {"
 	print "  text \"%08b\";"
-	print "  collect x = sbba(x.address);"
+	print "  collect x = sbrba(x.address);"
 	print "}"
 	for ( i = 0; i <= max_channel; i++ ) {
 	  bdno = int( i/6 )
@@ -232,6 +252,11 @@ END {
 	  if ( values["inv_step","flag",i] ) cfgval += 4
 	  if ( values["inv_dir", "flag",i] ) cfgval += 8
 	  if ( values["inv_run", "flag",i] ) cfgval += 16
+	  if ( values["inv_inlim", "flag",i] ) cfgval += 64
+	  if ( values["inv_outlim", "flag",i] ) cfgval += 128
+	  if ( values["inv_zeroref", "flag",i] ) cfgval += 4096
+	  if ( values["inv_killa", "flag",i] ) cfgval += 8192
+	  if ( values["inv_killb", "flag",i] ) cfgval += 16384
 	  if ( cfgval != 0 ) cfgval += 32
 	  rbits = values["drive","rate",i]
 	  if ( cfgval != 0 && rbits == 0 ) rbits = 13
