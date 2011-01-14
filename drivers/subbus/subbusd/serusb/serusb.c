@@ -300,24 +300,26 @@ static void process_response( char *buf ) {
   char exp_req = '\0';
   int exp_args = 0;
   nl_assert( resp_code != '\0' );
-  if (read_hex( &s, &arg0 )) {
-    ++n_args;
-    if (*s == ':') {
-      ++s;
-      if ( read_hex( &s, &arg1 ) ) {
-	++n_args;
-	if ( *s == ':' ) {
-	  ++s; // points to name
+  if ( resp_code != '\0' ) {
+    if (read_hex( &s, &arg0 )) {
+      ++n_args;
+      if (*s == ':') {
+	++s;
+	if ( read_hex( &s, &arg1 ) ) {
 	  ++n_args;
-	} else {
-	  status = RESP_INV;
-	}
-      } else status = RESP_INV;
+	  if ( *s == ':' ) {
+	    ++s; // points to name
+	    ++n_args;
+	  } else {
+	    status = RESP_INV;
+	  }
+	} else status = RESP_INV;
+      } else if ( *s != '\0' ) {
+	status = RESP_INV;
+      }
     } else if ( *s != '\0' ) {
       status = RESP_INV;
     }
-  } else if ( *s != '\0' ) {
-    status = RESP_INV;
   }
   // Check response for self-consistency
   // Check that response is appropriate for request
@@ -412,6 +414,15 @@ static void process_response( char *buf ) {
       break;
     default:
       nl_error( 4, "Invalid status: %d", status );
+  }
+  switch (status) {
+    case RESP_OK:
+    case RESP_INTR: break;
+    default:
+      if ( cur_req )
+	nl_error( 2, "Current request was: '%s'", cur_req->request );
+      else
+	nl_error( 2, "No current request" );
   }
   // we won't dequeue on error: wait for timeout to handle that
   // that's because we don't know the invalid response was
