@@ -1,5 +1,6 @@
 State Initialize {
     > Telemetry Start
+ +5 > CmdEnbl On
 }
 
 Partition
