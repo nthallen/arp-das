@@ -41,6 +41,38 @@ static void set_timeout( int enable ) {
   }
 }
 
+#define ESC_BUF_SIZE 80
+static char *ascii_escape(const char *ibuf) {
+  static char ebuf[ESC_BUF_SIZE+3];
+  int ix = 0, ox = 0;
+  while (ibuf[ix] != '\0' && ox < ESC_BUF_SIZE ) {
+    char c = ibuf[ix++];
+    if ( isprint(c) ) {
+      ebuf[ox++] = c;
+    } else {
+      switch ( c ) {
+	case '\n':
+	  ebuf[ox++] = '\\';
+	  ebuf[ox++] = 'n';
+	  break;
+	case '\r':
+	  ebuf[ox++] = '\\';
+	  ebuf[ox++] = 'r';
+	  break;
+	case '\t':
+	  ebuf[ox++] = '\\';
+	  ebuf[ox++] = 't';
+	  break;
+	default:
+	  ox += snprintf( ebuf+ox, 4, "\\x%02x", c);
+	  break;
+      }
+    }
+  }
+  ebuf[ox] = '\0';
+  return ebuf;
+}
+
 // Transmits a request if the currently queued
 // request has not been transmitted.
 static void process_request(void) {
@@ -401,16 +433,16 @@ static void process_response( char *buf ) {
       process_interrupt(arg0);
       break;
     case RESP_UNREC:
-      nl_error( 2, "Unrecognized response: '%s'", buf );
+      nl_error( 2, "Unrecognized response: '%s'", ascii_escape(buf) );
       break;
     case RESP_UNEXP:
-      nl_error( 2, "Unexpected response: '%s'", buf );
+      nl_error( 2, "Unexpected response: '%s'", ascii_escape(buf) );
       break;
     case RESP_INV:
-      nl_error( 2, "Invalid response: '%s'", buf );
+      nl_error( 2, "Invalid response: '%s'", ascii_escape(buf) );
       break;
     case RESP_ERR:
-      nl_error( 2, "Error code %d from DACS", arg0 );
+      nl_error( 2, "Error code %d from DACS", ascii_escape(buf) );
       break;
     default:
       nl_error( 4, "Invalid status: %d", status );
@@ -420,7 +452,8 @@ static void process_response( char *buf ) {
     case RESP_INTR: break;
     default:
       if ( cur_req )
-	nl_error( 2, "Current request was: '%s'", cur_req->request );
+	nl_error( 2, "Current request was: '%s'",
+	    ascii_escape(cur_req->request) );
       else
 	nl_error( 2, "No current request" );
   }
@@ -455,7 +488,7 @@ static void sb_read_usb(void) {
         process_response(sb_ibuf);
         if (--nb > 0) {
           memmove( sb_ibuf, &sb_ibuf[sb_ibuf_idx+1], nb );
-          sb_ibuf_idx = nb;
+          sb_ibuf_idx = 0;
           ++n_compound_reads;
           // do not issue any pending request
           // in order to preserve causality
