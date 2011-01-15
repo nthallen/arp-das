@@ -25,6 +25,7 @@ static int n_timeouts = 0;
 static int n_writes = 0;
 static int n_reads = 0;
 static int n_part_reads = 0;
+static int n_compound_reads = 0;
 
 static subbusd_cap_t subbus_caps;
 
@@ -455,15 +456,11 @@ static void sb_read_usb(void) {
         if (--nb > 0) {
           memmove( sb_ibuf, &sb_ibuf[sb_ibuf_idx+1], nb );
           sb_ibuf_idx = nb;
+          ++n_compound_reads;
           // do not issue any pending request
           // in order to preserve causality
         } else {
           sb_ibuf_idx = 0;
-          /* I'm assuming the previous process_response()
-             managed to dequeue the current request,
-             but process_request() will quietly return
-             if that is not the case. */
-          // process_request();
         }
       } else {
         ++sb_ibuf_idx;
@@ -633,6 +630,6 @@ void init_subbus(dispatch_t *dpp ) {
 }
 
 void shutdown_subbus(void) {
-  nl_error( 0, "%d writes, %d reads, %d partial reads",
-    n_writes, n_reads, n_part_reads );
+  nl_error( 0, "%d writes, %d reads, %d partial reads, %d compound reads",
+    n_writes, n_reads, n_part_reads, n_compound_reads );
 }
