@@ -237,7 +237,7 @@ case $option in
 	    [ -d $ddir ] && break;
 	    ddir=$base/raw/$Run
 	    [ -d $ddir ] && break;
-	    for runtype in Flight Cal Data Junk; do
+	    for runtype in flight cal data junk; do
 	      ddir=$base/raw/$runtype/$Run
 	      [ -d $ddir ] && break;
 	    done
