@@ -131,9 +131,10 @@ void DG_data::synch() {
     iofunc_notify_trigger(data_attr.notify, 1, IOFUNC_NOTIFY_OUTPUT);
 }
 
-int DG_data::stale() {
+int DG_data::stale(int max_stale) {
   int rv = stale_count;
-  if ( stale_count < SHRT_MAX ) ++stale_count;
+  if ( stale_count < INT_MAX ) ++stale_count;
+  if ( rv > max_stale ) rv = max_stale;
   return rv;
 }
 

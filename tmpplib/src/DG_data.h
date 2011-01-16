@@ -6,6 +6,7 @@ struct data_dev_attr;
 #define IOFUNC_OCB_T struct data_dev_ocb
 
 #include <signal.h>
+#include <limits.h>
 #include "DG.h"
 
 class data_generator;
@@ -29,7 +30,7 @@ class DG_data : public DG_dispatch_client {
   private:
     int dev_id;
     const char *name; // Keep around mostly for debugging
-    short int stale_count;
+    int stale_count;
     void *dptr;
     int dsize;
     bool synched;
@@ -47,7 +48,7 @@ class DG_data : public DG_dispatch_client {
     int ready_to_quit(); // virtual function of DG_dispatch_client
     int io_write(resmgr_context_t *ctp, IOFUNC_OCB_T *ocb, int nonblock);
     void synch();
-    int stale();
+    int stale(int max_stale = SHRT_MAX);
 };
 
 extern "C" {
