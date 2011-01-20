@@ -368,6 +368,8 @@ cfg_b1c7 {
   HBox { [cfg_b1c0]; |; [cfg_b1c1]; |; [cfg_b1c2]; |;
 	 [cfg_b1c3]; |; [cfg_b1c4]; |; [cfg_b1c5]; |;
 	 [cfg_b1c6]; |; [cfg_b1c7] };
+  -;
+  >{ (flttime,8) (MFCtr,5) }
 }
 
 
