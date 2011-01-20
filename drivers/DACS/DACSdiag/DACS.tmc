@@ -1,4 +1,7 @@
-TM typedef unsigned short UINT { text "%5d;"; }
+TM typedef unsigned short UINT { text "%5d"; }
+TM typedef unsigned short AI16 { text "%5d"; }
+TM typedef unsigned short AIC  { text "%5x"; }
+
 TM 4 Hz UINT Synch, MFCtr;
 
 /* Indexer: 3 Channels */

@@ -1,0 +1,576 @@
+TM 1/2 Hz AI16 AIC00; Address AIC00 0xC00;
+TM 1/2 Hz AIC AICC00; Address AICC00 0xC01;
+TM 1/2 Hz AI16 AIC20; Address AIC20 0xC20;
+TM 1/2 Hz AIC AICC20; Address AICC20 0xC21;
+TM 1/2 Hz AI16 AIC40; Address AIC40 0xC40;
+TM 1/2 Hz AIC AICC40; Address AICC40 0xC41;
+TM 1/2 Hz AI16 AIC60; Address AIC60 0xC60;
+TM 1/2 Hz AIC AICC60; Address AICC60 0xC61;
+TM 1/2 Hz AI16 AIC80; Address AIC80 0xC80;
+TM 1/2 Hz AIC AICC80; Address AICC80 0xC81;
+TM 1/2 Hz AI16 AICA0; Address AICA0 0xCA0;
+TM 1/2 Hz AIC AICCA0; Address AICCA0 0xCA1;
+TM 1/2 Hz AI16 AICC0; Address AICC0 0xCC0;
+TM 1/2 Hz AIC AICCC0; Address AICCC0 0xCC1;
+TM 1/2 Hz AI16 AICE0; Address AICE0 0xCE0;
+TM 1/2 Hz AIC AICCE0; Address AICCE0 0xCE1;
+
+Group Col0Bank0 ( AIC00, AICC00, AIC20, AICC20, AIC40, AICC40, AIC60, AICC60, AIC80, AICC80, AICA0, AICCA0, AICC0, AICCC0, AICE0, AICCE0 ) {
+  AIC00 = sbrwa(AIC00.address);
+  AICC00 = sbrwa(AICC00.address);
+  AIC20 = sbrwa(AIC20.address);
+  AICC20 = sbrwa(AICC20.address);
+  AIC40 = sbrwa(AIC40.address);
+  AICC40 = sbrwa(AICC40.address);
+  AIC60 = sbrwa(AIC60.address);
+  AICC60 = sbrwa(AICC60.address);
+  AIC80 = sbrwa(AIC80.address);
+  AICC80 = sbrwa(AICC80.address);
+  AICA0 = sbrwa(AICA0.address);
+  AICCA0 = sbrwa(AICCA0.address);
+  AICC0 = sbrwa(AICC0.address);
+  AICCC0 = sbrwa(AICCC0.address);
+  AICE0 = sbrwa(AICE0.address);
+  AICCE0 = sbrwa(AICCE0.address);
+}
+
+TM 1/2 Hz AI16 AIC10; Address AIC10 0xC10;
+TM 1/2 Hz AIC AICC10; Address AICC10 0xC11;
+TM 1/2 Hz AI16 AIC30; Address AIC30 0xC30;
+TM 1/2 Hz AIC AICC30; Address AICC30 0xC31;
+TM 1/2 Hz AI16 AIC50; Address AIC50 0xC50;
+TM 1/2 Hz AIC AICC50; Address AICC50 0xC51;
+TM 1/2 Hz AI16 AIC70; Address AIC70 0xC70;
+TM 1/2 Hz AIC AICC70; Address AICC70 0xC71;
+TM 1/2 Hz AI16 AIC90; Address AIC90 0xC90;
+TM 1/2 Hz AIC AICC90; Address AICC90 0xC91;
+TM 1/2 Hz AI16 AICB0; Address AICB0 0xCB0;
+TM 1/2 Hz AIC AICCB0; Address AICCB0 0xCB1;
+TM 1/2 Hz AI16 AICD0; Address AICD0 0xCD0;
+TM 1/2 Hz AIC AICCD0; Address AICCD0 0xCD1;
+TM 1/2 Hz AI16 AICF0; Address AICF0 0xCF0;
+TM 1/2 Hz AIC AICCF0; Address AICCF0 0xCF1;
+
+Group Col0Bank1 ( AIC10, AICC10, AIC30, AICC30, AIC50, AICC50, AIC70, AICC70, AIC90, AICC90, AICB0, AICCB0, AICD0, AICCD0, AICF0, AICCF0 ) {
+  AIC10 = sbrwa(AIC10.address);
+  AICC10 = sbrwa(AICC10.address);
+  AIC30 = sbrwa(AIC30.address);
+  AICC30 = sbrwa(AICC30.address);
+  AIC50 = sbrwa(AIC50.address);
+  AICC50 = sbrwa(AICC50.address);
+  AIC70 = sbrwa(AIC70.address);
+  AICC70 = sbrwa(AICC70.address);
+  AIC90 = sbrwa(AIC90.address);
+  AICC90 = sbrwa(AICC90.address);
+  AICB0 = sbrwa(AICB0.address);
+  AICCB0 = sbrwa(AICCB0.address);
+  AICD0 = sbrwa(AICD0.address);
+  AICCD0 = sbrwa(AICCD0.address);
+  AICF0 = sbrwa(AICF0.address);
+  AICCF0 = sbrwa(AICCF0.address);
+}
+
+TM 1/2 Hz AI16 AIC02; Address AIC02 0xC02;
+TM 1/2 Hz AIC AICC02; Address AICC02 0xC03;
+TM 1/2 Hz AI16 AIC22; Address AIC22 0xC22;
+TM 1/2 Hz AIC AICC22; Address AICC22 0xC23;
+TM 1/2 Hz AI16 AIC42; Address AIC42 0xC42;
+TM 1/2 Hz AIC AICC42; Address AICC42 0xC43;
+TM 1/2 Hz AI16 AIC62; Address AIC62 0xC62;
+TM 1/2 Hz AIC AICC62; Address AICC62 0xC63;
+TM 1/2 Hz AI16 AIC82; Address AIC82 0xC82;
+TM 1/2 Hz AIC AICC82; Address AICC82 0xC83;
+TM 1/2 Hz AI16 AICA2; Address AICA2 0xCA2;
+TM 1/2 Hz AIC AICCA2; Address AICCA2 0xCA3;
+TM 1/2 Hz AI16 AICC2; Address AICC2 0xCC2;
+TM 1/2 Hz AIC AICCC2; Address AICCC2 0xCC3;
+TM 1/2 Hz AI16 AICE2; Address AICE2 0xCE2;
+TM 1/2 Hz AIC AICCE2; Address AICCE2 0xCE3;
+
+Group Col1Bank0 ( AIC02, AICC02, AIC22, AICC22, AIC42, AICC42, AIC62, AICC62, AIC82, AICC82, AICA2, AICCA2, AICC2, AICCC2, AICE2, AICCE2 ) {
+  AIC02 = sbrwa(AIC02.address);
+  AICC02 = sbrwa(AICC02.address);
+  AIC22 = sbrwa(AIC22.address);
+  AICC22 = sbrwa(AICC22.address);
+  AIC42 = sbrwa(AIC42.address);
+  AICC42 = sbrwa(AICC42.address);
+  AIC62 = sbrwa(AIC62.address);
+  AICC62 = sbrwa(AICC62.address);
+  AIC82 = sbrwa(AIC82.address);
+  AICC82 = sbrwa(AICC82.address);
+  AICA2 = sbrwa(AICA2.address);
+  AICCA2 = sbrwa(AICCA2.address);
+  AICC2 = sbrwa(AICC2.address);
+  AICCC2 = sbrwa(AICCC2.address);
+  AICE2 = sbrwa(AICE2.address);
+  AICCE2 = sbrwa(AICCE2.address);
+}
+
+TM 1/2 Hz AI16 AIC12; Address AIC12 0xC12;
+TM 1/2 Hz AIC AICC12; Address AICC12 0xC13;
+TM 1/2 Hz AI16 AIC32; Address AIC32 0xC32;
+TM 1/2 Hz AIC AICC32; Address AICC32 0xC33;
+TM 1/2 Hz AI16 AIC52; Address AIC52 0xC52;
+TM 1/2 Hz AIC AICC52; Address AICC52 0xC53;
+TM 1/2 Hz AI16 AIC72; Address AIC72 0xC72;
+TM 1/2 Hz AIC AICC72; Address AICC72 0xC73;
+TM 1/2 Hz AI16 AIC92; Address AIC92 0xC92;
+TM 1/2 Hz AIC AICC92; Address AICC92 0xC93;
+TM 1/2 Hz AI16 AICB2; Address AICB2 0xCB2;
+TM 1/2 Hz AIC AICCB2; Address AICCB2 0xCB3;
+TM 1/2 Hz AI16 AICD2; Address AICD2 0xCD2;
+TM 1/2 Hz AIC AICCD2; Address AICCD2 0xCD3;
+TM 1/2 Hz AI16 AICF2; Address AICF2 0xCF2;
+TM 1/2 Hz AIC AICCF2; Address AICCF2 0xCF3;
+
+Group Col1Bank1 ( AIC12, AICC12, AIC32, AICC32, AIC52, AICC52, AIC72, AICC72, AIC92, AICC92, AICB2, AICCB2, AICD2, AICCD2, AICF2, AICCF2 ) {
+  AIC12 = sbrwa(AIC12.address);
+  AICC12 = sbrwa(AICC12.address);
+  AIC32 = sbrwa(AIC32.address);
+  AICC32 = sbrwa(AICC32.address);
+  AIC52 = sbrwa(AIC52.address);
+  AICC52 = sbrwa(AICC52.address);
+  AIC72 = sbrwa(AIC72.address);
+  AICC72 = sbrwa(AICC72.address);
+  AIC92 = sbrwa(AIC92.address);
+  AICC92 = sbrwa(AICC92.address);
+  AICB2 = sbrwa(AICB2.address);
+  AICCB2 = sbrwa(AICCB2.address);
+  AICD2 = sbrwa(AICD2.address);
+  AICCD2 = sbrwa(AICCD2.address);
+  AICF2 = sbrwa(AICF2.address);
+  AICCF2 = sbrwa(AICCF2.address);
+}
+
+TM 1/2 Hz AI16 AIC04; Address AIC04 0xC04;
+TM 1/2 Hz AIC AICC04; Address AICC04 0xC05;
+TM 1/2 Hz AI16 AIC24; Address AIC24 0xC24;
+TM 1/2 Hz AIC AICC24; Address AICC24 0xC25;
+TM 1/2 Hz AI16 AIC44; Address AIC44 0xC44;
+TM 1/2 Hz AIC AICC44; Address AICC44 0xC45;
+TM 1/2 Hz AI16 AIC64; Address AIC64 0xC64;
+TM 1/2 Hz AIC AICC64; Address AICC64 0xC65;
+TM 1/2 Hz AI16 AIC84; Address AIC84 0xC84;
+TM 1/2 Hz AIC AICC84; Address AICC84 0xC85;
+TM 1/2 Hz AI16 AICA4; Address AICA4 0xCA4;
+TM 1/2 Hz AIC AICCA4; Address AICCA4 0xCA5;
+TM 1/2 Hz AI16 AICC4; Address AICC4 0xCC4;
+TM 1/2 Hz AIC AICCC4; Address AICCC4 0xCC5;
+TM 1/2 Hz AI16 AICE4; Address AICE4 0xCE4;
+TM 1/2 Hz AIC AICCE4; Address AICCE4 0xCE5;
+
+Group Col2Bank0 ( AIC04, AICC04, AIC24, AICC24, AIC44, AICC44, AIC64, AICC64, AIC84, AICC84, AICA4, AICCA4, AICC4, AICCC4, AICE4, AICCE4 ) {
+  AIC04 = sbrwa(AIC04.address);
+  AICC04 = sbrwa(AICC04.address);
+  AIC24 = sbrwa(AIC24.address);
+  AICC24 = sbrwa(AICC24.address);
+  AIC44 = sbrwa(AIC44.address);
+  AICC44 = sbrwa(AICC44.address);
+  AIC64 = sbrwa(AIC64.address);
+  AICC64 = sbrwa(AICC64.address);
+  AIC84 = sbrwa(AIC84.address);
+  AICC84 = sbrwa(AICC84.address);
+  AICA4 = sbrwa(AICA4.address);
+  AICCA4 = sbrwa(AICCA4.address);
+  AICC4 = sbrwa(AICC4.address);
+  AICCC4 = sbrwa(AICCC4.address);
+  AICE4 = sbrwa(AICE4.address);
+  AICCE4 = sbrwa(AICCE4.address);
+}
+
+TM 1/2 Hz AI16 AIC14; Address AIC14 0xC14;
+TM 1/2 Hz AIC AICC14; Address AICC14 0xC15;
+TM 1/2 Hz AI16 AIC34; Address AIC34 0xC34;
+TM 1/2 Hz AIC AICC34; Address AICC34 0xC35;
+TM 1/2 Hz AI16 AIC54; Address AIC54 0xC54;
+TM 1/2 Hz AIC AICC54; Address AICC54 0xC55;
+TM 1/2 Hz AI16 AIC74; Address AIC74 0xC74;
+TM 1/2 Hz AIC AICC74; Address AICC74 0xC75;
+TM 1/2 Hz AI16 AIC94; Address AIC94 0xC94;
+TM 1/2 Hz AIC AICC94; Address AICC94 0xC95;
+TM 1/2 Hz AI16 AICB4; Address AICB4 0xCB4;
+TM 1/2 Hz AIC AICCB4; Address AICCB4 0xCB5;
+TM 1/2 Hz AI16 AICD4; Address AICD4 0xCD4;
+TM 1/2 Hz AIC AICCD4; Address AICCD4 0xCD5;
+TM 1/2 Hz AI16 AICF4; Address AICF4 0xCF4;
+TM 1/2 Hz AIC AICCF4; Address AICCF4 0xCF5;
+
+Group Col2Bank1 ( AIC14, AICC14, AIC34, AICC34, AIC54, AICC54, AIC74, AICC74, AIC94, AICC94, AICB4, AICCB4, AICD4, AICCD4, AICF4, AICCF4 ) {
+  AIC14 = sbrwa(AIC14.address);
+  AICC14 = sbrwa(AICC14.address);
+  AIC34 = sbrwa(AIC34.address);
+  AICC34 = sbrwa(AICC34.address);
+  AIC54 = sbrwa(AIC54.address);
+  AICC54 = sbrwa(AICC54.address);
+  AIC74 = sbrwa(AIC74.address);
+  AICC74 = sbrwa(AICC74.address);
+  AIC94 = sbrwa(AIC94.address);
+  AICC94 = sbrwa(AICC94.address);
+  AICB4 = sbrwa(AICB4.address);
+  AICCB4 = sbrwa(AICCB4.address);
+  AICD4 = sbrwa(AICD4.address);
+  AICCD4 = sbrwa(AICCD4.address);
+  AICF4 = sbrwa(AICF4.address);
+  AICCF4 = sbrwa(AICCF4.address);
+}
+
+TM 1/2 Hz AI16 AIC06; Address AIC06 0xC06;
+TM 1/2 Hz AIC AICC06; Address AICC06 0xC07;
+TM 1/2 Hz AI16 AIC26; Address AIC26 0xC26;
+TM 1/2 Hz AIC AICC26; Address AICC26 0xC27;
+TM 1/2 Hz AI16 AIC46; Address AIC46 0xC46;
+TM 1/2 Hz AIC AICC46; Address AICC46 0xC47;
+TM 1/2 Hz AI16 AIC66; Address AIC66 0xC66;
+TM 1/2 Hz AIC AICC66; Address AICC66 0xC67;
+TM 1/2 Hz AI16 AIC86; Address AIC86 0xC86;
+TM 1/2 Hz AIC AICC86; Address AICC86 0xC87;
+TM 1/2 Hz AI16 AICA6; Address AICA6 0xCA6;
+TM 1/2 Hz AIC AICCA6; Address AICCA6 0xCA7;
+TM 1/2 Hz AI16 AICC6; Address AICC6 0xCC6;
+TM 1/2 Hz AIC AICCC6; Address AICCC6 0xCC7;
+TM 1/2 Hz AI16 AICE6; Address AICE6 0xCE6;
+TM 1/2 Hz AIC AICCE6; Address AICCE6 0xCE7;
+
+Group Col3Bank0 ( AIC06, AICC06, AIC26, AICC26, AIC46, AICC46, AIC66, AICC66, AIC86, AICC86, AICA6, AICCA6, AICC6, AICCC6, AICE6, AICCE6 ) {
+  AIC06 = sbrwa(AIC06.address);
+  AICC06 = sbrwa(AICC06.address);
+  AIC26 = sbrwa(AIC26.address);
+  AICC26 = sbrwa(AICC26.address);
+  AIC46 = sbrwa(AIC46.address);
+  AICC46 = sbrwa(AICC46.address);
+  AIC66 = sbrwa(AIC66.address);
+  AICC66 = sbrwa(AICC66.address);
+  AIC86 = sbrwa(AIC86.address);
+  AICC86 = sbrwa(AICC86.address);
+  AICA6 = sbrwa(AICA6.address);
+  AICCA6 = sbrwa(AICCA6.address);
+  AICC6 = sbrwa(AICC6.address);
+  AICCC6 = sbrwa(AICCC6.address);
+  AICE6 = sbrwa(AICE6.address);
+  AICCE6 = sbrwa(AICCE6.address);
+}
+
+TM 1/2 Hz AI16 AIC16; Address AIC16 0xC16;
+TM 1/2 Hz AIC AICC16; Address AICC16 0xC17;
+TM 1/2 Hz AI16 AIC36; Address AIC36 0xC36;
+TM 1/2 Hz AIC AICC36; Address AICC36 0xC37;
+TM 1/2 Hz AI16 AIC56; Address AIC56 0xC56;
+TM 1/2 Hz AIC AICC56; Address AICC56 0xC57;
+TM 1/2 Hz AI16 AIC76; Address AIC76 0xC76;
+TM 1/2 Hz AIC AICC76; Address AICC76 0xC77;
+TM 1/2 Hz AI16 AIC96; Address AIC96 0xC96;
+TM 1/2 Hz AIC AICC96; Address AICC96 0xC97;
+TM 1/2 Hz AI16 AICB6; Address AICB6 0xCB6;
+TM 1/2 Hz AIC AICCB6; Address AICCB6 0xCB7;
+TM 1/2 Hz AI16 AICD6; Address AICD6 0xCD6;
+TM 1/2 Hz AIC AICCD6; Address AICCD6 0xCD7;
+TM 1/2 Hz AI16 AICF6; Address AICF6 0xCF6;
+TM 1/2 Hz AIC AICCF6; Address AICCF6 0xCF7;
+
+Group Col3Bank1 ( AIC16, AICC16, AIC36, AICC36, AIC56, AICC56, AIC76, AICC76, AIC96, AICC96, AICB6, AICCB6, AICD6, AICCD6, AICF6, AICCF6 ) {
+  AIC16 = sbrwa(AIC16.address);
+  AICC16 = sbrwa(AICC16.address);
+  AIC36 = sbrwa(AIC36.address);
+  AICC36 = sbrwa(AICC36.address);
+  AIC56 = sbrwa(AIC56.address);
+  AICC56 = sbrwa(AICC56.address);
+  AIC76 = sbrwa(AIC76.address);
+  AICC76 = sbrwa(AICC76.address);
+  AIC96 = sbrwa(AIC96.address);
+  AICC96 = sbrwa(AICC96.address);
+  AICB6 = sbrwa(AICB6.address);
+  AICCB6 = sbrwa(AICCB6.address);
+  AICD6 = sbrwa(AICD6.address);
+  AICCD6 = sbrwa(AICCD6.address);
+  AICF6 = sbrwa(AICF6.address);
+  AICCF6 = sbrwa(AICCF6.address);
+}
+
+TM 1/2 Hz AI16 AIC08; Address AIC08 0xC08;
+TM 1/2 Hz AIC AICC08; Address AICC08 0xC09;
+TM 1/2 Hz AI16 AIC28; Address AIC28 0xC28;
+TM 1/2 Hz AIC AICC28; Address AICC28 0xC29;
+TM 1/2 Hz AI16 AIC48; Address AIC48 0xC48;
+TM 1/2 Hz AIC AICC48; Address AICC48 0xC49;
+TM 1/2 Hz AI16 AIC68; Address AIC68 0xC68;
+TM 1/2 Hz AIC AICC68; Address AICC68 0xC69;
+TM 1/2 Hz AI16 AIC88; Address AIC88 0xC88;
+TM 1/2 Hz AIC AICC88; Address AICC88 0xC89;
+TM 1/2 Hz AI16 AICA8; Address AICA8 0xCA8;
+TM 1/2 Hz AIC AICCA8; Address AICCA8 0xCA9;
+TM 1/2 Hz AI16 AICC8; Address AICC8 0xCC8;
+TM 1/2 Hz AIC AICCC8; Address AICCC8 0xCC9;
+TM 1/2 Hz AI16 AICE8; Address AICE8 0xCE8;
+TM 1/2 Hz AIC AICCE8; Address AICCE8 0xCE9;
+
+Group Col4Bank0 ( AIC08, AICC08, AIC28, AICC28, AIC48, AICC48, AIC68, AICC68, AIC88, AICC88, AICA8, AICCA8, AICC8, AICCC8, AICE8, AICCE8 ) {
+  AIC08 = sbrwa(AIC08.address);
+  AICC08 = sbrwa(AICC08.address);
+  AIC28 = sbrwa(AIC28.address);
+  AICC28 = sbrwa(AICC28.address);
+  AIC48 = sbrwa(AIC48.address);
+  AICC48 = sbrwa(AICC48.address);
+  AIC68 = sbrwa(AIC68.address);
+  AICC68 = sbrwa(AICC68.address);
+  AIC88 = sbrwa(AIC88.address);
+  AICC88 = sbrwa(AICC88.address);
+  AICA8 = sbrwa(AICA8.address);
+  AICCA8 = sbrwa(AICCA8.address);
+  AICC8 = sbrwa(AICC8.address);
+  AICCC8 = sbrwa(AICCC8.address);
+  AICE8 = sbrwa(AICE8.address);
+  AICCE8 = sbrwa(AICCE8.address);
+}
+
+TM 1/2 Hz AI16 AIC18; Address AIC18 0xC18;
+TM 1/2 Hz AIC AICC18; Address AICC18 0xC19;
+TM 1/2 Hz AI16 AIC38; Address AIC38 0xC38;
+TM 1/2 Hz AIC AICC38; Address AICC38 0xC39;
+TM 1/2 Hz AI16 AIC58; Address AIC58 0xC58;
+TM 1/2 Hz AIC AICC58; Address AICC58 0xC59;
+TM 1/2 Hz AI16 AIC78; Address AIC78 0xC78;
+TM 1/2 Hz AIC AICC78; Address AICC78 0xC79;
+TM 1/2 Hz AI16 AIC98; Address AIC98 0xC98;
+TM 1/2 Hz AIC AICC98; Address AICC98 0xC99;
+TM 1/2 Hz AI16 AICB8; Address AICB8 0xCB8;
+TM 1/2 Hz AIC AICCB8; Address AICCB8 0xCB9;
+TM 1/2 Hz AI16 AICD8; Address AICD8 0xCD8;
+TM 1/2 Hz AIC AICCD8; Address AICCD8 0xCD9;
+TM 1/2 Hz AI16 AICF8; Address AICF8 0xCF8;
+TM 1/2 Hz AIC AICCF8; Address AICCF8 0xCF9;
+
+Group Col4Bank1 ( AIC18, AICC18, AIC38, AICC38, AIC58, AICC58, AIC78, AICC78, AIC98, AICC98, AICB8, AICCB8, AICD8, AICCD8, AICF8, AICCF8 ) {
+  AIC18 = sbrwa(AIC18.address);
+  AICC18 = sbrwa(AICC18.address);
+  AIC38 = sbrwa(AIC38.address);
+  AICC38 = sbrwa(AICC38.address);
+  AIC58 = sbrwa(AIC58.address);
+  AICC58 = sbrwa(AICC58.address);
+  AIC78 = sbrwa(AIC78.address);
+  AICC78 = sbrwa(AICC78.address);
+  AIC98 = sbrwa(AIC98.address);
+  AICC98 = sbrwa(AICC98.address);
+  AICB8 = sbrwa(AICB8.address);
+  AICCB8 = sbrwa(AICCB8.address);
+  AICD8 = sbrwa(AICD8.address);
+  AICCD8 = sbrwa(AICCD8.address);
+  AICF8 = sbrwa(AICF8.address);
+  AICCF8 = sbrwa(AICCF8.address);
+}
+
+TM 1/2 Hz AI16 AIC0A; Address AIC0A 0xC0A;
+TM 1/2 Hz AIC AICC0A; Address AICC0A 0xC0B;
+TM 1/2 Hz AI16 AIC2A; Address AIC2A 0xC2A;
+TM 1/2 Hz AIC AICC2A; Address AICC2A 0xC2B;
+TM 1/2 Hz AI16 AIC4A; Address AIC4A 0xC4A;
+TM 1/2 Hz AIC AICC4A; Address AICC4A 0xC4B;
+TM 1/2 Hz AI16 AIC6A; Address AIC6A 0xC6A;
+TM 1/2 Hz AIC AICC6A; Address AICC6A 0xC6B;
+TM 1/2 Hz AI16 AIC8A; Address AIC8A 0xC8A;
+TM 1/2 Hz AIC AICC8A; Address AICC8A 0xC8B;
+TM 1/2 Hz AI16 AICAA; Address AICAA 0xCAA;
+TM 1/2 Hz AIC AICCAA; Address AICCAA 0xCAB;
+TM 1/2 Hz AI16 AICCA; Address AICCA 0xCCA;
+TM 1/2 Hz AIC AICCCA; Address AICCCA 0xCCB;
+TM 1/2 Hz AI16 AICEA; Address AICEA 0xCEA;
+TM 1/2 Hz AIC AICCEA; Address AICCEA 0xCEB;
+
+Group Col5Bank0 ( AIC0A, AICC0A, AIC2A, AICC2A, AIC4A, AICC4A, AIC6A, AICC6A, AIC8A, AICC8A, AICAA, AICCAA, AICCA, AICCCA, AICEA, AICCEA ) {
+  AIC0A = sbrwa(AIC0A.address);
+  AICC0A = sbrwa(AICC0A.address);
+  AIC2A = sbrwa(AIC2A.address);
+  AICC2A = sbrwa(AICC2A.address);
+  AIC4A = sbrwa(AIC4A.address);
+  AICC4A = sbrwa(AICC4A.address);
+  AIC6A = sbrwa(AIC6A.address);
+  AICC6A = sbrwa(AICC6A.address);
+  AIC8A = sbrwa(AIC8A.address);
+  AICC8A = sbrwa(AICC8A.address);
+  AICAA = sbrwa(AICAA.address);
+  AICCAA = sbrwa(AICCAA.address);
+  AICCA = sbrwa(AICCA.address);
+  AICCCA = sbrwa(AICCCA.address);
+  AICEA = sbrwa(AICEA.address);
+  AICCEA = sbrwa(AICCEA.address);
+}
+
+TM 1/2 Hz AI16 AIC1A; Address AIC1A 0xC1A;
+TM 1/2 Hz AIC AICC1A; Address AICC1A 0xC1B;
+TM 1/2 Hz AI16 AIC3A; Address AIC3A 0xC3A;
+TM 1/2 Hz AIC AICC3A; Address AICC3A 0xC3B;
+TM 1/2 Hz AI16 AIC5A; Address AIC5A 0xC5A;
+TM 1/2 Hz AIC AICC5A; Address AICC5A 0xC5B;
+TM 1/2 Hz AI16 AIC7A; Address AIC7A 0xC7A;
+TM 1/2 Hz AIC AICC7A; Address AICC7A 0xC7B;
+TM 1/2 Hz AI16 AIC9A; Address AIC9A 0xC9A;
+TM 1/2 Hz AIC AICC9A; Address AICC9A 0xC9B;
+TM 1/2 Hz AI16 AICBA; Address AICBA 0xCBA;
+TM 1/2 Hz AIC AICCBA; Address AICCBA 0xCBB;
+TM 1/2 Hz AI16 AICDA; Address AICDA 0xCDA;
+TM 1/2 Hz AIC AICCDA; Address AICCDA 0xCDB;
+TM 1/2 Hz AI16 AICFA; Address AICFA 0xCFA;
+TM 1/2 Hz AIC AICCFA; Address AICCFA 0xCFB;
+
+Group Col5Bank1 ( AIC1A, AICC1A, AIC3A, AICC3A, AIC5A, AICC5A, AIC7A, AICC7A, AIC9A, AICC9A, AICBA, AICCBA, AICDA, AICCDA, AICFA, AICCFA ) {
+  AIC1A = sbrwa(AIC1A.address);
+  AICC1A = sbrwa(AICC1A.address);
+  AIC3A = sbrwa(AIC3A.address);
+  AICC3A = sbrwa(AICC3A.address);
+  AIC5A = sbrwa(AIC5A.address);
+  AICC5A = sbrwa(AICC5A.address);
+  AIC7A = sbrwa(AIC7A.address);
+  AICC7A = sbrwa(AICC7A.address);
+  AIC9A = sbrwa(AIC9A.address);
+  AICC9A = sbrwa(AICC9A.address);
+  AICBA = sbrwa(AICBA.address);
+  AICCBA = sbrwa(AICCBA.address);
+  AICDA = sbrwa(AICDA.address);
+  AICCDA = sbrwa(AICCDA.address);
+  AICFA = sbrwa(AICFA.address);
+  AICCFA = sbrwa(AICCFA.address);
+}
+
+TM 1/2 Hz AI16 AIC0C; Address AIC0C 0xC0C;
+TM 1/2 Hz AIC AICC0C; Address AICC0C 0xC0D;
+TM 1/2 Hz AI16 AIC2C; Address AIC2C 0xC2C;
+TM 1/2 Hz AIC AICC2C; Address AICC2C 0xC2D;
+TM 1/2 Hz AI16 AIC4C; Address AIC4C 0xC4C;
+TM 1/2 Hz AIC AICC4C; Address AICC4C 0xC4D;
+TM 1/2 Hz AI16 AIC6C; Address AIC6C 0xC6C;
+TM 1/2 Hz AIC AICC6C; Address AICC6C 0xC6D;
+TM 1/2 Hz AI16 AIC8C; Address AIC8C 0xC8C;
+TM 1/2 Hz AIC AICC8C; Address AICC8C 0xC8D;
+TM 1/2 Hz AI16 AICAC; Address AICAC 0xCAC;
+TM 1/2 Hz AIC AICCAC; Address AICCAC 0xCAD;
+TM 1/2 Hz AI16 AICCC; Address AICCC 0xCCC;
+TM 1/2 Hz AIC AICCCC; Address AICCCC 0xCCD;
+TM 1/2 Hz AI16 AICEC; Address AICEC 0xCEC;
+TM 1/2 Hz AIC AICCEC; Address AICCEC 0xCED;
+
+Group Col6Bank0 ( AIC0C, AICC0C, AIC2C, AICC2C, AIC4C, AICC4C, AIC6C, AICC6C, AIC8C, AICC8C, AICAC, AICCAC, AICCC, AICCCC, AICEC, AICCEC ) {
+  AIC0C = sbrwa(AIC0C.address);
+  AICC0C = sbrwa(AICC0C.address);
+  AIC2C = sbrwa(AIC2C.address);
+  AICC2C = sbrwa(AICC2C.address);
+  AIC4C = sbrwa(AIC4C.address);
+  AICC4C = sbrwa(AICC4C.address);
+  AIC6C = sbrwa(AIC6C.address);
+  AICC6C = sbrwa(AICC6C.address);
+  AIC8C = sbrwa(AIC8C.address);
+  AICC8C = sbrwa(AICC8C.address);
+  AICAC = sbrwa(AICAC.address);
+  AICCAC = sbrwa(AICCAC.address);
+  AICCC = sbrwa(AICCC.address);
+  AICCCC = sbrwa(AICCCC.address);
+  AICEC = sbrwa(AICEC.address);
+  AICCEC = sbrwa(AICCEC.address);
+}
+
+TM 1/2 Hz AI16 AIC1C; Address AIC1C 0xC1C;
+TM 1/2 Hz AIC AICC1C; Address AICC1C 0xC1D;
+TM 1/2 Hz AI16 AIC3C; Address AIC3C 0xC3C;
+TM 1/2 Hz AIC AICC3C; Address AICC3C 0xC3D;
+TM 1/2 Hz AI16 AIC5C; Address AIC5C 0xC5C;
+TM 1/2 Hz AIC AICC5C; Address AICC5C 0xC5D;
+TM 1/2 Hz AI16 AIC7C; Address AIC7C 0xC7C;
+TM 1/2 Hz AIC AICC7C; Address AICC7C 0xC7D;
+TM 1/2 Hz AI16 AIC9C; Address AIC9C 0xC9C;
+TM 1/2 Hz AIC AICC9C; Address AICC9C 0xC9D;
+TM 1/2 Hz AI16 AICBC; Address AICBC 0xCBC;
+TM 1/2 Hz AIC AICCBC; Address AICCBC 0xCBD;
+TM 1/2 Hz AI16 AICDC; Address AICDC 0xCDC;
+TM 1/2 Hz AIC AICCDC; Address AICCDC 0xCDD;
+TM 1/2 Hz AI16 AICFC; Address AICFC 0xCFC;
+TM 1/2 Hz AIC AICCFC; Address AICCFC 0xCFD;
+
+Group Col6Bank1 ( AIC1C, AICC1C, AIC3C, AICC3C, AIC5C, AICC5C, AIC7C, AICC7C, AIC9C, AICC9C, AICBC, AICCBC, AICDC, AICCDC, AICFC, AICCFC ) {
+  AIC1C = sbrwa(AIC1C.address);
+  AICC1C = sbrwa(AICC1C.address);
+  AIC3C = sbrwa(AIC3C.address);
+  AICC3C = sbrwa(AICC3C.address);
+  AIC5C = sbrwa(AIC5C.address);
+  AICC5C = sbrwa(AICC5C.address);
+  AIC7C = sbrwa(AIC7C.address);
+  AICC7C = sbrwa(AICC7C.address);
+  AIC9C = sbrwa(AIC9C.address);
+  AICC9C = sbrwa(AICC9C.address);
+  AICBC = sbrwa(AICBC.address);
+  AICCBC = sbrwa(AICCBC.address);
+  AICDC = sbrwa(AICDC.address);
+  AICCDC = sbrwa(AICCDC.address);
+  AICFC = sbrwa(AICFC.address);
+  AICCFC = sbrwa(AICCFC.address);
+}
+
+TM 1/2 Hz AI16 AIC0E; Address AIC0E 0xC0E;
+TM 1/2 Hz AIC AICC0E; Address AICC0E 0xC0F;
+TM 1/2 Hz AI16 AIC2E; Address AIC2E 0xC2E;
+TM 1/2 Hz AIC AICC2E; Address AICC2E 0xC2F;
+TM 1/2 Hz AI16 AIC4E; Address AIC4E 0xC4E;
+TM 1/2 Hz AIC AICC4E; Address AICC4E 0xC4F;
+TM 1/2 Hz AI16 AIC6E; Address AIC6E 0xC6E;
+TM 1/2 Hz AIC AICC6E; Address AICC6E 0xC6F;
+TM 1/2 Hz AI16 AIC8E; Address AIC8E 0xC8E;
+TM 1/2 Hz AIC AICC8E; Address AICC8E 0xC8F;
+TM 1/2 Hz AI16 AICAE; Address AICAE 0xCAE;
+TM 1/2 Hz AIC AICCAE; Address AICCAE 0xCAF;
+TM 1/2 Hz AI16 AICCE; Address AICCE 0xCCE;
+TM 1/2 Hz AIC AICCCE; Address AICCCE 0xCCF;
+TM 1/2 Hz AI16 AICEE; Address AICEE 0xCEE;
+TM 1/2 Hz AIC AICCEE; Address AICCEE 0xCEF;
+
+Group Col7Bank0 ( AIC0E, AICC0E, AIC2E, AICC2E, AIC4E, AICC4E, AIC6E, AICC6E, AIC8E, AICC8E, AICAE, AICCAE, AICCE, AICCCE, AICEE, AICCEE ) {
+  AIC0E = sbrwa(AIC0E.address);
+  AICC0E = sbrwa(AICC0E.address);
+  AIC2E = sbrwa(AIC2E.address);
+  AICC2E = sbrwa(AICC2E.address);
+  AIC4E = sbrwa(AIC4E.address);
+  AICC4E = sbrwa(AICC4E.address);
+  AIC6E = sbrwa(AIC6E.address);
+  AICC6E = sbrwa(AICC6E.address);
+  AIC8E = sbrwa(AIC8E.address);
+  AICC8E = sbrwa(AICC8E.address);
+  AICAE = sbrwa(AICAE.address);
+  AICCAE = sbrwa(AICCAE.address);
+  AICCE = sbrwa(AICCE.address);
+  AICCCE = sbrwa(AICCCE.address);
+  AICEE = sbrwa(AICEE.address);
+  AICCEE = sbrwa(AICCEE.address);
+}
+
+TM 1/2 Hz AI16 AIC1E; Address AIC1E 0xC1E;
+TM 1/2 Hz AIC AICC1E; Address AICC1E 0xC1F;
+TM 1/2 Hz AI16 AIC3E; Address AIC3E 0xC3E;
+TM 1/2 Hz AIC AICC3E; Address AICC3E 0xC3F;
+TM 1/2 Hz AI16 AIC5E; Address AIC5E 0xC5E;
+TM 1/2 Hz AIC AICC5E; Address AICC5E 0xC5F;
+TM 1/2 Hz AI16 AIC7E; Address AIC7E 0xC7E;
+TM 1/2 Hz AIC AICC7E; Address AICC7E 0xC7F;
+TM 1/2 Hz AI16 AIC9E; Address AIC9E 0xC9E;
+TM 1/2 Hz AIC AICC9E; Address AICC9E 0xC9F;
+TM 1/2 Hz AI16 AICBE; Address AICBE 0xCBE;
+TM 1/2 Hz AIC AICCBE; Address AICCBE 0xCBF;
+TM 1/2 Hz AI16 AICDE; Address AICDE 0xCDE;
+TM 1/2 Hz AIC AICCDE; Address AICCDE 0xCDF;
+TM 1/2 Hz AI16 AICFE; Address AICFE 0xCFE;
+TM 1/2 Hz AIC AICCFE; Address AICCFE 0xCFF;
+
+Group Col7Bank1 ( AIC1E, AICC1E, AIC3E, AICC3E, AIC5E, AICC5E, AIC7E, AICC7E, AIC9E, AICC9E, AICBE, AICCBE, AICDE, AICCDE, AICFE, AICCFE ) {
+  AIC1E = sbrwa(AIC1E.address);
+  AICC1E = sbrwa(AICC1E.address);
+  AIC3E = sbrwa(AIC3E.address);
+  AICC3E = sbrwa(AICC3E.address);
+  AIC5E = sbrwa(AIC5E.address);
+  AICC5E = sbrwa(AICC5E.address);
+  AIC7E = sbrwa(AIC7E.address);
+  AICC7E = sbrwa(AICC7E.address);
+  AIC9E = sbrwa(AIC9E.address);
+  AICC9E = sbrwa(AICC9E.address);
+  AICBE = sbrwa(AICBE.address);
+  AICCBE = sbrwa(AICCBE.address);
+  AICDE = sbrwa(AICDE.address);
+  AICCDE = sbrwa(AICCDE.address);
+  AICFE = sbrwa(AICFE.address);
+  AICCFE = sbrwa(AICCFE.address);
+}
+
