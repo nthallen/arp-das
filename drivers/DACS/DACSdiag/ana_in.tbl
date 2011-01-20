@@ -1,375 +1,48 @@
-bank0col0 {
-  "0:" (AIC00,5);
-  "2:" (AIC20,5);
-  "4:" (AIC40,5);
-  "6:" (AIC60,5);
-  "8:" (AIC80,5);
-  "A:" (AICA0,5);
-  "C:" (AICC0,5);
-  "E:" (AICE0,5);
+AD {
+  HBox { +-; "Bank 0"; -+ };
+  ""  >"0"  >"1"  >"2"  >"3"  >"4"  >"5"  >"6"  >"7";
+  "0:" (AIC00,6) (AIC02,6) (AIC04,6) (AIC06,6) (AIC08,6) (AIC0A,6) (AIC0C,6) (AIC0E,6);
+  "1:" (AIC20,6) (AIC22,6) (AIC24,6) (AIC26,6) (AIC28,6) (AIC2A,6) (AIC2C,6) (AIC2E,6);
+  "2:" (AIC40,6) (AIC42,6) (AIC44,6) (AIC46,6) (AIC48,6) (AIC4A,6) (AIC4C,6) (AIC4E,6);
+  "3:" (AIC60,6) (AIC62,6) (AIC64,6) (AIC66,6) (AIC68,6) (AIC6A,6) (AIC6C,6) (AIC6E,6);
+  "4:" (AIC80,6) (AIC82,6) (AIC84,6) (AIC86,6) (AIC88,6) (AIC8A,6) (AIC8C,6) (AIC8E,6);
+  "5:" (AICA0,6) (AICA2,6) (AICA4,6) (AICA6,6) (AICA8,6) (AICAA,6) (AICAC,6) (AICAE,6);
+  "6:" (AICC0,6) (AICC2,6) (AICC4,6) (AICC6,6) (AICC8,6) (AICCA,6) (AICCC,6) (AICCE,6);
+  "7:" (AICE0,6) (AICE2,6) (AICE4,6) (AICE6,6) (AICE8,6) (AICEA,6) (AICEC,6) (AICEE,6);
+  HBox { +-; "Bank 1"; -+ };
+  ""  >"0"  >"1"  >"2"  >"3"  >"4"  >"5"  >"6"  >"7";
+  "0:" (AIC10,6) (AIC12,6) (AIC14,6) (AIC16,6) (AIC18,6) (AIC1A,6) (AIC1C,6) (AIC1E,6);
+  "1:" (AIC30,6) (AIC32,6) (AIC34,6) (AIC36,6) (AIC38,6) (AIC3A,6) (AIC3C,6) (AIC3E,6);
+  "2:" (AIC50,6) (AIC52,6) (AIC54,6) (AIC56,6) (AIC58,6) (AIC5A,6) (AIC5C,6) (AIC5E,6);
+  "3:" (AIC70,6) (AIC72,6) (AIC74,6) (AIC76,6) (AIC78,6) (AIC7A,6) (AIC7C,6) (AIC7E,6);
+  "4:" (AIC90,6) (AIC92,6) (AIC94,6) (AIC96,6) (AIC98,6) (AIC9A,6) (AIC9C,6) (AIC9E,6);
+  "5:" (AICB0,6) (AICB2,6) (AICB4,6) (AICB6,6) (AICB8,6) (AICBA,6) (AICBC,6) (AICBE,6);
+  "6:" (AICD0,6) (AICD2,6) (AICD4,6) (AICD6,6) (AICD8,6) (AICDA,6) (AICDC,6) (AICDE,6);
+  "7:" (AICF0,6) (AICF2,6) (AICF4,6) (AICF6,6) (AICF8,6) (AICFA,6) (AICFC,6) (AICFE,6);
+  >HBox { -; "Configuration Bank 0"; - }<;
+  ""  >"0"  >"1"  >"2"  >"3"  >"4"  >"5"  >"6"  >"7";
+  "0:" (AICC00,4) (AICC02,4) (AICC04,4) (AICC06,4) (AICC08,4) (AICC0A,4) (AICC0C,4) (AICC0E,4);
+  "1:" (AICC20,4) (AICC22,4) (AICC24,4) (AICC26,4) (AICC28,4) (AICC2A,4) (AICC2C,4) (AICC2E,4);
+  "2:" (AICC40,4) (AICC42,4) (AICC44,4) (AICC46,4) (AICC48,4) (AICC4A,4) (AICC4C,4) (AICC4E,4);
+  "3:" (AICC60,4) (AICC62,4) (AICC64,4) (AICC66,4) (AICC68,4) (AICC6A,4) (AICC6C,4) (AICC6E,4);
+  "4:" (AICC80,4) (AICC82,4) (AICC84,4) (AICC86,4) (AICC88,4) (AICC8A,4) (AICC8C,4) (AICC8E,4);
+  "5:" (AICCA0,4) (AICCA2,4) (AICCA4,4) (AICCA6,4) (AICCA8,4) (AICCAA,4) (AICCAC,4) (AICCAE,4);
+  "6:" (AICCC0,4) (AICCC2,4) (AICCC4,4) (AICCC6,4) (AICCC8,4) (AICCCA,4) (AICCCC,4) (AICCCE,4);
+  "7:" (AICCE0,4) (AICCE2,4) (AICCE4,4) (AICCE6,4) (AICCE8,4) (AICCEA,4) (AICCEC,4) (AICCEE,4);
+  >HBox { -; "Configuration Bank 1"; - }<;
+  ""  >"0"  >"1"  >"2"  >"3"  >"4"  >"5"  >"6"  >"7";
+  "0:" (AICC10,4) (AICC12,4) (AICC14,4) (AICC16,4) (AICC18,4) (AICC1A,4) (AICC1C,4) (AICC1E,4);
+  "1:" (AICC30,4) (AICC32,4) (AICC34,4) (AICC36,4) (AICC38,4) (AICC3A,4) (AICC3C,4) (AICC3E,4);
+  "2:" (AICC50,4) (AICC52,4) (AICC54,4) (AICC56,4) (AICC58,4) (AICC5A,4) (AICC5C,4) (AICC5E,4);
+  "3:" (AICC70,4) (AICC72,4) (AICC74,4) (AICC76,4) (AICC78,4) (AICC7A,4) (AICC7C,4) (AICC7E,4);
+  "4:" (AICC90,4) (AICC92,4) (AICC94,4) (AICC96,4) (AICC98,4) (AICC9A,4) (AICC9C,4) (AICC9E,4);
+  "5:" (AICCB0,4) (AICCB2,4) (AICCB4,4) (AICCB6,4) (AICCB8,4) (AICCBA,4) (AICCBC,4) (AICCBE,4);
+  "6:" (AICCD0,4) (AICCD2,4) (AICCD4,4) (AICCD6,4) (AICCD8,4) (AICCDA,4) (AICCDC,4) (AICCDE,4);
+  "7:" (AICCF0,4) (AICCF2,4) (AICCF4,4) (AICCF6,4) (AICCF8,4) (AICCFA,4) (AICCFC,4) (AICCFE,4);
 }
 
-bank0col1 {
-  "0:" (AIC02,5);
-  "2:" (AIC22,5);
-  "4:" (AIC42,5);
-  "6:" (AIC62,5);
-  "8:" (AIC82,5);
-  "A:" (AICA2,5);
-  "C:" (AICC2,5);
-  "E:" (AICE2,5);
-}
-
-bank0col2 {
-  "0:" (AIC04,5);
-  "2:" (AIC24,5);
-  "4:" (AIC44,5);
-  "6:" (AIC64,5);
-  "8:" (AIC84,5);
-  "A:" (AICA4,5);
-  "C:" (AICC4,5);
-  "E:" (AICE4,5);
-}
-
-bank0col3 {
-  "0:" (AIC06,5);
-  "2:" (AIC26,5);
-  "4:" (AIC46,5);
-  "6:" (AIC66,5);
-  "8:" (AIC86,5);
-  "A:" (AICA6,5);
-  "C:" (AICC6,5);
-  "E:" (AICE6,5);
-}
-
-bank0col4 {
-  "0:" (AIC08,5);
-  "2:" (AIC28,5);
-  "4:" (AIC48,5);
-  "6:" (AIC68,5);
-  "8:" (AIC88,5);
-  "A:" (AICA8,5);
-  "C:" (AICC8,5);
-  "E:" (AICE8,5);
-}
-
-bank0col5 {
-  "0:" (AIC0A,5);
-  "2:" (AIC2A,5);
-  "4:" (AIC4A,5);
-  "6:" (AIC6A,5);
-  "8:" (AIC8A,5);
-  "A:" (AICAA,5);
-  "C:" (AICCA,5);
-  "E:" (AICEA,5);
-}
-
-bank0col6 {
-  "0:" (AIC0C,5);
-  "2:" (AIC2C,5);
-  "4:" (AIC4C,5);
-  "6:" (AIC6C,5);
-  "8:" (AIC8C,5);
-  "A:" (AICAC,5);
-  "C:" (AICCC,5);
-  "E:" (AICEC,5);
-}
-
-bank0col7 {
-  "0:" (AIC0E,5);
-  "2:" (AIC2E,5);
-  "4:" (AIC4E,5);
-  "6:" (AIC6E,5);
-  "8:" (AIC8E,5);
-  "A:" (AICAE,5);
-  "C:" (AICCE,5);
-  "E:" (AICEE,5);
-}
-
-bank1col0 {
-  "1:" (AIC10,5);
-  "3:" (AIC30,5);
-  "5:" (AIC50,5);
-  "7:" (AIC70,5);
-  "9:" (AIC90,5);
-  "B:" (AICB0,5);
-  "D:" (AICD0,5);
-  "F:" (AICF0,5);
-}
-
-bank1col1 {
-  "1:" (AIC12,5);
-  "3:" (AIC32,5);
-  "5:" (AIC52,5);
-  "7:" (AIC72,5);
-  "9:" (AIC92,5);
-  "B:" (AICB2,5);
-  "D:" (AICD2,5);
-  "F:" (AICF2,5);
-}
-
-bank1col2 {
-  "1:" (AIC14,5);
-  "3:" (AIC34,5);
-  "5:" (AIC54,5);
-  "7:" (AIC74,5);
-  "9:" (AIC94,5);
-  "B:" (AICB4,5);
-  "D:" (AICD4,5);
-  "F:" (AICF4,5);
-}
-
-bank1col3 {
-  "1:" (AIC16,5);
-  "3:" (AIC36,5);
-  "5:" (AIC56,5);
-  "7:" (AIC76,5);
-  "9:" (AIC96,5);
-  "B:" (AICB6,5);
-  "D:" (AICD6,5);
-  "F:" (AICF6,5);
-}
-
-bank1col4 {
-  "1:" (AIC18,5);
-  "3:" (AIC38,5);
-  "5:" (AIC58,5);
-  "7:" (AIC78,5);
-  "9:" (AIC98,5);
-  "B:" (AICB8,5);
-  "D:" (AICD8,5);
-  "F:" (AICF8,5);
-}
-
-bank1col5 {
-  "1:" (AIC1A,5);
-  "3:" (AIC3A,5);
-  "5:" (AIC5A,5);
-  "7:" (AIC7A,5);
-  "9:" (AIC9A,5);
-  "B:" (AICBA,5);
-  "D:" (AICDA,5);
-  "F:" (AICFA,5);
-}
-
-bank1col6 {
-  "1:" (AIC1C,5);
-  "3:" (AIC3C,5);
-  "5:" (AIC5C,5);
-  "7:" (AIC7C,5);
-  "9:" (AIC9C,5);
-  "B:" (AICBC,5);
-  "D:" (AICDC,5);
-  "F:" (AICFC,5);
-}
-
-bank1col7 {
-  "1:" (AIC1E,5);
-  "3:" (AIC3E,5);
-  "5:" (AIC5E,5);
-  "7:" (AIC7E,5);
-  "9:" (AIC9E,5);
-  "B:" (AICBE,5);
-  "D:" (AICDE,5);
-  "F:" (AICFE,5);
-}
-
-cfg_b0c0 {
-  "0:" (AICC00,5);
-  "2:" (AICC20,5);
-  "4:" (AICC40,5);
-  "6:" (AICC60,5);
-  "8:" (AICC80,5);
-  "A:" (AICCA0,5);
-  "C:" (AICCC0,5);
-  "E:" (AICCE0,5);
-}
-
-cfg_b0c1 {
-  "0:" (AICC02,5);
-  "2:" (AICC22,5);
-  "4:" (AICC42,5);
-  "6:" (AICC62,5);
-  "8:" (AICC82,5);
-  "A:" (AICCA2,5);
-  "C:" (AICCC2,5);
-  "E:" (AICCE2,5);
-}
-
-cfg_b0c2 {
-  "0:" (AICC04,5);
-  "2:" (AICC24,5);
-  "4:" (AICC44,5);
-  "6:" (AICC64,5);
-  "8:" (AICC84,5);
-  "A:" (AICCA4,5);
-  "C:" (AICCC4,5);
-  "E:" (AICCE4,5);
-}
-
-cfg_b0c3 {
-  "0:" (AICC06,5);
-  "2:" (AICC26,5);
-  "4:" (AICC46,5);
-  "6:" (AICC66,5);
-  "8:" (AICC86,5);
-  "A:" (AICCA6,5);
-  "C:" (AICCC6,5);
-  "E:" (AICCE6,5);
-}
-
-cfg_b0c4 {
-  "0:" (AICC08,5);
-  "2:" (AICC28,5);
-  "4:" (AICC48,5);
-  "6:" (AICC68,5);
-  "8:" (AICC88,5);
-  "A:" (AICCA8,5);
-  "C:" (AICCC8,5);
-  "E:" (AICCE8,5);
-}
-
-cfg_b0c5 {
-  "0:" (AICC0A,5);
-  "2:" (AICC2A,5);
-  "4:" (AICC4A,5);
-  "6:" (AICC6A,5);
-  "8:" (AICC8A,5);
-  "A:" (AICCAA,5);
-  "C:" (AICCCA,5);
-  "E:" (AICCEA,5);
-}
-
-cfg_b0c6 {
-  "0:" (AICC0C,5);
-  "2:" (AICC2C,5);
-  "4:" (AICC4C,5);
-  "6:" (AICC6C,5);
-  "8:" (AICC8C,5);
-  "A:" (AICCAC,5);
-  "C:" (AICCCC,5);
-  "E:" (AICCEC,5);
-}
-
-cfg_b0c7 {
-  "0:" (AICC0E,5);
-  "2:" (AICC2E,5);
-  "4:" (AICC4E,5);
-  "6:" (AICC6E,5);
-  "8:" (AICC8E,5);
-  "A:" (AICCAE,5);
-  "C:" (AICCCE,5);
-  "E:" (AICCEE,5);
-}
-
-cfg_b1c0 {
-  "1:" (AICC10,5);
-  "3:" (AICC30,5);
-  "5:" (AICC50,5);
-  "7:" (AICC70,5);
-  "9:" (AICC90,5);
-  "B:" (AICCB0,5);
-  "D:" (AICCD0,5);
-  "F:" (AICCF0,5);
-}
-
-cfg_b1c1 {
-  "1:" (AICC12,5);
-  "3:" (AICC32,5);
-  "5:" (AICC52,5);
-  "7:" (AICC72,5);
-  "9:" (AICC92,5);
-  "B:" (AICCB2,5);
-  "D:" (AICCD2,5);
-  "F:" (AICCF2,5);
-}
-
-cfg_b1c2 {
-  "1:" (AICC14,5);
-  "3:" (AICC34,5);
-  "5:" (AICC54,5);
-  "7:" (AICC74,5);
-  "9:" (AICC94,5);
-  "B:" (AICCB4,5);
-  "D:" (AICCD4,5);
-  "F:" (AICCF4,5);
-}
-
-cfg_b1c3 {
-  "1:" (AICC16,5);
-  "3:" (AICC36,5);
-  "5:" (AICC56,5);
-  "7:" (AICC76,5);
-  "9:" (AICC96,5);
-  "B:" (AICCB6,5);
-  "D:" (AICCD6,5);
-  "F:" (AICCF6,5);
-}
-
-cfg_b1c4 {
-  "1:" (AICC18,5);
-  "3:" (AICC38,5);
-  "5:" (AICC58,5);
-  "7:" (AICC78,5);
-  "9:" (AICC98,5);
-  "B:" (AICCB8,5);
-  "D:" (AICCD8,5);
-  "F:" (AICCF8,5);
-}
-
-cfg_b1c5 {
-  "1:" (AICC1A,5);
-  "3:" (AICC3A,5);
-  "5:" (AICC5A,5);
-  "7:" (AICC7A,5);
-  "9:" (AICC9A,5);
-  "B:" (AICCBA,5);
-  "D:" (AICCDA,5);
-  "F:" (AICCFA,5);
-}
-
-cfg_b1c6 {
-  "1:" (AICC1C,5);
-  "3:" (AICC3C,5);
-  "5:" (AICC5C,5);
-  "7:" (AICC7C,5);
-  "9:" (AICC9C,5);
-  "B:" (AICCBC,5);
-  "D:" (AICCDC,5);
-  "F:" (AICCFC,5);
-}
-
-cfg_b1c7 {
-  "1:" (AICC1E,5);
-  "3:" (AICC3E,5);
-  "5:" (AICC5E,5);
-  "7:" (AICC7E,5);
-  "9:" (AICC9E,5);
-  "B:" (AICCBE,5);
-  "D:" (AICCDE,5);
-  "F:" (AICCFE,5);
-}
-
-
-
-{ > "Analog Inputs: Bank 0" <;
-  HBox { [bank0col0]; |; [bank0col1]; |; [bank0col2]; |;
-	 [bank0col3]; |; [bank0col4]; |; [bank0col5]; |;
-	 [bank0col6]; |; [bank0col7] };
-  HBox { -; "Bank 1"; - };
-  HBox { [bank1col0]; |; [bank1col1]; |; [bank1col2]; |;
-	 [bank1col3]; |; [bank1col4]; |; [bank1col5]; |;
-	 [bank1col6]; |; [bank1col7] };
-  > "Configurations: Bank 0" <;
-  HBox { [cfg_b0c0]; |; [cfg_b0c1]; |; [cfg_b0c2]; |;
-	 [cfg_b0c3]; |; [cfg_b0c4]; |; [cfg_b0c5]; |;
-	 [cfg_b0c6]; |; [cfg_b0c7] };
-  HBox { -; "Bank 1"; - };
-  HBox { [cfg_b1c0]; |; [cfg_b1c1]; |; [cfg_b1c2]; |;
-	 [cfg_b1c3]; |; [cfg_b1c4]; |; [cfg_b1c5]; |;
-	 [cfg_b1c6]; |; [cfg_b1c7] };
+{
+  HBox { |+; [AD]; |+ };
   -;
-  >{ (flttime,8) (MFCtr,5) }
+    >{ Time: (flttime,8) MFCtr: (MFCtr,5) }
 }
-
-
