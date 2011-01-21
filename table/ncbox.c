@@ -248,7 +248,7 @@ PTGNode print_rules( int tblname ) {
   return rv;
 }
 
-PTGNode define_rules( void ) {
+PTGNode define_rules( int tblname ) {
   TableRule Rule;
   PTGNode rv = PTGNULL;
 
@@ -262,7 +262,7 @@ PTGNode define_rules( void ) {
           message( DEADLY, "Unexpected zero in rule", 0, &curpos );
         numlist = PTGCommaSeq( numlist, PTGNumb(Rule->rule[j]) );
       }
-      nptg = PTGRuleDef( Rule->ID, numlist );
+      nptg = PTGRuleDef( PTGId(tblname), Rule->ID, numlist );
       rv = PTGSeq(rv, nptg);
     }
   }

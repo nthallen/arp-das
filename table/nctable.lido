@@ -436,7 +436,7 @@ ATTR RuleDef   : PTGNode;
 SYMBOL Program COMPUTE
   SYNT.RulePlace = CONSTITUENTS Rule.RulePlace;
   SYNT.RulePrint = print_rules(THIS.TableName) <- SYNT.RulePlace;
-  SYNT.RuleDef = define_rules() <- SYNT.RulePrint;
+  SYNT.RuleDef = define_rules(THIS.TableName) <- SYNT.RulePrint;
 END;
 
 ATTR ForReal : int;

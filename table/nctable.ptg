@@ -36,10 +36,10 @@ String: "    nct_string( " $5 string "_winnum, "
 	  $3 int ", " $1 int ", " $2 int
 	  ", \"" $4 "\" );\n"
 
-RuleDef: "  static unsigned char nct_r" $1 int "[] = { " $2 ", 0 };\n"
+RuleDef: "  static unsigned char nct_" $1 "_r" $2 int "[] = { " $3 ", 0 };\n"
 /* ID#, tblname string, r, c, a ints */
 HRule: "    nct_hrule( " $2 "_winnum, " $5 int ", "
-	      $3 int ", " $4 int ", nct_r" $1 int " );\n"
+	      $3 int ", " $4 int ", nct_" $2 "_r" $1 int " );\n"
 VRule: "    nct_vrule( " $2 "_winnum, " $5 int ", "
-	      $3 int ", " $4 int ", nct_r" $1 int " );\n"
+	      $3 int ", " $4 int ", nct_" $2 "_r" $1 int " );\n"
 
