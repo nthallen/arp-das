@@ -9,12 +9,16 @@ tm.dac
 DACScoloui.c
 DACScoloui.o
 DACScol.o
+idx64tbl.tmc
 ana_intbl.tmc
+ana_in2tbl.tmc
 DACSdisp.cc
 DACSdispoui.c
 DACSdispoui.o
 DACSdisp.o
+idx64tblnc.tmc
 ana_intblnc.tmc
+ana_in2tblnc.tmc
 DACSdispnc.cc
 DACSdispncoui.c
 DACSdispncoui.o
