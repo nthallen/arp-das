@@ -14,7 +14,6 @@ TGTDIR = $(TGTNODE)/home/DACS
 
 DACSsrvr : -lsubbus
 DACScol : idx64col.tmc -lsubbus
-# DACSdisp : idx64flag.tmc idx64.tbl ana_in.tbl
-DACSdisp : ana_in.tbl
+DACSdisp : idx64flag.tmc idx64.tbl ana_in.tbl ana_in2.tbl
 DACSalgo : DACS.tma
 doit : DACS.doit
