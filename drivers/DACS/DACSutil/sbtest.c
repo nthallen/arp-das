@@ -192,6 +192,130 @@ static void ana_in_mux(void) {
     nl_error( 0, "All ana_in mux tests passed." );
 }
 
+#define aicfg_not 0
+#define aicfg_hiz 1
+#define aicfg_null 2
+#define aicfg_2 3
+#define aicfg_1 4
+#define aicfg_p768 5
+#define aicfg_p384 6
+#define aicfg_p192 7
+#define aicfg_p096 8
+#define aicfg_muxed 9
+#define aicfg_other 10
+
+static char *gain_text[] = {
+  "Unconfigured",
+  "Hi-Z ",
+  "Null ",
+  "X2   ",
+  "X1   ",
+  "X.768",
+  "X.384",
+  "X.192",
+  "X.096",
+  "Muxed",
+  "Other" };
+
+static int gain_type( int cfg ) {
+  if ( cfg & 0x100 ) return aicfg_muxed;
+  else if ( cfg & 1 ) return aicfg_hiz;
+  else if (cfg & 2) return aicfg_null;
+  else switch ((cfg & 0x1C) >> 2) {
+    case 0: return aicfg_p096;
+    case 2: return aicfg_p192;
+    case 4: return aicfg_p384;
+    case 6: return aicfg_p768;
+    case 5: return aicfg_1;
+    case 7: return aicfg_2;
+    default: return aicfg_other;
+  }
+}
+
+static void ana_in_read_cfg(void) {
+  int i;
+  int gain[256];
+  unsigned short cfgs[256];
+  unsigned short srcaddr[16];
+
+  for (i = 0; i < 256; ++i) gain[i] = aicfg_not;
+  for (i = 0; i < 16; ++i) srcaddr[i] = 0;
+  for (i = 0; i < 128; ++i) {
+    unsigned short addr, data, cfg;
+    addr = 0xC00 + 2*i;
+    data = sbrwa( addr );
+    cfg = sbrwa( addr + 1);
+    cfgs[i] = cfg;
+    gain[i] = gain_type(cfg);
+    if ( gain[i] == aicfg_muxed) {
+      int base, j, muxno;
+      muxno = ((cfg&0xE0)>>4) + ((i&8)>>3);
+      base = 0xD00 + (muxno<<4);
+      if (srcaddr[muxno]) {
+	nl_error( 1, "Channel %03X muxed to %03X: already in use by %03X",
+	  addr, base, srcaddr[muxno] );
+      }
+      srcaddr[muxno] = addr;
+      for (j = 0; j < 7; j++) {
+	unsigned short maddr = base + 2*j;
+	int n = 128 + (muxno<<3) + j;
+	data = sbrwa( maddr );
+	cfg = sbrwa( maddr + 1);
+	if (gain[n] != aicfg_not)
+	  nl_error(3, "Channel %03X previously read");
+	if ( !(cfg & 0x100) )
+	  nl_error(2, "Muxed channel %03X (from %03X) not reporting mux cfg",
+	    addr, maddr );
+	gain[n] = gain_type( cfg & 0x1F );
+      }
+    }
+  }
+  for (i = 1; i < aicfg_muxed; ++i) {
+    int j, k;
+    int one = 0;
+    printf( "%s:", gain_text[i] );
+    for (j = 0; j < 256; ) {
+      if ( gain[j] == i ) {
+	printf("%s %03X", one ? "," : "", 0xC00 + 2*j);
+	if ( gain[j] == i ) {
+	  for (k = j; k < 255 && gain[k+1] == i; ++k);
+	  if (k > j) printf( "-%03X", 0xC00 + 2*k );
+	}
+	j = k+1;
+	one = 1;
+      } else ++j;
+    }
+    printf( "%s\n", one ? "" : " none" );
+  }
+  printf( "%s:", gain_text[aicfg_muxed]);
+  { int one = 0, j;
+    for (j = 0; j < 128; ++j) {
+      if (gain[j] == aicfg_muxed) {
+	unsigned short cfg = cfgs[j];
+	int muxno = ((cfg&0xE0)>>4) + ((i&8)>>3);
+	unsigned short maddr = 0xD00 + (muxno<<4);
+	printf("%s %03X => %03X-E", one ? "," : "",
+	  0xC00+2*j, maddr );
+	one = 1;
+      }
+    }
+    printf( "%s\n", one ? "" : " none" );
+  }
+  printf( "%s:", gain_text[aicfg_other]);
+  { int one = 0, j;
+    for (j = 0; j < 128; ++j) {
+      if (gain[j] == aicfg_other) {
+	unsigned short cfg = cfgs[j];
+	printf("%s %03X(0x%03X)", one ? "," : "",
+	  0xC00+2*j, cfg );
+	one = 1;
+      }
+    }
+    printf( "%s\n", one ? "" : " none" );
+  }
+
+}
+
 int main(int argc, char **argv) {
   int rv, i;
   unsigned short data;
@@ -201,7 +325,12 @@ int main(int argc, char **argv) {
   rv = read_ack( 0, &data );
   if ( rv ) nl_error(2, "Unexpected ACK reading from 0" );
   if ( argc < 2 )
-    nl_error( 0, "Select from the following: idx, timeout, ana_in_cfg, ana_in_mux" );
+    nl_error( 0, "Select from the following: \n"
+	"  idx\n"
+	"  timeout\n"
+	"  ana_in_cfg\n"
+	"  ana_in_mux\n"
+	"  ana_in_read_cfg" );
   for (i = 1; i < argc; i++) {
     if ( strcmpi(argv[i], "idx") == 0 ) {
       indexer_test();
@@ -211,6 +340,8 @@ int main(int argc, char **argv) {
       ana_in_cfg();
     } else if ( strcmp(argv[i], "ana_in_mux") == 0 ) {
       ana_in_mux();
+    } else if ( strcmp(argv[i], "ana_in_read_cfg") == 0 ) {
+      ana_in_read_cfg();
     } else nl_error( 3, "Unrecognized test: '%s'", argv[i]);
   }
 
