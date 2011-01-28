@@ -11,14 +11,14 @@ DACScoloui.o
 DACScol.o
 idx64tbl.tmc
 ana_intbl.tmc
-ana_in2tbl.tmc
+digiotbl.tmc
 DACSdisp.cc
 DACSdispoui.c
 DACSdispoui.o
 DACSdisp.o
 idx64tblnc.tmc
 ana_intblnc.tmc
-ana_in2tblnc.tmc
+digiotblnc.tmc
 DACSdispnc.cc
 DACSdispncoui.c
 DACSdispncoui.o

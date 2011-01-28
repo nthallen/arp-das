@@ -1,0 +1,77 @@
+0
+
+8
+  0x0808, 0
+  0x0812, 0
+  0x080C, 0
+  0x0816, 0
+  0x0810, 0
+  0x081A, 0
+  0x0828, 0
+  0x0832, 0
+
+64
+  STRB,    0, 0x0001 ; 0: Cmd 0 On
+  STRB,    0, 0x0002 ; 1: Cmd 0 Off
+  STRB,    0, 0x0004 ; 2: Cmd 1 On
+  STRB,    0, 0x0008 ; 3: Cmd 1 Off
+  STRB,    0, 0x0010 ; 4: Cmd 2 On
+  STRB,    0, 0x0020 ; 5: Cmd 2 Off
+  STRB,    0, 0x0040 ; 6: Cmd 3 On
+  STRB,    0, 0x0080 ; 7: Cmd 3 Off
+  STRB,    1, 0x0100 ; 8: Cmd 4 On
+  STRB,    1, 0x0200 ; 9: Cmd 4 Off
+  STRB,    1, 0x0400 ; 10: Cmd 5 On
+  STRB,    1, 0x0800 ; 11: Cmd 5 Off
+  STRB,    1, 0x1000 ; 12: Cmd 6 On
+  STRB,    1, 0x2000 ; 13: Cmd 6 Off
+  STRB,    1, 0x4000 ; 14: Cmd 7 On
+  STRB,    1, 0x8000 ; 15: Cmd 7 Off
+  STRB,    2, 0x0001 ; 16: Cmd 8 On
+  STRB,    2, 0x0002 ; 17: Cmd 8 Off
+  STRB,    2, 0x0004 ; 18: Cmd 9 On
+  STRB,    2, 0x0008 ; 19: Cmd 9 Off
+  STRB,    2, 0x0010 ; 20: Cmd 10 On
+  STRB,    2, 0x0020 ; 21: Cmd 10 Off
+  STRB,    2, 0x0040 ; 22: Cmd 11 On
+  STRB,    2, 0x0080 ; 23: Cmd 11 Off
+  STRB,    3, 0x0100 ; 24: Cmd 12 On
+  STRB,    3, 0x0200 ; 25: Cmd 12 Off
+  STRB,    3, 0x0400 ; 26: Cmd 13 On
+  STRB,    3, 0x0800 ; 27: Cmd 13 Off
+  STRB,    3, 0x1000 ; 28: Cmd 14 On
+  STRB,    3, 0x2000 ; 29: Cmd 14 Off
+  STRB,    3, 0x4000 ; 30: Cmd 15 On
+  STRB,    3, 0x8000 ; 31: Cmd 15 Off
+  STRB,    4, 0x0001 ; 32: Cmd 16 On
+  STRB,    4, 0x0002 ; 33: Cmd 16 Off
+  STRB,    4, 0x0004 ; 34: Cmd 17 On
+  STRB,    4, 0x0008 ; 35: Cmd 17 Off
+  STRB,    4, 0x0010 ; 36: Cmd 18 On
+  STRB,    4, 0x0020 ; 37: Cmd 18 Off
+  STRB,    4, 0x0040 ; 38: Cmd 19 On
+  STRB,    4, 0x0080 ; 39: Cmd 19 Off
+  STRB,    5, 0x0100 ; 40: Cmd 20 On
+  STRB,    5, 0x0200 ; 41: Cmd 20 Off
+  STRB,    5, 0x0400 ; 42: Cmd 21 On
+  STRB,    5, 0x0800 ; 43: Cmd 21 Off
+  STRB,    5, 0x1000 ; 44: Cmd 22 On
+  STRB,    5, 0x2000 ; 45: Cmd 22 Off
+  STRB,    5, 0x4000 ; 46: Cmd 23 On
+  STRB,    5, 0x8000 ; 47: Cmd 23 Off
+  STRB,    6, 0x0001 ; 48: Cmd 24 On
+  STRB,    6, 0x0002 ; 49: Cmd 24 Off
+  STRB,    6, 0x0004 ; 50: Cmd 25 On
+  STRB,    6, 0x0008 ; 51: Cmd 25 Off
+  STRB,    6, 0x0010 ; 52: Cmd 26 On
+  STRB,    6, 0x0020 ; 53: Cmd 26 Off
+  STRB,    6, 0x0040 ; 54: Cmd 27 On
+  STRB,    6, 0x0080 ; 55: Cmd 27 Off
+  STRB,    7, 0x0100 ; 56: Cmd 28 On
+  STRB,    7, 0x0200 ; 57: Cmd 28 Off
+  STRB,    7, 0x0400 ; 58: Cmd 29 On
+  STRB,    7, 0x0800 ; 59: Cmd 29 Off
+  STRB,    7, 0x1000 ; 60: Cmd 30 On
+  STRB,    7, 0x2000 ; 61: Cmd 30 Off
+  STRB,    7, 0x4000 ; 62: Cmd 31 On
+  STRB,    7, 0x8000 ; 63: Cmd 31 Off
