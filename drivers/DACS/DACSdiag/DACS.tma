@@ -32,11 +32,7 @@ State Indexer_Idle {
 
 State Indexer_Test_0 {
       > Drive IX0 to 20000
-   +5 > Drive IX1 to 20000
-   +5 > Drive IX2 to 20000
   +10 > Scan IX0 in 20000 by 20
-   +5 > Scan IX1 in 20000 by 40
-  +10 > Scan IX2 in 20000 by 100
       Validate Indexer_Idle;
 }
 

@@ -1,40 +1,40 @@
 AD {
   HBox { +-; "Bank 0"; -+ };
   ""  >"0"  >"1"  >"2"  >"3"  >"4"  >"5"  >"6"  >"7";
-  "0:" (AIC00,6) (AIC02,6) (AIC04,6) (AIC06,6)
-       (AIC08,6) (AIC0A,6) (AIC0C,6) (AIC0E,6);
-  "1:" (AIC20,6) (AIC22,6) (AIC24,6) (AIC26,6)
-       (AIC28,6) (AIC2A,6) (AIC2C,6) (AIC2E,6);
-  "2:" (AIC40,6) (AIC42,6) (AIC44,6) (AIC46,6)
-       (AIC48,6) (AIC4A,6) (AIC4C,6) (AIC4E,6);
-  "3:" (AIC60,6) (AIC62,6) (AIC64,6) (AIC66,6)
-       (AIC68,6) (AIC6A,6) (AIC6C,6) (AIC6E,6);
-  "4:" (AIC80,6) (AIC82,6) (AIC84,6) (AIC86,6)
-       (AIC88,6) (AIC8A,6) (AIC8C,6) (AIC8E,6);
-  "5:" (AICA0,6) (AICA2,6) (AICA4,6) (AICA6,6)
-       (AICA8,6) (AICAA,6) (AICAC,6) (AICAE,6);
-  "6:" (AICC0,6) (AICC2,6) (AICC4,6) (AICC6,6)
-       (AICC8,6) (AICCA,6) (AICCC,6) (AICCE,6);
-  "7:" (AICE0,6) (AICE2,6) (AICE4,6) (AICE6,6)
-       (AICE8,6) (AICEA,6) (AICEC,6) (AICEE,6);
+  "0:" (AIC00,7) (AIC02,7) (AIC04,7) (AIC06,7)
+      (AIC08,7) (AIC0A,7) (AIC0C,7) (AIC0E,7);
+  "1:" (AIC20,7) (AIC22,7) (AIC24,7) (AIC26,7)
+      (AIC28,7) (AIC2A,7) (AIC2C,7) (AIC2E,7);
+  "2:" (AIC40,7) (AIC42,7) (AIC44,7) (AIC46,7)
+      (AIC48,7) (AIC4A,7) (AIC4C,7) (AIC4E,7);
+  "3:" (AIC60,7) (AIC62,7) (AIC64,7) (AIC66,7)
+      (AIC68,7) (AIC6A,7) (AIC6C,7) (AIC6E,7);
+  "4:" (AIC80,7) (AIC82,7) (AIC84,7) (AIC86,7)
+      (AIC88,7) (AIC8A,7) (AIC8C,7) (AIC8E,7);
+  "5:" (AICA0,7) (AICA2,7) (AICA4,7) (AICA6,7)
+      (AICA8,7) (AICAA,7) (AICAC,7) (AICAE,7);
+  "6:" (AICC0,7) (AICC2,7) (AICC4,7) (AICC6,7)
+      (AICC8,7) (AICCA,7) (AICCC,7) (AICCE,7);
+  "7:" (AICE0,7) (AICE2,7) (AICE4,7) (AICE6,7)
+      (AICE8,7) (AICEA,7) (AICEC,7) (AICEE,7);
   HBox { +-; "Bank 1"; -+ };
   ""  >"0"  >"1"  >"2"  >"3"  >"4"  >"5"  >"6"  >"7";
-  "0:" (AIC10,6) (AIC12,6) (AIC14,6) (AIC16,6)
-       (AIC18,6) (AIC1A,6) (AIC1C,6) (AIC1E,6);
-  "1:" (AIC30,6) (AIC32,6) (AIC34,6) (AIC36,6)
-       (AIC38,6) (AIC3A,6) (AIC3C,6) (AIC3E,6);
-  "2:" (AIC50,6) (AIC52,6) (AIC54,6) (AIC56,6)
-       (AIC58,6) (AIC5A,6) (AIC5C,6) (AIC5E,6);
-  "3:" (AIC70,6) (AIC72,6) (AIC74,6) (AIC76,6)
-       (AIC78,6) (AIC7A,6) (AIC7C,6) (AIC7E,6);
-  "4:" (AIC90,6) (AIC92,6) (AIC94,6) (AIC96,6)
-       (AIC98,6) (AIC9A,6) (AIC9C,6) (AIC9E,6);
-  "5:" (AICB0,6) (AICB2,6) (AICB4,6) (AICB6,6)
-       (AICB8,6) (AICBA,6) (AICBC,6) (AICBE,6);
-  "6:" (AICD0,6) (AICD2,6) (AICD4,6) (AICD6,6)
-       (AICD8,6) (AICDA,6) (AICDC,6) (AICDE,6);
-  "7:" (AICF0,6) (AICF2,6) (AICF4,6) (AICF6,6)
-       (AICF8,6) (AICFA,6) (AICFC,6) (AICFE,6);
+  "0:" (AIC10,7) (AIC12,7) (AIC14,7) (AIC16,7)
+      (AIC18,7) (AIC1A,7) (AIC1C,7) (AIC1E,7);
+  "1:" (AIC30,7) (AIC32,7) (AIC34,7) (AIC36,7)
+      (AIC38,7) (AIC3A,7) (AIC3C,7) (AIC3E,7);
+  "2:" (AIC50,7) (AIC52,7) (AIC54,7) (AIC56,7)
+      (AIC58,7) (AIC5A,7) (AIC5C,7) (AIC5E,7);
+  "3:" (AIC70,7) (AIC72,7) (AIC74,7) (AIC76,7)
+      (AIC78,7) (AIC7A,7) (AIC7C,7) (AIC7E,7);
+  "4:" (AIC90,7) (AIC92,7) (AIC94,7) (AIC96,7)
+      (AIC98,7) (AIC9A,7) (AIC9C,7) (AIC9E,7);
+  "5:" (AICB0,7) (AICB2,7) (AICB4,7) (AICB6,7)
+      (AICB8,7) (AICBA,7) (AICBC,7) (AICBE,7);
+  "6:" (AICD0,7) (AICD2,7) (AICD4,7) (AICD6,7)
+      (AICD8,7) (AICDA,7) (AICDC,7) (AICDE,7);
+  "7:" (AICF0,7) (AICF2,7) (AICF4,7) (AICF6,7)
+      (AICF8,7) (AICFA,7) (AICFC,7) (AICFE,7);
 }
 
 {

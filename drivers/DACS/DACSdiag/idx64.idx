@@ -18,38 +18,38 @@ Channel 0 IX0
   Invert Kill A
   Invert Kill B
 
-Channel 1 IX1
-  Position 4 Hz IX1Step
-  Status 4 Hz IX1Stat Diagram IX1Dgrm KillStat IX1Kill
-  Scan
-  Chop
-  Scanstat IX1Scan
-  Speed 1067 Hz
-  Disable Zeroref
-  # Swap Limits
-  # Invert Step
-  # Invert Direction
-  # Invert Run
-  Invert In Limit
-  Invert Out Limit
-  Invert Zero Ref
-  Invert Kill A
-  Invert Kill B
-
-Channel 2 IX2
-  Position 4 Hz IX2Step
-  Status 4 Hz IX2Stat Diagram IX2Dgrm KillStat IX2Kill
-  Scan
-  # Chop
-  Scanstat IX2Scan
-  Speed 1067 Hz
-  Disable Zeroref
-  # Swap Limits
-  # Invert Step
-  # Invert Direction
-  # Invert Run
-  Invert In Limit
-  Invert Out Limit
-  Invert Zero Ref
-  Invert Kill A
-  Invert Kill B
+# Channel 1 IX1
+#   Position 4 Hz IX1Step
+#   Status 4 Hz IX1Stat Diagram IX1Dgrm KillStat IX1Kill
+#   Scan
+#   Chop
+#   Scanstat IX1Scan
+#   Speed 1067 Hz
+#   Disable Zeroref
+#   # Swap Limits
+#   # Invert Step
+#   # Invert Direction
+#   # Invert Run
+#   Invert In Limit
+#   Invert Out Limit
+#   Invert Zero Ref
+#   Invert Kill A
+#   Invert Kill B
+# 
+# Channel 2 IX2
+#   Position 4 Hz IX2Step
+#   Status 4 Hz IX2Stat Diagram IX2Dgrm KillStat IX2Kill
+#   Scan
+#   # Chop
+#   Scanstat IX2Scan
+#   Speed 1067 Hz
+#   Disable Zeroref
+#   # Swap Limits
+#   # Invert Step
+#   # Invert Direction
+#   # Invert Run
+#   Invert In Limit
+#   Invert Out Limit
+#   Invert Zero Ref
+#   Invert Kill A
+#   Invert Kill B

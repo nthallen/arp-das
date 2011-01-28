@@ -1,13 +1,28 @@
+TM typedef double VOLTS { text "%6.3lf"; }
 TM typedef unsigned short UINT { text "%5d"; }
-TM typedef unsigned short AI16 { text "%6x"; }
+TM typedef   signed short AI16 { text "%7.4lf"; convert VOLTS; }
 TM typedef unsigned short AIC  { text "%4x"; }
+
+Calibration (AI16,VOLTS) {
+  0, 0,
+  32768, 4.096
+}
 
 TM 4 Hz UINT Synch, MFCtr;
 
-/* Indexer: 3 Channels */
+/* Indexer: 1 Channels */
 /* Counters: 8 Channels? */
-/* Analog Input: 128 Channels (2 banks of 8 port mux X 8 A/D) */
+/* Analog Input: 128 Channels (3 banks of 8 port mux X 8 A/D) */
+  /* ana_in.tmc */
 /* [Analog Output] */
+
 /* [Digital I/O] */
+TM typedef unsigned short DSWord { collect x = sbrwa(x.address); text "%04x"; }
+TM typedef unsigned char DSByte { collect x = sbrba(x.address); text "%02x"; }
+TM 1 Hz DSWord DS822; Address DS822 0x822;
+TM 1 Hz DSWord DS824; Address DS824 0x824;
+TM 1 Hz DSWord DS844; Address DS844 0x844;
+TM 1 Hz DSByte DS860; Address DS860 0x860;
+
 /* [PTRH] */
 /* [Double-muxed Analog Inputs] */
