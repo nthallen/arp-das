@@ -36,6 +36,7 @@ usr/local/include/hartd.h
 usr/local/include/ll_of_str.h
 usr/local/include/md5.h
 usr/local/include/mlf.h
+usr/local/include/nctable.h
 usr/local/include/nl_assert.h
 usr/local/include/rational.h
 usr/local/include/dtoe.h
