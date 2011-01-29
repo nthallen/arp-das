@@ -13,7 +13,8 @@ EOF
 use integer;
 for my $port (0 .. 7) {
   my $conn = $port/6;
-  my $addr = 0x800 + $conn*0x20 + ($port&1 ? 0x10 : 0x8) + ($port - $conn*6)*2;
+  my $addr = 0x800 + $conn*0x20 + ($port&1 ? 0x10 : 0x8) +
+      (($port - $conn*6)/2)*2;
   printf "  0x%04X, 0\n", $addr;
 }
 
