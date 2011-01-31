@@ -62,12 +62,18 @@ typedef struct {
 } subbusd_req_data3;
 
 typedef struct {
+  unsigned short n_reads;
+  char multread_cmd[256];
+} subbusd_req_data4;
+
+typedef struct {
   subbusd_req_hdr_t sbhdr;
   union {
     subbusd_req_data0 d0;
     subbusd_req_data1 d1;
     subbusd_req_data2 d2;
     subbusd_req_data3 d3;
+    subbusd_req_data4 d4;
   } data;
 } subbusd_req_t;
 
@@ -76,6 +82,15 @@ typedef struct {
   unsigned short features;
   char name[SUBBUS_NAME_MAX];
 } subbusd_cap_t;
+
+#define SB_MAX_MREAD 256
+/**
+ * We need one or two shorts per read, depending on
+ * whether we want acknowledge info or not.
+ */
+typedef struct (
+  unsigned short rvals[2*SB_MAX_MREAD];
+) subbusd_mread_t;
 
 typedef struct {
   signed short status;
@@ -87,6 +102,7 @@ typedef struct {
   union {
     unsigned short value;
     subbusd_cap_t capabilities;
+    subbusd_mread_t mread;
   } data;
 } subbusd_rep_t;
 
@@ -99,6 +115,8 @@ typedef struct {
 #define SBRT_NONE 0 // Just return the status
 #define SBRT_US 1   // Return unsigned short value
 #define SBRT_CAP 2  // Capabilities
+#define SBRT_MREAD 3 // Multi-Read
+#define SBRT_MREADACK 4 // Multi-Read w/ACK
 
 
 #endif

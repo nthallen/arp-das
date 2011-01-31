@@ -19,24 +19,33 @@ void service_expint( void ) {
   int i, bitno, bit;
   unsigned short mask;
 
-  while ( Creceive( expint_proxy, 0, 0 ) != -1 );
   for ( i = 0; i < MAX_REGIONS && regions[i].address != 0; i++ ) {
     if ( regions[i].bits != 0 ) {
       mask = sbb( regions[i].address ) & regions[i].bits;
       for ( bitno = 0, bit = 1; i < 7 && mask; bitno++, bit <<= 1 ) {
         if ( mask & bit ) {
-          if ( Trigger( regions[i].def[bitno]->proxy ) == -1 ) {
-            if ( errno == ESRCH ) {
-              card_def **cdp, *cd;
-
-              cd = regions[i].def[bitno];
-              nl_error( 1, "Proxy %d for card %s died",
-                cd->proxy, cd->cardID );
-              cdp = find_card( cd->cardID, cd->address );
-              delete_card( cdp );
-            } else
-              nl_error( 2, "Unexpected error %d on Trigger", errno );
-          }
+          card_def *cd = regions[i].defs[bitno];
+          if (cd != NULL) {
+            int rv = MsgDeliverEvent( cd->owner, &cd->event );
+            unsigned short addr;
+            unsigned int bn;
+            if ( rv == -1 ) {
+              switch (errno) {
+                case EBADF:
+                case ESRCH:
+                  nl_error( 1,
+                    "Process attached to '%s' interrupt not found",
+                    cd->cardID );
+                  rv = expint_detach( cd->owner, cd->cardID, &addr, &bn );
+                  nl_assert( rv == EOK );
+                  nl_assert( bitno == bn );
+                  break;
+                default:
+                  nl_error( 4, "Unexpected error %d from MsgDeliverEvent: %s",
+                      errno, strerror(errno));
+              }
+            }
+          } else nl_error( 2, "Unexpected interrupt in service_expint()";
           mask &= ~bit;
         }
       }

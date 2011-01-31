@@ -34,8 +34,8 @@ static void dequeue_request( signed short status, int n_args,
 
 static void set_timeout( int enable ) {
   if ( timer_settime( timeout_timer, 0,
-	  enable ? &timeout_enable : &timeout_disable,
-	  NULL ) == -1 ) {
+          enable ? &timeout_enable : &timeout_disable,
+          NULL ) == -1 ) {
     nl_error( 4, "Error setting timer: %s",
       strerror(errno) );
   }
@@ -51,21 +51,21 @@ static char *ascii_escape(const char *ibuf) {
       ebuf[ox++] = c;
     } else {
       switch ( c ) {
-	case '\n':
-	  ebuf[ox++] = '\\';
-	  ebuf[ox++] = 'n';
-	  break;
-	case '\r':
-	  ebuf[ox++] = '\\';
-	  ebuf[ox++] = 'r';
-	  break;
-	case '\t':
-	  ebuf[ox++] = '\\';
-	  ebuf[ox++] = 't';
-	  break;
-	default:
-	  ox += snprintf( ebuf+ox, 4, "\\x%02x", c);
-	  break;
+        case '\n':
+          ebuf[ox++] = '\\';
+          ebuf[ox++] = 'n';
+          break;
+        case '\r':
+          ebuf[ox++] = '\\';
+          ebuf[ox++] = 'r';
+          break;
+        case '\t':
+          ebuf[ox++] = '\\';
+          ebuf[ox++] = 't';
+          break;
+        default:
+          ox += snprintf( ebuf+ox, 4, "\\x%02x", c);
+          break;
       }
     }
   }
@@ -85,37 +85,37 @@ static void process_request(void) {
     nl_assert( sbr->status == SBDR_STATUS_QUEUED );
     switch (sbr->type) {
       case SBDR_TYPE_INTERNAL:
-	switch (sbr->request[0]) {
-	  case '\n': // NOP
-	  case 'V':  // Board Revision
-	    break;
-	  default:
-	    nl_error( 4, "Invalid internal request" );
-	}
-	break;
+        switch (sbr->request[0]) {
+          case '\n': // NOP
+          case 'V':  // Board Revision
+            break;
+          default:
+            nl_error( 4, "Invalid internal request" );
+        }
+        break;
       case SBDR_TYPE_CLIENT:
-	switch (sbr->request[0]) {
-	  case 'T':
-	    no_response = 1; break;
-	  case 'A':
-	  case 'R':
-	  case 'W':
-	  case 'V':
-	  case 'S':
-	  case 'C':
-	  case 'B':
-	  case 'i':
-	  case 'u':
-	  case 'D':
-	  case 'F':
-	  case 'f':
-	    break;
-	  default:
-	    nl_error( 4, "Invalid client request: '%c'", sbr->request[0] );
-	}
-	break;
+        switch (sbr->request[0]) {
+          case 'T':
+            no_response = 1; break;
+          case 'A':
+          case 'R':
+          case 'W':
+          case 'V':
+          case 'S':
+          case 'C':
+          case 'B':
+          case 'i':
+          case 'u':
+          case 'D':
+          case 'F':
+          case 'f':
+            break;
+          default:
+            nl_error( 4, "Invalid client request: '%c'", sbr->request[0] );
+        }
+        break;
       default:
-	nl_error(4, "Invalid request type" );
+        nl_error(4, "Invalid request type" );
     }
     cmdlen = strlen( sbr->request );
     nl_error(-2, "Request: '%*.*s'", cmdlen-1, cmdlen-1, sbr->request );
@@ -256,8 +256,8 @@ static void process_interrupt( unsigned int nb ) {
         case EBADF:
         case ESRCH:
           nl_error( 1,
-	    "Process attached to '%s' interrupt not found",
-	    cd->cardID );
+            "Process attached to '%s' interrupt not found",
+            cd->cardID );
           rv = expint_detach( cd->owner, cd->cardID, &addr, &bn );
           nl_assert( rv == EOK );
           nl_assert( nb == bn );
@@ -266,7 +266,7 @@ static void process_interrupt( unsigned int nb ) {
           break;
         default:
           nl_error( 4, "Unexpected error %d from MsgDeliverEvent: %s",
-	      errno, strerror(errno));
+              errno, strerror(errno));
       }
     }
   } else {
@@ -336,18 +336,18 @@ static void process_response( char *buf ) {
     if (read_hex( &s, &arg0 )) {
       ++n_args;
       if (*s == ':') {
-	++s;
-	if ( read_hex( &s, &arg1 ) ) {
-	  ++n_args;
-	  if ( *s == ':' ) {
-	    ++s; // points to name
-	    ++n_args;
-	  } else {
-	    status = RESP_INV;
-	  }
-	} else status = RESP_INV;
+        ++s;
+        if ( read_hex( &s, &arg1 ) ) {
+          ++n_args;
+          if ( *s == ':' ) {
+            ++s; // points to name
+            ++n_args;
+          } else {
+            status = RESP_INV;
+          }
+        } else status = RESP_INV;
       } else if ( *s != '\0' ) {
-	status = RESP_INV;
+        status = RESP_INV;
       }
     } else if ( *s != '\0' ) {
       status = RESP_INV;
@@ -452,10 +452,10 @@ static void process_response( char *buf ) {
     case RESP_INTR: break;
     default:
       if ( cur_req )
-	nl_error( 2, "Current request was: '%s'",
-	    ascii_escape(cur_req->request) );
+        nl_error( 2, "Current request was: '%s'",
+            ascii_escape(cur_req->request) );
       else
-	nl_error( 2, "No current request" );
+        nl_error( 2, "No current request" );
   }
   // we won't dequeue on error: wait for timeout to handle that
   // that's because we don't know the invalid response was
@@ -519,15 +519,15 @@ static int sb_timeout( message_context_t * ctp, int code,
     n_timeouts = 0;
     if ( cur_req != NULL ) {
       nl_error( 1, "%sUSB request '%c' timed out",
-	(cur_req->type == SBDR_TYPE_INTERNAL) ? "Internal " : "",
-	cur_req->request[0] );
+        (cur_req->type == SBDR_TYPE_INTERNAL) ? "Internal " : "",
+        cur_req->request[0] );
       dequeue_request( -ETIMEDOUT, 0, 0, 0, "" );
     }
   }
 }
 
 static void init_serusb(dispatch_t *dpp, int ionotify_pulse,
-			  int timeout_pulse) {
+                          int timeout_pulse) {
   struct sigevent timeout_event;
   sb_fd = open("/dev/serusb2", O_RDWR | O_NONBLOCK);
   if (sb_fd == -1)
@@ -559,7 +559,7 @@ static void init_serusb(dispatch_t *dpp, int ionotify_pulse,
   timeout_event.sigev_value.sival_int = 0;
   timeout_event.sigev_coid = ionotify_event.sigev_coid;
   if ( timer_create( CLOCK_REALTIME, &timeout_event,
-	  &timeout_timer ) == -1 )
+          &timeout_timer ) == -1 )
     nl_error(3, "Could not create timer: %s",
       strerror(errno));
   timeout_enable.it_value.tv_sec = 0;

@@ -5,10 +5,14 @@
 /**
  SB_SERUSB_MAX_REQUEST is the maximum allowable string
  for a serialized command or response over the USB.
- Currently the longest response will be the
- capability string.
+ The longest request will be for the multi-read
+ command, and we may see fit to extend this size.
+ The multi-read response may also be even longer, but
+ we do not necessarily have to allocate buffer space for
+ the entire response, since we can process it as it comes
+ in.
  */
-#define SB_SERUSB_MAX_REQUEST 80
+#define SB_SERUSB_MAX_REQUEST 256
 
 typedef struct {
   int type;

@@ -5,11 +5,11 @@
    assigned. Need to be able to detach based on cardID, need to 
    be able to trigger based on region and bit
 
-   When a proxy arrives, go through our list of regions.
+   When a pulse arrives, go through our list of regions.
    For each region, read the INTA and compare the result to the 
    bits we've defined. If any are active, search through the list 
    of programs that have registered on that bit and Trigger the 
-   appropriate proxy or proxies.
+   appropriate pulse or pulses.
 */
 #include <stdlib.h>
 #include <errno.h>
