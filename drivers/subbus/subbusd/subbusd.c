@@ -13,6 +13,7 @@
 #include "company.h"
 #include "subbusd_int.h"
 #include "nl_assert.h"
+#include "oui.h"
 
 static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         io_funcs;
@@ -70,6 +71,8 @@ int main(int argc, char **argv) {
   dispatch_t           *dpp;
   dispatch_context_t   *ctp;
   int                  id;
+
+  oui_init_options(argc, argv);
 
   /* initialize dispatch interface */
   if((dpp = dispatch_create()) == NULL) {

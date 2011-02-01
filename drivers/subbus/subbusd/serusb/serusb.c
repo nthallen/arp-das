@@ -208,7 +208,7 @@ static void dequeue_request( signed short status, int n_args,
           rep.data.capabilities.subfunc = arg0;
           rep.data.capabilities.features = arg1;
           strncpy(rep.data.capabilities.name, s, SUBBUS_NAME_MAX );
-          rsize = sizeof(subbusd_rep_t);
+          rsize = sizeof(subbusd_rep_hdr_t) + sizeof(subbusd_cap_t);
           break;
         default: 
           break; // picked up and reported below

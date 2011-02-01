@@ -210,6 +210,8 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
 	sizeof(subbusd_rep_hdr_t) + sizeof(unsigned short);
       break;
     case SBRT_CAP:
+      rsize = sizeof(subbusd_rep_hdr_t) + sizeof(subbusd_cap_t);
+      break;
     default:
       rsize = sizeof(subbusd_rep_t);
       break;

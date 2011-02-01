@@ -1,8 +1,9 @@
 include_HEADERS = subbusd.h
 bin_PROGRAMS = subbusd_serusb subbusd_sc104
 LDFLAGS = -L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
-CPPFLAGS = -I/usr/local/include -I. -Isyscon104 -Wall
+CPPFLAGS = -I/usr/local/include -I. -Isyscon104
 LDADD = -ltm -lnort
+CFLAGS=-Wall -g
 
 .PHONY : all install clean
 all : $(bin_PROGRAMS)
