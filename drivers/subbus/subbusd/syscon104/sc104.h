@@ -146,6 +146,8 @@ extern int int_detach(int rcvid, subbusd_req_t *req);
 extern int service_expint( message_context_t * ctp, int code,
                      unsigned flags, void * handle );
 extern void expint_init( int coid, short code, int value );
+extern int service_expint( message_context_t * ctp, int code,
+                     unsigned flags, void * handle );
 
 #endif
 

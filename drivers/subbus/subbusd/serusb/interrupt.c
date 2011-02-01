@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include "serusb.h"
+#include "nortlib.h"
 
 
 int int_attach(int rcvid, subbusd_req_t *req, char *sreq) {

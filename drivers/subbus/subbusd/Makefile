@@ -1,11 +1,16 @@
 include_HEADERS = subbusd.h
 bin_PROGRAMS = subbusd_serusb subbusd_sc104
-LDFLAGS = -L/usr/local/lib
+LDFLAGS = -L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 CPPFLAGS = -I/usr/local/include -I. -Isyscon104 -Wall
 LDADD = -ltm -lnort
 
 .PHONY : all install clean
 all : $(bin_PROGRAMS)
+clean :
+	rm -f *.o $(bin_PROGRAMS) sc104oui.c serusboui.c
+install :
+	@cp -vn $(bin_PROGRAMS) /usr/local/bin
+	@cp -vn $(include_HEADERS) /usr/local/include
 
 subbusd_serusb_SOURCES = expint.c subbusd.c subbusd_int.h \
   serusb/serusb.c serusb/interrupt.c serusb/serusb.h \

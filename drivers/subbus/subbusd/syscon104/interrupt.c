@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include "subbusd_int.h"
 #include "sc104.h"

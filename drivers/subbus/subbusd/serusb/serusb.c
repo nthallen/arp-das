@@ -27,8 +27,6 @@ static int n_reads = 0;
 static int n_part_reads = 0;
 static int n_compound_reads = 0;
 
-static subbusd_cap_t subbus_caps;
-
 static void dequeue_request( signed short status, int n_args,
   unsigned short arg0, unsigned short arg1, char *s );
 
@@ -244,7 +242,6 @@ static void dequeue_request( signed short status, int n_args,
 static void process_interrupt( unsigned int nb ) {
   card_def *cd;
   unsigned short addr;
-  int rv;
   unsigned int bn;
   char sreq[8];
   
@@ -524,6 +521,7 @@ static int sb_timeout( message_context_t * ctp, int code,
       dequeue_request( -ETIMEDOUT, 0, 0, 0, "" );
     }
   }
+  return 0;
 }
 
 static void init_serusb(dispatch_t *dpp, int ionotify_pulse,

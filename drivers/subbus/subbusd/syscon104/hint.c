@@ -7,6 +7,7 @@
 #include <hw/inout.h>
 #include "nortlib.h"
 #include "subbus.h"
+#include "sc104.h"
 
 static int expint_iid = -1;
 int expint_irq = 9;
@@ -83,7 +84,7 @@ void expint_reset(void) {
 }
 
 void expint_svc(void) {
-  service_expint();
+  service_expint(NULL,0,0,NULL);
   InterruptUnmask( expint_irq, expint_iid );
 }
 
@@ -104,10 +105,9 @@ void expint_svc(void) {
   void pfail_init( void ) {
     if ( pfail_proxy == 0 ) {
       pfail_proxy = qnx_proxy_attach( 0, NULL, 0, -1 );
-    outp( 0x316, 0); /* reset the lowpower signal */
+      outp( 0x316, 0); /* reset the lowpower signal */
       if ( pfail_proxy == -1 )
-        nl_error( 3, "Unable to attach proxy for pfail" );
-
+	nl_error( 3, "Unable to attach proxy for pfail" );
       pfail_iid = int_init( pfail_irq, 0x200, 6, pfail_handler );
     }
   }
