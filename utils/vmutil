@@ -49,7 +49,7 @@ case $1 in
   suspend)
     slay dhcp.client;;
   wakeup)
-    TZ=${VMHWRTCTZ:-EST05} /sbin/rtc -l hw
+    TZ=${VMHWRTCTZ:-EST05} /sbin/rtc $VMHWRTC_LOCAL hw
     /usr/sbin/dhcp.client -m
     waitforip;;
   *)
