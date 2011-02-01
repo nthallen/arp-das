@@ -1,1 +1,1 @@
-SUBDIRS = lib subbusd
+SUBDIRS = lib
