@@ -6,7 +6,6 @@
 #include <sys/neutrino.h>
 #include <hw/inout.h>
 #include "nortlib.h"
-#include "intserv.h"
 #include "subbus.h"
 
 static int expint_iid = -1;

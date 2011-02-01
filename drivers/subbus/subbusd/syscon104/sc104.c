@@ -5,9 +5,15 @@
 #include <string.h>
 #include <sys/neutrino.h>
 #include <hw/inout.h>
+#include <errno.h>
 #include "subbusd_int.h"
 #include "nortlib.h"
 #include "sc104.h"
+#include "nl_assert.h"
+
+unsigned short subbus_version = SUBBUS_VERSION;
+unsigned short subbus_features = SUBBUS_FEATURES;
+unsigned short subbus_subfunction = LIBRARY_SUB;
 
 #if SC104
 int read_ack( unsigned short addr, unsigned short *data ) {
@@ -22,6 +28,15 @@ int read_ack( unsigned short addr, unsigned short *data ) {
   return((status&0x40) ? i+1 : 0 );
 }
 #endif
+
+unsigned short sbrb(unsigned short addr) {
+  unsigned short word;
+
+  read_ack(addr, &word);
+  if (addr & 1) word >>= 8;
+  return(word & 0xFF);
+}
+
 
 #if SC104
 int write_ack(unsigned short addr, unsigned short data) {
@@ -38,8 +53,9 @@ int write_ack(unsigned short addr, unsigned short data) {
 
 /** don't need to serialize access to cmdenbl, since it's I/O port mapped.
  */
-void set_cmdenbl(short int val) {
+int set_cmdenbl(int val) {
   out16(SC_CMDENBL, val);
+  return 0;
 }
 
 /**
@@ -53,7 +69,7 @@ void set_cmdenbl(short int val) {
  *  word can also be checked for support, and that is consistent
  *  back to previous versions.
  */
-short int set_cmdstrobe(short int value) {
+int set_cmdstrobe(int value) {
   #if SYSCON
     #if SC104
       out8(SC_SB_LOWC, 8 | (value?0:2));
@@ -74,7 +90,7 @@ unsigned short read_switches(void) {
   #endif
 }
 
-void set_failure(short int value) {
+int set_failure(unsigned short value) {
   #if SIC
     if ( value ) in8(SC_LAMP);
     else out8(SC_LAMP,0);
@@ -82,9 +98,10 @@ void set_failure(short int value) {
   #if SYSCON
     out8(SC_LAMP,value);
   #endif
+  return 0;
 }
 
-unsigned char read_failure(void) {
+unsigned short read_failure(void) {
   #if SYSCON
     return in8(SC_LAMP);
   #else
@@ -92,12 +109,22 @@ unsigned char read_failure(void) {
   #endif
 }
 
-void tick_sic(void) {
+int tick_sic(void) {
   out8(SC_TICK, 0);
+  return 0;
 }
 
-void disarm_sic(void) {
+int disarm_sic(void) {
   out8(SC_DISARM, 0);
+  return 0;
+}
+
+static void ErrorReply( int rcvid, int rv ) {
+  subbusd_rep_hdr_t rep;
+  nl_assert( rv > 0 );
+  rep.status = -rv;
+  rep.ret_type = SBRT_NONE;
+  rv = MsgReply( rcvid, sizeof(rep), &rep, sizeof(rep) );
 }
 
 /**
@@ -108,7 +135,7 @@ void disarm_sic(void) {
  and that the message type is defined.
  */
 void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
-  subbus_rep_t rep;
+  subbusd_rep_t rep;
   int rsize, rv;
   
   rep.hdr.status = SBS_OK;
@@ -147,7 +174,9 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
     case SBC_GETCAPS:
       rep.data.capabilities.subfunc = LIBRARY_SUB;
       rep.data.capabilities.features = SUBBUS_FEATURES;
-      strncpy(rep.data.capabilities.name, "Subbus Library V4.00: Syscon/104", SUBBUS_NAME_MAX );
+      strncpy(rep.data.capabilities.name,
+	  "Subbus Library V4.00: Syscon/104",
+	  SUBBUS_NAME_MAX );
       rep.hdr.ret_type = SBRT_CAP;
       break;
     case SBC_TICK:
@@ -159,21 +188,31 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
       rep.hdr.ret_type = SBRT_NONE;
       break;
     case SBC_INTATT:
-      rv = int_attach(rcvid, req, sreq);
+      rv = int_attach(rcvid, req);
       if (rv != EOK) {
         ErrorReply(rcvid, rv);
-        return; // i.e. don't enqueue
+        return;
       }
       break;
     case SBC_INTDET:
-      rv = int_detach(rcvid, req, sreq);
+      rv = int_detach(rcvid, req);
       if (rv != EOK) {
         ErrorReply(rcvid, rv);
-        return; // i.e. don't enqueue
+        return;
       }
       break;
     default:
       nl_error(4, "Undefined command in incoming_sbreq!" );
+  }
+  switch (rep.hdr.ret_type) {
+    case SBRT_NONE: rsize = sizeof(subbusd_rep_hdr_t); break;
+    case SBRT_US: rsize =
+	sizeof(subbusd_rep_hdr_t) + sizeof(unsigned short);
+      break;
+    case SBRT_CAP:
+    default:
+      rsize = sizeof(subbusd_rep_t);
+      break;
   }
   rv = MsgReply( rcvid, rsize, &rep, rsize );
 }
@@ -195,11 +234,11 @@ void init_subbus(dispatch_t *dpp ) {
     #endif
   #endif
   expint_pulse =
-    pulse_attach(dpp, MSG_FLAG_ALLOC_PULSE, 0, expint_svc, NULL);
-  interrupt_init(dpp, expint_pulse );
+    pulse_attach(dpp, MSG_FLAG_ALLOC_PULSE, 0, service_expint, NULL);
+  expint_init(message_connect(dpp, MSG_FLAG_SIDE_CHANNEL),
+      expint_pulse, 0 );
 }
 
 void shutdown_subbus(void) {
-  nl_error( 0, "%d writes, %d reads, %d partial reads, %d compound reads",
-    n_writes, n_reads, n_part_reads, n_compound_reads );
+  nl_error( 0, "Shutting down" );
 }

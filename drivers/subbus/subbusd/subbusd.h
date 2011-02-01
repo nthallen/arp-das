@@ -88,9 +88,9 @@ typedef struct {
  * We need one or two shorts per read, depending on
  * whether we want acknowledge info or not.
  */
-typedef struct (
+typedef struct {
   unsigned short rvals[2*SB_MAX_MREAD];
-) subbusd_mread_t;
+} subbusd_mread_t;
 
 typedef struct {
   signed short status;

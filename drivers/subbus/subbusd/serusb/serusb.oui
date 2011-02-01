@@ -1,0 +1,6 @@
+<package> sc104
+<include> msg
+
+<package> msghdr_default
+<vars>
+  const char *msg_hdr_default = "SB/DACS";

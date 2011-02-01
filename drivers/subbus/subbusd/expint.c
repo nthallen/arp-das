@@ -18,12 +18,12 @@
 #include "nortlib.h"
 #include "subbusd_int.h"
 
-typedef struct {
- unsigned short address;
- unsigned short bits;
- card_def *def[8];
-} region;
-#define MAX_REGIONS 4
+// typedef struct {
+//  unsigned short address;
+//  unsigned short bits;
+//  card_def *def[8];
+// } region;
+// #define MAX_REGIONS 4
 
 card_def *carddefs;
 region regions[ MAX_REGIONS ];

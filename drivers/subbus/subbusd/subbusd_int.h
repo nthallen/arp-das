@@ -20,7 +20,16 @@ typedef struct carddef {
   int owner;
 } card_def;
 
+typedef struct {
+  unsigned short address;
+  unsigned short bits;
+  card_def *def[8];
+} region;
+#define MAX_REGIONS 4
+
+
 extern card_def *carddefs;
+extern region regions[MAX_REGIONS];
 extern void incoming_sbreq( int rcvid, subbusd_req_t *req );
 extern void init_subbus(dispatch_t *dpp );
 extern void shutdown_subbus(void);

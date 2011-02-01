@@ -1,7 +1,5 @@
-.libs
-.deps
-Makefile.in
-Makefile
 README.tmp
 subbusd_serusb
-
+subbusd_sc104
+sc104oui.c
+serusboui.c

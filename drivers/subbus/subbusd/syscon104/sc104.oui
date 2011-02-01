@@ -1,0 +1,15 @@
+<package> sc104
+<include> msg
+<include> "sc104.h"
+
+<opts> "i:"
+
+<sort>
+	-i <IRQ> (default is IRQ 9)
+
+<switch>
+  case 'i': process_IRQs(optarg); break;
+
+<package> msghdr_default
+<vars>
+  const char *msg_hdr_default = "SB/SC104";

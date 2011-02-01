@@ -1,5 +1,7 @@
 #ifndef SC104_H_INCLUDED
 #define SC104_H_INCLUDED
+#include <sys/dispatch.h>
+#include "subbusd.h"
 #include "subbus.h"
 
 #define LIBRARY_SUB SB_SYSCON104
@@ -138,4 +140,12 @@
  (LG_RAM*SBF_LG_RAM) | (SYSCON*(SBF_READ_FAIL|SBF_CMDSTROBE)) | \
  (SICFUNC*SBF_SIC) | (READSWITCH*SBF_READ_SW) | (NVRAM*SBF_NVRAM))
 
+extern void process_IRQs( char *t );
+extern int int_attach(int rcvid, subbusd_req_t *req);
+extern int int_detach(int rcvid, subbusd_req_t *req);
+extern int service_expint( message_context_t * ctp, int code,
+                     unsigned flags, void * handle );
+extern void expint_init( int coid, short code, int value );
+
 #endif
+

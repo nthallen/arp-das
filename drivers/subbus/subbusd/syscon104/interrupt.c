@@ -1,30 +1,20 @@
+#include <stdlib.h>
+#include <errno.h>
+#include "subbusd_int.h"
+#include "sc104.h"
+#include "nl_assert.h"
 
-static void delete_card( card_def **cdp ) {
-  card_def *cd;
-
-  if ( cdp == 0 || *cdp == 0 )
-    nl_error( 4, "Invalid pointer to delete_card" );
-  cd = *cdp;
-  if ( sbwra( cd->address, 0 ) == 0 )
-    nl_error( 1, "No acknowledge unprogramming %s (0x%03X)",
-      cd->cardID, cd->address );
-  regions[ cd->reg_id ].def[ cd->bitno ] = NULL;
-  regions[ cd->reg_id ].bits &= ~(1 << cd->bitno );
-  *cdp = cd->next;
-  free( cd );
-}
-
-### Look at this
-void service_expint( void ) {
+int service_expint( message_context_t * ctp, int code,
+		     unsigned flags, void * handle ) {
   int i, bitno, bit;
   unsigned short mask;
 
   for ( i = 0; i < MAX_REGIONS && regions[i].address != 0; i++ ) {
     if ( regions[i].bits != 0 ) {
-      mask = sbb( regions[i].address ) & regions[i].bits;
+      mask = sbrb( regions[i].address ) & regions[i].bits;
       for ( bitno = 0, bit = 1; i < 7 && mask; bitno++, bit <<= 1 ) {
         if ( mask & bit ) {
-          card_def *cd = regions[i].defs[bitno];
+          card_def *cd = regions[i].def[bitno];
           if (cd != NULL) {
             int rv = MsgDeliverEvent( cd->owner, &cd->event );
             unsigned short addr;
@@ -45,12 +35,13 @@ void service_expint( void ) {
                       errno, strerror(errno));
               }
             }
-          } else nl_error( 2, "Unexpected interrupt in service_expint()";
+          } else nl_error( 2, "Unexpected interrupt in service_expint()");
           mask &= ~bit;
         }
       }
     }
   }
+  return 0;
 }
 
 int int_attach(int rcvid, subbusd_req_t *req) {
@@ -68,15 +59,15 @@ int int_attach(int rcvid, subbusd_req_t *req) {
 
   /* Now program the card! */
   { unsigned short prog;
-    prog = ( (region & 6) << 2 ) | 0x20 | bitno;
-    if ( sbwra( address, 0 )    == 0 ||
-         sbwra( address, prog ) == 0 )
+    prog = ( (ireq->region & 6) << 2 ) | 0x20 | cd->bitno;
+    if ( sbwra( cd->address, 0 )    == 0 ||
+         sbwra( cd->address, prog ) == 0 )
       nl_error( 1, "No acknowledge programming %s(0x%03X)",
-        cardID, address );
+        cd->cardID, cd->address );
     else nl_error( -2, "Card %s assigned bit %d", cd->cardID,
           cd->bitno );
   }
-  service_expint();
+  service_expint(NULL,0,0,NULL);
 
   return EOK;
 }
@@ -84,7 +75,8 @@ int int_attach(int rcvid, subbusd_req_t *req) {
 int int_detach(int rcvid, subbusd_req_t *req) {
   subbusd_req_data2 *ireq = &req->data.d2;
   unsigned short addr;
-  int rv = expint_detach( rcvid, ireq->cardID, &addr );
+  unsigned int bn;
+  int rv = expint_detach( rcvid, ireq->cardID, &addr, &bn );
   if (rv != 0) return rv;
   if ( sbwra( addr, 0 ) == 0 )
     nl_error( 1, "No acknowledge unprogramming %s (0x%03X)",
