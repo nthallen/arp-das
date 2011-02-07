@@ -1,5 +1,4 @@
-AO {
-  HBox { +-; "Analog Outputs"; -+ };
+AO1 {
   "400:" (AO400,6) V;
   "402:" (AO402,6) V;
   "404:" (AO404,6) V;
@@ -9,9 +8,20 @@ AO {
   "40C:" (AO40C,6) V;
   "40E:" (AO40E,6) V;
 }
+AO2 {
+  "410:" (AO410,6) V;
+  "412:" (AO412,6) V;
+  "414:" (AO414,6) V;
+  "416:" (AO416,6) V;
+  "418:" (AO418,6) V;
+  "41A:" (AO41A,6) V;
+  "41C:" (AO41C,6) V;
+  "41E:" (AO41E,6) V;
+}
 
 {
-  HBox {|+; [AO]; |+ };
+  HBox { +-; "Analog Outputs"; -+ };
+  HBox {|+; [AO1]; |+; [AO2]; |+ };
   -;
   >{ Time: (flttime,8) MFCtr: (MFCtr,5) }
 }
