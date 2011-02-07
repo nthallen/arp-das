@@ -2,10 +2,20 @@ TM typedef double VOLTS { text "%6.3lf"; }
 TM typedef unsigned short UINT { text "%5d"; }
 TM typedef   signed short AI16 { text "%7.4lf"; convert VOLTS; }
 TM typedef unsigned short AIC  { text "%4x"; }
+TM typedef unsigned short AO16 {
+  text "%6.4lf";
+  convert VOLTS;
+  collect x = sbrwa(x.address);
+}
 
 Calibration (AI16,VOLTS) {
   0, 0,
   32768, 4.096
+}
+
+Calibration (AO16, VOLTS) {
+  0, 0,
+  65536, 10
 }
 
 TM 4 Hz UINT Synch, MFCtr;
