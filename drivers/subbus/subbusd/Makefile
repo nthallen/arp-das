@@ -32,10 +32,10 @@ serusboui.c : serusb/serusb.oui
 	oui -o serusboui.c serusb/serusb.oui
 
 subbusd_sc104_SOURCES = expint.c subbusd.c syscon104/sc104.c \
-  syscon104/interrupt.c syscon104/hint.c \
+  syscon104/interrupt.c syscon104/hint.c syscon104/sc104init.c \
   sc104oui.c
 subbusd_sc104_OBJECTS = expint.o subbusd.o sc104_sc104.o \
-  sc104_interrupt.o sc104_hint.o sc104oui.o
+  sc104_interrupt.o sc104_hint.o sc104_sc104init.o sc104oui.o
 subbusd_sc104_CPPPFLAGS = -I sc104
 
 subbusd_sc104 : $(subbusd_sc104_OBJECTS)
@@ -48,5 +48,7 @@ sc104_interrupt.o : syscon104/interrupt.c
 	$(COMPILE.c) -o sc104_interrupt.o syscon104/interrupt.c
 sc104_hint.o : syscon104/hint.c
 	$(COMPILE.c) -o sc104_hint.o syscon104/hint.c
+sc104_sc104init.o : syscon104/sc104init.c
+	$(COMPILE.c) -o sc104_sc104init.o syscon104/sc104init.c
 sc104oui.c : syscon104/sc104.oui
 	oui -o sc104oui.c syscon104/sc104.oui
