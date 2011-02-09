@@ -149,5 +149,7 @@ extern void expint_init( int coid, short code, int value );
 extern int service_expint( message_context_t * ctp, int code,
                      unsigned flags, void * handle );
 
+extern void sc104_init_options(int argc, char **argv);
+
 #endif
 
