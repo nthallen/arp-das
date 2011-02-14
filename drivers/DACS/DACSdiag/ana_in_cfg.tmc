@@ -1,19 +1,26 @@
 %{
+  #include "ai_cfg.h"
+
   void ana_in_cfg_init(void) {
     unsigned short addr;
     unsigned short row, col;
     for ( addr = 0xC00; addr < 0xD00; addr += 2 ) {
-      sbwr( addr, 0x14 ); // Start with unity gain
+      sbwr( addr, AI_CFG_X1 ); // Start with unity gain
     }
     for (row = 8; row <= 10; row++) {
       for ( col = 0; col < 8; col++ ) {
 	addr = 0xC10 + row*0x20 + col*2;
-	sbwr( addr, 0x14 );
+	sbwr( addr, AI_CFG_X1 );
       }
     }
     sbwr( 0xC1E, 0x100 );
     sbwr( 0xC5E, 0x120 );
     sbwr( 0xC9E, 0x140 );
+    /* set every other channel on AD0 to a low gain */
+    sbwr( 0xC20, AI_CFG_XP096 );
+    sbwr( 0xC60, AI_CFG_XP096 );
+    sbwr( 0xCA0, AI_CFG_XP096 );
+    sbwr( 0xCE0, AI_CFG_XP096 );
   }
 %}
 TM INITFUNC ana_in_cfg_init();
