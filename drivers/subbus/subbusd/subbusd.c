@@ -112,18 +112,22 @@ int main(int argc, char **argv) {
   nl_error( 0, "Initialized" );
 
   signal( SIGINT, sigint_handler );
+  signal( SIGHUP, sigint_handler );
 
   /* allocate a context structure */
   ctp = dispatch_context_alloc(dpp);
 
   /* start the resource manager message loop */
-  while(saw_int == 0) {
+  while (1) {
     if((ctp = dispatch_block(ctp)) == NULL) {
       if (errno == EINTR) break;
       nl_error( 3, "block error: %s", strerror(errno));
       return EXIT_FAILURE;
     }
     dispatch_handler(ctp);
+    if (saw_int == 1 && ctp->resmgr_context.rcvid == 0
+	  && attr.count == 0)
+      break;
   }
   nl_error( 0, "Shutting down" );
   shutdown_subbus();
