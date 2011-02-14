@@ -145,12 +145,12 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
     case SBC_READACK:
       rep.hdr.status =
         read_ack( req->data.d1.data, &rep.data.value ) ?
-        SBS_OK : SBS_NOACK;
+        SBS_ACK : SBS_NOACK;
       break;
     case SBC_WRITEACK:
       rep.hdr.status =
         write_ack( req->data.d0.address, req->data.d0.data ) ?
-        SBS_OK : SBS_NOACK;
+        SBS_ACK : SBS_NOACK;
       rep.hdr.ret_type = SBRT_NONE;
       break;
     case SBC_SETCMDENBL:
