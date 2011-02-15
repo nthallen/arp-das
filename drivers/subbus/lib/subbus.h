@@ -52,6 +52,8 @@ extern int  tick_sic(void);
 extern int disarm_sic(void);
 extern char *get_subbus_name(void);
 #define subbus_name get_subbus_name()
+extern int cache_write(unsigned short addr, unsigned short data);
+extern unsigned short cache_read(unsigned short addr);
 
 unsigned short sbrb(unsigned short addr);
 unsigned short sbrba(unsigned short addr);

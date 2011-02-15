@@ -127,6 +127,28 @@ int read_ack( unsigned short addr, unsigned short *data ) {
   return rc;
 }
 
+/**
+ @return Cached read value or zero if address is invalid.
+ */
+unsigned short cache_read( unsigned short addr ) {
+  int rv;
+  subbusd_req_data1 rdata;
+  unsigned short data;
+
+  rdata.data = addr;
+  rv = send_to_subbusd( SBC_READCACHE, &rdata, sizeof(rdata), SBRT_US );
+  data = sb_reply.data.value;
+  switch ( rv ) {
+    case SBS_ACK: break;
+    case -ETIMEDOUT:
+    case SBS_NOACK: data = 0; break;
+    default:
+      nl_error( 4, "Invalid status response to cache_read(): %d",
+	rv );
+  }
+  return data;
+}
+
 unsigned short read_subbus(unsigned short addr) {
   unsigned short data;
   read_ack(addr, &data);
@@ -179,6 +201,30 @@ int write_ack(unsigned short addr, unsigned short data) {
     case SBS_NOACK: rc = 0; break;
     default:
       nl_error( 4, "Invalid status response to write_ack(): %d",
+	rv );
+  }
+  return rc;
+}
+
+/**
+ @return non-zero value if the hardware acknowledge is
+ observed. Historically, the value recorded the number
+ of iterations in the software loop waiting for
+ the microsecond timeout.
+ */
+int cache_write(unsigned short addr, unsigned short data) {
+  int rv, rc;
+  subbusd_req_data0 wdata;
+
+  wdata.address = addr;
+  wdata.data = data;
+  rv = send_to_subbusd( SBC_WRITECACHE, &wdata, sizeof(wdata), SBRT_NONE );
+  switch (rv ) {
+    case SBS_ACK: rc = 1; break;
+    case -ETIMEDOUT:
+    case SBS_NOACK: rc = 0; break;
+    default:
+      nl_error( 4, "Invalid status response to cache_write(): %d",
 	rv );
   }
   return rc;
