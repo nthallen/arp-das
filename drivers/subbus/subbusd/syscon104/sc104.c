@@ -147,6 +147,19 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
         read_ack( req->data.d1.data, &rep.data.value ) ?
         SBS_ACK : SBS_NOACK;
       break;
+    case SBC_READCACHE:
+      rep.hdr.status =
+        (sb_read_cache(req->data.d1.data, &rep.data.value) < 0) ?
+        SBS_ACK : SBS_NOACK;
+      break;
+    case SBC_WRITECACHE:
+      rv = sb_write_cache(req->data.d0.address, req->data.d0.data);
+      if (rv != 1) {
+        rep.hdr.ret_type = SBRT_NONE;
+        rep.hdr.status = (rv == 0) ? SBS_ACK : SBS_NOACK;
+        break;
+      }
+      /* else fall through */
     case SBC_WRITEACK:
       rep.hdr.status =
         write_ack( req->data.d0.address, req->data.d0.data ) ?
@@ -207,7 +220,7 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
   switch (rep.hdr.ret_type) {
     case SBRT_NONE: rsize = sizeof(subbusd_rep_hdr_t); break;
     case SBRT_US: rsize =
-	sizeof(subbusd_rep_hdr_t) + sizeof(unsigned short);
+        sizeof(subbusd_rep_hdr_t) + sizeof(unsigned short);
       break;
     case SBRT_CAP:
       rsize = sizeof(subbusd_rep_hdr_t) + sizeof(subbusd_cap_t);

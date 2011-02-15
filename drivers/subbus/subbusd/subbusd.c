@@ -35,11 +35,13 @@ static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
   /* check the size of the incoming message */
   switch ( sbdmsg.sbhdr.command ) {
     case SBC_WRITEACK:
+    case SBC_WRITECACHE:
       nb_exp = sizeof(subbusd_req_data0); break;
     case SBC_SETCMDENBL:
     case SBC_SETCMDSTRB:
     case SBC_SETFAIL:
     case SBC_READACK:
+    case SBC_READCACHE:
       nb_exp = sizeof(subbusd_req_data1); break;
     case SBC_READSW:
     case SBC_READFAIL:
@@ -73,6 +75,7 @@ int main(int argc, char **argv) {
   int                  id;
 
   oui_init_options(argc, argv);
+  sb_cache_init();
 
   /* initialize dispatch interface */
   if((dpp = dispatch_create()) == NULL) {
