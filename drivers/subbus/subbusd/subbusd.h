@@ -40,6 +40,8 @@ typedef struct {
 #define SBC_GETCAPS 9
 #define SBC_INTATT 10
 #define SBC_INTDET 11
+#define SBC_READCACHE 12
+#define SBC_WRITECACHE 13
 
 typedef struct {
   unsigned short address;
