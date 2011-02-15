@@ -22,7 +22,7 @@
   their verbosity level.
 
 <include> msghdr
-<follow>  msghdr msghdr_init
+<follow>  msghdr
 
 <opts> "vo:mV"
 

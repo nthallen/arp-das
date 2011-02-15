@@ -10,7 +10,7 @@
 
 <include> msghdr
 
-<follow> msghdr msghdr_init
+<follow> msghdr
 
 <opts> "C:p"
 <sort>
