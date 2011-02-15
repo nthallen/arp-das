@@ -1,0 +1,10 @@
+<package> subbusd
+<include> msg
+<follow> msg
+<include> "subbusd_int.h"
+<opts> "H:"
+<sort>
+	-H <low>-<high> hardware cache address range
+
+<init>
+  da_cache_init(argc, argv);
