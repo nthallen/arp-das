@@ -592,12 +592,12 @@ static void ErrorReply( int rcvid, int rv ) {
 void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
   char sreq[SB_SERUSB_MAX_REQUEST];
   subbusd_rep_t rep;
-  int rv;
+  int rv, rsize;
   
   switch ( req->sbhdr.command ) {
     case SBC_READCACHE:
       rep.hdr.status =
-        (sb_read_cache(req->data.d1.data, &rep.data.value) < 0) ?
+        (sb_cache_read(req->data.d1.data, &rep.data.value) < 0) ?
         SBS_ACK : SBS_NOACK;
       rep.hdr.ret_type = SBRT_US;
       rsize =
@@ -609,7 +609,7 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
         req->data.d1.data );
       break;
     case SBC_WRITECACHE:
-      rv = sb_write_cache(req->data.d0.address, req->data.d0.data);
+      rv = sb_cache_write(req->data.d0.address, req->data.d0.data);
       if (rv != 1) {
         rep.hdr.ret_type = SBRT_NONE;
         rep.hdr.status = (rv == 0) ? SBS_ACK : SBS_NOACK;

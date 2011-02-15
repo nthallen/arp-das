@@ -1,25 +1,25 @@
 <package> subbusd
+<include> <unistd.h>
 <include> msg
 <follow> msg
 <include> "subbusd_int.h"
+<include> "nortlib.h"
 
 <opts> "H:S:"
 <init>
-  cache_init_options( argc, argv, subbus_id );
+  cache_init_options( argc, argv );
 
 <defs>
 static void cache_init_options(
-    int argc, char **argv, int subbus_id ) {
+    int argc, char **argv ) {
   int optltr;
 
-  optind = 0;
+  optind = OPTIND_RESET;
   opterr = 0;
   while ((optltr = getopt(argc, argv, opt_string)) != -1) {
     switch (optltr) {
       case 'H':
         cache_hw_range = optarg;
-        if ( subbus_id == 0 )
-          nl_error( 3, "Resident subbus required for -H" );
         break;
       case 'S':
         cache_sw_range = optarg;

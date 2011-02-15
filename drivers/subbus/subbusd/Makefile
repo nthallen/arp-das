@@ -15,10 +15,11 @@ install :
 
 subbusd_serusb_SOURCES = expint.c subbusd.c subbusd_int.h \
   serusb/serusb.c serusb/interrupt.c serusb/serusb.h \
-  subbusd.h serusboui.c
+  subbusd.h serusboui.c cache.c
 subbusd_serusb_CPPFLAGS = -I serusb
 
-subbusd_serusb_OBJECTS = expint.o subbusd.o serusb_serusb.o serusb_interrupt.o serusboui.o
+subbusd_serusb_OBJECTS = expint.o subbusd.o serusb_serusb.o \
+  serusb_interrupt.o serusboui.o cache.o
 subbusd_serusb : $(subbusd_serusb_OBJECTS)
 	$(LINK.c) -o subbusd_serusb $(LDADD) $(subbusd_serusb_OBJECTS)
 	usemsg subbusd_serusb serusboui.c
@@ -28,14 +29,15 @@ serusb_serusb.o : serusb/serusb.c
 serusb_interrupt.o : serusb/interrupt.c
 	$(COMPILE.c) -o serusb_interrupt.o serusb/interrupt.c
 serusboui.o : serusboui.c
-serusboui.c : serusb/serusb.oui
+serusboui.c : serusb/serusb.oui subbusd.oui
 	oui -o serusboui.c serusb/serusb.oui
 
 subbusd_sc104_SOURCES = expint.c subbusd.c syscon104/sc104.c \
   syscon104/interrupt.c syscon104/hint.c syscon104/sc104init.c \
-  sc104oui.c
+  sc104oui.c cache.c
 subbusd_sc104_OBJECTS = expint.o subbusd.o sc104_sc104.o \
-  sc104_interrupt.o sc104_hint.o sc104_sc104init.o sc104oui.o
+  sc104_interrupt.o sc104_hint.o sc104_sc104init.o sc104oui.o \
+  cache.o
 subbusd_sc104_CPPPFLAGS = -I sc104
 
 subbusd_sc104 : $(subbusd_sc104_OBJECTS)

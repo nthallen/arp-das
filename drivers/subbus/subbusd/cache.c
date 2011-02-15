@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "subbusd_int.h"
 #include "oui.h"
+#include "nortlib.h"
 
 /* *_max_addr is outside the range. This is different
    from the command-line option. The adjustment is made
@@ -26,7 +27,7 @@ int sb_cache_write( unsigned short addr, unsigned short data ) {
   if ( addr < hw_max_addr &&
       addr >= hw_min_addr ) {
     cache_addr = ( addr - hw_min_addr ) / 2;
-    hwcache[cache_addr] = data & CACHE_HW_MASK;
+    hwcache[cache_addr] = data;
     nl_error( -3, "Write to HW Cache: %d -> [%03X]",
       data, addr );
     return 1;

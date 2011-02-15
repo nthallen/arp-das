@@ -1,5 +1,5 @@
 <package> sc104
-<include> msg
+<include> subbusd
 
 <package> msghdr_default
 <vars>
