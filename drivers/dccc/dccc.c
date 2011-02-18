@@ -1,6 +1,9 @@
 /*
  * Discrete command card controller program.
  * $Log$
+ * Revision 1.6  2010/09/10 13:07:51  ntallen
+ * Minor edit and relink for libsubbus.so.1
+ *
  * Revision 1.5  2008/09/04 21:25:29  ntallen
  * Added explicit delay, just in case.
  *
@@ -36,19 +39,8 @@
 #include "oui.h"
 #include "nl_assert.h"
 #include "tm.h"
+#include "disc_cmd.h"
 static char rcsid[] = "$Id$";
-
-/* defines */
-
-#define MAX_CMDS 20
-typedef struct {
-  char cmd_type; // D, M, Q
-  int n_cmds;
-  struct {
-    int cmd;
-    unsigned short value;
-  } cmds[MAX_CMDS];
-} cmd_t;
 
 /* functions */
 void init_cards(void);
@@ -56,7 +48,9 @@ void set_line(int port, int mask), reset_line(int port, int mask);
 void sel_line(int port, int mask, int value);
 void read_commands(void);
 int get_type(char *buf, int *type), get_line(FILE *fp, char *buf);
-void execute_pcmd( cmd_t *pcmd, int clr_strobe );
+static void process_pcmd( cmd_t *pcmd );
+static void execute_pcmd( cmd_t *pcmd, int clr_strobe );
+int DCCC_Done = 0;
 
 /* global variables */
 struct cfgcmd {
@@ -142,117 +136,98 @@ static int readunum( char *buf, int *idx, unsigned int *val ) {
   return 0;
 }
 
-#define DCCC_MAX_CMD_BUF 250
-void receive_cmd( int cmd_fd, cmd_t *pcmd ) {
-  char tbuf[DCCC_MAX_CMD_BUF+1];
-  
-  for (;;) {
-    int nb = read( cmd_fd, tbuf, DCCC_MAX_CMD_BUF );
-    int cmd_ok = 1;
-    if ( nb == -1 )
-      nl_error( 3, "Error reading from command interface: %s",
-        strerror(errno) );
-    else if ( nb == 0 ) {
-      pcmd->cmd_type = 'Q';
-    } else {
-      int i = 0;
-      int need_vals = 0;
-      int multi = 0;
-      int cmd_variety;
-      pcmd->n_cmds = 0;
-      nl_assert( nb <= DCCC_MAX_CMD_BUF );
-      tbuf[nb] = '\0';
-      skip_space( tbuf, &i );
-      switch ( tbuf[i] ) {
-        case 'D': break;
-        case 'S': need_vals = 1; break;
-        case 'M': multi = 1; break;
-        case 'N': multi = 1; need_vals = 1; break;
-        default:
-          nl_error( 2, "Invalid command type received" );
-          cmd_ok = 0;
-          continue;
+void parse_cmd(char *tbuf, int nb, cmd_t *pcmd ) {
+  nl_assert( nb >= 0 );
+  if ( nb == 0 ) {
+    pcmd->cmd_type = 'Q';
+  } else {
+    int i = 0;
+    int need_vals = 0;
+    int multi = 0;
+    int cmd_variety;
+    pcmd->n_cmds = 0;
+    nl_assert( nb <= DCCC_MAX_CMD_BUF );
+    tbuf[nb] = '\0';
+    skip_space( tbuf, &i );
+    switch ( tbuf[i] ) {
+      case 'D': break;
+      case 'S': need_vals = 1; break;
+      case 'M': multi = 1; break;
+      case 'N': multi = 1; need_vals = 1; break;
+      default:
+	nl_error( 2, "Invalid command type received" );
+	return;
+    }
+    pcmd->cmd_type = tbuf[i++];
+    for (;;) {
+      unsigned int val;
+      if ( readunum(tbuf, &i, &val) ) return;
+      pcmd->cmds[pcmd->n_cmds].cmd = val;
+      if ( val > n_cmds ) {
+	nl_error( 2, "Invalid command number" );
+	return;
       }
-      pcmd->cmd_type = tbuf[i++];
-      for (;;) {
-        unsigned int val;
-        if ( readunum(tbuf, &i, &val) ) { cmd_ok = 0; break; }
-        pcmd->cmds[pcmd->n_cmds].cmd = val;
-        if ( val > n_cmds ) {
-          nl_error( 2, "Invalid command number" );
-          cmd_ok = 0;
-          break;
-        }
-        if ( pcmd->n_cmds == 0 ) {
-          cmd_variety = cmds[val].type;
-          switch (cmd_variety) {
-            case STEP:
-            case STRB:
-              if ( need_vals ) {
-                nl_error(2, "Command does not match header");
-                cmd_ok = 0;
-              }
-              break;
-            case SET:
-            case SELECT:
-              if ( ! need_vals ) {
-                nl_error(2, "Command does not match header");
-                cmd_ok = 0;
-              }
-              break;
-          }
-          if ( ! cmd_ok ) break;
-        } else {
-          if ( cmds[val].type != cmd_variety ) {
-            nl_error( 2, "Mismatched command in multi" );
-            cmd_ok = 0;
-            break;
-          }
-        }
-        if ( need_vals ) {
-          skip_space( tbuf, &i );
-          if ( tbuf[i++] != '=' ) {
-            nl_error( 2, "Expected '=' for value" );
-            cmd_ok = 0;
-            break;
-          }
-          readunum( tbuf, &i, &val );
-          pcmd->cmds[pcmd->n_cmds].value = val;
-        }
-        ++pcmd->n_cmds;
-        skip_space( tbuf, &i );
-        if ( tbuf[i] == '\0' ) break;
-        else if ( tbuf[i] == ',' ) {
-          if ( multi ) {
-            i++;
-            if ( pcmd->n_cmds >= MAX_CMDS ) {
-              nl_error( 2, "Too many commands in multi-command" );
-              cmd_ok = 0;
-              break;
-            }
-          } else {
-            nl_error(2,"Multiple commands listed for single-command syntax");
-            cmd_ok = 0;
-            break;
-          }
-        } else {
-          nl_error( 2, "Syntax error" );
-          cmd_ok = 0;
-          break;
-        }
+      if ( pcmd->n_cmds == 0 ) {
+	cmd_variety = cmds[val].type;
+	switch (cmd_variety) {
+	  case STEP:
+	  case STRB:
+	    if ( need_vals ) {
+	      nl_error(2, "Command does not match header");
+	      return;
+	    }
+	    break;
+	  case SET:
+	  case SELECT:
+	    if ( ! need_vals ) {
+	      nl_error(2, "Command does not match header");
+	      return;
+	    }
+	    break;
+	}
+      } else {
+	if ( cmds[val].type != cmd_variety ) {
+	  nl_error( 2, "Mismatched command in multi" );
+	  return;
+	}
+      }
+      if ( need_vals ) {
+	skip_space( tbuf, &i );
+	if ( tbuf[i++] != '=' ) {
+	  nl_error( 2, "Expected '=' for value" );
+	  return;
+	}
+	readunum( tbuf, &i, &val );
+	pcmd->cmds[pcmd->n_cmds].value = val;
+      }
+      ++pcmd->n_cmds;
+      skip_space( tbuf, &i );
+      if ( tbuf[i] == '\0' ) break;
+      else if ( tbuf[i] == ',' ) {
+	if ( multi ) {
+	  i++;
+	  if ( pcmd->n_cmds >= MAX_CMDS ) {
+	    nl_error( 2, "Too many commands in multi-command" );
+	    return;
+	  }
+	} else {
+	  nl_error(2,"Multiple commands listed for single-command syntax");
+	  return;
+	}
+      } else {
+	nl_error( 2, "Syntax error" );
+	return;
       }
     }
-    if ( cmd_ok ) return;
   }
+  process_pcmd(pcmd);
 }
 
 int main(int argc, char **argv) {
-  int cmd_fd;
 
   oui_init_options( argc, argv );
   nl_error( 0, "Startup" );
 
-  cmd_fd = tm_open_name( tm_dev_name("cmd/dccc"), NULL, O_RDONLY );
 
   /* subbus */
   if (subbus_subfunction == SB_SYSCON || 
@@ -264,27 +239,30 @@ int main(int argc, char **argv) {
 
   read_commands();
   init_cards();
+  operate();
+  nl_error( -1, "Shutdown" );
+  return 0;
+}
 
-  while (1) {
-    cmd_t pcmd;
-    int dccc_cmd_type;
+static void process_pcmd(cmd_t *pcmd) {
+  int dccc_cmd_type;
 
-    receive_cmd(cmd_fd, &pcmd );
-
-    /* check out msg structure */
-    if ( pcmd.cmd_type == 'Q')
-      nl_error( -1, "Shutdown" );
-    dccc_cmd_type = cmds[pcmd.cmds[0].cmd].type;
-    execute_pcmd( &pcmd, 0 );
-    if (dccc_cmd_type == STRB) {
-      /* optionally add a delay here */
-      delay(10);
-      execute_pcmd( &pcmd, 1 );
-    }
+  /* check out msg structure */
+  if ( pcmd->cmd_type == 'Q') {
+    // nl_error( -1, "Shutdown" );
+    DCCC_Done = 1;
+    return;
+  }
+  dccc_cmd_type = cmds[pcmd->cmds[0].cmd].type;
+  execute_pcmd( pcmd, 0 );
+  if (dccc_cmd_type == STRB) {
+    /* optionally add a delay here */
+    delay(10);
+    execute_pcmd( pcmd, 1 );
   }
 }
 
-void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
+static void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
   int cmd_idx = pcmd->cmds[0].cmd;
   unsigned short value;
   int dccc_cmd_type = cmds[cmd_idx].type;
@@ -324,24 +302,29 @@ void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
       reset_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
       break;
     case SET:
-      nl_error(MSG_DEBUG,"SET: PORT %d, mask %04X, value %04X, command index %d",
-        ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask, value, cmd_idx);
+      nl_error(MSG_DEBUG,
+	"SET: PORT %d, mask %04X, value %04X, command index %d",
+        ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask,
+        value, cmd_idx);
       if (cmds[cmd_idx].mask)
         if (value) set_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
         else reset_line(cmds[cmd_idx].port, cmds[cmd_idx].mask);
       else set_line(cmds[cmd_idx].port, value);
       break;
     case SELECT:
-      nl_error(MSG_DEBUG,"SELECT: PORT %d, mask %04X, value %04X, command index %d",
-        ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask, value, cmd_idx);
+      nl_error(MSG_DEBUG,
+	"SELECT: PORT %d, mask %04X, value %04X, command index %d",
+        ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask,
+        value, cmd_idx);
       sel_line(cmds[cmd_idx].port, cmds[cmd_idx].mask, value);
       break;
     case SPARE: cmd_ok = 0;
       nl_error(MSG_WARN,"command type SPARE received");
       break;
     default: cmd_ok = 0;
-      nl_error(MSG_WARN,"unknown command type %d received",cmds[cmd_idx].type);
-    }			/* switch */
+      nl_error(MSG_WARN, "unknown command type %d received",
+	cmds[cmd_idx].type);
+    } /* switch */
   }
 
   if (dccc_cmd_type == STRB) {

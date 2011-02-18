@@ -1,4 +1,4 @@
-SRCS = dccc.c dc_read.c dcccoui.c
+SRCS = dccc.c dc_read.c dcccoui.c dccc_if.c
 OBJS = $(SRCS:.c=.o)
 LDFLAGS = -L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 LIBS = -ltm -lsubbus -lnort

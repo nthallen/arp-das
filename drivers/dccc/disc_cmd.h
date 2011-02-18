@@ -4,6 +4,7 @@
 /* 
 	disc_cmd.h	- defines type of commands that dccc handles.
 	Modified by Eil July 1991 for QNX.
+	Modified by Nort Feb 18 2010 for QNX6 rearch.
 */
 
 #define N_DISC_CMDS   100
@@ -38,5 +39,20 @@
 #define SELECT 4
 /* #define NDCC 4 */
 
+#define MAX_CMDS 20
+typedef struct {
+  char cmd_type; // D, M, Q
+  int n_cmds;
+  struct {
+    int cmd;
+    unsigned short value;
+  } cmds[MAX_CMDS];
+} cmd_t;
+
+#define DCCC_MAX_CMD_BUF 250
 extern void dccc_init_options( int argc, char **argv );
+extern void parse_cmd(char *tbuf, int nb, cmd_t *pcmd );
+extern void operate(void);
+extern int DCCC_Done;
+
 #endif
