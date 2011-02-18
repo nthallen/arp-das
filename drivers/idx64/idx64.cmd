@@ -2,10 +2,10 @@
 
 %{
   #include "idx64.h"
-  void idx64_cmd2( char *cmd, int drive, step_t steps) {
+  void idx64_cmd2( const char *cmd, int drive, step_t steps) {
     cis_turf(if_idx64, "%s%d:%u\n", cmd, drive, steps);
   }
-  void idx64_cmd1( char *cmd, int drive) {
+  void idx64_cmd1( const char *cmd, int drive) {
     cis_turf(if_idx64, "%s%d\n", cmd, drive);
   }
 %}
