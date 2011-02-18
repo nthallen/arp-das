@@ -11,6 +11,18 @@
 <vnodes>
 <v t="ntallen.20091104124904.1987"><vh>@chapters</vh></v>
 <v t="ntallen.20070319130904" a="E"><vh>QNX6 Data Acquisition Architecture</vh>
+<v t="ntallen.20110216082835.2101" a="E"><vh>Todo</vh>
+<v t="ntallen.20110216082835.2102" a="E"><vh>Switch DCCC to res mgr</vh>
+<v t="ntallen.20110216082835.2103" a="E"><vh>Cmdgen: define new syntax</vh>
+<v t="ntallen.20110215130743.2097"><vh>Server writing commands to driver</vh></v>
+<v t="ntallen.20110216082835.2110"><vh>Server writing data to collection</vh></v>
+</v>
+<v t="ntallen.20110216082835.2104"><vh>tmlib: define, implement API</vh></v>
+<v t="ntallen.20110216082835.2106"><vh>dccc: implement resmgr</vh></v>
+<v t="ntallen.20110216082835.2107"><vh>DACSdiag: modify *.cmd</vh></v>
+<v t="ntallen.20110216082835.2108"><vh>HHH: modify *.cmd</vh></v>
+</v>
+</v>
 <v t="ntallen.20070815151915"><vh>Status</vh>
 <v t="ntallen.20080729145409"><vh>Overview</vh></v>
 <v t="ntallen.20071127160602"><vh>OS Install</vh>
@@ -26,7 +38,7 @@
 <v t="ntallen.20101124082052.2043"><vh>C++ Compile issue</vh></v>
 </v>
 <v t="ntallen.20101129134921.2045"><vh>Eli</vh></v>
-<v t="ntallen.20090824123722"><vh>Runtime kit Creation</vh>
+<v t="ntallen.20090824123722"><vh>Runtime kit Creation and Usage</vh>
 <v t="ntallen.20090505113338"><vh>Flight System Configuration</vh></v>
 <v t="ntallen.20091109122106.1991"><vh>GSE Initialization</vh></v>
 <v t="ntallen.20100726093122.2025"><vh>Add pkgs to install CD: done</vh>
@@ -105,7 +117,7 @@
 <v t="ntallen.20100927130121.2033"><vh>tmnclib</vh></v>
 </v>
 </v>
-<v t="ntallen.20070502121159.1" a="E"><vh>Implementation</vh>
+<v t="ntallen.20070502121159.1"><vh>Implementation</vh>
 <v t="ntallen.20070320121924"><vh>cmdgen</vh>
 <v t="ntallen.20070501165557"><vh>Done</vh>
 <v t="ntallen.20070411152334"><vh>Add Interface Definitions</vh>
@@ -131,7 +143,7 @@
 <v t="ntallen.20070502121159.5"><vh>Memo interface can wait</vh></v>
 <v t="ntallen.20070509151554.3"><vh>Add default .cmd files as appropriate</vh></v>
 </v>
-<v t="ntallen.20070508171951.2"><vh>Todo</vh>
+<v t="ntallen.20070508171951.2" a="E"><vh>Todo</vh>
 <v t="ntallen.20070508171951.6"><vh>Draw polygon</vh></v>
 <v t="ntallen.20070508171951.7"><vh>Get a cursor in cmd_text somehow</vh></v>
 </v>
@@ -165,8 +177,8 @@
 </v>
 <v t="ntallen.20080715165457"></v>
 </v>
-<v t="ntallen.20070319130904.2"><vh>TMbfr</vh>
-<v t="ntallen.20070524163205.8"><vh>TMbfr Operation</vh>
+<v t="ntallen.20070319130904.2" a="E"><vh>TMbfr</vh>
+<v t="ntallen.20070524163205.8" a="E"><vh>TMbfr Operation</vh>
 <v t="ntallen.20080516131227"><vh>TMbfr Write Modes: O_NONBLOCK</vh></v>
 <v t="ntallen.20080516131227.1"><vh>TMbfr Read Modes: DCo, DCf</vh></v>
 <v t="ntallen.20070525114357"><vh>Register Names</vh></v>
@@ -267,12 +279,12 @@
 <v t="ntallen.20070319130904.6"><vh>Inetin</vh></v>
 <v t="ntallen.20080516132543"><vh>TMRelay</vh></v>
 </v>
-<v t="ntallen.20070319130904.7" a="E"><vh>Data Clients</vh>
+<v t="ntallen.20070319130904.7"><vh>Data Clients</vh>
 <v t="ntallen.20080519132626"><vh>DC API</vh></v>
 <v t="ntallen.20080516131227.1"></v>
 <v t="ntallen.20070319130904.8"><vh>lgr</vh></v>
-<v t="ntallen.20070319130904.9" a="E"><vh>display</vh>
-<v t="ntallen.20100927130121.2035" a="E"><vh>ncurses</vh>
+<v t="ntallen.20070319130904.9"><vh>display</vh>
+<v t="ntallen.20100927130121.2035"><vh>ncurses</vh>
 <v t="ntallen.20101229203740.2059"><vh>Start Up</vh></v>
 <v t="ntallen.20100927130121.2037"><vh>table mods</vh></v>
 <v t="ntallen.20100927130121.2038"><vh>appgen mods</vh></v>
@@ -284,9 +296,13 @@
 <v t="ntallen.20070404221945.1"><vh>TMC rework</vh></v>
 <v t="ntallen.20070404221945.2"><vh>SNAFU/ssp library</vh></v>
 </v>
-<v t="ntallen.20070319130904.12"><vh>Command</vh>
-<v t="ntallen.20070320110353"><vh>Command Server</vh>
-<v t="ntallen.20070320135407"><vh>Reader Interface Definition</vh>
+<v t="ntallen.20070319130904.12" a="E"><vh>Command</vh>
+<v t="ntallen.20070320110353" a="E"><vh>Command Server</vh>
+<v t="ntallen.20070404111542.1"><vh>Write: sending commands to server</vh>
+<v t="ntallen.20070404111542.2"><vh>How will syntax testing work?</vh></v>
+</v>
+<v t="ntallen.20110216082835.2105" a="E"><vh>Getting commands from server</vh>
+<v t="ntallen.20070320135407"><vh>Reading from server</vh>
 <v t="ntallen.20070320135407.1"><vh>Node Name</vh></v>
 <v t="ntallen.20070320135407.2"><vh>Client Message Definition</vh>
 <v t="ntallen.20070320135407.4"><vh>Message contents</vh></v>
@@ -301,8 +317,8 @@
 <v t="ntallen.20070320140803.4"><vh>Missed Command</vh></v>
 </v>
 </v>
-<v t="ntallen.20070404111542.1"><vh>Write Interface Definition</vh>
-<v t="ntallen.20070404111542.2"><vh>How will syntax testing work?</vh></v>
+<v t="ntallen.20110215130743.2097"></v>
+<v t="ntallen.20110216082835.2110"></v>
 </v>
 <v t="ntallen.20070320150841"><vh>Development Plan</vh>
 <v t="ntallen.20070403140218"><vh>resmgr_attach()</vh>
@@ -325,13 +341,14 @@
 <v t="ntallen.20070320150524.1"><vh>Command Sources</vh>
 <v t="ntallen.20070320150524.2"><vh>Keyboard</vh></v>
 <v t="ntallen.20070320150524.3"><vh>Algorithm</vh></v>
+<v t="ntallen.20110215130743.2095"><vh>Soldrv</vh></v>
+<v t="ntallen.20110215130743.2096"><vh>MuxCtrl</vh></v>
 </v>
-<v t="ntallen.20070320150524.4"><vh>Command Receivers</vh>
+<v t="ntallen.20070320150524.4" a="E"><vh>Command Receivers</vh>
 <v t="ntallen.20070320150524.5"><vh>DG</vh></v>
 <v t="ntallen.20070320150524.6"><vh>lgr</vh></v>
-<v t="ntallen.20070320150524.7"><vh>TMbfr</vh></v>
 <v t="ntallen.20070320150524.8"><vh>Indexer</vh></v>
-<v t="ntallen.20070320150524.9"><vh>SCDC/DCCC</vh></v>
+<v t="ntallen.20070320150524.9"><vh>DCCC</vh></v>
 <v t="ntallen.20070322160353"><vh>Quit</vh></v>
 </v>
 </v>
@@ -351,7 +368,18 @@
 <v t="ntallen.20090202133816"><vh>Utilities</vh>
 <v t="ntallen.20090202133816.1"><vh>mkdoit</vh>
 <v t="ntallen.20090202133816.2"><vh>Dedicated Acquisition node</vh></v>
+<v t="ntallen.20110106130520.2064"><vh>doit [-ns] [-p run] [-i src] [start|stop|not|wait]</vh>
+<v t="ntallen.20110110214655.2067"><vh>.doit</vh>
+<v t="ntallen.20110110214655.2068"><vh>Possible optimizations</vh></v>
+</v>
+</v>
 <v t="ntallen.20090202133816.3"><vh>Development node</vh></v>
+<v t="ntallen.20110106130520.2063"><vh>Playback</vh>
+<v t="ntallen.20110111074722.2071"><vh>Run identifier</vh></v>
+</v>
+<v t="ntallen.20110113085104.2073"><vh>Syntax and invocation</vh>
+<v t="ntallen.20110113085104.2075"><vh>Dependencies</vh></v>
+</v>
 </v>
 </v>
 </v>
@@ -499,7 +527,15 @@
 </v>
 </v>
 <v t="ntallen.20070404221945.4"><vh>Drivers</vh>
-<v t="ntallen.20070404221945.5"><vh>Subbus</vh></v>
+<v t="ntallen.20110117144243.2077"><vh>General</vh></v>
+<v t="ntallen.20110131090023.2079"><vh>Subbus</vh>
+<v t="ntallen.20110131090023.2080"><vh>Subbusd</vh>
+<v t="ntallen.20110131090023.2082"><vh>subbusd_serusb</vh></v>
+<v t="ntallen.20110131090023.2083"><vh>subbusd_sc104</vh></v>
+</v>
+<v t="ntallen.20110131090023.2081"><vh>libsubbus</vh></v>
+<v t="ntallen.20070404221945.5"><vh>Subbus Old Implementation</vh></v>
+</v>
 <v t="ntallen.20070404221945.6"><vh>SCDC/DCCC</vh></v>
 <v t="ntallen.20070404221945.7"><vh>Indexer</vh>
 <v t="ntallen.20091015133220"><vh>Define command protocol</vh></v>
@@ -540,6 +576,7 @@
 <v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
 <v t="ntallen.20070817133522.3" a="E"><vh>QNX6</vh>
+<v t="ntallen.20071127160602"></v>
 <v t="ntallen.20110102095209.2061"><vh>cmdgen</vh></v>
 <v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
 <v t="ntallen.20080716155154.1"><vh>DG.h</vh>
@@ -554,6 +591,11 @@
 </v>
 <v t="ntallen.20070817133522.4"><vh>DC</vh></v>
 <v t="ntallen.20070817133522.5"></v>
+</v>
+</v>
+<v t="ntallen.20110211111845.2089"><vh>QNX6 Sys Admin</vh>
+<v t="ntallen.20110211111845.2090"><vh>mkrtkit</vh>
+<v t="ntallen.20110211111845.2091"><vh>Version Numbering</vh></v>
 </v>
 </v>
 </v>
@@ -573,7 +615,7 @@ The keyboard client and the command server are both compiled from the same sourc
 </t>
 <t tx="ntallen.20070319130904.3">Data Generators (DGs) are where telemetry data enters the system. These programs open the TMbfr for write. TMbfr is limited to a single writer, so only one DG is allowed per instrument.
 
-DGs also will read from the command server to receive commands.
+DGs will create a /dev/huarp/$Experiment/DG/cmd device which will accept commands.
 
 The DG library will need to support basic timing functions. Collection needs timing in order to build the frame. Other DGs need timing in playback modes
 </t>
@@ -591,7 +633,7 @@ Display programs could read commands from srvr e.g. to redraw screens
 <t tx="ntallen.20070320110353">Command server is experiment-specific, compiled from .cmd input by cmdgen. It accepts ASCII command sequences from clients, parses them and executes the specified code. In this version, that can include making the command available to other client programs.</t>
 <t tx="ntallen.20070320121924">Defines command syntax and code to execute on command reception.
 </t>
-<t tx="ntallen.20070320135407"></t>
+<t tx="ntallen.20070320135407">Readers are programs that wish to receive commands without setting up their own device interface.</t>
 <t tx="ntallen.20070320135407.1">Will appear under /dev/huarp/$exp/cmd/$node
 </t>
 <t tx="ntallen.20070320135407.2">Could be combined with options.</t>
@@ -615,14 +657,17 @@ Each reader has a record of last command read.
 <t tx="ntallen.20070320150524.3">Does not see cmdgen source, but invokes the command server in test mode to test command syntax
 </t>
 <t tx="ntallen.20070320150524.4"></t>
-<t tx="ntallen.20070320150524.5">Only one of these
+<t tx="ntallen.20070320150524.5">%INTERFACE &lt;DG:DG/cmd&gt;
 </t>
-<t tx="ntallen.20070320150524.6">Should be only one of these
+<t tx="ntallen.20070320150524.6">%INTERFACE &lt;lgr&gt;
+
+Not using a command interface currently. Could get logging suspend/enable.
 </t>
-<t tx="ntallen.20070320150524.7">Playback controls: Assuming only monotonic, no rewind. If we support rewind, then the rdr (DG) needs to get those commands too.</t>
-<t tx="ntallen.20070320150524.8">One should be enouch
+<t tx="ntallen.20070320150524.8">%INTERFACE &lt;idx64&gt;
 </t>
-<t tx="ntallen.20070320150524.9">One
+<t tx="ntallen.20070320150524.9">%INTERFACE &lt;dccc:dccc&gt;
+
+One.
 </t>
 <t tx="ntallen.20070320150841"></t>
 <t tx="ntallen.20070320150841.4">I believe this is done.</t>
@@ -631,7 +676,13 @@ This needs to be formally renamed and cleaned up. (08-05-16)</t>
 <t tx="ntallen.20070322130922.1">This is not implemented. Should use tm_dev_name() from tmlib</t>
 <t tx="ntallen.20070322130922.2"></t>
 <t tx="ntallen.20070322130922.3"></t>
-<t tx="ntallen.20070322160353">Everyone wants to get the Quit command. This one almost certainly requires multiple support, or else it is written to every interface.</t>
+<t tx="ntallen.20070322160353">%INTERFACE &lt;Quit&gt;
+
+Everyone wants to get the Quit command. This one almost certainly requires multiple support, and it is written to every interface.
+
+On exit, zero bytes are written to every interface (except DG/data interfaces) and the interfaces are closed.
+The Quit interface simply provides this option to clients that have no other command requirements.
+</t>
 <t tx="ntallen.20070322160353.1">Examine current library for options
 Usual message format includes:
     timestamp: hdr: severity: message
@@ -751,7 +802,9 @@ The fact that this is so formulaic suggests we could make the specification easi
     { cmdsrvr_turf( if_indxr, "indexer command text" ); }
 
 Allowing INTERFACE definitions on separate lines means they can be further separated into multiple files.</t>
-<t tx="ntallen.20070404111542.1">/dev/huarp/Exp/cmd/server
+<t tx="ntallen.20070404111542.1">Writers open the write interface in order to issue commands.
+
+/dev/huarp/Exp/cmd/server
 Maximum command length arbitrary (256)
 Command messages are all ASCII, terminated by newline
 One command per write()
@@ -797,7 +850,8 @@ Create a MsgReceive() loop to listen for commands or interrupts
 
 </t>
 <t tx="ntallen.20070404221945.8"></t>
-<t tx="ntallen.20070404221945.9"></t>
+<t tx="ntallen.20070404221945.9">Implemented (in part) within subbusd
+</t>
 <t tx="ntallen.20070409132623">Flash app to display different modes of operation</t>
 <t tx="ntallen.20070409132623.1"></t>
 <t tx="ntallen.20070409132623.2"></t>
@@ -1356,7 +1410,7 @@ Note here items that need more documentation.
 <t tx="ntallen.20070817133522.5">DG needs a command channel to support:
     Telemetry Start
     Quit
-Some DGs could probably get by without any commands (rdr could auto-start end on EOF) but collection definitely needs to receive commands. That means I probably need to support select() on the command server.
+Some DGs could probably get by without any commands (rdr could auto-start end on EOF) but collection definitely needs to receive commands and data.
 
 Options:
     autostart: Don't wait for 'Telemetry Start' command
@@ -3914,7 +3968,7 @@ I need a heuristic for deciding what files to include:
 gse_select.sed
     Avoid everything for arm|mips|ppc|sh
     Avoid all of target/qnx6/x86, assuming it's already in qnx-6.4.1, but should check</t>
-<t tx="ntallen.20091109122106.1991">After install, login as root (no password) and start Photon
+<t tx="ntallen.20091109122106.1991">After install, login as root (no password) and start Photon ("ph" command)
 If Photon doesn't start, you may need to edit the screen configuration file
     /etc/system/config/display.conf
 In Photon, run the network configuration tool to set hostname and enable dhcp
@@ -4294,13 +4348,16 @@ Screen invocation
     
     getcon &lt;windowname&gt;
         Write ttyname to pty.&lt;windowname&gt;.tmp
-        rename pty.&lt;windowname&gt;.tmp pty.&lt;windowname&gt;
-        listen on /dev/huarp/$Experiment/.../Quit for quit
+        rename pty.&lt;windowname&gt;.&lt;sessionID&gt;.tmp pty.&lt;windowname&gt;.&lt;sessionID&gt;
+        listen on /dev/huarp/$Experiment/cmd/Quit for quit
+        Better yet, listen on .../cmd/getcon for either quit (empty message)
+          or our session ID. That would allow mutiple sessions to run and
+          only one to clean up on exit
     
     for each display
-        waitfor pty.&lt;windowname&gt;
-        &lt;windowname&gt;_pty=`cat pty.&lt;windowname&gt;`
-        rm pty.&lt;windowname&gt;
+        waitfor pty.&lt;windowname&gt;.&lt;sessionID&gt;
+        &lt;windowname&gt;_pty=`cat pty.&lt;windowname&gt;.&lt;sessionID&gt;`
+        rm pty.&lt;windowname&gt;.&lt;sessionID&gt;
         
     There is a potential collision if more than one session is started from the same directory.
     To avoid that, the 'pty' portion should be customized for each session. The simplest
@@ -4310,6 +4367,227 @@ Screen invocation
     getcon could conceivably do something else with the name if necessary.
         </t>
 <t tx="ntallen.20110102095209.2061">Need documentation for the new interface keywords and the associated library function, cis_turf() in cis.c.
+</t>
+<t tx="ntallen.20110106130520.2063">Much of the display stuff is identical to instrument operation.
+The main difference is that we don't invoke flight.sh or access
+a remote flight stack. Instead we create our own local stack
+using Experiment=$Experiment.PB.$NODE.$$
+
+The local stack consists of:
+    memo
+    TMbfr
+    pbcmdsrvr
+    rdr
+
+The pbcmdclt will replace the application's own client
+The two will support commands relevant to the rdr,
+e.g. fast forward, search, etc.
+
+For InetIn, the same is true, but replace rdr with InetIn</t>
+<t tx="ntallen.20110106130520.2064">start is implicit if no other command is given
+another command: screen &lt;session&gt; is used internally in doit -s
+
+-s use ncurses display and client programs and invoke screen
+-n use ncurses display and client programs and use pterms
+otherwise use photon apps
+
+-s could be the default if tty is a virtual terminal.
+-n is really only for testing the ncurses implementations without screen.
+
+-p run Playback mode
+-i src InetIn
+otherwise realtime data acquisition
+
+-p and -i both create a local command and control structure, so they
+will need to redefine Experiment</t>
+<t tx="ntallen.20110110214655.2067">display abcdisp abc [options]
+    Lists the names of each screen. Must match order and number in .spec file
+    Can append 'nc' to disp executable to get ncurses version
+client abcclt [options]
+    Can append 'nc' to clt executable to get ncurses version
+algorithm abcalgo
+    Not currently supported for QNX6
+extraction abcext [options]
+    Only for real extractions: specify extra options to display directly
+memo [&lt;logfilename&gt;]
+    Display less +F. Default log file is $Experiment.log
+batchfile &lt;batchfilename&gt;
+phrtg
+autostart
+    Or should this be a command line option?</t>
+<t tx="ntallen.20110110214655.2068">    Could we extract that information instead?
+    What if the screen names collided?
+        The screen name is derived from the input .tbl file, hence the only
+        possible collision is if two disp programs contain the same screen
+        Listing names in the .doit allows us to rename and can enforce uniqueness</t>
+<t tx="ntallen.20110111074722.2071">./doit -p 110112.1
+    Where do I look?
+    run=110112.1
+    for base in . $FltNd$HomeDir; do
+      $base/$run
+      $base/raw/$run
+      for cat in Flight Cal Data Junk; do
+        $base/raw/$cat/$run
+      done
+    done
+</t>
+<t tx="ntallen.20110113085104.2073">mkdoit3 -M -o &lt;doit_name&gt; &lt;sourcename&gt;
+mkdoit3 [-o &lt;doit_name&gt;] &lt;sourcename&gt;
+
+  -M output make dependencies to &lt;doit_name&gt;.dep
+  -o &lt;doit_name&gt; specifies the name of the doit script.
+     Not really optional for -M, since the name of the script
+     is crucial to spelling the dependencies.
+
+Syntax supported:
+    display demodisp [options]
+    client democlt [options]
+    # extraction &lt;name&gt; [options]
+    # algorithm &lt;name&gt; [options]
+    batchfile &lt;name&gt;
+    phrtg [options]
+    memo [logfilename]</t>
+<t tx="ntallen.20110113085104.2075">mkdoit3 -M -o doit demo.doit
+
+will produce output like the following:
+    
+    doit : demo.doit demodispnc.cc demo2dispnc.cc
+
+appgen will produce output like:
+    
+    Makefile : demo.spec
+    doit : demo.doit
+        mkdoit3 -o doit demo.doit
+    doit.dep : demo.doit
+        mkdoit3 -M -o doit demo.doit
+    include doit.dep
+    OBJ += doit.dep
+    </t>
+<t tx="ntallen.20110117144243.2077">For a general-purpose driver, we generally will want to support both cmds and telemetry. There are a variety of configurations, depending on whether the telemetry interface is synchronous or asynchronous and what other I/O the driver needs to support. However it seems as though a standard, simple framework for handling the multiple interfaces might be worth some effort.
+
+For apps that can stick to read/write, a select interface would work. For apps that need to respond to interrupts, e.g. via pulses, the same general approach could work, but we'd need to use ionotify instead of select and process the various pulses.
+
+tm_event_add_fd( fd, O_RDONLY, read_event );
+tm_event_add_send_id( send_id, TM_event );
+tm_event_add_fd( fd, O_WRONLY, write_event );
+tm_event_add_irq(...);
+
+tm_event_loop() {
+  copy operate() from idx64
+  when a pulse arrives, look it up in the table, call the relevant
+  routine, then rearm.
+}</t>
+<t tx="ntallen.20110131090023.2079">The subbus architecture has been reworked to provide the proper level of
+abstraction and modularity. Programs will link with a library, which will
+access a resident driver via resource manager semantics. Different hardware
+will require different drivers. At present, we require support for DACS and
+SYSCON/104, so there will be two drivers:
+    subbusd_serusb
+    subbusd_sc104
+</t>
+<t tx="ntallen.20110131090023.2080"></t>
+<t tx="ntallen.20110131090023.2081"></t>
+<t tx="ntallen.20110131090023.2082">The documentation for the serial protocol is located in the arp-fpga
+project.</t>
+<t tx="ntallen.20110131090023.2083"></t>
+<t tx="ntallen.20110211111845.2089"></t>
+<t tx="ntallen.20110211111845.2090">The mkrtkit module is the start of a packaging scheme that should keep track of
+the files that need to be installed on GSE systems or flight systems. Each
+package identifies the files it requires and what other packages it requires.</t>
+<t tx="ntallen.20110211111845.2091">In general, a package's version number should be incremented:
+    Whenever the list of files required changes
+    Whenever any of the listed files is updated
+    Whenever a required package is updated
+
+Therefore I should have a utility to check these conditions.
+The package install script should never overwrite an existing
+installed package. If the version is the same as an installed
+package, then it should compare the file lists and check the
+files for modification or change times. If any are newer than
+the existing tar file, then an error should be reported, and
+the user should manually increment the version number of the
+package.
+
+This requires that the packages be checked in the reverse
+order of their dependency, so a directed acyclic graph of
+all the packages needs to be constructed to make sure the
+dependent packages are installed first.
+
+Implicit is the fact that the tar archives should be
+created during the install step, not during mkrtkitarch,
+and hence the package tar files will already exist during
+an invocation of mkrtkit.
+</t>
+<t tx="ntallen.20110215130743.2095"></t>
+<t tx="ntallen.20110215130743.2096"></t>
+<t tx="ntallen.20110215130743.2097">DG and DCCC are examples of other programs which need to receive commands
+but would probably rather not read directly from the command server.
+Instead, they may wish the command server to write to them.
+These programs must set up their own device interface.
+Within cmdgen, these could be treated the same as Readers with the
+tweak of the interface:
+    %INTERFACE &lt;DG:DG/cmd&gt;
+where the part after the colon is a relative path to the device.
+cis_turf could still refer to if_DG, and would do the right thing.
+
+Programs other than the command server could talk directly to these
+devices, bypassing the command server's overhead.
+
+Note the implicit limitation that this type of interface addresses
+at most one other process whereas the read interfaces may address
+multiple readers.
+</t>
+<t tx="ntallen.20110216082835.2101"></t>
+<t tx="ntallen.20110216082835.2102">Since Soldrv needs to talk to DCCC frequently and can use low-level encoding,
+it makes sense to provide a direct route not going through cmdsrvr. That
+quickly leads me to the idea of generalizing that type of interface, which
+would benefit the implementation of DG/cmd as well.</t>
+<t tx="ntallen.20110216082835.2103">%INTERFACE &lt;node:path&gt;
+
+Consider output to C++, then the interfaces can be separate classes, and cis_turf could be
+overridden for each class.
+
+investigate difficulty.
+
+cis_turf would have to move to one of the C++ libs...
+
+    </t>
+<t tx="ntallen.20110216082835.2104">cmdgen/cmdalgo.h
+  Define a type for all interfaces
+  change cis_turf() prototype.
+  Add cis_interfaces_close() prototype
+  
+cis.c
+
+    cis_turf();
+
+        Check type of the interface.
+
+    cis_interfaces_close(); call during quit</t>
+<t tx="ntallen.20110216082835.2105">These will have a common API on the command server end using cis_turf
+and the %INTERFACE syntax.
+
+Initialization of these interfaces can occur at startup. This requires that
+we order the startup script to ensure the necessary interfaces exist before
+Cmd is started.</t>
+<t tx="ntallen.20110216082835.2106"></t>
+<t tx="ntallen.20110216082835.2107"></t>
+<t tx="ntallen.20110216082835.2108"></t>
+<t tx="ntallen.20110216082835.2110">Currently, the SW Status interface is a kluge that needs a special file before root.cmd
+and a special hook after quit to cleanup. If the TM connection were just another interface,
+then it could get cleaned up like all the rest.
+
+%INTERFACE &lt;SWStat:DG/data&gt;
+
+This is the same syntax as the write interface, but:
+    DG/data is not the complete relative path (should be DG/data/SWStat)
+    DG/data marks this as a TM data channel and invokes
+    
+    send_id if_SWStat;
+    if_SWStat.TM_id = Col_send_init("SWStat", &amp;SWStat, sizeof(SWStat), 0);
+    
+We don't use cis_turf, since that assumes ASCII encoding. Could manually
+invoke Col_send(if_SWStat.TM_id);
 </t>
 </tnodes>
 </leo_file>
