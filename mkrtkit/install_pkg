@@ -16,6 +16,14 @@ use File::Copy;
 # Note that since the files to install are read from the Header,
 # additional files used to generate the MANIFESTs can be stored
 # in the pkg source directory.
+#
+### This has not yet been implemented:
+# If the target pkg/version already exists, perform two tests:
+#   a) Check to see if any of the MANIFESTs have changed
+#   b) Check to see if any of the source files have been modified
+#      since the previous version
+# If either of these changes have occured, report as an error,
+# indicating that this package needs to have its version incremented.
 
 my $pkgname = shift(@ARGV) || die "No package argument\n";
 

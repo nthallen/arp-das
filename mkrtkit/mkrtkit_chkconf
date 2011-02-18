@@ -26,9 +26,9 @@ while ( <$fh> ) {
     my $comp = $2;
     if ( defined $comp{$comp} ) {
       if ( $comp{$comp}->{pkg} ne $pkg ) {
-	warn "Component $comp specified for $comp{$comp}->{pkg} and $pkg\n";
+        warn "Component $comp specified for $comp{$comp}->{pkg} and $pkg\n";
       } else {
-	warn "Component $comp listed more than once for package $pkg\n";
+        warn "Component $comp listed more than once for package $pkg\n";
       }
     } else {
       $comp{$comp} = { pkg => $pkg, found => 0 };
@@ -57,11 +57,11 @@ for my $pkg ( @pkgs ) {
     while (<$fh>) {
       chomp;
       if (defined $comp{$_}) {
-	if ( $comp{$_}->{pkg} ne $pkg ) {
-	  warn "Component $_ found in package $pkg instead of",
-	       "$comp{$_}->{pkg}\n";
-	}
-	++$comp{$_}->{found};
+        if ( $comp{$_}->{pkg} ne $pkg ) {
+          warn "Component $_ found in package $pkg instead of",
+               "$comp{$_}->{pkg}\n";
+        }
+        ++$comp{$_}->{found};
       }
     }
     close($fh) || warn "Error closing $mani\n";
