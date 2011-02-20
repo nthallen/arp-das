@@ -372,6 +372,7 @@ int subbus_int_detach( char *cardID ) {
  * @return SBS_OK on success.
  */
 int subbus_quit(void) {
+  if ( sb_fd == -1 ) return 0;
   return send_to_subbusd( SBC_QUIT, NULL, 0, SBRT_NONE );
 }
 
