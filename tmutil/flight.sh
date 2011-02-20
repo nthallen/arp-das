@@ -59,7 +59,10 @@ function Launch {
 }
 
 umask g+w
-# [ -n "$FlightNode" ] && namewait -n0 pick_file
+
+if [ -n "$SUBBUSD" -a ! -e /dev/huarp/subbus ]; then
+  launch /dev/huarp/subbus subbusd_$SUBBUSD -V
+fi
 VERSION=1.0
 [ -f VERSION ] && VERSION=`cat VERSION`
 if [ -d bin/$VERSION/ ]; then
