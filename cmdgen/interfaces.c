@@ -83,7 +83,6 @@ void output_interfaces(void) {
   for ( cur_if = if_list; cur_if; cur_if = cur_if->next ) {
     switch (cur_if->if_type) {
       case IFT_READ:
-	break; // Handled within the resmgr code
       case IFT_WRITE:
       case IFT_DGDATA:
 	fprintf( ofile, "    if_%s.Shutdown();\n", cur_if->if_name );

@@ -46,6 +46,7 @@ class cmdif_rd {
     cmdif_rd( const char *name );
     void Setup();
     void Turf(char *fmt, ...);
+    void Shutdown();
   private:
     const char *name;
     IOFUNC_ATTR_T *handle;
