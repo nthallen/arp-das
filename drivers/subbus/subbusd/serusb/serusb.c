@@ -658,6 +658,12 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
         return; // i.e. don't enqueue
       }
       break;
+    case SBC_QUIT:
+      rep.hdr.ret_type = SBRT_NONE;
+      rep.hdr.status = SBS_OK;
+      rsize = sizeof(subbusd_rep_hdr_t);
+      rv = MsgReply( rcvid, rsize, &rep, rsize );
+      return;
     default:
       nl_error(4, "Undefined command in incoming_sbreq!" );
   }

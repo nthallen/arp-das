@@ -20,7 +20,13 @@ static resmgr_io_funcs_t         io_funcs;
 static iofunc_attr_t             attr;
 #define DEVNAME "/dev/" COMPANY "/subbus"
 
-static int saw_int = 0;
+static int SB_Shutdown = 0;
+
+static int subbus_write(resmgr_context_t *ctp, io_write_t *msg,
+               RESMGR_OCB_T *ocb) {
+  SB_Shutdown = 1;
+  return iofunc_write_default(ctp, msg, ocb);
+}
 
 static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
                RESMGR_OCB_T *ocb) {
@@ -49,6 +55,9 @@ static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
     case SBC_TICK:
     case SBC_DISARM:
       nb_exp = 0; break;
+    case SBC_QUIT:
+      SB_Shutdown = 1;
+      nb_exp = 0; break;
     case SBC_INTATT:
       nb_exp = sizeof(subbusd_req_data2); break;
     case SBC_INTDET:
@@ -65,7 +74,7 @@ static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
 }
 
 void sigint_handler( int sig ) {
-  saw_int = 1;
+  SB_Shutdown = 1;
 }
 
 int main(int argc, char **argv) {
@@ -95,6 +104,7 @@ int main(int argc, char **argv) {
                    _RESMGR_IO_NFUNCS, &io_funcs);
 
   io_funcs.msg = subbus_io_msg;
+  io_funcs.write = subbus_write; // For Quit only
 
   /* initialize attribute structure used by the device */
   iofunc_attr_init(&attr, S_IFNAM | 0666, 0, 0);
@@ -128,7 +138,7 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
     }
     dispatch_handler(ctp);
-    if (saw_int == 1 && ctp->resmgr_context.rcvid == 0
+    if (SB_Shutdown == 1 && ctp->resmgr_context.rcvid == 0
 	  && attr.count == 0)
       break;
   }

@@ -42,6 +42,7 @@ typedef struct {
 #define SBC_INTDET 11
 #define SBC_READCACHE 12
 #define SBC_WRITECACHE 13
+#define SBC_QUIT 14
 
 typedef struct {
   unsigned short address;

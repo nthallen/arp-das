@@ -214,6 +214,9 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
         return;
       }
       break;
+    case SBC_QUIT:
+      rep.hdr.ret_type = SBRT_NONE;
+      break;
     default:
       nl_error(4, "Undefined command in incoming_sbreq!" );
   }

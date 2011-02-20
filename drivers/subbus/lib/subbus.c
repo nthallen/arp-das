@@ -23,7 +23,8 @@ unsigned short subbus_subfunction; // undefined until initialization
 unsigned short subbus_features; // ditto
 
 /**
- @return Number of bytes in reply or -1 on error.
+ @return Status reply from subbusd. Terminates if
+ communication with subbusd fails.
  */
 static int send_to_subbusd( unsigned short command, void *data,
 		int data_size, unsigned short exp_type ) {
@@ -363,5 +364,14 @@ int subbus_int_detach( char *cardID ) {
   nl_assert(cardID != NULL);
   strncpy( idata.cardID, cardID, 8);//possibly not non-terminated
   return send_to_subbusd( SBC_INTDET, &idata, sizeof(idata), SBRT_US );
+}
+
+/**
+ * Requests subbusd to terminate. subbusd will wait until
+ * all connections are closed.
+ * @return SBS_OK on success.
+ */
+int subbus_quit(void) {
+  return send_to_subbusd( SBC_QUIT, NULL, 0, SBRT_NONE );
 }
 

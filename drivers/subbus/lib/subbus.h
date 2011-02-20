@@ -55,16 +55,17 @@ extern char *get_subbus_name(void);
 extern int cache_write(unsigned short addr, unsigned short data);
 extern unsigned short cache_read(unsigned short addr);
 
-unsigned short sbrb(unsigned short addr);
-unsigned short sbrba(unsigned short addr);
+extern unsigned short sbrb(unsigned short addr);
+extern unsigned short sbrba(unsigned short addr);
 #define sbrw(x) read_subbus(x)
-unsigned int sbrwa(unsigned short addr);
+extern unsigned int sbrwa(unsigned short addr);
 #define sbwr(x,y) write_ack(x,y)
 #define sbwra(x,y) write_ack(x,y)
 
-int subbus_int_attach( char *cardID, unsigned short address,
+extern int subbus_int_attach( char *cardID, unsigned short address,
       unsigned short region, struct sigevent *event );
-int subbus_int_detach( char *cardID );
+extern int subbus_int_detach( char *cardID );
+extern int subbus_quit(void);
 
 #ifdef __cplusplus
 };
