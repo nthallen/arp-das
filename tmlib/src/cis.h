@@ -47,6 +47,5 @@ typedef struct ioattr_s {
 
 
 extern IOFUNC_ATTR_T *cis_setup_rdr( char *node );
-extern void cis_turf( IOFUNC_ATTR_T *handle, char *format, ... );
 
 #endif /* CIS_H_INCLUDED */

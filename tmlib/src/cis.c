@@ -165,6 +165,7 @@ static void process_quit(void) {
   for ( rr = rdrs; rr != NULL; rr = rr->next ) {
     cis_turf( rr->rdr, "" );
   }
+  cis_interfaces_close();
   rv = resmgr_detach( dpp, wr_id, _RESMGR_DETACH_PATHNAME );
   if ( rv < 0 )
     nl_error( 2, "Error %d from resmgr_detach(wr_id)", errno );
