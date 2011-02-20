@@ -28,28 +28,6 @@ int DG_cmd::execute(char *buf) {
   return dg->execute(buf);
 }
 
-/* return non-zero if a quit command is received */
-// void DG_cmd::service_pulse( int triggered ) {
-  // for (;;) {
-    // int rc;
-    // char buf[DG_cmd::DG_CMD_BUFSIZE+1];
-
-    // if ( triggered ) {
-      // nl_error( 0, "Triggered:" );
-      // rc = read( cmd_fd, buf, DG_CMD_BUFSIZE );
-      // if ( rc < 0 ) nl_error( 2, "Error %d from read", errno );
-      // else {
-        // buf[rc] = '\0';
-        // if (execute(buf)) return;
-      // }
-    // }
-    // rc = ionotify( cmd_fd, _NOTIFY_ACTION_POLLARM, _NOTIFY_COND_INPUT, &cmd_ev );
-    // if ( rc < 0 ) nl_error( 3, "Error %d returned from ionotify()", errno );
-    // if ( rc == 0 ) return;
-    // triggered = 1;
-  // }
-// }
-
 DG_cmd::DG_cmd(data_generator *data_gen) : DG_dispatch_client() {
   dg = data_gen;
 }
@@ -76,40 +54,11 @@ void DG_cmd::attach() {
   if ( dev_id == -1 )
     nl_error( 3, "Unable to attach name %s: errno %d", wr_devname, errno );
  
-  
-  // This is the read stuff
-  // char *rd_devname = tm_dev_name( "cmd/DG" );
-  // cmd_fd = open( rd_devname, O_RDONLY );
-  // if ( cmd_fd < 0 ) {
-    // nl_error( 1, "Unable to read from %s", rd_devname );
-  // } else {
-      // int pulse_code =
-        // pulse_attach( dpp, MSG_FLAG_ALLOC_PULSE, 0, DG_cmd_pulse_func, NULL );
-      // if ( pulse_code < 0 )
-        // nl_error(3, "Error %d from pulse_attach", errno );
-      // int coid = message_connect( dpp, MSG_FLAG_SIDE_CHANNEL );
-      // if ( coid == -1 )
-        // nl_error(3, "Error %d from message_connect", errno );
-      // cmd_ev.sigev_notify = SIGEV_PULSE;
-      // cmd_ev.sigev_coid = coid;
-      // cmd_ev.sigev_priority = getprio(0);
-      // cmd_ev.sigev_code = pulse_code;
-      // service_pulse( 0 );
-  // }
   Cmd = this;
   DG_dispatch_client::attach(dg->dispatch); // Now get in on the quit loop
 }
 
-DG_cmd::~DG_cmd() {
-  //close(cmd_fd);
-}
-
-// int DG_cmd_pulse_func( message_context_t *ctp, int code,
-        // unsigned flags, void *handle ) {
-  ////assert(Cmd != 0);
-  // Cmd->service_pulse(1);
-  // return 0;
-// }
+DG_cmd::~DG_cmd() { }
 
 int DG_cmd_io_write( resmgr_context_t *ctp,
          io_write_t *msg, RESMGR_OCB_T *ocb ) {
@@ -148,11 +97,6 @@ int DG_cmd::ready_to_quit() {
       nl_error( 2, "Error returned from resmgr_detach: %d", errno );
     dev_id = -1;
   }
-  // if ( cmd_fd != -1 ) {
-    // if ( close(cmd_fd) == -1 )
-      // nl_error( 2, "Error %d from close(cmd_fd)", errno );
-    // cmd_fd = -1;
-  // }
   // ### Need to make sure my data_generator knows it's time to quit
   return cmd_attr.count == 0;
 }
