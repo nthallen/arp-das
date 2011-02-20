@@ -48,7 +48,7 @@ class cmdif_rd {
     void Turf(char *fmt, ...);
   private:
     const char *name;
-    IOFUNC_ATTR_T *cmd_if;
+    IOFUNC_ATTR_T *handle;
 };
 
 class cmdif_wr {
