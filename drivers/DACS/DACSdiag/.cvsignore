@@ -1,4 +1,4 @@
-DACScmd.c
+DACScmd.cc
 DACScmd.dat
 DACSsrvr.o
 DACSsrvroui.c
@@ -12,6 +12,7 @@ DACScol.o
 idx64tbl.tmc
 ana_intbl.tmc
 digiotbl.tmc
+ana_outtbl.tmc
 DACSdisp.cc
 DACSdispoui.c
 DACSdispoui.o
@@ -19,6 +20,7 @@ DACSdisp.o
 idx64tblnc.tmc
 ana_intblnc.tmc
 digiotblnc.tmc
+ana_outtblnc.tmc
 DACSdispnc.cc
 DACSdispncoui.c
 DACSdispncoui.o
@@ -44,5 +46,3 @@ DACSalgo
 doit
 DACSclt
 DACScltnc
-ana_outtbl.tmc
-ana_outtblnc.tmc

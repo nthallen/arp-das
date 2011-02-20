@@ -1,6 +1,5 @@
-%{
-  #include "subbus.h"
-%}
+%INTERFACE <subbus>
+
 &command
 	: CMDENBL &on_off * { set_cmdenbl( $2 ); }
 	;

@@ -1,6 +1,6 @@
 %INTERFACE <dccc>
 &command
-  : &dccc_cmd * { cis_turf(if_dccc, "D%d\n", $1); }
+  : &dccc_cmd * { if_dccc.Turf("D%d\n", $1); }
   ;
 &dccc_cmd <int>
   : Command 0 On { $0 = 0; }

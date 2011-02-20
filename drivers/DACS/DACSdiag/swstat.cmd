@@ -1,10 +1,13 @@
+%{
+  #include "swstat.h"
+  swstat_t SWData;
+%}
+
+%INTERFACE <SWData:DG/data>
+
 &command
   : Fail Light &on_off * { set_failure($3); }
-  : &SWTM * {
-      if ( SWS_id == 0 )
-	SWS_id = Col_send_init( "SWData", &SWData, sizeof(SWData), 0 );
-      Col_send(SWS_id);
-    }
+  : &SWTM * { if_SWData.Turf(); }
   ;
 &SWTM
   : SW Status &swstat {

@@ -1,7 +1,7 @@
 &command
   : AI Set Gain %d(Enter Channel Address) &ai_gain * {
       if ( $4 < 0xC00 || $4 > 0xDFE || ($4 & 1) )
-	msg(2, "Invalid AI Channel: 0x%04X", $4);
+	nl_error(2, "Invalid AI Channel: 0x%04X", $4);
       else sbwr($4, $5);
     }
   ;

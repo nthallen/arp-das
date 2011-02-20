@@ -1,4 +1,3 @@
-cmdbase = sws_init.cmd
 cmdbase = /usr/local/share/huarp/root.cmd
 cmdbase = /usr/local/share/huarp/getcon.cmd
 cmdbase = /usr/local/share/huarp/idx64.cmd

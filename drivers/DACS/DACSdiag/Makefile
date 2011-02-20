@@ -1,14 +1,14 @@
-# Makefile Generated Mon Feb 07 08:43:16 EST 2011
+# Makefile Generated Sun Feb 20 17:58:14 EST 2011
 MNC=DACS
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/DACSdiag
 SPECFILE=DACS.spec
-SRC=sws_init.cmd cmdenbl.cmd ana_in.cmd idx64drv.cmd swstat.cmd
-SRC+=dccc.cmd ana_out.cmd DACS.tmc idx64.tmc swstat.tmc ana_in.tmc
-SRC+=ana_out.tmc idx64col.tmc ana_in_cfg.tmc idx64flag.tmc idx64.tbl
-SRC+=ana_in.tbl digio.tmc digio.tbl ana_out.tbl DACS.tma DACS.doit
+SRC=cmdenbl.cmd ana_in.cmd idx64drv.cmd swstat.cmd dccc.cmd
+SRC+=ana_out.cmd DACS.tmc idx64.tmc swstat.tmc ana_in.tmc ana_out.tmc
+SRC+=idx64col.tmc ana_in_cfg.tmc idx64flag.tmc idx64.tbl ana_in.tbl
+SRC+=digio.tmc digio.tbl ana_out.tbl DACS.tma DACS.doit
 TOOL=DACS.spec Makefile
 SCRIPT=idx64.idx64 interact dccc.dccc
-OBJ=DACScmd.c DACScmd.dat DACSsrvr.o DACSsrvroui.c DACSsrvroui.o
+OBJ=DACScmd.cc DACScmd.dat DACSsrvr.o DACSsrvroui.c DACSsrvroui.o
 OBJ+=DACScol.cc DACS.pcm tm.dac DACScoloui.c DACScoloui.o DACScol.o
 OBJ+=idx64tbl.tmc ana_intbl.tmc digiotbl.tmc ana_outtbl.tmc
 OBJ+=DACSdisp.cc DACSdispoui.c DACSdispoui.o DACSdisp.o
@@ -27,7 +27,7 @@ SRCDIST+=swstat.tmc ana_in.tmc ana_out.tmc
 NONRCS=
 TMCBASE=DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc
 TMCBASE+=swstat.tmc ana_in.tmc ana_out.tmc
-CMDBASE=sws_init.cmd /usr/local/share/huarp/root.cmd
+CMDBASE=/usr/local/share/huarp/root.cmd
 CMDBASE+=/usr/local/share/huarp/getcon.cmd
 CMDBASE+=/usr/local/share/huarp/idx64.cmd cmdenbl.cmd ana_in.cmd
 CMDBASE+=idx64drv.cmd swstat.cmd dccc.cmd ana_out.cmd
@@ -52,7 +52,7 @@ extdistribution : $(DSTRB) $(SRCDIST)
 distribution : extdistribution
 	@distribute $(FORCE) $(TGTDIR) $(IDISTRIB)
 DACSsrvr : DACSsrvr.o DACSsrvroui.o
-	$(LINK.priv) DACSsrvr.o DACSsrvroui.o -lsubbus -ltm -lnort
+	$(LINK.privCXX) DACSsrvr.o DACSsrvroui.o -lsubbus -ltmpp -ltm -lnort
 	$(OUIUSE) DACSsrvroui.c
 	$(PROMOTE) DACSsrvr
 DACScol : DACScol.o DACScoloui.o
@@ -71,15 +71,15 @@ DACSalgo : DACSalgo.o DACSalgooui.o
 doit : DACS.doit
 	mkdoit3 -o doit  DACS.doit
 DACSclt : DACSclt.o DACScltoui.o
-	$(LINK.norm) DACSclt.o DACScltoui.o -ltmph -lph -ltm -lnort
+	$(LINK.normCXX) DACSclt.o DACScltoui.o -ltmph -lph -ltmpp -ltm -lnort
 	$(OUIUSE) DACScltoui.c
 DACScltnc : DACScltnc.o DACScltncoui.o
-	$(LINK.norm) DACScltnc.o DACScltncoui.o -ltmnc -lncurses -ltm -lnort
+	$(LINK.normCXX) DACScltnc.o DACScltncoui.o -ltmnc -lncurses -ltmpp -ltm -lnort
 	$(OUIUSE) DACScltncoui.c
-DACScmd.c : sws_init.cmd /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd /usr/local/share/huarp/idx64.cmd cmdenbl.cmd ana_in.cmd idx64drv.cmd swstat.cmd dccc.cmd ana_out.cmd
-	$(CMDGEN) -d DACScmd.dat sws_init.cmd /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd /usr/local/share/huarp/idx64.cmd cmdenbl.cmd ana_in.cmd idx64drv.cmd swstat.cmd dccc.cmd ana_out.cmd
-DACSsrvr.o : DACScmd.c
-	$(COMPILE.srvr) DACScmd.c
+DACScmd.cc : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd /usr/local/share/huarp/idx64.cmd cmdenbl.cmd ana_in.cmd idx64drv.cmd swstat.cmd dccc.cmd ana_out.cmd
+	$(CMDGEN) -d DACScmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd /usr/local/share/huarp/idx64.cmd cmdenbl.cmd ana_in.cmd idx64drv.cmd swstat.cmd dccc.cmd ana_out.cmd
+DACSsrvr.o : DACScmd.cc
+	$(COMPILE.srvr) DACScmd.cc
 DACSsrvroui.c : $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 DACSsrvroui.o : DACSsrvroui.c
@@ -129,13 +129,13 @@ DACSalgo.o : DACSalgo.cc
 doit.dep : DACS.doit
 	mkdoit3 -M -o doit  DACS.doit
 -include doit.dep
-DACSclt.o : DACScmd.c
-	$(COMPILE.clt) DACScmd.c
+DACSclt.o : DACScmd.cc
+	$(COMPILE.clt) DACScmd.cc
 DACScltoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui
 DACScltoui.o : DACScltoui.c
-DACScltnc.o : DACScmd.c
-	$(COMPILE.cltnc) DACScmd.c
+DACScltnc.o : DACScmd.cc
+	$(COMPILE.cltnc) DACScmd.cc
 DACScltncoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/nctable.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/kbdclt.oui $(OUIDIR)/nctable.oui $(OUIDIR)/msg.oui
 DACScltncoui.o : DACScltncoui.c
