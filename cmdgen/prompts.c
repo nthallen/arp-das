@@ -1,6 +1,9 @@
 /* prompts.c
  *
  * $Log$
+ * Revision 1.7  2009/10/01 19:54:53  ntallen
+ * Cleanup output to quiet new compiler warnings
+ *
  * Revision 1.6  2004/10/08 17:07:12  nort
  * Mostly keyword differences
  *
@@ -77,7 +80,7 @@ static void output_ptext(void) {
 	  output_pbyte(0, "PROMPT_ATTR");
 	}
   }
-  fprintf(ofile, "\n  };\n#else\n  char *prmt_text[] = {");
+  fprintf(ofile, "\n  };\n#else\n  const char *prmt_text[] = {");
   for (up = ups; up != NULL; up = nup) {
 	if (up != ups) putc(',', ofile);
 	fprintf(ofile, "\n    \"%s\"", up->text);

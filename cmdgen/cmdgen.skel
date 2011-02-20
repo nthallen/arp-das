@@ -131,6 +131,7 @@ static short ioflags;
   #include <Pt.h>
   #include "nlphcmd.h"
 #elif defined NCT_INTERFACE
+  #include <ncurses.h>
   #include "nctable.h"
 #endif
 
@@ -589,7 +590,7 @@ static void con_cleanup( void ) {
 #if PHOTON_INTERFACE
   static char nlph_buf[CG_IBUF_SIZE+1];
   static int nlph_nchars = 0;
-  static char *nlph_cur_prmt, *nlph_new_prmt;
+  static const char *nlph_cur_prmt, *nlph_new_prmt;
 
   //define GETCH() nlph_getch() defined in nlphcmdclient
   static void nlph_dispc(char c) {
@@ -610,7 +611,7 @@ static void con_cleanup( void ) {
   }
 
   #ifndef NO_PROMPTS
-    static void nlph_prompt(char *c) {
+    static void nlph_prompt(const char *c) {
       nlph_new_prmt = c;
     }
   #endif
