@@ -26,9 +26,9 @@ OUI=oui -o $@
 OUIUSE=usemsg $@
 LIBSRC=/usr/local/share/huarp
 CMDGEN=cmdgen -o $@
-COMPILE.clt=$(COMPILE.c) -o $@ -D CLIENT
-COMPILE.cltnc=$(COMPILE.c) -o $@ -D CLIENT -D NCT_INTERFACE=1
-COMPILE.srvr=$(COMPILE.c) -o $@ -D SERVER
+COMPILE.clt=$(COMPILE.cc) -o $@ -D CLIENT
+COMPILE.cltnc=$(COMPILE.cc) -o $@ -D CLIENT -D NCT_INTERFACE=1
+COMPILE.srvr=$(COMPILE.cc) -o $@ -D SERVER
 AWK=awk > $@ -f $(LIBSRC)
 FLD2DISP=$(AWK)/fld2disp.awk
 EDF2EXT=$(AWK)/edf2ext.awk

@@ -418,34 +418,37 @@ for i in $basetargets; do
     *)
       replace_all .slp ${prefix}slp.cmd "\n\t\$(SLP2CMD)" $deps;;
   esac
-  if replace_all .cmd ${prefix}cmd.c "\n\t\$(CMDGEN) -d ${prefix}cmd.dat" $deps
+  if replace_all .cmd ${prefix}cmd.cc "\n\t\$(CMDGEN) -d ${prefix}cmd.dat" $deps
   then
     add_member OBJ ${prefix}cmd.dat
   fi
   case $i in
     *clt)
-      if replace_all cmd.c $i.o "\n\t\$(COMPILE.clt)" $deps; then
+      if replace_all cmd.cc $i.o "\n\t\$(COMPILE.clt)" $deps; then
 	add_member ouis kbdclt
 	ltmph=' -ltmph -lph'
+	ltmpp=' -ltmpp'
       else
-	nl_error Client $i with no cmd.c files
+	nl_error Client $i with no cmd.cc files
       fi;;
     *cltnc)
-      if replace_all cmd.c $i.o "\n\t\$(COMPILE.cltnc)" $deps; then
+      if replace_all cmd.cc $i.o "\n\t\$(COMPILE.cltnc)" $deps; then
 	add_member ouis kbdclt
 	add_member ouis nctable
 	ltmph=' -ltmnc -lncurses'
+	ltmpp=' -ltmpp'
       else
-	nl_error Client $i with no cmd.c files
+	nl_error Client $i with no cmd.cc files
       fi;;
     *srvr)
-      if replace_all cmd.c $i.o "\n\t\$(COMPILE.srvr)" $deps
+      if replace_all cmd.cc $i.o "\n\t\$(COMPILE.srvr)" $deps
       then
 	add_member ouis cis
 	add_member ouis seteuid
+	ltmpp=' -ltmpp'
 	# [ "$subbus" = "yes" ] && add_member ouis subbus_opt
       else
-	nl_error Server $i with no cmd.c files
+	nl_error Server $i with no cmd.cc files
       fi;;
   esac
   is_member deps -lsubbus && add_member ouis subbus
@@ -458,8 +461,9 @@ for i in $basetargets; do
   unset LINK
   case $i in
     *col)   LINK=priv;;
-    *clt)   LINK=norm;;
-    *srvr)  LINK=priv;;
+    *clt)   LINK=normCXX;;
+    *cltnc) LINK=normCXX;;
+    *srvr)  LINK=privCXX;;
     *.dccc) por="\$(LIBSRC)/dccc.por"
 	    deps="$deps $por\n\t@\$(DCCC)$deps";;
     *.sft)  set -- $deps
@@ -497,7 +501,9 @@ for i in $basetargets; do
     done
     deps="$odeps\n\t\$(LINK.$LINK$cxx)$odeps$libs$ldisp$ltmph$ltmpp -ltm$lssp -lnort"
     [ -n "$ouiout" ] &&	deps="$deps\n\t\$(OUIUSE) $ouiout"
-    if [ $LINK = priv ]; then deps="$deps\n\t\$(PROMOTE) $i"; fi
+    case $LINK in
+      priv*) deps="$deps\n\t\$(PROMOTE) $i";;
+    esac
   fi
 
   set_depname $i
