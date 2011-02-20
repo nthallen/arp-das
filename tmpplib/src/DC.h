@@ -50,7 +50,7 @@ class ext_data_client : public data_client {
     void process_data();
 };
 
-void tminitfunc();
+extern void tminitfunc();
 
 extern "C" {
 #endif
