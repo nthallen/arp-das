@@ -10,5 +10,6 @@ DG_data.lo
 DG_tmr.lo
 DGcol.lo
 DQ.lo
+tminitfunc.lo
 libtmpp.la
 FullBuild.*
