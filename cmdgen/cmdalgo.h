@@ -45,7 +45,7 @@ class cmdif_rd {
   public:
     cmdif_rd( const char *name );
     void Setup();
-    void Turf(char *fmt, ...);
+    void Turf(const char *fmt, ...);
     void Shutdown();
   private:
     const char *name;
@@ -56,7 +56,7 @@ class cmdif_wr {
   public:
     cmdif_wr(const char *name, const char *path);
     void Setup();
-    void Turf(char *fmt, ...);
+    void Turf(const char *fmt, ...);
     void Shutdown();
   private:
     const char *name;
@@ -66,12 +66,14 @@ class cmdif_wr {
 
 class cmdif_dgdata {
   public:
-    cmdif_dgdata(const char *name);
-    void Setup(void *data, int dsize);
+    cmdif_dgdata(const char *name, void *data, int dsize);
+    // void Setup(); // does nothing.
     void Turf();
     void Shutdown();
   private:
     const char *name;
+    void *data;
+    int dsize;
     send_id id;
 };
 

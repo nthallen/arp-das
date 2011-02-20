@@ -51,7 +51,22 @@ void new_interface( char *if_name ) {
   }
   if (cmd_class) {
     fprintf( ofile, "#ifdef SERVER\n" );
-    fprintf( ofile, "  %s if_%s(\"%s\");\n", cmd_class, if_name, if_name );
+    switch (new_if->if_type) {
+      case IFT_WRITE:
+	fprintf( ofile, "  %s if_%s(\"%s\", \"%s\");\n",
+	      cmd_class, if_name, if_name, new_if->if_path );
+	break;
+      case IFT_DGDATA:
+	fprintf( ofile, "  %s if_%s(\"%s\", &%s, sizeof(%s));\n",
+	  cmd_class, if_name, if_name, if_name, if_name );
+	break;
+      case IFT_READ:
+	fprintf( ofile, "  %s if_%s(\"%s\");\n",
+	  cmd_class, if_name, if_name );
+	break;
+      default:
+	nl_error(4,"Invalid if_type %d", new_if->if_type);
+    }
     fprintf( ofile, "#endif\n" );
   }
 }
@@ -67,9 +82,6 @@ void output_interfaces(void) {
 	fprintf( ofile, "    if_%s.Setup();\n", cur_if->if_name );
 	break;
       case IFT_DGDATA:
-	fprintf( ofile, "    if_%s.Setup( &%s, sizeof(%s) );\n",
-	  cur_if->if_name, cur_if->if_name, cur_if->if_name );
-	break;
       case IFT_SUBBUS:
 	break; // initialization is handled by subbus.oui
       default:
