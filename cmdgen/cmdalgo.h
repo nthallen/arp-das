@@ -5,6 +5,9 @@
 #define CMDALGO_H_INCLUDED
 
 #ifdef __cplusplus
+
+#include "collect.h"
+
 extern "C" {
 #endif
 
@@ -20,6 +23,7 @@ int cmd_check(cmd_state *s);
 void cis_initialize(void); /* in cmdgen.skel or .cmd */
 void cis_terminate(void);  /* in cmdgen.skel of .cmd */
 void cis_interfaces(void); /* generated */
+void cis_interfaces_close(void); /* generated */
 #define CMDREP_QUIT 1000
 #define CMDREP_SYNERR 2000
 #define CMDREP_EXECERR 3000
@@ -36,6 +40,40 @@ void ci_server(void); /* in tmlib/cis.c */
 
 #ifdef __cplusplus
 };
+
+class cmdif_rd {
+  public:
+    cmdif_rd( const char *name );
+    void Setup();
+    void Turf(char *fmt, ...);
+  private:
+    const char *name;
+    IOFUNC_ATTR_T *cmd_if;
+};
+
+class cmdif_wr {
+  public:
+    cmdif_wr(const char *name, const char *path);
+    void Setup();
+    void Turf(char *fmt, ...);
+    void Shutdown();
+  private:
+    const char *name;
+    const char *path;
+    int ofd;
+};
+
+class cmdif_dgdata {
+  public:
+    cmdif_dgdata(const char *name);
+    void Setup(void *data, int dsize);
+    void Turf();
+    void Shutdown();
+  private:
+    const char *name;
+    send_id id;
+};
+
 #endif
 
 #endif

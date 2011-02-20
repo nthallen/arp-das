@@ -1,29 +1,99 @@
 #include <stdio.h>
+#include <string.h>
 #include "cmdgen.h"
 #include "compiler.h"
 
 typedef struct if_list_s {
-	struct if_list_s *next;
-	char *if_name;
+  struct if_list_s *next;
+  int if_type;
+  char *if_name;
+  char *if_path;
 } if_list_t;
 static if_list_t *if_list;
 
+#define IFT_READ 1
+#define IFT_WRITE 2
+#define IFT_DGDATA 3
+#define IFT_SUBBUS 4
+
 void new_interface( char *if_name ) {
-	if_list_t *new_if;
-	fprintf( ofile, "IOFUNC_ATTR_T *if_%s;\n", if_name );
-	new_if = (if_list_t *)new_memory(sizeof(if_list_t));
-	new_if->next = if_list;
-	new_if->if_name = if_name;
-	if_list = new_if;
+  const char *cmd_class = 0;
+  char *s;
+
+  if_list_t *new_if;
+  new_if = (if_list_t *)new_memory(sizeof(if_list_t));
+  new_if->next = if_list;
+  new_if->if_name = if_name;
+  new_if->if_path = NULL;
+  if_list = new_if;
+  for ( s = if_name; *s; ++s ) {
+    if ( *s == ':' ) {
+      *s++ = '\0';
+      new_if->if_path = s;
+      break;
+    }
+  }
+  if ( new_if->if_path ) {
+    if ( strcmp( new_if->if_path, "DG/data" ) == 0 ) {
+      cmd_class = "cmdif_dgdata";
+      new_if->if_type = IFT_DGDATA;
+    } else {
+      cmd_class = "cmdif_wr";
+      new_if->if_type = IFT_WRITE;
+    }
+  } else if ( stricmp( new_if->if_name, "subbus" ) == 0 ||
+	      stricmp( new_if->if_name, "subbusd" ) == 0 ) {
+    new_if->if_type = IFT_SUBBUS;
+    fprintf( ofile, "#include \"subbus.h\"\n" );
+  } else {
+    cmd_class = "cmdif_rd";
+    new_if->if_type = IFT_READ;
+  }
+  if (cmd_class) {
+    fprintf( ofile, "#ifdef SERVER\n" );
+    fprintf( ofile, "  %s if_%s(\"%s\");\n", cmd_class, if_name, if_name );
+    fprintf( ofile, "#endif\n" );
+  }
 }
 
 void output_interfaces(void) {
-	if_list_t *cur_if;
-	fprintf( ofile, "\n#ifdef SERVER\n" );
-	fprintf( ofile, "  void cis_interfaces(void) {\n" );
-	for ( cur_if = if_list; cur_if; cur_if = cur_if->next ) {
-		fprintf( ofile, "    if_%s = cis_setup_rdr(\"%s\");\n",
-		  cur_if->if_name, cur_if->if_name );
-	}
-	fprintf( ofile, "  }\n#endif\n\n" );
+  if_list_t *cur_if;
+  fprintf( ofile, "\n#ifdef SERVER\n" );
+  fprintf( ofile, "  void cis_interfaces(void) {\n" );
+  for ( cur_if = if_list; cur_if; cur_if = cur_if->next ) {
+    switch (cur_if->if_type) {
+      case IFT_READ:
+      case IFT_WRITE:
+	fprintf( ofile, "    if_%s.Setup();\n", cur_if->if_name );
+	break;
+      case IFT_DGDATA:
+	fprintf( ofile, "    if_%s.Setup( &%s, sizeof(%s) );\n",
+	  cur_if->if_name, cur_if->if_name, cur_if->if_name );
+	break;
+      case IFT_SUBBUS:
+	break; // initialization is handled by subbus.oui
+      default:
+	nl_error(4, "Unexpected interface type: %d", cur_if->if_type );
+    }
+    // fprintf( ofile, "    if_%s = cis_setup_rdr(\"%s\");\n",
+    //    cur_if->if_name, cur_if->if_name );
+  }
+  fprintf( ofile, "  };\n\n" );
+  fprintf( ofile, "  void cis_interfaces_close(void) {\n" );
+  for ( cur_if = if_list; cur_if; cur_if = cur_if->next ) {
+    switch (cur_if->if_type) {
+      case IFT_READ:
+	break; // Handled within the resmgr code
+      case IFT_WRITE:
+      case IFT_DGDATA:
+	fprintf( ofile, "    if_%s.Shutdown();\n", cur_if->if_name );
+	break;
+      case IFT_SUBBUS:
+	fprintf( ofile, "    subbus_quit();\n" );
+	break;
+      default:
+	nl_error(4, "Unexpected interface type: %d", cur_if->if_type );
+    }
+  }
+  fprintf( ofile, "  }\n#endif\n\n" );
 }
