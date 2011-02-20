@@ -215,6 +215,7 @@ int ci_sendfcmd(int mode, const char *fmt, ...);
 void ci_settime( long int time );
 extern int cic_cmd_quit_fd;
 const char *ci_time_str( void );
+#define CMD_MAX_COMMAND_IN 300  // Maximum command message input length
 void ci_server(void); /* in nortlib/cis.c */
 void cis_initialize(void); /* in cmdgen.skel or .cmd */
 void cis_terminate(void);  /* in cmdgen.skel of .cmd */

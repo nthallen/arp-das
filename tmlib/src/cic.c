@@ -6,7 +6,6 @@
 #include "nortlib.h"
 #include "tm.h"
 #include "cmdalgo.h"
-#include "cis.h"
 
 #define CMD_PREFIX_MAX 10
 #define CMD_VERSION_MAX 80
