@@ -2,12 +2,14 @@
 
 %{
   #include "idx64.h"
-  void idx64_cmd2( const char *cmd, int drive, step_t steps) {
-    cis_turf(if_idx64, "%s%d:%u\n", cmd, drive, steps);
-  }
-  void idx64_cmd1( const char *cmd, int drive) {
-    cis_turf(if_idx64, "%s%d\n", cmd, drive);
-  }
+  #ifdef SERVER
+    void idx64_cmd2( const char *cmd, int drive, step_t steps) {
+      if_idx64.Turf("%s%d:%u\n", cmd, drive, steps);
+    }
+    void idx64_cmd1( const char *cmd, int drive) {
+      if_idx64.Turf("%s%d\n", cmd, drive);
+    }
+  #endif
 %}
 
 &command
@@ -15,10 +17,10 @@
 	;
 &indexer_cmd
 	: Drive &drive &direction &steps * {
-	    cis_turf(if_idx64, "D%c%d:%u\n", $3, $2, $4);
+	    if_idx64.Turf("D%c%d:%u\n", $3, $2, $4);
 	  }
 	: Scan &drive &direction &steps by %d (Enter Steps per Step) *
-	  { cis_turf(if_idx64, "S%c%d:%u:%u\n", $3, $2, $4, $6 ); }
+	  { if_idx64.Turf("S%c%d:%u:%u\n", $3, $2, $4, $6 ); }
 	: Stop &drive * { idx64_cmd1( "SP", $2); }
 	: Drive &drive Online * { idx64_cmd1("ON", $2); }
 	: Drive &drive Offline * { idx64_cmd1("OF", $2); } 
