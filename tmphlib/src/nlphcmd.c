@@ -208,8 +208,8 @@ static int my_key_event( PtWidget_t *widget, void *apinfo,
   return( Pt_CONTINUE );
 }
 
-static char *cur_prompt_text;
-void nlph_update_cmdtext( char *cmdtext, char *prompttext ) {
+static const char *cur_prompt_text;
+void nlph_update_cmdtext( const char *cmdtext, const char *prompttext ) {
   PtEnter(0);
   if ( prompttext != cur_prompt_text ) {
     cur_prompt_text = prompttext;
