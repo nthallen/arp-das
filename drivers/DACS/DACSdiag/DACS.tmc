@@ -32,7 +32,9 @@ TM typedef unsigned char DSByte { collect x = sbrba(x.address); text "%02x"; }
 TM 1 Hz DSWord DS822; Address DS822 0x822;
 TM 1 Hz DSWord DS824; Address DS824 0x824;
 TM 1 Hz DSWord DS844; Address DS844 0x844;
+  collect DS844 = sbrwa(DS844.address) ^ 0xFFFF;
 TM 1 Hz DSByte DS860; Address DS860 0x860;
+  collect DS860 = sbrba(DS860.address) ^ 0xFF;
 
 /* [PTRH] */
 /* [Double-muxed Analog Inputs] */
