@@ -1,4 +1,4 @@
-# Makefile Generated Sun Feb 20 17:58:14 EST 2011
+# Makefile Generated Mon Feb 21 10:47:27 EST 2011
 MNC=DACS
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/DACSdiag
 SPECFILE=DACS.spec
@@ -146,3 +146,5 @@ clean : tidy
 	rm -f $(TARGET)
 .cvsignore :
 	@for i in Makefile '.B4*' $(OBJECT) $(TARGET); do echo "$$i"; done >.cvsignore
+CFLAGS=-g
+CXXFLAGS=-g

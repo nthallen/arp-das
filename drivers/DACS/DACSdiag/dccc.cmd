@@ -1,4 +1,4 @@
-%INTERFACE <dccc>
+%INTERFACE <dccc:dccc>
 &command
   : &dccc_cmd * { if_dccc.Turf("D%d\n", $1); }
   ;
