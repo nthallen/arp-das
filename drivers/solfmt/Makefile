@@ -1,5 +1,8 @@
 # Makefile for solfmt
 # $Log$
+# Revision 1.1  2011/02/21 18:26:05  ntallen
+# QNX4 version
+#
 # Revision 1.3  2006/02/16 18:13:20  nort
 # Uncommitted changes
 #
@@ -10,22 +13,20 @@
 # Initial revision
 #
 #
-CFLAGS=-M -g -ms -3 -w4
+CFLAGS=-g -Wall
 SRC=compile.c get_tokens.c optimize.c output.c read_cmd.c read_d2a.c
 SRC+=read_mod.c read_sft.c read_sol.c read_val.c routines.c soldrv.c
 SRC+=solfmt.c
 SRC+=codes.h dtoa.h modes.h proxies.h routines.h solcall.h
 SRC+=soldrv.h solenoid.h solfmt.h tokens.h version.h
 SRC+=soldrv.txt solfmt.txt read_pxy.c
-TOOL=Makefile makefile.old
+TOOL=Makefile
 
-HOMEDIR=/usr/local/src/das/solfmt
-MNC=sfmt
 SOURCE=$(SRC) $(TOOL)
 OBJECT=$(OBJS1) $(OBJS2) $(TEMP)
 TARGET=solfmt soldrv
 
-all : solfmt
+all : $(TARGET)
 OBJS1=solfmt.o compile.o get_tokens.o optimize.o output.o
 OBJS1+=read_cmd.o read_d2a.o read_mod.o read_sol.o read_val.o
 OBJS1+=read_pxy.o routines.o
