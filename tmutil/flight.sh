@@ -61,7 +61,7 @@ function Launch {
 umask g+w
 
 if [ -n "$SUBBUSD" -a ! -e /dev/huarp/subbus ]; then
-  launch /dev/huarp/subbus subbusd_$SUBBUSD -V
+  Launch /dev/huarp/subbus subbusd_$SUBBUSD -V
 fi
 VERSION=1.0
 [ -f VERSION ] && VERSION=`cat VERSION`
