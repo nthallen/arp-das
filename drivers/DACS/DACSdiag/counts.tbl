@@ -1,0 +1,12 @@
+Counts {
+  HBox { +-; Title: Counters; -+ };
+  "" Title: >A< >B< >C<;
+  PMT:  (PMTA_Counts,8) (PMTB_Counts,8) (PMTC_Counts,8);
+  UV1:  (UVA1_Counts,8) (UVB1_Counts,8) (UVC1_Counts,8);
+  UV2:  (UVA2_Counts,8) (UVB2_Counts,8) (UVC2_Counts,8);
+}
+
+{ [Counts];
+  -;
+  MFCtr: (MFCtr,5);
+}

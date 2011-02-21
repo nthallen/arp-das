@@ -13,6 +13,7 @@ idx64tbl.tmc
 ana_intbl.tmc
 digiotbl.tmc
 ana_outtbl.tmc
+countstbl.tmc
 DACSdisp.cc
 DACSdispoui.c
 DACSdispoui.o
@@ -21,6 +22,7 @@ idx64tblnc.tmc
 ana_intblnc.tmc
 digiotblnc.tmc
 ana_outtblnc.tmc
+countstblnc.tmc
 DACSdispnc.cc
 DACSdispncoui.c
 DACSdispncoui.o
