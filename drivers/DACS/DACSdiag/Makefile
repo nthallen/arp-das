@@ -1,32 +1,34 @@
-# Makefile Generated Mon Feb 21 10:47:27 EST 2011
+# Makefile Generated Mon Feb 21 11:46:51 EST 2011
 MNC=DACS
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/DACSdiag
 SPECFILE=DACS.spec
 SRC=cmdenbl.cmd ana_in.cmd idx64drv.cmd swstat.cmd dccc.cmd
 SRC+=ana_out.cmd DACS.tmc idx64.tmc swstat.tmc ana_in.tmc ana_out.tmc
-SRC+=idx64col.tmc ana_in_cfg.tmc idx64flag.tmc idx64.tbl ana_in.tbl
-SRC+=digio.tmc digio.tbl ana_out.tbl DACS.tma DACS.doit
+SRC+=counts.tmc idx64col.tmc ana_in_cfg.tmc cnt_init.tmc
+SRC+=idx64flag.tmc idx64.tbl ana_in.tbl digio.tmc digio.tbl
+SRC+=ana_out.tbl counts.tbl DACS.tma DACS.doit
 TOOL=DACS.spec Makefile
 SCRIPT=idx64.idx64 interact dccc.dccc
 OBJ=DACScmd.cc DACScmd.dat DACSsrvr.o DACSsrvroui.c DACSsrvroui.o
 OBJ+=DACScol.cc DACS.pcm tm.dac DACScoloui.c DACScoloui.o DACScol.o
 OBJ+=idx64tbl.tmc ana_intbl.tmc digiotbl.tmc ana_outtbl.tmc
-OBJ+=DACSdisp.cc DACSdispoui.c DACSdispoui.o DACSdisp.o
+OBJ+=countstbl.tmc DACSdisp.cc DACSdispoui.c DACSdispoui.o DACSdisp.o
 OBJ+=idx64tblnc.tmc ana_intblnc.tmc digiotblnc.tmc ana_outtblnc.tmc
-OBJ+=DACSdispnc.cc DACSdispncoui.c DACSdispncoui.o DACSdispnc.o
-OBJ+=DACSalgoa.tmc DACSalgo.cc DACSalgooui.c DACSalgooui.o DACSalgo.o
-OBJ+=doit.dep DACSclt.o DACScltoui.c DACScltoui.o DACScltnc.o
-OBJ+=DACScltncoui.c DACScltncoui.o
+OBJ+=countstblnc.tmc DACSdispnc.cc DACSdispncoui.c DACSdispncoui.o
+OBJ+=DACSdispnc.o DACSalgoa.tmc DACSalgo.cc DACSalgooui.c
+OBJ+=DACSalgooui.o DACSalgo.o doit.dep DACSclt.o DACScltoui.c
+OBJ+=DACScltoui.o DACScltnc.o DACScltncoui.c DACScltncoui.o
 TGT=DACSsrvr DACScol DACSdisp DACSdispnc DACSalgo doit DACSclt
 TGT+=DACScltnc
 DISTRIB=DACS.pcm tm.dac
 IDISTRIB=Experiment.config VERSION doit
-SRCDIST=swstat.h idx64.tbl ana_in.tbl digio.tbl ana_out.tbl DACS.tma
-SRCDIST+=DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc
-SRCDIST+=swstat.tmc ana_in.tmc ana_out.tmc
+SRCDIST=swstat.h idx64.tbl ana_in.tbl digio.tbl ana_out.tbl
+SRCDIST+=counts.tbl DACS.tma DACS.tmc idx64.tmc
+SRCDIST+=/usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc
+SRCDIST+=ana_out.tmc counts.tmc
 NONRCS=
 TMCBASE=DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc
-TMCBASE+=swstat.tmc ana_in.tmc ana_out.tmc
+TMCBASE+=swstat.tmc ana_in.tmc ana_out.tmc counts.tmc
 CMDBASE=/usr/local/share/huarp/root.cmd
 CMDBASE+=/usr/local/share/huarp/getcon.cmd
 CMDBASE+=/usr/local/share/huarp/idx64.cmd cmdenbl.cmd ana_in.cmd
@@ -83,8 +85,8 @@ DACSsrvr.o : DACScmd.cc
 DACSsrvroui.c : $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 DACSsrvroui.o : DACSsrvroui.c
-DACScol.cc : DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc idx64col.tmc ana_in_cfg.tmc
-	$(TMC.col) DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc idx64col.tmc ana_in_cfg.tmc
+DACScol.cc : DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc idx64col.tmc ana_in_cfg.tmc cnt_init.tmc
+	$(TMC.col) DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc idx64col.tmc ana_in_cfg.tmc cnt_init.tmc
 DACScoloui.c : $(OUIDIR)/collect.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/collect.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 DACScoloui.o : DACScoloui.c
@@ -97,8 +99,10 @@ digiotbl.tmc : digio.tbl
 	$(TABLE) digio.tbl
 ana_outtbl.tmc : ana_out.tbl
 	$(TABLE) ana_out.tbl
-DACSdisp.cc : DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc idx64flag.tmc idx64tbl.tmc ana_intbl.tmc digio.tmc digiotbl.tmc ana_outtbl.tmc
-	$(TMC) DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc idx64flag.tmc idx64tbl.tmc ana_intbl.tmc digio.tmc digiotbl.tmc ana_outtbl.tmc
+countstbl.tmc : counts.tbl
+	$(TABLE) counts.tbl
+DACSdisp.cc : DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc idx64flag.tmc idx64tbl.tmc ana_intbl.tmc digio.tmc digiotbl.tmc ana_outtbl.tmc countstbl.tmc
+	$(TMC) DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc idx64flag.tmc idx64tbl.tmc ana_intbl.tmc digio.tmc digiotbl.tmc ana_outtbl.tmc countstbl.tmc
 DACSdispoui.c : $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 DACSdispoui.o : DACSdispoui.c
@@ -111,8 +115,10 @@ digiotblnc.tmc : digio.tbl
 	$(NCTABLE) digio.tbl
 ana_outtblnc.tmc : ana_out.tbl
 	$(NCTABLE) ana_out.tbl
-DACSdispnc.cc : DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc idx64flag.tmc idx64tblnc.tmc ana_intblnc.tmc digio.tmc digiotblnc.tmc ana_outtblnc.tmc
-	$(TMC) DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc idx64flag.tmc idx64tblnc.tmc ana_intblnc.tmc digio.tmc digiotblnc.tmc ana_outtblnc.tmc
+countstblnc.tmc : counts.tbl
+	$(NCTABLE) counts.tbl
+DACSdispnc.cc : DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc idx64flag.tmc idx64tblnc.tmc ana_intblnc.tmc digio.tmc digiotblnc.tmc ana_outtblnc.tmc countstblnc.tmc
+	$(TMC) DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc idx64flag.tmc idx64tblnc.tmc ana_intblnc.tmc digio.tmc digiotblnc.tmc ana_outtblnc.tmc countstblnc.tmc
 DACSdispncoui.c : $(OUIDIR)/nctable.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/nctable.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 DACSdispncoui.o : DACSdispncoui.c
@@ -120,8 +126,8 @@ DACSdispnc.o : DACSdispnc.cc
 DACSalgoa.tmc : DACS.tma DACSsrvr
 	$(SERVER) ./DACSsrvr
 	$(TMCALGO) -V "`./DACSsrvr -R`" DACS.tma
-DACSalgo.cc : DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc DACSalgoa.tmc
-	$(TMC) DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc DACSalgoa.tmc
+DACSalgo.cc : DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc DACSalgoa.tmc
+	$(TMC) DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc DACSalgoa.tmc
 DACSalgooui.c : $(OUIDIR)/tma.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/tma.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 DACSalgooui.o : DACSalgooui.c
@@ -146,5 +152,3 @@ clean : tidy
 	rm -f $(TARGET)
 .cvsignore :
 	@for i in Makefile '.B4*' $(OBJECT) $(TARGET); do echo "$$i"; done >.cvsignore
-CFLAGS=-g
-CXXFLAGS=-g
