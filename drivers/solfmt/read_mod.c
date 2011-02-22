@@ -1,5 +1,8 @@
 /* read_mode.c reads in the mode commands.
  * $Log$
+ * Revision 1.1  2011/02/21 18:26:05  ntallen
+ * QNX4 version
+ *
  * Revision 1.4  2006/02/16 18:13:26  nort
  * Uncommitted changes
  *
@@ -22,10 +25,9 @@
 #include "routines.h"
 #include "dtoa.h"
 #include "solfmt.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 /* I want this to be generalized to sort changes by time and type
    The types are '^', TK_PROXY_NAME, TK_DTOA_NAME, TK_SOLENOID_NAME
@@ -203,24 +205,36 @@ void read_mode(void) {
     break; /* only for RBRACE */
   }
   time = -1;
-  for (i = 0; i < n_solenoids; i++)
-    if (solenoids[i].last_time != -1)
-      if (time == -1) time = solenoids[i].last_time;
-      else if (solenoids[i].last_time != time)
+  for (i = 0; i < n_solenoids; i++) {
+    if (solenoids[i].last_time != -1) {
+      if (time == -1) {
+	time = solenoids[i].last_time;
+      } else if (solenoids[i].last_time != time) {
         filerr("Mode %d has ambiguous cycle lengths (sol. %s)\n", mn,
                 solenoids[i].name);
-  for (i = 0; i < n_dtoas; i++)
-    if (dtoas[i].last_time != -1)
-      if (time == -1) time = dtoas[i].last_time;
-      else if (dtoas[i].last_time != time)
+      }
+    }
+  }
+  for (i = 0; i < n_dtoas; i++) {
+    if (dtoas[i].last_time != -1) {
+      if (time == -1) {
+	time = dtoas[i].last_time;
+      } else if (dtoas[i].last_time != time) {
         filerr("Mode %d has ambiguous cycle lengths (dtoa %s)\n", mn,
                 dtoas[i].name);
-  for (i = 0; i < n_proxies; i++)
-    if (proxies[i].last_time != -1)
-      if (time == -1) time = proxies[i].last_time;
-      else if (proxies[i].last_time != time)
+      }
+    }
+  }
+  for (i = 0; i < n_proxies; i++) {
+    if (proxies[i].last_time != -1) {
+      if (time == -1) {
+	time = proxies[i].last_time;
+      } else if (proxies[i].last_time != time) {
         filerr("Mode %d has ambiguous cycle lengths (proxy %s)\n", mn,
                 proxies[i].name);
+      }
+    }
+  }
   modes[mn].length = time+1;    /* length of the cycle */
   modes[mn].res_num = res_num;
   modes[mn].res_den = res_den;

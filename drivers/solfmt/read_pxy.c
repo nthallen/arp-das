@@ -1,5 +1,8 @@
 /* read_pxy.c contains read_proxy().
  * $Log$
+ * Revision 1.1  2011/02/21 18:26:05  ntallen
+ * QNX4 version
+ *
  * Revision 1.3  2006/02/16 18:13:27  nort
  * Uncommitted changes
  *
@@ -15,10 +18,9 @@
 #include "tokens.h"
 #include "proxies.h"
 #include "nortlib.h" /* for nl_error */
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 int n_proxies = 0, n_prxy_pts = 0;
 proxy proxies[MAX_PROXIES];

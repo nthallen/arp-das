@@ -1,5 +1,8 @@
 /* output.c handles writing the ".sft" file.
  * $Log$
+ * Revision 1.1  2011/02/21 18:26:05  ntallen
+ * QNX4 version
+ *
  * Revision 1.3  1993/09/28 17:17:11  nort
  * *** empty log message ***
  *
@@ -18,10 +21,9 @@
 #include "version.h"
 #include "solfmt.h"
 #include "nortlib.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 #define MAX_STAT_ADDR        4
 static int status_addrs[MAX_STAT_ADDR] = { 0x408, 0x40A, 0x411, 0x413 };

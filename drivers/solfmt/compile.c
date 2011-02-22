@@ -1,6 +1,9 @@
 /* compile.c takes the information in solenoids and modes and compiles it
    into a numerical code.
    $Log$
+   Revision 1.1  2011/02/21 18:26:05  ntallen
+   QNX4 version
+
    Revision 1.4  2006/02/16 18:13:21  nort
    Uncommitted changes
 
@@ -25,10 +28,9 @@
 #include "codes.h"
 #include "solfmt.h"
 #include "nortlib.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 #define MODE_CODE_SIZE 10000
 char mode_code[MODE_CODE_SIZE];

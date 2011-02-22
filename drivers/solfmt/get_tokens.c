@@ -2,6 +2,9 @@
    format translator and is fairly simple, along the lines of the original
    TM get_token.
    $Log$
+   Revision 1.1  2011/02/21 18:26:05  ntallen
+   QNX4 version
+
    Revision 1.4  2006/02/16 18:13:22  nort
    Uncommitted changes
 
@@ -29,10 +32,9 @@
 #include "solfmt.h"
 #include "proxies.h"
 #include "nortlib.h" /* for nl_error */
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 #define iscsym(c) ((isalnum((c))||((((c))&0xFF)==0x5F)))
 
@@ -57,19 +59,19 @@ struct {
   char *text;
   int token;
 } reserves[] = {
-  "solenoid", TK_SOLENOID,
-  "open", TK_OPEN,
-  "close", TK_CLOSE,
-  "resolution", TK_RESOLUTION,
-  "mode", TK_MODE,
-  "initialize", TK_INITIALIZE,
-  "routine", TK_ROUTINE,
-  "select", TK_SELECT,
-  "status_bytes", TK_STATUS_BYTES,
-  "DtoA", TK_DTOA,
-  "Proxy", TK_PROXY,
-  "Command_Set", TK_CMD_SET,
-  NULL, 0
+  { "solenoid", TK_SOLENOID },
+  { "open", TK_OPEN },
+  { "close", TK_CLOSE },
+  { "resolution", TK_RESOLUTION },
+  { "mode", TK_MODE },
+  { "initialize", TK_INITIALIZE },
+  { "routine", TK_ROUTINE },
+  { "select", TK_SELECT },
+  { "status_bytes", TK_STATUS_BYTES },
+  { "DtoA", TK_DTOA },
+  { "Proxy", TK_PROXY },
+  { "Command_Set", TK_CMD_SET },
+  { NULL, 0 }
 };
 
 int get_token(void) {
@@ -165,7 +167,6 @@ int get_token(void) {
 }
 
 int gt_getc(void) {
-  extern int line_no;
   int c;
 
   if (gt_fp == NULL) return(EOF);
@@ -175,8 +176,6 @@ int gt_getc(void) {
 }
 
 void gt_ungetc(int c) {
-  extern int line_no;
-
   if (c == '\n') gt_line_no--;
   ungetc(c, gt_fp);
 }

@@ -8,10 +8,9 @@
 #include <ctype.h>
 #include "tokens.h"
 #include "dtoa.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 set_point set_points[MAX_SET_POINTS];
 int n_set_points = 0;

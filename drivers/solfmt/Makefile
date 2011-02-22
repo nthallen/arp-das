@@ -1,5 +1,8 @@
 # Makefile for solfmt
 # $Log$
+# Revision 1.2  2011/02/21 18:37:51  ntallen
+# Tweak
+#
 # Revision 1.1  2011/02/21 18:26:05  ntallen
 # QNX4 version
 #
@@ -14,6 +17,8 @@
 #
 #
 CFLAGS=-g -Wall
+CPPFLAGS=-I /usr/local/include
+LDFLAGS=-L /usr/local/lib
 SRC=compile.c get_tokens.c optimize.c output.c read_cmd.c read_d2a.c
 SRC+=read_mod.c read_sft.c read_sol.c read_val.c routines.c soldrv.c
 SRC+=solfmt.c
@@ -33,7 +38,7 @@ OBJS1+=read_pxy.o routines.o
 TEMP=*.err *.sol *.sft *.map soldrv.use
 
 solfmt : $(OBJS1)
-	$(CC) $(CFLAGS) -o solfmt $(OBJS1)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o solfmt $(OBJS1) -lnort
 	usemsg solfmt solfmt.c
 
 compile.o : compile.c solenoid.h codes.h

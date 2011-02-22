@@ -1,5 +1,8 @@
 /* read_val.c reads valving or set point characters.
  * $Log$
+ * Revision 1.1  2011/02/21 18:26:05  ntallen
+ * QNX4 version
+ *
  * Revision 1.3  1993/09/28 17:14:59  nort
  * *** empty log message ***
  *
@@ -15,10 +18,9 @@
 #include "dtoa.h"
 #include "proxies.h"
 #include "tokens.h"
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+
+static char rcsid[] =
+      "$Id$";
 
 int open_char = 'O';
 int close_char = '_';
