@@ -1,0 +1,53 @@
+Eil,
+	You should have on your desk the new SOLDRV definition including
+	proxy and some multcmds. I can't promise I'm going to get the
+	multcmds working, but I really need the proxies. To implement,
+	we need:
+	
+	globmsg.h
+	  New global msg for SOLDRV.
+	Somewhere in /usr/local/include:
+	  Need to define the msg subtypes for set proxy and reset proxy
+	  Could be in globmsg.h as far as I'm concerned, although the
+	  structures should also be there... Maybe /usr/local/include/soldrv.h
+	  Yeah, I know that conflicts with soldrv.h in the source dir...
+	soldrv:
+	  Need to handle re/set proxy messages in the receive loop.
+	  Need to handle proxy and multcmd codes.
+	sol/codes.h
+	  Need to define the extra codes for proxy and multcmd.
+	*Somewhere:
+	  Application functions to create and re/set proxies.
+	*Solfmt:
+	  Generate the code for all this.
+
+ I will handle the * items.	
+ Here's code for handling the re/set proxy messages. It obviously
+ requires some massaging to fit into your code. reply_byte() is
+ a library routine I have written and use which simply makes up
+ a one-byte message and Replies it. (nortlib.h, nortlib*.lib)
+ I don't necessarily recommend that you code using that library...
+
+	case SOL_SET_PROXY:
+	  for (i = 0; i < n_proxies; i++) {
+		if (proxies[i].ID == msg->ID) {
+		  if (proxies[i].proxy == 0) {
+			proxies[i].proxy = msg->proxy;
+			reply_byte(sent_tid, DAS_OK);
+		  } else reply_byte(sent_tid, DAS_BUSY);
+		  return(0);
+		}
+	  }
+	  reply_byte(sent_tid, DAS_UNKN);
+	  return(0);
+	case SOL_RESET_PROXY:
+	  for (i = 0; i < n_proxies; i++) {
+		if (proxies[i].ID == msg->ID) {
+		  if (proxies[i].proxy == 0) reply_byte(sent_tid, DAS_UNKN);
+		  else {
+			proxies[i].proxy = 0;
+			reply_byte(sent_tid, DAS_OK);
+		  }
+		  return(0);
+		}
+	  }
