@@ -94,7 +94,7 @@ idx64_bd *boards[ MAX_IDXRS ];
 #define MAX_WORDS ((MAX_IDXRS*MAX_IDXR_CHANS+4)/5)
 unsigned short tm_ptrs[ MAX_WORDS ];
 send_id tm_data;
-static int cmd_fd;
+static int cmd_fd = -1;
 static struct sigevent cmd_event;
 char *idx64_cfg_string;
 int idx64_region = 0x40;
@@ -849,7 +849,6 @@ static void close_cmd_fd(void) {
 static void open_cmd_fd( int coid, short code, int value ) {
   int old_response = set_response(0);
   char *cmddev = tm_dev_name("cmd/idx64");
-  close_cmd_fd();
   cmd_fd = tm_open_name(cmddev, NULL, O_RDONLY|O_NONBLOCK);
   set_response(old_response);
   if ( cmd_fd < 0 ) {
