@@ -1,0 +1,10 @@
+Need to replace reltimer() calls with timer_* calls
+
+After determining 'which' soldrv we are, that will affect
+the name we pass to Col_send_init() and what cmd node we
+read from.
+
+Read non-blocking, then use ionotify to get a pulse
+create timers and get a pulse
+
+Use Col_send(), but don't need to synchronize.

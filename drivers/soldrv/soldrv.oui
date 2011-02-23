@@ -1,0 +1,18 @@
+<package> soldrv
+<include> msg
+<follow> msg
+<opts> "d:"
+
+<synopsis>
+%C [options] filename
+
+<sort>
+	-q queries where a timer would be requested from and quits
+	-d <hex address> cache address breakpoint (default 0x1000)
+
+<unsort>
+Addresses greater than or equal to the breakpoint are handled using cache_write().
+
+<package> msghdr_default
+<var>
+  char *msg_hdr_default = "sol";

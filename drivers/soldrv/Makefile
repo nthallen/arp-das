@@ -11,7 +11,7 @@ SRCS += read_sft.c
 OBJS = soldrv.o read_sft.o
 HDRS += sol.h
 DOCS = toeil.txt
-CFLAGS += -T0 -g
+CFLAGS += -g
 
 # include targets
 include $(DASDIR)/tgt.mk

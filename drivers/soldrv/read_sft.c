@@ -29,6 +29,8 @@ int fget_word(FILE *fp) {
 int read_sft(char *filename) {
   FILE *fp;
   int i;
+  int str_tbl_size;
+  char *strings;
 
   fp = fopen(filename, "rb");
   if (!fp) return(1);
@@ -61,6 +63,16 @@ int read_sft(char *filename) {
   n_bytes = fget_word(fp);
   mode_code = (unsigned char *)malloc(n_bytes);
   for (i = 0; i < n_bytes; i++) mode_code[i] = fgetc(fp);
+  
+  n_bytes = fget_word(fp);
+  strings = (char *)malloc(n_bytes);
+  fread(strings, 1, str_tbl_size);
+  str_tbl_size = fget_word(fp);
+  str_tbl = (char **)malloc(str_tbl_size * sizeof(char*));
+  for (i = 0; i < str_tbl_size; i++) {
+    int offset = fget_word(fp);
+    str_tbl[i] = strings + offset;
+  }
   fclose(fp);
   return(0);
 }
