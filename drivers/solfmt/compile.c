@@ -1,6 +1,9 @@
 /* compile.c takes the information in solenoids and modes and compiles it
    into a numerical code.
    $Log$
+   Revision 1.2  2011/02/22 18:40:37  ntallen
+   Solfmt compiled
+
    Revision 1.1  2011/02/21 18:26:05  ntallen
    QNX4 version
 
@@ -37,9 +40,24 @@ char mode_code[MODE_CODE_SIZE];
 int mci = 0;    /* index into mode_code */
 int verbose = 0;
 
+static int sol2str_map[256];
+#define MAX_MULT_STRINGS 256
+static int mult2str_map[MAX_MULT_STRINGS];
+char *dccc_strs[MAX_MULT_STRINGS];
+int n_dccc_strs;
+static int n_mult_strs;
+
 void new_mode_code(int x) {
   if (mci == MODE_CODE_SIZE) nl_error(3, "Mode Code Table exceeded\n");
+  if (x >= 256)
+    nl_error(4, "Mode code value out of range: string table overflow?" );
   mode_code[mci++] = x;
+}
+
+static int comp_int( const void *a, const void *b ) {
+  int *ia = (int *)a;
+  int *ib = (int *)b;
+  return ia - ib;
 }
 
 static change *compile_one(change *ch) {
@@ -48,41 +66,78 @@ static change *compile_one(change *ch) {
   if (ch == NULL) return(NULL);
   t0 = ch->time;
   while (ch != NULL && ch->time == t0) {
-	switch (ch->type) {
-	  case TK_SOLENOID_NAME:
-		{
-		  change *nc;
-		  int j;
-		
-		  for (j = 1, nc = ch->next;
-			   nc != NULL
-			   && nc->type == TK_SOLENOID_NAME
-			   && nc->time == ch->time;
-			   nc = nc->next) j++;
-		  if (j == 1) new_mode_code(SOL_STROBES);
-		  else {
-			new_mode_code(SOL_MULT_STROBES);
-			new_mode_code(j);
-		  }
-		  while (j-- > 0) {
-			if (ch->state == SOL_OPEN)
-			  new_mode_code(solenoids[ch->t_index].open_cmd);
-			else new_mode_code(solenoids[ch->t_index].close_cmd);
-			ch = ch->next;
-		  }
-		  break;
-		case TK_DTOA_NAME:
-		  new_mode_code(SOL_DTOA);
-		  new_mode_code(dtoas[ch->t_index].set_point_index[ch->state]);
-		  ch = ch->next;
-		  break;
-		case TK_PROXY_NAME:
-		  new_mode_code(SOL_PROXY);
-		  new_mode_code(proxies[ch->t_index].proxy_index[ch->state]);
-		  ch = ch->next;
-		  break;
-      }
-	} /* switch (ch->type) */
+    switch (ch->type) {
+      case TK_SOLENOID_NAME:
+        {
+          change *nc;
+          int i, j;
+          int sol_cmds[MAX_SW];
+          char buf[DCCC_MAX_CMD_BUF];
+        
+          for (j = 1, nc = ch->next;
+               nc != NULL
+               && nc->type == TK_SOLENOID_NAME
+               && nc->time == ch->time;
+               nc = nc->next) j++;
+          for (i = 0; i < j; i++) {
+            sol_cmds[i] = ch->state == SOL_OPEN ?
+              solenoids[ch->t_index].open_cmd :
+              solenoids[ch->t_index].close_cmd;
+            ch = ch->next;
+          }
+          if (j == 1) {
+            new_mode_code(SOL_STROBES);
+            if ( sol2str_map[sol_cmds[0]] == -1 ) {
+              snprintf(buf, DCCC_MAX_CMD_BUF, "D%d\n", sol_cmds[0]);
+              dccc_strs[n_dccc_strs] = strdup(buf);
+              sol2str_map[sol_cmds[0]] = n_dccc_strs++;
+            }
+            new_mode_code(sol2str_map[sol_cmds[0]]);
+          } else {
+            int space = DCCC_MAX_CMD_BUF;
+            char *s = buf;
+            char nextchar = 'M';
+            new_mode_code(SOL_MULT_STROBES);
+            qsort(sol_cmds, j, sizeof(int), comp_int);
+            for ( i = 0; i < j; i++ ) {
+              int nb;
+              *s++ = nextchar;
+              --space;
+              if ( space > 0 )
+                nb = snprintf(s, space, "%d", sol_cmds[i]);
+              if ( space <= 0 || nb >= space )
+                nl_error( 3, "DCCC command string overflow" );
+              s += nb;
+              space -= nb;
+              nextchar = ',';
+            }
+            if ( space < 2 ) nl_error( 3, "DCCC command string overflow #2" );
+            *s++ = '\n';
+            *s = '\0';
+            // Now check to see if we already created this one
+            for ( i = 0; i < n_mult_strs; i++ ) {
+              if ( strcmp(buf,dccc_strs[mult_strs[i]]) == 0 )
+                break;
+            }
+            if ( i == n_mult_strs ) {
+              dccc_strs[n_dccc_strs] = strdup(buf);
+              mult_strs[n_mult_strs++] = n_dccc_strs++;
+            }
+            new_mode_code(mult_strs[i]);
+          }
+        }
+        break;
+      case TK_DTOA_NAME:
+        new_mode_code(SOL_DTOA);
+        new_mode_code(dtoas[ch->t_index].set_point_index[ch->state]);
+        ch = ch->next;
+        break;
+      case TK_PROXY_NAME:
+        new_mode_code(SOL_PROXY);
+        new_mode_code(proxies[ch->t_index].proxy_index[ch->state]);
+        ch = ch->next;
+        break;
+    } /* switch (ch->type) */
   } /* while (ch != NULL && ch->time == t0) */
   return(ch);
 }
@@ -92,6 +147,8 @@ void compile(void) {
   change *ch;
 
   if (verbose) describe();
+  for (i = 0; i < 256; i++) sol2str_map[i] = -1;
+  n_dccc_strs = n_mult_strs = 0;
   for (i = 0; i < MAX_MODES; i++) {
     if (modes[i].init == NULL && modes[i].first == NULL &&
         modes[i].next_mode < 0) {
@@ -99,7 +156,7 @@ void compile(void) {
       continue;
     }
     modes[i].index = mci;
-	compile_one(modes[i].init);
+    compile_one(modes[i].init);
     ch = modes[i].first;
     if (ch != NULL) {
       new_mode_code(SOL_SET_TIME);
@@ -114,7 +171,7 @@ void compile(void) {
           new_mode_code(SOL_MSWOK);
           ch = ch->next;
         }
-		ch = compile_one(ch);
+        ch = compile_one(ch);
       }
       comp_waits((modes[i].length - time) * modes[i].iters);
       time = modes[i].length;

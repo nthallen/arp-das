@@ -1,5 +1,8 @@
 /* solfmt.h
  * $Log$
+ * Revision 1.1  2011/02/21 18:26:05  ntallen
+ * QNX4 version
+ *
  * Revision 1.3  2006/02/16 18:13:31  nort
  * Uncommitted changes
  *
@@ -9,33 +12,35 @@
  */
 
 /*      compile.c       */
-void describe(void);
-void comp_waits(int j);
-void compile(void);
-void optimize(int mn);
+extern void describe(void);
+extern void comp_waits(int j);
+extern void compile(void);
+extern void optimize(int mn);
+extern char *dccc_strs[MAX_MULT_STRINGS];
+extern int n_dccc_strs;
 
 /*      output.c        */
-void output(char *ofile);
-void read_status_addr(void);
+extern void output(char *ofile);
+extern void read_status_addr(void);
 
 /*      read_cmd.c      */
-void read_cmd(void);
+extern void read_cmd(void);
 extern int cmd_set;
 
 /*      read_d2a.c      */
-void read_dtoa(void);
+extern void read_dtoa(void);
 
 /*      read_mod.c      */
-void init_modes(void);
-void read_mode(void);
+extern void init_modes(void);
+extern void read_mode(void);
 
 /*      read_sol.c      */
-void read_sol(void);
+extern void read_sol(void);
 
 /*      read_val.c      */
-int get_change_code(int type, int dtoa_num);
+extern int get_change_code(int type, int dtoa_num);
 
 /*      routines.c      */
-void read_routine(void);
+extern void read_routine(void);
 
-void read_proxy(void); /* read_pxy.c */
+extern void read_proxy(void); /* read_pxy.c */

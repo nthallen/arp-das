@@ -1,5 +1,8 @@
 /* output.c handles writing the ".sft" file.
  * $Log$
+ * Revision 1.2  2011/02/22 18:40:37  ntallen
+ * Solfmt compiled
+ *
  * Revision 1.1  2011/02/21 18:26:05  ntallen
  * QNX4 version
  *
@@ -71,6 +74,27 @@ void output(char *ofile) {
   for (i = 0; i < max_mode; i++) fput_word(modes[i].index, fp);
   fput_word(mci, fp);
   for (i = 0; i < mci; i++) fputc(mode_code[i], fp);
+  
+  /* Now output the string table. First the strings, preceeded by
+     a count of the total size */
+  { int n_bytes = 0;
+    for ( i = 0; i < n_dccc_strs; i++ ) {
+      n_bytes += strlen(dccc_strs[i]) + 1; // for the NUL
+    }
+    fput_word(n_bytes, fp);
+    for ( i = 0; i < n_dccc_strs; i++ ) {
+      char *s = dccc_strs[i];
+      do {
+        fputc( *s, fp );
+      } while (*s++ != '\0');
+    }
+    /* Now output number of strings and a table of offsets */
+    fput_word( n_dccc_strs, fp );
+    for ( n_bytes = 0, i = 0; i < n_dccc_strs; i++ ) {
+      fput_word( n_bytes, fp );
+      n_bytes += strlen(dccc_strs[i]) + 1; // for the NUL
+    }
+  }
   fclose(fp);
   printf("Output written to file %s\n", ofile);
 }

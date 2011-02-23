@@ -22,8 +22,12 @@ typedef struct {
 } mode;
 
 #define MAX_MODES 256
+#define MAX_MULT_STRINGS 256
+#define DCCC_MAX_CMD_BUF 250
 extern mode modes[];
 extern char mode_code[];
 extern int mci;
+extern char *dccc_strs[MAX_MULT_STRINGS];
+extern int n_dccc_strs;
 
 void add_change(change *nc, change **base); /* read_mod.c */
