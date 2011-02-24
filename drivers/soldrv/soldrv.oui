@@ -14,7 +14,9 @@
 	-d <hex address> cache address breakpoint (default 0x1000)
 
 <unsort>
-Addresses greater than or equal to the breakpoint are handled using cache_write().
+<blank>
+Addresses greater than or equal to the breakpoint are handled
+using cache_write().
 
 <package> msghdr_default
 <var>

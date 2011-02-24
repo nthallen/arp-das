@@ -8,6 +8,7 @@ OBJS=soldrv.o read_sft.o soldrvoui.o
 
 soldrv : $(OBJS)
 	$(LINK.c) -o soldrv $(OBJS) -lsubbus -ltm -lnort
+	usemsg soldrv soldrvoui.c
 soldrv.o : soldrv.c sol.h ../solfmt/version.h
 read_sft.o : read_sft.c sol.h ../solfmt/version.h
 soldrvoui.o : soldrvoui.c
