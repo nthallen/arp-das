@@ -1,5 +1,8 @@
 /* solfmt.h
  * $Log$
+ * Revision 1.2  2011/02/23 19:38:40  ntallen
+ * Changes for DCCC
+ *
  * Revision 1.1  2011/02/21 18:26:05  ntallen
  * QNX4 version
  *
@@ -16,8 +19,6 @@ extern void describe(void);
 extern void comp_waits(int j);
 extern void compile(void);
 extern void optimize(int mn);
-extern char *dccc_strs[MAX_MULT_STRINGS];
-extern int n_dccc_strs;
 
 /*      output.c        */
 extern void output(char *ofile);

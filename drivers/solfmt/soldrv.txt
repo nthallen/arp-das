@@ -1,3 +1,0 @@
-%C [options] filename
-	-q queries where a timer would be requested from and quits
-	-t <number> DAS command type to receive

@@ -1,6 +1,9 @@
 /* compile.c takes the information in solenoids and modes and compiles it
    into a numerical code.
    $Log$
+   Revision 1.4  2011/02/24 00:57:59  ntallen
+   Clean compile
+
    Revision 1.3  2011/02/23 19:38:40  ntallen
    Changes for DCCC
 
@@ -47,7 +50,6 @@ int mci = 0;    /* index into mode_code */
 int verbose = 0;
 
 static int sol2str_map[256];
-#define MAX_MULT_STRINGS 256
 static int mult2str_map[MAX_MULT_STRINGS];
 char *dccc_strs[MAX_MULT_STRINGS];
 int n_dccc_strs;

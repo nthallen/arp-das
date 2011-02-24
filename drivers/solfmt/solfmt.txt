@@ -1,3 +1,0 @@
-%C [options]
-	-v verbose
-	-o<out_file>
