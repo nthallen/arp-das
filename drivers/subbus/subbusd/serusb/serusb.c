@@ -598,7 +598,7 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
     case SBC_READCACHE:
       rep.hdr.status =
         (sb_cache_read(req->data.d1.data, &rep.data.value) < 0) ?
-        SBS_ACK : SBS_NOACK;
+        SBS_NOACK : SBS_ACK;
       rep.hdr.ret_type = SBRT_US;
       rsize =
         sizeof(subbusd_rep_hdr_t) + sizeof(unsigned short);    

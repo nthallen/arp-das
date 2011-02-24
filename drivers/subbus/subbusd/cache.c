@@ -28,7 +28,7 @@ int sb_cache_write( unsigned short addr, unsigned short data ) {
       addr >= hw_min_addr ) {
     cache_addr = ( addr - hw_min_addr ) / 2;
     hwcache[cache_addr] = data;
-    nl_error( -3, "Write to HW Cache: %d -> [%03X]",
+    nl_error( -3, "Write to HW Cache: %04X -> [%03X]",
       data, addr );
     return 1;
   } else if ( addr < sw_max_addr &&
@@ -54,6 +54,8 @@ int sb_cache_read( unsigned short addr, unsigned short *data ) {
       addr >= hw_min_addr ) {
     cache_addr = ( addr - hw_min_addr ) / 2;
     *data = hwcache[cache_addr];
+    nl_error( -3, "Read from HW Cache: [%03X] -> 0x%04X",
+      addr, *data );
     return 1;
   } else if ( addr < sw_max_addr &&
               addr >= sw_min_addr ) {
