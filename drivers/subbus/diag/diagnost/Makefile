@@ -1,4 +1,7 @@
 # $Log$
+# Revision 1.6  2010/12/21 14:40:13  ntallen
+# Use subbus library
+#
 # Revision 1.5  2010/09/10 13:09:14  ntallen
 # Minor edit and relink for libsubbus.so.1
 #
@@ -48,7 +51,7 @@ scdebug : scdebug.o $(LLIB)/diaglibs.lib
 scdebug.o : scdebug.c
 
 failtest : failtest.o
-	$(LINK.priv) failtest.o -lsubbus -lnort
+	$(LINK.norm) failtest.o -lsubbus -lnort
 	usemsg failtest failtest.c
 failtest.o : failtest.c
 
