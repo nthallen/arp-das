@@ -58,6 +58,7 @@ unsigned int SolStat = 0;
 
 /* function declarations */
 static void waitmsg(int, int);
+static int read_cmd(void);
 
 /* global variables */
 static char rcsid[]="$Id$";
@@ -92,6 +93,7 @@ static void timer_start( unsigned int count) {
   tval.it_value.tv_nsec = (long)j;
   tval.it_interval.tv_sec = (long)i;
   tval.it_interval.tv_nsec = (long)j;
+  nl_error( -2, "Timer resolution: %d sec, %d nsec", i, j);
   if (timer_settime(timer, 0, &tval, NULL) )
     nl_error(3, "Error %d starting timer", errno );
 }
@@ -240,11 +242,10 @@ int main(int argc, char **argv) {
         j++;
       }
     }
-    if (n_set_points > j) {	
-      // if (seteuid(0)==-1) msg(MSG_EXIT_ABNORM,"Can't set euid to root");
-      if (!load_subbus())
-        msg(MSG_EXIT_ABNORM,"Requires resident Subbus Library");
-    }
+    // if (seteuid(0)==-1) msg(MSG_EXIT_ABNORM,"Can't set euid to root");
+    // All set points go through subbusd now
+    if (!load_subbus())
+      msg(MSG_EXIT_ABNORM,"Requires resident Subbus Library");
   }
 
   /* Look for DCCC */
@@ -257,6 +258,9 @@ int main(int argc, char **argv) {
   /* set up proxies */
   if (n_proxies) 
     nl_error(4, "Proxies not implemented yet" );
+
+  /* arm command input */
+  read_cmd();
 
   /* program code */
   while (!Quit) {
@@ -368,7 +372,7 @@ int main(int argc, char **argv) {
             }			/* switch */
             break;
           case ST_WAITS:
-            msg(MSG_DEBUG,"Step %d waits", ip);
+            msg(MSG_DEBUG,"Step %d waits count %d", ip, count);
             waitmsg(1, chid);
             msg(MSG_DEBUG,"Step %d", ip);
             if (--count <= 0) mode_mode = ST_IN_MODE;
@@ -377,10 +381,11 @@ int main(int argc, char **argv) {
         break;
     }				/* switch */
   }				/* for(;;) */
+  msg(0, "Terminating");
   close_cmd_fd();
   timer_detach();
   if (dccc_fd >= 0) close(dccc_fd);
-  msg(0, "Terminating");
+  msg(0, "Terminated");
   return 0;
 }				/* main */
 
@@ -403,7 +408,7 @@ static int parse_command( char *buf, int nb ) {
     case 'S': /* Select Mode */
       if (isdigit(*++s)) {
         while (isdigit(*s)) {
-          val = val*10 + *s - '0';
+          val = val*10 + *s++ - '0';
         }
         if ( *s == '\n' || *s == '\0' ) {
           /* command syntax is OK. Now does it require immediate action? */
@@ -458,7 +463,8 @@ static int read_cmd(void) {
     } else nl_error(4, "Bad return value [%d] from read in check_command", rv );
     rv = ionotify(cmd_fd, _NOTIFY_ACTION_POLLARM,
         _NOTIFY_COND_INPUT, &cmd_event);
-    if (rv == -1) nl_error( 3, "Received error % from iontify in check_command()", errno );
+    if (rv == -1) nl_error( 3,
+      "Received error % from iontify in check_command()", errno );
     if (rv == 0) break;
   }
   return errs;
@@ -470,12 +476,17 @@ static void waitmsg ( int timer_expected, int chid ) {
 
   do {
     if ( MsgReceivePulse(chid, &pulse, sizeof(pulse), NULL) == -1 ) {
-      msg(MSG_WARN,"error %d recieving pulses", errno);
+      if ( errno == EINTR) {
+	if ( !Quit )
+	  msg(MSG_WARN, "Receive EINTR, but Quit == 0");
+      } else {
+	msg(MSG_WARN,"error %d recieving pulses", errno);
+      }
       rv = 1;
     } else if (pulse.code == CMD_PULSE_CODE) {
       rv = read_cmd(); /* read_cmd() must return 0 when we should exit */
     } else if ( pulse.code == TIMER_PULSE_CODE ) {
-      rv = timer_expected ? 1 : 0;
+      rv = timer_expected ? 0 : 1;
       if (!timer_expected) msg(MSG_WARN, "Unexpected timer pulse");
     } else msg(MSG_EXIT_ABNORM,"Unexpected pulse code: %d", pulse.code);
   } while (rv == 1 && Quit == 0);

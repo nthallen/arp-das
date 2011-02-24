@@ -67,7 +67,7 @@ int read_sft(char *filename) {
   
   n_bytes = fget_word(fp);
   strings = (char *)malloc(n_bytes);
-  fread(strings, 1, str_tbl_size, fp);
+  fread(strings, 1, n_bytes, fp);
   str_tbl_size = fget_word(fp);
   str_tbl = (char **)malloc(str_tbl_size * sizeof(char*));
   for (i = 0; i < str_tbl_size; i++) {
