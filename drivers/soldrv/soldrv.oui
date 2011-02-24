@@ -1,13 +1,16 @@
 <package> soldrv
 <include> msg
+<include> "sol.h"
 <follow> msg
 <opts> "d:"
+
+<init>
+  soldrv_init_options(argc, argv);
 
 <synopsis>
 %C [options] filename
 
 <sort>
-	-q queries where a timer would be requested from and quits
 	-d <hex address> cache address breakpoint (default 0x1000)
 
 <unsort>

@@ -23,5 +23,7 @@ extern solenoid *solenoids;
 extern set_point *set_points;
 extern unsigned char *proxy_ids;
 extern unsigned char *mode_code;
-int read_sft(char *filename);
+extern int read_sft(char *filename);
+extern char **str_tbl;
+extern void soldrv_init_options( int argc, char **argv );
 

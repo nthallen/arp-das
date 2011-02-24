@@ -1,23 +1,22 @@
 # include definitions
-include $(SRCDIR)/src.mk
-SUBDIRS = 
-HOMEDIR = $(DASDIR)/mods/sol/soldrv
-BASE = soldrv
+CFLAGS=-g -Wall
+LDFLAGS=-L /usr/local/lib
+CPPFLAGS=-I /usr/local/include -I ../solfmt
+OBJS=soldrv.o read_sft.o soldrvoui.o
 
-# file list macros
-TXTS += $(USEDIR)/msg.txt $(USEDIR)/break.txt $(USEDIR)/cc.txt
-# LIBS = eillib das
-SRCS += read_sft.c
-OBJS = soldrv.o read_sft.o
-HDRS += sol.h
-DOCS = toeil.txt
-CFLAGS += -g
+.PHONY : all clean install
 
-# include targets
-include $(DASDIR)/tgt.mk
+soldrv : $(OBJS)
+	$(LINK.c) -o soldrv $(OBJS) -lsubbus -ltm -lnort
+soldrv.o : soldrv.c sol.h ../solfmt/version.h
+read_sft.o : read_sft.c sol.h ../solfmt/version.h
+soldrvoui.o : soldrvoui.c
+soldrvoui.c : soldrv.oui
+	oui -o soldrvoui.c soldrv.oui
 
-all: perms
+install : soldrv
+	@cp -vn soldrv /usr/local/bin
 
-# dependencies
-soldrv.o : soldrv.c $(HDRS) ../h/codes.h ../h/version.h
-read_sft.o : read_sft.c ../h/codes.h ../h/version.h sol.h
+clean :
+	rm -f *.o soldrv
+all : soldrv

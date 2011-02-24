@@ -16,6 +16,7 @@ solenoid *solenoids;
 set_point *set_points;
 unsigned char *proxy_ids;
 unsigned char *mode_code;
+char **str_tbl;
 
 int fget_word(FILE *fp) {
   int w;

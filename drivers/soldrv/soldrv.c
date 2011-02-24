@@ -27,7 +27,7 @@ Ported to QNX6 by NTA 2/22/11.
 // #include "eillib.h"
 #include "nortlib.h"
 // #include "scdc.h"
-#include "soldrv.h"
+// #include "soldrv.h"
 #include "sol.h"
 // #include "codes.h"
 // #include "da_cache.h"
