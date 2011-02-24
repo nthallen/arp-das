@@ -16,11 +16,14 @@ Ported to QNX6 by NTA 2/22/11.
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
-#include <assert.h>
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
+#include <libgen.h>
 #include <sys/neutrino.h>
+#include <sys/netmgr.h>
+#include <sys/iomsg.h>
+// #include <sys/timers.h>
 // #include <sys/types.h>
 #include "subbus.h"
 // #include "das.h"
@@ -29,16 +32,45 @@ Ported to QNX6 by NTA 2/22/11.
 // #include "scdc.h"
 // #include "soldrv.h"
 #include "sol.h"
-// #include "codes.h"
+#include "codes.h" // in solfmt directory
 // #include "da_cache.h"
 #include "oui.h"
+#include "msg.h"
+#include "tm.h"
+#include "collect.h"
+#include "nl_assert.h"
 
-// #include <sys/timers.h>
 
 timer_t timer=0;
-struct itimercb tcb;
 struct itimerspec tval, otval;
 unsigned int SolStat = 0;
+
+/* defines */
+// #define HDR "sol"
+// #define OPT_MINE "qd:"
+#define ST_NO_MODE 0
+#define ST_NEW_MODE 1
+#define ST_MODE 2
+#define ST_IN_MODE 0
+#define ST_WAITS 1
+#define CACHE_ADDR 0x1000
+#define MAX_SOL_CMD 50
+
+/* function declarations */
+static void waitmsg(int, int);
+
+/* global variables */
+static char rcsid[]="$Id$";
+int state;
+int mode_request;
+int crnt_mode, new_mode;
+int Quit = 0;
+// unsigned char dct = DCT_SOLDRV_A;
+// pid_t *proxy_pids;
+// unsigned char reg_which;
+unsigned short cacher = CACHE_ADDR;
+static int cmd_fd, dccc_fd = -1;
+static struct sigevent cmd_event;
 
 static void timer_stop(void) {
   tval.it_value.tv_sec = 0L;
@@ -79,35 +111,12 @@ static void timer_detach(void) {
   timer_delete(timer);
 }
 
-/* defines */
-// #define HDR "sol"
-// #define OPT_MINE "qd:"
-#define ST_NO_MODE 0
-#define ST_NEW_MODE 1
-#define ST_MODE 2
-#define ST_IN_MODE 0
-#define ST_WAITS 1
-#define CACHE_ADDR 0x1000
-
-/* function declarations */
-static void waitmsg(int, int);
 void my_signalfunction(int sig_number) {
-    timer_detach();
-    exit(0);
+  Quit = 1;
+  // timer_detach();
+  // exit(0);
 }
 
-/* global variables */
-static char rcsid[]="$Id$";
-int state;
-int mode_request;
-int crnt_mode, new_mode;
-int Quit = 0;
-// unsigned char dct = DCT_SOLDRV_A;
-// pid_t *proxy_pids;
-unsigned char reg_which;
-unsigned short cacher = CACHE_ADDR;
-static int cmd_fd;
-static struct sigevent cmd_event;
 
 #define CMD_PULSE_CODE (_PULSE_CODE_MINAVAIL + 0)
 #define TIMER_PULSE_CODE (_PULSE_CODE_MINAVAIL + 1)
@@ -147,6 +156,7 @@ void soldrv_init_options( int argc, char **argv ) {
     if (i==-1) msg(MSG_EXIT_ABNORM,"Wrong version: %s",basename(filename));
   }
 }
+
 static void close_cmd_fd(void) {
   close(cmd_fd);
 }
@@ -169,13 +179,12 @@ static void open_cmd_fd( int coid, short code, int value, char which_sol ) {
   cmd_event.sigev_value.sival_int = value;
 }
 
-void main(int argc, char **argv) {
+int main(int argc, char **argv) {
 
   /* getopt variables */
 
   /* local variables */
-  char name[FILENAME_MAX+1];
-  int i, exp_ext, ip, mode_mode;
+  int i, ip, mode_mode;
   long j;
   unsigned int count;
   send_id SolStat_id;
@@ -212,7 +221,7 @@ void main(int argc, char **argv) {
     nl_error( 3, "Error %d from ConnectAttach()", errno );
 
   /* read commands from command server */
-  open_cmd_fd( coid, CMD_PULSE_CODE, 0 );
+  open_cmd_fd( coid, CMD_PULSE_CODE, 0, which );
  
   /* attach timer */
   timer_attach( coid, TIMER_PULSE_CODE, 0);
@@ -345,16 +354,16 @@ void main(int argc, char **argv) {
                     msg(MSG_DBG(1),"Writing %d to address %d",
                       set_points[mode_code[ip+1]].value,
                       set_points[mode_code[ip+1]].address);
-                    write_subbus(0,set_points[mode_code[ip+1]].address,
+                    sbwr(set_points[mode_code[ip+1]].address,
                       set_points[mode_code[ip+1]].value);
                   }
                 ip += 2;
                 break;
               case SOL_PROXY:
-                if (proxy_pids[mode_code[++ip]])
-                  if (Trigger(proxy_pids[mode_code[ip]])==-1)
-                    msg(MSG_WARN,"Can't trigger proxy %d",proxy_pids[ip]);
-                ip++;
+                //if (proxy_pids[mode_code[++ip]])
+                //  if (Trigger(proxy_pids[mode_code[ip]])==-1)
+                //    msg(MSG_WARN,"Can't trigger proxy %d",proxy_pids[ip]);
+                // ip++;
                 break;
             }			/* switch */
             break;
@@ -368,7 +377,11 @@ void main(int argc, char **argv) {
         break;
     }				/* switch */
   }				/* for(;;) */
-
+  close_cmd_fd();
+  timer_detach();
+  if (dccc_fd >= 0) close(dccc_fd);
+  msg(0, "Terminating");
+  return 0;
 }				/* main */
 
 /**
@@ -427,7 +440,7 @@ static int parse_command( char *buf, int nb ) {
   * @return 0 anytime anything significant happens
   */
 static int read_cmd(void) {
-  char cmd[MAX_SOL_CMD];
+  char buf[MAX_SOL_CMD];
   int errs = 0;
   
   for (;;) {
@@ -452,7 +465,7 @@ static int read_cmd(void) {
 }
 
 static void waitmsg ( int timer_expected, int chid ) {
-  int i, rv;
+  int rv;
   struct _pulse pulse;
 
   do {
