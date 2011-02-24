@@ -1,5 +1,8 @@
 /* output.c handles writing the ".sft" file.
  * $Log$
+ * Revision 1.3  2011/02/23 19:38:40  ntallen
+ * Changes for DCCC
+ *
  * Revision 1.2  2011/02/22 18:40:37  ntallen
  * Solfmt compiled
  *
@@ -16,6 +19,7 @@
    Modified July 1991 for QNX.
 */
 #include <stdio.h>
+#include <string.h>
 #include "tokens.h"
 #include "solenoid.h"
 #include "modes.h"

@@ -1,5 +1,8 @@
 # Makefile for solfmt
 # $Log$
+# Revision 1.3  2011/02/22 18:40:36  ntallen
+# Solfmt compiled
+#
 # Revision 1.2  2011/02/21 18:37:51  ntallen
 # Tweak
 #
@@ -29,7 +32,7 @@ TOOL=Makefile
 
 SOURCE=$(SRC) $(TOOL)
 OBJECT=$(OBJS1) $(OBJS2) $(TEMP)
-TARGET=solfmt soldrv
+TARGET=solfmt
 
 all : $(TARGET)
 OBJS1=solfmt.o compile.o get_tokens.o optimize.o output.o

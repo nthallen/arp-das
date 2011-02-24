@@ -1,6 +1,9 @@
 /* compile.c takes the information in solenoids and modes and compiles it
    into a numerical code.
    $Log$
+   Revision 1.3  2011/02/23 19:38:40  ntallen
+   Changes for DCCC
+
    Revision 1.2  2011/02/22 18:40:37  ntallen
    Solfmt compiled
 
@@ -22,6 +25,8 @@
    July 1991: dosn't compile multiple SOL_STROBES and SOL_DTOA commands.
 */
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <assert.h>
 #include "tokens.h"
 #include "modes.h"
@@ -36,6 +41,7 @@ static char rcsid[] =
       "$Id$";
 
 #define MODE_CODE_SIZE 10000
+#define MAX_SW 25
 char mode_code[MODE_CODE_SIZE];
 int mci = 0;    /* index into mode_code */
 int verbose = 0;
@@ -79,6 +85,8 @@ static change *compile_one(change *ch) {
                && nc->type == TK_SOLENOID_NAME
                && nc->time == ch->time;
                nc = nc->next) j++;
+          if ( j > MAX_SW )
+	    nl_error( 4, "Arbitrary limit MAX_SW reached in compile.c" );
           for (i = 0; i < j; i++) {
             sol_cmds[i] = ch->state == SOL_OPEN ?
               solenoids[ch->t_index].open_cmd :
@@ -116,14 +124,14 @@ static change *compile_one(change *ch) {
             *s = '\0';
             // Now check to see if we already created this one
             for ( i = 0; i < n_mult_strs; i++ ) {
-              if ( strcmp(buf,dccc_strs[mult_strs[i]]) == 0 )
+              if ( strcmp(buf,dccc_strs[mult2str_map[i]]) == 0 )
                 break;
             }
             if ( i == n_mult_strs ) {
               dccc_strs[n_dccc_strs] = strdup(buf);
-              mult_strs[n_mult_strs++] = n_dccc_strs++;
+              mult2str_map[n_mult_strs++] = n_dccc_strs++;
             }
-            new_mode_code(mult_strs[i]);
+            new_mode_code(mult2str_map[i]);
           }
         }
         break;
