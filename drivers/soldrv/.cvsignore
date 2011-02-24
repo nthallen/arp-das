@@ -1,2 +1,3 @@
-soldrv.use
+soldrvoui.c
+soldrv
 *.sft
