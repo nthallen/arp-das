@@ -9,7 +9,7 @@ typedef struct if_list_s {
   char *if_name;
   char *if_path;
 } if_list_t;
-static if_list_t *if_list;
+static if_list_t *if_list, *if_last;
 
 #define IFT_READ 1
 #define IFT_WRITE 2
@@ -22,10 +22,15 @@ void new_interface( char *if_name ) {
 
   if_list_t *new_if;
   new_if = (if_list_t *)new_memory(sizeof(if_list_t));
-  new_if->next = if_list;
+  if (if_last == NULL ) {
+    if_list = new_if;
+  } else {
+    if_last->next = new_if;
+  }
+  if_last = new_if;
+  new_if->next = NULL;
   new_if->if_name = if_name;
   new_if->if_path = NULL;
-  if_list = new_if;
   for ( s = if_name; *s; ++s ) {
     if ( *s == ':' ) {
       *s++ = '\0';
