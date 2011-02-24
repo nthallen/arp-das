@@ -52,5 +52,5 @@ sc104_hint.o : syscon104/hint.c
 	$(COMPILE.c) -o sc104_hint.o syscon104/hint.c
 sc104_sc104init.o : syscon104/sc104init.c
 	$(COMPILE.c) -o sc104_sc104init.o syscon104/sc104init.c
-sc104oui.c : syscon104/sc104.oui
+sc104oui.c : syscon104/sc104.oui subbusd.oui
 	oui -o sc104oui.c syscon104/sc104.oui

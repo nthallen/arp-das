@@ -33,5 +33,5 @@ static void cache_init_options(
 }
 
 <sort>
-    -H <low>-<high> hardware address range
-    -S <low>-<high> software address range
+	-H <low>-<high> hardware address range (hex, no 0x)
+	-S <low>-<high> software address range
