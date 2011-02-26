@@ -45,16 +45,16 @@ Status
   #define CT24long(x) ((long)(x).low + (((long)(x).high)<<16))
 %}
 TM typedef UINT CT16 { collect x = sbrwa( x.address ); }
-TM typedef CT16 CTstat {
+TM typedef CT16 CtStat {
 	text "%04x";
 }
 
-TM typedef unsigned long ULONG { text "%8ld"; }
+TM typedef unsigned long ULONG { text "%10ld"; }
 TM typedef struct {
   unsigned short low;
   unsigned char high;
 } CT24 {
-  text "%8ld";
+  text "%06lx";
   convert ULONG CT24long();
 }
 
@@ -67,9 +67,9 @@ TM 8 Hz CT24 UVB1_Counts; Address UVB1_Counts 0x63C; /* Axis B UV1 counts*/
 TM 8 Hz CT24 UVB2_Counts; Address UVB2_Counts 0x650; /* Axis B UV2 counts*/
 TM 8 Hz CT24 UVC1_Counts; Address UVC1_Counts 0x654; /* Axis C UV1 counts*/
 TM 8 Hz CT24 UVC2_Counts; Address UVC2_Counts 0x658; /* Axis C UV2 counts*/
-TM 8Hz Ctstat Ct0Stat; Address Ct0Stat 0x600; /* Counter 0 Stat*/
-TM 8Hz Ctstat Ct1Stat; Address Ct1Stat 0x620; /* Counter 1 Stat*/
-TM 8Hz Ctstat Ct2Stat; Address Ct2Stat 0x640; /* Counter 2 Stat*/
+TM 8Hz CtStat Ct0Stat; Address Ct0Stat 0x600; /* Counter 0 Stat*/
+TM 8Hz CtStat Ct1Stat; Address Ct1Stat 0x620; /* Counter 1 Stat*/
+TM 8Hz CtStat Ct2Stat; Address Ct2Stat 0x640; /* Counter 2 Stat*/
 
 Group Cts0 ( Ct0Stat, PMTA_Counts, PMTB_Counts, PMTC_Counts ) {
   Ct0Stat = sbrwa( Ct0Stat.address );
