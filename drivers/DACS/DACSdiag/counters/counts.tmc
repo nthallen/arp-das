@@ -1,0 +1,113 @@
+%{
+/* SB/64 Ungated Counters
+
+  600  Status
+  602  Hardware Rev
+  610  Counter 1 Low Word
+  612  Counter 1 High Word
+  614  Counter 2 Low Word
+  616  Counter 2 High Word
+  618  Counter 3 Low Word
+  61A  Counter 3 High Word
+  61C  Counter 4 Low Word
+  61E  Counter 4 High Word
+
+Status
+
+  D0  Counter 1 Overflow
+  D1  Counter 2 Overflow
+  D2  Counter 3 Overflow
+  D3  Counter 4 Overflow
+  D4  Counter 1 16-bit Overflow  
+  D5  Counter 2 16-bit Overflow
+  D6  Counter 3 16-bit Overflow
+  D7  Counter 4 16-bit Overflow
+  D8-D11 Integration Period
+	F == 1 Hz
+	7 == 2 Hz
+	3 == 4 Hz
+	1 == 8 Hz
+	0 == 16 Hz
+  D14 L2Stat
+  D15 Resynch
+
+  Counter is automatically synchronized with reads of the status
+  word, but in order for this to work reliably, we need to take
+  steps to make sure the status and the counters are read in the
+  correct order and close together in time. i.e. we need to use a
+  TM group to collect the counters.
+
+  The counters must be programmed initially to set the
+  integration period. This must match the reporting rate.
+
+*/
+
+  #define CT24long(x) ((long)(x).low + (((long)(x).high)<<16))
+%}
+TM typedef UINT CT16 { collect x = sbrwa( x.address ); }
+TM typedef CT16 CtStat {
+	text "%04x";
+}
+
+TM typedef unsigned long ULONG { text "%10ld"; }
+TM typedef struct {
+  unsigned short low;
+  unsigned char high;
+} CT24 {
+  text "%06lx";
+  convert ULONG CT24long();
+}
+
+TM 8 Hz CT24 PMTA_Counts; Address PMTA_Counts 0x610; /* Axis A PMT Counts */
+TM 8 Hz CT24 PMTB_Counts; Address PMTB_Counts 0x614; /* Axis B PMT Counts */
+TM 8 Hz CT24 PMTC_Counts; Address PMTC_Counts 0x618; /* Axis C PMT Counts */
+TM 8 Hz CT24 Sp1_Counts; Address Sp1_Counts 0x61C; /* Unused */
+TM 8Hz CtStat Ct0Stat; Address Ct0Stat 0x600; /* Counter 0 Stat*/
+
+TM 8 Hz CT24 Sp2_Counts; Address Sp2_Counts 0x634;   /* Spare counter */
+TM 8 Hz CT24 UVA1_Counts; Address UVA1_Counts 0x634; /* Axis A UV1 counts */
+TM 8 Hz CT24 UVA2_Counts; Address UVA2_Counts 0x638; /* Axis A UV2 counts */
+TM 8 Hz CT24 UVB1_Counts; Address UVB1_Counts 0x63C; /* Axis B UV1 counts */
+TM 8Hz CtStat Ct1Stat; Address Ct1Stat 0x620; /* Counter 1 Stat*/
+
+TM 8 Hz CT24 UVB2_Counts; Address UVB2_Counts 0x650; /* Axis B UV2 counts */
+TM 8 Hz CT24 UVC1_Counts; Address UVC1_Counts 0x654; /* Axis C UV1 counts */
+TM 8 Hz CT24 UVC2_Counts; Address UVC2_Counts 0x658; /* Axis C UV2 counts */
+TM 8 Hz CT24 Sp3_Counts; Address Sp3_Counts 0x65C;   /* Spare counts */
+TM 8Hz CtStat Ct2Stat; Address Ct2Stat 0x640; /* Counter 2 Stat*/
+
+Group Cts0 ( Ct0Stat, PMTA_Counts, PMTB_Counts, PMTC_Counts, Sp1_Counts ) {
+  Ct0Stat = sbrwa( Ct0Stat.address );
+  PMTA_Counts.low  = sbrwa( PMTA_Counts.address );
+  PMTA_Counts.high = sbrba( PMTA_Counts.address+2 );
+  PMTB_Counts.low  = sbrwa( PMTB_Counts.address );
+  PMTB_Counts.high = sbrba( PMTB_Counts.address+2 );
+  PMTC_Counts.low  = sbrwa( PMTC_Counts.address );
+  PMTC_Counts.high = sbrba( PMTC_Counts.address+2 );
+  Sp1_Counts.low  = sbrwa( Sp1_Counts.address );
+  Sp1_Counts.high = sbrba( Sp1_Counts.address+2 );
+}
+
+Group Cts1 ( Ct1Stat, Sp2_Counts, UVA1_Counts, UVA2_Counts, UVB1_Counts ) {
+  Ct1Stat = sbrwa( Ct1Stat.address );
+  Sp2_Counts.low  = sbrwa( Sp2_Counts.address );
+  Sp2_Counts.high = sbrba( Sp2_Counts.address+2 );
+  UVA1_Counts.low  = sbrwa( UVA1_Counts.address );
+  UVA1_Counts.high = sbrba( UVA1_Counts.address+2 );
+  UVA2_Counts.low  = sbrwa( UVA2_Counts.address );
+  UVA2_Counts.high = sbrba( UVA2_Counts.address+2 );
+  UVB1_Counts.low  = sbrwa( UVB1_Counts.address );
+  UVB1_Counts.high = sbrba( UVB1_Counts.address+2 );
+}
+
+Group Cts2 ( Ct2Stat, UVB2_Counts, UVC1_Counts, UVC2_Counts, Sp3_Counts ) {
+  Ct2Stat = sbrwa( Ct2Stat.address );
+  UVB2_Counts.low  = sbrwa( UVB2_Counts.address );
+  UVB2_Counts.high = sbrba( UVB2_Counts.address+2 );
+  UVC1_Counts.low  = sbrwa( UVC1_Counts.address );
+  UVC1_Counts.high = sbrba( UVC1_Counts.address+2 );
+  UVC2_Counts.low  = sbrwa( UVC2_Counts.address );
+  UVC2_Counts.high = sbrba( UVC2_Counts.address+2 );
+  Sp3_Counts.low  = sbrwa( Sp3_Counts.address );
+  Sp3_Counts.high = sbrba( Sp3_Counts.address+2 );
+}

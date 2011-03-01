@@ -1,0 +1,10 @@
+%{
+  #include "subbus.h"
+
+  static void Ct64_init( void ) {
+    sbwr( 0x600, 0x0100 ); /* 8 Hz */
+    sbwr( 0x620, 0x0100 ); /* 8 Hz */
+    sbwr( 0x640, 0x0100 ); /* 8 Hz */
+  }
+%}
+TM INITFUNC Ct64_init();

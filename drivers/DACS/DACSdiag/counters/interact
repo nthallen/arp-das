@@ -1,0 +1,13 @@
+# Startup script for counters Diagnostic
+  Launch memo memo -o $Experiment.log
+  Launch /dev/huarp/subbus subbusd_serusb
+  memo=/dev/huarp/$Experiment/memo
+  echo "Running script interact" >$memo
+  Launch TM/DCo TMbfr
+# Launch dccc   dccc -f $TMBINDIR/dccc.dccc
+  Launch DG/cmd counterscol
+  Launch cmd/server counterssrvr
+  Launch - lgr -N `mlf_find LOG`
+# Launch - idx64 `cat $TMBINDIR/idx64.idx64`
+  Launch - countersalgo -v
+
