@@ -188,6 +188,7 @@ progitem : nontm_decl {
 	  }
     | KW_TM KW_INITFUNC tl_statement {
         catstat(&initprog, &$3);
+        catstattext(&initprog, "\n");
         initstat(&$$, NULL);
       }
 	| tl_statement {
