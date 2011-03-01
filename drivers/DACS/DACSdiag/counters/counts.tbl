@@ -1,11 +1,11 @@
 Counts {
   HBox { +-; Title: Counters; -+ };
-  Ct0:  PMTA: (PMTA_Counts,10) PMTB: (PMTB_Counts,10)
-	PMTC: (PMTC_Counts,10) Sp1: (Sp1_Counts,10) (Ct0Stat,4);
-  Ct1:  Sp2: (SP2_Counts,10) UVA1: (UVA1_Counts,10)
-	UVA2: (UVA2_Counts,10) UVB1: (UVB1_Counts,10) (Ct1Stat,4);
-  Ct2:  UVB2: (UVB2_Counts,10) UVC1: (UVC1_Counts,10)
-	UVC2: (UVC2_Counts,10) Sp3:  (Sp3_Counts,10) (Ct2Stat,4);
+  Ct0:  PMTA: (PMTA_Counts,8) PMTB: (PMTB_Counts,8)
+	PMTC: (PMTC_Counts,8) Sp1: (Sp1_Counts,8) (Ct0Stat,4);
+  Ct1:  Sp2: (SP2_Counts,8) UVA1: (UVA1_Counts,8)
+	UVA2: (UVA2_Counts,8) UVB1: (UVB1_Counts,8) (Ct1Stat,4);
+  Ct2:  UVB2: (UVB2_Counts,8) UVC1: (UVC1_Counts,8)
+	UVC2: (UVC2_Counts,8) Sp3:  (Sp3_Counts,8) (Ct2Stat,4);
 }
 
 { [Counts];

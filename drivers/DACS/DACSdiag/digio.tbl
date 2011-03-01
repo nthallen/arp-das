@@ -1,37 +1,37 @@
 Cmd_0 {
   ""  DS  >S<  >I<;
-  "0:" (Cmd0DS,3) (Cmd0S,3) (AID10,7);
-  "1:" (Cmd1DS,3) (Cmd1S,3) (AID12,7);
-  "2:" (Cmd2DS,3) (Cmd2S,3) (AID14,7);
-  "3:" (Cmd3DS,3) (Cmd3S,3) (AID16,7);
-  "4:" (Cmd4DS,3) (Cmd4S,3) (AID18,7);
-  "5:" (Cmd5DS,3) (Cmd5S,3) (AID1A,7);
-  "6:" (Cmd6DS,3) (Cmd6S,3) (AID1C,7);
-  "7:" (Cmd7DS,3) (Cmd7S,3) (AID1E,7);
+  "0:" (Cmd0DS,3) (Cmd0S,3) (AID10,5);
+  "1:" (Cmd1DS,3) (Cmd1S,3) (AID12,5);
+  "2:" (Cmd2DS,3) (Cmd2S,3) (AID14,5);
+  "3:" (Cmd3DS,3) (Cmd3S,3) (AID16,5);
+  "4:" (Cmd4DS,3) (Cmd4S,3) (AID18,5);
+  "5:" (Cmd5DS,3) (Cmd5S,3) (AID1A,5);
+  "6:" (Cmd6DS,3) (Cmd6S,3) (AID1C,5);
+  "7:" (Cmd7DS,3) (Cmd7S,3) (AID1E,5);
 }
 
 Cmd_1 {
   ""  DS  >S<  >I<;
-  "8:" (Cmd8DS,3) (Cmd8S,3) (AID3E,7);
-  "9:" (Cmd9DS,3) (Cmd9S,3) (AID3C,7);
-  "10:" (Cmd10DS,3) (Cmd10S,3) (AID3A,7);
-  "11:" (Cmd11DS,3) (Cmd11S,3) (AID38,7);
-  "12:" (Cmd12DS,3) (Cmd12S,3) (AID36,7);
-  "13:" (Cmd13DS,3) (Cmd13S,3) (AID34,7);
-  "14:" (Cmd14DS,3) (Cmd14S,3) (AID32,7);
-  "15:" (Cmd15DS,3) (Cmd15S,3) (AID30,7);
+  "8:" (Cmd8DS,3) (Cmd8S,3) (AID3E,5);
+  "9:" (Cmd9DS,3) (Cmd9S,3) (AID3C,5);
+  "10:" (Cmd10DS,3) (Cmd10S,3) (AID3A,5);
+  "11:" (Cmd11DS,3) (Cmd11S,3) (AID38,5);
+  "12:" (Cmd12DS,3) (Cmd12S,3) (AID36,5);
+  "13:" (Cmd13DS,3) (Cmd13S,3) (AID34,5);
+  "14:" (Cmd14DS,3) (Cmd14S,3) (AID32,5);
+  "15:" (Cmd15DS,3) (Cmd15S,3) (AID30,5);
 }
 
 Cmd_2 {
   ""  DS  >S<  >I<;
-  "16:" (Cmd16DS,3) (Cmd16S,3) (AID5E,7);
-  "17:" (Cmd17DS,3) (Cmd17S,3) (AID5C,7);
-  "18:" (Cmd18DS,3) (Cmd18S,3) (AID5A,7);
-  "19:" (Cmd19DS,3) (Cmd19S,3) (AID58,7);
-  "20:" (Cmd20DS,3) (Cmd20S,3) (AID56,7);
-  "21:" (Cmd21DS,3) (Cmd21S,3) (AID54,7);
-  "22:" (Cmd22DS,3) (Cmd22S,3) (AID52,7);
-  "23:" (Cmd23DS,3) (Cmd23S,3) (AID50,7);
+  "16:" (Cmd16DS,3) (Cmd16S,3) (AID5E,5);
+  "17:" (Cmd17DS,3) (Cmd17S,3) (AID5C,5);
+  "18:" (Cmd18DS,3) (Cmd18S,3) (AID5A,5);
+  "19:" (Cmd19DS,3) (Cmd19S,3) (AID58,5);
+  "20:" (Cmd20DS,3) (Cmd20S,3) (AID56,5);
+  "21:" (Cmd21DS,3) (Cmd21S,3) (AID54,5);
+  "22:" (Cmd22DS,3) (Cmd22S,3) (AID52,5);
+  "23:" (Cmd23DS,3) (Cmd23S,3) (AID50,5);
 }
 
 Cmd_3 {

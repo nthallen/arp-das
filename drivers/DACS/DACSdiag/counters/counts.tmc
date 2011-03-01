@@ -49,13 +49,13 @@ TM typedef CT16 CtStat {
 	text "%04x";
 }
 
-TM typedef unsigned long ULONG { text "%10ld"; }
+TM typedef long L20 { text "%8ld"; }
 TM typedef struct {
   unsigned short low;
   unsigned char high;
 } CT24 {
-  text "%06lx";
-  convert ULONG CT24long();
+  text "%8ld";
+  convert L20 CT24long();
 }
 
 TM 8 Hz CT24 PMTA_Counts; Address PMTA_Counts 0x610; /* Axis A PMT Counts */
@@ -64,7 +64,7 @@ TM 8 Hz CT24 PMTC_Counts; Address PMTC_Counts 0x618; /* Axis C PMT Counts */
 TM 8 Hz CT24 Sp1_Counts; Address Sp1_Counts 0x61C; /* Unused */
 TM 8Hz CtStat Ct0Stat; Address Ct0Stat 0x600; /* Counter 0 Stat*/
 
-TM 8 Hz CT24 Sp2_Counts; Address Sp2_Counts 0x634;   /* Spare counter */
+TM 8 Hz CT24 Sp2_Counts; Address Sp2_Counts 0x630;   /* Spare counter */
 TM 8 Hz CT24 UVA1_Counts; Address UVA1_Counts 0x634; /* Axis A UV1 counts */
 TM 8 Hz CT24 UVA2_Counts; Address UVA2_Counts 0x638; /* Axis A UV2 counts */
 TM 8 Hz CT24 UVB1_Counts; Address UVB1_Counts 0x63C; /* Axis B UV1 counts */

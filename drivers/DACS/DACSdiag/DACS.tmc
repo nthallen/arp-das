@@ -1,4 +1,5 @@
 TM typedef double VOLTS { text "%6.3lf"; }
+TM typedef double AMPS  { text "%6.3lf"; }
 TM typedef unsigned short UINT { text "%5d"; }
 TM typedef   signed short AI16 { text "%7.4lf"; convert VOLTS; }
 TM typedef unsigned short AIC  { text "%4x"; }
@@ -17,6 +18,12 @@ Calibration (AO16, VOLTS) {
   0, 0,
   65536, 10
 }
+
+TM typedef AI16 PBI { text "%5.2lf"; convert AMPS; }
+  Calibration (PBI,AMPS) {
+    -800, .0218,
+    40000, 4.9831
+  }
 
 TM 4 Hz UINT Synch, MFCtr;
 
