@@ -177,6 +177,7 @@ print $fh
   "logfilesuffix=.log\n",
   '[ $srcmode = realtime ] || logfilesuffix=.PB.$session.log', "\n",
   "interacts='", join( ' ', @display, $client ), "';\n";
+print $fh "batchfile=$batchfile\n" if defined $batchfile;
 
 print $fh <<'EOF';
 
@@ -306,7 +307,7 @@ case $option in
   start)
     if [ ! -e $cmdsrvr ]; then
       if [ $srcmode = realtime ]; then
-	[ -n "$RUNFILE" ] && echo $RUNFILE > $SCRIPT_OVERRIDE
+	[ -n "$batchfile" ] && echo $batchfile > $SCRIPT_OVERRIDE
 	if [ -n "$FltNd" ]; then
 	  echo signaling parent
 	  sudo /usr/local/sbin/signal_parent $FlightNode
