@@ -1,5 +1,9 @@
 /* decls.c Functionality removed from tmc.y for better understanding
  * $Log$
+ * Revision 1.2  2008/07/03 18:18:48  ntallen
+ * To compile under QNX6 with minor blind adaptations to changes between
+ * dbr.h and tm.h
+ *
  * Revision 1.1  2008/07/03 15:11:07  ntallen
  * Copied from QNX4 version V1R9
  *
@@ -35,6 +39,8 @@ unsigned int start_st_un(struct st_un *su, char *text,
   initstat(&su->stat, newstpctext(text));
   su->type = type;
   su->decl_type = dclt;
+  if (type == INTTYPE_STRUCT)
+    catstattext(&su->stat, " __attribute__((__packed__))");
   return(NMTYPE_DATUM);
 }
 

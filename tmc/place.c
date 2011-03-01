@@ -1,5 +1,9 @@
 /* place.c
  * $Log$
+ * Revision 1.6  2008/08/13 14:28:28  ntallen
+ * Always define global DG_data objects for TM 'Receive'
+ * Place __attribute__((packed)) appropriately in home_row definition
+ *
  * Revision 1.5  2008/07/21 16:27:42  ntallen
  * Add 'home_row' to union defintion
  *
@@ -903,7 +907,7 @@ void place_home(void) {
          sla = sla->next);
     if (sla == NULL) break;
     snum = unum++;
-    print_indent("\nstruct {");
+    print_indent("\nstruct __attribute__((__packed__)) {");
     adjust_indent(2);
     while (sla != NULL) {
       output_member(sla, &offset, snum, &unum);
@@ -913,7 +917,7 @@ void place_home(void) {
     }
     adjust_indent(-2);
     print_indent(NULL);
-    fprintf(ofile, "} __attribute__((packed)) U%d;", snum);
+    fprintf(ofile, "} U%d;", snum);
   }
   adjust_indent(-2);
   print_indent("} *home;\n");
