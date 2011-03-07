@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 
-# check_ui
+# genui_chk
 #  Read a genui.txt definition file and corresponding TM definitions
 #  Make sure TM rates match, and report any TM channels which are
 #  not mentioned in the genui.txt
@@ -22,13 +22,21 @@ sub channel_ref {
   $channel{$mnemonic}->{$mode}++;
 }
 
-while (<>) {
-  if ( m|^\s* TM \s+ (\d+(?:/\d+)?) \s+ Hz \s+ \S+ \s+
-              (\S[^\s;]*) \s* ;|x ) {
-    channel_ref( $2, $1, 'TM' );
-  } elsif ( m|^\s* (\d+(?:/\d+)?) \s+ (\S+) \s |x ) {
-    channel_ref( $2, $1, 'genui' );
+for my $file ( @ARGV ) {
+  open(my $fh, "<", $file) || die "Cannot read file: '$file'\n";
+  if ( $file =~ m/\.tmc$/ ) {
+    while (<$fh>) {
+      if ( m|^\s* TM \s+ (\d+(?:/\d+)?) \s+ Hz \s+ \S+ \s+
+                  (\S[^\s;]*) \s* ;|x ) {
+        channel_ref( $2, $1, 'TM' );
+      }
+    }
+  } else {
+    if ( m|^\s* (\d+(?:/\d+)?) \s+ (\S+) \s |x ) {
+      channel_ref( $2, $1, 'genui' );
+    }
   }
+  close($fh) || warn "Error closing file: '$file'\n";
 }
 
 my @mnemonics = sort keys %channel;
@@ -38,8 +46,9 @@ for my $mnemonic ( @mnemonics ) {
     print "Channel $mnemonic not defined\n";
   }
 }
+print "\nChecking for unreferenced channels:\n";
 for my $mnemonic ( @mnemonics ) {
   if ( $channel{$mnemonic}->{TM} && ! $channel{$mnemonic}->{genui} ) {
-    print "Channel $mnemonic not plotted\n";
+    print "  $channel{$mnemonic}->{rate} $mnemonic\n";
   }
 }
