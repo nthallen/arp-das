@@ -119,6 +119,8 @@ int expint_attach( int rcvid, char *cardID, unsigned short address,
   cd->bitno = bitno;
   cd->event = *event;
   cd->owner = rcvid;
+  nl_error(-2,"expint_att %s 0x%03X reg=%d bit=%d",
+    cd->cardID, cd->address, cd->reg_id, cd->bitno );
 
   regions[i].bits |= bit;
   regions[i].def[bitno] = cd;

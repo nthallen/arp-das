@@ -35,6 +35,8 @@ int service_expint( message_context_t * ctp, int code,
                   nl_error( 4, "Unexpected error %d from MsgDeliverEvent: %s",
                       errno, strerror(errno));
               }
+            } else {
+	      nl_error(-2, "Interrupt delivered" );
             }
           } else nl_error( 2, "Unexpected interrupt in service_expint()");
           mask &= ~bit;

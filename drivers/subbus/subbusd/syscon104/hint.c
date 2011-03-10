@@ -52,6 +52,10 @@ static int int_init( int irq, unsigned short enable, int bit,
       _NTO_INTR_FLAGS_PROCESS | _NTO_INTR_FLAGS_TRK_MSK );
   if (iid == -1)
     nl_error( 3, "Unable to attach IRQ %d: errno %d", irq, errno);
+  else
+    nl_error( -2, "Interrupt %d attached: coid=%d code=%d val=%d",
+      irq, coid, code, value );
+  InterruptUnmask( irq, iid );
   if ( subbus_subfunction == SB_SYSCON104 ) {
     /* It is theoretically possible to run these cards on a
        cable off of an older syscon, so I won't die hard if

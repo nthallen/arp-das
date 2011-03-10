@@ -18,7 +18,7 @@
  * platform.
  */
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   struct _io_msg iohdr;
   unsigned short sb_kw;
   unsigned short command;
@@ -44,32 +44,32 @@ typedef struct {
 #define SBC_WRITECACHE 13
 #define SBC_QUIT 14
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   unsigned short address;
   unsigned short data;
 } subbusd_req_data0;
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   unsigned short data;
 } subbusd_req_data1;
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   char cardID[CardID_MAX];
   unsigned short address;
   unsigned short region;
   struct sigevent event;
 } subbusd_req_data2;
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   char cardID[CardID_MAX];
 } subbusd_req_data3;
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   unsigned short n_reads;
   char multread_cmd[256];
 } subbusd_req_data4;
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   subbusd_req_hdr_t sbhdr;
   union {
     subbusd_req_data0 d0;
@@ -80,7 +80,7 @@ typedef struct {
   } data;
 } subbusd_req_t;
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   unsigned short subfunc;
   unsigned short features;
   char name[SUBBUS_NAME_MAX];
@@ -91,16 +91,16 @@ typedef struct {
  * We need one or two shorts per read, depending on
  * whether we want acknowledge info or not.
  */
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   unsigned short rvals[2*SB_MAX_MREAD];
 } subbusd_mread_t;
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   signed short status;
   unsigned short ret_type;
 } subbusd_rep_hdr_t;
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
   subbusd_rep_hdr_t hdr;
   union {
     unsigned short value;
