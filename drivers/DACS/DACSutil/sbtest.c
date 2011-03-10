@@ -313,7 +313,60 @@ static void ana_in_read_cfg(void) {
     }
     printf( "%s\n", one ? "" : " none" );
   }
+}
 
+
+static void ptrh_test(void) {
+  unsigned short SHT21T, SHT21RH;
+  unsigned short C1, C2, C3, C4, C5, C6;
+  unsigned short Dta, Dtb;
+  unsigned long D1, D2;
+  long dT;
+  double RH, Ta;
+  double Tb, P, Off, Sens;
+  read_report( 0x300, "PTRH Status" );
+  SHT21T = read_report( 0x302, "SHT21 Temperature" );
+  SHT21RH = read_report( 0x304, "SHT21 Relative Humidity" );
+  C1 = read_report( 0x306, "MS5607 C1" );
+  C2 = read_report( 0x308, "MS5607 C2" );
+  C3 = read_report( 0x30A, "MS5607 C3" );
+  C4 = read_report( 0x30C, "MS5607 C4" );
+  C5 = read_report( 0x30E, "MS5607 C5" );
+  C6 = read_report( 0x310, "MS5607 C6" );
+  Dta = read_report( 0x312, "MS5607 D1(15:0)" );
+  Dtb = read_report( 0x314, "MS5607 D1(23:16)" );
+  D1 = (((unsigned long)Dtb)<<16) + Dta;
+  Dta = read_report( 0x316, "MS5607 D2(15:0)" );
+  Dtb = read_report( 0x318, "MS5607 D2(23:16)" );
+  D2 = (((unsigned long)Dtb)<<16) + Dta;
+  RH = -6. + 125. * SHT21RH / 65536.;
+  Ta = -46.85 + 175.72 * SHT21T / 65536.;
+  printf("SHT21 T: %.2lf C\n", Ta );
+  printf("SHT21 RH = %.1lf%%\n", RH );
+  dT = D2 - (((unsigned long)C5)<<8);
+  Tb = (2000. + ((double)dT)*C6/8388608.)/100.;
+  Off = C2*131072. + (C4*(double)dT)/64;
+  Sens = C1*65536. + (C3*(double)dT)/128;
+  P = (D1*Sens/2097152. - Off)/3276800.;
+  printf("MS5607 T: %.2lf C\n", Tb);
+  printf("MS5607 P: %.2lf mbar\n", P);
+}
+
+static unsigned short cfgs[] = {
+  0x01, 0x02, 0x00, 0x08, 0x10, 0x18, 0x14, 0x1C };
+
+static void ana_in_cfg_pattern(int by_row) {
+  int r, c;
+  for ( r = 0; r < 8; ++r ) {
+    for ( c = 0; c < 8; ++c ) {
+      unsigned short cfg = by_row ? cfgs[r] : cfgs[c];
+      unsigned short addr = 0xC00 + r*0x20 + c*2;
+      printf(" %04X,%04X=%04X", addr, addr+0x10, cfg );
+      sbwr(addr, cfg);
+      sbwr(addr + 0x10, cfg);
+    }
+    printf("\n");
+  }
 }
 
 int main(int argc, char **argv) {
@@ -327,8 +380,11 @@ int main(int argc, char **argv) {
   if ( argc < 2 )
     nl_error( 0, "Select from the following: \n"
 	"  idx\n"
+	"  ptrh\n"
 	"  timeout\n"
 	"  ana_in_cfg\n"
+	"  ana_in_cfg_rows\n"
+	"  ana_in_cfg_cols\n"
 	"  ana_in_mux\n"
 	"  ana_in_read_cfg" );
   for (i = 1; i < argc; i++) {
@@ -338,10 +394,16 @@ int main(int argc, char **argv) {
       timeout_test();
     } else if ( strcmp(argv[i], "ana_in_cfg") == 0 ) {
       ana_in_cfg();
+    } else if ( strcmp(argv[i], "ana_in_cfg_rows") == 0 ) {
+      ana_in_cfg_pattern(1);
+    } else if ( strcmp(argv[i], "ana_in_cfg_cols") == 0 ) {
+      ana_in_cfg_pattern(0);
     } else if ( strcmp(argv[i], "ana_in_mux") == 0 ) {
       ana_in_mux();
     } else if ( strcmp(argv[i], "ana_in_read_cfg") == 0 ) {
       ana_in_read_cfg();
+    } else if ( strcmp(argv[i], "ptrh") == 0 ) {
+      ptrh_test();
     } else nl_error( 3, "Unrecognized test: '%s'", argv[i]);
   }
 
