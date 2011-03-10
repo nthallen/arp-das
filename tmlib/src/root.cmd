@@ -2,6 +2,7 @@
   #include <string.h>
   #include <errno.h>
   #include "tm.h"
+  #include "msg.h"
 %}
 
 %INTERFACE <DG:DG/cmd>
@@ -9,7 +10,7 @@
 %INTERFACE <Quit>
 
 &start
-	: &commands Quit * { if_DG.Turf(""); }
+	: &commands Quit * { msg(0,"Shutting down"); }
 	: &commands &&Exit
 	;
 &&Exit
