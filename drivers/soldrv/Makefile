@@ -1,6 +1,6 @@
 # include definitions
 CFLAGS=-g -Wall
-LDFLAGS=-L /usr/local/lib
+LDFLAGS=-L /usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 CPPFLAGS=-I /usr/local/include -I ../solfmt
 OBJS=soldrv.o read_sft.o soldrvoui.o
 
