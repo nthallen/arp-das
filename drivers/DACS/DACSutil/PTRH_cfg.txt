@@ -1,0 +1,15 @@
+This is the configuration for DACS #1:
+
+  0300(PTRH Status): 0FFF
+  0302(SHT21 Temperature): 6768
+  0304(SHT21 Relative Humidity): 2772
+  0306(MS5607 Coefficient 1): FFFF
+  0308(MS5607 Coefficient 2): 9E96
+  030A(MS5607 Coefficient 3): 7106
+  030C(MS5607 Coefficient 4): 673E
+  030E(MS5607 Coefficient 5): 80F5
+  0310(MS5607 Coefficient 6): 6C35
+  0312(MS5607 D1(15:0)): A4F2
+  0314(MS5607 D1(23:16)): 005A
+  0316(MS5607 D2(15:0)): D9FE
+  0318(MS5607 D2(23:16)): 0082
