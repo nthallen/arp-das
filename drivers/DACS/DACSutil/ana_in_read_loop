@@ -1,0 +1,14 @@
+#! /bin/sh
+./sbtest ana_in_read_cfg >ana_in_read_cfg.ref
+cat ana_in_read_cfg.ref
+i=1
+while true; do
+  ./sbtest ana_in_read_cfg >ana_in_read_cfg.sample
+  if ! cmp -s ana_in_read_cfg.ref ana_in_read_cfg.sample; then
+    mv ana_in_read_cfg.sample ana_in_read_cfg.$i
+    echo Mismatch at trial $i
+  fi
+  let i=i+1
+  echo "Trial $i" >loop_count.txt
+done
+
