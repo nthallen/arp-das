@@ -17,10 +17,10 @@
     sbwr( 0xC5E, 0x120 );
     sbwr( 0xC9E, 0x140 );
     /* set every other channel on AD0 to a low gain */
-    sbwr( 0xC20, AI_CFG_XP096 );
-    sbwr( 0xC60, AI_CFG_XP096 );
-    sbwr( 0xCA0, AI_CFG_XP096 );
-    sbwr( 0xCE0, AI_CFG_XP096 );
+    // sbwr( 0xC20, AI_CFG_XP096 );
+    // sbwr( 0xC60, AI_CFG_XP096 );
+    // sbwr( 0xCA0, AI_CFG_XP096 );
+    // sbwr( 0xCE0, AI_CFG_XP096 );
   }
 %}
 TM INITFUNC ana_in_cfg_init();
