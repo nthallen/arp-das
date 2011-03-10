@@ -14,6 +14,9 @@
 #endif
 #if defined( __QNX__ )
   #if defined(__QNXNTO__)
+    #include <sys/neutrino.h>
+    #include <hw/inout.h>
+    #include <errno.h>
     #include "port.h"
   #else
     #include "lat.h"
@@ -172,6 +175,10 @@ int main(int argc,char *argv[]) {
 	   progname);
   i = getchar();
   if (tolower(i)!='y') exit(1);
+  }
+  if (ThreadCtl(_NTO_TCTL_IO,0)==-1) {
+    printf( "Error requesting I/O privileges: %d", errno);
+    exit(1);
   }
   
 #endif
