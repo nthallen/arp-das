@@ -2,5 +2,5 @@
 playbackclt
 playbackcltnc
 playbacksrvr
-playbackcmd.c
+playbackcmd.cc
 FullBuild.*

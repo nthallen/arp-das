@@ -1,11 +1,11 @@
-# Makefile Generated Thu Jan 13 12:20:36 EST 2011
+# Makefile Generated Tue Mar 01 11:14:18 EST 2011
 MNC=playback
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/playback
 SPECFILE=playback.spec
 SRC=playback.cmd
 TOOL=playback.spec Makefile
 SCRIPT=
-OBJ=FullBuild.* playbackcmd.c playbackcmd.dat playbackclt.o
+OBJ=FullBuild.* playbackcmd.cc playbackcmd.dat playbackclt.o
 OBJ+=playbackcltoui.c playbackcltoui.o playbackcltnc.o
 OBJ+=playbackcltncoui.c playbackcltncoui.o playbacksrvr.o
 OBJ+=playbacksrvroui.c playbacksrvroui.o
@@ -22,6 +22,7 @@ SOURCE=$(RCS) $(NONRCS)
 OBJECT=$(OBJ) *.err
 TARGET=$(TGT)
 DSTRB=$(TGT) $(DISTRIB) $(SCRIPT)
+TGTDIR= $(PWD)
 include /usr/local/share/huarp/appgen.mk
 
 all : Makefile $(TGT)
@@ -37,29 +38,29 @@ extdistribution : $(DSTRB) $(SRCDIST)
 distribution : extdistribution
 	@distribute $(FORCE) $(TGTDIR) $(IDISTRIB)
 playbackclt : playbackclt.o playbackcltoui.o
-	$(LINK.norm) playbackclt.o playbackcltoui.o -ltmph -lph -ltm -lnort
+	$(LINK.normCXX) playbackclt.o playbackcltoui.o -ltmph -lph -ltmpp -ltm -lnort
 	$(OUIUSE) playbackcltoui.c
 playbackcltnc : playbackcltnc.o playbackcltncoui.o
-	$(LINK.norm) playbackcltnc.o playbackcltncoui.o -ltmnc -lncurses -ltm -lnort
+	$(LINK.normCXX) playbackcltnc.o playbackcltncoui.o -ltmnc -lncurses -ltmpp -ltm -lnort
 	$(OUIUSE) playbackcltncoui.c
 playbacksrvr : playbacksrvr.o playbacksrvroui.o
-	$(LINK.priv) playbacksrvr.o playbacksrvroui.o -ltm -lnort
+	$(LINK.privCXX) playbacksrvr.o playbacksrvroui.o -ltmpp -ltm -lnort
 	$(OUIUSE) playbacksrvroui.c
 	$(PROMOTE) playbacksrvr
-playbackcmd.c : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd playback.cmd
+playbackcmd.cc : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd playback.cmd
 	$(CMDGEN) -d playbackcmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd playback.cmd
-playbackclt.o : playbackcmd.c
-	$(COMPILE.clt) playbackcmd.c
+playbackclt.o : playbackcmd.cc
+	$(COMPILE.clt) playbackcmd.cc
 playbackcltoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui
 playbackcltoui.o : playbackcltoui.c
-playbackcltnc.o : playbackcmd.c
-	$(COMPILE.cltnc) playbackcmd.c
+playbackcltnc.o : playbackcmd.cc
+	$(COMPILE.cltnc) playbackcmd.cc
 playbackcltncoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/nctable.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/kbdclt.oui $(OUIDIR)/nctable.oui $(OUIDIR)/msg.oui
 playbackcltncoui.o : playbackcltncoui.c
-playbacksrvr.o : playbackcmd.c
-	$(COMPILE.srvr) playbackcmd.c
+playbacksrvr.o : playbackcmd.cc
+	$(COMPILE.srvr) playbackcmd.cc
 playbacksrvroui.c : $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/msg.oui
 playbacksrvroui.o : playbacksrvroui.c
