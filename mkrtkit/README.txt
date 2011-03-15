@@ -33,7 +33,26 @@ reference complete directory subtrees, but that made it impossible
 to identify the directories themselves without including the
 subtree.
 
+In development directories, the file mkrtkit.conf identifies files
+from that directory that should be included in one or more packages.
+
 UPDATE STRATEGY
+
+Run mkrtkit_chkconfs to make sure any new files have been added to
+appropriate MANIFESTS.
+
+Run chkpkgs
+  Currently just checks that all the files listed in MANIFEST files
+  exist. Need to add these version checks.
+  Read Header to determine Version, list of MANIFESTS
+  If current version is installed, compare MANIFESTS with installed
+  MANIFESTS and check the modify time of listed files against the
+  existing archive. As soon as an update is required, we can
+  stop comparing.
+  Check MANIFESTS to make sure all listed files exist
+Run install
+  Install should not overwrite an installation
+  Install should create the tar.gz file
 
 An archive needs to be rebuilt if:
   a) The version number has changed (the archive does not exist)

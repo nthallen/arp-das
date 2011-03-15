@@ -2,6 +2,7 @@
 use strict;
 use File::Path;
 use File::Copy;
+use Cwd qw(getcwd abs_path);
 
 # install_pkg <pkg>
 #
@@ -24,6 +25,9 @@ use File::Copy;
 #      since the previous version
 # If either of these changes have occured, report as an error,
 # indicating that this package needs to have its version incremented.
+### Alternately
+# Never overwrite an existing installation
+# Use chkpkgs to decide if a version needs to be incremented
 
 my $pkgname = shift(@ARGV) || die "No package argument\n";
 
@@ -34,11 +38,14 @@ my $pkgroot = "/var/huarp/pkg";
 my $pkg = pkg_read_header($pkgname);
 my $src = "pkgs/$pkgname";
 my $dest = "$pkgroot/$pkgname-$pkg->{Version}";
+my $archive = "/var/huarp/pkgcache/$pkgname-$pkg->{Version}.tar";
 my $rdest = $dest; $rdest =~ s|^/||;
 
 -d $pkgroot || mkpath($pkgroot) ||
   die "Fatal: Unable to create pkgroot $pkgroot\n";
--d $dest || mkpath($dest) ||
+die "Cannot overwrite existing installation: $dest\n"
+  if ( -d $dest || -f $archive || -f "$archive.gz" );
+mkpath($dest) ||
   die "Fatal: Unable to create package destination $dest\n";
 my $MP = "$dest/MANIFEST_pkg";
 open( my $MPfh, ">$MP" ) || die "Unable to write $MP\n";
@@ -53,6 +60,17 @@ for my $mf ( @{$pkg->{Files}} ) {
   }
 }
 close $MPfh || warn "Error closing $dest/MANIFEST_pkg\n";
+# Create the archive:
+my $cwd = getcwd();
+print "Creating archive $archive.gz\n";
+for my $mf ( @{$pkg->{Files}} ) {
+  chdir($mf->{SrcRoot}) || die;
+  system( "tar -rf $archive --owner=0 --group=0 --no-recursion " .
+	  "-T $dest/$mf->{List}" ) &&
+    die "tar failed creating archive for $pkg->{name}\n";
+}
+chdir($cwd);
+system("gzip $archive") && die "gzip $archive failed\n";
 print "Installed: $dest\n";
 exit(0);
 

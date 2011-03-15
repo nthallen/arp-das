@@ -1,42 +1,117 @@
-#! /bin/sh
-function nl_error {
-  echo "chkpkgs: $*" >&2
-  exit 1
+#! /usr/bin/perl -w
+use strict;
+use File::Compare;
+
+
+my $RV = 0;
+
+my @hdrs = @ARGV ? (map "pkgs/$_/Header", @ARGV) :
+  <pkgs/*/Header>;
+
+# print map "$_\n", @hdrs;
+
+for my $hdr ( @hdrs ) {
+  $hdr =~ m,pkgs/([^/]+)/Header, || die;
+  my $pkg = $1;
+  my $version;
+  my @mani;
+  open(my $fh, "<", $hdr) || die "Unable to read '$hdr'\n";
+  while (<$fh>) {
+    if ( $_ =~ m/^Version: *(\S+)\s*$/ ) {
+      $version = $1;
+    } elsif ( $_ =~ m/^Files:\s*(\w+)\s+\@\s+(\S+)$/ ) {
+      push(@mani, { file => $1, root => $2 });
+    }
+  }
+  die "No version defined for package $pkg\n" unless defined $version;
+  my $pkgv = "$pkg-$version";
+  my $pkgp = "/var/huarp/pkg/$pkgv";
+  if ( -d $pkgp ) {
+    # Package/version is installed
+    warn "Checking against installed $pkgv:\n";
+    my $tgz = "/var/huarp/pkgcache/$pkgv.tar.gz";
+    warn "Package $pkg tgz is missing\n" unless -f $tgz;
+    if ( -f "$pkgp/Header" ) {
+      if ( compare( $hdr, "$pkgp/Header" ) != 0 ) {
+	warn "pkgs/$pkg/Header has changed: New version required\n";
+	$RV = 1;
+      }
+    } else {
+      warn "$pkgp/Header is missing\n";
+    }
+    for my $man ( @mani ) {
+      my $fn = $man->{file};
+      if ( $fn ne "MANIFEST_pkg" ) {
+	if ( -f "pkgs/$pkg/$fn" ) {
+	  if ( -f "$pkgp/$fn" ) {
+	    if ( compare("pkgs/$pkg/$fn", "$pkgp/$fn") != 0 ) {
+	      warn "pkgs/$pkg/$fn has changed: New version required\n";
+	      $RV = 1;
+	    }
+	  } else {
+	    warn "$pkgp/$fn missing.\n";
+	    $RV = 1;
+	  }
+	} else {
+	  warn "pkgs/$pkg/$fn missing\n";
+	  $RV = 1;
+	  if ( ! -f "$pkgp/$fn" ) {
+	    warn "$pkgp/$fn missing too!\n";
+	  }
+	}
+      }
+    }
+  } else {
+    warn "$pkgv not installed\n";
+  }
+  for my $man ( @mani ) {
+    my $fn = $man->{file};
+    my $root = $man->{root};
+    if ( -f "pkgs/$pkg/$fn" ) {
+      open( my $fn, "<", "pkgs/$pkg/$fn" ) ||
+	die "Unable to read pkgs/$pkg/$fn\n";
+      while (<$fn>) {
+	s/\s*$//; # chomp
+	my $path = "$root/$_";
+	if ( ! -f $path && ! -d $path && ! -l $path ) {
+	  warn "Package $pkg: File $path missing\n";
+	  $RV = 1;
+	}
+      }
+      close($fn) || warn "Error closing pkgs/$pkg/$fn\n";
+    }
+  }
 }
-
-OK=yes
-
-args=''
-
-if [ x"$1" != x ]; then
-  for i in $*; do
-    args="$args pkgs/$i/Header"
-  done
-else
-  args=`find pkgs -name Header`
-fi
-for hdr in $args; do
-  pkg=${hdr%/Header}
-  echo "Checking $pkg"
-  while read fline; do
-    if expr "$fline" : "Files:" >/dev/null; then
-      fline=${fline#Files: }
-      manif=${fline% @*}
-      root=${fline#*@ }
-      case $root in
-	*/) ;;
-	*) root="$root/";;
-      esac
-      if [ ! $manif = MANIFEST_pkg ]; then
-	[ -f $pkg/$manif ] || nl_error "Cannot locate $pkg/$manif"
-	while read fspec; do
-	  if [ ! -d $root$fspec -a ! -f $root$fspec -a ! -h $root$fspec ]; then
-	    echo "$pkg/$manif: File not found: $root$fspec"
-	    OK=no
-	  fi
-	done < $pkg/$manif
-      fi
-    fi
-  done <$hdr
-done
-[ "$OK" = "yes" ] || nl_error "Errors seen"
+exit($RV);
+# if [ x"$1" != x ]; then
+#   for i in $*; do
+#     args="$args pkgs/$i/Header"
+#   done
+# else
+#   args=`find pkgs -name Header`
+# fi
+# for hdr in $args; do
+#   pkg=${hdr%/Header}
+#   echo "Checking $pkg"
+#   while read fline; do
+#     if expr "$fline" : "Files:" >/dev/null; then
+#       fline=${fline#Files: }
+#       manif=${fline% @*}
+#       root=${fline#*@ }
+#       case $root in
+# 	*/) ;;
+# 	*) root="$root/";;
+#       esac
+#       if [ ! $manif = MANIFEST_pkg ]; then
+# 	[ -f $pkg/$manif ] || nl_error "Cannot locate $pkg/$manif"
+# 	while read fspec; do
+# 	  if [ ! -d $root$fspec -a ! -f $root$fspec -a ! -h $root$fspec ]; then
+# 	    echo "$pkg/$manif: File not found: $root$fspec"
+# 	    OK=no
+# 	  fi
+# 	done < $pkg/$manif
+#       fi
+#     fi
+#   done <$hdr
+# done
+# [ "$OK" = "yes" ] || nl_error "Errors seen"
