@@ -3,7 +3,7 @@ This is the configuration for DACS #1:
   0300(PTRH Status): 0FFF
   0302(SHT21 Temperature): 6768
   0304(SHT21 Relative Humidity): 2772
-  0306(MS5607 Coefficient 1): FFFF
+  0306(MS5607 Coefficient 1): FFFF  (and this is totally bogus!)
   0308(MS5607 Coefficient 2): 9E96
   030A(MS5607 Coefficient 3): 7106
   030C(MS5607 Coefficient 4): 673E
@@ -13,3 +13,22 @@ This is the configuration for DACS #1:
   0314(MS5607 D1(23:16)): 005A
   0316(MS5607 D2(15:0)): D9FE
   0318(MS5607 D2(23:16)): 0082
+
+This is the configuration for DACS #2:
+  0300(PTRH Status): 0FFF
+  0302(SHT21 Temperature): 61C4
+  0304(SHT21 Relative Humidity): 5D86
+  0306(MS5607 C1): B28E
+  0308(MS5607 C2): 9548
+  030A(MS5607 C3): 6EE9
+  030C(MS5607 C4): 610A
+  030E(MS5607 C5): 812C
+  0310(MS5607 C6): 6C80
+  0312(MS5607 D1(15:0)): 38FE
+  0314(MS5607 D1(23:16)): 0059
+  0316(MS5607 D2(15:0)): 62E0
+  0318(MS5607 D2(23:16)): 0081
+SHT21 T: 20.26 C
+SHT21 RH = 39.7%
+MS5607 T: 20.47 C
+MS5607 P: 1021.33 mbar
