@@ -21,9 +21,9 @@ class ptrh {
     inline unsigned char MS5607Pb() { return sbrba(base_addr+0x14); }
     double MS5607T( USHRT Dta, USHRT Dtb);
     double MS5607P( USHRT Dpa, USHRT Dpb);
-  private:
     const char *id;
     USHRT base_addr;
+  private:
     USHRT C[6];
     double C1d, C2d, C3d, C4d, C6d;
     unsigned long C5d;

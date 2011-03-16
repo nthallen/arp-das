@@ -4,6 +4,7 @@ This is the configuration for DACS #1:
   0302(SHT21 Temperature): 6768
   0304(SHT21 Relative Humidity): 2772
   0306(MS5607 Coefficient 1): FFFF  (and this is totally bogus!)
+				    Reports 0xB6A5 when cold.
   0308(MS5607 Coefficient 2): 9E96
   030A(MS5607 Coefficient 3): 7106
   030C(MS5607 Coefficient 4): 673E
