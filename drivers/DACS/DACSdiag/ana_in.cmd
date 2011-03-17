@@ -4,6 +4,13 @@
 	nl_error(2, "Invalid AI Channel: 0x%04X", $4);
       else sbwr($4, $5);
     }
+  : AI Fix Row %d(Enter Row Number) * {
+      if ( $4 < 0 || $4 > 0x3F )
+	nl_error(2, "Requested row out of range" );
+      else sbwr( 0xC01, 0x40 | $4 );
+    }
+  : AI Stop Engine * { sbwr( 0xC01, 0x80 ); }
+  : AI Cycle Engine * { sbwr( 0xC01, 0 ); }
   ;
 &ai_gain <unsigned short>
   : Hi-Z { $0 = 1; }

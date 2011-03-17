@@ -12,8 +12,8 @@ Channel 0 IX0
   # Invert Step
   # Invert Direction
   # Invert Run
-  Invert In Limit
-  Invert Out Limit
+  # Invert In Limit
+  # Invert Out Limit
   Invert Zero Ref
   Invert Kill A
   Invert Kill B
