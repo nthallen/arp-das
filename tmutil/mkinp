@@ -1,8 +1,36 @@
 #! /usr/pkg/bin/perl
 #__USAGE
 #%C	<extraction> [<extraction> ...]
+use Getopt::Std;
+my %opts;
+getopt('v:', \%opts);
+my $ver;
+if ( $opts{v} ) {
+  $ver = $opts{v};
+} elsif ( -f 'VERSION' ) {
+  $ver = `cat VERSION`;
+  $ver =~ s/\s*$//;
+} else {
+  warn "Unable to determine version\n";
+}
+
+my $path;
+my $anal;
+if ( $ver ) {
+  $path = "bin/$ver/";
+  $anal = "anal/$ver/";
+  -d "anal" || mkdir "anal" || die "Unable to mkdir anal\n";
+  -d "anal/$ver" || mkdir "anal/$ver" ||
+    die "Unable to mkdir anal/$ver\n";
+} else {
+  $path = '';
+  $anal = '';
+}
 
 foreach my $ext (@ARGV) {
+  if ( ! -x $ext && -x "$path$ext" ) {
+    $ext = "$path$ext";
+  }
   print "Processing $ext\n";
   open IFILE, "use $ext |" || die "Unable to use $ext\n";
 
@@ -11,7 +39,7 @@ foreach my $ext (@ARGV) {
 	my $root = $1;
 	my $totcols = $2;
 	my $ncols = 1;
-	open OFILE, ">$root.inp" || die "Unable to open $root.inp\n";
+	open OFILE, ">$anal$root.inp" || die "Unable to open $anal$root.inp\n";
 	print OFILE "+$root\n0\nT$root\n";
 	while (<IFILE>) {
 	  last unless /^\s*\w+\s+\[\s*(\d+)\] = (\w+)$/;
@@ -21,7 +49,7 @@ foreach my $ext (@ARGV) {
 	print OFILE "\n" unless $ncols >= $totcols;
 	print OFILE "$root\nAll\n";
 	close OFILE || warn "Error closing $root.inp\n";
-	print "  Created $root.inp\n";
+	print "  Created $anal$root.inp\n";
   }
   close IFILE || warn "Error closing pipe from use $ext\n";
 }
