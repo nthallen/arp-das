@@ -22,7 +22,7 @@
 #	and delete the source .sps files.
 
 function nl_error {
-  echo extract: $* >&2
+  echo tomat: $* >&2
   exit 1
 }
 
@@ -42,7 +42,7 @@ done
 let sval=$OPTIND-1
 shift $sval
 
-[ -d "$1" ] || nl_error Must specify source dir as first argument
+[ -d "$1" ] || nl_error First argument is not a directory: Must be source directory
 sdir=`fullpath $1`
 echo "sdir is '$sdir'"
 shift
