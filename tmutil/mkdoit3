@@ -157,7 +157,7 @@ let sval=$OPTIND-1
 shift $sval
 option=${1:-start}
 
-if [ -n "$FlightNode" ]; then
+if [ $srcmode = realtime -a -n "$FlightNode" ]; then
   FltNd=/net/$FlightNode
 else
   FlightNode=`hostname`
@@ -322,13 +322,12 @@ case $option in
       else
 	Launch memo memo -o $logfile 
 	Launch TM/DCo TMbfr
-	Launch cmd/server playbacksrvr
-	# start pbcmdsrvr
 	if [ $srcmode = playback ]; then
 	  Launch DG/cmd rdr -P $ddir -a
 	elif [ $srcmode = InetIn ]; then
 	  Launch DG/cmd InetIn
 	fi
+	Launch cmd/server playbacksrvr
 	if [ -n "$launch_error" ]; then
 	  echo "Launch failed: cleaning up"
 	  exec parent -qt1
