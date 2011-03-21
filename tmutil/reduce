@@ -97,14 +97,25 @@ case "$directory" in
 	if [ -d "$directory" ]; then
 	  CopyData=no
 	elif [ -z "$fltdir" ]; then
-	  ## Require FlightNode to be defined, not discovered
-	  # [ -z "$FlightNode" ] &&
-	  #    FlightNode=`namewait -n0 -t0 -G parent 2>/dev/null`
-	  [ -n "$FlightNode" ] && fltdir=/net/$FlightNode$HomeDir
-	  [ -z "$fltdir" -o ! -d "$fltdir/$directory" ] && fltdir=$AltDir
-	  [ ! -d "$fltdir/$directory" ] &&
-	      nl_error "Unable to locate data directory $fltdir/$directory"
-	  [ ! "$CopyData" = "yes" ] &&
+	  pdirs="."
+	  [ -n "$FlightNode" ] && pdirs="$pdirs /net/$FlightNode$HomeDir"
+	  [ -n "$AltDir" ] && pdirs="$pdirs $AltDir"
+	  for pdir in $pdirs; do
+	    for ppdir in . raw/data raw/flight raw/preflt raw/cal raw/junk; do
+	      if [ -d $pdir/$ppdir/$directory ]; then
+		fltdir=$pdir
+		[ $pdir = . ] && CopyData=no
+		[ $ppdir = . ] || directory=$ppdir/$directory
+		break
+	      fi
+	    done
+	    [ -n "$fltdir" ] && break
+	  done
+	  # [ -n "$FlightNode" ] && fltdir=/net/$FlightNode$HomeDir
+	  # [ -z "$fltdir" -o ! -d "$fltdir/$directory" ] && fltdir=$AltDir
+	  [ -z "$fltdir" ] &&
+	      nl_error "Unable to locate data directory $directory"
+	  [ "$CopyData" != "yes" -a $fltdir != . ] &&
 		directory=$fltdir/$directory
 	fi;;
 esac
