@@ -571,6 +571,7 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
   // Hence we start at the front of the queue, not the end.
   dq_descriptor_t *dqd = DQD_Queue.first;
 
+  assert(nrows_req >= 0);
   // If we are nonblocking and are requesting more than total_Qrows, we are
   // going to expire rows from this transfer without ever committing them
   // to the queue. This may be handled implicitly by the while loop below.
@@ -608,13 +609,15 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
       if ( opt_expire < n_expire ) n_expire = opt_expire;
       if ( !nonblock ) {
         opt_expire = min_reader(dqd) - dqd->Qrows_expired;
-        if ( opt_expire < n_expire ) n_expire = opt_expire;
+        if ( opt_expire >= 0 && opt_expire < n_expire )
+	  n_expire = opt_expire;
       }
       // if ( !Data_Queue.nonblocking && dqd->ref_count ) {
       //   int n_all_read = dqd->min_reader - dqd->Qrows_expired
       //   if ( n_all_read < 0 ) n_all_read = 0;
       //   if ( n_all_read < n_expire ) n_expire = n_all_read;
       // }
+      assert(n_expire >= 0);
       if ( n_expire ) {
         dqd->starting_Qrow += n_expire;
         if ( dqd->starting_Qrow == Data_Queue.total_Qrows )
@@ -632,6 +635,7 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
     }
   }
   assert( dqd->n_Qrows == 0 || dqd->starting_Qrow == Data_Queue.first );
+  assert(nrows_free >= 0);
   ocb->part.nbdata = nrows_free * Data_Queue.nbQrow;
   ocb->part.dptr = Data_Queue.row[Data_Queue.last];
   ocb->rw.write.off_queue = 0;
