@@ -52,6 +52,7 @@ usr/local/include/qclid.h
 usr/local/include/specq.h
 usr/local/include/tmctime.h
 usr/local/include/DC.h
+usr/local/include/DCnc.h
 usr/local/include/tmph.h
 usr/local/include/msg.h
 usr/local/include/tablelib.h
@@ -83,6 +84,7 @@ usr/local/share/huarp/Makefile.pm
 usr/local/share/huarp/rtinstall
 usr/local/share/huarp/flttime.tmc
 usr/local/share/huarp/appgen.mk
+usr/local/share/huarp/getcon.cmd
 usr/local/share/huarp/root.cmd
 usr/local/share/huarp/dev_copy.sed
 usr/local/share/huarp/edf2ext.awk
@@ -105,4 +107,5 @@ usr/local/share/oui/msghdr.oui
 usr/local/share/oui/kbdclt.oui
 usr/local/share/oui/seteuid.oui
 usr/local/share/oui/msg.oui
+usr/local/share/oui/nctable.oui
 usr/local/share/config.site
