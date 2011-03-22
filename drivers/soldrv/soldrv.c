@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
 
   /* look for subbus if necessary */
   if (n_set_points) {
-    set_response(NLRSP_QUIET);	/* for Col_send_init() */    		
+    set_response(NLRSP_WARN);	/* for Col_send_init() */    		
     for (j=0,i=0;i<n_set_points;i++) {
       if (set_points[i].address==0) {
         if (j++ == 0) { /* Only need to register once */
@@ -296,6 +296,8 @@ int main(int argc, char **argv) {
                   nbw = write(dccc_fd, s, nbs);
                   if ( nbw != nbs )
                     nl_error(3, "Error %d sending to dccc", errno);
+		  else
+		    msg(MSG_DEBUG,"DCCC: '%s'", s);
                   ++ip;
                 }
                 break;
@@ -343,7 +345,7 @@ int main(int argc, char **argv) {
                 break;
               case SOL_DTOA:
                 if (set_points[mode_code[ip+1]].address == 0) {
-                  msg(MSG_DBG(1),"Setting shared memory status to %d",
+                  msg(MSG_DBG(1),"Setting SolStat to %d",
                       set_points[mode_code[ip+1]].value);
                   SolStat = set_points[mode_code[ip+1]].value;
                   Col_send(SolStat_id);
