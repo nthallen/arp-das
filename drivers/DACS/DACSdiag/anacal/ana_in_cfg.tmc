@@ -1,0 +1,18 @@
+%{
+  #include "ai_cfg.h"
+
+  void ana_in_cfg_init(void) {
+    unsigned short addr;
+    unsigned short row, col;
+    for ( addr = 0xC00; addr < 0xD00; addr += 2 ) {
+      sbwr( addr, AI_CFG_X1 ); // Start with unity gain
+    }
+    for (row = 8; row <= 10; row++) {
+      for ( col = 0; col < 8; col++ ) {
+	addr = 0xC10 + row*0x20 + col*2;
+	sbwr( addr, AI_CFG_X1 );
+      }
+    }
+  }
+%}
+TM INITFUNC ana_in_cfg_init();

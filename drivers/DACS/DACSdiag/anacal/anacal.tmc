@@ -1,0 +1,29 @@
+%{
+  #include "subbus.h"
+%}
+TM typedef unsigned short UINT { text "%5d"; }
+TM typedef double VOLTS { text "%6.3lf"; }
+TM typedef signed short AI16 {
+  text "%7.4lf";
+  convert VOLTS;
+  collect X = sbrwa(X.address);
+}
+TM typedef unsigned short AO16 {
+  text "%6.4lf";
+  convert VOLTS;
+  collect x = sbrwa(x.address);
+}
+
+Calibration (AI16,VOLTS) {
+  0, 0,
+  32768, 4.096
+}
+
+Calibration (AO16, VOLTS) {
+  0, 0,
+  65536, 10
+}
+
+TM 8 Hz AO16 AO400; Address AO400 0x400;
+TM 8 Hz AI16 AIC36; Address AIC36 0xC36;
+TM 8 Hz UINT Synch, MFCtr;

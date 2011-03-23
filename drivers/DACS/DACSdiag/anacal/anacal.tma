@@ -1,0 +1,45 @@
+State Initialize {
+    > Telemetry Start
+}
+
+Partition
+# Software Status
+
+State SW_Stat_Wait NoLog {
+  { int reset_it;
+    reset_it = 1;
+    switch (SWStat) {
+      default:
+      case 0: reset_it = 0; break;
+      case SWS_AO_RAMP:
+	Validate AO_Ramp; break;
+      case SWS_AO_IDLE:
+	Validate AO_Idle; break;
+    }
+    if (reset_it) Validate SW_Stat_Reset;
+  }
+}
+
+State SW_Stat_Reset NoLog {
+    > _SW Status Set 0
+    Hold until (SWStat == 0) or 10;
+    Validate SW_Stat_Wait;
+}
+
+Partition
+# AO test
+State AO_Idle {}
+
+%{
+  double AO_val = 0.;
+  double AO_inc = 0.01;
+  double AO_lim = 5.0;
+%}
+
+State AO_Ramp NoLog {
+  { double AO_val;
+    AO_val = convert(AO400) + AO_inc;
+    if ( AO_val > AO_lim ) AO_val = 0.;
+    ci_sendfcmd(2, "Set AO400 %.3lf\n", AO_val);
+  }
+}

@@ -1,0 +1,4 @@
+{ AO: (AO400,7) V;
+  AI: (AIC36,7) V;
+  MFCtr: (MFCtr,5);
+}
