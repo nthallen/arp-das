@@ -1,0 +1,12 @@
+# Startup script for anacal Diagnostic
+  Launch memo memo -o $Experiment.log
+  memo=/dev/huarp/$Experiment/memo
+  Launch TM/DCo TMbfr
+  echo "Running script interact" >$memo
+# Launch dccc   dccc -f $TMBINDIR/dccc.dccc
+  Launch DG/cmd anacalcol
+  Launch cmd/server anacalsrvr
+  Launch - lgr -N `mlf_find LOG`
+# Launch - idx64 `cat $TMBINDIR/idx64.idx64`
+  Launch - anacalalgo -v
+
