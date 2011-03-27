@@ -1,5 +1,8 @@
 # Makefile for solfmt
 # $Log$
+# Revision 1.5  2011/02/24 01:32:16  ntallen
+# Cleanup
+#
 # Revision 1.4  2011/02/24 00:57:59  ntallen
 # Clean compile
 #
@@ -18,7 +21,7 @@
 #
 CFLAGS=-g -Wall
 CPPFLAGS=-I /usr/local/include
-LDFLAGS=-L /usr/local/lib
+LDFLAGS=-L /usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 SRC=compile.c get_tokens.c optimize.c output.c read_cmd.c read_d2a.c
 SRC+=read_mod.c read_sol.c read_val.c routines.c
 SRC+=solfmt.c
