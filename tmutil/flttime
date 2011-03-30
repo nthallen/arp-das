@@ -1,0 +1,34 @@
+#! /bin/sh
+#__USAGE
+#%C
+#	Updates the time on an Experiment's flight computer to match
+#	the time on the GSE computer.
+
+function nl_error {
+  echo flttime: $* >&2
+  exit 1
+}
+
+#----------------------------------------------------------------
+# Load the configuration
+#----------------------------------------------------------------
+typeset Experiment FlightNode
+cfile=Experiment.config
+[ -f "$cfile" ] || nl_error Unable to locate configuration file $cfile
+. $cfile
+[ -n "$Experiment" ] || nl_error Experiment undefined
+export Experiment
+[ -n "$FlightNode" ] || nl_error FlightNode undefined
+
+if [ `id -u` != 0 ]; then
+  exec /usr/pkg/bin/sudo $0 $*
+fi
+
+[ -d /net/$FlightNode ] || nl_error Unable to locate Flight Node /net/$FlightNode
+rtime=`date -u +%Y%m%d%H%M.%S`
+[ -z "$rtime" ] && nl_error "Error getting time"
+on -f $FlightNode date -u $rtime || nl_error "Error setting time on $FlightNode to '$rtime'"
+on -f $FlightNode rtc -s hw || nl_error "Error setting hardware clock"
+
+echo Node $FlightNode: `on -f $FlightNode date -u`
+echo Node `hostname`: `date -u`

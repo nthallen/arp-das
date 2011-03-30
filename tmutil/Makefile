@@ -2,7 +2,7 @@
 #  This directory holds general-purpose utilities for
 #  The Anderson Group Data Acquisition System/QNX6
 BIN=TM appgen distribute parent saverun fixdisk mkinp tomat extract
-BIN+=mkcvsignore mkdoit3 mkexpdir reduce
+BIN+=mkcvsignore mkdoit3 mkexpdir reduce settime flttime
 SBIN=promote flight.sh signal_parent getcon
 DATA=appgen.mk edf2ext.awk edf2oui.awk Makefile.pm
 OUI=seteuid.oui

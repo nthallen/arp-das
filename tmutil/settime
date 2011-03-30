@@ -1,0 +1,56 @@
+#! /bin/sh
+#__USAGE
+#%C	[-l] [-u] [[[[CC]YY]MM]DD]hhmm[.SS]
+#	Sets time on the current node to the specified time.
+#	-u Specified time is UTC rather than local time
+#%C	[-l] -n node
+#	Sets time on the current node from the specified node
+#In either case:
+#	-l Set hardware clock to local time
+#
+#	The -l switch is used on nodes which are configured to
+#	boot either QNX or DOS. DOS requires that the hardware
+#	clock record local time, whereas QNX prefers UTC.
+#	If you are uncertain whether to use this option, look
+#	for the "rtc" command in your node's /etc/config/sysinit.n
+#	(where n is your node number). If rtc has a -l option
+#	there, you should use a -l option here.
+
+function nl_error {
+  echo settime: $* >&2
+  exit 1
+}
+
+# Obtain target node configuration
+dst=`hostname`
+
+if [ `id -u` != 0 ]; then
+  exec /usr/pkg/bin/sudo $0 $*
+fi
+
+typeset LOCAL UTIME NETTIME
+while getopts "uln:" option; do
+  case $option in
+    l) LOCAL="-l";;
+    u) UTIME="-u";;
+    n) NETTIME=$OPTARG;;
+    \?) echo; exit 1;;
+    *) nl_error Unsupported option: -$option;;
+  esac
+done
+let sval=$OPTIND-1
+shift $sval
+
+if [ -n "$NETTIME" ]; then
+  if [ -d /net/$NETTIME ]; then
+    rtime=`on -f $NETTIME date -u +%Y%m%d%H%M.%S`
+    [ -z "$rtime" ] && nl_error "Error getting time from node $NETTIME"
+    date -u $rtime || nl_error "Error setting time to '$rtime'"
+    rtc -s hw || nl_error "Error setting hardware clock"
+  fi
+else
+  [ -z "$1" ] && nl_error No time specified
+  date $UTIME $1 && rtc $LOCAL -s hw ||
+    nl_error Error setting time $1
+fi
+exit 0
