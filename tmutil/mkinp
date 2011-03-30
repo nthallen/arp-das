@@ -1,6 +1,6 @@
 #! /usr/pkg/bin/perl
 #__USAGE
-#%C	<extraction> [<extraction> ...]
+#%C	[-v version] <extraction> [<extraction> ...]
 use Getopt::Std;
 my %opts;
 getopt('v:', \%opts);

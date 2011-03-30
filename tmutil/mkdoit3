@@ -189,6 +189,9 @@ if [ $srcmode = realtime ]; then
   # effect.
   [ -z "$SCRIPT_OVERRIDE" ] && SCRIPT_OVERRIDE=/dev/null
   cmdsrvr=$FltNd/dev/huarp/$Experiment/cmd/server 
+  if [ ! -e $cmdsrvr -a $option = not -a -d `dirname $SCRIPT_OVERRIDE` ]; then
+    echo /dev/null >$SCRIPT_OVERRIDE
+  fi
 
   if [ ! -d $FltNd/ ]; then
     echo "Waiting for Flight Node $FlightNode"
@@ -461,7 +464,7 @@ done
 EOF
 
 if ( $phrtg ) {
-  print $fh '[ $dispmode = screen ] || Launch - phrtg -C $FlightNode',
+  print $fh '[ $dispmode = screen ] || Launch - phrtg -C $FlightNode -P $ddir',
     $progopts{phrtg}, "\n";
 }
 
