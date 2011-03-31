@@ -120,6 +120,7 @@ static void run_read_queue(void) {
 
 // Return the minimum number of rows processed by any reader that is currently
 // referencing the specified dqd.  Assumes dq is locked.
+// ### should mark the min readers as laggards
 int min_reader( dq_descriptor_t *dqd ) {
   if ( dqd != DQD_Queue.first ) return 0;
   int min = dqd->Qrows_expired + dqd->n_Qrows;
@@ -610,13 +611,8 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
       if ( !nonblock ) {
         opt_expire = min_reader(dqd) - dqd->Qrows_expired;
         if ( opt_expire >= 0 && opt_expire < n_expire )
-	  n_expire = opt_expire;
+          n_expire = opt_expire;
       }
-      // if ( !Data_Queue.nonblocking && dqd->ref_count ) {
-      //   int n_all_read = dqd->min_reader - dqd->Qrows_expired
-      //   if ( n_all_read < 0 ) n_all_read = 0;
-      //   if ( n_all_read < n_expire ) n_expire = n_all_read;
-      // }
       assert(n_expire >= 0);
       if ( n_expire ) {
         dqd->starting_Qrow += n_expire;
@@ -999,9 +995,12 @@ static void read_reply( RESMGR_OCB_T *ocb, int nonblock ) {
       if ( nQrows_ready > 0 ) {
         // ### make sure rw.read.maxQrows < Data_Queue.total_Qrows
         // (it was not! fixed in io_read().
-        if ( dqd->next == 0 && nQrows_ready < ocb->rw.read.maxQrows
+        if ( blocked_writer == 0 && dg_opened < 2 &&
+             dqd->next == 0 && nQrows_ready < ocb->rw.read.maxQrows
              && ocb->hdr.attr->node_type == TM_DCo && !nonblock ) {
           // We want to wait for more
+          // ### reasons not to wait:
+          // ###   DG is blocked or has terminated
           enqueue_read( ocb, nonblock );
         } else {
           int XRow_Num, NMinf, Row_Num_start, n_iov;
