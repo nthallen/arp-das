@@ -145,19 +145,20 @@ static dq_descriptor_t *dq_deref( dq_descriptor_t *dqd ) {
 }
 
 static dq_descriptor_t *dq_expire_check( dq_descriptor_t *dqd ) {
-  dq_descriptor_t *next_dqd = dqd->next;
   assert(dqd->ref_count >= 0);
-  if ( dqd->ref_count == 0 && next_dqd != NULL
+  while ( dqd->ref_count == 0 && dqd->next != NULL
        && dqd->n_Qrows == 0 && DQD_Queue.first == dqd ) {
     /* Can expire this dqd */
+    dq_descriptor_t *next_dqd = dqd->next;
     assert(dqd->TSq->ref_count >= 0);
     if ( --dqd->TSq->ref_count == 0 ) {
       free_memory(dqd->TSq);
     }
     free_memory(dqd);
     DQD_Queue.first = next_dqd;
+    dqd = next_dqd;
   }
-  return next_dqd;
+  return dqd;
 }
 
 static void lock_dq(void) {
@@ -819,7 +820,7 @@ static dq_descriptor_t *new_dq_descriptor( TS_queue_t *TS ) {
    readers are waiting, and initialize them.
 */
 static int process_tm_info( IOFUNC_OCB_T *ocb ) {
-  unsigned char *rowptr;
+  char *rowptr;
   int i;
 
   // Perform sanity checks

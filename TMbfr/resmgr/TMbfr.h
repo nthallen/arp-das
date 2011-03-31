@@ -20,8 +20,8 @@ struct tm_attr;
    first==last is empty unless full is asserted
 */
 typedef struct dataqueue {
-  unsigned char *raw;
-  unsigned char **row;
+  char *raw;
+  char **row;
   tm_hdrw_t output_tm_type;
   int pbuf_size; // nbQrow+nbDataHdr (or more)
   int total_size;
