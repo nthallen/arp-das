@@ -935,7 +935,7 @@ SYMBOL SourceFile COMPUTE
       WITH ( PTGNode, PTGCommas, IDENTICAL, PTGNULL ),
     CONSTITUENTS Wave.CMDoutput
       WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNULL ),
-    StringTable(THIS.Prefix)
+    StringTable(THIS.Prefix), THIS.NWaves
   );
   IF( NE(CmdFile,NoKey),
       PTGOutFile( StringTable(GetClpValue(CmdFile,0)), THIS.CMDoutput ));
