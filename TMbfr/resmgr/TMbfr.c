@@ -548,13 +548,14 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock, int new_rows ) {
   }
   if ( ocb->rw.write.nb_msg == 0 ) {
     MsgReply( ocb->rw.write.rcvid, ocb->rw.write.off_msg, 0, 0 );
+    if ( new_rows ) run_read_queue();
     //### Mark us as not blocked: maybe that's nbdata != 0?
   } else {
     // We must have nbdata == 0 meaning we're going to block
     assert(!nonblock);
     blocked_writer = ocb;
+    run_read_queue();
   }
-  if ( new_rows ) run_read_queue();
 }
 
 
