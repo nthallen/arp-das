@@ -120,7 +120,7 @@ CmdCode:
   "&" $3 string "_Wave <int>\n"
   $2 /* WaveCmds */
   "\t: Number %d {\n"
-  "\t    if ( $2 < 0 || $2 > " $4 int " ) {\n"
+  "\t    if ( $2 < 0 || $2 >= " $4 int " ) {\n"
   "\t      msg(2, \"Specified waveform number %d out of range\", $2 );\n"
   "\t      CANCEL_LINE;\n"
   "\t    } else $0 = $2;\n"
