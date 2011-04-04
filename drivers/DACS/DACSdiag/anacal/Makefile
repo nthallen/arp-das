@@ -1,9 +1,10 @@
-# Makefile Generated Tue Mar 22 22:04:46 EDT 2011
+# Makefile Generated Thu Mar 24 16:52:18 EDT 2011
 MNC=anacal
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/DACSdiag/anacal
 SPECFILE=anacal.spec
 SRC=cmdenbl.cmd ana_in.cmd swstat.cmd ana_out.cmd anacal.tmc
-SRC+=swstat.tmc ana_in_cfg.tmc anacal.tbl anacal.tma anacal.doit
+SRC+=swstat.tmc ana_in_cfg.tmc anacal.tbl anacal.tma anacal.edf
+SRC+=anacal.doit
 TOOL=anacal.spec Makefile
 SCRIPT=interact
 OBJ=anacalcmd.cc anacalcmd.dat anacalsrvr.o anacalsrvroui.c
@@ -12,10 +13,12 @@ OBJ+=anacalcoloui.o anacalcol.o anacaltbl.tmc anacaldisp.cc
 OBJ+=anacaldispoui.c anacaldispoui.o anacaldisp.o anacaltblnc.tmc
 OBJ+=anacaldispnc.cc anacaldispncoui.c anacaldispncoui.o
 OBJ+=anacaldispnc.o anacalalgoa.tmc anacalalgo.cc anacalalgooui.c
-OBJ+=anacalalgooui.o anacalalgo.o doit.dep anacalclt.o anacalcltoui.c
-OBJ+=anacalcltoui.o anacalcltnc.o anacalcltncoui.c anacalcltncoui.o
-TGT=anacalsrvr anacalcol anacaldisp anacaldispnc anacalalgo doit
-TGT+=anacalclt anacalcltnc
+OBJ+=anacalalgooui.o anacalalgo.o anacalextedf.oui anacalext.tmc
+OBJ+=anacalext.cc anacalextoui.c anacalextoui.o anacalext.o doit.dep
+OBJ+=anacalclt.o anacalcltoui.c anacalcltoui.o anacalcltnc.o
+OBJ+=anacalcltncoui.c anacalcltncoui.o
+TGT=anacalsrvr anacalcol anacaldisp anacaldispnc anacalalgo
+TGT+=anacalext doit anacalclt anacalcltnc
 DISTRIB=anacal.pcm tm.dac
 IDISTRIB=Experiment.config VERSION doit
 SRCDIST=swstat.h anacal.tbl anacal.tma anacal.tmc
@@ -38,13 +41,13 @@ Makefile : anacal.spec
 	appgen anacal.spec
 VERSION=`cat VERSION`
 extdistribution : $(DSTRB) $(SRCDIST)
-	[ -d $(TGTDIR)/bin ] || mkdir $(TGTDIR)/bin
-	[ -d $(TGTDIR)/bin/$(VERSION) ] || mkdir $(TGTDIR)/bin/$(VERSION)
-	[ -d  $(TGTDIR)/bin/$(VERSION)/Base ] || mkdir $(TGTDIR)/bin/$(VERSION)/Base
-	distribute $(FORCE) $(TGTDIR)/bin/$(VERSION) $(DSTRB)
-	distribute $(FORCE) $(TGTDIR)/bin/$(VERSION)/Base $(SRCDIST)
+	@[ -d $(TGTDIR)/bin ] || mkdir $(TGTDIR)/bin
+	@[ -d $(TGTDIR)/bin/$(VERSION) ] || mkdir $(TGTDIR)/bin/$(VERSION)
+	@[ -d  $(TGTDIR)/bin/$(VERSION)/Base ] || mkdir $(TGTDIR)/bin/$(VERSION)/Base
+	@distribute $(FORCE) $(TGTDIR)/bin/$(VERSION) $(DSTRB)
+	@distribute $(FORCE) $(TGTDIR)/bin/$(VERSION)/Base $(SRCDIST)
 distribution : extdistribution
-	distribute $(FORCE) $(TGTDIR) $(IDISTRIB)
+	@distribute $(FORCE) $(TGTDIR) $(IDISTRIB)
 anacalsrvr : anacalsrvr.o anacalsrvroui.o
 	$(LINK.privCXX) anacalsrvr.o anacalsrvroui.o -lsubbus -ltmpp -ltm -lnort
 	$(OUIUSE) anacalsrvroui.c
@@ -62,6 +65,9 @@ anacaldispnc : anacaldispnc.o anacaldispncoui.o
 anacalalgo : anacalalgo.o anacalalgooui.o
 	$(LINK.normCXX) anacalalgo.o anacalalgooui.o -ltmpp -ltm -lnort
 	$(OUIUSE) anacalalgooui.c
+anacalext : anacalext.o anacalextoui.o
+	$(LINK.normCXX) anacalext.o anacalextoui.o -ltmpp -ltm -lssp -lmem -lm -lnort
+	$(OUIUSE) anacalextoui.c
 doit : anacal.doit
 	mkdoit3 -o doit  anacal.doit
 anacalclt : anacalclt.o anacalcltoui.o
@@ -108,6 +114,16 @@ anacalalgooui.c : $(OUIDIR)/tma.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/tma.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 anacalalgooui.o : anacalalgooui.c
 anacalalgo.o : anacalalgo.cc
+anacalextedf.oui : anacal.edf
+	$(EDF2OUI) anacal.edf
+anacalext.tmc : anacal.edf
+	$(EDF2EXT) anacal.edf
+anacalext.cc : anacal.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc anacalext.tmc
+	$(TMC) anacal.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc anacalext.tmc
+anacalextoui.c : anacalextedf.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
+	$(OUI) anacalextedf.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
+anacalextoui.o : anacalextoui.c
+anacalext.o : anacalext.cc
 doit.dep : anacal.doit
 	mkdoit3 -M -o doit  anacal.doit
 -include doit.dep

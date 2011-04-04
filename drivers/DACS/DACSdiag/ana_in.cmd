@@ -12,6 +12,7 @@
   : AI Stop Engine * { sbwr( 0xC01, 0x80 ); }
   : AI Cycle Engine * { sbwr( 0xC01, 0 ); }
   : AI Extra Settling * { sbwr( 0xC01, 0x200 ); }
+  : AI Reset * { sbwr( 0xC01, 0x400 ); }
   : AI Increment Row by %d(Enter Row Increment) * {
       if ( $5 < 0 || $5 > 0x3F )
         nl_error(2, "Requested row out of range" );

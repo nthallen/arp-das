@@ -1,5 +1,6 @@
 State Initialize {
     > Telemetry Start
+ +1 > AI Set Gain 0xC0C 0.768
 }
 
 Partition
@@ -31,15 +32,14 @@ Partition
 State AO_Idle {}
 
 %{
-  double AO_val = 0.;
-  double AO_inc = 0.01;
-  double AO_lim = 5.0;
+  unsigned short AO_lim = 32767;
+  unsigned short AO_inc = 4;
 %}
 
-State AO_Ramp NoLog {
-  { double AO_val;
-    AO_val = convert(AO400) + AO_inc;
+State AO_Ramp {
+  { unsigned short AO_val;
+    AO_val = AO400 + AO_inc;
     if ( AO_val > AO_lim ) AO_val = 0.;
-    ci_sendfcmd(2, "Set AO400 %.3lf\n", AO_val);
+    ci_sendfcmd(2, "Set AO400 bits %u\n", AO_val);
   }
 }

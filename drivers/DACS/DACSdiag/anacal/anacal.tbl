@@ -1,4 +1,6 @@
-{ AO: (AO400,7) V;
-  AI: (AIC36,7) V;
+{ AO400: (AO400,7) V;
+  AIC0C: (AIC0C,7) V;
+  AIC2C: (AIC2C,7) V;
+  Stat: (AIStat,12);
   MFCtr: (MFCtr,5);
 }

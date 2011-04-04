@@ -15,4 +15,5 @@ anacalsrvr : -lsubbus
 anacalcol : ana_in_cfg.tmc -lsubbus
 anacaldisp : anacal.tbl
 anacalalgo : anacal.tma
+anacalext : anacal.edf
 doit : anacal.doit

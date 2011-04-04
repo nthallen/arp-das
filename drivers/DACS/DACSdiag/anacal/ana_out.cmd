@@ -1,10 +1,17 @@
 &command
-	: Set &ao_chan %lf (Enter voltage 0-10) * {
-	    double N = $3 * 6553.6;
+	: Set &ao_chan volts %lf (Enter voltage 0-10) * {
+	    double N = $4 * 6553.6;
 	    unsigned short bits;
 	    if (N > 65535) N = 65535;
 	    if (N < 0) N = 0.;
 	    bits = (unsigned short) N;
+	    sbwr( $2, bits );
+	  }
+	: Set &ao_chan bits %ld (Enter bits 0-65535) * {
+	    unsigned short bits;
+	    if ($4 < 0 ) bits = 0;
+	    else if ($4 > 65535L) bits = 65535;
+	    else bits = (unsigned short)$4;
 	    sbwr( $2, bits );
 	  }
 	;

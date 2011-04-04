@@ -14,6 +14,11 @@ TM typedef unsigned short AO16 {
   collect x = sbrwa(x.address);
 }
 
+TM typedef unsigned short AIStat_i {
+  text "%012b";
+  Collect x = sbrw(x.address);
+}
+
 Calibration (AI16,VOLTS) {
   0, 0,
   32768, 4.096
@@ -25,5 +30,7 @@ Calibration (AO16, VOLTS) {
 }
 
 TM 8 Hz AO16 AO400; Address AO400 0x400;
-TM 8 Hz AI16 AIC36; Address AIC36 0xC36;
+TM 8 Hz AI16 AIC0C; Address AIC0C 0xC0C;
+TM 8 Hz AI16 AIC2C; Address AIC2C 0xC2C;
+TM 8 Hz AIStat_i AIStat; Address AIStat 0xE00;
 TM 8 Hz UINT Synch, MFCtr;

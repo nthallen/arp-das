@@ -8,5 +8,7 @@ extern swstat_t SWData;
 
 #define SWS_OK 0
 #define SWS_IDX_TEST0 1
+#define SWS_AO_RAMP 2
+#define SWS_AO_IDLE 3
 
 #endif
