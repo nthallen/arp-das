@@ -2,5 +2,7 @@
   AIC0C: (AIC0C,7) V;
   AIC2C: (AIC2C,7) V;
   Stat: (AIStat,12);
+  Limit: (Limit,5);
+  Step:  (Step,5);
   MFCtr: (MFCtr,5);
 }

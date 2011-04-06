@@ -18,6 +18,8 @@
         nl_error(2, "Requested row out of range" );
       else sbwr( 0xC01, 0x100 | $5 );
     }
+  : AI Double Convert Always * { sbwr( 0xC01, 0x1800 ); }
+  : AI Double Convert Row Zero * { sbwr( 0xC01, 0x0800 ); }
   ;
 &ai_gain <unsigned short>
   : Hi-Z { $0 = 1; }

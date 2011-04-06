@@ -1,4 +1,4 @@
-# Makefile Generated Thu Mar 24 16:52:18 EDT 2011
+# Makefile Generated Wed Apr 06 22:20:07 CDT 2011
 MNC=anacal
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/DACSdiag/anacal
 SPECFILE=anacal.spec
@@ -7,16 +7,16 @@ SRC+=swstat.tmc ana_in_cfg.tmc anacal.tbl anacal.tma anacal.edf
 SRC+=anacal.doit
 TOOL=anacal.spec Makefile
 SCRIPT=interact
-OBJ=anacalcmd.cc anacalcmd.dat anacalsrvr.o anacalsrvroui.c
-OBJ+=anacalsrvroui.o anacalcol.cc anacal.pcm tm.dac anacalcoloui.c
-OBJ+=anacalcoloui.o anacalcol.o anacaltbl.tmc anacaldisp.cc
-OBJ+=anacaldispoui.c anacaldispoui.o anacaldisp.o anacaltblnc.tmc
-OBJ+=anacaldispnc.cc anacaldispncoui.c anacaldispncoui.o
-OBJ+=anacaldispnc.o anacalalgoa.tmc anacalalgo.cc anacalalgooui.c
-OBJ+=anacalalgooui.o anacalalgo.o anacalextedf.oui anacalext.tmc
-OBJ+=anacalext.cc anacalextoui.c anacalextoui.o anacalext.o doit.dep
-OBJ+=anacalclt.o anacalcltoui.c anacalcltoui.o anacalcltnc.o
-OBJ+=anacalcltncoui.c anacalcltncoui.o
+OBJ=address.h anacalcmd.cc anacalcmd.dat anacalsrvr.o
+OBJ+=anacalsrvroui.c anacalsrvroui.o anacalcol.cc anacal.pcm tm.dac
+OBJ+=anacalcoloui.c anacalcoloui.o anacalcol.o anacaltbl.tmc
+OBJ+=anacaldisp.cc anacaldispoui.c anacaldispoui.o anacaldisp.o
+OBJ+=anacaltblnc.tmc anacaldispnc.cc anacaldispncoui.c
+OBJ+=anacaldispncoui.o anacaldispnc.o anacalalgoa.tmc anacalalgo.cc
+OBJ+=anacalalgooui.c anacalalgooui.o anacalalgo.o anacalextedf.oui
+OBJ+=anacalext.tmc anacalext.cc anacalextoui.c anacalextoui.o
+OBJ+=anacalext.o doit.dep anacalclt.o anacalcltoui.c anacalcltoui.o
+OBJ+=anacalcltnc.o anacalcltncoui.c anacalcltncoui.o
 TGT=anacalsrvr anacalcol anacaldisp anacaldispnc anacalalgo
 TGT+=anacalext doit anacalclt anacalcltnc
 DISTRIB=anacal.pcm tm.dac
@@ -83,8 +83,8 @@ anacalsrvr.o : anacalcmd.cc
 anacalsrvroui.c : $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 anacalsrvroui.o : anacalsrvroui.c
-anacalcol.cc : anacal.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in_cfg.tmc
-	$(TMC.col) anacal.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in_cfg.tmc
+anacalcol.cc : anacal.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in_cfg.tmc /usr/local/share/huarp/DACS_ID.tmc
+	$(TMC.col) anacal.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in_cfg.tmc /usr/local/share/huarp/DACS_ID.tmc
 anacalcoloui.c : $(OUIDIR)/collect.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/collect.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 anacalcoloui.o : anacalcoloui.c
@@ -144,3 +144,6 @@ clean : tidy
 	rm -f $(TARGET)
 .cvsignore :
 	@for i in Makefile '.B4*' $(OBJECT) $(TARGET); do echo "$$i"; done >.cvsignore
+COLFLAGS=-Haddress.h
+address.h : anacalcol.cc
+anacalsrvr.o : address.h

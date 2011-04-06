@@ -15,7 +15,7 @@ SCRIPT = idx64.idx64 interact dccc.dccc
 TGTDIR = $(TGTNODE)/home/DACS
 
 DACSsrvr : -lsubbus
-DACScol : idx64col.tmc ana_in_cfg.tmc cnt_init.tmc -lsubbus
+DACScol : idx64col.tmc ana_in_cfg.tmc /usr/local/share/huarp/DACS_ID.tmc cnt_init.tmc -lsubbus
 DACSdisp : idx64flag.tmc idx64.tbl ana_in.tbl digio.tmc digio.tbl ana_out.tbl counts.tbl
 DACSalgo : DACS.tma
 doit : DACS.doit

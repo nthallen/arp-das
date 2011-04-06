@@ -1,25 +1,6 @@
 %{
   #include "ai_cfg.h"
 
-  void DACS_ID(void) {
-    unsigned short inst_id, build;
-    int rv;
-    rv = read_ack(0x80, &build);
-    if (!rv) nl_error(2,"No ACK reading build");
-    else {
-      const char *inst;
-      inst_id = sbrwa(0x81);
-      switch (inst_id) {
-	case 0: inst = "Unknown"; break;
-	case 1: inst = "Harvard Water Vapor"; break;
-	case 2: inst = "Harvard Total Water"; break;
-	case 3: inst = "Harvard Carbon Isotopes"; break;
-	default: inst = "Invalid Instrument ID"; break;
-      }
-      nl_error(0, "%s: DACS Build Number %u", inst, build );
-    }
-  }
-
   void ana_in_cfg_init(void) {
     unsigned short addr;
     unsigned short row, col;
@@ -43,4 +24,3 @@
   }
 %}
 TM INITFUNC ana_in_cfg_init();
-TM INITFUNC DACS_ID();

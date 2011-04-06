@@ -1,6 +1,7 @@
 # Startup script for anacal Diagnostic
   Launch memo memo -o $Experiment.log
   memo=/dev/huarp/$Experiment/memo
+  Launch /dev/huarp/subbus subbusd_serusb -S 1000-1002
   Launch TM/DCo TMbfr
   echo "Running script interact" >$memo
 # Launch dccc   dccc -f $TMBINDIR/dccc.dccc

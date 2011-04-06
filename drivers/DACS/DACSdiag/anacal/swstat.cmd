@@ -1,5 +1,6 @@
 %{
   #include "swstat.h"
+  #include "address.h"
   swstat_t SWData;
 %}
 
@@ -8,6 +9,8 @@
 &command
   : Fail Light &on_off * { set_failure($3); }
   : &SWTM * { if_SWData.Turf(); }
+  : Set Limit %d * { cache_write( Limit_Address, $3 ); }
+  : Set Step %d * { cache_write( Step_Address, $3 ); }
   ;
 &SWTM
   : SW Status &swstat {

@@ -1,4 +1,4 @@
-# Makefile Generated Mon Feb 21 11:46:51 EST 2011
+# Makefile Generated Wed Apr 06 22:20:40 CDT 2011
 MNC=DACS
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/DACSdiag
 SPECFILE=DACS.spec
@@ -85,8 +85,8 @@ DACSsrvr.o : DACScmd.cc
 DACSsrvroui.c : $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 DACSsrvroui.o : DACSsrvroui.c
-DACScol.cc : DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc idx64col.tmc ana_in_cfg.tmc cnt_init.tmc
-	$(TMC.col) DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc idx64col.tmc ana_in_cfg.tmc cnt_init.tmc
+DACScol.cc : DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc idx64col.tmc ana_in_cfg.tmc /usr/local/share/huarp/DACS_ID.tmc cnt_init.tmc
+	$(TMC.col) DACS.tmc idx64.tmc /usr/local/share/huarp/flttime.tmc swstat.tmc ana_in.tmc ana_out.tmc counts.tmc idx64col.tmc ana_in_cfg.tmc /usr/local/share/huarp/DACS_ID.tmc cnt_init.tmc
 DACScoloui.c : $(OUIDIR)/collect.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/collect.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/subbus.oui $(OUIDIR)/msg.oui
 DACScoloui.o : DACScoloui.c

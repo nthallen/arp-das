@@ -31,15 +31,15 @@ Partition
 # AO test
 State AO_Idle {}
 
-%{
-  unsigned short AO_lim = 32767;
-  unsigned short AO_inc = 4;
-%}
+{ SWINT Cur_Limit, Cur_Step;
+  Cur_Limit = Limit;
+  Cur_Step = Step;
+}
 
 State AO_Ramp {
   { unsigned short AO_val;
-    AO_val = AO400 + AO_inc;
-    if ( AO_val > AO_lim ) AO_val = 0.;
+    AO_val = AO400 + Cur_Step;
+    if ( AO_val >= Cur_Limit ) AO_val = 0.;
     ci_sendfcmd(2, "Set AO400 bits %u\n", AO_val);
   }
 }
