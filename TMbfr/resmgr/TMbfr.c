@@ -27,7 +27,7 @@ static int data_state_T2( IOFUNC_OCB_T *ocb, int nonblock );
 static int data_state_T3( IOFUNC_OCB_T *ocb, int nonblock );
 static void queue_tstamp( tstamp_t *ts );
 static dq_descriptor_t *new_dq_descriptor( TS_queue_t *TS );
-static dq_descriptor_t *dq_deref( dq_descriptor_t *dqd );
+static dq_descriptor_t *dq_deref( dq_descriptor_t *dqd, int use_next );
 static dq_descriptor_t *dq_expire_check( dq_descriptor_t *dqd );
 static void enqueue_read( IOFUNC_OCB_T *ocb, int nonblock );
 static void run_read_queue(void);
@@ -136,9 +136,11 @@ int min_reader( dq_descriptor_t *dqd ) {
    associated with ref count dropping to zero and returns the
    next dq_descriptor. dq must be locked.
  */
-static dq_descriptor_t *dq_deref( dq_descriptor_t *dqd ) {
+static dq_descriptor_t *dq_deref( dq_descriptor_t *dqd, int use_next ) {
   dq_descriptor_t *next_dqd = dqd->next;
   assert(dqd->ref_count > 0);
+  if (next_dqd != 0 && use_next)
+    ++next_dqd->ref_count;
   if ( --dqd->ref_count == 0 )
     dq_expire_check(dqd);
   return next_dqd;
@@ -204,7 +206,7 @@ static void ocb_free(struct tm_ocb *ocb) {
   // rcvid never gets reset
   lock_dq();
   if ( ocb->data.dqd != 0 )
-    dq_deref(ocb->data.dqd);
+    dq_deref(ocb->data.dqd, 0);
   unlock_dq();
   if (ocb->hdr.attr->node_type == TM_DG ) {
     dg_opened = 2;
@@ -1052,8 +1054,8 @@ static void read_reply( RESMGR_OCB_T *ocb, int nonblock ) {
         break; // out of while(dqd)
       } else if ( dqd->next ) {
         int do_TS = dqd->TSq != dqd->next->TSq;
-        dqd = dq_deref(dqd);
-        dqd->ref_count++;
+        dqd = dq_deref(dqd, 1);
+        // dqd->ref_count++;
         ocb->data.dqd = dqd;
         ocb->data.n_Qrows = 0;
         if ( do_TS ) {
