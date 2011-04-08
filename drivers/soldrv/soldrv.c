@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
   int i, ip, mode_mode;
   long j;
   unsigned int count;
-  send_id SolStat_id;
+  send_id SolStat_id = NULL;
   int coid, chid;
 
   oui_init_options( argc, argv );
@@ -237,9 +237,13 @@ int main(int argc, char **argv) {
           char stat_name[9] = "SolStatX";
           stat_name[7] = which;
           SolStat_id = Col_send_init(stat_name, &SolStat, sizeof(SolStat), 0);
+          if (SolStat_id == NULL)
+	    nl_error(2, "Error from Col_send_init for '%s'", stat_name);
+	  else
+	    nl_error(0, "Established TM connection for '%s'", stat_name);
         }
-      } else if (set_points[i].address >= cacher) {
-        j++;
+      // } else if (set_points[i].address >= cacher) {
+      //  j++;
       }
     }
     // if (seteuid(0)==-1) msg(MSG_EXIT_ABNORM,"Can't set euid to root");
@@ -348,7 +352,9 @@ int main(int argc, char **argv) {
                   msg(MSG_DBG(1),"Setting SolStat to %d",
                       set_points[mode_code[ip+1]].value);
                   SolStat = set_points[mode_code[ip+1]].value;
-                  Col_send(SolStat_id);
+                  if (SolStat_id == NULL)
+		    nl_error(2, "Never initialized SolStat");
+		  else Col_send(SolStat_id);
                 } else
                   if (set_points[mode_code[ip+1]].address >= cacher) {
                     msg(MSG_DBG(1),"Caching %d to address %d",
