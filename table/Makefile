@@ -19,7 +19,7 @@ nctable : nctable.exe
 nctable.exe : $(NCSRCS)
 	eli nctable.exe
 install : all
-	@cp -v phtable nctable /usr/local/bin/
+	@cp -v phtable nctable phtbl /usr/local/bin/
 clean :
 	rm -f phtable phtable.exe dbphtable nctable nctable.exe
 	@echo "Execute 'eli -r' if you want to reset the cache"
