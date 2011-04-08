@@ -316,40 +316,44 @@ static void ana_in_read_cfg(void) {
 }
 
 
-static void ptrh_test(void) {
-  unsigned short SHT21T, SHT21RH;
+static void ptrh_test(unsigned short base, const char *desc) {
+  unsigned short SHT21T, SHT21RH, status;
   unsigned short C1, C2, C3, C4, C5, C6;
   unsigned short Dta, Dtb;
   unsigned long D1, D2;
   long dT;
   double RH, Ta;
   double Tb, P, Off, Sens;
-  read_report( 0x300, "PTRH Status" );
-  SHT21T = read_report( 0x302, "SHT21 Temperature" );
-  SHT21RH = read_report( 0x304, "SHT21 Relative Humidity" );
-  C1 = read_report( 0x306, "MS5607 C1" );
-  C2 = read_report( 0x308, "MS5607 C2" );
-  C3 = read_report( 0x30A, "MS5607 C3" );
-  C4 = read_report( 0x30C, "MS5607 C4" );
-  C5 = read_report( 0x30E, "MS5607 C5" );
-  C6 = read_report( 0x310, "MS5607 C6" );
-  Dta = read_report( 0x312, "MS5607 D1(15:0)" );
-  Dtb = read_report( 0x314, "MS5607 D1(23:16)" );
-  D1 = (((unsigned long)Dtb)<<16) + Dta;
-  Dta = read_report( 0x316, "MS5607 D2(15:0)" );
-  Dtb = read_report( 0x318, "MS5607 D2(23:16)" );
-  D2 = (((unsigned long)Dtb)<<16) + Dta;
-  RH = -6. + 125. * SHT21RH / 65536.;
-  Ta = -46.85 + 175.72 * SHT21T / 65536.;
-  printf("SHT21 T: %.2lf C\n", Ta );
-  printf("SHT21 RH = %.1lf%%\n", RH );
-  dT = D2 - (((unsigned long)C5)<<8);
-  Tb = (2000. + ((double)dT)*C6/8388608.)/100.;
-  Off = C2*131072. + (C4*(double)dT)/64;
-  Sens = C1*65536. + (C3*(double)dT)/128;
-  P = (D1*Sens/2097152. - Off)/3276800.;
-  printf("MS5607 T: %.2lf C\n", Tb);
-  printf("MS5607 P: %.2lf mbar\n", P);
+  status = read_report( base + 0x000, "PTRH Status" );
+  if (status == 0) {
+    printf("No response from %s PTRH\n", desc);
+  } else {
+    SHT21T = read_report( base + 0x002, "SHT21 Temperature" );
+    SHT21RH = read_report( base + 0x004, "SHT21 Relative Humidity" );
+    C1 = read_report( base + 0x006, "MS5607 C1" );
+    C2 = read_report( base + 0x008, "MS5607 C2" );
+    C3 = read_report( base + 0x00A, "MS5607 C3" );
+    C4 = read_report( base + 0x00C, "MS5607 C4" );
+    C5 = read_report( base + 0x00E, "MS5607 C5" );
+    C6 = read_report( base + 0x010, "MS5607 C6" );
+    Dta = read_report( base + 0x012, "MS5607 D1(15:0)" );
+    Dtb = read_report( base + 0x014, "MS5607 D1(23:16)" );
+    D1 = (((unsigned long)Dtb)<<16) + Dta;
+    Dta = read_report( base + 0x016, "MS5607 D2(15:0)" );
+    Dtb = read_report( base + 0x018, "MS5607 D2(23:16)" );
+    D2 = (((unsigned long)Dtb)<<16) + Dta;
+    RH = -6. + 125. * SHT21RH / 65536.;
+    Ta = -46.85 + 175.72 * SHT21T / 65536.;
+    printf("%s SHT21 T: %.2lf C\n", desc, Ta );
+    printf("%s SHT21 RH = %.1lf%%\n", desc, RH );
+    dT = D2 - (((unsigned long)C5)<<8);
+    Tb = (2000. + ((double)dT)*C6/8388608.)/100.;
+    Off = C2*131072. + (C4*(double)dT)/64;
+    Sens = C1*65536. + (C3*(double)dT)/128;
+    P = (D1*Sens/2097152. - Off)/3276800.;
+    printf("%s MS5607 T: %.2lf C\n", desc, Tb);
+    printf("%s MS5607 P: %.2lf mbar\n", desc, P);
+  }
 }
 
 static unsigned short cfgs[] = {
@@ -369,6 +373,13 @@ static void ana_in_cfg_pattern(int by_row) {
   }
 }
 
+static const char *Inst[] = {
+  "Bench Machine",
+  "Harvard Water Vapor",
+  "Harvard Total Water",
+  "Harvard Carbon Isotopes" };
+#define N_INST_IDS 4
+
 int main(int argc, char **argv) {
   int rv, i;
   unsigned short data;
@@ -377,6 +388,21 @@ int main(int argc, char **argv) {
     nl_error( 3, "Unable to load subbus library" );
   rv = read_ack( 0, &data );
   if ( rv ) nl_error(2, "Unexpected ACK reading from 0" );
+  rv = read_ack( 0x80, &data );
+  if ( rv ) {
+    unsigned short inst_id;
+    rv = read_ack(0x81, &inst_id);
+    if ( !rv )
+      nl_error( 2, "No ack reading instrument ID for build #%u", data );
+    else { 
+      if (inst_id >= N_INST_IDS)
+	nl_error( 2, "Instrument ID %u out of range", inst_id);
+      else
+	nl_error( 0, "%s: DACS Build #%u\n", Inst[inst_id], data );
+    }
+  } else {
+    nl_error( 2, "No acknowledge reading DACS build number" );
+  }
   if ( argc < 2 )
     nl_error( 0, "Select from the following: \n"
 	"  idx\n"
@@ -403,7 +429,8 @@ int main(int argc, char **argv) {
     } else if ( strcmp(argv[i], "ana_in_read_cfg") == 0 ) {
       ana_in_read_cfg();
     } else if ( strcmp(argv[i], "ptrh") == 0 ) {
-      ptrh_test();
+      ptrh_test(0x300, "DACS");
+      ptrh_test(0x320, "SPV");
     } else nl_error( 3, "Unrecognized test: '%s'", argv[i]);
   }
 

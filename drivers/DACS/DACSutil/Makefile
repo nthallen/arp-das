@@ -9,7 +9,9 @@ DACStest : sbtest.o
 	cc $(LDFLAGS) -o DACStest sbtest.o $(LIBS)
 sbbench : sbbench.o
 	cc $(LDFLAGS) -o sbbench sbbench.o $(LIBS)
-install : ai_cfg.h ptrh.h
+install : ai_cfg.h ptrh.h DACStest
 	@cp -vn ai_cfg.h ptrh.h /usr/local/include/
+	@cp -vn DACStest /usr/local/bin
+	@cp -vn DACS_ID.tmc /usr/local/share/huarp
 bench_ptrh : bench_ptrh.o ptrh.o
 	$(CXX) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o bench_ptrh bench_ptrh.o ptrh.o $(LIBS)
