@@ -39,7 +39,7 @@ function waitforip {
          return;;
     esac
     echo "Waiting..."
-    sleep 1
+    sleep 2
     let n=n+1
   done
   echo Timed out waiting
