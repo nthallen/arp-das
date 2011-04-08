@@ -1,4 +1,4 @@
-# Makefile Generated Tue Mar 01 11:14:18 EST 2011
+# Makefile Generated Thu Mar 24 23:37:41 EDT 2011
 MNC=playback
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/playback
 SPECFILE=playback.spec
@@ -16,7 +16,8 @@ SRCDIST=
 NONRCS=
 TMCBASE=
 CMDBASE=/usr/local/share/huarp/root.cmd
-CMDBASE+=/usr/local/share/huarp/getcon.cmd playback.cmd
+CMDBASE+=/usr/local/share/huarp/getcon.cmd
+CMDBASE+=/usr/local/share/huarp/phrtg.cmd playback.cmd
 RCS=$(SRC) $(TOOL) $(SCRIPT)
 SOURCE=$(RCS) $(NONRCS)
 OBJECT=$(OBJ) *.err
@@ -47,8 +48,8 @@ playbacksrvr : playbacksrvr.o playbacksrvroui.o
 	$(LINK.privCXX) playbacksrvr.o playbacksrvroui.o -ltmpp -ltm -lnort
 	$(OUIUSE) playbacksrvroui.c
 	$(PROMOTE) playbacksrvr
-playbackcmd.cc : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd playback.cmd
-	$(CMDGEN) -d playbackcmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd playback.cmd
+playbackcmd.cc : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd /usr/local/share/huarp/phrtg.cmd playback.cmd
+	$(CMDGEN) -d playbackcmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd /usr/local/share/huarp/phrtg.cmd playback.cmd
 playbackclt.o : playbackcmd.cc
 	$(COMPILE.clt) playbackcmd.cc
 playbackcltoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui
