@@ -13,11 +13,9 @@ function nl_error {
 # Load the configuration
 #----------------------------------------------------------------
 typeset Experiment FlightNode
-cfile=Experiment.config
+cfile=./Experiment.config
 [ -f "$cfile" ] || nl_error Unable to locate configuration file $cfile
 . $cfile
-[ -n "$Experiment" ] || nl_error Experiment undefined
-export Experiment
 [ -n "$FlightNode" ] || nl_error FlightNode undefined
 
 if [ `id -u` != 0 ]; then
@@ -27,8 +25,10 @@ fi
 [ -d /net/$FlightNode ] || nl_error Unable to locate Flight Node /net/$FlightNode
 rtime=`date -u +%Y%m%d%H%M.%S`
 [ -z "$rtime" ] && nl_error "Error getting time"
-on -f $FlightNode date -u $rtime || nl_error "Error setting time on $FlightNode to '$rtime'"
-on -f $FlightNode rtc -s hw || nl_error "Error setting hardware clock"
+on -f $FlightNode date -u $rtime >/dev/null ||
+  nl_error "Error setting time on $FlightNode to '$rtime'"
+on -f $FlightNode /sbin/rtc -s hw ||
+  nl_error "Error setting hardware clock"
 
-echo Node $FlightNode: `on -f $FlightNode date -u`
-echo Node `hostname`: `date -u`
+echo  `on -f $FlightNode date -u`: $FlightNode
+echo  `date -u`: `hostname` 

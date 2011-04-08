@@ -46,11 +46,11 @@ if [ -n "$NETTIME" ]; then
     rtime=`on -f $NETTIME date -u +%Y%m%d%H%M.%S`
     [ -z "$rtime" ] && nl_error "Error getting time from node $NETTIME"
     date -u $rtime || nl_error "Error setting time to '$rtime'"
-    rtc -s hw || nl_error "Error setting hardware clock"
+    /sbin/rtc -s hw || nl_error "Error setting hardware clock"
   fi
 else
   [ -z "$1" ] && nl_error No time specified
-  date $UTIME $1 && rtc $LOCAL -s hw ||
+  date $UTIME $1 && /sbin/rtc $LOCAL -s hw ||
     nl_error Error setting time $1
 fi
 exit 0
