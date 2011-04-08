@@ -11,5 +11,5 @@
 	: PhRTG &phrtg_cmd
 	;
 &phrtg_cmd
-	: File %w %d * { cis_turf( if_phrtg, "MLF %s %d\n", $2, $3 ); }
+	: File %w %d * { if_phrtg.Turf( "MLF %s %d\n", $2, $3 ); }
 	;
