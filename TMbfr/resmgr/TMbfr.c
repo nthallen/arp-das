@@ -613,9 +613,12 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
       opt_expire = Data_Queue.total_Qrows - dqd->starting_Qrow;
       if ( opt_expire < n_expire ) n_expire = opt_expire;
       if ( !nonblock ) {
-        opt_expire = min_reader(dqd) - dqd->Qrows_expired;
-        if ( opt_expire >= 0 && opt_expire < n_expire )
-          n_expire = opt_expire;
+	int min_rdr = min_reader(dqd);
+	if (min_rdr > dqd->Qrows_expired) {
+	  opt_expire = min_rdr - dqd->Qrows_expired;
+	  if ( opt_expire >= 0 && opt_expire < n_expire )
+	    n_expire = opt_expire;
+	} else n_expire = 0;
       }
       assert(n_expire >= 0);
       if ( n_expire ) {
