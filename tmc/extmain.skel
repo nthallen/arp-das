@@ -1,5 +1,8 @@
 /* extmain.skel include file for extraction
  * $Log$
+ * Revision 1.10  2011/01/05 21:06:21  ntallen
+ * Support for nctable in addition to photon
+ *
  * Revision 1.9  2009/05/04 15:52:04  ntallen
  * debugged
  *
@@ -71,14 +74,9 @@ static char emrcsid[] =
   #endif
 #endif
 
-extern "C" {
-  void dc_exit(void) { nl_error( 0, "Shutdown" ); }
-};
-
 int main(int argc, char **argv) {
   oui_init_options(argc, argv);
   nl_error( 0, "Startup" );
-  atexit(dc_exit);
   DATA_CLIENT DC(4096, 1, 0);
   EXTRACTION_INIT;
   DC.operate();
