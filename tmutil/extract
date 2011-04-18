@@ -217,8 +217,7 @@ cd $extdir
 export TMLOGDIR=$dir
 export TMBINPATH=$MYPATH
 rv=0
-# Just output to stdout until I can do both:
-memo &
+memo -o extract.log -V &
 waitfor /dev/huarp/$Experiment/memo || exit 1
 TMbfr &
 waitfor /dev/huarp/$Experiment/TM/DCo || exit 1
