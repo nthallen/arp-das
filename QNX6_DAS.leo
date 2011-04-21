@@ -13,19 +13,21 @@
 <v t="ntallen.20070319130904" a="E"><vh>QNX6 Data Acquisition Architecture</vh>
 <v t="ntallen.20110216082835.2101" a="E"><vh>Todo</vh>
 <v t="ntallen.20110216082835.2102" a="E"><vh>Switch DCCC to res mgr</vh>
-<v t="ntallen.20110216082835.2103" a="E"><vh>Cmdgen: define new syntax</vh>
+<v t="ntallen.20110216082835.2103"><vh>done: Cmdgen: define new syntax</vh>
 <v t="ntallen.20110215130743.2097"><vh>Server writing commands to driver</vh></v>
 <v t="ntallen.20110216082835.2110"><vh>Server writing data to collection</vh></v>
 </v>
-<v t="ntallen.20110216082835.2104"><vh>tmlib: define, implement API</vh></v>
-<v t="ntallen.20110216082835.2106"><vh>dccc: implement resmgr</vh></v>
-<v t="ntallen.20110216082835.2107"><vh>DACSdiag: modify *.cmd</vh></v>
+<v t="ntallen.20110216082835.2104"><vh>done: tmlib: define, implement API</vh></v>
+<v t="ntallen.20110218102714.2118"><vh>done: tmpplib: implement API</vh></v>
+<v t="ntallen.20110216082835.2107"><vh>done: DACSdiag: modify *.cmd</vh></v>
 <v t="ntallen.20110216082835.2108"><vh>HHH: modify *.cmd</vh></v>
+<v t="ntallen.20110216082835.2106"><vh>done: dccc: implement resmgr</vh></v>
+<v t="ntallen.20110218102714.2119"><vh>done: subbusd</vh></v>
 </v>
 </v>
-<v t="ntallen.20070815151915"><vh>Status</vh>
+<v t="ntallen.20070815151915" a="E"><vh>Status</vh>
 <v t="ntallen.20080729145409"><vh>Overview</vh></v>
-<v t="ntallen.20071127160602"><vh>OS Install</vh>
+<v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
 <v t="ntallen.20090225110248"><vh>Install 6.4.0</vh></v>
@@ -34,7 +36,7 @@
 <v t="ntallen.20090911120219"><vh>phrtg compile hacks</vh></v>
 <v t="ntallen.20090930220540"><vh>Eli 4.6.1 CVS</vh></v>
 </v>
-<v t="ntallen.20100723121747.2023"><vh>Install 6.5.0</vh>
+<v t="ntallen.20100723121747.2023" a="E"><vh>Install 6.5.0</vh>
 <v t="ntallen.20101124082052.2043"><vh>C++ Compile issue</vh></v>
 </v>
 <v t="ntallen.20101129134921.2045"><vh>Eli</vh></v>
@@ -143,7 +145,7 @@
 <v t="ntallen.20070502121159.5"><vh>Memo interface can wait</vh></v>
 <v t="ntallen.20070509151554.3"><vh>Add default .cmd files as appropriate</vh></v>
 </v>
-<v t="ntallen.20070508171951.2" a="E"><vh>Todo</vh>
+<v t="ntallen.20070508171951.2"><vh>Todo</vh>
 <v t="ntallen.20070508171951.6"><vh>Draw polygon</vh></v>
 <v t="ntallen.20070508171951.7"><vh>Get a cursor in cmd_text somehow</vh></v>
 </v>
@@ -155,8 +157,8 @@
 <v t="ntallen.20091022143321"><vh>mkdoit3	</vh></v>
 <v t="ntallen.20091022143321.1"><vh>algorithm status</vh></v>
 </v>
-<v t="ntallen.20070502121159.6" a="E"><vh>Design</vh>
-<v t="ntallen.20070319130904.1" a="E"><vh>Data</vh>
+<v t="ntallen.20070502121159.6"><vh>Design</vh>
+<v t="ntallen.20070319130904.1"><vh>Data</vh>
 <v t="ntallen.20070524163205"><vh>Data Issues</vh>
 <v t="ntallen.20070524163205.1"><vh>What is the difference between the telemetry stream and the TM stream as returned from TMbfr?</vh>
 <v t="ntallen.20070524163205.2"><vh>TM has no timestamps</vh></v>
@@ -177,8 +179,8 @@
 </v>
 <v t="ntallen.20080715165457"></v>
 </v>
-<v t="ntallen.20070319130904.2" a="E"><vh>TMbfr</vh>
-<v t="ntallen.20070524163205.8" a="E"><vh>TMbfr Operation</vh>
+<v t="ntallen.20070319130904.2"><vh>TMbfr</vh>
+<v t="ntallen.20070524163205.8"><vh>TMbfr Operation</vh>
 <v t="ntallen.20080516131227"><vh>TMbfr Write Modes: O_NONBLOCK</vh></v>
 <v t="ntallen.20080516131227.1"><vh>TMbfr Read Modes: DCo, DCf</vh></v>
 <v t="ntallen.20070525114357"><vh>Register Names</vh></v>
@@ -296,12 +298,13 @@
 <v t="ntallen.20070404221945.1"><vh>TMC rework</vh></v>
 <v t="ntallen.20070404221945.2"><vh>SNAFU/ssp library</vh></v>
 </v>
-<v t="ntallen.20070319130904.12" a="E"><vh>Command</vh>
-<v t="ntallen.20070320110353" a="E"><vh>Command Server</vh>
+<v t="ntallen.20070319130904.12"><vh>Command</vh>
+<v t="ntallen.20070320110353"><vh>Command Server</vh>
 <v t="ntallen.20070404111542.1"><vh>Write: sending commands to server</vh>
 <v t="ntallen.20070404111542.2"><vh>How will syntax testing work?</vh></v>
 </v>
-<v t="ntallen.20110216082835.2105" a="E"><vh>Getting commands from server</vh>
+<v t="ntallen.20110216082835.2105"><vh>Getting commands from server</vh>
+<v t="ntallen.20110220101447.2123"><vh>%INTERFACE</vh></v>
 <v t="ntallen.20070320135407"><vh>Reading from server</vh>
 <v t="ntallen.20070320135407.1"><vh>Node Name</vh></v>
 <v t="ntallen.20070320135407.2"><vh>Client Message Definition</vh>
@@ -319,6 +322,7 @@
 </v>
 <v t="ntallen.20110215130743.2097"></v>
 <v t="ntallen.20110216082835.2110"></v>
+<v t="ntallen.20110220101447.2124"><vh>Server communicating with subbus</vh></v>
 </v>
 <v t="ntallen.20070320150841"><vh>Development Plan</vh>
 <v t="ntallen.20070403140218"><vh>resmgr_attach()</vh>
@@ -344,12 +348,13 @@
 <v t="ntallen.20110215130743.2095"><vh>Soldrv</vh></v>
 <v t="ntallen.20110215130743.2096"><vh>MuxCtrl</vh></v>
 </v>
-<v t="ntallen.20070320150524.4" a="E"><vh>Command Receivers</vh>
+<v t="ntallen.20070320150524.4"><vh>Command Receivers</vh>
 <v t="ntallen.20070320150524.5"><vh>DG</vh></v>
 <v t="ntallen.20070320150524.6"><vh>lgr</vh></v>
 <v t="ntallen.20070320150524.8"><vh>Indexer</vh></v>
 <v t="ntallen.20070320150524.9"><vh>DCCC</vh></v>
 <v t="ntallen.20070322160353"><vh>Quit</vh></v>
+<v t="ntallen.20110218102714.2117"><vh>subbusd</vh></v>
 </v>
 </v>
 <v t="ntallen.20070322130922"><vh>memo</vh>
@@ -571,12 +576,12 @@
 <v t="ntallen.20070330134656.4"><vh>OCB</vh></v>
 <v t="ntallen.20070330134656.5"><vh>Strategy for multiple readers</vh></v>
 </v>
-<v t="ntallen.20070817133522" a="E"><vh>Documentation</vh>
+<v t="ntallen.20070817133522"><vh>Documentation</vh>
 <v t="ntallen.20070817133522.1"><vh>QNX4</vh>
 <v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
-<v t="ntallen.20070817133522.3" a="E"><vh>QNX6</vh>
-<v t="ntallen.20071127160602"></v>
+<v t="ntallen.20070817133522.3"><vh>QNX6</vh>
+<v t="ntallen.20071127160602" a="E"></v>
 <v t="ntallen.20110102095209.2061"><vh>cmdgen</vh></v>
 <v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
 <v t="ntallen.20080716155154.1"><vh>DG.h</vh>
@@ -633,7 +638,10 @@ Display programs could read commands from srvr e.g. to redraw screens
 <t tx="ntallen.20070320110353">Command server is experiment-specific, compiled from .cmd input by cmdgen. It accepts ASCII command sequences from clients, parses them and executes the specified code. In this version, that can include making the command available to other client programs.</t>
 <t tx="ntallen.20070320121924">Defines command syntax and code to execute on command reception.
 </t>
-<t tx="ntallen.20070320135407">Readers are programs that wish to receive commands without setting up their own device interface.</t>
+<t tx="ntallen.20070320135407">%INTERFACE &lt;node&gt;
+This is the original interface type and supports all three features.
+
+Readers are programs that wish to receive commands without setting up their own device interface.</t>
 <t tx="ntallen.20070320135407.1">Will appear under /dev/huarp/$exp/cmd/$node
 </t>
 <t tx="ntallen.20070320135407.2">Could be combined with options.</t>
@@ -4031,6 +4039,11 @@ Setup to use qnet
   mount -T io-pkt lsm-qnet.so # This is a change from 6.3.2, which used io-net
   touch /etc/system/config/useqnet # to get it boot up running qnet, referenced from /etc/system/sysinit
   
+Make sure time is set:
+    sudo on -f nodename date -u `date -u +%Y%m%d%H%M.%S`
+    sudo on -f nodename rtc -s hw
+    # This should of course be done with settime/flttime
+    
 Copy and/or Edit password files from network
 Copy sudoers from network
   /usr/local/sbin/sec_copy &lt;newhost&gt;
@@ -4552,18 +4565,8 @@ investigate difficulty.
 cis_turf would have to move to one of the C++ libs...
 
     </t>
-<t tx="ntallen.20110216082835.2104">cmdgen/cmdalgo.h
-  Define a type for all interfaces
-  change cis_turf() prototype.
-  Add cis_interfaces_close() prototype
-  
-cis.c
-
-    cis_turf();
-
-        Check type of the interface.
-
-    cis_interfaces_close(); call during quit</t>
+<t tx="ntallen.20110216082835.2104">Remove old cis_turf() interface.
+</t>
 <t tx="ntallen.20110216082835.2105">These will have a common API on the command server end using cis_turf
 and the %INTERFACE syntax.
 
@@ -4588,6 +4591,59 @@ This is the same syntax as the write interface, but:
     
 We don't use cis_turf, since that assumes ASCII encoding. Could manually
 invoke Col_send(if_SWStat.TM_id);
+
+Or could use if_SWStat-&gt;turf() to invoke Col_send().</t>
+<t tx="ntallen.20110218102714.2117">%INTERFACE &lt;SUBBUS&gt; special case that should not support turf(), but will support setup() (no args) and reset().</t>
+<t tx="ntallen.20110218102714.2118">cmdgen/cmdalgo.h
+  Define classes for each interface type
+    cmd_if cmdsrvr owns the interface path. Device reads from /dev/huarp/$Exp/cmd/&lt;if&gt;
+    dev_if device owns the interface path. cmdsrvr writes to path
+    data_if writing to DG/data/* turf()
+    subbus_if dev_if with fixed path and no turf()
+    
+Basically I want to create a group of classes each supporting some of the following:
+    Setup();
+        Establishes the interface and may initiate a connection.
+        Different classes may require different appropriate arguments.
+    turf();
+        Transmit a command (or data) to the client or clients. I don't use 'Send'
+        in order to avoid confusion with the underlying mechanisms used.
+        Different classes may require different appropriate arguments.
+        (some may take no arguments)
+    Shutdown();
+        Transmit a quit command and close the connection.
+
+    
+  change cis_turf() prototype.
+  Add cis_interfaces_close() prototype
+  
+cis.c
+
+    cis_turf();
+
+        Check type of the interface.
+
+    cis_interfaces_close(); call during quit</t>
+<t tx="ntallen.20110218102714.2119">Recognize zero-length write as a quit request.
+</t>
+<t tx="ntallen.20110220101447.2123">The %INTERFACE keyword is used to define how to communicate with another process.
+In general, an %INTERFACE definition can address three main issues:
+    Initialization: May establish a connection to another process or make
+      an interface available for other processes to connect to.
+    Communication: May provide a common syntax for IPC via turf() method.
+    Shutdown: Communicates "Quit" to all interfaces and closes the connections.
+
+There are several different types of interfaces, and not all will implement
+all of these features.</t>
+<t tx="ntallen.20110220101447.2124">%INTERFACE &lt;SUBBUS&gt;
+
+Subbus initialization is handled by oui.
+Subbus communication is handled by the subbus lib.
+Subbus termination is the only reason for including this interface definition.
+
+The simplest implementation of this interface will not define a class at all.
+It will output #include "subbus.h" at the definition and subbus_quit() in the
+shutdown list.
 </t>
 </tnodes>
 </leo_file>
