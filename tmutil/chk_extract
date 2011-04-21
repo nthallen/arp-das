@@ -1,0 +1,18 @@
+#! /bin/sh
+#ifdef __USAGE
+# %c
+#
+# Displays any TM channels that are not extracted.
+
+{
+  sed -e '/bytes \(Datum\|Member\)/! d' \
+      -e 's/^.*bytes \(Datum\|Member\) //' \
+      -e 's/ (.*)//' *.pcm;
+  grep -i invalidate *.tmc |
+    sed -e 's/^.*[Ii]nvalidate //' \
+	-e 's/;.*$//'
+} | sort |
+while read j; do
+  grep -q "($j," *.edf || echo $j
+done
+
