@@ -1,18 +1,77 @@
-#! /bin/sh
+#! /usr/bin/perl -w
+use strict;
+
 #ifdef __USAGE
 # %c
 #
 # Displays any TM channels that are not extracted.
 
-{
-  sed -e '/bytes \(Datum\|Member\)/! d' \
-      -e 's/^.*bytes \(Datum\|Member\) //' \
-      -e 's/ (.*)//' *.pcm;
-  grep -i invalidate *.tmc |
-    sed -e 's/^.*[Ii]nvalidate //' \
-	-e 's/;.*$//'
-} | sort |
-while read j; do
-  grep -q "($j," *.edf || echo $j
-done
+my @pcm = <*.pcm>;
+die "More than one .pcm file found\n" if @pcm > 1;
+die "No .pcm found\n" unless @pcm;
+open my $fh, "<", $pcm[0] ||
+  die "Unable to read $pcm[0]\n";
+my %rate;
+while ( <$fh> ) {
+  if ( m,(\d+/\d+) Hz \d+ bytes (?:Datum|Member) (\S+) , ) {
+    my $rate = $1;
+    my $mnc = $2;
+    $rate =~ s|/1$||;
+    $rate{$mnc} = $rate;
+  }
+}
+close($fh) || warn "Error closing $pcm[0]\n";
+print map "$rate{$_} Hz $_\n", sort keys %rate;
 
+# Now check all tmc files for derived channels
+# and bit-selection patterns
+
+my %derived;
+my @bits;
+
+for my $file ( <*.tmc> ) {
+  open $fh, "<", $file ||
+    die "Unable to read $file\n";
+  while (<$fh>) {
+    if ( m/Invalidate\s+(\w+);/i ) {
+      $derived{$1} = $file;
+    }
+    if ( m/(\w+)\s*=\s*\(\s*(\w+) \s* >> \s*
+           ((?:0x)?[0-9a-fA-F]+) \s* \) \s* & \s* 1;/x ) {
+      my $bit = $1;
+      my $word = $2;
+      my $shift = $3;
+      $shift = hex($shift) if $shift =~ m/^0x/;
+      my $rate = $rate{$word} || 0;
+      push @bits, [ $bit, $word, $shift, $rate, $file ];
+      delete $derived{$bit} if $derived{$bit};
+    }
+    if ( m/(\w+) \s* = \s*
+        \( \s* (\w+) \s* & \s* (0x[0-9a-fA-F]+) \s* \)
+        \s* \? \s* 1 \s* : \s* 0;/x ) {
+      my $bit = $1;
+      my $word = $2;
+      my $mask = hex($3);
+      my $shift = 0;
+      while ( !($mask & 1) ) {
+	++$shift;
+	$mask /= 2;
+      }
+      if ( $mask == 1 ) {
+	my $rate = $rate{$word} || 0;
+	push @bits, [ $bit, $word, $shift, $rate, $file ];
+	delete $derived{$bit} if $derived{$bit};
+      }
+    }
+  }
+  close $fh || warn "Error closing $file\n";
+}
+
+# Now list all the bits, sorted by word, and shift
+print map "$_->[3] $_->[0]:$_->[1]:$_->[2] $_->[4]\n",
+  sort { $a->[1] cmp $b->[1] || $a->[2] <=> $b->[2] }
+  @bits;
+
+# And list any other derived values:
+print map "0 $_ $derived{$_}\n",
+  sort keys %derived;

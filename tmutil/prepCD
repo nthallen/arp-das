@@ -58,7 +58,7 @@ total=0
 function recurse {
   for path in $*; do
     du=`du -sk $path`
-    k=`expr "$du" : "^ *\([0-9][0-9]*\)"`
+    k=`expr "$du" : ' *\([0-9][0-9]*\)'`
     let total=$total+$k
     echo "$du"
     recurse `find $path -type l -printf "%l\n"`
