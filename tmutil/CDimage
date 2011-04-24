@@ -1,0 +1,417 @@
+#! /usr/local/bin/perl -w
+#__USAGE
+#%C	create ["Description"]
+#%C	select <voli>
+#%C	addrun <run> [<run> ...]
+#%C	linkdir <src> [<dest>]
+#%C	prepCD [-L] [-s]
+#%C	mkisofs
+#%C	status
+
+# Example usage:
+#   $CDimage::$preserve_raw_hierarchy = 0;
+#     CDimage addrun 020723.2
+#       finds raw/flight/020723.2 and links from 020723.2
+#     CDimage addrun raw/flight/020723.2
+#       finds raw/flight/020723.2 and links from raw/flight/020723.2
+#     CDimage addrun raw/junk/020723.2
+#       finds raw/flight/020723.2 and dies(?) or warns(?)
+#   $CDimage::$preserve_raw_hierarchy = 1;
+#     CDimage addrun 020723.2
+#       finds raw/flight/020723.2 and links from raw/flight/020723.2
+#     CDimage addrun raw/flight/020723.2
+#       finds raw/flight/020723.2 and links from raw/flight/020723.2
+#     CDimage addrun raw/junk/020723.2
+#       finds raw/flight/020723.2 and dies(?) or warns(?)
+
+use strict;
+package CDimage;
+use vars qw($CDimageBase $Experiment $WebLog @altnodes
+      $link_anal $preserve_raw_hierarchy);
+
+# $CDimageBase is defined in .CDimagesrc
+# $VOLI gets defined from Current or via create
+# $CDimage should be $CDimageBase/$VOLI/image
+my @CDimagerc;
+push( @CDimagerc, $ENV{CDIMAGERC} ) if $ENV{CDIMAGERC};
+@CDimagerc = grep -f, @CDimagerc, ".CDimagerc",
+                    "$ENV{HOME}/.CDimagerc";
+die "Cannot locate .CDimagerc\n" unless @CDimagerc;
+require $CDimagerc[0];
+defined( $CDimageBase ) ||
+  die "\$CDimageBase not defined in .CDimagerc\n";
+
+unless ( defined $Experiment && $Experiment ne '' ) {
+  if ( -f './Experiment.config' ) {
+    $Experiment = `. ./Experiment.config; echo \$Experiment`;
+    chomp($Experiment);
+    die "Unable to determine Experiment from Experiment.config\n"
+      unless( defined( $Experiment ) && $Experiment ne '' );
+  } else {
+    die "Experiment undefined in .CDimagerc or Experiment.config\n";
+  }
+}
+
+$Experiment =~ m/^(\w+)$/ ||
+  die "Invalid Experiment: '$Experiment'\n";
+$ENV{Experiment} = $Experiment = $1;
+
+my $VOLI;
+my $CDimage;
+
+my $command = shift(@ARGV);
+if ( $command =~ m/^create$/i ) {
+  create_image( @ARGV );
+} elsif ( $command =~ m/^select$/i ) {
+  select_image( shift(@ARGV) );
+} else {
+  if ( -l "$CDimageBase/Current" ) {
+    $VOLI = readlink( "$CDimageBase/Current" );
+    $VOLI =~ s|([^/]+)/?$|$1| ||
+      die "Unable to understand Current link: '$VOLI'\n";
+    -d "$CDimageBase/$VOLI" ||
+      die "Unable to locate current image '$VOLI'\n";
+    $CDimage = "$CDimageBase/$VOLI/image";
+  } else {
+    die "No Current image selected\n";
+  }
+  if ( $command =~ m/^addrun$/i ) {
+    addrun( @ARGV );
+  } elsif ( $command =~ m/^linkdir$/i ) {
+    link_dir( @ARGV );
+  } elsif ( $command =~ m/^prepCD$/i ) {
+    prepCD( @ARGV );
+  } elsif ( $command =~ m/^mkisofs$/i ) {
+    mkisofs( @ARGV );
+  } elsif ( $command =~ m/^status$/i ) {
+    summarize( );
+  } else {
+    die "Unrecognized command: '$command'\n";
+  }
+}
+
+sub create_image {
+  my $APPI = shift;
+  my ( $sec, $min, $hour, $mday, $mon, $year) = localtime(time);
+  $year = $year % 100;
+  my $VOLI = sprintf( "%s_%02d%02d%02d", $Experiment, $year, $mon+1, $mday );
+  if ( -d "$CDimageBase/$VOLI" ) {
+    my $suffix = "a";
+    while ( -d "$CDimageBase/$VOLI$suffix" ) { $suffix++; }
+    $VOLI = "$VOLI$suffix";
+  }
+  mkdirp( "$CDimageBase/$VOLI/image" );
+  set_current($VOLI);
+
+  open( MKO, ">$CDimageBase/$VOLI/.mkisofsrc" ) ||
+    die "Unable to write .mkisofsrc\n";
+  my $mkisofsrc; 
+  for my $file ( map "$_/.mkisofsrc", grep defined($_), ".", $ENV{HOME} ) {
+    if ( -f $file ) {
+      $mkisofsrc = $file;
+      last;
+    }
+  }
+  if ( $mkisofsrc && open( MKI, "<$mkisofsrc" ) ) {
+    while (<MKI>) {
+      print MKO if m/^(?:PREP|PUBL|SYSI)=/;
+    }
+    close(MKI);
+  } else {
+    warn "Unable to locate default .mkisofsrc\n";
+  }
+  print MKO "VOLI=$VOLI\n";
+  print MKO "APPI=$APPI\n" if defined $APPI;
+  close(MKO);
+  if ( $WebLog && $WebLog eq 'yes' ) {
+    system("RunLog newCD $VOLI '$APPI'") &&
+      warn "RunLog failed\n";
+  }
+  print "New image '$VOLI' created\n";
+}
+
+sub select_image {
+  my $VOLI = shift;
+  set_current( $VOLI );
+  print "Image '$VOLI' selected\n";
+}
+
+sub set_current {
+  my $VOLI = shift || die "No volume specified for set_current\n";
+  -d "$CDimageBase/$VOLI" ||
+    die "Unable to locate image '$VOLI'\n";
+  unlink( "$CDimageBase/Current" );
+  symlink( $VOLI, "$CDimageBase/Current" ) ||
+    die "Unable to create symlink to $VOLI\n";
+}
+
+# def_find_run( $run ) attempts to locate the specified
+# run. It returns a two-element list. The first element
+# is the path to the existing run. The second element, if
+# defined is the path where the run should be linked
+# into the image.
+#
+# The run argument contains a relative path to a run.
+# The search will be made under:
+#   the current directory
+#   $altnode/home/$Experiment foreach $altnode in @altnodes
+#   $runnode/home/$Experiment
+# in each of these locations, the search will explore
+# the raw/*/ hierarchy as well unless an explicit
+# relative path is specified. When no explicit path
+# is specified, the variable $preserve_raw_hierarchy
+# is consulted to decide where in the image to link
+# in the raw data.
+#
+# A find_run() sub can be defined in .CDimagerc with the
+# same definition, and that will be used instead of
+# def_find_run(). find_run() can call def_find_run() and
+# then modify the results.
+#
+# @altnodes can contain a list of node paths where runs
+# might be found, e.g. @CDimage::altnodes = qw( //1 //5 );
+#
+my $runnode;
+
+sub def_find_run {
+  my $run = shift @_;
+  unless ( defined $runnode ) {
+    $runnode = `namewait -n0 -t0 -G parent 2>/dev/null`;
+    chomp($runnode);
+    push( @altnodes, "//$runnode" ) if $runnode;
+  }
+  $run =~ m|^(?:([\w][\w./]+)/)?([\w.]+)$|
+    || die "I don't like that run name: '$run'\n";
+  my $explicit_path = $1 ? 1 : 0;
+
+  my $runbase;
+  my $runloc;
+  FINDARC:
+  for my $base ( '.', "/home/$Experiment",
+        map "$_/home/$Experiment", @altnodes ) {
+    my @tries = "$base/$run";
+    push( @tries, <$base/raw/*/$run> ) unless $explicit_path;
+    for my $try ( @tries ) {
+      if ( -d $try ) {
+        $runbase = $base;
+        $runloc = substr( $try, length($base));
+        last FINDARC;
+      }
+    }
+  }
+  if ( defined $runloc ) {
+    my $runsrc = "$runbase$runloc";
+    my $rundest = ( $explicit_path || !$preserve_raw_hierarchy )
+        ? "/home/$Experiment/$run" : "/home/$Experiment$runloc";
+    return ( $runsrc, $rundest );
+  } else {
+    warn "Unable to locate run '$run'\n";
+    return ();
+  }
+}
+
+sub def_find_anal {
+  my $run = shift @_;
+  $run =~ m|^(?:([\w][\w./]+)/)?([\w.]+)$|;
+  my $runbase = $2;
+  my $runloc;
+  FINDANAL:
+  for my $base ( '.', "/home/$Experiment",
+        map "//$_/home/$Experiment", @altnodes ) {
+    for my $try ( $runbase, $run ) {
+      if ( -d "$base/anal/$try" ) {
+        return ( "$base/anal/$try", "/home/$Experiment/anal/$try" );
+      }
+    }
+  }
+  return ();
+}
+
+sub addrun {
+  my ( @runs ) = @_;
+  my $runnode = `namewait -n0 -t0 -G parent 2>/dev/null`;
+  chomp($runnode);
+  push( @altnodes, $runnode ) if $runnode;
+  for my $run ( @runs ) {
+    my ( $runsrc, $rundest ) =
+      defined &find_run ? find_run($run) : def_find_run($run);
+    link_dir( $runsrc, $rundest ) if $runsrc;
+    if ( $WebLog && $WebLog eq 'yes' ) {
+      system( "RunLog addrun $VOLI $rundest" ) &&
+        warn "RunLog addrun failed\n";
+    }
+    if ( $link_anal ) {
+      my ( $analsrc, $analdest ) = defined &find_anal ?
+        find_anal( $run ) : def_find_anal( $run );
+      link_dir( $analsrc, $analdest ) if $analsrc;
+    }
+  }
+  summarize();
+}
+
+sub prepCD {
+  print "Preparing CD Image $VOLI\n";
+  chdir( "$CDimage" );
+  $ENV{tmpfile} = "$CDimageBase/$VOLI/prepCD.log";
+  system( join( ' ', 'prepCD', @ARGV, '.' ));
+}
+
+sub mkisofs {
+  chdir( "$CDimageBase/$VOLI" ) ||
+    die "Unable to chdir to $CDimageBase/$VOLI\n";
+  my $ofile = shift @_ || '';
+  if ( $ofile ) {
+    my $fofile = $ofile =~ m,^/, ?
+      $ofile : "$CDimageBase/$VOLI/$ofile";
+    print STDERR "Writing image to $fofile\n";
+    $ofile = " -o $ofile"
+  } else {
+    print STDERR "Writing image to STDOUT\n";
+  }
+  my $opts =
+    '-d -f --allow-leading-dots -J -l -r -log-file mkisofs.log';
+  if ( system( "nice mkisofs $opts$ofile image" ) ) {
+    print STDERR "mkisofs returned an error: check mkisofs.log\n";
+  } else {
+    print STDERR
+      "mkisofs completed successfully: check mkisofs.log for details\n";
+    if ( $WebLog && $WebLog eq 'yes' ) {
+      system( "RunLog mkisofs $VOLI >mkisofs.log 2>&1" );
+    }
+  }
+}
+
+sub mkdirp {
+  my $path = shift;
+  return if -d $path;
+  $path =~ m|^//(\d+)$| &&
+    die "Node $1 unreachable in mkdirp\n";
+  if ( $path =~ m|^(.+)/([^/]+)/?$| ) {
+    my $base = $2;
+    my $dir = $1;
+    mkdirp($dir);
+    mkdir $path || die "Unable to create directory '$path'\n";
+  }
+}
+
+my @found_links;
+use Cwd qw(abs_path getcwd);
+use File::Find;
+
+# link_dir( to, from );
+# link_dir( "/home/CR/raw/flight/020723.2" );
+# link_dir( "raw/flight/020723.2", "020723.2" );
+sub link_dir {
+  my ( $to, $from ) = @_;
+  -d $to || die "Unable to locate directory '$to'\n";
+  $from = $to unless $from;
+  if ( $from !~ m,^/, ) {
+    my $pwd = `pwd`;
+    chomp $pwd;
+    $pwd =~ s,/$,,;
+    $from = "$pwd/$from";
+  }
+  $from =~ s,^//\d+/,/,;
+  $from =~ m,^/, || die;
+  
+  # Now check $from to see if it's OK to add a link there
+  # check_dest() dies if not OK. Also creates parent directories
+  check_dest( $from, 1 );
+  $to = abs_path($to);
+  symlink( $to, "$CDimage$from" ) ||
+    die "Unable to link $CDimage$from -> $to\n";
+  print "  $from -> $to\n";
+  du( $from );
+}
+
+# check_dest( $dest );
+# Makes sure that:
+#  a) $dest does not already exist in image
+#  b) The path leading to $dest does not currently
+#     contain any soft links
+sub check_dest {
+  my ( $dest, $mkdir ) = @_;
+  $dest =~ m,^(/[^/]+)+, ||
+    die "Invalid path '$dest' in check_dest\n";
+  my $savedest = $dest;
+  -d $CDimage || die "Image directory not found: $CDimage\n";
+  my $path = '';
+  while ( $dest =~ s,^(/[^/]+)/,/, ) {
+    $path = "$path$1";
+    die "Path $savedest is under existing link $path\n"
+      if -l "$CDimage$path";
+    die "Path $savedest is under existing file $path\n"
+      if -f "$CDimage$path";
+    if ( ! -d "$CDimage$path" ) {
+      if ( $mkdir ) {
+        mkdir "$CDimage$path" ||
+          die "Unable to create directory $CDimage$path\n";
+      } else {
+        return;
+      }
+    }
+  }
+  -e "$CDimage$path$dest" &&
+    die "Destination path $savedest already exists\n";
+}
+
+sub du {
+  my $dir = shift @_;
+  my @found_links;
+  die "Relative path in du\n" if $dir !~ m,^/,;
+  
+  open( DU, ">>$CDimageBase/$VOLI/du" ) || die;
+  my $oldpwd = getcwd;
+  chdir( "$CDimage" );
+  push( @found_links, ".$dir" );
+  while ( my $link = shift(@found_links) ) {
+    chomp $link;
+    if ( -e $link ) {
+      if ( -d $link ) {
+        my $du = `du -sk $link/`;
+        chomp $du;
+        print "  $du\n";
+        print DU "$du\n";
+        open( FIND, "find $link/ -type l |" ) ||
+          die "Error opening pipe from find\n";
+        push( @found_links, <FIND> );
+        close FIND;
+      } else {
+        my $size = -s $link;
+        if ( defined($size) ) {
+          use integer;
+          $size = ($size+1023)/1024;
+          my $du = sprintf("%13d :%s", $size, $link );
+          # print "  $du\n"; # Don't clutter output
+          print DU "$du\n";
+        } else {
+          warn "Unexpected undefined -s: '$link'\n";
+        }
+      }
+    } else {
+      print "Broken link: '$link'\n";
+      print DU "  # Broken link: $link\n";
+    }
+  }
+  chdir( $oldpwd );
+  close(DU);
+}
+
+sub summarize {
+  print "Current CD Image is $VOLI\n";
+  if ( open( DU, "<$CDimageBase/$VOLI/du" ) ) {
+    my $size = 0;
+    my @dirs;
+    while (<DU>) {
+      if ( m/^\s+(\d+)\s(.+)$/ ) {
+        $size += $1;
+        my $file = $2;
+        push( @dirs, $file ) unless $file =~ m/^:/;
+      }
+    }
+    print
+      "  Linked directories include:",
+      join( "\n   ", "", sort(@dirs) ), "\n",
+      "  Total size is $size K\n";
+  }
+}
