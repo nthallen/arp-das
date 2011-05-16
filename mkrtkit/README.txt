@@ -38,8 +38,10 @@ from that directory that should be included in one or more packages.
 
 UPDATE STRATEGY
 
-Run mkrtkit_chkconfs to make sure any new files have been added to
-appropriate MANIFESTS.
+Run mkrtkit_chkconfs
+  Makes sure any new files have been added to appropriate MANIFESTS
+  Makes sure all files in MANIFESTs come from source files
+  Makes sure there are no conflicts
 
 Run chkpkgs
   Currently just checks that all the files listed in MANIFEST files

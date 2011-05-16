@@ -23,6 +23,7 @@ usr/local/bin/qclisd
 usr/local/bin/qclisprog
 usr/local/bin/qclistest
 usr/local/bin/rdr
+usr/local/bin/reduce
 usr/local/bin/saverun
 usr/local/bin/sbswitch
 usr/local/bin/sspdrv
@@ -70,6 +71,7 @@ usr/local/lib/libtm.a
 usr/local/lib/libtm.la
 usr/local/lib/libtm.so
 usr/local/lib/libtm.so.0
+usr/local/lib/libtm.so.1
 usr/local/lib/libtmnc.a
 usr/local/lib/libtmnc.la
 usr/local/lib/libtmnc.so

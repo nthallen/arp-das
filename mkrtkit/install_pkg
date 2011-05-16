@@ -43,8 +43,10 @@ my $rdest = $dest; $rdest =~ s|^/||;
 
 -d $pkgroot || mkpath($pkgroot) ||
   die "Fatal: Unable to create pkgroot $pkgroot\n";
-die "Cannot overwrite existing installation: $dest\n"
-  if ( -d $dest || -f $archive || -f "$archive.gz" );
+if ( -d $dest || -f $archive || -f "$archive.gz" ) {
+  warn "$pkgname-$pkg->{Version} already installed: skipping\n";
+  exit(0);
+}
 mkpath($dest) ||
   die "Fatal: Unable to create package destination $dest\n";
 my $MP = "$dest/MANIFEST_pkg";

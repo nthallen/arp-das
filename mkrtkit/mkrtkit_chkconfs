@@ -1,17 +1,85 @@
-#! /bin/sh
-#ifdef __USAGE
-# mkrtkit_chkconfs
-# Finds all the mkrtkit.conf files in the subtree and runs
-# mkrtkit_chkconf on them.
-#endif
+#! /usr/bin/perl -w
+use strict;
+use File::Find;
 
-home=`pwd`
-find . -name mkrtkit.conf |
-while read f; do
-  d=`dirname $f`
-  echo Checking in $d
-  [ -d "$d" ] || nl_error "'$d' is not a directory: PWD is $PWD\n"
-  cd $d
-  mkrtkit_chkconf
-  cd $home
-done
+# mkrtkit_chkconfs
+# Must be run in mkrtkit directory, which is assumed to be
+# two levels deep in the QNX6Build hierarchy.
+# Reads the MANIFESTS of the specified @pkgs, then
+# searches for mkrtkit.conf files throughout ../...
+# Reads each mkrtkit.conf
+# Looks for lines of the format:
+#   pkgname: path
+# and verifies that:
+#   The package name is valid
+#   the path exists in the package's MANIFEST file
+#   the path has not been defined by any other directory
+
+my @pkgs = qw(flight develop);
+my %pkgs = map { ( $_ => 1 ) } @pkgs;
+my %pathpkg;
+my %pathsrc;
+
+for my $pkg ( @pkgs ) {
+  my $mani = "pkgs/$pkg/MANIFEST";
+  open(my $fh, '<', $mani) or
+    die "Unable to read $mani\n";
+  while (<$fh>) {
+    chomp;
+    if ( $pathpkg{$_} ) {
+      if ( $pathpkg{$_} eq $pkg ) {
+	warn "Path $_ defined more than once in package $pkg\n";
+      } else {
+	warn "Path $_ defined in both $pathpkg{$_} and $pkg\n";
+      }
+    } else {
+      $pathpkg{$_} = $pkg;
+    }
+  }
+  close $fh;
+}
+
+sub chk_man {
+  if ( m/^mkrtkit.conf$/ ) {
+    my $dir = $File::Find::dir;
+    $dir =~ s,^\.\./\.\./,,;
+    open(my $fh, '<', "mkrtkit.conf") or
+      die "Unable to read $File::Find::name\n";
+    while ( <$fh> ) {
+      next if m/^\s*(?:#.*)$/;
+      if ( m/^\s*(\w+)\s*:\s*(\S+)\s*$/ ) {
+	my $pkg = $1;
+	my $comp = $2;
+	unless ( $pkgs{$pkg} ) {
+	  warn "$pkg:$comp ($dir) Unsupported package '$pkg'\n";
+	  push @pkgs, $pkg;
+	  $pkgs{$pkg} = 1;
+	}
+	if ( defined $pathpkg{$comp} ) {
+	  if ( $pathpkg{$comp} ne $pkg ) {
+	    warn "$pkg:$comp ($dir) ", 
+		"found in package $pathpkg{$comp}\n";
+	  }
+	} else {
+	  warn "$pkg:$comp ($dir) not found\n";
+	}
+	if ( defined $pathsrc{$comp} ) {
+	  if ( $pathsrc{$comp} ne $File::Find::dir ) {
+	    warn "$pkg:$comp ($dir) also sourced from $pathsrc{$comp}";
+	  } else {
+	    warn "$pkg:$comp ($dir) specified more than once";
+	  }
+	} else {
+	  $pathsrc{$comp} = $File::Find::dir;
+	}
+      }
+    }
+    close($fh) || warn "Error closing $File::Find::name\n";
+  }
+}
+
+find( \&chk_man, "../.." );
+
+print map "$pathpkg{$_}:$_ unsourced\n",
+  grep ! defined $pathsrc{$_},
+  sort keys %pathpkg;

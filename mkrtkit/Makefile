@@ -1,6 +1,5 @@
 # QNX6/mkrtkit
 # This directory contains scripts for building runtime install CDs
-BIN=mkrtkit_chkconf mkrtkit_chkconfs
 SBIN=mkrtkit mkrtkitarch
 DATA=rtinstall
 OSDATA=
@@ -14,10 +13,10 @@ PKGS := $(filter-out CVS, $(notdir $(wildcard pkgs/*)))
  install-progs install-pkgs
 test :
 	@echo PKGS are $(PKGS)
-install-progs : install-bin install-sbin install-data
+install-progs : install-sbin install-data
 install : install-progs install-pkgs
-install-bin : $(BIN)
-	$(INSTALL) $(BIN) $(PREFIX)/bin
+# install-bin : $(BIN)
+#	$(INSTALL) $(BIN) $(PREFIX)/bin
 install-sbin : $(SBIN)
 	mkdir -p $(PREFIX)/sbin
 	$(INSTALL) $(SBIN) $(PREFIX)/sbin
