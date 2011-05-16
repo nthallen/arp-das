@@ -1,0 +1,12 @@
+#! /bin/sh
+
+function nl_error {
+  echo "chk_dist: $*" >&2
+  exit 1
+}
+
+tgt=$1
+[ -d /net/$tgt/usr/local ] || nl_error Cannot see target '$tgt'
+for dir in bin sbin lib include share/huarp share/oui; do
+  dircompare /usr/local/$dir /net/$tgt/usr/local/$dir
+done
