@@ -17,7 +17,7 @@ enum fdstate { FD_IDLE, FD_READ, FD_WRITE, FD_CONNECT };
 extern enum fdstate tcp_state, udp_state;
 
 extern int tcp_socket;
-extern void sspdrv_init(char *name, int argc, char **argv);
+extern void sspdrv_init(const char *name, int argc, char * const *argv);
 extern int tcp_create(const char *hostname);
 extern void tcp_reset(const char *hostname);
 extern void tcp_enqueue( char *cmd );

@@ -10,6 +10,7 @@
 	-b <board_id> (deprecated) Identify which SSP we are talking to
 	-H <ssp_hostname>
 	-N <logging config>
+	-L <latency>
 
 <unsort>
 <blank>
@@ -21,6 +22,10 @@ Logging config is a path string identifying the last
 file previously written and implicitly the next file
 to write. This is usually the direct output of the
 mlf_find script: sspdrv -b3 -N `mlf_find SSP3`
+<blank>
+Latency is how many TM reports are expected per scan.
+It is used to decide when to switch the status from
+Triggering to Armed. The default is 1.
 
 <package> msghdr_default
 <var>

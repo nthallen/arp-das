@@ -34,13 +34,14 @@
 
 static char board_hostname[40] = "10.0.0.200";
 static char *mlf_config = NULL;
-static char *ssp_name;
+static const char *ssp_name;
 static int quit_received = 0;
 static int trigger_count = 0;
+static int latency = 1;
 ssp_config_t ssp_config;
 ssp_data_t ssp_data;
 
-void sspdrv_init( char *name, int argc, char **argv ) {
+void sspdrv_init( const char *name, int argc, char * const *argv ) {
   int c, board_id;
 
   ssp_name = name;
@@ -60,6 +61,9 @@ void sspdrv_init( char *name, int argc, char **argv ) {
       case 'N':
         mlf_config = optarg;
         break;
+      case 'L':
+	latency = atoi(optarg);
+	break;
       case '?':
         nl_error(3, "Unrecognized Option -%c", optopt);
     }
@@ -347,7 +351,7 @@ int main( int argc, char **argv ) {
       read_cmd( cmd_fd );
     if ( FD_ISSET(tm_data->fd, &writefds ) ) {
       if ( ssp_data.Status == SSP_STATUS_TRIG &&
-	   ++trigger_count > 2 )
+	   ++trigger_count > latency+1 )
 	ssp_data.Status = SSP_STATUS_ARMED;
       Col_send(tm_data);
       ssp_data.Flags &= ~SSP_OVF_MASK;
