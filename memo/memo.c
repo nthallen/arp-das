@@ -16,8 +16,9 @@ int io_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
 static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         io_funcs;
 static iofunc_attr_t             attr;
-static FILE *ofp;
+static FILE *ofp, *ofp2;
 static char *output_filename;
+static int opt_V = 0;
 
 static struct ocb *ocb_calloc (resmgr_context_t *ctp, IOFUNC_ATTR_T *device) {
   ocb_t *ocb = calloc( 1, sizeof(ocb_t) );
@@ -47,6 +48,7 @@ iofunc_mount_t mountpoint = { 0, 0, 0, 0, &ocb_funcs };
 void memo_init_options( int argc, char **argv ) {
   int c;
   ofp = stdout;
+  ofp2 = NULL;
   optind = OPTIND_RESET;
   opterr = 0;
   while ((c = getopt(argc, argv, opt_string)) != -1 ) {
@@ -54,9 +56,12 @@ void memo_init_options( int argc, char **argv ) {
       case 'o':
         output_filename = optarg;
         break;
+      case 'V':
+	opt_V = 1;
+	break;
       case '?':
-              nl_error( 3, "Unrecognized commandline option -%c", optopt );
-              break;
+	nl_error( 3, "Unrecognized commandline option -%c", optopt );
+	break;
       default:
         break;
     }
@@ -124,14 +129,20 @@ int main(int argc, char **argv) {
       if ( ofp == NULL )
         nl_error( 3, "Unable to open output file '%s'",
            output_filename );
+      if (opt_V) ofp2 = stdout;
     }
     { time_t now = time(NULL);
-      fprintf( ofp, "\nMemo Starting: %s", asctime(gmtime(&now)) );
+      const char *nowt = asctime(gmtime(&now));
+      fprintf( ofp, "\nMemo Starting: %s", nowt );
+      if (ofp2)
+	fprintf( ofp2, "\nMemo Starting: %s", nowt );
     }
     signal(SIGHUP, SIG_IGN);
     while ( running ) {
       if ((ctp = dispatch_block(ctp)) == NULL) {
         fprintf( ofp, "Memo internal: block error\n" );
+        if (ofp2)
+	  fprintf( ofp2, "Memo internal: block error\n" );
         return EXIT_FAILURE;
       }
       dispatch_handler(ctp);
@@ -139,6 +150,11 @@ int main(int argc, char **argv) {
       else if ( running == 1 && attr.count == 0 ) running = 0;
     }
     fprintf( ofp, "Memo Terminating\n" );
+    fclose(ofp);
+    if (ofp2) {
+      fprintf( ofp2, "Memo Terminating\n" );
+      fclose(ofp2);
+    }
     return 0;
 }
 
@@ -171,6 +187,10 @@ int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb ) {
   //  output result
   fprintf(ofp, "%s\n", buf );
   fflush(ofp);
+  if ( ofp2 ) {
+    fprintf(ofp2, "%s\n", buf );
+    fflush(ofp2);
+  }
 
   if ( msg->i.nbytes > 0)
     ocb->hdr.attr->flags |= IOFUNC_ATTR_MTIME | IOFUNC_ATTR_CTIME;
