@@ -18,8 +18,10 @@ static reqqueue *free_queue;
 static int oms_irq = 0;
 char omsdrv_c_id[] = "$UID: seteuid.oui,v $";
 
+OMS_TM_Data OMS_status;
+
 readreq * allocate_request( char *cmd, int type,
-	int n_req, pid_t sender, char *hdr ) {
+		      int n_req, char *hdr ) {
   char *hdrsrc;
   readreq *req;
   
@@ -31,16 +33,15 @@ readreq * allocate_request( char *cmd, int type,
   req->req_type = type;
   req->n_req = n_req;
   switch ( type ) {
-	case OMSREQ_IGNORE: break;
-	case OMSREQ_SENDTM: break;
-	case OMSREQ_LOG:
-	  hdrsrc = hdr == NULL ? cmd : hdr;
-	  strncpy( req->u.hdr, hdrsrc, IBUF_SIZE-1 );
-	  req->u.hdr[IBUF_SIZE-1] = '\0';
-	  break;
-	case OMSREQ_REPLY: req->u.sender = sender; break;
-	default:
-	  nl_error( 4, "Invalid type in allocate_request" );
+    case OMSREQ_IGNORE: break;
+    case OMSREQ_PROCESSTM: break;
+    case OMSREQ_LOG:
+      hdrsrc = hdr == NULL ? cmd : hdr;
+      strncpy( req->u.hdr, hdrsrc, IBUF_SIZE-1 );
+      req->u.hdr[IBUF_SIZE-1] = '\0';
+      break;
+    default:
+      nl_error( 4, "Invalid type in allocate_request" );
   }
   return req;
 }
@@ -49,44 +50,52 @@ readreq * allocate_request( char *cmd, int type,
   The requests are supposed to be static, presumably initialized
   once at the beginning. There will probably be one TM req with
   multiple sub-requests. On init the req must be created, then
-  registered with collection and a proxy registered with
-  collection. When the proxy is received, the request should
+  registered with collection and armed.
+  When the corresponding pulse is received, the request should
   be enqueued and the command issued. When complete, the result
   needs to be sent to TM. The request structure here holds the
   tmid, but it doesn't include any larger context, specifically
   where we are in the acquisition process or what the command is.
   A TM request needs to know
     The string DG associates with this data
-	The number DG associates with the proxy (magic)
-	
-	The tmid returned from collection
-	The proxy returned from collection
-	The command string that needs to be issued
-	Whether we are processing the request or not.
+    The tmid returned from collection
+    The command string that needs to be issued
+    Whether we are processing the request or not.
 */
 #define MAX_TM_REQUESTS 4
 static tm_data_req *tm_data[MAX_TM_REQUESTS];
 static int n_tm_requests;
-static void init_tm_request( char *name, int size, int coid,
-				char *cmd, int n_req ) {
+
+static void init_tm_request( char *name, int coid,
+		char *cmd, int n_req, void *tmdata, int size,
+		void (*handler)(struct)) {
   int nlr;
   tm_data_req *newreq;
   
   if ( n_tm_requests >= MAX_TM_REQUESTS ) {
-	nl_error( 2, "Too many calls to init_tm_request" );
-	return;
+    nl_error( 2, "Too many calls to init_tm_request" );
+    return;
   }
   newreq = tm_data[n_tm_requests++] =
       new_memory(sizeof(tm_data_req));
-  newreq->req = allocate_request( cmd, OMSREQ_SENDTM, n_req, 0,
-		      NULL );
+  newreq->req =
+    allocate_request( cmd, OMSREQ_PROCESSTM, n_req, NULL );
   newreq->cmd = nl_strdup( cmd );
   newreq->pending = 0;
   nlr = set_response( 1 );
-  newreq->req->u.tmid = Col_send_init( name, &newreq->req->ibuf, size );
+  newreq->req->u.tm.handler = handler;
+  newreq->req->u.tm.tmid =
+    Col_send_init( name, tmdata, size );
   if ( newreq->req->u.tmid != NULL )
     Col_send_arm(newreq->req->u.tmid, coid, TM_PULSE_CODE, n_tm_requests-1);
   set_response( nlr );
+}
+
+static void shutdown_tm_requests(void) {
+  int i;
+  for ( i = 0; i < n_tm_requests; ++i ) {
+    Col_send_reset(tm_data[i]->req->u.tm.tmid);
+  }
 }
 
 static void oms_queue_output( char *cmd ) {
@@ -101,15 +110,14 @@ static void service_tm(int value) {
   }
 }
 
-void new_request( char *cmd, int type, int n_req, pid_t sender,
-	char *hdr ) {
+void new_request( char *cmd, int type, int n_req, char *hdr ) {
   readreq *req =
-	allocate_request( cmd, type, n_req, sender, hdr);
+	allocate_request( cmd, type, n_req, hdr);
   enqueue_req( pending_queue, req );
   oms_queue_output( cmd );
 }
 
-void handle_recv_proxy( void ) {
+void handle_recv_data( void ) {
   readreq *req;
   Reply_hdr_from_oms rep_hdr;
   struct _mxfer_entry mx[2];
@@ -117,7 +125,8 @@ void handle_recv_proxy( void ) {
   while ( (req = dequeue_req( satisfied_queue )) != NULL ) {
     switch ( req->req_type ) {
       case OMSREQ_IGNORE: break;
-	// ### parse the data into the tm structure
+      case OMSREQ_PROCESSTM:
+	(req->handler)(req);
 	Col_send( req->u.tmid );
 	continue; /* TM requests are static */
       case OMSREQ_LOG:
@@ -158,6 +167,9 @@ void operate( void ) {
        nl_error( 2, "Error %d from MsgReceivePulse", errno);
        break;
    }
+
+   // ### This is the old code, to be deleted.
+   // ### Need to write service_cmd();
     who = Receive( 0, &cmd, sizeof( cmd ) );
     if ( who != -1 ) {
       if ( who == recv_proxy ) handle_recv_proxy();
@@ -206,10 +218,49 @@ void operate( void ) {
   }
 }
 
+static void open_cmd_fd( int coid, short code, int value ) {
+  int old_response = set_response(0);
+  char *cmddev = tm_dev_name("cmd/oms");
+  cmd_fd = tm_open_name(cmddev, NULL, O_RDONLY|O_NONBLOCK);
+  set_response(old_response);
+  if ( cmd_fd < 0 ) {
+    nl_error(3, "Unable to open command channel" );
+  }
+
+  /* Initialize cmd event */
+  cmd_event.sigev_notify = SIGEV_PULSE;
+  cmd_event.sigev_coid = coid;
+  cmd_event.sigev_priority = SIGEV_PULSE_PRIO_INHERIT;
+  cmd_event.sigev_code = code;
+  cmd_event.sigev_value.sival_int = value;
+}
+
+static int setup_interrupt( int irq, int coid, short code ) {
+  if ( irq < 0 || irq >= MAX_IRQ_104 )
+    nl_error( 3, "IRQ %d is invalid", irq );
+  intr_event.sigev_notify = SIGEV_PULSE;
+  intr_event.sigev_coid = coid;
+  intr_event.sigev_priority = SIGEV_PULSE_PRIO_INHERIT;
+  intr_event.sigev_code = EXPINT_PULSE_CODE;
+  intr_event.sigev_value.sival_int = 0;
+  iid = InterruptAttachEvent(expint_irq, &intr_event,
+      _NTO_INTR_FLAGS_PROCESS | _NTO_INTR_FLAGS_TRK_MSK );
+  if (iid == -1)
+    nl_error( 3, "Unable to attach IRQ %d: errno %d", irq, errno);
+  return iid;
+}
+
+/** Parse data into the OMS_status structure
+ */
+static void parse_tm_data( readreq *req ) {
+  // ######
+}
+
 int main( int argc, char **argv ) {
   int omsname_id;
   char *name;
-  int chid, coid;
+  int chid, coid, iid;
+  struct sigevent intr_event;
   
   oui_init_options( argc, argv );
 
@@ -218,20 +269,20 @@ int main( int argc, char **argv ) {
   free_queue = new_reqqueue(10);
   output_queue = new_charqueue(80);
 
-  // Set up interrupt event
-  // Initialize command channel
-  // Initialize telemetry channel
-
-  outp( PC68_CONTROL, 0xA0 ); /* IRQ_E & IBF_E & !TBE_E */
-  
-  /* attach oms driver name */
-
   /* Initialize channel to receive pulses*/
   chid = ChannelCreate(0);
   if ( chid == -1 )
     nl_error( 3, "Error %d from ChannelCreate()", errno );
   coid = ConnectAttach( ND_LOCAL_NODE, 0, chid, _NTO_SIDE_CHANNEL, 0);
-  init_tm_request( "OMS_stetus", OMS_CMD_MAX, coid, "AARPQA", 8 );
+
+  iid = setup_interrupt( oms_irq, coid, EXPINT_PULSE_CODE );
+  open_cmd_fd( coid, CMD_PULSE_CODE, 0 );
+  init_tm_request( "OMS_status", coid, "AARPQA", 8,
+      &OMS_status, sizeof(OMS_status), parse_tm_data);
+
+  // Initialize the board
+  outp( PC68_CONTROL, 0xA0 ); /* IRQ_E & IBF_E & !TBE_E */
+  
   new_request( "\004WY", OMSREQ_LOG, 1, 0, "PC68 ID" );
 
   // Initialize speed for X and Y; No return
@@ -239,12 +290,12 @@ int main( int argc, char **argv ) {
   nl_error( 0, "Initialized" );
   
   operate();
+
   nl_error( 0, "Shutting Down" );
-
-  // ### detach interrupt
-  // ### close command channel
-  // ### close telemetry channel
-
+  InterruptDetach(iid);
+  close_cmd_fd();
+  shutdown_tm_requests();
+  nl_error( 0, "Terminated" );
   return 0;
 }
 
@@ -254,19 +305,19 @@ void oms_init_options( int argc, char **argv ) {
   optind = 0; /* start from the beginning */
   opterr = 0; /* disable default error message */
   while ((c = getopt(argc, argv, opt_string)) != -1) {
-	switch (c) {
-	  case 'i':
-		oms_irq = atoi(optarg);
-		break;
-	  case 'q':
-		oms_shutdown();
-		exit(0);
-	  case '?':
-		nl_error(3, "Unrecognized Option -%c", optopt);
-	  default:
-		break;
-	}
+    switch (c) {
+      case 'i':
+	oms_irq = atoi(optarg);
+	break;
+      case 'q':
+	oms_shutdown();
+	exit(0);
+      case '?':
+	nl_error(3, "Unrecognized Option -%c", optopt);
+      default:
+	break;
+    }
   }
   if ( oms_irq == 0 )
-	nl_error( 3, "Must specify an IRQ" );
+    nl_error( 3, "Must specify an IRQ" );
 }

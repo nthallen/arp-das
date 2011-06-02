@@ -1,0 +1,11 @@
+testoms.o
+testdrv.o
+omsdrvoui.c
+omsdrv.o
+omsirq.o
+omsqueue.o
+omsdrvoui.o
+*.err
+omsdrv
+testoms
+testdrv
