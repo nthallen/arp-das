@@ -1,0 +1,63 @@
+6/5/11
+Compiling the port to QNX6
+
+9/25/99
+Need to attach a timeout to current_req
+attach a proxy to a timer, then reset the timer when
+a request is made.
+
+9/22/99
+Need to finish (spec?) oms_command() in order to link.
+Need to put omsdrv.h into include
+Need to spec a real TM collection
+
+----------------------------------------------------------------
+Having done the benchmark, it is clear that it takes a reasonably
+long time for data to come in after a request. As such, it is
+clearly unacceptable to have DG send for data. I think a proxy
+from TM to report a particular datum is the way to go.
+
+----------------------------------------------------------------
+Figure out how to initialize TM requests to be static
+(i.e. they don't get recreated on each request but get
+recycled, specifically so the send_id can point to the request's
+data.
+
+
+Command Server needs to issue drive commands to OMS
+DG needs to get data from OMS (position, status)
+Driver required to arbitrate access.
+Possible approaches {
+  1: Allow DG to send for data or
+  2: Have driver send to DG periodically
+  1 will have the least latency for data reported in TM
+  2 is "safer" but has variable latency.
+  1 is the strategy I will adopt at first
+  Would be useful to know what kind of latency we're looking at
+  between the time of a request and when the data actually comes
+  through. Perhaps I could develop a benchmark. Use clock() which
+  apparently gives millisecond resolution
+  
+  OMS suggests that interrupt-driven I/O is the best approach in
+  a multi-tasking OS. Again, it isn't clear what the tradeoffs
+  are: If you interrupt on every character in or out, but the
+  turn-around time is very small, the interrupt overhead is
+  actually greater... Again, do the benchmark!
+  
+  Benchmarking: {
+	Q: How long does it take to output a string to the board?
+	A: Create a loop and count the number of iterations through
+	the loop. When completed, report number of iterations/chars.
+	
+	Q: How long does it take to get a response to a query under
+	various conditions?
+	A: Again, simply counting iterations in the polling loop
+	would go a long way toward deciding the issue.
+  }
+}
+
+Standard Client/Server {
+  char *oms_read(char *cmd)
+  oms_write(char *cmd)
+  oms_quit()
+}
