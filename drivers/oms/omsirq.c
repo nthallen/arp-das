@@ -1,7 +1,6 @@
-#include <conio.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <sys/kernel.h>
+#include <hw/inout.h>
 #include "omsint.h"
 
 static readreq *current_req;
@@ -12,6 +11,7 @@ charqueue *output_queue;
 volatile int tbe_enabled = 0;
 volatile int irq_seen = 0;
 volatile int irq_still_asserted = 0;
+extern int handle_char( char c );
 
 /*
   I cannot find an interrupt reset in the OMS documentation,
@@ -22,19 +22,19 @@ volatile int irq_still_asserted = 0;
 void service_int( void ) {
   irq_seen = 1;
   for (;;) {
-    unsigned char status = inp(PC68_STATUS);
+    unsigned char status = in8(PC68_STATUS);
     if ( (status & PC68_INIT_S) == 0 ) {
       if (status & PC68_IBF_S ) {
-	int c = inp( PC68_DATA );
+	int c = in8( PC68_DATA );
 	if ( handle_char(c) ) handle_recv_data();
       } else if ( tbe_enabled && ( status & PC68_TBE_S ) ) {
 	int c = dequeue_char( output_queue );
 	if ( c ) {
-	  outp( PC68_DATA, c );
+	  out8( PC68_DATA, c );
 	} else {
 	  /* disable TBE Interrupt, leave IRQ_E and IBF_E */
 	  tbe_enabled = 0;
-	  outp( PC68_CONTROL, 0xA0 );
+	  out8( PC68_CONTROL, 0xA0 );
 	}
       } else {
 	if ( status & PC68_IRQ_S ) irq_still_asserted++;
@@ -193,13 +193,10 @@ int enqueue_char( charqueue *queue, char qchar ) {
   queue->buf[queue->tail] = qchar;
   queue->tail = next;
   if ( ! tbe_enabled ) {
-    int rv;
     /* _disable(); */
-    outp( PC68_CONTROL, 0xE0 ); /* enable TBE interrupt */
+    out8( PC68_CONTROL, 0xE0 ); /* enable TBE interrupt */
     tbe_enabled = 1;
-    rv = service_int();
-    /* _enable(); */
-    if ( rv ) Trigger(rv);
+    service_int();
   }
   return 0;
 }

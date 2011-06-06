@@ -1,0 +1,17 @@
+<package> omsdrv
+<include> msg
+<include> "omsint.h"
+<follow> msg
+<opts> "i:"
+<sort>
+	-i Specify IRQ used by the PC68 board
+<unsort>
+<blank>
+Driver for Oregon Micro Systems PC68 Motor Controller Board.
+<blank>
+<init>
+	oms_init_options( argc, argv );
+
+<package> msghdr_init
+<init>
+  msg_hdr = "OMS";

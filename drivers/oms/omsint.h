@@ -1,5 +1,5 @@
 #include <sys/types.h>
-#include "collect.h";
+#include "collect.h"
 
 #define PC68_BASE 0x320
 #define PC68_DATA PC68_BASE
