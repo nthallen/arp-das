@@ -1,6 +1,12 @@
-/* Variable.cc
-  Support routines for the Variable tab
-  */
+/** \file Variable.cc
+ * Support routines for the Variable tab
+ *
+ * I should probably impose some arbitrary limits on name length.
+ * Overall length should be less than 80.
+ * Individual node length should not exceed 40.
+ * Number of nodes in a name should not exceed 6.
+ * Return non-zero on error.
+ */
 #include <ctype.h>
 #include <math.h>
 #include "ablibs.h"
@@ -8,6 +14,9 @@
 #include "abimport.h"
 #include "nl_assert.h"
 
+/**
+ * The root for the Variable directory.
+ */
 RTG_Variable *RTG_Variable::Root;
 
 RTG_Variable_Range::RTG_Variable_Range() {
@@ -36,7 +45,8 @@ void RTG_Variable_Range::update(RTG_Variable_Range &R ) {
     update(R.min, R.max);
 }
 
-/* Changed sets the current range to that of the input
+/**
+ * RTG_Variable_Range::changed sets the current range to that of the input
  * and returns true if this represents a change
  */
 bool RTG_Variable_Range::changed(RTG_Variable_Range &R ) {
@@ -122,7 +132,9 @@ bool RTG_Variable::reload_all() {
   return false;
 }
 
-// This is the Pt_CB_TREE_SELECTION callback for the Variables Tab
+/**
+ * This is the Pt_CB_TREE_SELECTION callback for the Variables Tab
+ */
 int RTG_Variable::TreeSelected( PtWidget_t *widget, ApInfo_t *apinfo,
 		PtCallbackInfo_t *cbinfo ) {
   if ( cbinfo->reason_subtype == Pt_LIST_SELECTION_FINAL ) {
@@ -181,16 +193,10 @@ bool RTG_Variable_Node::reload() {
   return false;
 }
 
-/*
- * I should probably impose some arbitrary limits on name length
- * Overall length should be less than 80
- * Individual node length should not exceed 40
- * Number of nodes in a name should not exceed 6
- * Return non-zero on error
-*/
 #define MAX_VAR_LENGTH 80
 #define MAX_VAR_NODE_LENGTH 40
 #define MAX_VAR_NODES 6
+
 int RTG_Variable::Find_Insert( char *name, RTG_Variable_Node *&parent,
     RTG_Variable *&sib, RTG_Variable *&node, char *&last_node_text ) {
   // Check name for valid syntax
@@ -381,7 +387,8 @@ vector_t RTG_Variable_Matrix::y_vector(unsigned col) {
   return data.mdata[col];
 }
 
-/* what should I do if there is no data?
+/**
+ * What should I do if there is no data?
  * I can set the range to [0], but we really need to mark
  * the line as invisible.
  */
@@ -431,7 +438,9 @@ RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in, RTG_Variable_Node *pare
   update_ancestry(parent_in, sib);
 }
 
-// If range is empty returns i_min > i_max
+/**
+ * If range is empty returns i_min > i_max
+ */
 void RTG_Variable_MLF::xrow_range(scalar_t x_min, scalar_t x_max,
         unsigned &i_min, unsigned &i_max) {
   if (x_max < 0 || x_max < x_min || nrows == 0) {

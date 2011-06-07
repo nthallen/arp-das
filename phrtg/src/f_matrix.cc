@@ -1,3 +1,5 @@
+/** \file f_matrix.cc
+ */
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>

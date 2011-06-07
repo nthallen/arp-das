@@ -1,5 +1,6 @@
-/* phrtg_config.cc       */
-/* Configuration Support */
+/** \file phrtg_config.cc
+ * Configuration Support
+ */
 
 /* Standard headers */
 #include <stdio.h>

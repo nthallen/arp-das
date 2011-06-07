@@ -1,6 +1,6 @@
-/* line.cc
-  Support routines for axes
-  */
+/** \file line.cc
+ * Support routines for axes
+ */
 #include <ctype.h>
 #include "ablibs.h"
 #include "phrtg.h"

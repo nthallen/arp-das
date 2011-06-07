@@ -1,3 +1,5 @@
+/** \file f_matrix.h
+ */
 #ifndef F_MATRIX_H_INCLUDED
 #define F_MATRIX_H_INCLUDED
 #include <stdio.h>

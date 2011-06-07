@@ -1,4 +1,4 @@
-/* Derived.cc
+/** \file Derived.cc
  * Handles RTG_Variable_Detrend and maybe RTG_Variable_FFT
  */
 #include <ctype.h>

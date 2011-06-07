@@ -1,6 +1,6 @@
-/* figure.cc
-  Support routines for the Figure module
-  */
+/** \file figure.cc
+ * Support routines for the Figure module
+ */
 #include <ctype.h>
 #include "ablibs.h"
 #include "phrtg.h"

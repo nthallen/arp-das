@@ -1,4 +1,4 @@
-/* callbacks.cc
+/** \file callbacks.cc
  * Another location for static callback functions.
  */
 #include <ctype.h>

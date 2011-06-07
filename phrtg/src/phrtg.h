@@ -1,4 +1,6 @@
-/* Header "phrtg.h" for phrtg Application */
+/** \file phrtg.h
+ * Main Header for phrtg Application
+ */
 #ifndef PHRTG_H_INCLUDED
 #define PHRTG_H_INCLUDED
 #include "nortlib.h"

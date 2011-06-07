@@ -1,6 +1,6 @@
-/* plot_obj.cc
-  Support routines for the plot_obj virtual base class
-  */
+/** \file plot_obj.cc
+ * Support routines for the plot_obj virtual base class
+ */
 #include <ctype.h>
 #include "ablibs.h"
 #include "phrtg.h"

@@ -1,3 +1,5 @@
+/** \file phrtg_config.h
+ */
 #ifndef PHRTG_CONFIG_H_
 #define PHRTG_CONFIG_H_
 

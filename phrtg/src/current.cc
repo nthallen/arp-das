@@ -1,6 +1,6 @@
-/* current.cc
-  Support routines for the Current object
-  */
+/** \file current.cc
+ * Support routines for the Current object
+ */
 #include <ctype.h>
 #include "ablibs.h"
 #include "phrtg.h"

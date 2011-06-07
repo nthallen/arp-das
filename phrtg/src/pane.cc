@@ -1,6 +1,6 @@
-/* pane.cc
-  Support routines for the plot_pane module
-  */
+/** \file pane.cc
+ * Support routines for the plot_pane module
+ */
 #include <ctype.h>
 #include "ablibs.h"
 #include "phrtg.h"
