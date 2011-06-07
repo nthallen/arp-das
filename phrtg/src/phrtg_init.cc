@@ -1,7 +1,4 @@
-/** \file phrtg_init.cc
- * Photon AppBuilder generated code, and then some.
- */
-
+/* Y o u r   D e s c r i p t i o n                       */
 /*                            AppBuilder Photon Code Lib */
 /*                                         Version 2.03  */
 
