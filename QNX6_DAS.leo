@@ -11,8 +11,8 @@
 <vnodes>
 <v t="ntallen.20091104124904.1987"><vh>@chapters</vh></v>
 <v t="ntallen.20070319130904" a="E"><vh>QNX6 Data Acquisition Architecture</vh>
-<v t="ntallen.20110216082835.2101" a="E"><vh>Todo</vh>
-<v t="ntallen.20110216082835.2102" a="E"><vh>Switch DCCC to res mgr</vh>
+<v t="ntallen.20110216082835.2101"><vh>Todo</vh>
+<v t="ntallen.20110216082835.2102"><vh>Switch DCCC to res mgr</vh>
 <v t="ntallen.20110216082835.2103"><vh>done: Cmdgen: define new syntax</vh>
 <v t="ntallen.20110215130743.2097"><vh>Server writing commands to driver</vh></v>
 <v t="ntallen.20110216082835.2110"><vh>Server writing data to collection</vh></v>
@@ -25,9 +25,9 @@
 <v t="ntallen.20110218102714.2119"><vh>done: subbusd</vh></v>
 </v>
 </v>
-<v t="ntallen.20070815151915" a="E"><vh>Status</vh>
+<v t="ntallen.20070815151915"><vh>Status</vh>
 <v t="ntallen.20080729145409"><vh>Overview</vh></v>
-<v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
+<v t="ntallen.20071127160602"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
 <v t="ntallen.20090225110248"><vh>Install 6.4.0</vh></v>
@@ -36,7 +36,7 @@
 <v t="ntallen.20090911120219"><vh>phrtg compile hacks</vh></v>
 <v t="ntallen.20090930220540"><vh>Eli 4.6.1 CVS</vh></v>
 </v>
-<v t="ntallen.20100723121747.2023" a="E"><vh>Install 6.5.0</vh>
+<v t="ntallen.20100723121747.2023"><vh>Install 6.5.0</vh>
 <v t="ntallen.20101124082052.2043"><vh>C++ Compile issue</vh></v>
 </v>
 <v t="ntallen.20101129134921.2045"><vh>Eli</vh></v>
@@ -387,9 +387,15 @@
 </v>
 </v>
 </v>
+<v t="ntallen.20110421132300.2127"><vh>Data Management</vh>
+<v t="ntallen.20110421132300.2128"><vh>The Need</vh></v>
+<v t="ntallen.20110421132300.2129"><vh>Operations</vh></v>
+<v t="ntallen.20110421132300.2131"><vh>Queries</vh></v>
+<v t="ntallen.20110421132300.2130"><vh>Information to maintain</vh></v>
 </v>
-<v t="ntallen.20070404221945.3"><vh>Graphics</vh>
-<v t="ntallen.20090203160910"><vh>PhRTG</vh>
+</v>
+<v t="ntallen.20070404221945.3" a="E"><vh>Graphics</vh>
+<v t="ntallen.20090203160910" a="E"><vh>PhRTG</vh>
 <v t="ntallen.20090316133552"><vh>Bugs</vh>
 <v t="ntallen.20090422104622"><vh>Marking line visible does not redraw...</vh></v>
 <v t="ntallen.20090316133552.1"><vh>Resolved: Divider Issue</vh></v>
@@ -428,11 +434,26 @@
 </v>
 </v>
 </v>
-<v t="ntallen.20090203160910.1"><vh>Object hierarchy</vh>
+<v t="ntallen.20090203160910.1" a="E"><vh>Object hierarchy</vh>
 <v t="ntallen.20090514140929"><vh>Rendering flags</vh></v>
 <v t="ntallen.20090515141753"><vh>Rendering drill</vh></v>
-<v t="ntallen.20090401102408.1"><vh>plot_obj</vh></v>
-<v t="ntallen.20090218163512"><vh>Variable</vh>
+<v t="ntallen.20090401102408.1" a="E"><vh>plot_obj</vh>
+<v t="ntallen.20090218163512.1" a="E"><vh>plot_graph</vh>
+<v t="ntallen.20090219084511.4"><vh>plot_graph Properties</vh></v>
+</v>
+</v>
+<v t="ntallen.20090218163512" a="E"><vh>RTG_Variable</vh>
+<v t="ntallen.20110609114734.2138"><vh>RTG_Variable_Node</vh></v>
+<v t="ntallen.20110609114734.2137" a="E"><vh>RTG_Variable_Data</vh>
+<v t="ntallen.20110609114734.2139" a="E"><vh>RTG_Variable_Matrix</vh>
+<v t="ntallen.20110609114734.2140"><vh>RTG_Variable_MLF</vh></v>
+<v t="ntallen.20110609114734.2141" a="E"><vh>RTG_Variable_Derived</vh>
+<v t="ntallen.20110609114734.2144"><vh>Strategies when using GUI to derive</vh></v>
+<v t="ntallen.20110609114734.2142"><vh>RTG_Variable_Detrend</vh></v>
+<v t="ntallen.20110609114734.2143"><vh>RTG_Variable_PSD</vh></v>
+</v>
+</v>
+</v>
 <v t="ntallen.20090204093154"><vh>Data Feed</vh></v>
 <v t="ntallen.20090226163758"><vh>Operation</vh></v>
 <v t="ntallen.20090403102636"><vh>Trends</vh></v>
@@ -447,10 +468,7 @@
 <v t="ntallen.20090203160910.2"><vh>Axes scenarios</vh></v>
 <v t="ntallen.20090219084511.3"><vh>Axis properties</vh></v>
 </v>
-<v t="ntallen.20090218163512.1"><vh>Data</vh>
-<v t="ntallen.20090219084511.4"><vh>Data Properties</vh></v>
-</v>
-<v t="ntallen.20090218164400.1"><vh>Line</vh>
+<v t="ntallen.20090218164400.1" a="E"><vh>Line</vh>
 <v t="ntallen.20090219084511.5"><vh>Line Properties</vh></v>
 </v>
 </v>
@@ -581,7 +599,7 @@
 <v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
 <v t="ntallen.20070817133522.3"><vh>QNX6</vh>
-<v t="ntallen.20071127160602" a="E"></v>
+<v t="ntallen.20071127160602"></v>
 <v t="ntallen.20110102095209.2061"><vh>cmdgen</vh></v>
 <v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
 <v t="ntallen.20080716155154.1"><vh>DG.h</vh>
@@ -2650,11 +2668,10 @@ int RTG_Variable::Find_Insert( const char *name, RTG_Variable *parent&amp;, RTG_
         An internal node of name conflicts with an existing variable
         The variable name conflicts with an existing internal node
 </t>
-<t tx="ntallen.20090218163512.1">Data associates variable data with axes.
-The prototype implementation stores the data in the line object.
+<t tx="ntallen.20090218163512.1">Graph associates variable data with axes.
 The new implementation will store the data in variable objects.
-The data object will provide the mapping between the variables and the axes.
-One variable can be displayed in one or more data objects in one or more axes.
+The plot_graph object will provide the mapping between the variables and the axes.
+One variable can be displayed in one or more plot_graph objects in one or more axes.
 
 The simplest data objects will display a single variable using the variable's x-coordinate.
     Updates to the variable will trigger updates to the data object.
@@ -4645,5 +4662,153 @@ The simplest implementation of this interface will not define a class at all.
 It will output #include "subbus.h" at the definition and subbus_quit() in the
 shutdown list.
 </t>
+<t tx="ntallen.20110421132300.2127"></t>
+<t tx="ntallen.20110421132300.2128">Raw data is maintained in runs. Each run is categorized as one of junk, data, cal, preflight or flight data.
+Runs are fingerprinted, copied off of instrument data systems and distributed to various archives.
+The challenge is in keeping track of where each run is stored and when data can safely be deleted.
+
+Ideally, we would maintain a database of runs and archive locations. This is complicated by
+the need have the information handy when disconnected from the network. That means the database needs to be
+cached locally with any updates queued for application when reconnected to the net.</t>
+<t tx="ntallen.20110421132300.2129">saverun: creation of a run. Good time to assess the size of the run, copy the saverun.log, etc.
+reduce/copy: creating a copy of the run
+backup: note that a particular site has been backed up
+verify: verify a copy of a run via dircksum: results should be reported to database
+delete: free up space
+
+
+</t>
+<t tx="ntallen.20110421132300.2130">Experiment:
+    Exp_ID: #
+    Exp_Mnc: HWV
+    Exp_Desc:
+    
+Run:
+    Run_ID: #
+    Run: YYMMDD.RRR
+    Run_Date: date
+    Exp_ID: #
+    Type: Junk/Data/Cal/Preflight/Flight
+    Size: KB
+    Log: (contents of saverun.log)
+    Dircksum: y/n
+    
+Location:
+    Loc_ID: #
+    Loc_Name:
+    Loc_Desc:
+
+Repository:
+    Repo_ID: #
+    Repo_Name: hwvgse, hwv, fldqnx6, bottesini, cd
+    Repo_Type: disk/CD/server
+    Loc_ID: #
+
+Copy:
+    Copy_ID: #
+    Run_ID: #
+    Loc_ID: #
+    Copy_Date: date
+    Verify_Date: date
+</t>
+<t tx="ntallen.20110421132300.2131">List runs on hwv that have not been copied
+List runs on hwv with more than 2 copies, sorting by size or n_copies
+</t>
+<t tx="ntallen.20110609114734.2137"></t>
+<t tx="ntallen.20110609114734.2138"></t>
+<t tx="ntallen.20110609114734.2139"></t>
+<t tx="ntallen.20110609114734.2140"></t>
+<t tx="ntallen.20110609114734.2141"></t>
+<t tx="ntallen.20110609114734.2142"></t>
+<t tx="ntallen.20110609114734.2143"></t>
+<t tx="ntallen.20110609114734.2144">Checking "detrend" marks every graph on the axes to be detrended:
+    Mark axis as detrended
+    For each graph:
+        Create a derived variable with the current var as source
+        Point graph to the derived variable
+        Remove the graph from the source var's list of graphs
+        Add the graph to the derived var's list of graphs
+
+This means the source variable itself is no longer being graphed.
+This is a shorthand. I have not created a new plot_graph or new plot_lines,
+and I have not changed the name of the line, graph, axes, pane or figure.
+
+If I now add a new variable to the axes, what happens?
+    Right now it comes in undetrended, even though the axes are checked
+    as detrended. If I undetrend, the new var is not affected. The old
+    one is undetrended. Then checking detrend detrends both vars.
+    
+    Other possibilities:
+        We now have a mixed graph, so clear the detrend checkbox
+        and rename the previously detrended graphs accordingly
+        
+        Always rename graphs when deriving. Provide logic to go both
+        directions (derive and underive) (or just store the underived
+        name when generating the derived name). If all graphs reference
+        variables of the same derived type (e.g. Var_Detrend) then
+        check that box.
+        
+        But do I rename the lines as well as the graph?
+            Currently, there is no means to manually change the graph name,
+            It is the name of the source variable.
+            We can manually rename the individual lines.
+            So if we perform a derivation, we could:
+                derive new name for the variable
+                derive new names for the lines based on the old names
+            If we underive, then what?
+                We could cache the original name, but we'd need a stack
+                in the event of multiple derivations:
+                    Plot SSP(:,1:3)
+                    Limit x range to SSP(50:1000,1:3)
+                    rename first line to bkgrnd
+                    Detrend: rename graph to detrend(SSP(50:1000,:))
+                    rename lines to detrend(SSP(50:1000,1))
+                    and detrend(bkgrnd)
+                    rename first line to det_bkgrnd
+                    Undetrend:
+                        should be able to canonically rename graph
+                        should be able to canonically rename lines
+                          unless renamed manually
+                        If canonical rename fails, just keep the current name.
+        
+        When stacking derivations, follow the same logic:
+            check detrend: detrend box checked
+            check psd: psd box checked, detrend box unchecked
+            check detrend would then go one deeper
+            unchecking psd would pop back to the detrended plot,
+            and hence mark the axes as detrended.
+
+The fact that the plot_line objects remain means the idea of constraining the detrend in both row and column
+might need to be reworked. In that case, the instead of swapping variables, we might want to swap graphs.
+In other words:
+    
+Checking "detrend" marks every graph on the axes to be detrended:
+    Mark axis as detrended
+    For each graph:
+        Create a derived variable with the current var as source
+        Create a derived graph pointing to the derived var
+        Remove the graph from the plot_axes' list of graphs
+        Add the derived graph to the plot_axes' list of graphs
+        Where do I find the old graph? It would have to be saved in the
+          derived graph, but I'd also have to deal with the case where
+          a derived variable is graphed off of the variable tab. In that
+          case, there would be no original graph, so when undetrending,
+          the new graph would have to be created.
+
+Alternately, create a new plot_graph for the derived plot and delete the old.
+Reverse the process on undetrend. This allows us to recover the space required
+for the line and widget objects.
+
+This may be unnecessary work, since the derivation should only be performed
+on visible columns, so although some memory is used, no extra processing
+is required. But the choice of implementations can depend on the derivation.
+
+Summary:
+    
+When adding or subtracting graphs from axes, re-evaluate detrend status (and status of all other derivations).
+Probably don't need to explicitly invoke plot_axes::Update_Axis_Pane(), because that will be handled by
+got_focus(), which is called after the graph is created or destroyed.
+
+Open question: should I rename graphs and lines when performing a derivation? If so, how?</t>
 </tnodes>
 </leo_file>

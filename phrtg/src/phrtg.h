@@ -68,6 +68,11 @@ class RTG_Variable {
     bool isnprint_path(char *&dest, int &n);
 };
 
+/**
+ * RTG_Variable_Node represents an internal node in the tree structure
+ * displayed on the Variable tab. It does not have any data associated
+ * with it, but it's descencdents do.
+ */
 class RTG_Variable_Node : public RTG_Variable {
   public:
     RTG_Variable_Node(const char *name, RTG_Variable_Node *parent_in, RTG_Variable *sib );
@@ -80,6 +85,12 @@ class RTG_Variable_Node : public RTG_Variable {
     RTG_Variable *First;
 };
 
+/**
+ * RTG_Variable_Data is the virtual base class for leaf nodes in the
+ * tree displayed on the Variable tab. The only current implementation
+ * is RTG_Variable_Matrix, but I expect RTG_Variable_Trend to be
+ * another inheritor.
+ */
 class RTG_Variable_Data : public RTG_Variable {
   public:
     bool new_data_available;

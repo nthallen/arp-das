@@ -93,7 +93,7 @@ vector_t RTG_Variable_Detrend::y_vector(unsigned col) {
   return data.mdata[col+1];
 }
 
-/*
+/**
  * Detrend maps directly onto a subset of the Source range, so
  * we can call the source's xrow_range and offset by i_min.
  */
@@ -113,7 +113,8 @@ void RTG_Variable_Detrend::xrow_range(scalar_t x_min, scalar_t x_max,
   }
 }
 
-/* Creates a variable named:
+/**
+ * Creates a variable named:
  *   /Detrend/<var>/Xn
  * Where Xn is X1, X2, ... and corresponds to possible X ranges
  */

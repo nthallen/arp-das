@@ -330,6 +330,12 @@ bool RTG_Variable_Data::check_for_updates() {
   return reload_required;
 }
 
+/**
+ * If reload_required, invokes reload_data() to do then work,
+ * then marks all graphs as having new data and marks all
+ * derivatives as requiring a reload. Ends by invoking reload()
+ * on the next sibling.
+ */
 bool RTG_Variable_Data::reload() {
   if ( reload_required && reload_data() ) {
     reload_required = false;

@@ -570,6 +570,7 @@ WARN_LOGFILE           =
 
 INPUT = displib/src subbus_2010/lib subbus_2010/subbusd subbus_2010/subbusd/syscon104
 INPUT += tmlib/src tmpplib/src tmphlib/src
+INPUT += TMbfr/resmgr
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is

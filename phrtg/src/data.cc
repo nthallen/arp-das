@@ -77,7 +77,7 @@ bool plot_graph::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) 
   return false;
 }
 
-/* Like all render operations, this should accomplish a single
+/** Like all render operations, this should accomplish a single
  * non-trivial task and return true, or determined that nothing
  * needs to be done and return false.
  */
@@ -105,10 +105,12 @@ plot_obj *plot_graph::default_child() {
   else return lines[0];
 }
 
-/* Visibility Strategy:
- *   Basically leave it up to the lines.
- * Update Strategy:
- *   Only check variables if lines are visible.
+/**
+  Visibility Strategy:
+    - Basically leave it up to the lines.
+    
+  Update Strategy:
+    - Only check variables if lines are visible.
  */
 bool plot_graph::check_for_updates(bool parent_visibility) {
   std::vector<plot_line*>::const_iterator pos;
