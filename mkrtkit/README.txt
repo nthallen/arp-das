@@ -39,13 +39,11 @@ from that directory that should be included in one or more packages.
 UPDATE STRATEGY
 
 Run mkrtkit_chkconfs
-  Makes sure any new files have been added to appropriate MANIFESTS
-  Makes sure all files in MANIFESTs come from source files
-  Makes sure there are no conflicts
+  Makes sure any new files have been added to appropriate MANIFESTS.
+  This test currently is run against the installed package MANIFESTS,
+  but this should be changed to run against the source MANIFESTS.
 
 Run chkpkgs
-  Currently just checks that all the files listed in MANIFEST files
-  exist. Need to add these version checks.
   Read Header to determine Version, list of MANIFESTS
   If current version is installed, compare MANIFESTS with installed
   MANIFESTS and check the modify time of listed files against the
@@ -53,8 +51,8 @@ Run chkpkgs
   stop comparing.
   Check MANIFESTS to make sure all listed files exist
 Run install
-  Install should not overwrite an installation
-  Install should create the tar.gz file
+  Install will not overwrite an installation
+  Install will create the tar.gz file
 
 An archive needs to be rebuilt if:
   a) The version number has changed (the archive does not exist)
@@ -87,3 +85,39 @@ do not include any of their own files (no MANIFESTs), just
 identify other packages that are required. In this case (only)
 the version should be bumped if any of the required packages
 has been updated. mkrtkitarch should be responsible for that.
+
+UPDATING ANOTHER NODE
+
+Now that we have the latest archives, how do we update?
+  Look through /var/huarp/pkg to see what packages are installed
+  Check against reference node to see if new versions are available
+  If so, remove old version(s) and install new version
+    Remove: Go through MANIFESTs
+      For each file and line, remove
+      For dirs, remove in reverse order only if empty
+    Install: just unpack the new archive
+
+  Look through /var/huarp/pkg, sorting by package and version
+  Determine latest version of each package
+  Compare to available archives on reference node
+  If update exists
+    Remove old versions
+    Install new version
+
+  Should also check package dependencies. It is possible that
+  a new version of an existing package (e.g. gse) might reference
+  a new package. That means we should build a dependency tree.
+  That may be overkill. Just need to check dependencies for each
+  installed package and install any missing packages. Rinse and
+  repeat.
+
+  Should also check package dependencies. It is possible that
+  a new version of an existing package (e.g. gse) might reference
+  a new package. That means we should build a dependency tree.
+  That may be overkill. Just need to check dependencies for each
+  installed package and install any missing packages. Rinse and
+  repeat.
+
+  If I skip the remove step for now and leave the old configuration
+  information, I can always clean up the installation at a later
+  date.

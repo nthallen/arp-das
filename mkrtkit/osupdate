@@ -1,0 +1,140 @@
+#! /usr/bin/perl -w
+use strict;
+
+# Usage:
+#   osupdate
+#     update the current node against the reference node
+#   osupdate nodename
+#     update the specified node against the reference node
+
+
+# Look through /var/huarp/pkg to see what packages are installed,
+# sorting by package and version.
+# Look through /net/$ref/var/huarp/pkgcache to see what packages
+# are available, sorting by package and version
+
+# For each installed package, check to see if a newer version
+# is available. If so, remove all the old versions and install
+# the new version.
+if ( $> != 0 ) {
+  exec 'sudo', $0, @ARGV;
+  die "exec sudo failed\n";
+}
+
+my $node;
+my $npath = '';
+if ( @ARGV ) {
+  $node = shift @ARGV;
+  $npath = "/net/$node";
+}
+
+my $refnode = 'nortvm650';
+my $cache = "/net/$refnode/var/huarp/pkgcache";
+
+my @pkgs;
+my %pkg;
+my $pkgdir = "$npath/var/huarp/pkg";
+chdir $pkgdir || die "Cannot chdir $pkgdir\n";
+for my $pkg ( <*> ) {
+  my $pp = pkg_check($pkg, $pkgdir);
+  if ( ! defined $pkg{$pp->{root}} ) {
+    $pkg{$pp->{root}} = [];
+    push @pkgs, $pp->{root};
+  }
+  push @{$pkg{$pp->{root}}}, $pp;
+}
+for my $pkg ( sort @pkgs ) {
+  $pkg{$pkg} = [ sort { ver_comp($b,$a); } @{$pkg{$pkg}} ];
+}
+
+# Now check for available packages
+my @avpkgs;
+my %avpkg;
+chdir $cache ||
+  die "Cannot chdir $cache\n";
+for my $pkg ( <*> ) {
+  $pkg =~ s/\.tar\.gz$//;
+  my $pp = pkg_check($pkg, $cache);
+  if ( ! defined $avpkg{$pp->{root}} ) {
+    $avpkg{$pp->{root}} = [];
+    push @avpkgs, $pp->{root};
+  }
+  push @{$avpkg{$pp->{root}}}, $pp;
+}
+for my $pkg ( sort @avpkgs ) {
+  $avpkg{$pkg} = [ sort { ver_comp($b,$a); } @{$avpkg{$pkg}} ];
+}
+
+# Now for each installed package, check to see if there is
+# a newer available package.
+for my $pkg ( sort @pkgs ) {
+  if ( ! defined $avpkg{$pkg} ) {
+    warn "No archives available for package $pkg\n";
+  } else {
+    my $inst = $pkg{$pkg}->[0];
+    my $avail = $avpkg{$pkg}->[0];
+    if ( ver_comp( $inst, $avail ) < 0 ) {
+      print "Upgrading ", ver_print($inst), " to ",
+	    ver_print($avail), "\n";
+      while ( @{$pkg{$pkg}} ) {
+	uninstall( $npath, pop @{$pkg{$pkg}} );
+      }
+      install( $npath, $avail );
+    }
+  }
+}
+
+
+sub uninstall {
+  my ( $npath, $pp ) = @_;
+  print "  [Uninstalling ", ver_print($pp), " from $npath/]\n";
+}
+
+sub install {
+  my ( $npath, $pp ) = @_;
+  print "  Installing ", ver_print($pp), " to $npath/\n";
+  my $archive = "$cache/" . ver_print($pp) . ".tar.gz";
+  -f $archive || die "Archive $archive not found\n";
+  chdir "$npath/" || die "Cannot chdir $npath/\n";
+  system( "tar -xzf $archive" ) &&
+    die "Error from tar -xzf $archive\n";
+}
+
+sub pkg_check {
+  my ( $pkg, $src ) = @_;
+  if ( $pkg =~ m/^(\w+)(?:-(\d+(?:\.\d+)*))?$/ ) {
+    my $root = $1;
+    my @ver;
+    @ver = split( /\./, $2 ) if $2;
+    return { root => $root, ver => \@ver, src => $src };
+  } else {
+    die "Invalid package reference: '$pkg' from $src\n";
+  }
+}
+
+sub ver_comp {
+  # I am going with slow so I can call this function
+  # outside sort.
+  my ( $a, $b ) = @_;
+  my $i = 0;
+  my $va = $a->{ver};
+  my $vb = $b->{ver};
+  for ( my $i = 0; ; ++$i ) {
+    if ( $i >= @$va ) {
+      if ( $i >= @$vb ) {
+        return 0;
+      } else {
+        return -1;
+      }
+    } elsif ( $i >= @$vb ) {
+      return 1;
+    }
+    my $rv = $va->[$i] <=> $vb->[$i];
+    return $rv if $rv;
+  }
+}
+
+sub ver_print {
+  my $a = shift;
+  return $a->{root} . '-' . join '.', @{$a->{ver}};
+}

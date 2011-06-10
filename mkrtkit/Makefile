@@ -1,6 +1,14 @@
 # QNX6/mkrtkit
 # This directory contains scripts for building runtime install CDs
-SBIN=mkrtkit mkrtkitarch
+
+# make install-progs
+#   Just update the programs
+# make install-pkgs
+#   Test and install current packages
+# make install
+#   Do both
+
+SBIN=mkrtkit mkrtkitarch osupdate
 DATA=rtinstall
 OSDATA=
 INSTALL=cp -vn

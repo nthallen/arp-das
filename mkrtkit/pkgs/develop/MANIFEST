@@ -83,6 +83,7 @@ usr/local/sbin/pkg_copy
 usr/local/sbin/sec_copy
 usr/local/sbin/mkrtkit
 usr/local/sbin/mkrtkitarch
+usr/local/sbin/osupdate
 usr/local/sbin/pkg2pkg
 usr/local/share/huarp/Makefile.pm
 usr/local/share/huarp/rtinstall
