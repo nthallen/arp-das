@@ -51,8 +51,8 @@ class RTG_Variable {
     bool snprint_path(char *dest, int n);
     virtual bool reload() = 0;
 
-    static int Find_Insert( char *name, RTG_Variable_Node *&parent,
-        RTG_Variable *&sib, RTG_Variable *&node, char *&lastnode_text );
+    static int Find_Insert( const char *name, RTG_Variable_Node *&parent,
+        RTG_Variable *&sib, RTG_Variable *&node, const char *&lastnode_text );
     static int TreeSelected( PtWidget_t *widget,
       ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo );
     static bool reload_all();
@@ -135,7 +135,7 @@ class RTG_Variable_MLF : public RTG_Variable_Matrix {
             unsigned &i_min, unsigned &i_max);
 
     static void set_default_path(const char *path_in);
-    static void Incoming( char *name, unsigned long index );
+    static void Incoming( const char *name, unsigned long index );
   private:
     static char *default_path;
     mlf_def_t *mlf;

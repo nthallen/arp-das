@@ -197,14 +197,18 @@ bool RTG_Variable_Node::reload() {
 #define MAX_VAR_NODE_LENGTH 40
 #define MAX_VAR_NODES 6
 
-int RTG_Variable::Find_Insert( char *name, RTG_Variable_Node *&parent,
-    RTG_Variable *&sib, RTG_Variable *&node, char *&last_node_text ) {
+int RTG_Variable::Find_Insert( const char *name, RTG_Variable_Node *&parent,
+    RTG_Variable *&sib, RTG_Variable *&node, const char *&last_node_text ) {
   // Check name for valid syntax
   int node_start[MAX_VAR_NODES];
   int node_len[MAX_VAR_NODES];
   int n_nodes = 0;
   int i = 0;
   
+  parent = NULL;
+  sib = NULL;
+  node = NULL;
+
   nl_assert( name != NULL );
   for (;;) {
     if ( n_nodes > MAX_VAR_NODES ) {
@@ -236,16 +240,17 @@ int RTG_Variable::Find_Insert( char *name, RTG_Variable_Node *&parent,
   }
   // Now the syntax checks out, so we can start the search.
   
-  parent = NULL;
-  sib = NULL;
-  node = NULL;
   
   for (i = 0; i < n_nodes; ++i ) {
-    name[node_start[i]+node_len[i]] = '\0';
-    char *node_name = &name[node_start[i]];
+    // name[node_start[i]+node_len[i]] = '\0';
+    const char *node_name = &name[node_start[i]];
     RTG_Variable *var;
-    for (var = parent ? parent->First : RTG_Variable::Root; var; var = var->Next ) {
-      int cmp = stricmp( node_name, var->name );
+    for (var = parent ? parent->First : RTG_Variable::Root;
+	 var;
+	 var = var->Next ) {
+      int cmp = strnicmp( node_name, var->name, node_len[i] );
+      if ( cmp == 0 && var->name[node_len[i]] != '\0' )
+	cmp = -1;
       if ( cmp == 0 ) {
         if ( i+1 == n_nodes ) {
           if ( var->type != Var_Node ) {
@@ -272,13 +277,16 @@ int RTG_Variable::Find_Insert( char *name, RTG_Variable_Node *&parent,
       node = NULL;
       sib = NULL;
     } else {
+      char newnodename[MAX_VAR_NODE_LENGTH+1];
       if ( i+1 == n_nodes ) {
         last_node_text = node_name;
         return 0;
       }
       // Create a new internal node here
+      strncpy(newnodename, node_name, node_len[i]);
+      newnodename[node_len[i]] = '\0';
       RTG_Variable_Node *newnode =
-        new RTG_Variable_Node(node_name, parent, sib);
+        new RTG_Variable_Node(newnodename, parent, sib);
       parent = newnode;
       sib = NULL;
     }
@@ -490,11 +498,11 @@ void RTG_Variable_MLF::set_default_path(const char *path) {
   default_path = strdup(path);
 }
 
-void RTG_Variable_MLF::Incoming( char *fullname, unsigned long index ) {
+void RTG_Variable_MLF::Incoming( const char *fullname, unsigned long index ) {
   RTG_Variable_Node *parent;
   RTG_Variable *sib, *node;
   RTG_Variable_MLF *mlf;
-  char *lastnode_text;
+  const char *lastnode_text;
   if ( Find_Insert( fullname, parent, sib, node, lastnode_text ) )
     return;
   if ( node ) {

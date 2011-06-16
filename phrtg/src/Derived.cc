@@ -123,7 +123,7 @@ RTG_Variable_Detrend *RTG_Variable_Detrend::Create( RTG_Variable_Data *src,
   RTG_Variable_Detrend *dt = NULL;
   RTG_Variable_Node *parent;
   RTG_Variable *sib, *node;
-  char *lastnode_text;
+  const char *lastnode_text;
   char fullname[80];
   strcpy(fullname, "Detrend/");
   int n = strlen(fullname);
