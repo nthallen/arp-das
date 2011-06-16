@@ -115,9 +115,8 @@ void RTG_Variable_Detrend::xrow_range(scalar_t x_min, scalar_t x_max,
 
 /**
  * Creates a variable named:
- *   /Detrend/<var>/Xn
- * Where Xn is X1, X2, ... and corresponds to possible X ranges
  *   DT(<var>,m,M)
+ * @return New detrened variable or NULL on error.
  */
 RTG_Variable_Detrend *RTG_Variable_Detrend::Create( RTG_Variable_Data *src,
     scalar_t min, scalar_t max ) {
@@ -125,33 +124,36 @@ RTG_Variable_Detrend *RTG_Variable_Detrend::Create( RTG_Variable_Data *src,
   RTG_Variable_Node *parent;
   RTG_Variable *sib, *node;
   const char *lastnode_text;
-  char fullname[80];
-  strcpy(fullname, "Detrend/");
-  int n = strlen(fullname);
-  if ( src->snprint_path(fullname+n, 80-n) ) {
-    nl_error(2, "Path overflow in Detrend::Create");
+  char fullname[MAX_VAR_LENGTH];
+  unsigned i_min, i_max;
+  int n, rc;
+
+  src->xrow_range(min, max, i_min, i_max);
+  if ( src->Parent != NULL ) {
+    if ( src->Parent->snprint_path( fullname, MAX_VAR_LENGTH) ) {
+      nl_error(2, "Path overflow in Detrend::Create");
+      return NULL;
+    }
+    n = strlen(fullname);
+    fullname[n++] = '/';
+  } else n = 0;
+
+  rc = snprintf(fullname+n, MAX_VAR_LENGTH-n, "DT(%s,%u,%u)",
+    src->name, i_min, i_max);
+  if ( n + rc >= MAX_VAR_LENGTH ) {
+    nl_error(2, "Path overflow in Detrend::Create [2]");
     return NULL;
   }
-  n = strlen(fullname);
-  for ( unsigned Xi = 0; dt == NULL; ++Xi) {
-    int rc = snprintf(fullname+n, 80-n, "/X%u", Xi);
-    if (n+rc >= 80) {
-      nl_error(2, "Path overflow in Detrend::Create [2]");
-      return NULL;
-    }
-    if ( Find_Insert( fullname, parent, sib, node, lastnode_text ) )
-      return NULL;
-    if ( node ) {
-      if ( node->type == Var_Detrend ) {
-        dt = (RTG_Variable_Detrend *)node;
-        if (dt->x_min != min || dt->x_max != max)
-          dt = NULL;
-      } else {
-        nl_error( 1, "Variable %s is not a detrend variable", fullname );
-      }
+  if ( Find_Insert( fullname, parent, sib, node, lastnode_text ) )
+    return NULL;
+  if ( node ) {
+    if ( node->type == Var_Detrend ) {
+      dt = (RTG_Variable_Detrend *)node;
     } else {
-      dt = new RTG_Variable_Detrend(src, lastnode_text, parent, sib, min, max);
+      nl_error( 1, "Variable %s is not a detrend variable", fullname );
     }
+  } else {
+    dt = new RTG_Variable_Detrend(src, lastnode_text, parent, sib, min, max);
   }
   return dt;
 }

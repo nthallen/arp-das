@@ -12,6 +12,10 @@
 #include <list>
 #include <vector>
 
+#define MAX_VAR_LENGTH 80
+#define MAX_VAR_NODE_LENGTH 40
+#define MAX_VAR_NODES 6
+
 class RTG_Variable_Node;
 class RTG_Variable_MLF;
 class RTG_Variable_Derived;
@@ -59,6 +63,7 @@ class RTG_Variable {
 
   friend class RTG_Variable_Node;
   friend class RTG_Variable_MLF;
+  friend class RTG_Variable_Detrend;
   protected:
     static RTG_Variable *Root;
     RTG_Variable_Node *Parent;
@@ -123,6 +128,16 @@ class RTG_Variable_Data : public RTG_Variable {
     virtual bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) = 0;
     virtual void evaluate_range(unsigned col, RTG_Variable_Range &X,
         RTG_Variable_Range &Y) = 0;
+
+    /**
+     * On exit, i_min and i_max are set to the sample
+     * numbers that best represent the specified X range.
+     * If the range is empty, i_min > i_max.
+     * @param x_min The minimum value of the X range
+     * @param x_max The maximum value of the X range
+     * @param i_min The minimum index for the X range
+     * @param i_max The maximum index for the X range
+     */
     virtual void xrow_range(scalar_t x_min, scalar_t x_max,
         unsigned &i_min, unsigned &i_max) = 0;
     virtual vector_t y_vector(unsigned col) = 0;
@@ -143,6 +158,16 @@ class RTG_Variable_MLF : public RTG_Variable_Matrix {
   public:
     RTG_Variable_MLF( const char *name_in, RTG_Variable_Node *parent_in, RTG_Variable *sib );
     bool reload_data();
+
+    /**
+     * On exit, i_min and i_max are set to the sample
+     * numbers that best represent the specified X range.
+     * If the range is empty, i_min > i_max.
+     * @param x_min The minimum value of the X range
+     * @param x_max The maximum value of the X range
+     * @param i_min The minimum index for the X range
+     * @param i_max The maximum index for the X range
+     */
     void xrow_range(scalar_t x_min, scalar_t x_max,
             unsigned &i_min, unsigned &i_max);
 

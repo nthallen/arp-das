@@ -77,7 +77,8 @@ int Color_Changed( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinf
 	return( Pt_CONTINUE );
 }
 
-/* This is only called from Update_Toggle() and so we can assume
+/**
+ * This is only called from Update_Toggle() and so we can assume
  * the po if non-NULL is a Current object. I will forgo the check
  * that the tab is active, because it is complicated in the X/Y
  * cases and more or less irrelevant.

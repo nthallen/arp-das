@@ -183,6 +183,7 @@ void RTG_Variable_Node::Remove_Child(RTG_Variable *child) {
         sib->Next = child->Next;
         break;
       }
+      sib = sib->Next;
     }
   }
 }
@@ -192,10 +193,6 @@ bool RTG_Variable_Node::reload() {
   if (Next) return Next->reload();
   return false;
 }
-
-#define MAX_VAR_LENGTH 80
-#define MAX_VAR_NODE_LENGTH 40
-#define MAX_VAR_NODES 6
 
 int RTG_Variable::Find_Insert( const char *name, RTG_Variable_Node *&parent,
     RTG_Variable *&sib, RTG_Variable *&node, const char *&last_node_text ) {
@@ -210,7 +207,7 @@ int RTG_Variable::Find_Insert( const char *name, RTG_Variable_Node *&parent,
   node = NULL;
 
   nl_assert( name != NULL );
-  for (;;) {
+  while (name[i]) {
     if ( n_nodes > MAX_VAR_NODES ) {
       nl_error( 2, "Variable name has too many nodes" );
       return 1;
@@ -220,18 +217,35 @@ int RTG_Variable::Find_Insert( const char *name, RTG_Variable_Node *&parent,
       nl_error( 2, "Variable node must begin with alpha" );
       return 1;
     }
-    while ( isalnum(name[i]) || name[i] == '_' ) ++i;
-    if (name[i] == '/' || name[i] == '\0') {
-      node_len[n_nodes] = i - node_start[n_nodes];
-      if (node_len[n_nodes] > MAX_VAR_NODE_LENGTH) {
-        nl_error( 2, "Variable node name exceeds limit" );
-        return 1;
+    for (;;) {
+      switch ( name[i] ) {
+	case '_':
+	case '(':
+	case ')':
+	case ',':
+	  ++i;
+	  continue;
+	case '/':
+	case '\0':
+	  node_len[n_nodes] = i - node_start[n_nodes];
+	  if (node_len[n_nodes] > MAX_VAR_NODE_LENGTH) {
+	    nl_error( 2, "Variable node name exceeds limit" );
+	    return 1;
+	  }
+	  ++n_nodes;
+	  if (name[i] == '\0') break;
+	  ++i;
+	  break;
+	default:
+	  if (isalnum(name[i])) {
+	    ++i;
+	    continue;
+	  } else {
+	    nl_error( 2, "Invalid character in variable name" );
+	    return 1;
+	  }
       }
-      ++n_nodes;
-      if (name[i] == '\0') break;
-      ++i;
-    } else {
-      nl_error( 2, "Invalid character in variable name" );
+      break;
     }
   }
   if ( i > MAX_VAR_LENGTH ) {
