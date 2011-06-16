@@ -105,8 +105,20 @@ class RTG_Variable_Data : public RTG_Variable {
     virtual void RemoveGraph(plot_graph *graph);
     void AddDerived(RTG_Variable_Derived *var);
     virtual void RemoveDerived(RTG_Variable_Derived *var);
+
+    /**
+     * @return True if something useful is accomplished.
+     */
     virtual bool check_for_updates();
+
+    /**
+     * @return True if something useful is accomplished.
+     */
     bool reload();
+
+    /**
+     * @return True if data is successfully updated.
+     */
     virtual bool reload_data() = 0;
     virtual bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) = 0;
     virtual void evaluate_range(unsigned col, RTG_Variable_Range &X,

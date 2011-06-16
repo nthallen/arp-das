@@ -351,24 +351,26 @@ bool RTG_Variable_Data::check_for_updates() {
 }
 
 /**
- * If reload_required, invokes reload_data() to do then work,
+ * If reload_required, invokes reload_data() to do the work,
  * then marks all graphs as having new data and marks all
  * derivatives as requiring a reload. Ends by invoking reload()
  * on the next sibling.
  */
 bool RTG_Variable_Data::reload() {
-  if ( reload_required && reload_data() ) {
+  if ( reload_required ) {
     reload_required = false;
-    std::list<plot_graph*>::const_iterator pos;
-    for (pos = graphs.begin(); pos != graphs.end(); ++pos) {
-      plot_graph *graph = *pos;
-      graph->new_data = true;
+    if ( reload_data() ) {
+      std::list<plot_graph*>::const_iterator pos;
+      for (pos = graphs.begin(); pos != graphs.end(); ++pos) {
+	plot_graph *graph = *pos;
+	graph->new_data = true;
+      }
+      std::list<RTG_Variable_Derived *>::const_iterator dpos;
+      for (dpos = derivatives.begin(); dpos != derivatives.end(); ++dpos) {
+	(*dpos)->reload_required = true;
+      }
+      return true;
     }
-    std::list<RTG_Variable_Derived *>::const_iterator dpos;
-    for (dpos = derivatives.begin(); dpos != derivatives.end(); ++dpos) {
-      (*dpos)->reload_required = true;
-    }
-    return true;
   }
   if (Next) return Next->reload();
   return false;
@@ -461,7 +463,6 @@ RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in, RTG_Variable_Node *pare
   n = snprintf(fbase, PATH_MAX, "%s", default_path );
   if ( n >= PATH_MAX ) {
     nl_error(2,"Basename overflow in RTG_Variable_MLF");
-    mlf = NULL;
   } else {
     fbase[n++] = '/';
     if ( snprint_path( fbase+n, PATH_MAX-n ) ) {
@@ -490,13 +491,15 @@ void RTG_Variable_MLF::xrow_range(scalar_t x_min, scalar_t x_max,
 }
 
 bool RTG_Variable_MLF::reload_data() {
-  mlf_set_index(mlf, next_index);
-  FILE *fp = mlf_next_file(mlf);
-  if ( fp != 0 ) {
-    data.read_icos(fp);
-    ncols = data.ncols;
-    nrows = data.nrows;
-    return true;
+  if ( mlf != NULL ) {
+    mlf_set_index(mlf, next_index);
+    FILE *fp = mlf_next_file(mlf);
+    if ( fp != 0 ) {
+      data.read_icos(fp);
+      ncols = data.ncols;
+      nrows = data.nrows;
+      return true;
+    }
   }
   return false;
 }
