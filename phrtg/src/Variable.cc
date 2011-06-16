@@ -453,15 +453,23 @@ char *RTG_Variable_MLF::default_path;
 RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in, RTG_Variable_Node *parent_in,
         RTG_Variable *sib ) : RTG_Variable_Matrix(name_in, Var_MLF) {
   char fbase[PATH_MAX];
+  int n;
+  next_index = 0;
+  update_ancestry(parent_in, sib);
+  mlf = NULL;
   nl_assert(default_path != NULL);
-  if (snprintf(fbase,PATH_MAX,"%s/%s", default_path, name_in) >= PATH_MAX) {
+  n = snprintf(fbase, PATH_MAX, "%s", default_path );
+  if ( n >= PATH_MAX ) {
     nl_error(2,"Basename overflow in RTG_Variable_MLF");
     mlf = NULL;
   } else {
-    mlf = mlf_init(3, 60, 0, fbase, "dat", NULL );
+    fbase[n++] = '/';
+    if ( snprint_path( fbase+n, PATH_MAX-n ) ) {
+      nl_error(2,"Basename overflow in RTG_Variable_MLF");
+    } else {
+      mlf = mlf_init(3, 60, 0, fbase, "dat", NULL );
+    }
   }
-  next_index = 0;
-  update_ancestry(parent_in, sib);
 }
 
 /**
