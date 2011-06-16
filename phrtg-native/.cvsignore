@@ -2,3 +2,4 @@ phrtg
 FullBuild.*
 native.mk
 doc
+.gdbinit
