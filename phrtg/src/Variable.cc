@@ -295,7 +295,13 @@ int RTG_Variable::Find_Insert( const char *name, RTG_Variable_Node *&parent,
   return 1;
 }
 
-/* return true on overflow */
+/**
+ * Internal recursive method to reproduce a hierarchical
+ * variable name as a string.
+ * @param dest Where the resulting name will be written
+ * @param n The number of characters that can be written to dest
+ * @return True on overflow, False otherwise.
+ */
 bool RTG_Variable::isnprint_path(char *&dest, int &n) {
   if (Parent) {
     if ( Parent->isnprint_path(dest, n) || n < 1 )
@@ -310,6 +316,12 @@ bool RTG_Variable::isnprint_path(char *&dest, int &n) {
   return false;
 }
 
+/**
+ * Copy hierarchical variable name into dest
+ * @param dest Where the name will be written
+ * @param n The number of characters that can be written into dest
+ * @return True on overflow, false otherwise.
+ */
 bool RTG_Variable::snprint_path(char *dest, int n) {
   return isnprint_path(dest, n);
 }

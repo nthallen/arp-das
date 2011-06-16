@@ -117,6 +117,7 @@ void RTG_Variable_Detrend::xrow_range(scalar_t x_min, scalar_t x_max,
  * Creates a variable named:
  *   /Detrend/<var>/Xn
  * Where Xn is X1, X2, ... and corresponds to possible X ranges
+ *   DT(<var>,m,M)
  */
 RTG_Variable_Detrend *RTG_Variable_Detrend::Create( RTG_Variable_Data *src,
     scalar_t min, scalar_t max ) {
