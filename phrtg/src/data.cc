@@ -129,3 +129,13 @@ bool plot_graph::check_for_updates(bool parent_visibility) {
     updates_required = true;
   return updates_required;
 }
+
+void plot_graph::rename( const char *text, Update_Source src ) {
+  std::vector<plot_line*>::const_iterator pos;
+  plot_obj::rename(text, src);
+  for (pos = lines.begin(); pos != lines.end(); ++pos) {
+    char colname[80];
+    snprintf(colname, 80, "%s[%d]", name, (*pos)->column );
+    (*pos)->rename(colname, src);
+  }
+}

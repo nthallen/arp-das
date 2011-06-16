@@ -444,6 +444,7 @@ class plot_graph : public plot_obj {
     bool render();
     plot_obj *default_child();
     bool check_for_updates(bool parent_visibility);
+    void rename(const char *text, Update_Source src);
 };
 
 class plot_line : public plot_obj {

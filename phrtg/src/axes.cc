@@ -296,9 +296,12 @@ void plot_axes::schedule_range_check() {
   }
 }
 
-/* ax->Detrend(value);
+/**
+ * ax->Detrend(value);
  * If value is non-zero, we walk through the graphs in these axes
  * and detrend each one using the current x-limits.
+ * If value is zero, we undetrend.
+ * @param value non-zero to assert detrend
  */
 void plot_axes::Detrend(long value) {
   std::list<plot_graph*>::const_iterator pos;
@@ -320,6 +323,7 @@ void plot_axes::Detrend(long value) {
           graph->variable = dt;
           var->RemoveGraph(graph);
           dt->AddGraph(graph);
+          graph->rename(dt->name,from_widget);
         }
       }
     }
@@ -333,6 +337,7 @@ void plot_axes::Detrend(long value) {
         graph->variable = src;
         var->RemoveGraph(graph);
         src->AddGraph(graph);
+	graph->rename(src->name,from_widget);
       }
       graph->new_data = true;
     }
