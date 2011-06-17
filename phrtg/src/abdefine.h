@@ -10,6 +10,12 @@ extern const int ABI_Figure;
 extern const int ABI_plot_context_menu;
 #define ABM_plot_context_menu                &AbInternalLinks[ABI_plot_context_menu]
 
+/* 'Figure' Window link */
+extern const int ABN_Figure;
+#define ABW_Figure                           AbGetABW( ABN_Figure )
+extern const int ABN_Figure_Div;
+#define ABW_Figure_Div                       AbGetABW( ABN_Figure_Div )
+
 /* 'Console' Window link */
 extern const int ABN_Console;
 #define ABW_Console                          AbGetABW( ABN_Console )
@@ -83,6 +89,12 @@ extern const int ABN_Limit_Max;
 #define ABW_Limit_Max                        AbGetABW( ABN_Limit_Max )
 extern const int ABN_Apply_Limits;
 #define ABW_Apply_Limits                     AbGetABW( ABN_Apply_Limits )
+extern const int ABN_PSD;
+#define ABW_PSD                              AbGetABW( ABN_PSD )
+extern const int ABN_Phase;
+#define ABW_Phase                            AbGetABW( ABN_Phase )
+extern const int ABN_Invert;
+#define ABW_Invert                           AbGetABW( ABN_Invert )
 extern const int ABN_Y_Tab;
 #define ABW_Y_Tab                            AbGetABW( ABN_Y_Tab )
 extern const int ABN_Line_Tab;
@@ -99,12 +111,6 @@ extern const int ABN_Line_Variable_Name;
 #define ABW_Line_Variable_Name               AbGetABW( ABN_Line_Variable_Name )
 extern const int ABN_Line_Column;
 #define ABW_Line_Column                      AbGetABW( ABN_Line_Column )
-
-/* 'Figure' Window link */
-extern const int ABN_Figure;
-#define ABW_Figure                           AbGetABW( ABN_Figure )
-extern const int ABN_Figure_Div;
-#define ABW_Figure_Div                       AbGetABW( ABN_Figure_Div )
 
 #define AbGetABW( n ) ( AbWidgets[ n ].wgt )
 

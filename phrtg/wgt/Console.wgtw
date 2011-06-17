@@ -470,7 +470,7 @@ choice
 2
 1007
 pos
-197,8
+199,8
 1005
 dim
 125,51
@@ -534,7 +534,7 @@ multi
 11
 Axis Label:1007
 pos
-19,108
+19,168
 1005
 dim
 84,21
@@ -547,7 +547,7 @@ dim
 85,27
 1007
 pos
-108,104
+99,164
 1004
 data
 19
@@ -563,7 +563,7 @@ multi
 20
 Synch X with overlay1007
 pos
-23,138
+23,198
 1005
 dim
 156,24
@@ -582,7 +582,7 @@ multi
 10
 Auto Scale1007
 pos
-23,190
+23,250
 1005
 dim
 96,24
@@ -601,7 +601,7 @@ choice
 2
 1007
 pos
-227,108
+227,168
 1005
 dim
 112,79
@@ -754,7 +754,7 @@ multi
 9
 Log Scale1007
 pos
-23,239
+23,299
 1005
 dim
 83,24
@@ -773,7 +773,7 @@ multi
 7
 Detrend1007
 pos
-199,54
+201,76
 1005
 dim
 72,24
@@ -792,7 +792,7 @@ multi
 21
 Synch X within figure1007
 pos
-23,163
+23,223
 1005
 dim
 168,24
@@ -811,7 +811,7 @@ dim
 113,23
 1007
 pos
-83,216
+83,276
 53001
 flag
 12,15
@@ -830,7 +830,7 @@ multi
 7
 Limits:1007
 pos
-40,218
+40,278
 1005
 dim
 42,21
@@ -846,7 +846,7 @@ dim
 113,23
 1007
 pos
-199,216
+199,276
 53001
 flag
 12,15
@@ -865,13 +865,70 @@ multi
 5
 Apply1007
 pos
-318,216
+318,276
 1005
 dim
 50,27
 1004
 data
 35
+0
+PtToggleButton
+5
+PSD
+3011
+multi
+22
+Power Spectral Density1007
+pos
+201,98
+1005
+dim
+167,24
+1006
+flag
+136,1334445470
+1004
+data
+36
+0
+PtToggleButton
+5
+Phase
+3011
+multi
+5
+Phase1007
+pos
+201,120
+1005
+dim
+72,24
+1006
+flag
+136,1334445470
+1004
+data
+37
+0
+PtToggleButton
+5
+Invert
+3011
+multi
+6
+Invert1007
+pos
+201,56
+1005
+dim
+72,24
+1006
+flag
+136,1334445470
+1004
+data
+38
 0
 PtPane
 3
@@ -890,7 +947,7 @@ multi
 1
 Y1004
 data
-36
+39
 0
 PtPane
 3
@@ -909,7 +966,7 @@ multi
 4
 Line1004
 data
-37
+40
 0
 PtLabel
 4
@@ -938,7 +995,7 @@ dim
 149,27
 1004
 data
-38
+41
 0
 PtToggleButton
 4
@@ -957,7 +1014,7 @@ flag
 138,1334445470
 1004
 data
-39
+42
 0
 PtComboBox
 4
@@ -978,7 +1035,7 @@ None
 
 1004
 data
-40
+43
 1006
 flag
 50462978,1334445470
@@ -1007,7 +1064,7 @@ pos
 41,99
 1004
 data
-41
+44
 0
 PtLabel
 4
@@ -1049,7 +1106,7 @@ dim
 129,21
 1004
 data
-42
+45
 0
 PtLabel
 4
@@ -1084,5 +1141,5 @@ numeric
 2
 1004
 data
-43
+46
 0

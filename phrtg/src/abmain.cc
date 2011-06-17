@@ -66,13 +66,15 @@ main ( int argc, char *argv[] )
 	}
 
 static const ApClassTab_t ClassTable[] = {
+	{ "PtMenu", &PtMenu },
 	{ "PtWindow", &PtWindow },
+	{ "PtOSContainer", &PtOSContainer },
+	{ "PtDivider", &PtDivider },
 	{ "PtToolbarGroup", &PtToolbarGroup },
 	{ "PtMenuBar", &PtMenuBar },
 	{ "PtMenuButton", &PtMenuButton },
 	{ "PtPanelGroup", &PtPanelGroup },
 	{ "PtTree", &PtTree },
-	{ "PtDivider", &PtDivider },
 	{ "PtButton", &PtButton },
 	{ "PtPane", &PtPane },
 	{ "PtText", &PtText },
@@ -83,8 +85,6 @@ static const ApClassTab_t ClassTable[] = {
 	{ "PtNumericFloat", &PtNumericFloat },
 	{ "PtComboBox", &PtComboBox },
 	{ "PtNumericInteger", &PtNumericInteger },
-	{ "PtMenu", &PtMenu },
-	{ "PtOSContainer", &PtOSContainer },
 	{ NULL, NULL }
 	};
 

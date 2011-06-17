@@ -15,6 +15,17 @@ ApEventLink_t AbInternalLinks[] = {
 	{ 0 }
 	};
 
+static const ApEventLink_t AbLinks_Figure[] = {
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 1012, plot_figure::Realized, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 1013, plot_figure::unrealized, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 1009, plot_figure::destroyed, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 18017, plot_figure::wmevent, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 2010, plot_obj::pt_got_focus, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure_Div", 10003, plot_figure::divider_resized, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure_Div", 44003, plot_figure::divider_drag, 0, 0, 0, 0, },
+	{ 0 }
+	};
+
 static const ApEventLink_t AbLinks_Console[] = {
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Console", 1009, console_destroyed, 0, 0, 0, 0, },
 	{ 5, 0, 0L, 0L, 0L, &File_Menu, NULL, "file_menu_btn", 2007, NULL, 0, 1, 0, 0, },
@@ -48,21 +59,13 @@ static const ApEventLink_t AbLinks_Console[] = {
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Detrend", 2009, Toggle_Activate, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Synch_X_Figure", 2009, Toggle_Activate, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Apply_Limits", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "PSD", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Phase", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Invert", 2009, Toggle_Activate, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Name", 4010, Modify_Notify, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Visible", 2009, Toggle_Activate, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Color", 150005, Color_Changed, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Column", 53015, Numeric_Changed, 0, 0, 0, 0, },
-	{ 0 }
-	};
-
-static const ApEventLink_t AbLinks_Figure[] = {
-	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 1012, plot_figure::Realized, 0, 0, 0, 0, },
-	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 1013, plot_figure::unrealized, 0, 0, 0, 0, },
-	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 1009, plot_figure::destroyed, 0, 0, 0, 0, },
-	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 18017, plot_figure::wmevent, 0, 0, 0, 0, },
-	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure", 2010, plot_obj::pt_got_focus, 0, 0, 0, 0, },
-	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure_Div", 10003, plot_figure::divider_resized, 0, 0, 0, 0, },
-	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Figure_Div", 44003, plot_figure::divider_drag, 0, 0, 0, 0, },
 	{ 0 }
 	};
 
