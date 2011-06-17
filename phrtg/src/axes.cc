@@ -189,11 +189,21 @@ void plot_axes::got_focus(focus_source whence) { // got_focus(gf_type whence)
 }
 
 void plot_axes::Update_Axis_Pane(Axis_XY ax) {
+  std::list<plot_graph*>::const_iterator gr;
+
   PtSetResource(ABW_Axes_Name, Pt_ARG_TEXT_STRING, name, 0);
   PtSetResource(ABW_Axes_Visible, Pt_ARG_FLAGS,
       visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
+
+  /* Set detrend toggle only if all graphs are detrended */
+  detrended = true;
+  for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
+    if ((*gr)->variable->type != Var_Detrend )
+      detrended = false;
+  }
   PtSetResource(ABW_Detrend, Pt_ARG_FLAGS,
       detrended ? Pt_TRUE : Pt_FALSE, Pt_SET);
+
   switch (ax) {
     case Axis_X:
       X.Update_Axis_Pane(this);
@@ -315,16 +325,16 @@ void plot_axes::Detrend(long value) {
       for (pos = graphs.begin(); pos != graphs.end(); pos++) {
         plot_graph *graph = *pos;
         RTG_Variable_Data *var = graph->variable;
-        RTG_Variable_Data *src = var->Derived_From();
-        if (src == NULL || src->type != Var_Detrend) {
-          // don't detrend a detrend
-          RTG_Variable_Detrend *dt = RTG_Variable_Detrend::Create(
-              var, X.limits.min, X.limits.max);
-          graph->variable = dt;
-          var->RemoveGraph(graph);
-          dt->AddGraph(graph);
-          graph->rename(dt->name,from_widget);
-        }
+        // I could prevent detrending a detrend here,
+        // but there isn't much point. The UI makes
+        // it difficult, so no need to belabor the point
+        // here.
+	RTG_Variable_Detrend *dt = RTG_Variable_Detrend::Create(
+	    var, X.limits.min, X.limits.max);
+	graph->variable = dt;
+	dt->AddGraph(graph);
+	var->RemoveGraph(graph);
+	graph->rename(dt->name,from_widget);
       }
     }
   } else {
@@ -335,8 +345,8 @@ void plot_axes::Detrend(long value) {
       RTG_Variable_Data *src = var->Derived_From();
       if (src != NULL && var->type == Var_Detrend) {
         graph->variable = src;
-        var->RemoveGraph(graph);
         src->AddGraph(graph);
+        var->RemoveGraph(graph);
 	graph->rename(src->name,from_widget);
       }
       graph->new_data = true;
