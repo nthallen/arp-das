@@ -427,7 +427,7 @@ class plot_axes : public plot_obj {
     void got_focus(focus_source whence);
     void resized( PhDim_t *newdim );
     bool check_limits();
-    void Update_Axis_Pane(Axis_XY ax);
+    void Update_Axis_Pane();
     void rename(const char *text, Update_Source src);
   	virtual bool render();
     plot_obj *default_child();

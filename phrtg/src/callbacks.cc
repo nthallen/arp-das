@@ -139,11 +139,7 @@ static int Update_Derivation(int Name, long int value) {
     Current::Axes->Detrend(value);
   else if ( Name == ABN_Invert)
     Current::Axes->Invert(value);
-  if ( Current::Tab == Tab_X ) {
-    Current::Axes->Update_Axis_Pane(Axis_X);
-  } else if ( Current::Tab == Tab_Y ) {
-    Current::Axes->Update_Axis_Pane(Axis_Y);
-  }
+  Current::Axes->Update_Axis_Pane();
   return 1;
 }
 

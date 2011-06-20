@@ -185,15 +185,14 @@ void plot_axes::got_focus(focus_source whence) { // got_focus(gf_type whence)
   if (this == Current::Axes) return;
   plot_obj::got_focus(whence);
   Current::Axes = this;
-  if (Current::Tab == Tab_X)
-    Update_Axis_Pane(Axis_X);
-  else if (Current::Tab == Tab_Y)
-    Update_Axis_Pane(Axis_Y);
+  Update_Axis_Pane();
 }
 
-void plot_axes::Update_Axis_Pane(Axis_XY ax) {
+void plot_axes::Update_Axis_Pane() {
   std::list<plot_graph*>::const_iterator gr;
 
+  if ( Current::Tab != Tab_X && Current::Tab != Tab_Y )
+    return;
   PtSetResource(ABW_Axes_Name, Pt_ARG_TEXT_STRING, name, 0);
   PtSetResource(ABW_Axes_Visible, Pt_ARG_FLAGS,
       visible ? Pt_TRUE : Pt_FALSE, Pt_SET);
@@ -222,12 +221,14 @@ void plot_axes::Update_Axis_Pane(Axis_XY ax) {
   PtSetResource(ABW_Phase, Pt_ARG_FLAGS,
       ph_transformed ? Pt_TRUE : Pt_FALSE, Pt_SET);
 
-  switch (ax) {
-    case Axis_X:
+  switch (Current::Tab) {
+    case Tab_X:
       X.Update_Axis_Pane(this);
       break;
-    case Axis_Y:
+    case Tab_Y:
       Y.Update_Axis_Pane(this);
+      break;
+    default:
       break;
   }
 }

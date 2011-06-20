@@ -168,14 +168,14 @@ int PanelSwitching( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbin
     Current::Tab = Tab_X;
     PtReparentWidget(ABW_Axis_Pane, ABW_X_Tab);
     Current::Pane->Update_Axis_Pane();
-    if (Current::Axes) Current::Axes->Update_Axis_Pane(Axis_X);
+    if (Current::Axes) Current::Axes->Update_Axis_Pane();
     else plot_axis::Clear_Axis_Pane();
   } else if (strcmp(PGCallback->new_panel, "Y") == 0) {
     if (Current::Pane == NULL) return Pt_END;
     Current::Tab = Tab_Y;
     PtReparentWidget(ABW_Axis_Pane, ABW_Y_Tab);
     Current::Pane->Update_Axis_Pane();
-    if (Current::Axes) Current::Axes->Update_Axis_Pane(Axis_Y);
+    if (Current::Axes) Current::Axes->Update_Axis_Pane();
     else plot_axis::Clear_Axis_Pane();
   } else if (strcmp(PGCallback->new_panel, "Line") == 0) {
     if (Current::Line == NULL) return Pt_END;
