@@ -65,6 +65,7 @@ class RTG_Variable {
   friend class RTG_Variable_Node;
   friend class RTG_Variable_MLF;
   friend class RTG_Variable_Detrend;
+  friend class RTG_Variable_Invert;
   protected:
     static RTG_Variable *Root;
     RTG_Variable_Node *Parent;
@@ -224,6 +225,7 @@ class RTG_Variable_Invert : public RTG_Variable_Derived {
   public:
     RTG_Variable_Invert(RTG_Variable_Data *src, const char *name_in,
 	RTG_Variable_Node *parent_in, RTG_Variable *sib );
+    bool reload_data();
     void xrow_range(scalar_t x_min, scalar_t x_max,
             unsigned &i_min, unsigned &i_max);
     void derive(unsigned col);
@@ -413,13 +415,16 @@ class plot_axes : public plot_obj {
     plot_axis Y;
     std::list<plot_graph*> graphs;
     bool detrended;
+    bool inverted;
+    bool psd_transformed;
+    bool ph_transformed;
     
-  	plot_axes( const char *name_in, plot_pane *parent );
-  	~plot_axes();
-  	void AddChild(plot_graph *p);
-  	void RemoveChild(plot_graph *p);
-  	plot_graph *CreateGraph(RTG_Variable_Data *var);
-  	void got_focus(focus_source whence);
+    plot_axes( const char *name_in, plot_pane *parent );
+    ~plot_axes();
+    void AddChild(plot_graph *p);
+    void RemoveChild(plot_graph *p);
+    plot_graph *CreateGraph(RTG_Variable_Data *var);
+    void got_focus(focus_source whence);
     void resized( PhDim_t *newdim );
     bool check_limits();
     void Update_Axis_Pane(Axis_XY ax);
@@ -429,6 +434,7 @@ class plot_axes : public plot_obj {
     bool check_for_updates(bool parent_visibility);
     void schedule_range_check();
     void Detrend(long value);
+    void Invert(long value);
 };
 
 class plot_axes_diag : public plot_axes {

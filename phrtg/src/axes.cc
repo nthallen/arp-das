@@ -135,6 +135,9 @@ plot_axes::plot_axes( const char *name_in, plot_pane *pane ) : plot_obj(po_axes,
   parent = pane;
   parent_obj = pane;
   detrended = false;
+  inverted = false;
+  psd_transformed = false;
+  ph_transformed = false;
   parent->AddChild(this);
 }
 
@@ -197,12 +200,27 @@ void plot_axes::Update_Axis_Pane(Axis_XY ax) {
 
   /* Set detrend toggle only if all graphs are detrended */
   detrended = true;
+  inverted = true;
+  psd_transformed = true;
+  ph_transformed = true;
   for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
     if ((*gr)->variable->type != Var_Detrend )
       detrended = false;
+    if ((*gr)->variable->type != Var_Invert )
+      inverted = false;
+    if ((*gr)->variable->type != Var_FFT_PSD )
+      psd_transformed = false;
+    if ((*gr)->variable->type != Var_FFT_Phase )
+      ph_transformed = false;
   }
   PtSetResource(ABW_Detrend, Pt_ARG_FLAGS,
       detrended ? Pt_TRUE : Pt_FALSE, Pt_SET);
+  PtSetResource(ABW_Invert, Pt_ARG_FLAGS,
+      inverted ? Pt_TRUE : Pt_FALSE, Pt_SET);
+  PtSetResource(ABW_PSD, Pt_ARG_FLAGS,
+      psd_transformed ? Pt_TRUE : Pt_FALSE, Pt_SET);
+  PtSetResource(ABW_Phase, Pt_ARG_FLAGS,
+      ph_transformed ? Pt_TRUE : Pt_FALSE, Pt_SET);
 
   switch (ax) {
     case Axis_X:
@@ -344,6 +362,42 @@ void plot_axes::Detrend(long value) {
       RTG_Variable_Data *var = graph->variable;
       RTG_Variable_Data *src = var->Derived_From();
       if (src != NULL && var->type == Var_Detrend) {
+        graph->variable = src;
+        src->AddGraph(graph);
+        var->RemoveGraph(graph);
+	graph->rename(src->name,from_widget);
+      }
+      graph->new_data = true;
+    }
+  }
+}
+
+/**
+ * ax->Invert(value);
+ * If value is non-zero, we walk through the graphs in these axes
+ * and invert each one. If value is zero, we undetrend.
+ * @param value non-zero to assert detrend
+ */
+void plot_axes::Invert(long value) {
+  std::list<plot_graph*>::const_iterator pos;
+  if (value) {
+    inverted = true;
+    for (pos = graphs.begin(); pos != graphs.end(); pos++) {
+      plot_graph *graph = *pos;
+      RTG_Variable_Data *var = graph->variable;
+      RTG_Variable_Invert *inv = RTG_Variable_Invert::Create(var);
+      graph->variable = inv;
+      inv->AddGraph(graph);
+      var->RemoveGraph(graph);
+      graph->rename(inv->name,from_widget);
+    }
+  } else {
+    inverted = false;
+    for (pos = graphs.begin(); pos != graphs.end(); pos++) {
+      plot_graph *graph = *pos;
+      RTG_Variable_Data *var = graph->variable;
+      RTG_Variable_Data *src = var->Derived_From();
+      if (src != NULL && var->type == Var_Invert) {
         graph->variable = src;
         src->AddGraph(graph);
         var->RemoveGraph(graph);

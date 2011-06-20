@@ -164,3 +164,78 @@ RTG_Variable_Detrend *RTG_Variable_Detrend::Create( RTG_Variable_Data *src,
   }
   return dt;
 }
+
+
+RTG_Variable_Invert::RTG_Variable_Invert(RTG_Variable_Data *src,
+      const char *name_in, RTG_Variable_Node *parent_in,
+      RTG_Variable *sib )
+    : RTG_Variable_Derived(src, name_in, Var_Invert) {
+  update_ancestry(parent_in, sib);
+  reload_required = true;
+}
+
+bool RTG_Variable_Invert::reload_data() {
+  if ( RTG_Variable_Derived::reload_data() ) {
+    nrows = Source->nrows;
+    ncols = Source->ncols;
+    data.setsize(nrows, ncols+1, false);
+    return ncols > 0 && nrows > 0;
+  }
+  return false;
+}
+
+void RTG_Variable_Invert::xrow_range(scalar_t x_min, scalar_t x_max,
+            unsigned &i_min, unsigned &i_max) {
+  Source->xrow_range(x_min, x_max, i_min, i_max);
+}
+
+void RTG_Variable_Invert::derive(unsigned col) {
+  vector_t x = data.mdata[0];
+  vector_t v = data.mdata[col+1];
+  for (unsigned i = 0; i < nrows; i++) {
+    scalar_t y;
+    Source->get(i, col, x[i], y);
+    v[i] = -y;
+  }
+  derive_required[col] = false;
+}
+
+/**
+ * Very similar to RTG_Variable_Detrend::Create, but does not
+ * use x range
+ */
+RTG_Variable_Invert *RTG_Variable_Invert::Create( RTG_Variable_Data *src ) {
+  RTG_Variable_Invert *inv = NULL;
+  RTG_Variable_Node *parent;
+  RTG_Variable *sib, *node;
+  const char *lastnode_text;
+  char fullname[MAX_VAR_LENGTH];
+  int n, rc;
+
+  if ( src->Parent != NULL ) {
+    if ( src->Parent->snprint_path( fullname, MAX_VAR_LENGTH) ) {
+      nl_error(2, "Path overflow in Invert::Create");
+      return NULL;
+    }
+    n = strlen(fullname);
+    fullname[n++] = '/';
+  } else n = 0;
+
+  rc = snprintf(fullname+n, MAX_VAR_LENGTH-n, "INV(%s)", src->name);
+  if ( n + rc >= MAX_VAR_LENGTH ) {
+    nl_error(2, "Path overflow in Invert::Create [2]");
+    return NULL;
+  }
+  if ( Find_Insert( fullname, parent, sib, node, lastnode_text ) )
+    return NULL;
+  if ( node ) {
+    if ( node->type == Var_Invert ) {
+      inv = (RTG_Variable_Invert *)node;
+    } else {
+      nl_error( 1, "Variable %s is not an invert variable", fullname );
+    }
+  } else {
+    inv = new RTG_Variable_Invert(src, lastnode_text, parent, sib);
+  }
+  return inv;
+}

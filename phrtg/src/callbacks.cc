@@ -125,6 +125,28 @@ static void apply_limits() {
       Current::Axis->limits.min, Current::Axis->limits.max);
 }
 
+static int Update_Derivation(int Name, long int value) {
+  if ( Name != ABN_Detrend &&
+       Name != ABN_Invert &&
+       Name != ABN_PSD &&
+       Name != ABN_Phase )
+    return 0;
+  if ( Current::Axes == NULL ) {
+    nl_error(2, "Derivation toggle with no current axes");
+    return 1;
+  }
+  if (Name == ABN_Detrend)
+    Current::Axes->Detrend(value);
+  else if ( Name == ABN_Invert)
+    Current::Axes->Invert(value);
+  if ( Current::Tab == Tab_X ) {
+    Current::Axes->Update_Axis_Pane(Axis_X);
+  } else if ( Current::Tab == Tab_Y ) {
+    Current::Axes->Update_Axis_Pane(Axis_Y);
+  }
+  return 1;
+}
+
 void Update_Toggle(int Name, long int value, Update_Source src ) {
   if ( Name == ABN_Figure_Visible )
     po_set_visibility(Current::Figure, "Figure", value, Name, src);
@@ -166,16 +188,7 @@ void Update_Toggle(int Name, long int value, Update_Source src ) {
           PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_auto, Pt_SET);
       }
     }
-  } else if (Name == ABN_Detrend) {
-    /* This is on Tab_X and Tab_Y
-     * It refers to Current::Axes (and if selected, overlaid axises)
-     */
-    if (Current::Axes == NULL) {
-      nl_error(2,"Toggle Detrend with no Current::Axes");
-    } else {
-      Current::Axes->Detrend(value);
-    }
-  } else
+  } else if (!Update_Derivation(Name, value) )
     nl_error( 1, "Update_Toggle(%d) not implemented", Name);
 }
 
