@@ -25,7 +25,8 @@ class plot_axes;
 class plot_graph;
 class plot_line;
 class RTG_Cfg_Ser;
-enum RTG_Variable_Type { Var_Node, Var_MLF, Var_Detrend };
+enum RTG_Variable_Type { Var_Node, Var_MLF, Var_Detrend,
+      Var_Invert, Var_FFT, Var_FFT_PSD, Var_FFT_Phase };
 const int DIV_BEVEL_WIDTHS = 2;
 
 class RTG_Variable_Range {
@@ -122,6 +123,10 @@ class RTG_Variable_Data : public RTG_Variable {
     bool reload();
 
     /**
+     * Called when the data needs to be updated before
+     * being used. If the data in columns can be updated
+     * independently, we can just set flags to be checked
+     * when the data is accessed.
      * @return True if data is successfully updated.
      */
     virtual bool reload_data() = 0;
@@ -187,10 +192,16 @@ class RTG_Variable_Derived : public RTG_Variable_Matrix {
     RTG_Variable_Derived(RTG_Variable_Data *src, const char *name_in,
         RTG_Variable_Type type_in);
     ~RTG_Variable_Derived();
+    bool reload_data();
+    bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
+    vector_t y_vector(unsigned col);
     void RemoveGraph(plot_graph *graph);
     void RemoveDerived(RTG_Variable_Derived *var);
     bool check_for_updates();
     RTG_Variable_Data *Derived_From();
+    virtual void derive(unsigned c) = 0;
+  protected:
+    std::vector<bool> derive_required;
 };
 
 class RTG_Variable_Detrend : public RTG_Variable_Derived {
@@ -198,18 +209,25 @@ class RTG_Variable_Detrend : public RTG_Variable_Derived {
     RTG_Variable_Detrend(RTG_Variable_Data *src, const char *name_in,
         RTG_Variable_Node *parent_in, RTG_Variable *sib,
         scalar_t min, scalar_t max);
-    bool reload_data(); // needs overload, but there is a common part
-    bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
     void xrow_range(scalar_t x_min, scalar_t x_max,
             unsigned &i_min, unsigned &i_max);
-    vector_t y_vector(unsigned col);
-    void detrend(unsigned c);
+    bool reload_data();
+    void derive(unsigned c);
     static RTG_Variable_Detrend *Create( RTG_Variable_Data *src,
             scalar_t min, scalar_t max );
   private:
-    std::vector<bool> detrend_required;
     scalar_t x_min, x_max;
     unsigned i_min, i_max;
+};
+
+class RTG_Variable_Invert : public RTG_Variable_Derived {
+  public:
+    RTG_Variable_Invert(RTG_Variable_Data *src, const char *name_in,
+	RTG_Variable_Node *parent_in, RTG_Variable *sib );
+    void xrow_range(scalar_t x_min, scalar_t x_max,
+            unsigned &i_min, unsigned &i_max);
+    void derive(unsigned col);
+    static RTG_Variable_Invert *Create( RTG_Variable_Data *src );
 };
 
 enum plot_obj_type { po_root, po_figure, po_pane, po_axes, po_data,

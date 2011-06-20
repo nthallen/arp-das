@@ -40,6 +40,29 @@ RTG_Variable_Data *RTG_Variable_Derived::Derived_From() {
   return Source;
 }
 
+bool RTG_Variable_Derived::reload_data() {
+  if (Source->reload_required) return false; // wait till the new data is in
+  ncols = Source->ncols;
+  derive_required.resize(ncols);
+  for (unsigned i = 0; i < ncols; i++)
+    derive_required[i] = true;
+  return true;
+}
+
+bool RTG_Variable_Derived::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) {
+  if ( r >= nrows || c >= ncols ) return false;
+  if ( derive_required[c] ) derive(c);
+  X = data.mdata[0][r];
+  Y = data.mdata[c+1][r];
+  return true;
+}
+
+vector_t RTG_Variable_Derived::y_vector(unsigned col) {
+  nl_assert(col < ncols && col+1 < data.ncols);
+  if ( derive_required[col] ) derive(col);
+  return data.mdata[col+1];
+}
+
 RTG_Variable_Detrend::RTG_Variable_Detrend(RTG_Variable_Data *src,
     const char *name_in, RTG_Variable_Node *parent_in, RTG_Variable *sib,
     scalar_t min, scalar_t max)
@@ -51,26 +74,16 @@ RTG_Variable_Detrend::RTG_Variable_Detrend(RTG_Variable_Data *src,
 }
 
 bool RTG_Variable_Detrend::reload_data() {
-  if (Source->reload_required) return false; // wait till the new data is in
-  ncols = Source->ncols;
-  detrend_required.resize(ncols);
-  for (unsigned i = 0; i < ncols; i++)
-    detrend_required[i] = true;
-  Source->xrow_range(x_min, x_max, i_min, i_max);
-  nrows = i_max >= i_min ? i_max - i_min + 1 : 0;
-  data.setsize(nrows, ncols+1, false);
-  return ncols > 0 && nrows > 0;
+  if ( RTG_Variable_Derived::reload_data() ) {
+    Source->xrow_range(x_min, x_max, i_min, i_max);
+    nrows = i_max >= i_min ? i_max - i_min + 1 : 0;
+    data.setsize(nrows, ncols+1, false);
+    return ncols > 0 && nrows > 0;
+  }
+  return false;
 }
 
-bool RTG_Variable_Detrend::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) {
-  if ( r >= nrows || c >= ncols ) return false;
-  if ( detrend_required[c] ) detrend(c);
-  X = data.mdata[0][r];
-  Y = data.mdata[c+1][r];
-  return true;
-}
-
-void RTG_Variable_Detrend::detrend(unsigned c) {
+void RTG_Variable_Detrend::derive(unsigned c) {
   scalar_t xx, y0, y1, m;
   vector_t x = data.mdata[0];
   vector_t v = data.mdata[c+1];
@@ -84,13 +97,7 @@ void RTG_Variable_Detrend::detrend(unsigned c) {
     v[i] = y - y0;
     y0 += m;
   }
-  detrend_required[c] = false;
-}
-
-vector_t RTG_Variable_Detrend::y_vector(unsigned col) {
-  nl_assert(col < ncols && col+1 < data.ncols);
-  if ( detrend_required[col] ) detrend(col);
-  return data.mdata[col+1];
+  derive_required[c] = false;
 }
 
 /**
