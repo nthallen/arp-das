@@ -3,7 +3,7 @@
 <include> "rdr.h"
 <follow> msg dc
 
-<opts> "aAP:kqs:"
+<opts> "aAP:kqF:L:"
 <sort>
 	-A autostart fast forward
 	-a autostart regulated
