@@ -10,7 +10,8 @@
 	-P <path> specify base path for data files
 	-k Invoke kluge to work around lgr bug
 	-q quit when end of data is reached
-	-s starting file index
+	-F starting file index
+	-L ending file index
 <init>
   rdr_init(argc, argv);
 

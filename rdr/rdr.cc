@@ -1,6 +1,10 @@
+/** \file rdr.cc
+ * \brief Reads TM log files and writes to TMbfr
+ */
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "rdr.h"
 #include "nortlib.h"
 #include "oui.h"
@@ -14,13 +18,15 @@ static int opt_regulate;
 static int opt_kluge_a;
 static int opt_autoquit;
 static unsigned long opt_start_file = 1;
+static unsigned long opt_end_file = ULONG_MAX;
 
 //  opt_basepath = "/home/tilde/raw/flight/080908.4";
 
 /** Options we need to support:
   -A autostart without regulation
   -a autostart with regulation
-  -F <file> Starting log file. Second invocation is ending file
+  -F <index> Starting log file index
+  -L <index> Ending log file index 
   -T <time> Starting time/Ending time
   -P <path> path to log directories
   -k invoke kluge to work around lgr bug
@@ -50,8 +56,11 @@ void rdr_init( int argc, char **argv ) {
       case 'q':
 	opt_autoquit = 1;
 	break;
-      case 's':
+      case 'F':
 	opt_start_file = strtoul(optarg, NULL, 10);
+	break;
+      case 'L':
+	opt_end_file = strtoul(optarg, NULL, 10);
 	break;
       case '?':
         nl_error(3, "Unrecognized Option -%c", optopt);
@@ -340,10 +349,15 @@ void Reader::process_data() {
 // This is absolutely a first cut. It will stop at the first sign of trouble (i.e. a missing file)
 // What I will want is a record of first file and last file and/or first time/last time
 int Reader::process_eof() {
-  if ( data_client::bfr_fd != -1 ) close(data_client::bfr_fd);
-  int nlrl = set_response(0);
-  data_client::bfr_fd = mlf_next_fd( mlf );
-  set_response(nlrl);
+  if ( data_client::bfr_fd != -1 ) {
+    close(data_client::bfr_fd);
+    data_client::bfr_fd = -1;
+  }
+  if (mlf->index < opt_end_file ) {
+    int nlrl = set_response(0);
+    data_client::bfr_fd = mlf_next_fd( mlf );
+    set_response(nlrl);
+  }
   if ( data_client::bfr_fd == -1 ) {
     if ( opt_autoquit )
       RQP->pulse();
