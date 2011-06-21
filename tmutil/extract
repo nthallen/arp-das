@@ -226,8 +226,8 @@ for ext in ; do
   $ext -h "$ext" &
   shift
 done
-echo "extract: rdr $RDR_OPTS -AqP $dir" >/dev/huarp/$Experiment/memo
-rdr $RDR_OPTS -AqP $dir || rv=1
+echo "extract: rdr $RDR_OPTS $time_opts -AqP $dir" >/dev/huarp/$Experiment/memo
+rdr $RDR_OPTS $time_opts -AqP $dir || rv=1
 
 # rdr -v -c0 -n $# -Q $RDR_OPTS $time_opts -d $dir -f $dir/tm.dac &
 cd $rootdir
