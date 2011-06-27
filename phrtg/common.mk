@@ -26,11 +26,11 @@ phabbind $(BUILDNAME) $(PHAB_MODULES)
 phabbind $(BUILDNAME) $(PHAB_MODULES)
 endef
 #===== EXTRA_INCVPATH - a space-separated list of directories to search for include files.
-EXTRA_INCVPATH+=$(QNX_TARGET)/usr/local/include
+EXTRA_INCVPATH+=$(QNX_TARGET)/usr/local/include /usr/pkg/include
 #===== EXTRA_LIBVPATH - a space-separated list of directories to search for library files.
-EXTRA_LIBVPATH+=$(QNX_TARGET)/usr/local/lib
+EXTRA_LIBVPATH+=$(QNX_TARGET)/usr/local/lib /usr/pkg/lib
 #===== LIBS - a space-separated list of library items to be included in the link.
-LIBS+=nort tm
+LIBS+=fftw3f nort tm
 #===== LDFLAGS - add the flags to the linker command line.
 LDFLAGS+=-Wl,-rpath -Wl,/usr/local/lib
 #===== CCFLAGS - add the flags to the C compiler command line. 
