@@ -447,3 +447,80 @@ RTG_Variable_PSD *RTG_Variable_PSD::Create( RTG_Variable_Data *src,
   }
   return psd;
 }
+
+RTG_Variable_Phase::RTG_Variable_Phase(RTG_Variable_Data *src, const char *name_in,
+    RTG_Variable_Node *parent_in, RTG_Variable *sib)
+    : RTG_Variable_Derived(src, name_in, Var_FFT_Phase) {
+  update_ancestry(parent_in, sib);
+  reload_required = true;
+}
+
+bool RTG_Variable_Phase::reload_data() {
+  if ( RTG_Variable_Derived::reload_data() ) {
+    unsigned i;
+    nrows = Source->nrows;
+    data.setsize(nrows, ncols+1, false);
+    for (i = 0; i < nrows; ++i ) {
+      data.mdata[0][i] = i/(nrows-1.0);
+    }
+    return ncols > 0 && nrows > 0;
+  }
+  return false;
+}
+
+void RTG_Variable_Phase::derive(unsigned col) {
+  scalar_t *iv = Source->y_vector(col);
+  scalar_t *ov = data.mdata[col+1];
+  unsigned i;
+  for ( i = 0; i < nrows; ++i ) {
+    ov[i] = atan2f(iv[i*2], iv[i*2+1]);
+  }
+  derive_required[col] = false;
+}
+
+void RTG_Variable_Phase::xrow_range(scalar_t x_min, scalar_t x_max,
+	unsigned &i_min, unsigned &i_max) {
+  Source->xrow_range(x_min, x_max, i_min, i_max);
+}
+
+RTG_Variable_Phase *RTG_Variable_Phase::Create( RTG_Variable_Data *src,
+	scalar_t min, scalar_t max ) {
+  RTG_Variable_FFT *fft = NULL;
+  RTG_Variable_Phase *ph = NULL;
+  RTG_Variable_Node *parent;
+  RTG_Variable *sib, *node;
+  const char *lastnode_text;
+  char fullname[MAX_VAR_LENGTH];
+  unsigned i_min, i_max;
+  int n, rc;
+
+  fft = RTG_Variable_FFT::Create(src, min, max);
+  src->xrow_range(min, max, i_min, i_max);
+  if ( src->Parent != NULL ) {
+    if ( src->Parent->snprint_path( fullname, MAX_VAR_LENGTH) ) {
+      nl_error(2, "Path overflow in Phase::Create");
+      return NULL;
+    }
+    n = strlen(fullname);
+    fullname[n++] = '/';
+  } else n = 0;
+
+  rc = snprintf(fullname+n, MAX_VAR_LENGTH-n, "Phase(%s,%u,%u)",
+    src->name, i_min, i_max);
+  if ( n + rc >= MAX_VAR_LENGTH ) {
+    nl_error(2, "Path overflow in Phase::Create [2]");
+    return NULL;
+  }
+  if ( Find_Insert( fullname, parent, sib, node, lastnode_text ) )
+    return NULL;
+  if ( node ) {
+    if ( node->type == Var_FFT_Phase ) {
+      ph = (RTG_Variable_Phase *)node;
+    } else {
+      nl_error( 1, "Variable %s is not a phase variable", fullname );
+    }
+  } else {
+    ph = new RTG_Variable_Phase(fft, lastnode_text, parent, sib);
+  }
+  return ph;
+}

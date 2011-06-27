@@ -141,6 +141,8 @@ static int Update_Derivation(int Name, long int value) {
     Current::Axes->Invert(value);
   else if ( Name == ABN_PSD )
     Current::Axes->PSD(value);
+  else if ( Name == ABN_Phase )
+    Current::Axes->Phase(value);
   Current::Axes->Update_Axis_Pane();
   return 1;
 }

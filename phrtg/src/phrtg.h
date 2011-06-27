@@ -69,6 +69,7 @@ class RTG_Variable {
   friend class RTG_Variable_Invert;
   friend class RTG_Variable_FFT;
   friend class RTG_Variable_PSD;
+  friend class RTG_Variable_Phase;
   protected:
     static RTG_Variable *Root;
     RTG_Variable_Node *Parent;
@@ -279,6 +280,19 @@ class RTG_Variable_PSD : public RTG_Variable_Derived {
   private:
 };
 
+class RTG_Variable_Phase : public RTG_Variable_Derived {
+  public:
+    RTG_Variable_Phase(RTG_Variable_Data *src, const char *name_in,
+	RTG_Variable_Node *parent_in, RTG_Variable *sib);
+    bool reload_data();
+    void derive(unsigned col);
+    void xrow_range(scalar_t x_min, scalar_t x_max,
+            unsigned &i_min, unsigned &i_max);
+    static RTG_Variable_Phase *Create( RTG_Variable_Data *src,
+            scalar_t min, scalar_t max );
+  private:
+};
+
 enum plot_obj_type { po_root, po_figure, po_pane, po_axes, po_data,
 		po_line, po_text, po_zoom, po_max };
 enum focus_source { focus_from_user, focus_from_child, focus_from_parent };
@@ -483,6 +497,7 @@ class plot_axes : public plot_obj {
     void Detrend(long value);
     void Invert(long value);
     void PSD(long value);
+    void Phase(long value);
 };
 
 class plot_axes_diag : public plot_axes {
