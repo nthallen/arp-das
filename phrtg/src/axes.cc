@@ -350,10 +350,12 @@ void plot_axes::Detrend(long value) {
         // here.
 	RTG_Variable_Detrend *dt = RTG_Variable_Detrend::Create(
 	    var, X.limits.min, X.limits.max);
-	graph->variable = dt;
-	dt->AddGraph(graph);
-	var->RemoveGraph(graph);
-	graph->rename(dt->name,from_widget);
+	if ( dt != NULL ) {
+	  graph->variable = dt;
+	  dt->AddGraph(graph);
+	  var->RemoveGraph(graph);
+	  graph->rename(dt->name,from_widget);
+	}
       }
     }
   } else {
@@ -403,6 +405,58 @@ void plot_axes::Invert(long value) {
         src->AddGraph(graph);
         var->RemoveGraph(graph);
 	graph->rename(src->name,from_widget);
+      }
+      graph->new_data = true;
+    }
+  }
+}
+
+/**
+ * ax->PSD(value);
+ * If value is non-zero, we walk through the graphs in these axes
+ * and fft/psd each one. If value is zero, we revert to the source..
+ * @param value non-zero to assert the forward transform
+ */
+void plot_axes::PSD(long value) {
+  std::list<plot_graph*>::const_iterator pos;
+  if (value) {
+    psd_transformed = true;
+    if (X.limits.range_is_empty) {
+      nl_error(1,"Empty X-range: Skipping psd");
+    } else if (!X.limits.range_is_current) {
+      nl_error(1,"X-limits not current: Skipping psd");
+    } else {
+      for (pos = graphs.begin(); pos != graphs.end(); pos++) {
+	plot_graph *graph = *pos;
+	RTG_Variable_Data *var = graph->variable;
+	RTG_Variable_PSD *psd =
+	  RTG_Variable_PSD::Create(var, X.limits.min, X.limits.max);
+	graph->variable = psd;
+	psd->AddGraph(graph);
+	var->RemoveGraph(graph);
+	graph->rename(psd->name,from_widget);
+      }
+    }
+  } else {
+    psd_transformed = false;
+    for (pos = graphs.begin(); pos != graphs.end(); pos++) {
+      plot_graph *graph = *pos;
+      RTG_Variable_Data *var = graph->variable;
+      if ( var->type == Var_FFT_PSD ) {
+	RTG_Variable_Data *src = var->Derived_From();
+	if ( src != NULL && src->type == Var_FFT ) {
+	  src = src->Derived_From();
+	  if ( src != NULL ) {
+	    graph->variable = src;
+	    src->AddGraph(graph);
+	    var->RemoveGraph(graph);
+	    graph->rename(src->name,from_widget);
+	  } else {
+	    nl_error( 2, "Failed to locate PSD source" );
+	  }
+	} else {
+	  nl_error( 2, "PSD source was not FFT" );
+	}
       }
       graph->new_data = true;
     }

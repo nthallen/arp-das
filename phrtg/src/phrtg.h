@@ -11,6 +11,7 @@
 #include <photon/PtTree.h>
 #include <list>
 #include <vector>
+#include <fftw3.h>
 
 #define MAX_VAR_LENGTH 80
 #define MAX_VAR_NODE_LENGTH 40
@@ -66,6 +67,8 @@ class RTG_Variable {
   friend class RTG_Variable_MLF;
   friend class RTG_Variable_Detrend;
   friend class RTG_Variable_Invert;
+  friend class RTG_Variable_FFT;
+  friend class RTG_Variable_PSD;
   protected:
     static RTG_Variable *Root;
     RTG_Variable_Node *Parent;
@@ -108,7 +111,7 @@ class RTG_Variable_Data : public RTG_Variable {
 
     RTG_Variable_Data(const char *name_in, RTG_Variable_Type type_in);
     ~RTG_Variable_Data();
-    void AddGraph(plot_graph *graph);
+    virtual void AddGraph(plot_graph *graph);
     virtual void RemoveGraph(plot_graph *graph);
     void AddDerived(RTG_Variable_Derived *var);
     virtual void RemoveDerived(RTG_Variable_Derived *var);
@@ -230,6 +233,50 @@ class RTG_Variable_Invert : public RTG_Variable_Derived {
             unsigned &i_min, unsigned &i_max);
     void derive(unsigned col);
     static RTG_Variable_Invert *Create( RTG_Variable_Data *src );
+};
+
+class FFT_Plan {
+  public:
+    FFT_Plan();
+    ~FFT_Plan();
+    void fft(scalar_t *iv, scalar_t *ov, int Npts);
+  private:
+    fftwf_plan P;
+    scalar_t *ivec;
+    scalar_t *ovec;
+    int N;
+};
+
+class RTG_Variable_FFT : public RTG_Variable_Derived {
+  public:
+    RTG_Variable_FFT(RTG_Variable_Data *src, const char *name_in,
+	RTG_Variable_Node *parent_in, RTG_Variable *sib,
+        scalar_t min, scalar_t max);
+    void AddGraph(plot_graph *graph);
+    bool reload_data();
+    void derive(unsigned col);
+    void xrow_range(scalar_t x_min, scalar_t x_max,
+            unsigned &i_min, unsigned &i_max);
+    static RTG_Variable_FFT *Create( RTG_Variable_Data *src,
+            scalar_t min, scalar_t max );
+  private:
+    scalar_t x_min, x_max;
+    unsigned i_min, i_max;
+    int Ni;
+    std::vector<FFT_Plan> plans;
+};
+
+class RTG_Variable_PSD : public RTG_Variable_Derived {
+  public:
+    RTG_Variable_PSD(RTG_Variable_Data *src, const char *name_in,
+	RTG_Variable_Node *parent_in, RTG_Variable *sib);
+    bool reload_data();
+    void derive(unsigned col);
+    void xrow_range(scalar_t x_min, scalar_t x_max,
+            unsigned &i_min, unsigned &i_max);
+    static RTG_Variable_PSD *Create( RTG_Variable_Data *src,
+            scalar_t min, scalar_t max );
+  private:
 };
 
 enum plot_obj_type { po_root, po_figure, po_pane, po_axes, po_data,
@@ -435,6 +482,7 @@ class plot_axes : public plot_obj {
     void schedule_range_check();
     void Detrend(long value);
     void Invert(long value);
+    void PSD(long value);
 };
 
 class plot_axes_diag : public plot_axes {

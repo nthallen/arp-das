@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <fftw3.h>
 #include "f_matrix.h"
 #include "nortlib.h"
 
@@ -29,7 +30,7 @@ f_matrix::f_matrix( char *filename, int format ) {
 
 f_matrix::~f_matrix() {
   if ( mdata != 0 ) delete mdata;
-  if ( vdata != 0 ) delete vdata;
+  if ( vdata != 0 ) fftwf_free(vdata); // delete vdata;
   mdata = 0;
   vdata = 0;
   maxrows = maxcols = 0;
@@ -101,7 +102,9 @@ void f_matrix::check( unsigned rowsz, unsigned colsz, bool preserve ) {
 
   if ( rowsz > maxrows || colsz > maxcols ) {
     matrix_t newmdata = new vector_t[colsz];
-    vector_t newvdata = new scalar_t[rowsz*colsz];
+    vector_t newvdata =
+      (vector_t)fftwf_malloc(colsz*rowsz*sizeof(scalar_t));
+    // new scalar_t[rowsz*colsz];
     if ( newmdata == 0 || newvdata == 0 )
       nl_error(3, "Out of memory in check" );
     for ( i = 0; i < colsz; i++ ) {
@@ -117,7 +120,7 @@ void f_matrix::check( unsigned rowsz, unsigned colsz, bool preserve ) {
       }
     }
     if ( mdata != 0 ) delete mdata;
-    if ( vdata != 0 ) delete vdata;
+    if ( vdata != 0 ) fftwf_free(vdata); //delete vdata;
     vdata = newvdata;
     mdata = newmdata;
     maxrows = rowsz;

@@ -194,6 +194,13 @@ bool RTG_Variable_Node::reload() {
   return false;
 }
 
+/**
+ * On success, parent, sib, node and
+ * last_node_text are all defined. If node is non-NULL, it is
+ * a matching leaf node. Otherwise, parent, sib and last_node_text
+ * are ready for the creation of a new leaf variable.
+ * @return non-zero on error.
+ */
 int RTG_Variable::Find_Insert( const char *name, RTG_Variable_Node *&parent,
     RTG_Variable *&sib, RTG_Variable *&node, const char *&last_node_text ) {
   // Check name for valid syntax
@@ -345,6 +352,7 @@ RTG_Variable_Data::RTG_Variable_Data( const char *name_in, RTG_Variable_Type typ
   new_data_available = false;
   reload_required = false;
   ncols = 0;
+  nrows = 0;
 }
 
 RTG_Variable_Data::~RTG_Variable_Data() {
