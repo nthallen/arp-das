@@ -105,6 +105,11 @@ class RTG_Variable_Node : public RTG_Variable {
 class RTG_Variable_Data : public RTG_Variable {
   public:
     bool new_data_available;
+    /** \brief We know there is new data to be processed
+     * When true, reload_data() will be called once, and if it
+     * returns true, graphs will have new_data set to true,
+     * and derivatives will have reload_required set to true.
+     */
     bool reload_required;
     unsigned nrows, ncols;
     std::list<plot_graph*> graphs;
