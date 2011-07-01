@@ -244,7 +244,8 @@ bool plot_axes::check_limits() {
   std::list<plot_graph*>::const_iterator gr;
   RTG_Variable_Range Xr, Yr;
   for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
-    if ((*gr)->check_limits(Xr, Yr)) return true;
+    plot_graph *grph = *gr;
+    if (grph->check_limits(Xr, Yr)) return true;
   }
 
   if (X.limits.range_auto && X.data_range_updated) {
