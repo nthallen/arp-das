@@ -56,7 +56,8 @@ bool plot_graph::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) 
     if (this == Current::Graph && Current::Line == NULL && current_child != NULL)
       current_child->got_focus(focus_from_parent);
     for ( unsigned i = 0; i < variable->ncols; ++i ) {
-      lines[i]->new_data = true;
+      plot_line *ln = lines[i];
+      ln->new_data = true;
     }
     check_range = true;
     redraw_required = true;
@@ -65,14 +66,16 @@ bool plot_graph::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) 
   if ( check_range ) {
     nl_assert(lines.size() >= variable->ncols);
     for (unsigned i = 0; i < variable->ncols; ++i ) {
-      lines[i]->check_range = true;
+      plot_line *ln = lines[i];
+      ln->check_range = true;
     }
     check_range = false;
   }
   if (this == Current::Graph && Current::Line == NULL && Current::Tab == Tab_Line)
     PtSetResource(ABW_ConsoleGroup, Pt_ARG_PG_CURRENT, "Graphs", 0);
   for ( unsigned i = 0; i < variable->ncols; ++i ) {
-    if (lines[i]->check_limits(Xr, Yr)) return true;
+    plot_line *ln = lines[i];
+    if (ln->check_limits(Xr, Yr)) return true;
   }
   return false;
 }
@@ -86,14 +89,16 @@ bool plot_graph::render() {
   if ( axes_rescaled ) {
     nl_assert(variable->ncols <= lines.size()); //should be set in check_limits()
     for ( unsigned i = 0; i < variable->ncols; ++i ) {
-      lines[i]->redraw_required = true;
+      plot_line *ln = lines[i];
+      ln->redraw_required = true;
     }
     axes_rescaled = false;
     redraw_required = true;
   }
   if ( redraw_required ) {
     for ( unsigned i = 0; i < lines.size(); ++i ) {
-      if (lines[i]->render()) return true;
+      plot_line *ln = lines[i];
+      if (ln->render()) return true;
     }
   }
   redraw_required = false;
@@ -118,9 +123,10 @@ bool plot_graph::check_for_updates(bool parent_visibility) {
   bool check_var = false;
   visible = new_visibility;
   for (pos = lines.begin(); pos != lines.end(); ++pos) {
-    if ((*pos)->check_for_updates(visible && parent_visibility))
+    plot_line *ln = *pos;
+    if (ln->check_for_updates(visible && parent_visibility))
       updates_required = true;
-    if ((*pos)->effective_visibility)
+    if (ln->effective_visibility)
       check_var = true;
   }
   if ( ( check_var ||
@@ -135,7 +141,8 @@ void plot_graph::rename( const char *text, Update_Source src ) {
   plot_obj::rename(text, src);
   for (pos = lines.begin(); pos != lines.end(); ++pos) {
     char colname[80];
-    snprintf(colname, 80, "%s[%d]", name, (*pos)->column );
-    (*pos)->rename(colname, src);
+    plot_line *ln = *pos;
+    snprintf(colname, 80, "%s[%d]", name, ln->column );
+    ln->rename(colname, src);
   }
 }

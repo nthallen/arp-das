@@ -293,7 +293,8 @@ bool plot_axes::render() {
   if ( Y.render(this) ) return true;
   std::list<plot_graph*>::const_iterator gr;
   for (gr = graphs.begin(); gr != graphs.end(); ++gr) {
-    if ( (*gr)->render() )
+    plot_graph *grp = *gr;
+    if ( grp->render() )
       return true;
   }
   return false;
