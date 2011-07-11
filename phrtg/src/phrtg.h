@@ -1,6 +1,11 @@
 /** \file phrtg.h
  * Main Header for phrtg Application
  */
+/** \mainpage PhRTG Documentation
+ * PhRTG provides realtime graphing capability to the
+ * <a href="http://www.arp.harvard.edu/eng/das/index.html">Anderson Group Data Acquisition System</a>
+ * as implemented under QNX6 and the Photon MicroGUI.
+ */
 #ifndef PHRTG_H_INCLUDED
 #define PHRTG_H_INCLUDED
 #include "nortlib.h"
