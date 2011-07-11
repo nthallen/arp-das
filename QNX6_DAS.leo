@@ -434,23 +434,27 @@
 </v>
 </v>
 </v>
-<v t="ntallen.20090203160910.1" a="E"><vh>Object hierarchy</vh>
+<v t="ntallen.20090203160910.1"><vh>Object hierarchy</vh>
 <v t="ntallen.20090514140929"><vh>Rendering flags</vh></v>
 <v t="ntallen.20090515141753"><vh>Rendering drill</vh></v>
-<v t="ntallen.20090401102408.1" a="E"><vh>plot_obj</vh>
-<v t="ntallen.20090218163512.1" a="E"><vh>plot_graph</vh>
+<v t="ntallen.20090401102408.1"><vh>plot_obj</vh>
+<v t="ntallen.20090218163512.1"><vh>plot_graph</vh>
 <v t="ntallen.20090219084511.4"><vh>plot_graph Properties</vh></v>
 </v>
 </v>
-<v t="ntallen.20090218163512" a="E"><vh>RTG_Variable</vh>
+<v t="ntallen.20090218163512"><vh>RTG_Variable</vh>
 <v t="ntallen.20110609114734.2138"><vh>RTG_Variable_Node</vh></v>
-<v t="ntallen.20110609114734.2137" a="E"><vh>RTG_Variable_Data</vh>
-<v t="ntallen.20110609114734.2139" a="E"><vh>RTG_Variable_Matrix</vh>
+<v t="ntallen.20110609114734.2137"><vh>RTG_Variable_Data</vh>
+<v t="ntallen.20110609114734.2139"><vh>RTG_Variable_Matrix</vh>
 <v t="ntallen.20110609114734.2140"><vh>RTG_Variable_MLF</vh></v>
-<v t="ntallen.20110609114734.2141" a="E"><vh>RTG_Variable_Derived</vh>
+<v t="ntallen.20110609114734.2141"><vh>RTG_Variable_Derived</vh>
 <v t="ntallen.20110609114734.2144"><vh>Strategies when using GUI to derive</vh></v>
 <v t="ntallen.20110609114734.2142"><vh>RTG_Variable_Detrend</vh></v>
-<v t="ntallen.20110609114734.2143"><vh>RTG_Variable_PSD</vh></v>
+<v t="ntallen.20110617114502.2153"><vh>RTG_Variable_FFT</vh>
+<v t="ntallen.20110609114734.2143"><vh>RTG_Variable_PSD</vh>
+<v t="ntallen.20110617114502.2154"><vh>Alignment</vh></v>
+</v>
+</v>
 </v>
 </v>
 </v>
@@ -468,15 +472,15 @@
 <v t="ntallen.20090203160910.2"><vh>Axes scenarios</vh></v>
 <v t="ntallen.20090219084511.3"><vh>Axis properties</vh></v>
 </v>
-<v t="ntallen.20090218164400.1" a="E"><vh>Line</vh>
+<v t="ntallen.20090218164400.1"><vh>Line</vh>
 <v t="ntallen.20090219084511.5"><vh>Line Properties</vh></v>
 </v>
 </v>
-<v t="ntallen.20090203162108.1"><vh>Photon Issues</vh>
+<v t="ntallen.20090203162108.1" a="E"><vh>Photon Issues</vh>
 <v t="ntallen.20090227092327"><vh>Command Line Options</vh></v>
 <v t="ntallen.20090227131711"><vh>Cleanup</vh></v>
 <v t="ntallen.20090204093154"></v>
-<v t="ntallen.20090331165341"><vh>Rendering</vh>
+<v t="ntallen.20090331165341" a="E"><vh>Rendering</vh>
 <v t="ntallen.20090401155216"><vh>Root</vh></v>
 <v t="ntallen.20090403102636.1"><vh>Variables</vh></v>
 <v t="ntallen.20090331165341.1"><vh>Window</vh></v>
@@ -484,6 +488,17 @@
 <v t="ntallen.20090331165341.3"><vh>Axes</vh></v>
 <v t="ntallen.20090331165341.4"><vh>Graph</vh></v>
 <v t="ntallen.20090331165341.5"><vh>Line</vh></v>
+<v t="ntallen.20110628150418.2171" a="E"><vh>Trend Plot</vh>
+<v t="ntallen.20110706143111.2179"><vh>axes for trend plot</vh></v>
+<v t="ntallen.20110701115423.2175"><vh>Time Units</vh></v>
+<v t="ntallen.20110701115423.2176"><vh>X scaling</vh></v>
+<v t="ntallen.20110628150418.2172"><vh>Pt_MTrend</vh></v>
+<v t="ntallen.20110706143111.2180"><vh>plot_line_trend</vh></v>
+<v t="ntallen.20110711143914.2187"><vh>RTG_Variable_Range_Trend</vh></v>
+<v t="ntallen.20110706143111.2181" a="E"><vh>Sequence</vh>
+<v t="ntallen.20110706143111.2182"><vh>Reload</vh></v>
+</v>
+</v>
 </v>
 <v t="ntallen.20090413114310"><vh>Visibility Changes</vh></v>
 <v t="ntallen.20090519153418"><vh>Building on 6.3.2</vh></v>
@@ -546,6 +561,14 @@
 <v t="ntallen.20090210131028.13"><vh>Line Properties</vh></v>
 </v>
 </v>
+</v>
+<v t="ntallen.20110620084903.2157"><vh>Implementing a new derivation</vh>
+<v t="ntallen.20110620084903.2160"><vh>phrtg.h: Define Derived Class</vh></v>
+<v t="ntallen.20110620084903.2158"><vh>UI updates</vh></v>
+<v t="ntallen.20110620084903.2159"><vh>callbacks.cc</vh></v>
+<v t="ntallen.20110620084903.2161"><vh>Derived.cc: Implement class</vh></v>
+<v t="ntallen.20110620084903.2162"><vh>axes.cc</vh></v>
+<v t="ntallen.20110620084903.2163"><vh>phrtg_config.cc: Serialization</vh></v>
 </v>
 </v>
 </v>
@@ -3482,6 +3505,11 @@ Again, too much complexity for little value. If the user explicitly deletes the 
     Zero origin
     Slope 1 (i.e. X[i] = i;
     Range [0,nrows-1]
+    Possibly provide a command to specify the scale, i.e. to set the sample rate
+    Adding a linear scale to RTG_Variable_Matrix looks simple
+        ::xrow_range()
+        ::get()
+    Might want the ability to switch back and forth between sample and user units
 FFT:
     Implicit Linear Scale
     Zero origin
@@ -3494,7 +3522,11 @@ Detrend:
     Subset of Source's range, but it isn't reasonable for the derived channel to know the source's scaling.
     Hence:
         Store the X values explicitly in the derived channel
-        Provide a method to translate an X range into a row range</t>
+        Provide a method to translate an X range into a row range
+    Note that the current implementation (6/11) allocates space for X values
+    (in RTG_Variable_Detrend::reload_data()) and initialized in
+    RTG_Variable_Detrend::detrend(), Accessed in RTG_Variable_Detrend::get(),
+    but mostly unused, as xrow_range() refers to the source's xrow_range().</t>
 <t tx="ntallen.20090514140929">Variables:
     (new_data_available is a deferred version of reload_required. It does not
     trigger a reload until the current output cycle is completed)
@@ -4096,6 +4128,9 @@ Install: These packages need to be identified individually by going to the site 
     automake-1.11.1
     gtexinfo 4-13
     libtool-2.2.6b
+    ncurses-#
+    fftw-#
+    fftwf-#
 
 Install cdrtools from QNX downloads third party page:
     This is a version compiled for 6.3.2, but hopefully still works.
@@ -4720,7 +4755,7 @@ List runs on hwv with more than 2 copies, sorting by size or n_copies
 <t tx="ntallen.20110609114734.2140"></t>
 <t tx="ntallen.20110609114734.2141"></t>
 <t tx="ntallen.20110609114734.2142"></t>
-<t tx="ntallen.20110609114734.2143"></t>
+<t tx="ntallen.20110609114734.2143">fftw has a lot of information about optimization. For starters, the input array may need to be carefully align</t>
 <t tx="ntallen.20110609114734.2144">Checking "detrend" marks every graph on the axes to be detrended:
     Mark axis as detrended
     For each graph:
@@ -4741,6 +4776,8 @@ If I now add a new variable to the axes, what happens?
     Other possibilities:
         We now have a mixed graph, so clear the detrend checkbox
         and rename the previously detrended graphs accordingly
+        
+        OR
         
         Always rename graphs when deriving. Provide logic to go both
         directions (derive and underive) (or just store the underived
@@ -4779,7 +4816,7 @@ If I now add a new variable to the axes, what happens?
             and hence mark the axes as detrended.
 
 The fact that the plot_line objects remain means the idea of constraining the detrend in both row and column
-might need to be reworked. In that case, the instead of swapping variables, we might want to swap graphs.
+might need to be reworked. In that case, instead of swapping variables, we might want to swap graphs.
 In other words:
     
 Checking "detrend" marks every graph on the axes to be detrended:
@@ -4809,6 +4846,225 @@ When adding or subtracting graphs from axes, re-evaluate detrend status (and sta
 Probably don't need to explicitly invoke plot_axes::Update_Axis_Pane(), because that will be handled by
 got_focus(), which is called after the graph is created or destroyed.
 
-Open question: should I rename graphs and lines when performing a derivation? If so, how?</t>
+Open question: should I rename graphs and lines when performing a derivation? If so, how?
+Yes, rename graphs and lines. For detrend, new name for var X should be DT(X(m:M)) or DT(X,m,M).
+I think the latter is easier to undetrend, simply taking the first argument, allowing for nesting.
+If a detrended plot_line is renamed and then undetrended, I should revert to the canonical name
+based on the variable name and column.
+
+On detrend: for each plot_graph and plot_line, replace name X with DT(X,m,M)
+    If detrended variable already exists, use it.
+On undetrend: if name is of the form DT(X,m,M), then replace with X, else:
+    plot_graph: replace name with source variable name
+    plot_line: replace name with plot_graph name and column
+    Or even simpler:
+        Always use the source variable name on undetrend and detrend!</t>
+<t tx="ntallen.20110617114502.2153"></t>
+<t tx="ntallen.20110617114502.2154">For optimum speed, fftw recommends careful allocation of the input and output vectors.
+This is not a huge problem, except if we have selected a subregion. I'm guessing that starting a calculation
+from an odd offset will result in the performance hit. My question is whether the performance hit is
+so bad that it outweighs the cost of copying the data into an aligned vector first.
+
+Load interferrogram into memory
+Allocate three vectors A, B &amp; C of aligned memory a little larger than interferrogram
+Generate a detailed plan for this size
+
+Copy interferrogram into A[0]
+Loop
+  FFT(A -&gt; C)
+End Loop
+
+Copy interferrogram into A[1]
+Loop
+  FFT(A[1] -&gt; C)
+End Loop
+
+Copy interferrogram into B[1]
+Loop
+  Copy interferrogram from B[1] to A[0]
+  FFT(A -&gt; C)
+End Loop
+</t>
+<t tx="ntallen.20110620084903.2157"></t>
+<t tx="ntallen.20110620084903.2158">Need to add toggle buttons to axes pane and associate them with the Toggle_Activate() callback.</t>
+<t tx="ntallen.20110620084903.2159">Add appropriate hooks to Update_Toggle()</t>
+<t tx="ntallen.20110620084903.2160">This is a class derived from RTG_Variable_Derived. Need to reimplement:
+    reload_data()
+        When derivation can be applied independently to columns, this function
+        can simply set flags and leave the actual derivation to another routine
+        which is invoked when the data needs to be accessed, e.g. in get()
+        or y_vector().
+        Probably needs to allocate space.
+    xrow_range()
+    get()
+    y_vector()
+        Actually, y_vector is only called by evaluate_range(). In the invert case,
+        we might be able to get away without actually copying the data and simply
+        re-implement evaluate_range instead. In that case, I should provide a
+        re-implementation of y_vector() to complain that it is not implemented.
+        However, if I wanted to, say derive an FFT from an inverted channel,
+        I will probably want to call y_vector() for the source, and that
+        would fail.
+        
+Most of this involves checking to see if the values must be re-derived and doing so if necessary.
+Hence need a method to do the actual derivation:
+    see RTG_Variable_Detrend::detrend()
+
+Also must provide appropriate methods to create a derived variable, set up it's name, etc.
+    see RTG_Variable_Detrend::Create()</t>
+<t tx="ntallen.20110620084903.2161">According to discussion above of X units, a derived variable should probably
+allocate an X vector in addition to y vectors for each of the input vectors.
+This has been handled in reload_data()</t>
+<t tx="ntallen.20110620084903.2162">plot_axes::plot_axes()
+    Initialize toggle button state
+plot_axes::Update_Axes_Pane()
+    Determine toggle state based on graphs and set
+
+Define method for applying or un-applying the derivation to axes
+    see plot_axes::Detrend()
+        Can any of this be refactored?
+
+When switching from/to some derivations, it makes sense to alter the limits:
+    Switching to or from PSD should probably float the x and y limits. The
+    exception is where x limits were set to a small range before PSD was
+    invoked. In that case, it would make sense to fix x on the old limits.
+In general, it would be useful to restore axis limits to what they were
+before the derivation was invoked. For now, I will just switch back to
+auto in either direction.</t>
+<t tx="ntallen.20110620084903.2163">Add code necessary to serialize/deserialize the application of this derivation.
+</t>
+<t tx="ntallen.20110628150418.2171">What exactly is a trend plot?
+    Incoming data comes with x,y coordinates
+        x should be monotonically increasing
+        x *could* be implicit
+        multiple columns of y are possible as well, in which case the data should come
+          in as x,y0,y1,y2,...
+    x scale is adusted so maximum x value appears at the right
+    (although that might depend on the reverse or reverse_dim attributes)
+    
+    I think that the way this should actually work is that the x-axis
+    scale does not change. Rather, the trend offset changes. Trend
+    graphs apply the trend offset when performing their scaling. All graphs
+    on the axes should use the same trend offset, which means a trend offset
+    should be kept with the axes and also with each line. If the two are
+    different, then the line must make appropriate adjustments.
+    
+plot_graph_trend could be subclass of plot_graph</t>
+<t tx="ntallen.20110628150418.2172">Investigate how scaling works:
+    what happens if I change the limits?
+    what determines how many pixels/sample?
+    Would I do better by implementing my own trends using polylines?
+    
+I'm guessing the PtTrend or PtMTrend will be most appropriate, but I'll need to maintain my own copy of the data in order to handle rescaling.
+
+OK, here's an issue:
+
+PtTrend and PtMTrend both have implicit time increments and the assumption is that all trends use the same time base.
+Tested PtMTrend, and if one trend does not contribute a point during a time sample, it records as minimum. I could conceivably go back and update those points, but that's crazy.
+
+My basic design also allows overlaying trended and untrended data (although not entirely clear how that would work.)
+</t>
+<t tx="ntallen.20110701115423.2175">    Note that in order to represent fractional seconds, I need a more
+    robust x coordinate. Seconds since 1970 requires more than 31 bits
+    for anything below a second.
+    
+    Initialization of a trend channel could define an epoch and
+    a scale factor, allowing purely integer values for "time increments
+    since the epoch". Of course, it may make more sense to receive
+    x as a float, but the same logic could apply. In any event,
+    defining the epoch makes good sense.
+
+Establish a global reference epoch (ref_epoch), probably the first
+epoch requested. For each variable epoch ve, calculate epoch_delta = ve - ref_epoch
+Then as each value X0 is reported, calculate X1 = X0 + epoch_delta to get time
+relative to ref_epoch.</t>
+<t tx="ntallen.20110701115423.2176">If the axes stay relatively fixed:
+    X = [0 60] representing one minute of data
+    If the maximum X coord reported is, say, 2000, then
+    the trend offset is set to -1960, and 2000 maps to 60
+How do I decide how much data to cache?
+    Default to 4 minutes of data and report that range
+    Look at the axes range, and expand cache if necessary
+
+data range is reported relative to axes' trend_offset
+When data range goes beyond the max value, adjust the
+trend_offset.
+
+If axis limits are changed, vars may need to increase their cache sizes
+
+What if axes are set to auto-scale?
+    Probably don't want that in most cases
+    Should only adjust xmin based on max delta
+    Vars should base their cache on xmax value
+    Cache should probably be expanded dynamically until the min x value is
+    off scale for all axes. i.e. if new data arrives and the minimum x value
+    is still on screen, increase the size of the queue
+</t>
+<t tx="ntallen.20110706143111.2179">I do not see a use case for overlaying, e.g. and MLF plot or an X/Y plot onto a trend plot.
+
+I can imagine it being useful to be able to invert, detrend or FFT a trend plot:
+    Invert could be done just on new points, same x axis
+    Detrend requires recalculating entire graph whenever data arrives, but same x axis
+    FFT uses a different (standard) x-axis
+        That suggests that it should be easy to switch between normal axes and trend axes.
+
+Trend x-axes should have different controls from normal x-axis. Instead of auto/min/max,
+it should just have a scale number (e.g. 60 seconds) or units per division.
+    units per division could be calculated for normal axes, min/max could be calculated
+    for trend axes.
+
+All graphs on an axes should have the same </t>
+<t tx="ntallen.20110706143111.2180">Like plot_line, actual graphic may be made up of multiple polyline widgets.
+If the y scale changes at all, a redraw is required.
+If the x scale (pixels/second) changes, a redraw is required
+If only the x offset changes, existing widgets can be shifted, and only the
+  last needs to be updated. (If window is stretched and we maintain the scale,
+  then we might need to fill in some widgets up front as well, although it
+  might be easier to just require a redraw in that case. Chances are real
+  good that the Y scale would change during any resize anyway, so we're
+  not likely to get a lot of savings by that optimization.)</t>
+<t tx="ntallen.20110706143111.2181">New data arrives for variable V.
+Insert it into the new data queue and signal that new data is available.
+The invoke plot_obj::render_one() to trigger the appropriate updates.
+
+RTG_Variable_Data::check_for_updates() sees new_data_available and
+updates it to reload_required. (these are separated to allow updates
+to reach the screen.)
+
+RTG_Variable_Trend::reload_data will transfer the data from the new data queue
+into the active queue and graphs will get new_data flag
+
+Now the render cycle begins
+
+plot_axes::check_limits -&gt; plot_graph::check_limits -&gt; plot_line::check_limits
+    new_data flag propagates to each plot_line
+    plot_graph::check_range is set and then propagated to each plot_line
+    plot_graph::redraw_required is set (I guess just to indicate that some drawing is required)
+    plot_line::check_limits calls variable-&gt;evaluate_range(), then Xr.update_range() if auto...
+        My current plan is that Xr is *not* auto
+    
+    plot_line::render() does a complete redraw on redraw_required
+    plot_graph::render() sets redraw_required and plot_line::redraw_required if axes_rescaled
+        I want to get to plot_line_trend::render(), but I don't want axes_rescaled
+        I want this to be a subtler check that says axes_trended</t>
+<t tx="ntallen.20110706143111.2182">Verify that incoming data is monotonic. If not, reset variable.</t>
+<t tx="ntallen.20110711143914.2187">subclass of RTG_Variable_Range for trending.
+RTG_Variable_Range provides:
+    bool range_auto;
+    scalar_t min, max;
+    
+with RTG_Variable_Range_Trend, auto and min are not options.
+max is derived from the data, and units_per_major_tick is
+selectable.
+    scalar_t units_per_major_tick;
+
+units will usually (always?) be seconds.
+min will be set by max - (units_per_major_tick * pixels)/major_tick_len
+major_tick_len could be constant for now. Where does it get set?
+probably in set_scale():
+    For trend axis, major_tick_len could be selected to be an even multiple of 
+    pixels, or it could be set to a constant optimal tick length
+May need to derive plot_axis_trend from plot_axis in order to override
+  set_scale() and Update_Axis_Pane()</t>
 </tnodes>
 </leo_file>
