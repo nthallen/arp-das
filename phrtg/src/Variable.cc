@@ -21,10 +21,12 @@ RTG_Variable *RTG_Variable::Root;
 
 RTG_Variable_Range::RTG_Variable_Range() {
   min = max = -1.;
+  epoch = 0.;
   range_required = true;
   range_is_current = false;
   range_is_empty = true;
   range_auto = true;
+  range_trend = false;
 }
 
 void RTG_Variable_Range::update(scalar_t min_in, scalar_t max_in ) {
@@ -32,6 +34,12 @@ void RTG_Variable_Range::update(scalar_t min_in, scalar_t max_in ) {
     min = min_in;
     max = max_in;
     range_is_empty = false;
+  } else if ( range_trend ) {
+    nl_assert( max == 0. );
+    if ( max_in > max ) {
+      epoch += max_in;
+      // should not need to update max (0.) or min (defined by span)
+    }
   } else {
     if (min_in < min)
       min = min_in;
@@ -425,6 +433,10 @@ RTG_Variable_Matrix::RTG_Variable_Matrix(const char *name_in, RTG_Variable_Type 
     RTG_Variable_Data(name_in, type_in) {
 }
 
+/**
+ * Sets X and Y to the values for the specified row and column.
+ * @return true on success, false if indices are out of range
+ */
 bool RTG_Variable_Matrix::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) {
   if ( r >= nrows || c >= ncols ) return false;
   X = r;

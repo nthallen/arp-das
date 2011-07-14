@@ -243,6 +243,11 @@ void plot_axes::resized(PhDim_t *newdim) {
 bool plot_axes::check_limits() {
   std::list<plot_graph*>::const_iterator gr;
   RTG_Variable_Range Xr, Yr;
+  // Move this into an initializer:
+  if (X.limits.range_trend) {
+    Xr.range_trend = true;
+    Xr.epoch = X.limits.epoch;
+  }
   for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
     plot_graph *grph = *gr;
     if (grph->check_limits(Xr, Yr)) return true;

@@ -16,6 +16,7 @@
 #include <photon/PtTree.h>
 #include <list>
 #include <vector>
+#include <deque>
 #include <fftw3.h>
 
 #define MAX_VAR_LENGTH 80
@@ -38,7 +39,17 @@ const int DIV_BEVEL_WIDTHS = 2;
 class RTG_Variable_Range {
   public:
     scalar_t min, max;
+    scalar_t units_per_Mtick;
+    scalar_t span;
+    double epoch;
     bool range_required;
+    /**
+     * Overrides range_auto. Indicates data should be plotted
+     * relative to epoch. On update(), epoch should be
+     * redefined to be equal to the maximum data range.
+     * Hence max will be zero.
+     */
+    bool range_trend;
     bool range_auto;
     bool range_is_current;
     bool range_is_empty;
@@ -198,6 +209,40 @@ class RTG_Variable_MLF : public RTG_Variable_Matrix {
     mlf_def_t *mlf;
     unsigned long next_index;
     void new_index(unsigned long index);
+};
+
+class trend_queue : public deque<scalar_t> {
+  public:
+    /** The number of Y columns */
+    int n_cols;
+    double x_max, x_min, x_epoch, span;
+    /** Guarantees monotonicity, column coherency */
+    void push( int nc, double X, double *Y );
+    /** Copy all data into destination */
+    void flush( trend_queue &dest );
+    /** Retire old data based on span and minimum allocation */
+    void flush();
+    int n_rows();
+    /**
+     * Sets X and Y to the values for the specified row and column.
+     * The X value is adjusted to be relative to the specified epoch.
+     * @return true on success, false if indices are out of range
+     */
+    bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y, double epoch);
+};
+
+class RTG_Variable_Trend : public RTG_Variable_Data {
+  public:
+    bool reload_data();
+    bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
+    void evaluate_range(unsigned col, RTG_Variable_Range &X,
+        RTG_Variable_Range &Y);
+    void xrow_range(scalar_t x_min, scalar_t x_max,
+        unsigned &i_min, unsigned &i_max);
+    vector_t y_vector(unsigned col);
+    static void Incoming( const char *cmd );
+  private:
+    trend_queue pending, data;
 };
 
 class RTG_Variable_Derived : public RTG_Variable_Matrix {
