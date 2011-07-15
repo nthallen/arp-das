@@ -19,7 +19,7 @@
  */
 RTG_Variable *RTG_Variable::Root;
 
-RTG_Variable_Range::RTG_Variable_Range() {
+RTG_Range::RTG_Range() {
   min = max = -1.;
   epoch = 0.;
   range_required = true;
@@ -29,7 +29,7 @@ RTG_Variable_Range::RTG_Variable_Range() {
   range_trend = false;
 }
 
-void RTG_Variable_Range::update(scalar_t min_in, scalar_t max_in ) {
+void RTG_Range::update(scalar_t min_in, scalar_t max_in ) {
   if ( range_is_empty ) {
     min = min_in;
     max = max_in;
@@ -48,16 +48,16 @@ void RTG_Variable_Range::update(scalar_t min_in, scalar_t max_in ) {
   }
 }
 
-void RTG_Variable_Range::update(RTG_Variable_Range &R ) {
+void RTG_Range::update(RTG_Range &R ) {
   if (!R.range_is_empty)
     update(R.min, R.max);
 }
 
 /**
- * RTG_Variable_Range::changed sets the current range to that of the input
+ * RTG_Range::changed sets the current range to that of the input
  * and returns true if this represents a change
  */
-bool RTG_Variable_Range::changed(RTG_Variable_Range &R ) {
+bool RTG_Range::changed(RTG_Range &R ) {
   range_is_current = true;
   range_required = false;
   if ( range_is_empty ) {
@@ -78,7 +78,7 @@ bool RTG_Variable_Range::changed(RTG_Variable_Range &R ) {
   return true;
 }
 
-void RTG_Variable_Range::clear() {
+void RTG_Range::clear() {
   range_is_empty = true;
 }
 
@@ -455,7 +455,7 @@ vector_t RTG_Variable_Matrix::y_vector(unsigned col) {
  * the line as invisible.
  */
 void RTG_Variable_Matrix::evaluate_range(unsigned col,
-    RTG_Variable_Range &X, RTG_Variable_Range &Y) {
+    RTG_Range &X, RTG_Range &Y) {
   unsigned r, r1;
   if (X.range_auto) {
     scalar_t y;

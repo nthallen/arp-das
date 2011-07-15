@@ -111,7 +111,7 @@ static void apply_limits() {
     nl_error(2, "apply_limits() when Current::Axes == NULL");
     return;
   }
-  if ( Current::Axis->limits.range_auto ) {
+  if ( Current::Axis->limits.limits_auto ) {
     nl_error(2, "apply_limits() while limits are auto");
     return;
   }
@@ -162,14 +162,14 @@ void Update_Toggle(int Name, long int value, Update_Source src ) {
     /* This is on Tab_X and Tab_Y
      * It refers to Current::Axis (and if selected, overlaid axises)
      * We need to toggle Pt_GHOST and Pt_BLOCKED on ABW_Limits_Group
-     * and update Current::Axis->limits.range_auto.
+     * and update Current::Axis->limits.limits_auto.
      * Turning auto off should not require any updates, but
      * turning it on will.
      */
     if (Current::Axis == NULL || Current::Axes == NULL) {
       nl_error(2,"Toggle Auto_Scale with no Current::Axis or Axes");
     } else {
-      Current::Axis->limits.range_auto = value;
+      Current::Axis->limits.limits_auto = value;
       if ( value ) {
         // Current::Axis->axis_range_updated = true;
         Current::Axes->schedule_range_check();

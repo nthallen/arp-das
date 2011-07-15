@@ -36,7 +36,7 @@ enum RTG_Variable_Type { Var_Node, Var_MLF, Var_Detrend,
       Var_Invert, Var_FFT, Var_FFT_PSD, Var_FFT_Phase };
 const int DIV_BEVEL_WIDTHS = 2;
 
-class RTG_Variable_Range {
+class RTG_Range {
   public:
     scalar_t min, max;
     scalar_t units_per_Mtick;
@@ -53,12 +53,37 @@ class RTG_Variable_Range {
     bool range_auto;
     bool range_is_current;
     bool range_is_empty;
-    RTG_Variable_Range();
+    RTG_Range();
     void clear();
     void update(scalar_t min_in, scalar_t max_in);
     inline void update(scalar_t val ) { update(val, val); }
-    void update(RTG_Variable_Range &R);
-    bool changed(RTG_Variable_Range &R);
+    void update(RTG_Range &R);
+    bool changed(RTG_Range &R);
+};
+
+class RTG_Limits {
+  public:
+    scalar_t min, max;
+    scalar_t units_per_Mtick;
+    scalar_t span;
+    double epoch;
+    // bool range_required;
+    /**
+     * Overrides range_auto. Indicates data should be plotted
+     * relative to epoch. On update(), epoch should be
+     * redefined to be equal to the maximum data range.
+     * Hence max will be zero.
+     */
+    bool limits_trend;
+    bool limits_auto;
+    bool limits_current;
+    bool limits_empty;
+    RTG_Limits();
+    // void clear();
+    // void update(scalar_t min_in, scalar_t max_in);
+    // inline void update(scalar_t val ) { update(val, val); }
+    // void update(RTG_Range &R);
+    bool changed(RTG_Range &R);
 };
 
 class RTG_Variable {
@@ -157,8 +182,8 @@ class RTG_Variable_Data : public RTG_Variable {
      */
     virtual bool reload_data() = 0;
     virtual bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) = 0;
-    virtual void evaluate_range(unsigned col, RTG_Variable_Range &X,
-        RTG_Variable_Range &Y) = 0;
+    virtual void evaluate_range(unsigned col, RTG_Range &X,
+        RTG_Range &Y) = 0;
 
     /**
      * On exit, i_min and i_max are set to the sample
@@ -180,8 +205,8 @@ class RTG_Variable_Matrix : public RTG_Variable_Data {
     f_matrix data;
     RTG_Variable_Matrix(const char *name_in, RTG_Variable_Type type_in);
     bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
-    void evaluate_range(unsigned col, RTG_Variable_Range &X,
-         RTG_Variable_Range &Y);
+    void evaluate_range(unsigned col, RTG_Range &X,
+         RTG_Range &Y);
     vector_t y_vector(unsigned col);
 };
 
@@ -235,8 +260,8 @@ class RTG_Variable_Trend : public RTG_Variable_Data {
   public:
     bool reload_data();
     bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
-    void evaluate_range(unsigned col, RTG_Variable_Range &X,
-        RTG_Variable_Range &Y);
+    void evaluate_range(unsigned col, RTG_Range &X,
+        RTG_Range &Y);
     void xrow_range(scalar_t x_min, scalar_t x_max,
         unsigned &i_min, unsigned &i_max);
     vector_t y_vector(unsigned col);
@@ -497,8 +522,8 @@ class plot_axis {
   	bool reserve_label_space[2];
   	bool draw_label[2];
   	bool log_scale;
-  	RTG_Variable_Range range;
-  	RTG_Variable_Range limits;
+  	RTG_Range range;
+  	RTG_Limits limits;
   	int pixels;
   	float scalev;
   	float clip_max;
@@ -582,7 +607,7 @@ class plot_graph : public plot_obj {
     plot_graph(RTG_Variable_Data *var, plot_axes *parent);
   	~plot_graph();
   	void got_focus(focus_source whence);
-  	bool check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr );
+  	bool check_limits( RTG_Range &Xr, RTG_Range &Yr );
     bool render();
     plot_obj *default_child();
     bool check_for_updates(bool parent_visibility);
@@ -598,7 +623,7 @@ class plot_line : public plot_obj {
     plot_graph *parent;
     int column;
     PgColor_t color;
-    RTG_Variable_Range Xrange, Yrange;
+    RTG_Range Xrange, Yrange;
     std::vector<PhPoint_t> idata;
     std::vector<PtWidget_t *> widgets;
 
@@ -606,7 +631,7 @@ class plot_line : public plot_obj {
   	~plot_line();
   	void clear_widgets();
   	void got_focus(focus_source whence);
-  	bool check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr );
+  	bool check_limits( RTG_Range &Xr, RTG_Range &Yr );
     void set_line_color(PgColor_t rgb, Update_Source src);
     bool render();
     bool check_for_updates(bool parent_visibility);

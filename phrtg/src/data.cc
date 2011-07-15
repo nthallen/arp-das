@@ -39,7 +39,7 @@ void plot_graph::got_focus(focus_source whence) {
   // Update any dialogs that require it
 }
 
-bool plot_graph::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
+bool plot_graph::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
   if (!visible) return false;
   if (new_data) {
     // Make sure we have line objects for each column

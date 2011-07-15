@@ -72,7 +72,7 @@ void plot_line::got_focus(focus_source whence) {
   Update_Line_Tab();
 }
 
-bool plot_line::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
+bool plot_line::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
   if ( ! visible ) return false;
   plot_axes *ax = parent->parent;
   if (new_data) {
@@ -82,13 +82,13 @@ bool plot_line::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
   }
   if (check_range) {
     check_range = false;
-    if (ax->X.limits.range_auto) {
+    if (ax->X.limits.limits_auto) {
       Xrange.range_required = true;
       Xrange.range_auto = true;
       Xrange.range_is_current = false;
       Xrange.range_is_empty = true;
     } else Xrange = ax->X.limits;
-    if (ax->Y.limits.range_auto) {
+    if (ax->Y.limits.limits_auto) {
       Yrange.range_required = true;
       Yrange.range_auto = true;
       Yrange.range_is_current = false;
@@ -103,8 +103,8 @@ bool plot_line::check_limits( RTG_Variable_Range &Xr, RTG_Variable_Range &Yr ) {
       return true;
     }
   }
-  if (ax->X.limits.range_auto) Xr.update(Xrange);
-  if (ax->Y.limits.range_auto) Yr.update(Yrange);
+  if (ax->X.limits.limits_auto) Xr.update(Xrange);
+  if (ax->Y.limits.limits_auto) Yr.update(Yrange);
   return false;
 }
 

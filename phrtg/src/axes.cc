@@ -34,7 +34,7 @@ plot_axis::plot_axis() {
 void plot_axis::check_limits() {
   if ( axis_range_updated ) {
     axis_range_updated = false;
-    if ( limits.range_auto ) {
+    if ( limits.limits_auto ) {
       if ( limits.changed(range) ) {
         set_scale();
       }
@@ -101,7 +101,7 @@ plot_obj *plot_axes::default_child() {
 
 void plot_axis::Update_Axis_Pane(plot_axes *parent) {
   Current::Axis = this;
-  long is_auto = limits.range_auto ? Pt_TRUE : Pt_FALSE;
+  long is_auto = limits.limits_auto ? Pt_TRUE : Pt_FALSE;
   PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_auto, Pt_SET);
   PtSetResource(ABW_Limit_Min, Pt_ARG_FLAGS, is_auto,
       Pt_GHOST|Pt_BLOCKED );
@@ -242,9 +242,9 @@ void plot_axes::resized(PhDim_t *newdim) {
 
 bool plot_axes::check_limits() {
   std::list<plot_graph*>::const_iterator gr;
-  RTG_Variable_Range Xr, Yr;
+  RTG_Range Xr, Yr;
   // Move this into an initializer:
-  if (X.limits.range_trend) {
+  if (X.limits.limits_trend) {
     Xr.range_trend = true;
     Xr.epoch = X.limits.epoch;
   }
@@ -253,12 +253,12 @@ bool plot_axes::check_limits() {
     if (grph->check_limits(Xr, Yr)) return true;
   }
 
-  if (X.limits.range_auto && X.data_range_updated) {
+  if (X.limits.limits_auto && X.data_range_updated) {
     X.data_range_updated = false;
     if (X.range.changed(Xr))
       X.axis_range_updated = true;
   }
-  if (Y.limits.range_auto && Y.data_range_updated) {
+  if (Y.limits.limits_auto && Y.data_range_updated) {
     Y.data_range_updated = false;
     if (Y.range.changed(Yr))
       Y.axis_range_updated = true;
@@ -343,9 +343,9 @@ void plot_axes::Detrend(long value) {
   std::list<plot_graph*>::const_iterator pos;
   if (value) {
     detrended = true;
-    if (X.limits.range_is_empty) {
+    if (X.limits.limits_empty) {
       nl_error(1,"Empty X-range: Skipping detrend");
-    } else if (!X.limits.range_is_current) {
+    } else if (!X.limits.limits_current) {
       nl_error(1,"X-limits not current: Skipping detrend");
     } else {
       for (pos = graphs.begin(); pos != graphs.end(); pos++) {
@@ -428,9 +428,9 @@ void plot_axes::PSD(long value) {
   std::list<plot_graph*>::const_iterator pos;
   if (value) {
     psd_transformed = true;
-    if (X.limits.range_is_empty) {
+    if (X.limits.limits_empty) {
       nl_error(1,"Empty X-range: Skipping psd");
-    } else if (!X.limits.range_is_current) {
+    } else if (!X.limits.limits_current) {
       nl_error(1,"X-limits not current: Skipping psd");
     } else {
       for (pos = graphs.begin(); pos != graphs.end(); pos++) {
@@ -443,8 +443,8 @@ void plot_axes::PSD(long value) {
 	var->RemoveGraph(graph);
 	graph->rename(psd->name,from_widget);
       }
-      X.limits.range_auto = true;
-      Y.limits.range_auto = true;
+      X.limits.limits_auto = true;
+      Y.limits.limits_auto = true;
     }
   } else {
     psd_transformed = false;
@@ -468,8 +468,8 @@ void plot_axes::PSD(long value) {
 	}
       }
       graph->new_data = true;
-      X.limits.range_auto = true;
-      Y.limits.range_auto = true;
+      X.limits.limits_auto = true;
+      Y.limits.limits_auto = true;
     }
   }
 }
@@ -484,9 +484,9 @@ void plot_axes::Phase(long value) {
   std::list<plot_graph*>::const_iterator pos;
   if (value) {
     ph_transformed = true;
-    if (X.limits.range_is_empty) {
+    if (X.limits.limits_empty) {
       nl_error(1,"Empty X-range: Skipping phase");
-    } else if (!X.limits.range_is_current) {
+    } else if (!X.limits.limits_current) {
       nl_error(1,"X-limits not current: Skipping phase");
     } else {
       for (pos = graphs.begin(); pos != graphs.end(); pos++) {
@@ -499,8 +499,8 @@ void plot_axes::Phase(long value) {
 	var->RemoveGraph(graph);
 	graph->rename(ph->name,from_widget);
       }
-      X.limits.range_auto = true;
-      Y.limits.range_auto = true;
+      X.limits.limits_auto = true;
+      Y.limits.limits_auto = true;
     }
   } else {
     ph_transformed = false;
@@ -524,8 +524,8 @@ void plot_axes::Phase(long value) {
 	}
       }
       graph->new_data = true;
-      X.limits.range_auto = true;
-      Y.limits.range_auto = true;
+      X.limits.limits_auto = true;
+      Y.limits.limits_auto = true;
     }
   }
 }
