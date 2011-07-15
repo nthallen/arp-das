@@ -13,8 +13,8 @@ plot_axis::plot_axis() {
   XY = Axis_X;
   reverse_dim = false;
   reverse = false;
-  data_range_updated = false;
-  axis_range_updated = false;
+  // data_range_updated = false;
+  // axis_range_updated = false;
   axis_limits_updated = false;
   draw[0] = draw[1] = false;
   reserve_tick_space[0] = reserve_tick_space[1] = false;
@@ -32,8 +32,8 @@ plot_axis::plot_axis() {
 }
 
 void plot_axis::check_limits() {
-  if ( axis_range_updated ) {
-    axis_range_updated = false;
+  if ( range.range_updated ) {
+    range.range_updated = false;
     if ( limits.limits_auto ) {
       if ( limits.changed(range) ) {
         set_scale();
@@ -253,15 +253,17 @@ bool plot_axes::check_limits() {
     if (grph->check_limits(Xr, Yr)) return true;
   }
 
-  if (X.limits.limits_auto && X.data_range_updated) {
-    X.data_range_updated = false;
-    if (X.range.changed(Xr))
-      X.axis_range_updated = true;
+  if (X.limits.limits_auto && Xr.range_updated) {
+    // X.data_range_updated = false;
+    X.range.changed(Xr); // Just update X.range.range_updated
+    // if (X.range.changed(Xr))
+    //   X.axis_range_updated = true;
   }
-  if (Y.limits.limits_auto && Y.data_range_updated) {
-    Y.data_range_updated = false;
-    if (Y.range.changed(Yr))
-      Y.axis_range_updated = true;
+  if (Y.limits.limits_auto && Yr.range_updated) {
+    // Y.data_range_updated = false;
+    Y.range.changed(Yr); // Just update X.range.range_updated
+    // if (Y.range.changed(Yr))
+    //   Y.axis_range_updated = true;
   }
 
   /* Now check to see if the limits need to be updated */

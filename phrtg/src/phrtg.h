@@ -23,6 +23,7 @@
 #define MAX_VAR_NODE_LENGTH 40
 #define MAX_VAR_NODES 6
 
+class RTG_Limits;
 class RTG_Variable_Node;
 class RTG_Variable_MLF;
 class RTG_Variable_Derived;
@@ -39,22 +40,23 @@ const int DIV_BEVEL_WIDTHS = 2;
 class RTG_Range {
   public:
     scalar_t min, max;
-    scalar_t units_per_Mtick;
-    scalar_t span;
+    // scalar_t units_per_Mtick;
+    // scalar_t span;
     double epoch;
     bool range_required;
     /**
-     * Overrides range_auto. Indicates data should be plotted
+     * Indicates range should be calculated
      * relative to epoch. On update(), epoch should be
      * redefined to be equal to the maximum data range.
      * Hence max will be zero.
      */
     bool range_trend;
-    bool range_auto;
     bool range_is_current;
     bool range_is_empty;
+    bool range_updated;
     RTG_Range();
     void clear();
+    bool check_required(RTG_Limits &lims);
     void update(scalar_t min_in, scalar_t max_in);
     inline void update(scalar_t val ) { update(val, val); }
     void update(RTG_Range &R);
@@ -69,7 +71,7 @@ class RTG_Limits {
     double epoch;
     // bool range_required;
     /**
-     * Overrides range_auto. Indicates data should be plotted
+     * Overrides limits_auto. Indicates data should be plotted
      * relative to epoch. On update(), epoch should be
      * redefined to be equal to the maximum data range.
      * Hence max will be zero.
@@ -236,7 +238,7 @@ class RTG_Variable_MLF : public RTG_Variable_Matrix {
     void new_index(unsigned long index);
 };
 
-class trend_queue : public deque<scalar_t> {
+class trend_queue : public std::deque<scalar_t> {
   public:
     /** The number of Y columns */
     int n_cols;
@@ -512,7 +514,7 @@ class plot_axis {
   	bool reverse_dim; // based on X or Y
     bool reverse; // user-selectable
   	bool data_range_updated;
-  	bool axis_range_updated;
+  	// bool axis_range_updated;
   	bool axis_limits_updated;
   	bool draw[2]; // Whether to draw primary or secondary axis
   	bool reserve_tick_space[2];

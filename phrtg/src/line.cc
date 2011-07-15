@@ -82,24 +82,13 @@ bool plot_line::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
   }
   if (check_range) {
     check_range = false;
-    if (ax->X.limits.limits_auto) {
-      Xrange.range_required = true;
-      Xrange.range_auto = true;
-      Xrange.range_is_current = false;
-      Xrange.range_is_empty = true;
-    } else Xrange = ax->X.limits;
-    if (ax->Y.limits.limits_auto) {
-      Yrange.range_required = true;
-      Yrange.range_auto = true;
-      Yrange.range_is_current = false;
-      Yrange.range_is_empty = true;
-    } else Yrange = ax->Y.limits;
-    if (Xrange.range_required || Yrange.range_required) {
+    if (Xrange.check_required(ax->X.limits) ||
+	Yrange.check_required(ax->Y.limits) ) {
       parent->variable->evaluate_range(column, Xrange, Yrange);
-      if (Xrange.range_auto)
-        ax->X.data_range_updated = true;
-      if (Yrange.range_auto)
-        ax->Y.data_range_updated = true;
+      // if (ax->X.limits.limits_auto)
+      //  ax->X.data_range_updated = true;
+      // if (ax->Y.limits.limits_auto)
+      //  ax->Y.data_range_updated = true;
       return true;
     }
   }
@@ -172,7 +161,9 @@ bool plot_line::render() {
   return true;
 }
 
-/* Return true if our visibility has changed.
+/**
+ * @return true if our visibility has changed.
+ *
  * The graph will also check to see if we are now effectively
  * visible for deciding whether or not to check the variable
  * for updates. 
@@ -200,8 +191,8 @@ bool plot_line::check_for_updates( bool parent_visibility ) {
       for (pos = widgets.begin(); pos != widgets.end(); ++pos ) {
         PtSetResource(*pos, Pt_ARG_POS, &OffScreen, 0);
       }
-      parent->parent->X.data_range_updated = true;
-      parent->parent->Y.data_range_updated = true;
+      // parent->parent->X.data_range_updated = true;
+      // parent->parent->Y.data_range_updated = true;
       vis_change = true;
     }
   } else if (new_effective_visibility) { // we have been invisible
@@ -214,8 +205,8 @@ bool plot_line::check_for_updates( bool parent_visibility ) {
         PtSetResource(*pos, Pt_ARG_POS, &OnScreen, 0);
       }
     }
-    parent->parent->X.data_range_updated = true;
-    parent->parent->Y.data_range_updated = true;
+    // parent->parent->X.data_range_updated = true;
+    // parent->parent->Y.data_range_updated = true;
     vis_change = true;
   }
   visible = new_visibility;

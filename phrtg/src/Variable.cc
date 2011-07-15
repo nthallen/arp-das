@@ -25,8 +25,22 @@ RTG_Range::RTG_Range() {
   range_required = true;
   range_is_current = false;
   range_is_empty = true;
-  range_auto = true;
+  // range_auto = true;
   range_trend = false;
+  range_updated = false;
+}
+
+bool RTG_Range::check_required(RTG_Limits &lims) {
+  if (lims.limits_auto) {
+    range_required = true;
+    // range_auto = true;
+    range_is_current = false;
+    range_is_empty = true;
+    range_updated = false;
+  } else {
+    range_required = false;
+  }
+  return range_required;
 }
 
 void RTG_Range::update(scalar_t min_in, scalar_t max_in ) {
@@ -34,17 +48,23 @@ void RTG_Range::update(scalar_t min_in, scalar_t max_in ) {
     min = min_in;
     max = max_in;
     range_is_empty = false;
+    range_updated = true;
   } else if ( range_trend ) {
     nl_assert( max == 0. );
     if ( max_in > max ) {
       epoch += max_in;
       // should not need to update max (0.) or min (defined by span)
+      range_updated = true;
     }
   } else {
-    if (min_in < min)
+    if (min_in < min) {
       min = min_in;
-    if (max_in > max)
+      range_updated = true;
+    }
+    if (max_in > max) {
       max = max_in;
+      range_updated = true;
+    }
   }
 }
 
@@ -65,16 +85,19 @@ bool RTG_Range::changed(RTG_Range &R ) {
     min = R.min;
     max = R.max;
     range_is_empty = false;
+    range_updated = true;
     return true;
   }
   if (R.range_is_empty) {
     range_is_empty = true;
+    range_updated = true;
     return true;
   }
   if ( min == R.min && max == R.max )
     return false;
   min = R.min;
   max = R.max;
+  range_updated = true;
   return true;
 }
 
@@ -457,18 +480,19 @@ vector_t RTG_Variable_Matrix::y_vector(unsigned col) {
 void RTG_Variable_Matrix::evaluate_range(unsigned col,
     RTG_Range &X, RTG_Range &Y) {
   unsigned r, r1;
-  if (X.range_auto) {
+  if (X.range_required) {
     scalar_t y;
     get(0,col,X.min,y);
     get(nrows-1,col,X.max,y);
     X.range_required = false;
     X.range_is_current = true;
     X.range_is_empty = (nrows == 0);
+    X.range_updated = true;
   }
   xrow_range(X.min, X.max, r, r1 );
   if (r > r1)
     X.range_is_empty = true;
-  if (Y.range_auto) {
+  if (Y.range_required) {
     Y.clear();
     Y.range_required = false;
     Y.range_is_current = true;
@@ -481,6 +505,7 @@ void RTG_Variable_Matrix::evaluate_range(unsigned col,
       }
       Y.range_is_empty = false;
     }
+    Y.range_updated = true;
   }
 }
 
