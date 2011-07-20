@@ -82,8 +82,9 @@ bool plot_line::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
   }
   if (check_range) {
     check_range = false;
-    if (Xrange.check_required(ax->X.limits) ||
-	Yrange.check_required(ax->Y.limits) ) {
+    Xrange.check_required(ax->X.limits);
+    Yrange.check_required(ax->Y.limits);
+    if (Xrange.range_required || Yrange.range_required ) {
       parent->variable->evaluate_range(column, Xrange, Yrange);
       // if (ax->X.limits.limits_auto)
       //  ax->X.data_range_updated = true;

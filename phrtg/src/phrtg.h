@@ -56,7 +56,7 @@ class RTG_Range {
     bool range_updated;
     RTG_Range();
     void clear();
-    bool check_required(RTG_Limits &lims);
+    void check_required(RTG_Limits &lims);
     void update(scalar_t min_in, scalar_t max_in);
     inline void update(scalar_t val ) { update(val, val); }
     void update(RTG_Range &R);

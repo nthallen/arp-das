@@ -30,7 +30,7 @@ RTG_Range::RTG_Range() {
   range_updated = false;
 }
 
-bool RTG_Range::check_required(RTG_Limits &lims) {
+void RTG_Range::check_required(RTG_Limits &lims) {
   if (lims.limits_auto) {
     range_required = true;
     // range_auto = true;
@@ -40,7 +40,6 @@ bool RTG_Range::check_required(RTG_Limits &lims) {
   } else {
     range_required = false;
   }
-  return range_required;
 }
 
 void RTG_Range::update(scalar_t min_in, scalar_t max_in ) {

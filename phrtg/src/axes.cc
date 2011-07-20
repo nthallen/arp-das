@@ -271,7 +271,8 @@ bool plot_axes::check_limits() {
   Y.check_limits();
   if (X.axis_limits_updated || Y.axis_limits_updated) {
     for (gr = graphs.begin(); gr != graphs.end(); ++gr) {
-      (*gr)->axes_rescaled = true;
+      plot_graph *grph = *gr;
+      grph->axes_rescaled = true;
     }
   }
   return false;
