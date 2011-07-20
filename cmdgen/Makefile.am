@@ -17,3 +17,5 @@ CVSCLEANFILES=Makefile.in aclocal.m4 autom4te.cache \
 .PHONY: cvsclean
 cvsclean : maintainer-clean
 	rm -f $(CVSCLEANFILES)
+all-local : cmdgen
+	usemsg cmdgen cmdgen.c
