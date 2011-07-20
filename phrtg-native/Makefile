@@ -1,6 +1,6 @@
 PWD := $(shell pwd)
 EXE := $(dir $(PWD))phrtg/x86/o-g/phrtg_g
-.PHONY : install clean
+.PHONY : install clean cleanish
 
 phrtg : $(EXE)
 	cp -v $(EXE) phrtg
@@ -17,6 +17,8 @@ native.mk : native.mk.in
 install : phrtg
 	@cp -vn phrtg /usr/local/bin
 	@cp -vn phrtg.cmd /usr/local/share/huarp
+cleanish :
+	rm -f phrtg $(EXE)
 clean :
 	rm -f phrtg FullBuild.*
 	make -C../phrtg -f../phrtg-native/native.mk clean
