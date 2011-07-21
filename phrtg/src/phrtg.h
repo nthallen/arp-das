@@ -57,17 +57,24 @@ class RTG_Range {
     RTG_Range();
     void clear();
     void check_required(RTG_Limits &lims);
-    void update(scalar_t min_in, scalar_t max_in);
-    inline void update(scalar_t val ) { update(val, val); }
+    void update(double min_in, double max_in);
+    inline void update(double val ) { update(val, val); }
     void update(RTG_Range &R);
     bool changed(RTG_Range &R);
 };
 
 class RTG_Limits {
   public:
-    scalar_t min, max;
-    scalar_t units_per_Mtick;
-    scalar_t span;
+    double min, max;
+    double units_per_Mtick;
+    double span;
+    /**
+     * Unlike in RTG_Range, epoch in RTG_Limits is not arbitrary.
+     * In a trend plot, it will be the true time value corresponding
+     * to the right hand limit. This value is subtracted from all
+     * X values before plotting, which means max is always 0.
+     * and min is always -span.
+     */
     double epoch;
     // bool range_required;
     /**
@@ -243,6 +250,9 @@ class trend_queue : public std::deque<scalar_t> {
     /** The number of Y columns */
     int n_cols;
     double x_max, x_min, x_epoch, span;
+    const int MINPOINTS = 500;
+    
+    trend_queue();
     /** Guarantees monotonicity, column coherency */
     void push( int nc, double X, double *Y );
     /** Copy all data into destination */

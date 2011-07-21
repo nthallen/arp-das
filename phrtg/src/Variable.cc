@@ -42,19 +42,31 @@ void RTG_Range::check_required(RTG_Limits &lims) {
   }
 }
 
-void RTG_Range::update(scalar_t min_in, scalar_t max_in ) {
-  if ( range_is_empty ) {
+void RTG_Range::update(double min_in, double max_in ) {
+  if ( range_trend ) {
+    double de;
+    if ( range_is_empty ) {
+      epoch = max_in;
+      min = min_in-max_in;
+      max = 0.;
+      range_updated = true;
+    } else {
+      min_in -= epoch;
+      max_in -= epoch;
+      if ( min_in < min ) {
+        min = min_in;
+        range_updated = true;
+      }
+      if ( max_in > max ) {
+        max = max_in;
+        range_updated = true;
+      }
+    }
+  } else if ( range_is_empty ) {
     min = min_in;
     max = max_in;
     range_is_empty = false;
     range_updated = true;
-  } else if ( range_trend ) {
-    nl_assert( max == 0. );
-    if ( max_in > max ) {
-      epoch += max_in;
-      // should not need to update max (0.) or min (defined by span)
-      range_updated = true;
-    }
   } else {
     if (min_in < min) {
       min = min_in;
@@ -68,8 +80,11 @@ void RTG_Range::update(scalar_t min_in, scalar_t max_in ) {
 }
 
 void RTG_Range::update(RTG_Range &R ) {
-  if (!R.range_is_empty)
-    update(R.min, R.max);
+  if (!R.range_is_empty) {
+    if (range_is_empty)
+      range_trend = R.range_trend;
+    update(R.min+R.epcoh, R.max+R.epoch);
+  }
 }
 
 /**
@@ -83,6 +98,8 @@ bool RTG_Range::changed(RTG_Range &R ) {
     if (R.range_is_empty) return false;
     min = R.min;
     max = R.max;
+    epoch = R.epoch;
+    range_trend = R.range_trend;
     range_is_empty = false;
     range_updated = true;
     return true;
@@ -92,10 +109,12 @@ bool RTG_Range::changed(RTG_Range &R ) {
     range_updated = true;
     return true;
   }
-  if ( min == R.min && max == R.max )
+  if ( min + epoch == R.min + R.epoch && max + epoch == R.max + R.epoch )
     return false;
   min = R.min;
   max = R.max;
+  epoch = R.epoch;
+  range_trend = R.range_trend;
   range_updated = true;
   return true;
 }
@@ -414,8 +433,8 @@ bool RTG_Variable_Data::reload() {
     if ( reload_data() ) {
       std::list<plot_graph*>::const_iterator pos;
       for (pos = graphs.begin(); pos != graphs.end(); ++pos) {
-	plot_graph *graph = *pos;
-	graph->new_data = true;
+        plot_graph *graph = *pos;
+        graph->new_data = true;
       }
       std::list<RTG_Variable_Derived *>::const_iterator dpos;
       for (dpos = derivatives.begin(); dpos != derivatives.end(); ++dpos) {
@@ -480,13 +499,17 @@ void RTG_Variable_Matrix::evaluate_range(unsigned col,
     RTG_Range &X, RTG_Range &Y) {
   unsigned r, r1;
   if (X.range_required) {
-    scalar_t y;
-    get(0,col,X.min,y);
-    get(nrows-1,col,X.max,y);
     X.range_required = false;
     X.range_is_current = true;
-    X.range_is_empty = (nrows == 0);
     X.range_updated = true;
+    if (nrows == 0) {
+      X.range_is_empty = true;
+    } else {
+      scalar_t y;
+      X.range_is_empty = false;
+      get(0,col,X.min,y);
+      get(nrows-1,col,X.max,y);
+    }
   }
   xrow_range(X.min, X.max, r, r1 );
   if (r > r1)
