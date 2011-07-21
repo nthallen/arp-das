@@ -274,7 +274,7 @@ class trend_queue : public std::deque<scalar_t> {
 
 class RTG_Variable_Trend : public RTG_Variable_Data {
   public:
-    RTG_Variable_Trend(const char *name_in);
+    RTG_Variable_Trend(const char *name_in, RTG_Variable_Node *parent_in, RTG_Variable *sib);
     bool reload_data();
     bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
     void evaluate_range(unsigned col, RTG_Range &X,

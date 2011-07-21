@@ -113,7 +113,7 @@ static int command_input( int fd, void *data, unsigned mode ) {
         }
       }
     } else if (strncmp( "TR ", cmdbuf, 3 ) == 0 ) {
-      RTG_Variable_Trend::Incoming( cmdbuf );
+      RTG_Variable_Trend::Incoming( cmdbuf+3 );
     } else nl_error(2,"Unhandled command input: '%s'", cmdbuf);
   }
   //plot_obj::render_all();

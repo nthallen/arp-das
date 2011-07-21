@@ -1,6 +1,7 @@
 /** \file trend.cc
  * Support for trending graphs
  */
+#include <ctype.h>
 #include "ablibs.h"
 #include "phrtg.h"
 #include "nortlib.h"
@@ -100,18 +101,69 @@ bool trend_queue::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y, double e
   return true;
 }
 
-RTG_Variable_Trend::RTG_Variable_Trend(const char *name_in)
+RTG_Variable_Trend::RTG_Variable_Trend(const char *name_in, RTG_Variable_Node *parent_in, RTG_Variable *sib)
     : RTG_Variable_Data(name_in, Var_Trend) {
   has_y_vector = false;
+  update_ancestry(parent_in, sib);
 }
 
+/**
+ * Incoming command string consists of:
+ *   Name X Y+
+ */
 void RTG_Variable_Trend::Incoming(const char *cmd) {
-  nl_error(0, "RTG_Variable_Trend::Incoming: %s", cmd);
-  //### parse input
-  //###
-  // Identify or create the variable
-  // var.pending.push(nc, X, &Y[0]);
-  // var.new_data_available = true;
+  RTG_Variable_Node *parent;
+  RTG_Variable *sib, *node;
+  RTG_Variable_Trend *trend;
+  const char *lastnode_text;
+  std::string varname;
+  const char *p, *q;
+  unsigned i;
+  double X;
+  std::vector<double> Y;
+  
+  if ( cmd == NULL ) return;
+  for ( p = cmd; isspace(*p); ++p );
+  if ( *p == '\0' ) return;
+  for ( i = 1; p[i] != '\0' && ! isspace(p[i]); ++i);
+  varname.assign(p,i);
+  if ( Find_Insert( varname.c_str(), parent, sib, node, lastnode_text ) )
+    return; // bad name
+  p += i;
+  q = p;
+
+  if ( node ) {
+    if ( node->type == Var_Trend ) {
+      trend = (RTG_Variable_Trend *)node;
+    } else {
+      nl_error( 2, "Variable %s is not a Trend variable", varname.c_str() );
+      return;
+    }
+  } else {
+    trend = new RTG_Variable_Trend(lastnode_text, parent, sib);
+    char fullname[80];
+    if ( trend->snprint_path(fullname, 80) )
+      nl_error(1, "Overflow in nsprint_path()");
+    else nl_error(0, "Trend var '%s' created", fullname);
+  }
+  errno = 0;
+  X = strtod( p, &q );
+  if ( errno != 0 ) {
+    nl_error( 2, "Error parsing trend string X: %s", cmd );
+    return;
+  }
+  while (q != NULL && *q != '\0') {
+    double YV;
+    p = q;
+    errno = 0;
+    YV = strtod( p, &q );
+    if ( errno != 0 && errno != ERANGE )
+      break;
+    Y.push_back(YV);
+  }
+  trend->pending.push(Y.size(), X, &Y[0]);
+  trend->new_data_available = true;
+  trend->pending.flush(); // Don't allow it to grow without limit
 }
 
 bool RTG_Variable_Trend::reload_data() {
