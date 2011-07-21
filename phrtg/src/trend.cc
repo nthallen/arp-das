@@ -4,6 +4,7 @@
 #include "ablibs.h"
 #include "phrtg.h"
 #include "nortlib.h"
+#include "nl_assert.h"
 
 #ifdef JUHLH
     /** The number of Y columns */
@@ -30,8 +31,8 @@ trend_queue::trend_queue() {
 }
 
 /* Guarantees monotonicity, column coherency */
-void trend_queue::push( int nc, double X, double *Y ) {
-  int i;
+void trend_queue::push( unsigned nc, double X, double *Y ) {
+  unsigned i;
   
   if (!empty()) {
     if ( nc != n_cols || X - x_epoch <= x_max ) {
@@ -57,12 +58,14 @@ void trend_queue::flush( trend_queue &dest ) {
   while ( !empty() ) {
     std::vector<double> Y;
     double X;
-    int i;
+    unsigned i;
     
     nl_assert( size() > n_cols );
-    X = pop_front() + x_epoch;
+    X = front() + x_epoch;
+    pop_front();
     for ( i = 0; i < n_cols; ++i ) {
-      Y.push_back(pop_front());
+      Y.push_back(front());
+      pop_front();
     }
     dest.push(n_cols, X, &Y[0]);
   }
@@ -79,7 +82,7 @@ void trend_queue::flush() {
   n = n_rows() - MINPOINTS;
   cutoff = x_max - span;
   while ( n > 0 && x_min < cutoff ) {
-    x_min = *(erase(0, n_cols));
+    x_min = *(erase(begin(), begin()+n_cols));
     --n;
   }
 }
@@ -94,13 +97,16 @@ int trend_queue::n_rows() {
      * @return true on success, false if indices are out of range
      */
 bool trend_queue::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y, double epoch) {
+  return true;
 }
 
 void RTG_Variable_Trend::Incoming(const char *cmd) {
   nl_error(0, "RTG_Variable_Trend::Incoming: %s", cmd);
   //### parse input
   //###
-  pending.push(nc, X, &Y[0]);
+  // Identify or create the variable
+  // var.pending.push(nc, X, &Y[0]);
+  // var.new_data_available = true;
 }
 
 bool RTG_Variable_Trend::reload_data() {
@@ -123,10 +129,21 @@ bool RTG_Variable_Trend::reload_data() {
 }
 
 bool RTG_Variable_Trend::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) {
+  return true;
 }
 
 void RTG_Variable_Trend::evaluate_range(unsigned col, RTG_Range &X,
-    RTG_Range &Y);
+    RTG_Range &Y) {
+}
+
 void RTG_Variable_Trend::xrow_range(scalar_t x_min, scalar_t x_max,
-    unsigned &i_min, unsigned &i_max);
-vector_t RTG_Variable_Trend::y_vector(unsigned col);
+    unsigned &i_min, unsigned &i_max) {
+}
+
+/**
+ * We won't support the y_vector operation for now.
+ * @return NULL
+ */
+vector_t RTG_Variable_Trend::y_vector(unsigned col) {
+  return NULL;
+}

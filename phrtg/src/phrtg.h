@@ -248,13 +248,13 @@ class RTG_Variable_MLF : public RTG_Variable_Matrix {
 class trend_queue : public std::deque<scalar_t> {
   public:
     /** The number of Y columns */
-    int n_cols;
+    unsigned n_cols;
     double x_max, x_min, x_epoch, span;
-    const int MINPOINTS = 500;
+    static const int MINPOINTS = 500;
     
     trend_queue();
     /** Guarantees monotonicity, column coherency */
-    void push( int nc, double X, double *Y );
+    void push( unsigned nc, double X, double *Y );
     /** Copy all data into destination */
     void flush( trend_queue &dest );
     /** Retire old data based on span and minimum allocation */

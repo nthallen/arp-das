@@ -324,8 +324,10 @@ bool RTG_Variable_FFT::reload_data() {
 void RTG_Variable_FFT::derive(unsigned col) {
   vector_t iv = Source->y_vector(col);
   vector_t ov = data.mdata[col+1];
-  plans[col].fft(iv+i_min, ov, Ni);
-  derive_required[col] = false;
+  if ( iv != NULL ) {
+    plans[col].fft(iv+i_min, ov, Ni);
+    derive_required[col] = false;
+  }
 }
 
 /**

@@ -44,7 +44,6 @@ void RTG_Range::check_required(RTG_Limits &lims) {
 
 void RTG_Range::update(double min_in, double max_in ) {
   if ( range_trend ) {
-    double de;
     if ( range_is_empty ) {
       epoch = max_in;
       min = min_in-max_in;
@@ -83,7 +82,7 @@ void RTG_Range::update(RTG_Range &R ) {
   if (!R.range_is_empty) {
     if (range_is_empty)
       range_trend = R.range_trend;
-    update(R.min+R.epcoh, R.max+R.epoch);
+    update(R.min+R.epoch, R.max+R.epoch);
   }
 }
 
