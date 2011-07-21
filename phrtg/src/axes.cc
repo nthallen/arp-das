@@ -441,10 +441,12 @@ void plot_axes::PSD(long value) {
 	RTG_Variable_Data *var = graph->variable;
 	RTG_Variable_PSD *psd =
 	  RTG_Variable_PSD::Create(var, X.limits.min, X.limits.max);
-	graph->variable = psd;
-	psd->AddGraph(graph);
-	var->RemoveGraph(graph);
-	graph->rename(psd->name,from_widget);
+	if ( psd != NULL ) {
+	  graph->variable = psd;
+	  psd->AddGraph(graph);
+	  var->RemoveGraph(graph);
+	  graph->rename(psd->name,from_widget);
+	}
       }
       X.limits.limits_auto = true;
       Y.limits.limits_auto = true;
@@ -497,10 +499,12 @@ void plot_axes::Phase(long value) {
 	RTG_Variable_Data *var = graph->variable;
 	RTG_Variable_Phase *ph =
 	  RTG_Variable_Phase::Create(var, X.limits.min, X.limits.max);
-	graph->variable = ph;
-	ph->AddGraph(graph);
-	var->RemoveGraph(graph);
-	graph->rename(ph->name,from_widget);
+	if ( ph != NULL ) {
+	  graph->variable = ph;
+	  ph->AddGraph(graph);
+	  var->RemoveGraph(graph);
+	  graph->rename(ph->name,from_widget);
+	}
       }
       X.limits.limits_auto = true;
       Y.limits.limits_auto = true;

@@ -100,6 +100,11 @@ bool trend_queue::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y, double e
   return true;
 }
 
+RTG_Variable_Trend::RTG_Variable_Trend(const char *name_in)
+    : RTG_Variable_Data(name_in, Var_Trend) {
+  has_y_vector = false;
+}
+
 void RTG_Variable_Trend::Incoming(const char *cmd) {
   nl_error(0, "RTG_Variable_Trend::Incoming: %s", cmd);
   //### parse input

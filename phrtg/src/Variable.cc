@@ -399,6 +399,7 @@ RTG_Variable_Data::RTG_Variable_Data( const char *name_in, RTG_Variable_Type typ
     RTG_Variable(name_in, type_in) {
   new_data_available = false;
   reload_required = false;
+  has_y_vector = true;
   ncols = 0;
   nrows = 0;
 }

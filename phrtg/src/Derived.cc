@@ -269,6 +269,10 @@ RTG_Variable_FFT *RTG_Variable_FFT::Create(RTG_Variable_Data *src,
   unsigned i_min, i_max;
   int n, rc;
 
+  if ( ! src->has_y_vector ) {
+    nl_error( 2, "Source var does not support y_vector method");
+    return NULL;
+  }
   src->xrow_range(min, max, i_min, i_max);
   if ( src->Parent != NULL ) {
     if ( src->Parent->snprint_path( fullname, MAX_VAR_LENGTH) ) {
@@ -420,6 +424,7 @@ RTG_Variable_PSD *RTG_Variable_PSD::Create( RTG_Variable_Data *src,
   int n, rc;
 
   fft = RTG_Variable_FFT::Create(src, min, max);
+  if ( fft == NULL ) return NULL;
   src->xrow_range(min, max, i_min, i_max);
   if ( src->Parent != NULL ) {
     if ( src->Parent->snprint_path( fullname, MAX_VAR_LENGTH) ) {
@@ -497,6 +502,7 @@ RTG_Variable_Phase *RTG_Variable_Phase::Create( RTG_Variable_Data *src,
   int n, rc;
 
   fft = RTG_Variable_FFT::Create(src, min, max);
+  if ( fft == NULL ) return NULL;
   src->xrow_range(min, max, i_min, i_max);
   if ( src->Parent != NULL ) {
     if ( src->Parent->snprint_path( fullname, MAX_VAR_LENGTH) ) {

@@ -34,7 +34,8 @@ class plot_graph;
 class plot_line;
 class RTG_Cfg_Ser;
 enum RTG_Variable_Type { Var_Node, Var_MLF, Var_Detrend,
-      Var_Invert, Var_FFT, Var_FFT_PSD, Var_FFT_Phase };
+      Var_Invert, Var_FFT, Var_FFT_PSD, Var_FFT_Phase,
+      Var_Trend };
 const int DIV_BEVEL_WIDTHS = 2;
 
 class RTG_Range {
@@ -161,6 +162,9 @@ class RTG_Variable_Data : public RTG_Variable {
      * and derivatives will have reload_required set to true.
      */
     bool reload_required;
+    /** \brief true if y_vector() method is useful
+     */
+    bool has_y_vector;
     unsigned nrows, ncols;
     std::list<plot_graph*> graphs;
     std::list<RTG_Variable_Derived *> derivatives;
@@ -270,6 +274,7 @@ class trend_queue : public std::deque<scalar_t> {
 
 class RTG_Variable_Trend : public RTG_Variable_Data {
   public:
+    RTG_Variable_Trend(const char *name_in);
     bool reload_data();
     bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
     void evaluate_range(unsigned col, RTG_Range &X,
