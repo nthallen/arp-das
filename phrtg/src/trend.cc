@@ -2,6 +2,7 @@
  * Support for trending graphs
  */
 #include <ctype.h>
+#include <errno.h>
 #include "ablibs.h"
 #include "phrtg.h"
 #include "nortlib.h"
@@ -117,7 +118,8 @@ void RTG_Variable_Trend::Incoming(const char *cmd) {
   RTG_Variable_Trend *trend;
   const char *lastnode_text;
   std::string varname;
-  const char *p, *q;
+  const char *p;
+  char *q;
   unsigned i;
   double X;
   std::vector<double> Y;
@@ -130,7 +132,6 @@ void RTG_Variable_Trend::Incoming(const char *cmd) {
   if ( Find_Insert( varname.c_str(), parent, sib, node, lastnode_text ) )
     return; // bad name
   p += i;
-  q = p;
 
   if ( node ) {
     if ( node->type == Var_Trend ) {
@@ -157,7 +158,7 @@ void RTG_Variable_Trend::Incoming(const char *cmd) {
     p = q;
     errno = 0;
     YV = strtod( p, &q );
-    if ( errno != 0 && errno != ERANGE )
+    if ( p == q || (errno != 0 && errno != ERANGE) )
       break;
     Y.push_back(YV);
   }
