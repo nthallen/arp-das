@@ -91,8 +91,9 @@ static int command_input( int fd, void *data, unsigned mode ) {
   int nb = read( fd, cmdbuf, CMD_BUF_SIZE-1 );
   if (nb>= CMD_BUF_SIZE) nl_error(4,"nb too large from read");
   if ( nb == 0 ) {
-	  nl_error( 0, "Received EOF from command channel");
-	  close_cmd_fd();
+    nl_error( 0, "Received EOF from command channel");
+    close_cmd_fd();
+    PtExit(0);
   } else {
 	  cmdbuf[nb] = '\0';
     if ( strncmp( "MLF ", cmdbuf, 4 ) == 0 ) {
