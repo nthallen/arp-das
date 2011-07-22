@@ -265,6 +265,7 @@ bool plot_axes::check_limits() {
       Xr.min = X.limits.min + X.limits.epoch;
       Xr.range_required = false;
       Xr.range_is_current = true;
+      Xr.range_is_empty = false;
       for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
         plot_graph *grph = *gr;
         if (grph->check_limits(Xr, Yr)) return true;
@@ -273,7 +274,13 @@ bool plot_axes::check_limits() {
         Y.check_limits();
     }
   } else {
-    if ( ! X.limits.limits_auto ) Xr.range_required = false;
+    if ( ! X.limits.limits_auto ) {
+      Xr.max = X.limits.max;
+      Xr.min = X.limits.min;
+      Xr.range_required = false;
+      Xr.range_is_current = true;
+      Xr.range_is_empty = false;
+    }
     if ( ! Y.limits.limits_auto ) Yr.range_required = false;
     if ( Xr.range_required || Yr.range_required ) {
       for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {

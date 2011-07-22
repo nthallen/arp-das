@@ -29,18 +29,6 @@ RTG_Range::RTG_Range() {
   range_updated = false;
 }
 
-// void RTG_Range::check_required(RTG_Limits &lims) {
-  // if (lims.limits_auto) {
-    // range_required = true;
-    // range_auto = true;
-    // range_is_current = false;
-    // range_is_empty = true;
-    // range_updated = false;
-  // } else {
-    // range_required = false;
-  // }
-// }
-
 void RTG_Range::update(double min_in, double max_in ) {
   if ( range_is_empty ) {
     min = min_in;
@@ -70,7 +58,7 @@ void RTG_Range::update(RTG_Range &R ) {
  * and returns true if this represents a change
  */
 bool RTG_Range::changed(RTG_Range &R ) {
-  range_is_current = true;
+  // range_is_current = true;
   range_required = false;
   if ( range_is_empty ) {
     if (R.range_is_empty) return false;
