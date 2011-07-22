@@ -8,25 +8,6 @@
 #include "nortlib.h"
 #include "nl_assert.h"
 
-#ifdef JUHLH
-    /** The number of Y columns */
-    int n_cols;
-    double x_max, x_min, x_epoch, span;
-    /** Guarantees monotonicity, column coherency */
-    void push( int nc, double X, double *Y );
-    /** Copy all data into destination */
-    void flush( trend_queue &dest );
-    /** Retire old data based on span and minimum allocation */
-    void flush();
-    int n_rows();
-    /**
-     * Sets X and Y to the values for the specified row and column.
-     * The X value is adjusted to be relative to the specified epoch.
-     * @return true on success, false if indices are out of range
-     */
-    bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y, double epoch);
-#endif
-
 trend_queue::trend_queue() {
   n_cols = 0;
   x_max = x_min = x_epoch = span = 0.;

@@ -73,7 +73,7 @@ void plot_line::got_focus(focus_source whence) {
   Update_Line_Tab();
 }
 
-bool plot_line::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
+bool plot_line::check_range( RTG_Range &Xr, RTG_Range &Yr ) {
   if ( ! visible ) return false;
   // plot_axes *ax = parent->parent;
   if (new_data) {

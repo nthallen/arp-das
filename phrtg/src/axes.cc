@@ -255,7 +255,7 @@ bool plot_axes::check_limits() {
     Yr.range_required = false;
     for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
       plot_graph *grph = *gr;
-      if (grph->check_limits(Xr, Yr)) return true;
+      if (grph->check_range(Xr, Yr)) return true;
     }
     if ( X.range.changed(Xr) )
       X.check_limits();
@@ -268,7 +268,7 @@ bool plot_axes::check_limits() {
       Xr.range_is_empty = false;
       for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
         plot_graph *grph = *gr;
-        if (grph->check_limits(Xr, Yr)) return true;
+        if (grph->check_range(Xr, Yr)) return true;
       }
       if ( Y.range.changed(Yr) )
         Y.check_limits();
@@ -285,7 +285,7 @@ bool plot_axes::check_limits() {
     if ( Xr.range_required || Yr.range_required ) {
       for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
         plot_graph *grph = *gr;
-        if (grph->check_limits(Xr, Yr)) return true;
+        if (grph->check_range(Xr, Yr)) return true;
       }
       if ( X.range.changed(Xr) )
         X.check_limits();

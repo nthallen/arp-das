@@ -40,7 +40,7 @@ void plot_graph::got_focus(focus_source whence) {
   // Update any dialogs that require it
 }
 
-bool plot_graph::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
+bool plot_graph::check_range( RTG_Range &Xr, RTG_Range &Yr ) {
   if (!visible) return false;
   if (new_data) {
     // Make sure we have line objects for each column
@@ -78,7 +78,7 @@ bool plot_graph::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
     PtSetResource(ABW_ConsoleGroup, Pt_ARG_PG_CURRENT, "Graphs", 0);
   for ( unsigned i = 0; i < variable->ncols; ++i ) {
     plot_line *ln = lines[i];
-    if (ln->check_limits(Xr, Yr)) return true;
+    if (ln->check_range(Xr, Yr)) return true;
   }
   return false;
 }
@@ -90,7 +90,7 @@ bool plot_graph::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
 bool plot_graph::render() {
   if (!visible) return false;
   if ( axes_rescaled || x_axis_trended ) {
-    nl_assert(variable->ncols <= lines.size()); //should be set in check_limits()
+    nl_assert(variable->ncols <= lines.size()); //should be set in check_range()
     for ( unsigned i = 0; i < variable->ncols; ++i ) {
       plot_line *ln = lines[i];
       if ( axes_rescaled)
