@@ -21,47 +21,28 @@ RTG_Variable *RTG_Variable::Root;
 
 RTG_Range::RTG_Range() {
   min = max = -1.;
-  epoch = 0.;
   range_required = true;
   range_is_current = false;
   range_is_empty = true;
   // range_auto = true;
-  range_trend = false;
+  // range_trend = false;
   range_updated = false;
 }
 
-void RTG_Range::check_required(RTG_Limits &lims) {
-  if (lims.limits_auto) {
-    range_required = true;
-    // range_auto = true;
-    range_is_current = false;
-    range_is_empty = true;
-    range_updated = false;
-  } else {
-    range_required = false;
-  }
-}
+// void RTG_Range::check_required(RTG_Limits &lims) {
+  // if (lims.limits_auto) {
+    // range_required = true;
+    range_auto = true;
+    // range_is_current = false;
+    // range_is_empty = true;
+    // range_updated = false;
+  // } else {
+    // range_required = false;
+  // }
+// }
 
 void RTG_Range::update(double min_in, double max_in ) {
-  if ( range_trend ) {
-    if ( range_is_empty ) {
-      epoch = max_in;
-      min = min_in-max_in;
-      max = 0.;
-      range_updated = true;
-    } else {
-      min_in -= epoch;
-      max_in -= epoch;
-      if ( min_in < min ) {
-        min = min_in;
-        range_updated = true;
-      }
-      if ( max_in > max ) {
-        max = max_in;
-        range_updated = true;
-      }
-    }
-  } else if ( range_is_empty ) {
+  if ( range_is_empty ) {
     min = min_in;
     max = max_in;
     range_is_empty = false;
@@ -80,9 +61,7 @@ void RTG_Range::update(double min_in, double max_in ) {
 
 void RTG_Range::update(RTG_Range &R ) {
   if (!R.range_is_empty) {
-    if (range_is_empty)
-      range_trend = R.range_trend;
-    update(R.min+R.epoch, R.max+R.epoch);
+    update(R.min, R.max);
   }
 }
 
@@ -97,8 +76,6 @@ bool RTG_Range::changed(RTG_Range &R ) {
     if (R.range_is_empty) return false;
     min = R.min;
     max = R.max;
-    epoch = R.epoch;
-    range_trend = R.range_trend;
     range_is_empty = false;
     range_updated = true;
     return true;
@@ -108,12 +85,10 @@ bool RTG_Range::changed(RTG_Range &R ) {
     range_updated = true;
     return true;
   }
-  if ( min + epoch == R.min + R.epoch && max + epoch == R.max + R.epoch )
+  if ( min == R.min && max == R.max )
     return false;
   min = R.min;
   max = R.max;
-  epoch = R.epoch;
-  range_trend = R.range_trend;
   range_updated = true;
   return true;
 }
@@ -554,7 +529,7 @@ RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in, RTG_Variable_Node *pare
   }
 }
 
-/**
+/* Documentation in phrtg.h
  * If range is empty returns i_min > i_max
  */
 void RTG_Variable_MLF::xrow_range(scalar_t x_min, scalar_t x_max,

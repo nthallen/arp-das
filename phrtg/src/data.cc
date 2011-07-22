@@ -14,6 +14,7 @@ plot_graph::plot_graph(RTG_Variable_Data *var, plot_axes *parent_in)
   parent_obj = parent_in;
   new_data = true;
   axes_rescaled = false;
+  x_axis_trended = false;
   parent->AddChild(this);
   variable->AddGraph(this);
   if (Current::Graph == NULL) got_focus(focus_from_parent);
@@ -86,13 +87,17 @@ bool plot_graph::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
  */
 bool plot_graph::render() {
   if (!visible) return false;
-  if ( axes_rescaled ) {
+  if ( axes_rescaled || x_axis_trended ) {
     nl_assert(variable->ncols <= lines.size()); //should be set in check_limits()
     for ( unsigned i = 0; i < variable->ncols; ++i ) {
       plot_line *ln = lines[i];
-      ln->redraw_required = true;
+      if ( axes_rescaled)
+        ln->redraw_required = true;
+      if ( x_axis_trended )
+        ln->x_axis_trended = true;
     }
     axes_rescaled = false;
+    x_axis_trended = false;
     redraw_required = true;
   }
   if ( redraw_required ) {

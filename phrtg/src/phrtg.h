@@ -40,24 +40,14 @@ const int DIV_BEVEL_WIDTHS = 2;
 
 class RTG_Range {
   public:
-    scalar_t min, max;
-    // scalar_t units_per_Mtick;
-    // scalar_t span;
-    double epoch;
+    double min, max;
     bool range_required;
-    /**
-     * Indicates range should be calculated
-     * relative to epoch. On update(), epoch should be
-     * redefined to be equal to the maximum data range.
-     * Hence max will be zero.
-     */
-    bool range_trend;
     bool range_is_current;
     bool range_is_empty;
     bool range_updated;
     RTG_Range();
     void clear();
-    void check_required(RTG_Limits &lims);
+    //void check_required(RTG_Limits &lims);
     void update(double min_in, double max_in);
     inline void update(double val ) { update(val, val); }
     void update(RTG_Range &R);
@@ -195,6 +185,12 @@ class RTG_Variable_Data : public RTG_Variable {
      */
     virtual bool reload_data() = 0;
     virtual bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) = 0;
+    
+    /**
+     * If X.range_required is false and X.range_is_current is true,
+     * the (fixed) X range can be used to constrain the Y values
+     * for the range calculation.
+     */
     virtual void evaluate_range(unsigned col, RTG_Range &X,
         RTG_Range &Y) = 0;
 
@@ -279,6 +275,15 @@ class RTG_Variable_Trend : public RTG_Variable_Data {
     bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
     void evaluate_range(unsigned col, RTG_Range &X,
         RTG_Range &Y);
+    /**
+     * On exit, i_min and i_max are set to the sample
+     * numbers that best represent the specified X range.
+     * If the range is empty, i_min > i_max.
+     * @param x_min The minimum value of the X range
+     * @param x_max The maximum value of the X range
+     * @param i_min The minimum index for the X range
+     * @param i_max The maximum index for the X range
+     */
     void xrow_range(scalar_t x_min, scalar_t x_max,
         unsigned &i_min, unsigned &i_max);
     vector_t y_vector(unsigned col);
@@ -531,6 +536,7 @@ class plot_axis {
   	bool data_range_updated;
   	// bool axis_range_updated;
   	bool axis_limits_updated;
+    bool axis_limits_trended;
   	bool draw[2]; // Whether to draw primary or secondary axis
   	bool reserve_tick_space[2];
   	bool draw_ticks[2];
@@ -615,6 +621,7 @@ class plot_graph : public plot_obj {
   public:
     bool new_data;
     bool axes_rescaled;
+    bool x_axis_trended;
     bool redraw_required;
     bool check_range;
     plot_axes *parent;
@@ -635,7 +642,8 @@ class plot_line : public plot_obj {
   public:
     bool new_data;
     bool redraw_required;
-    bool check_range;
+    bool x_axis_trended;
+    // bool check_range;
     bool effective_visibility;
     plot_graph *parent;
     int column;

@@ -20,6 +20,7 @@ plot_line::plot_line(plot_graph *parent_in, unsigned col, const char *name_in)
                 : plot_obj(po_line, name_in ) {
   new_data = false;
   redraw_required = false;
+  x_axis_trended = false;
   effective_visibility = true;
   parent = parent_in;
   parent_obj = parent;
@@ -78,23 +79,24 @@ bool plot_line::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
   if (new_data) {
     new_data = false;
     redraw_required = true;
-    check_range = true;
+    Xrange.range_is_current = false;
+    Yrange.range_is_current = false;
   }
+  if ( Xr.range_required && ! Xrange.range_is_current )
+    check_range = true;
+  if ( ! Xr.range_required && Xrange.changed(Xr) )
+    Yrange.range_is_current = false;
+  if ( Yr.range_required && ! Yrange.range_is_current )
+    check_range = true;
   if (check_range) {
     check_range = false;
-    Xrange.check_required(ax->X.limits);
-    Yrange.check_required(ax->Y.limits);
-    if (Xrange.range_required || Yrange.range_required ) {
-      parent->variable->evaluate_range(column, Xrange, Yrange);
-      // if (ax->X.limits.limits_auto)
-      //  ax->X.data_range_updated = true;
-      // if (ax->Y.limits.limits_auto)
-      //  ax->Y.data_range_updated = true;
-      return true;
-    }
+    if ( Yr.range_required ) Yrange.range_required = true;
+    if ( Xr.range_required ) Xrange.range_required = true;
+    parent->variable->evaluate_range(column, Xrange, Yrange);
+    return true;
   }
-  if (ax->X.limits.limits_auto) Xr.update(Xrange);
-  if (ax->Y.limits.limits_auto) Yr.update(Yrange);
+  if (Xr.range_required) Xr.update(Xrange);
+  if (Yr.range_required) Yr.update(Yrange);
   return false;
 }
 

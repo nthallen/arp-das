@@ -90,7 +90,7 @@ void trend_queue::flush() {
 }
 
 int trend_queue::n_rows() {
-  return size()/n_cols;
+  return size()/(n_cols+1);
 }
 
     /**
@@ -187,6 +187,9 @@ bool RTG_Variable_Trend::reload_data() {
 }
 
 bool RTG_Variable_Trend::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) {
+  if ( r >= data.n_rows() || c >= data.n_cols) return false;
+  X = data[r*(data.n_cols+1)];
+  Y = data[r*(data.n_cols+1) + c + 1];
   return true;
 }
 
@@ -194,6 +197,10 @@ void RTG_Variable_Trend::evaluate_range(unsigned col, RTG_Range &X,
     RTG_Range &Y) {
 }
 
+/* The other main implementation at this point is RTG_Variable_MLF,
+ * where the X axis is implicit, so it's really simple. Here we
+ * have an explicit X axis, which we know to be monotonic.
+ */
 void RTG_Variable_Trend::xrow_range(scalar_t x_min, scalar_t x_max,
     unsigned &i_min, unsigned &i_max) {
 }

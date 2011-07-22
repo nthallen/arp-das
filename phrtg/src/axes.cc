@@ -16,6 +16,7 @@ plot_axis::plot_axis() {
   // data_range_updated = false;
   // axis_range_updated = false;
   axis_limits_updated = false;
+  axis_limits_trended = false;
   draw[0] = draw[1] = false;
   reserve_tick_space[0] = reserve_tick_space[1] = false;
   draw_ticks[0] = draw_ticks[1] = false;
@@ -34,7 +35,11 @@ plot_axis::plot_axis() {
 void plot_axis::check_limits() {
   if ( range.range_updated ) {
     range.range_updated = false;
-    if ( limits.limits_auto ) {
+    if ( limits.limits_trend ) {
+      if ( limits.changed(range) ) {
+        axis_limits_trended = true;
+      }
+    } else if ( limits.limits_auto ) {
       if ( limits.changed(range) ) {
         set_scale();
       }
@@ -89,6 +94,7 @@ bool plot_axis::render( plot_axes *axes ) {
       }
     }
     axis_limits_updated = false;
+    axis_limits_trended = false;
     // return true;
   }
   return false;
@@ -243,36 +249,51 @@ void plot_axes::resized(PhDim_t *newdim) {
 bool plot_axes::check_limits() {
   std::list<plot_graph*>::const_iterator gr;
   RTG_Range Xr, Yr;
-  // Move this into an initializer:
+  bool lims_up;
+  
   if (X.limits.limits_trend) {
-    Xr.range_trend = true;
-    Xr.epoch = X.limits.epoch;
-  }
-  for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
-    plot_graph *grph = *gr;
-    if (grph->check_limits(Xr, Yr)) return true;
+    Yr.range_required = false;
+    for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
+      plot_graph *grph = *gr;
+      if (grph->check_limits(Xr, Yr)) return true;
+    }
+    if ( X.range.changed(Xr) )
+      X.check_limits();
+    if ( Y.limits.limits_auto ) {
+      Yr.range_required = true;
+      Xr.max = X.limits.max + X.limits.epoch;
+      Xr.min = X.limits.min + X.limits.epoch;
+      Xr.range_required = false;
+      Xr.range_is_current = true;
+      for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
+        plot_graph *grph = *gr;
+        if (grph->check_limits(Xr, Yr)) return true;
+      }
+      if ( Y.range.changed(Yr) )
+        Y.check_limits();
+    }
+  } else {
+    if ( ! X.limits.limits_auto ) Xr.range_required = false;
+    if ( ! Y.limits.limits_auto ) Yr.range_required = false;
+    if ( Xr.range_required || Yr.range_required ) {
+      for ( gr = graphs.begin(); gr != graphs.end(); ++gr ) {
+        plot_graph *grph = *gr;
+        if (grph->check_limits(Xr, Yr)) return true;
+      }
+      if ( X.range.changed(Xr) )
+        X.check_limits();
+      if ( Y.range.changed(Yr) )
+        Y.check_limits();
+    }
   }
 
-  if (X.limits.limits_auto && Xr.range_updated) {
-    // X.data_range_updated = false;
-    X.range.changed(Xr); // Just update X.range.range_updated
-    // if (X.range.changed(Xr))
-    //   X.axis_range_updated = true;
-  }
-  if (Y.limits.limits_auto && Yr.range_updated) {
-    // Y.data_range_updated = false;
-    Y.range.changed(Yr); // Just update X.range.range_updated
-    // if (Y.range.changed(Yr))
-    //   Y.axis_range_updated = true;
-  }
-
-  /* Now check to see if the limits need to be updated */
-  X.check_limits();
-  Y.check_limits();
-  if (X.axis_limits_updated || Y.axis_limits_updated) {
+  lims_up = X.axis_limits_updated || Y.axis_limits_updated;
+  if (lims_up || trended) {
     for (gr = graphs.begin(); gr != graphs.end(); ++gr) {
       plot_graph *grph = *gr;
-      grph->axes_rescaled = true;
+      if ( lims_up ) grph->axes_rescaled = true;
+      if ( X.axis_limits_trended)
+        grph->x_axis_trended = true;
     }
   }
   return false;

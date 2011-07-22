@@ -26,12 +26,12 @@ bool RTG_Limits::changed( RTG_Range &R ) {
   if ( limits_empty ) {
     if (R.range_is_empty) return false;
     if ( limits_trend ) {
-      epoch = R.max + R.epoch;
+      epoch = R.max;
       max = 0.;
       min = -span; // But where is span set?
     } else {
-      min = R.min + R.epoch;
-      max = R.max + R.epoch;
+      min = R.min;
+      max = R.max;
       epoch = 0.;
     }
     limits_empty = false;
@@ -43,13 +43,13 @@ bool RTG_Limits::changed( RTG_Range &R ) {
   }
   // Neither limits nor range are empty
   if (limits_trend) {
-    if ( R.max + R.epoch > epoch ) {
-      epoch = R.max + R.epoch;
+    if ( R.max > epoch ) {
+      epoch = R.max;
       return true;
     }
-  } else if ( min == R.min + R.epoch && max == R.max + R.epoch )
+  } else if ( min == R.min && max == R.max )
     return false;
-  min = R.min + R.epoch;
-  max = R.max + R.epoch;
+  min = R.min;
+  max = R.max;
   return true;
 }
