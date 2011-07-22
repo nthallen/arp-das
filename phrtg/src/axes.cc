@@ -386,14 +386,15 @@ void plot_axes::Detrend(long value) {
         // but there isn't much point. The UI makes
         // it difficult, so no need to belabor the point
         // here.
-	RTG_Variable_Detrend *dt = RTG_Variable_Detrend::Create(
-	    var, X.limits.min, X.limits.max);
-	if ( dt != NULL ) {
-	  graph->variable = dt;
-	  dt->AddGraph(graph);
-	  var->RemoveGraph(graph);
-	  graph->rename(dt->name,from_widget);
-	}
+        RTG_Variable_Detrend *dt = RTG_Variable_Detrend::Create(
+            var, X.limits.min, X.limits.max);
+        if ( dt != NULL ) {
+          graph->variable = dt;
+          dt->AddGraph(graph);
+          var->RemoveGraph(graph);
+          graph->rename(dt->name,from_widget);
+          graph->new_data = true;
+        }
       }
     }
   } else {
@@ -406,7 +407,7 @@ void plot_axes::Detrend(long value) {
         graph->variable = src;
         src->AddGraph(graph);
         var->RemoveGraph(graph);
-	graph->rename(src->name,from_widget);
+        graph->rename(src->name,from_widget);
       }
       graph->new_data = true;
     }
@@ -431,6 +432,7 @@ void plot_axes::Invert(long value) {
       inv->AddGraph(graph);
       var->RemoveGraph(graph);
       graph->rename(inv->name,from_widget);
+      graph->new_data = true;
     }
   } else {
     inverted = false;
@@ -442,7 +444,7 @@ void plot_axes::Invert(long value) {
         graph->variable = src;
         src->AddGraph(graph);
         var->RemoveGraph(graph);
-	graph->rename(src->name,from_widget);
+        graph->rename(src->name,from_widget);
       }
       graph->new_data = true;
     }
@@ -465,16 +467,17 @@ void plot_axes::PSD(long value) {
       nl_error(1,"X-limits not current: Skipping psd");
     } else {
       for (pos = graphs.begin(); pos != graphs.end(); pos++) {
-	plot_graph *graph = *pos;
-	RTG_Variable_Data *var = graph->variable;
-	RTG_Variable_PSD *psd =
-	  RTG_Variable_PSD::Create(var, X.limits.min, X.limits.max);
-	if ( psd != NULL ) {
-	  graph->variable = psd;
-	  psd->AddGraph(graph);
-	  var->RemoveGraph(graph);
-	  graph->rename(psd->name,from_widget);
-	}
+        plot_graph *graph = *pos;
+        RTG_Variable_Data *var = graph->variable;
+        RTG_Variable_PSD *psd =
+          RTG_Variable_PSD::Create(var, X.limits.min, X.limits.max);
+        if ( psd != NULL ) {
+          graph->variable = psd;
+          psd->AddGraph(graph);
+          var->RemoveGraph(graph);
+          graph->rename(psd->name,from_widget);
+          graph->new_data = true;
+        }
       }
       X.limits.limits_auto = true;
       Y.limits.limits_auto = true;
@@ -485,25 +488,25 @@ void plot_axes::PSD(long value) {
       plot_graph *graph = *pos;
       RTG_Variable_Data *var = graph->variable;
       if ( var->type == Var_FFT_PSD ) {
-	RTG_Variable_Data *src = var->Derived_From();
-	if ( src != NULL && src->type == Var_FFT ) {
-	  src = src->Derived_From();
-	  if ( src != NULL ) {
-	    graph->variable = src;
-	    src->AddGraph(graph);
-	    var->RemoveGraph(graph);
-	    graph->rename(src->name,from_widget);
-	  } else {
-	    nl_error( 2, "Failed to locate PSD source" );
-	  }
-	} else {
-	  nl_error( 2, "PSD source was not FFT" );
-	}
+        RTG_Variable_Data *src = var->Derived_From();
+        if ( src != NULL && src->type == Var_FFT ) {
+          src = src->Derived_From();
+          if ( src != NULL ) {
+            graph->variable = src;
+            src->AddGraph(graph);
+            var->RemoveGraph(graph);
+            graph->rename(src->name,from_widget);
+          } else {
+            nl_error( 2, "Failed to locate PSD source" );
+          }
+        } else {
+          nl_error( 2, "PSD source was not FFT" );
+        }
       }
       graph->new_data = true;
-      X.limits.limits_auto = true;
-      Y.limits.limits_auto = true;
     }
+    X.limits.limits_auto = true;
+    Y.limits.limits_auto = true;
   }
 }
 
@@ -523,16 +526,17 @@ void plot_axes::Phase(long value) {
       nl_error(1,"X-limits not current: Skipping phase");
     } else {
       for (pos = graphs.begin(); pos != graphs.end(); pos++) {
-	plot_graph *graph = *pos;
-	RTG_Variable_Data *var = graph->variable;
-	RTG_Variable_Phase *ph =
-	  RTG_Variable_Phase::Create(var, X.limits.min, X.limits.max);
-	if ( ph != NULL ) {
-	  graph->variable = ph;
-	  ph->AddGraph(graph);
-	  var->RemoveGraph(graph);
-	  graph->rename(ph->name,from_widget);
-	}
+        plot_graph *graph = *pos;
+        RTG_Variable_Data *var = graph->variable;
+        RTG_Variable_Phase *ph =
+          RTG_Variable_Phase::Create(var, X.limits.min, X.limits.max);
+        if ( ph != NULL ) {
+          graph->variable = ph;
+          ph->AddGraph(graph);
+          var->RemoveGraph(graph);
+          graph->rename(ph->name,from_widget);
+          graph->new_data = true;
+        }
       }
       X.limits.limits_auto = true;
       Y.limits.limits_auto = true;
@@ -543,25 +547,25 @@ void plot_axes::Phase(long value) {
       plot_graph *graph = *pos;
       RTG_Variable_Data *var = graph->variable;
       if ( var->type == Var_FFT_Phase ) {
-	RTG_Variable_Data *src = var->Derived_From();
-	if ( src != NULL && src->type == Var_FFT ) {
-	  src = src->Derived_From();
-	  if ( src != NULL ) {
-	    graph->variable = src;
-	    src->AddGraph(graph);
-	    var->RemoveGraph(graph);
-	    graph->rename(src->name,from_widget);
-	  } else {
-	    nl_error( 2, "Failed to locate Phase source" );
-	  }
-	} else {
-	  nl_error( 2, "Phase source was not FFT" );
-	}
+        RTG_Variable_Data *src = var->Derived_From();
+        if ( src != NULL && src->type == Var_FFT ) {
+          src = src->Derived_From();
+          if ( src != NULL ) {
+            graph->variable = src;
+            src->AddGraph(graph);
+            var->RemoveGraph(graph);
+            graph->rename(src->name,from_widget);
+          } else {
+            nl_error( 2, "Failed to locate Phase source" );
+          }
+        } else {
+          nl_error( 2, "Phase source was not FFT" );
+        }
       }
       graph->new_data = true;
-      X.limits.limits_auto = true;
-      Y.limits.limits_auto = true;
     }
+    X.limits.limits_auto = true;
+    Y.limits.limits_auto = true;
   }
 }
 
