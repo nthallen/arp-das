@@ -184,7 +184,7 @@ class RTG_Variable_Data : public RTG_Variable {
      * @return True if data is successfully updated.
      */
     virtual bool reload_data() = 0;
-    virtual bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) = 0;
+    virtual bool get(unsigned r, unsigned c, double &X, double &Y) = 0;
     
     /**
      * If X.range_required is false and X.range_is_current is true,
@@ -213,7 +213,7 @@ class RTG_Variable_Matrix : public RTG_Variable_Data {
   public:
     f_matrix data;
     RTG_Variable_Matrix(const char *name_in, RTG_Variable_Type type_in);
-    bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
+    bool get(unsigned r, unsigned c, double &X, double &Y);
     void evaluate_range(unsigned col, RTG_Range &X,
          RTG_Range &Y);
     vector_t y_vector(unsigned col);
@@ -265,14 +265,14 @@ class trend_queue : public std::deque<scalar_t> {
      * The X value is adjusted to be relative to the specified epoch.
      * @return true on success, false if indices are out of range
      */
-    bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y, double epoch);
+    bool get(unsigned r, unsigned c, double &X, double &Y, double epoch);
 };
 
 class RTG_Variable_Trend : public RTG_Variable_Data {
   public:
     RTG_Variable_Trend(const char *name_in, RTG_Variable_Node *parent_in, RTG_Variable *sib);
     bool reload_data();
-    bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
+    bool get(unsigned r, unsigned c, double &X, double &Y);
     void evaluate_range(unsigned col, RTG_Range &X,
         RTG_Range &Y);
     /**
@@ -300,7 +300,7 @@ class RTG_Variable_Derived : public RTG_Variable_Matrix {
         RTG_Variable_Type type_in);
     ~RTG_Variable_Derived();
     bool reload_data();
-    bool get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y);
+    bool get(unsigned r, unsigned c, double &X, double &Y);
     vector_t y_vector(unsigned col);
     void RemoveGraph(plot_graph *graph);
     void RemoveDerived(RTG_Variable_Derived *var);
@@ -643,7 +643,7 @@ class plot_line : public plot_obj {
     bool new_data;
     bool redraw_required;
     bool x_axis_trended;
-    // bool check_range;
+    bool check_range;
     bool effective_visibility;
     plot_graph *parent;
     int column;

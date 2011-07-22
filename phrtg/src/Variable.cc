@@ -32,7 +32,7 @@ RTG_Range::RTG_Range() {
 // void RTG_Range::check_required(RTG_Limits &lims) {
   // if (lims.limits_auto) {
     // range_required = true;
-    range_auto = true;
+    // range_auto = true;
     // range_is_current = false;
     // range_is_empty = true;
     // range_updated = false;
@@ -453,7 +453,7 @@ RTG_Variable_Matrix::RTG_Variable_Matrix(const char *name_in, RTG_Variable_Type 
  * Sets X and Y to the values for the specified row and column.
  * @return true on success, false if indices are out of range
  */
-bool RTG_Variable_Matrix::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) {
+bool RTG_Variable_Matrix::get(unsigned r, unsigned c, double &X, double &Y) {
   if ( r >= nrows || c >= ncols ) return false;
   X = r;
   Y = data.mdata[c][r];
@@ -480,7 +480,7 @@ void RTG_Variable_Matrix::evaluate_range(unsigned col,
     if (nrows == 0) {
       X.range_is_empty = true;
     } else {
-      scalar_t y;
+      double y;
       X.range_is_empty = false;
       get(0,col,X.min,y);
       get(nrows-1,col,X.max,y);

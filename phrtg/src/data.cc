@@ -54,7 +54,8 @@ bool plot_graph::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
       }
       if (current_child == NULL) current_child = lines.back();
     }
-    if (this == Current::Graph && Current::Line == NULL && current_child != NULL)
+    if (this == Current::Graph && Current::Line == NULL
+	    && current_child != NULL)
       current_child->got_focus(focus_from_parent);
     for ( unsigned i = 0; i < variable->ncols; ++i ) {
       plot_line *ln = lines[i];
@@ -72,7 +73,8 @@ bool plot_graph::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
     }
     check_range = false;
   }
-  if (this == Current::Graph && Current::Line == NULL && Current::Tab == Tab_Line)
+  if (this == Current::Graph && Current::Line == NULL
+	&& Current::Tab == Tab_Line)
     PtSetResource(ABW_ConsoleGroup, Pt_ARG_PG_CURRENT, "Graphs", 0);
   for ( unsigned i = 0; i < variable->ncols; ++i ) {
     plot_line *ln = lines[i];

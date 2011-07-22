@@ -51,7 +51,7 @@ bool RTG_Variable_Derived::reload_data() {
   return true;
 }
 
-bool RTG_Variable_Derived::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) {
+bool RTG_Variable_Derived::get(unsigned r, unsigned c, double &X, double &Y) {
   if ( r >= nrows || c >= ncols ) return false;
   if ( derive_required[c] ) derive(c);
   X = data.mdata[0][r];
@@ -86,7 +86,7 @@ bool RTG_Variable_Detrend::reload_data() {
 }
 
 void RTG_Variable_Detrend::derive(unsigned c) {
-  scalar_t xx, y0, y1, m;
+  double xx, y0, y1, m;
   vector_t x = data.mdata[0];
   vector_t v = data.mdata[c+1];
   if (!Source->get(i_min, c, xx, y0) ||
@@ -94,8 +94,9 @@ void RTG_Variable_Detrend::derive(unsigned c) {
     nl_error(4, "Error in Source->get from Detrend");
   m = nrows > 1 ? (y1-y0)/(nrows-1) : 0;
   for (unsigned i = 0; i < nrows; i++) {
-    scalar_t y;
-    Source->get(i_min+i, c, x[i], y);
+    double xd, y;
+    Source->get(i_min+i, c, xd, y);
+    x[i] = xd;
     v[i] = y - y0;
     y0 += m;
   }
@@ -198,8 +199,9 @@ void RTG_Variable_Invert::derive(unsigned col) {
   vector_t x = data.mdata[0];
   vector_t v = data.mdata[col+1];
   for (unsigned i = 0; i < nrows; i++) {
-    scalar_t y;
-    Source->get(i, col, x[i], y);
+    double xd, y;
+    Source->get(i, col, xd, y);
+    x[i] = xd;
     v[i] = -y;
   }
   derive_required[col] = false;

@@ -288,7 +288,7 @@ bool plot_axes::check_limits() {
   }
 
   lims_up = X.axis_limits_updated || Y.axis_limits_updated;
-  if (lims_up || trended) {
+  if (lims_up || X.axis_limits_trended) {
     for (gr = graphs.begin(); gr != graphs.end(); ++gr) {
       plot_graph *grph = *gr;
       if ( lims_up ) grph->axes_rescaled = true;

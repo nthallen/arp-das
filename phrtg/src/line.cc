@@ -75,7 +75,7 @@ void plot_line::got_focus(focus_source whence) {
 
 bool plot_line::check_limits( RTG_Range &Xr, RTG_Range &Yr ) {
   if ( ! visible ) return false;
-  plot_axes *ax = parent->parent;
+  // plot_axes *ax = parent->parent;
   if (new_data) {
     new_data = false;
     redraw_required = true;
@@ -136,7 +136,7 @@ bool plot_line::render() {
   }
   // unsigned nw = (npts+pts_per_polygon-3)/(pts_per_polygon-1);
   for ( unsigned i = 0; i < npts; ++i ) {
-    scalar_t X, Y;
+    double X, Y;
     if (!var->get(i, column, X, Y))
       nl_error(4, "get failed for %s[%d]", name, i);
     idata[i].x = ax->X.evaluate(X);

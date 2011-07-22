@@ -98,7 +98,7 @@ int trend_queue::n_rows() {
      * The X value is adjusted to be relative to the specified epoch.
      * @return true on success, false if indices are out of range
      */
-bool trend_queue::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y, double epoch) {
+bool trend_queue::get(unsigned r, unsigned c, double &X, double &Y, double epoch) {
   return true;
 }
 
@@ -186,7 +186,7 @@ bool RTG_Variable_Trend::reload_data() {
   return false;
 }
 
-bool RTG_Variable_Trend::get(unsigned r, unsigned c, scalar_t &X, scalar_t &Y) {
+bool RTG_Variable_Trend::get(unsigned r, unsigned c, double &X, double &Y) {
   if ( r >= data.n_rows() || c >= data.n_cols) return false;
   X = data[r*(data.n_cols+1)];
   Y = data[r*(data.n_cols+1) + c + 1];
