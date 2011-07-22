@@ -631,7 +631,7 @@ class plot_graph : public plot_obj {
     plot_graph(RTG_Variable_Data *var, plot_axes *parent);
   	~plot_graph();
   	void got_focus(focus_source whence);
-  	bool check_range( RTG_Range &Xr, RTG_Range &Yr );
+  	bool check_ranges( RTG_Range &Xr, RTG_Range &Yr );
     bool render();
     plot_obj *default_child();
     bool check_for_updates(bool parent_visibility);
@@ -656,7 +656,7 @@ class plot_line : public plot_obj {
   	~plot_line();
   	void clear_widgets();
   	void got_focus(focus_source whence);
-  	bool check_range( RTG_Range &Xr, RTG_Range &Yr );
+  	bool check_ranges( RTG_Range &Xr, RTG_Range &Yr );
     void set_line_color(PgColor_t rgb, Update_Source src);
     bool render();
     bool check_for_updates(bool parent_visibility);
