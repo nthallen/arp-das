@@ -259,7 +259,7 @@ class trend_queue : public std::deque<scalar_t> {
     void flush( trend_queue &dest );
     /** Retire old data based on span and minimum allocation */
     void flush();
-    int n_rows();
+    unsigned n_rows();
     /**
      * Sets X and Y to the values for the specified row and column.
      * The X value is adjusted to be relative to the specified epoch.

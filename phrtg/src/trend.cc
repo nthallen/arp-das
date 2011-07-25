@@ -3,6 +3,7 @@
  */
 #include <ctype.h>
 #include <errno.h>
+#include <math.h>
 #include "ablibs.h"
 #include "phrtg.h"
 #include "nortlib.h"
@@ -70,7 +71,7 @@ void trend_queue::flush() {
   }
 }
 
-int trend_queue::n_rows() {
+unsigned trend_queue::n_rows() {
   return size()/(n_cols+1);
 }
 
@@ -81,8 +82,8 @@ int trend_queue::n_rows() {
      */
 bool trend_queue::get(unsigned r, unsigned c, double &X, double &Y) {
   if ( r >= n_rows() || c >= n_cols ) return false;
-  X = data[r*(data.n_cols+1)] + epoch;
-  Y = data[r*(data.n_cols+1) + c + 1];
+  X = (*this)[r*(n_cols+1)] + x_epoch;
+  Y = (*this)[r*(n_cols+1) + c + 1];
   return true;
 }
 
@@ -249,8 +250,9 @@ void RTG_Variable_Trend::evaluate_range(unsigned col, RTG_Range &X,
 void RTG_Variable_Trend::xrow_range(double x_min, double x_max,
     unsigned &i_min, unsigned &i_max) {
   if ( data.n_rows() == 0 ||
-       x_max < x_min || x_max < data.x_min + data.epoch ||
-       x_min > data.x_max + data.epoch ) {
+       x_max < x_min ||
+       x_max < data.x_min + data.x_epoch ||
+       x_min > data.x_max + data.x_epoch ) {
     i_max = 0;
     i_min = 1;
   } else {
