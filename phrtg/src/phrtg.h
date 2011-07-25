@@ -203,7 +203,7 @@ class RTG_Variable_Data : public RTG_Variable {
      * @param i_min The minimum index for the X range
      * @param i_max The maximum index for the X range
      */
-    virtual void xrow_range(scalar_t x_min, scalar_t x_max,
+    virtual void xrow_range(double x_min, double x_max,
         unsigned &i_min, unsigned &i_max) = 0;
     virtual vector_t y_vector(unsigned col) = 0;
     virtual RTG_Variable_Data *Derived_From();
@@ -233,7 +233,7 @@ class RTG_Variable_MLF : public RTG_Variable_Matrix {
      * @param i_min The minimum index for the X range
      * @param i_max The maximum index for the X range
      */
-    void xrow_range(scalar_t x_min, scalar_t x_max,
+    void xrow_range(double x_min, double x_max,
             unsigned &i_min, unsigned &i_max);
 
     static void set_default_path(const char *path_in);
@@ -265,7 +265,8 @@ class trend_queue : public std::deque<scalar_t> {
      * The X value is adjusted to be relative to the specified epoch.
      * @return true on success, false if indices are out of range
      */
-    bool get(unsigned r, unsigned c, double &X, double &Y, double epoch);
+    bool get(unsigned r, unsigned c, double &X, double &Y);
+    double find_x(double x_in);
 };
 
 class RTG_Variable_Trend : public RTG_Variable_Data {
@@ -284,7 +285,7 @@ class RTG_Variable_Trend : public RTG_Variable_Data {
      * @param i_min The minimum index for the X range
      * @param i_max The maximum index for the X range
      */
-    void xrow_range(scalar_t x_min, scalar_t x_max,
+    void xrow_range(double x_min, double x_max,
         unsigned &i_min, unsigned &i_max);
     vector_t y_vector(unsigned col);
     static void Incoming( const char *cmd );
@@ -316,7 +317,7 @@ class RTG_Variable_Detrend : public RTG_Variable_Derived {
     RTG_Variable_Detrend(RTG_Variable_Data *src, const char *name_in,
         RTG_Variable_Node *parent_in, RTG_Variable *sib,
         scalar_t min, scalar_t max);
-    void xrow_range(scalar_t x_min, scalar_t x_max,
+    void xrow_range(double x_min, double x_max,
             unsigned &i_min, unsigned &i_max);
     bool reload_data();
     void derive(unsigned c);
@@ -332,7 +333,7 @@ class RTG_Variable_Invert : public RTG_Variable_Derived {
     RTG_Variable_Invert(RTG_Variable_Data *src, const char *name_in,
 	RTG_Variable_Node *parent_in, RTG_Variable *sib );
     bool reload_data();
-    void xrow_range(scalar_t x_min, scalar_t x_max,
+    void xrow_range(double x_min, double x_max,
             unsigned &i_min, unsigned &i_max);
     void derive(unsigned col);
     static RTG_Variable_Invert *Create( RTG_Variable_Data *src );
@@ -358,7 +359,7 @@ class RTG_Variable_FFT : public RTG_Variable_Derived {
     void AddGraph(plot_graph *graph);
     bool reload_data();
     void derive(unsigned col);
-    void xrow_range(scalar_t x_min, scalar_t x_max,
+    void xrow_range(double x_min, double x_max,
             unsigned &i_min, unsigned &i_max);
     static RTG_Variable_FFT *Create( RTG_Variable_Data *src,
             scalar_t min, scalar_t max );
@@ -375,7 +376,7 @@ class RTG_Variable_PSD : public RTG_Variable_Derived {
 	RTG_Variable_Node *parent_in, RTG_Variable *sib);
     bool reload_data();
     void derive(unsigned col);
-    void xrow_range(scalar_t x_min, scalar_t x_max,
+    void xrow_range(double x_min, double x_max,
             unsigned &i_min, unsigned &i_max);
     static RTG_Variable_PSD *Create( RTG_Variable_Data *src,
             scalar_t min, scalar_t max );
@@ -388,7 +389,7 @@ class RTG_Variable_Phase : public RTG_Variable_Derived {
 	RTG_Variable_Node *parent_in, RTG_Variable *sib);
     bool reload_data();
     void derive(unsigned col);
-    void xrow_range(scalar_t x_min, scalar_t x_max,
+    void xrow_range(double x_min, double x_max,
             unsigned &i_min, unsigned &i_max);
     static RTG_Variable_Phase *Create( RTG_Variable_Data *src,
             scalar_t min, scalar_t max );

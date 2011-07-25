@@ -463,8 +463,6 @@ void RTG_Variable_Matrix::evaluate_range(unsigned col,
   unsigned r, r1;
   if (X.range_required) {
     X.range_required = false;
-    X.range_is_current = true;
-    X.range_updated = true;
     if (nrows == 0) {
       X.range_is_empty = true;
     } else {
@@ -473,6 +471,8 @@ void RTG_Variable_Matrix::evaluate_range(unsigned col,
       get(0,col,X.min,y);
       get(nrows-1,col,X.max,y);
     }
+    X.range_is_current = true;
+    X.range_updated = true;
   }
   xrow_range(X.min, X.max, r, r1 );
   if (r > r1)
@@ -480,16 +480,14 @@ void RTG_Variable_Matrix::evaluate_range(unsigned col,
   if (Y.range_required) {
     Y.clear();
     Y.range_required = false;
-    Y.range_is_current = true;
     if (!X.range_is_empty && col < ncols) {
       vector_t Ydata = y_vector(col);
-      Y.min = Y.max = Ydata[r++];
       for ( ; r <= r1; ++r ) {
         scalar_t V = Ydata[r];
         Y.update(V);
       }
-      Y.range_is_empty = false;
     }
+    Y.range_is_current = true;
     Y.range_updated = true;
   }
 }
@@ -520,7 +518,7 @@ RTG_Variable_MLF::RTG_Variable_MLF( const char *name_in, RTG_Variable_Node *pare
 /* Documentation in phrtg.h
  * If range is empty returns i_min > i_max
  */
-void RTG_Variable_MLF::xrow_range(scalar_t x_min, scalar_t x_max,
+void RTG_Variable_MLF::xrow_range(double x_min, double x_max,
         unsigned &i_min, unsigned &i_max) {
   if (x_max < 0 || x_max < x_min || nrows == 0) {
     i_max = 0;

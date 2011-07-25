@@ -79,8 +79,38 @@ int trend_queue::n_rows() {
      * The X value is adjusted to be relative to the specified epoch.
      * @return true on success, false if indices are out of range
      */
-bool trend_queue::get(unsigned r, unsigned c, double &X, double &Y, double epoch) {
+bool trend_queue::get(unsigned r, unsigned c, double &X, double &Y) {
+  if ( r >= n_rows() || c >= n_cols ) return false;
+  X = data[r*(data.n_cols+1)] + epoch;
+  Y = data[r*(data.n_cols+1) + c + 1];
   return true;
+}
+
+double trend_queue::find_x(double x_in) {
+  unsigned low = 0, high = n_rows();
+  double lowV = x_min, highV = x_max;
+  nl_assert(high > 0);
+  --high;
+  for (;;) {
+    double guess, guessV, Y;
+    unsigned gi;
+    if ( x_in <= lowV ) return ((double)low );
+    if ( x_in >= highV ) return ((double)high);
+    guess = low + (high-low) * (x_in - lowV)/(highV-lowV);
+    if ( high-low <= 1 ) return guess;
+    gi = floor(guess+.5);
+    if ( gi == low ) ++gi;
+    if ( gi == high ) --gi;
+    get( gi, 0, guessV, Y );
+    if ( guessV == x_in ) return((double)gi);
+    if ( x_in < guessV ) {
+      high = gi;
+      highV = guessV;
+    } else {
+      low = gi;
+      lowV = guessV;
+    }
+  }
 }
 
 RTG_Variable_Trend::RTG_Variable_Trend(const char *name_in, RTG_Variable_Node *parent_in, RTG_Variable *sib)
@@ -168,22 +198,65 @@ bool RTG_Variable_Trend::reload_data() {
 }
 
 bool RTG_Variable_Trend::get(unsigned r, unsigned c, double &X, double &Y) {
-  if ( r >= data.n_rows() || c >= data.n_cols) return false;
-  X = data[r*(data.n_cols+1)];
-  Y = data[r*(data.n_cols+1) + c + 1];
-  return true;
+  return data.get(r, c, X, Y);
 }
 
+/**
+ * This implementation is very similar to the one for RTG_Variable_Matrix,
+ * but it does not rely on the y_vector() method. One could argue that
+ * this should be promoted to an implementation for RTG_Variable_Data.
+ * That would not eliminate the need for y_vector(), though.
+ */
 void RTG_Variable_Trend::evaluate_range(unsigned col, RTG_Range &X,
     RTG_Range &Y) {
+  unsigned r, r1;
+  if (X.range_required) {
+    X.range_required = false;
+    if (nrows == 0) {
+      X.range_is_empty = true;
+    } else {
+      double y;
+      X.range_is_empty = false;
+      get(0,col,X.min,y);
+      get(nrows-1,col,X.max,y);
+    }
+    X.range_is_current = true;
+    X.range_updated = true;
+  }
+  xrow_range(X.min, X.max, r, r1 );
+  if (r > r1)
+    X.range_is_empty = true;
+  if (Y.range_required) {
+    Y.clear();
+    Y.range_required = false;
+    if (!X.range_is_empty && col < ncols) {
+      for ( ; r <= r1; ++r ) {
+        double XV, YV;
+        get(r,col, XV, YV);
+        Y.update(YV);
+      }
+    }
+    Y.range_is_current = true;
+    Y.range_updated = true;
+  }
 }
 
 /* The other main implementation at this point is RTG_Variable_MLF,
  * where the X axis is implicit, so it's really simple. Here we
- * have an explicit X axis, which we know to be monotonic.
+ * have an explicit X axis, which we know to be monotonic and
+ * usually linear.
  */
-void RTG_Variable_Trend::xrow_range(scalar_t x_min, scalar_t x_max,
+void RTG_Variable_Trend::xrow_range(double x_min, double x_max,
     unsigned &i_min, unsigned &i_max) {
+  if ( data.n_rows() == 0 ||
+       x_max < x_min || x_max < data.x_min + data.epoch ||
+       x_min > data.x_max + data.epoch ) {
+    i_max = 0;
+    i_min = 1;
+  } else {
+    i_min = (unsigned)floor(data.find_x(x_min));
+    i_max = (unsigned)ceil(data.find_x(x_max));
+  }
 }
 
 /**

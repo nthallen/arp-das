@@ -107,7 +107,7 @@ void RTG_Variable_Detrend::derive(unsigned c) {
  * Detrend maps directly onto a subset of the Source range, so
  * we can call the source's xrow_range and offset by i_min.
  */
-void RTG_Variable_Detrend::xrow_range(scalar_t x_min, scalar_t x_max,
+void RTG_Variable_Detrend::xrow_range(double x_min, double x_max,
         unsigned &i_min, unsigned &i_max) {
   Source->xrow_range(x_min, x_max, i_min, i_max);
   if ( i_max > i_min ) {
@@ -190,7 +190,7 @@ bool RTG_Variable_Invert::reload_data() {
   return false;
 }
 
-void RTG_Variable_Invert::xrow_range(scalar_t x_min, scalar_t x_max,
+void RTG_Variable_Invert::xrow_range(double x_min, double x_max,
             unsigned &i_min, unsigned &i_max) {
   Source->xrow_range(x_min, x_max, i_min, i_max);
 }
@@ -341,7 +341,7 @@ void RTG_Variable_FFT::derive(unsigned col) {
  * but I rescale the X values to go from 0 to 1
  * instead, where 1 is the Nyquist frequency.
  */
-void RTG_Variable_FFT::xrow_range(scalar_t x_min, scalar_t x_max,
+void RTG_Variable_FFT::xrow_range(double x_min, double x_max,
         unsigned &i_min, unsigned &i_max) {
   x_min *= nrows-1;
   x_max *= nrows-1;
@@ -409,7 +409,7 @@ void RTG_Variable_PSD::derive(unsigned col) {
   derive_required[col] = false;
 }
 
-void RTG_Variable_PSD::xrow_range(scalar_t x_min, scalar_t x_max,
+void RTG_Variable_PSD::xrow_range(double x_min, double x_max,
 	unsigned &i_min, unsigned &i_max) {
   Source->xrow_range(x_min, x_max, i_min, i_max);
 }
@@ -487,7 +487,7 @@ void RTG_Variable_Phase::derive(unsigned col) {
   derive_required[col] = false;
 }
 
-void RTG_Variable_Phase::xrow_range(scalar_t x_min, scalar_t x_max,
+void RTG_Variable_Phase::xrow_range(double x_min, double x_max,
 	unsigned &i_min, unsigned &i_max) {
   Source->xrow_range(x_min, x_max, i_min, i_max);
 }
