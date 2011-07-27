@@ -38,6 +38,10 @@ void trend_queue::push( unsigned nc, double X, double *Y ) {
   }
 }
 
+/**
+ * Copy data from pending queue to destination data
+ * queue. dest.n_cols may be updated as a result.
+ */
 void trend_queue::flush( trend_queue &dest ) {
   while ( !empty() ) {
     std::vector<double> Y;
@@ -58,6 +62,7 @@ void trend_queue::flush( trend_queue &dest ) {
 /**
  * Retire oldest points, but keep at least MINPOINTS
  * and any points within span of the most recent.
+ * Does not change n_cols.
  */
 void trend_queue::flush() {
   int n;
@@ -177,6 +182,7 @@ void RTG_Variable_Trend::Incoming(const char *cmd) {
   trend->pending.push(Y.size(), X, &Y[0]);
   trend->new_data_available = true;
   trend->pending.flush(); // Don't allow it to grow without limit
+  plot_obj::render_one();
 }
 
 bool RTG_Variable_Trend::reload_data() {
@@ -192,7 +198,9 @@ bool RTG_Variable_Trend::reload_data() {
   pending.span = data.span = span;
   if ( ! pending.empty() ) {
     pending.flush(data);
+    ncols = data.n_cols;
     data.flush();
+    nrows = data.n_rows();
     return true;
   }
   return false;
