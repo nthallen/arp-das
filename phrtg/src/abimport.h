@@ -10,7 +10,7 @@ extern ApEventLink_t AbInternalLinks[];
 
 extern ApWindowLink_t Figure;
 extern ApWindowLink_t Console;
-extern ApWidget_t AbWidgets[ 49 ];
+extern ApWidget_t AbWidgets[ 51 ];
 
 extern ApMenuLink_t File_Menu;
 extern ApMenuLink_t Variable_Menu;

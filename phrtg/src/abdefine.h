@@ -95,6 +95,10 @@ extern const int ABN_Phase;
 #define ABW_Phase                            AbGetABW( ABN_Phase )
 extern const int ABN_Invert;
 #define ABW_Invert                           AbGetABW( ABN_Invert )
+extern const int ABN_Trend;
+#define ABW_Trend                            AbGetABW( ABN_Trend )
+extern const int ABN_TrendScale;
+#define ABW_TrendScale                       AbGetABW( ABN_TrendScale )
 extern const int ABN_Y_Tab;
 #define ABW_Y_Tab                            AbGetABW( ABN_Y_Tab )
 extern const int ABN_Line_Tab;

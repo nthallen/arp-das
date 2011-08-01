@@ -62,6 +62,8 @@ static const ApEventLink_t AbLinks_Console[] = {
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "PSD", 2009, Toggle_Activate, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Phase", 2009, Toggle_Activate, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Invert", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Trend", 2009, Toggle_Activate, 0, 0, 0, 0, },
+	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "TrendScale", 4010, Modify_Notify, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Name", 4010, Modify_Notify, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Visible", 2009, Toggle_Activate, 0, 0, 0, 0, },
 	{ 8, 0, 0L, 0L, 0L, NULL, NULL, "Line_Color", 150005, Color_Changed, 0, 0, 0, 0, },

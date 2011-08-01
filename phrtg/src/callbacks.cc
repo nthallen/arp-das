@@ -38,6 +38,8 @@ void Update_Text(int Name, char *text, Update_Source src ) {
       return;
     }
     Current::Line->rename(text, src);
+  } else if (Name == ABN_TrendScale) {
+    nl_error(0, "Trend Scale set to \"%s\"", text);
   } else {
     nl_error(1, "Update_Text(%d,\"%s\") not implemented", Name, text);
   }
@@ -171,23 +173,33 @@ void Update_Toggle(int Name, long int value, Update_Source src ) {
     } else {
       Current::Axis->limits.limits_auto = value;
       if ( value ) {
-        // Current::Axis->axis_range_updated = true;
         Current::Axes->schedule_range_check();
         Current::Axis->range.clear();
       }
       if ((Current::Axis->XY == Axis_X && Current::Tab == Tab_X)
         || (Current::Axis->XY == Axis_Y && Current::Tab == Tab_Y)) {
-        long is_auto = value ? Pt_TRUE : Pt_FALSE;
-        PtSetResource(ABW_Limit_Min, Pt_ARG_FLAGS, is_auto,
-            Pt_GHOST|Pt_BLOCKED );
-        PtSetResource(ABW_Limit_Max, Pt_ARG_FLAGS, is_auto,
-            Pt_GHOST|Pt_BLOCKED );
-        PtSetResource(ABW_Apply_Limits, Pt_ARG_FLAGS, is_auto,
-            Pt_GHOST|Pt_BLOCKED );
-        if (src != from_widget)
-          PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_auto, Pt_SET);
+        // ### Replace this with Update_Axis_Pane()
+        Current::Axes->Update_Axis_Pane();
+        // long is_auto = value ? Pt_TRUE : Pt_FALSE;
+        // PtSetResource(ABW_Limit_Min, Pt_ARG_FLAGS, is_auto,
+        //     Pt_GHOST|Pt_BLOCKED );
+        // PtSetResource(ABW_Limit_Max, Pt_ARG_FLAGS, is_auto,
+        //     Pt_GHOST|Pt_BLOCKED );
+        // PtSetResource(ABW_Apply_Limits, Pt_ARG_FLAGS, is_auto,
+        //     Pt_GHOST|Pt_BLOCKED );
+        // if (src != from_widget)
+        //   PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_auto, Pt_SET);
       }
     }
+  } else if (Name == ABN_Trend) {
+    if (Current::Axes == NULL) {
+      nl_error(2,"Toggle Trend with no Current::Axes");
+    } else {
+      Current::Axes->X.limits.limits_trend = value;
+      // ### Change the highlight on stuff.
+      Current::Axes->Update_Axis_Pane();
+    }
+    // nl_error(0, "Trend %s", value ? "Selected" : "Deselected");
   } else if (!Update_Derivation(Name, value) )
     nl_error( 1, "Update_Toggle(%d) not implemented", Name);
 }
@@ -195,10 +207,10 @@ void Update_Toggle(int Name, long int value, Update_Source src ) {
 int Toggle_Activate( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo ) {
   PtBasicCallback_t *cb = (PtBasicCallback_t*)cbinfo->cbdata;
   /* eliminate 'unreferenced' warnings */
-	apinfo = apinfo;
-	Update_Toggle(ApName(widget), cb->value, from_widget);
+  apinfo = apinfo;
+  Update_Toggle(ApName(widget), cb->value, from_widget);
   plot_obj::render_one();
-	return( Pt_CONTINUE );
+  return( Pt_CONTINUE );
 }
 
 void Update_Numeric(int Name, double value, Update_Source src ) {

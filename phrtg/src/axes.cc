@@ -108,12 +108,21 @@ plot_obj *plot_axes::default_child() {
 void plot_axis::Update_Axis_Pane(plot_axes *parent) {
   Current::Axis = this;
   long is_auto = limits.limits_auto ? Pt_TRUE : Pt_FALSE;
+  long is_trend = parent->X.limits.limits_trend ? Pt_TRUE : Pt_FALSE;
+  long block_lims = ( is_auto == Pt_TRUE ||
+    ( is_trend == Pt_TRUE && XY == Axis_X )) ? Pt_TRUE : Pt_FALSE;
+  long block_scale = ( is_trend != Pt_TRUE || XY != Axis_X ) ? Pt_TRUE : Pt_FALSE;
+
   PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_auto, Pt_SET);
-  PtSetResource(ABW_Limit_Min, Pt_ARG_FLAGS, is_auto,
+  PtSetResource(ABW_Trend, Pt_ARG_FLAGS, is_trend, Pt_SET);
+  PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_trend, Pt_GHOST|Pt_BLOCKED );
+  PtSetResource(ABW_Limit_Min, Pt_ARG_FLAGS, block_lims,
       Pt_GHOST|Pt_BLOCKED );
-  PtSetResource(ABW_Limit_Max, Pt_ARG_FLAGS, is_auto,
+  PtSetResource(ABW_Limit_Max, Pt_ARG_FLAGS, block_lims,
       Pt_GHOST|Pt_BLOCKED );
-  PtSetResource(ABW_Apply_Limits, Pt_ARG_FLAGS, is_auto,
+  PtSetResource(ABW_Apply_Limits, Pt_ARG_FLAGS, block_lims,
+      Pt_GHOST|Pt_BLOCKED );
+  PtSetResource(ABW_TrendScale, Pt_ARG_FLAGS, block_scale,
       Pt_GHOST|Pt_BLOCKED );
   Update_Axis_Pane_Limits();
 }

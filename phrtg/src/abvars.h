@@ -52,34 +52,36 @@ const int ABN_Apply_Limits = 37;
 const int ABN_PSD = 38;
 const int ABN_Phase = 39;
 const int ABN_Invert = 40;
-const int ABN_Y_Tab = 41;
-const int ABN_Line_Tab = 42;
-const int ABN_Line_Name = 43;
-const int ABN_Line_Visible = 44;
-const int ABN_Line_Type = 45;
-const int ABN_Line_Color = 46;
-const int ABN_Line_Variable_Name = 47;
-const int ABN_Line_Column = 48;
+const int ABN_Trend = 41;
+const int ABN_TrendScale = 42;
+const int ABN_Y_Tab = 43;
+const int ABN_Line_Tab = 44;
+const int ABN_Line_Name = 45;
+const int ABN_Line_Visible = 46;
+const int ABN_Line_Type = 47;
+const int ABN_Line_Color = 48;
+const int ABN_Line_Variable_Name = 49;
+const int ABN_Line_Column = 50;
 
 /* 'File_Menu' Menu link */
-const int ABN_File_Menu = 49;
-const int ABN_menu_open_cmd = 50;
-const int ABN_menu_close_cmd = 51;
-const int ABN_menu_file_report = 52;
-const int ABN_menu_save_cfg = 53;
-const int ABN_menu_quit = 54;
+const int ABN_File_Menu = 51;
+const int ABN_menu_open_cmd = 52;
+const int ABN_menu_close_cmd = 53;
+const int ABN_menu_file_report = 54;
+const int ABN_menu_save_cfg = 55;
+const int ABN_menu_quit = 56;
 
 /* 'Variable_Menu' Menu link */
-const int ABN_Variable_Menu = 55;
-const int ABN_vg_curaxes = 56;
-const int ABN_vg_overlay = 57;
-const int ABN_vg_newpane = 58;
-const int ABN_vg_newwin = 59;
+const int ABN_Variable_Menu = 57;
+const int ABN_vg_curaxes = 58;
+const int ABN_vg_overlay = 59;
+const int ABN_vg_newpane = 60;
+const int ABN_vg_newwin = 61;
 
 /* 'plot_context_menu' Menu link */
-const int ABN_plot_context_menu = 60;
-const int ABN_PlotVisible = 61;
-const int ABN_PlotObjDelete = 62;
+const int ABN_plot_context_menu = 62;
+const int ABN_PlotVisible = 63;
+const int ABN_PlotObjDelete = 64;
 
 
 #if defined(__cplusplus)
