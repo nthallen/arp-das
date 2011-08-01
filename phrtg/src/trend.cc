@@ -71,7 +71,7 @@ void trend_queue::flush() {
   n = n_rows() - MINPOINTS;
   cutoff = x_max - span;
   while ( n > 0 && x_min < cutoff ) {
-    x_min = *(erase(begin(), begin()+n_cols));
+    x_min = *(erase(begin(), begin()+n_cols+1));
     --n;
   }
 }
@@ -94,7 +94,7 @@ bool trend_queue::get(unsigned r, unsigned c, double &X, double &Y) {
 
 double trend_queue::find_x(double x_in) {
   unsigned low = 0, high = n_rows();
-  double lowV = x_min, highV = x_max;
+  double lowV = x_min+x_epoch, highV = x_max+x_epoch;
   nl_assert(high > 0);
   --high;
   for (;;) {
