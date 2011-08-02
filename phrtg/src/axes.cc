@@ -137,9 +137,13 @@ void plot_axis::Update_Axis_Pane(plot_axes *parent) {
   long block_lims = ( is_auto == Pt_TRUE || block_auto == Pt_TRUE )
         ? Pt_TRUE : Pt_FALSE;
   long block_scale = ( is_trend != Pt_TRUE ) ? Pt_TRUE : Pt_FALSE;
+  long block_trend = parent->is_trendable ? Pt_FALSE : Pt_TRUE;
+  long block_derivation = parent->is_trendable ? Pt_TRUE : Pt_FALSE;
 
   PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_auto, Pt_SET);
   PtSetResource(ABW_Trend, Pt_ARG_FLAGS, is_trend, Pt_SET);
+  PtSetResource(ABW_Trend, Pt_ARG_FLAGS, block_trend,
+      Pt_GHOST|Pt_BLOCKED );
   PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, block_auto,
       Pt_GHOST|Pt_BLOCKED );
   PtSetResource(ABW_Limit_Min, Pt_ARG_FLAGS, block_lims,
@@ -149,6 +153,14 @@ void plot_axis::Update_Axis_Pane(plot_axes *parent) {
   PtSetResource(ABW_Apply_Limits, Pt_ARG_FLAGS, block_lims,
       Pt_GHOST|Pt_BLOCKED );
   PtSetResource(ABW_TrendScale, Pt_ARG_FLAGS, block_scale,
+      Pt_GHOST|Pt_BLOCKED );
+  PtSetResource(ABW_Invert, Pt_ARG_FLAGS, block_derivation,
+      Pt_GHOST|Pt_BLOCKED );
+  PtSetResource(ABW_Detrend, Pt_ARG_FLAGS, block_derivation,
+      Pt_GHOST|Pt_BLOCKED );
+  PtSetResource(ABW_PSD, Pt_ARG_FLAGS, block_derivation,
+      Pt_GHOST|Pt_BLOCKED );
+  PtSetResource(ABW_Phase, Pt_ARG_FLAGS, block_derivation,
       Pt_GHOST|Pt_BLOCKED );
   Update_Axis_Pane_Limits();
 }
@@ -179,6 +191,7 @@ plot_axes::plot_axes( const char *name_in, plot_pane *pane ) : plot_obj(po_axes,
   inverted = false;
   psd_transformed = false;
   ph_transformed = false;
+  is_trendable = true;
   parent->AddChild(this);
 }
 
@@ -201,6 +214,8 @@ void plot_axes::AddChild(plot_graph *data) {
     PtTreeAddAfter(ABW_Graphs_Tab, data->TreeItem, graphs.back()->TreeItem);
   }
   graphs.push_back(data);
+  if ( data->variable->type != Var_Trend )
+    is_trendable = false;
   if (current_child == NULL) current_child = data;
 }
 

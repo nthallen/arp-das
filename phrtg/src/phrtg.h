@@ -504,24 +504,24 @@ enum Tab_Name { Tab_None, Tab_Variables, Tab_Graphs, Tab_Figure,
 class plot_pane : public plot_obj {
   public:
     std::list<plot_axes*> axes;
-		plot_figure *parent;
-		PtWidget_t *widget;
-		PgColor_t pane_color;
-		int full_height;
-		int min_height;
-		int full_width;
-		bool synch_x;
+    plot_figure *parent;
+    PtWidget_t *widget;
+    PgColor_t pane_color;
+    int full_height;
+    int min_height;
+    int full_width;
+    bool synch_x;
 		
-  	plot_pane( const char *name_in, plot_figure *parent);
-  	~plot_pane();
-  	void AddChild(plot_axes *p);
-  	void RemoveChild(plot_axes *p);
-  	plot_axes *CreateGraph(RTG_Variable_Data *var);
-  	void resized( PhDim_t *newdim );
-  	void got_focus(focus_source whence);
+    plot_pane( const char *name_in, plot_figure *parent);
+    ~plot_pane();
+    void AddChild(plot_axes *p);
+    void RemoveChild(plot_axes *p);
+    plot_axes *CreateGraph(RTG_Variable_Data *var);
+    void resized( PhDim_t *newdim );
+    void got_focus(focus_source whence);
     void rename(const char *text, Update_Source src);
     void set_bg_color(PgColor_t rgb, Update_Source src);
-  	bool render();
+    bool render();
     plot_obj *default_child();
     bool check_for_updates(bool parent_visibility);
     void Update_Axis_Pane();
@@ -584,6 +584,7 @@ class plot_axes : public plot_obj {
     bool inverted;
     bool psd_transformed;
     bool ph_transformed;
+    bool is_trendable;
     
     plot_axes( const char *name_in, plot_pane *parent );
     ~plot_axes();
