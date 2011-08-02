@@ -113,7 +113,8 @@ void plot_line::set_line_color(PgColor_t rgb, Update_Source src) {
 }
 
 bool plot_line::render() {
-  if (!visible || !redraw_required) return false;
+  if (!visible || !(redraw_required || x_axis_trended))
+    return false;
   // unrealize or delete all existing widgets
   // could simply replace their attributes, but
   // it's important not to change the PhPoint_t*
@@ -129,7 +130,10 @@ bool plot_line::render() {
   plot_axes *ax = parent->parent;
   RTG_Variable_Data *var = parent->variable;
   redraw_required = false;
+  x_axis_trended = false;
   unsigned npts = var->nrows;
+  double x_epoch = ax->X.limits.limits_trend ?
+    ax->X.limits.epoch : 0.;
   if (npts > idata.size()) {
     idata.resize(npts);
     nl_assert(idata.size() == npts);
@@ -139,7 +143,7 @@ bool plot_line::render() {
     double X, Y;
     if (!var->get(i, column, X, Y))
       nl_error(4, "get failed for %s[%d]", name, i);
-    idata[i].x = ax->X.evaluate(X);
+    idata[i].x = ax->X.evaluate(X - x_epoch);
     idata[i].y = ax->Y.evaluate(Y);
   }
   // PhDim_t minsize = { 0,0};

@@ -186,7 +186,7 @@ void RTG_Variable_Trend::Incoming(const char *cmd) {
 }
 
 bool RTG_Variable_Trend::reload_data() {
-  double span = 0.;
+  double span = data.span;
   std::list<plot_graph*>::const_iterator pos;
 
   for (pos = graphs.begin(); pos != graphs.end(); ++pos) {

@@ -39,7 +39,17 @@ void Update_Text(int Name, char *text, Update_Source src ) {
     }
     Current::Line->rename(text, src);
   } else if (Name == ABN_TrendScale) {
-    nl_error(0, "Trend Scale set to \"%s\"", text);
+    double upMt;
+    char *p;
+    if (Current::Axes == NULL) {
+      nl_error(2, "Update TrendScale with no Current::Axes");
+      return;
+    }
+    upMt = strtod(text, &p);
+    if (p != text && upMt > 0.) {
+      Current::Axes->units_per_Mtick(upMt);
+    }
+    Current::Axes->Update_Axis_Pane(); // cleanup
   } else {
     nl_error(1, "Update_Text(%d,\"%s\") not implemented", Name, text);
   }
@@ -49,10 +59,11 @@ void Update_Text(int Name, char *text, Update_Source src ) {
 
 int Modify_Notify( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo ) {
   PtTextCallback_t *cb = (PtTextCallback_t *)cbinfo->cbdata;
-	/* eliminate 'unreferenced' warnings */
-	apinfo = apinfo;
+  /* eliminate 'unreferenced' warnings */
+  apinfo = apinfo;
   Update_Text(ApName(widget), cb->text, from_widget);
-	return( Pt_CONTINUE );
+  plot_obj::render_one();
+  return( Pt_CONTINUE );
 }
 
 void Update_Color(int Name, PgColor_t rgb, Update_Source src ) {
@@ -74,9 +85,9 @@ void Update_Color(int Name, PgColor_t rgb, Update_Source src ) {
 int Color_Changed( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo ) {
   PtColorSelCallback_t *cb = (PtColorSelCallback_t *)cbinfo->cbdata;
   /* eliminate 'unreferenced' warnings */
-	apinfo = apinfo;
+  apinfo = apinfo;
   Update_Color(ApName(widget), cb->rgb, from_widget);
-	return( Pt_CONTINUE );
+  return( Pt_CONTINUE );
 }
 
 /**
@@ -176,19 +187,9 @@ void Update_Toggle(int Name, long int value, Update_Source src ) {
         Current::Axes->schedule_range_check();
         Current::Axis->range.clear();
       }
-      if ((Current::Axis->XY == Axis_X && Current::Tab == Tab_X)
-        || (Current::Axis->XY == Axis_Y && Current::Tab == Tab_Y)) {
-        // ### Replace this with Update_Axis_Pane()
+      if ((Current::Axis->XY == Axis_X && Current::Tab == Tab_X) ||
+	  (Current::Axis->XY == Axis_Y && Current::Tab == Tab_Y)) {
         Current::Axes->Update_Axis_Pane();
-        // long is_auto = value ? Pt_TRUE : Pt_FALSE;
-        // PtSetResource(ABW_Limit_Min, Pt_ARG_FLAGS, is_auto,
-        //     Pt_GHOST|Pt_BLOCKED );
-        // PtSetResource(ABW_Limit_Max, Pt_ARG_FLAGS, is_auto,
-        //     Pt_GHOST|Pt_BLOCKED );
-        // PtSetResource(ABW_Apply_Limits, Pt_ARG_FLAGS, is_auto,
-        //     Pt_GHOST|Pt_BLOCKED );
-        // if (src != from_widget)
-        //   PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_auto, Pt_SET);
       }
     }
   } else if (Name == ABN_Trend) {
@@ -196,8 +197,8 @@ void Update_Toggle(int Name, long int value, Update_Source src ) {
       nl_error(2,"Toggle Trend with no Current::Axes");
     } else {
       Current::Axes->X.limits.limits_trend = value;
-      // ### Change the highlight on stuff.
       Current::Axes->Update_Axis_Pane();
+      // ### probably need to mark graph to recheck limits?
     }
     // nl_error(0, "Trend %s", value ? "Selected" : "Deselected");
   } else if (!Update_Derivation(Name, value) )
@@ -240,9 +241,9 @@ void Update_Numeric(int Name, double value, Update_Source src ) {
 int Numeric_Changed( PtWidget_t *widget, ApInfo_t *apinfo, PtCallbackInfo_t *cbinfo ) {
   PtNumericIntegerCallback_t *cb = (PtNumericIntegerCallback_t *)cbinfo->cbdata;
   /* eliminate 'unreferenced' warnings */
-	apinfo = apinfo;
-	Update_Numeric(ApName(widget), cb->numeric_value, from_widget);
+  apinfo = apinfo;
+  Update_Numeric(ApName(widget), cb->numeric_value, from_widget);
   plot_obj::render_one();
-	return( Pt_CONTINUE );
+  return( Pt_CONTINUE );
 }
 

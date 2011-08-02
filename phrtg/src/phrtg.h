@@ -531,37 +531,38 @@ class plot_pane : public plot_obj {
 
 class plot_axis {
   public:
-  	Axis_XY XY;
-  	bool reverse_dim; // based on X or Y
+    Axis_XY XY;
+    bool reverse_dim; // based on X or Y
     bool reverse; // user-selectable
-  	bool data_range_updated;
-  	// bool axis_range_updated;
-  	bool axis_limits_updated;
+    bool data_range_updated;
+    // bool axis_range_updated;
+    bool axis_limits_updated;
     bool axis_limits_trended;
-  	bool draw[2]; // Whether to draw primary or secondary axis
-  	bool reserve_tick_space[2];
-  	bool draw_ticks[2];
-  	bool reserve_tick_label_space[2];
-  	bool draw_tick_label[2];
-  	bool reserve_label_space[2];
-  	bool draw_label[2];
-  	bool log_scale;
-  	RTG_Range range;
-  	RTG_Limits limits;
-  	int pixels;
-  	float scalev;
-  	float clip_max;
-  	float clip_min;
-      // *Axis color: color
-      // *Axis Tick Label Style: *use defaults for now
-      // *Axis Label Style: *use defaults for now
-  	int major_tick_len; // positive outward, negative inward
-  	int minor_tick_len;
-  	int label_height; // same units has *_tick_len.
-  	static const int pane_overage;
+    bool draw[2]; // Whether to draw primary or secondary axis
+    bool reserve_tick_space[2];
+    bool draw_ticks[2];
+    bool reserve_tick_label_space[2];
+    bool draw_tick_label[2];
+    bool reserve_label_space[2];
+    bool draw_label[2];
+    bool log_scale;
+    RTG_Range range;
+    RTG_Limits limits;
+    int pixels;
+    float scalev;
+    float clip_max;
+    float clip_min;
+    // *Axis color: color
+    // *Axis Tick Label Style: *use defaults for now
+    // *Axis Label Style: *use defaults for now
+    int major_tick_len; // positive outward, negative inward
+    int minor_tick_len;
+    int major_tick_wid; //* pixels along the axis
+    int label_height; // same units has *_tick_len.
+    static const int pane_overage = 5;
 
-  	plot_axis();
-  	void check_limits();
+    plot_axis();
+    void check_limits();
     void set_scale();
     void set_scale(int pixel_span);
     void set_scale(double min, double max);
@@ -602,6 +603,7 @@ class plot_axes : public plot_obj {
     void Invert(long value);
     void PSD(long value);
     void Phase(long value);
+    void units_per_Mtick(double upMT);
 };
 
 class plot_axes_diag : public plot_axes {
@@ -654,16 +656,16 @@ class plot_line : public plot_obj {
     std::vector<PtWidget_t *> widgets;
 
     plot_line(plot_graph *parent_in, unsigned col, const char *name_in);
-  	~plot_line();
-  	void clear_widgets();
-  	void got_focus(focus_source whence);
-  	bool check_ranges( RTG_Range &Xr, RTG_Range &Yr );
+    ~plot_line();
+    void clear_widgets();
+    void got_focus(focus_source whence);
+    bool check_ranges( RTG_Range &Xr, RTG_Range &Yr );
     void set_line_color(PgColor_t rgb, Update_Source src);
     bool render();
     bool check_for_updates(bool parent_visibility);
     void Update_Line_Tab();
-  	static plot_line *new_line(plot_graph *parent_in, unsigned col);
-  	static const unsigned pts_per_polygon;
+    static plot_line *new_line(plot_graph *parent_in, unsigned col);
+    static const unsigned pts_per_polygon;
 };
 
 class Current {

@@ -1,13 +1,12 @@
 /** \file axes.cc
  * Support routines for axes
  */
+#include <math.h>
 #include <ctype.h>
 #include "ablibs.h"
 #include "phrtg.h"
 #include "abimport.h"
 #include "nl_assert.h"
-
-const int plot_axis::pane_overage = 0;
 
 plot_axis::plot_axis() {
   XY = Axis_X;
@@ -29,6 +28,7 @@ plot_axis::plot_axis() {
   scalev = 0.;
   major_tick_len = 0; // positive outward, negative inward
   minor_tick_len = 0;
+  major_tick_wid = 15;
   label_height = 0; // same units has *_tick_len.
 }
 
@@ -36,8 +36,22 @@ void plot_axis::check_limits() {
   if ( range.range_updated ) {
     range.range_updated = false;
     if ( limits.limits_trend ) {
-      if ( limits.changed(range) ) {
+      if ( range.max - limits.epoch > limits.span ) {
+	limits.epoch = range.max;
+	set_scale();
+	axis_limits_updated = true;
+      } else if ( range.max > limits.epoch ) {
+	double extra_pixels =
+	  ceil((range.max - limits.epoch) * major_tick_wid /
+		limits.units_per_Mtick);
+	limits.epoch += extra_pixels * limits.units_per_Mtick /
+		major_tick_wid;
+	set_scale();
         axis_limits_trended = true;
+      } else if ( range.max - limits.epoch + limits.span < 0. ) {
+	limits.epoch = range.max;
+	set_scale();
+	axis_limits_updated = true;
       }
     } else if ( limits.limits_auto ) {
       if ( limits.changed(range) ) {
@@ -48,6 +62,15 @@ void plot_axis::check_limits() {
 }
 
 void plot_axis::set_scale() {
+  if ( limits.limits_trend ) {
+    double span = limits.units_per_Mtick * pixels /
+	    major_tick_wid;
+    if ( limits.max != 0. || limits.span != span ) {
+      limits.max = 0.;
+      limits.span = span;
+      limits.min = -span;
+    } else return;
+  }
   if ( limits.max != limits.min ) {
     scalev = pixels/(limits.max-limits.min);
     clip_max = limits.min + 20000/scalev;
@@ -94,9 +117,9 @@ bool plot_axis::render( plot_axes *axes ) {
       }
     }
     axis_limits_updated = false;
-    axis_limits_trended = false;
     // return true;
   }
+  axis_limits_trended = false;
   return false;
 }
 
@@ -109,13 +132,16 @@ void plot_axis::Update_Axis_Pane(plot_axes *parent) {
   Current::Axis = this;
   long is_auto = limits.limits_auto ? Pt_TRUE : Pt_FALSE;
   long is_trend = parent->X.limits.limits_trend ? Pt_TRUE : Pt_FALSE;
-  long block_lims = ( is_auto == Pt_TRUE ||
-    ( is_trend == Pt_TRUE && XY == Axis_X )) ? Pt_TRUE : Pt_FALSE;
-  long block_scale = ( is_trend != Pt_TRUE || XY != Axis_X ) ? Pt_TRUE : Pt_FALSE;
+  long block_auto = ( is_trend == Pt_TRUE && XY == Axis_X) ?
+	Pt_TRUE : Pt_FALSE;
+  long block_lims = ( is_auto == Pt_TRUE || block_auto == Pt_TRUE )
+        ? Pt_TRUE : Pt_FALSE;
+  long block_scale = ( is_trend != Pt_TRUE ) ? Pt_TRUE : Pt_FALSE;
 
   PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_auto, Pt_SET);
   PtSetResource(ABW_Trend, Pt_ARG_FLAGS, is_trend, Pt_SET);
-  PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, is_trend, Pt_GHOST|Pt_BLOCKED );
+  PtSetResource(ABW_Auto_Scale, Pt_ARG_FLAGS, block_auto,
+      Pt_GHOST|Pt_BLOCKED );
   PtSetResource(ABW_Limit_Min, Pt_ARG_FLAGS, block_lims,
       Pt_GHOST|Pt_BLOCKED );
   PtSetResource(ABW_Limit_Max, Pt_ARG_FLAGS, block_lims,
@@ -167,8 +193,12 @@ plot_axes::~plot_axes() {
 void plot_axes::AddChild(plot_graph *data) {
   if (graphs.empty()) {
     PtTreeAddFirst(ABW_Graphs_Tab, data->TreeItem, TreeItem);
+    if ( data->variable->type == Var_Trend ) {
+      X.limits.limits_trend = true;
+      X.set_scale();
+    }
   } else {
-  	PtTreeAddAfter(ABW_Graphs_Tab, data->TreeItem, graphs.back()->TreeItem);
+    PtTreeAddAfter(ABW_Graphs_Tab, data->TreeItem, graphs.back()->TreeItem);
   }
   graphs.push_back(data);
   if (current_child == NULL) current_child = data;
@@ -235,6 +265,11 @@ void plot_axes::Update_Axis_Pane() {
       psd_transformed ? Pt_TRUE : Pt_FALSE, Pt_SET);
   PtSetResource(ABW_Phase, Pt_ARG_FLAGS,
       ph_transformed ? Pt_TRUE : Pt_FALSE, Pt_SET);
+  { char buf[8];
+    snprintf(buf, 7, "%lg", X.limits.units_per_Mtick );
+    buf[7] = '\0';
+    PtSetResource(ABW_TrendScale, Pt_ARG_TEXT_STRING, buf, 0);
+  }
 
   switch (Current::Tab) {
     case Tab_X:
@@ -575,6 +610,13 @@ void plot_axes::Phase(long value) {
     }
     X.limits.limits_auto = true;
     Y.limits.limits_auto = true;
+  }
+}
+
+void plot_axes::units_per_Mtick(double upMt) {
+  if ( upMt > 0. ) {
+    X.limits.units_per_Mtick = upMt;
+    X.set_scale();
   }
 }
 

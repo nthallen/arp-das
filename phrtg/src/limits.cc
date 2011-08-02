@@ -5,8 +5,8 @@
 #include "phrtg.h"
 
 RTG_Limits::RTG_Limits() {
-  min = max = epoch = 0.;
-  units_per_Mtick = 20.;
+  min = max = span = epoch = 0.;
+  units_per_Mtick = 10.;
   limits_trend = false;
   limits_auto = true;
   limits_current = false;
