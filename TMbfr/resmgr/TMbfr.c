@@ -51,6 +51,21 @@ DQD_Queue_t DQD_Queue;
 static tm_ocb_t *blocked_writer;
 static tm_ocb_t *all_readers;
 
+#define LOG_EVENTS 0
+#if LOG_EVENTS
+  #define EVENT_LOG_SIZE 100
+  static int my_events[EVENT_LOG_SIZE];
+  static unsigned my_evt_num, my_evt_idx;
+  static void log_event(int evt_id) {
+    my_events[my_evt_idx++] = evt_id;
+    if ( my_evt_idx >= EVENT_LOG_SIZE )
+      my_evt_idx = 0;
+    ++my_evt_num;
+  }
+#else
+  #define log_event(x)
+#endif
+
 /* enqueue_read() queues the specified ocb.
    Assumes dq is locked.
    If nonblock is set, returns error to the client.
@@ -61,9 +76,11 @@ static void enqueue_read( IOFUNC_OCB_T *ocb, int nonblock ) {
   if ( dg_opened == 2 ) {
     MsgReply(ocb->rw.read.rcvid, 0, ocb->part.dptr, 0 );
   } else if ( nonblock ) {
+    log_event(2);
     if ( MsgError( ocb->rw.read.rcvid, EAGAIN ) == -1 )
       nl_error( 2, "Error %d on MsgError", errno );
   } else {
+    log_event(1);
     ocb->rw.read.blocked = 1;
   }
 }
@@ -87,8 +104,10 @@ static void dequeue_reader( IOFUNC_OCB_T *ocb ) {
 
 static void run_write_queue(void) {
   if ( blocked_writer ) {
+    log_event(3);
     int new_rows = data_state_eval(blocked_writer, 0);
     if ( blocked_writer->part.nbdata > 0 ) {
+      log_event(4);
       do_write(blocked_writer, 0, new_rows);
     }
   }
@@ -104,16 +123,18 @@ static void run_read_queue(void) {
   lock_dq();
   rq = all_readers;
   unlock_dq();
+  log_event(5);
   while ( rq ) {
     if ( rq->rw.read.blocked ) {
       rq->rw.read.blocked = 0;
+      log_event(6);
       read_reply(rq, 0);
     }
     rq = rq->next_ocb;
   }
-  if (IOFUNC_NOTIFY_INPUT_CHECK(dcf_attr.notify, 1, 0))
+  // if (IOFUNC_NOTIFY_INPUT_CHECK(dcf_attr.notify, 1, 0))
     iofunc_notify_trigger(dcf_attr.notify, 1, IOFUNC_NOTIFY_INPUT);
-  if (IOFUNC_NOTIFY_INPUT_CHECK(dco_attr.notify, 1, 0))
+  // if (IOFUNC_NOTIFY_INPUT_CHECK(dco_attr.notify, 1, 0))
     iofunc_notify_trigger(dco_attr.notify, 1, IOFUNC_NOTIFY_INPUT);
   run_write_queue();
 }
@@ -368,6 +389,7 @@ int io_notify(resmgr_context_t *ctp, io_notify_t *msg, RESMGR_OCB_T *ocb) {
   tm_attr_t *dattr = (tm_attr_t *) ocb->hdr.attr;
   int trig;
 
+  log_event(7);
   trig = _NOTIFY_COND_OUTPUT;         /* clients can always give us data */
   lock_dq();
   if ( dg_opened == 2 || ocb->part.nbdata )
@@ -387,13 +409,16 @@ int io_notify(resmgr_context_t *ctp, io_notify_t *msg, RESMGR_OCB_T *ocb) {
         trig |= _NOTIFY_COND_INPUT;
     }
   }
+  if (trig & _NOTIFY_COND_INPUT) log_event(8);
   unlock_dq();
   return (iofunc_notify(ctp, msg, dattr->notify, trig, NULL, NULL));
 }
+
 // This is where data is recieved.
 static int io_write( resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb ) {
   int status, nonblock;
 
+  log_event(9);
   status = iofunc_write_verify(ctp, msg, (iofunc_ocb_t *)ocb, &nonblock);
   if ( status != EOK )
     return status;
@@ -1083,6 +1108,7 @@ static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb) {
   int status, nonblock = 0;
   // IOFUNC_ATTR_T *handle = ocb->hdr.attr;
 
+  log_event(10);
   if ((status = iofunc_read_verify( ctp, msg,
                      (iofunc_ocb_t *)ocb, &nonblock)) != EOK)
     return (status);
