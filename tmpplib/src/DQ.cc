@@ -95,7 +95,11 @@ void data_queue::init() {
   }
 }
 
-void data_queue::lock() {}
+void data_queue::lock(const char * by, int line) {
+  by = by;
+  line = line;
+}
+
 void data_queue::unlock() {}
 
 /**
@@ -123,7 +127,7 @@ void data_queue::commit_rows( mfc_t MFCtr, int mfrow, int nrows ) {
   // but we must lock before writing
   nl_assert( !full );
   nl_assert( last+nrows <= total_Qrows );
-  lock();
+  lock(__FILE__,__LINE__);
   // We need a new dqr if the last one is a dq_tstamp or my MFCtr,mfrow don't match the 'next'
   // elements in the current dqr
   dq_data_ref *dqdr = 0;
@@ -149,13 +153,13 @@ void data_queue::commit_rows( mfc_t MFCtr, int mfrow, int nrows ) {
  */
 void data_queue::commit_tstamp( mfc_t MFCtr, time_t time ) {
   dq_tstamp_ref *dqt = new dq_tstamp_ref(MFCtr, time);
-  lock();
+  lock(__FILE__,__LINE__);
   if ( last_dqr ) last_dqr = last_dqr->next(dqt);
   else first_dqr = last_dqr = dqt;
   unlock();
 }
 void data_queue::retire_rows( dq_data_ref *dqd, int n_rows ) {
-  lock();
+  lock(__FILE__,__LINE__);
   nl_assert( n_rows >= 0 );
   nl_assert( dqd == first_dqr );
   nl_assert( dqd->n_rows >= n_rows);
@@ -187,7 +191,7 @@ void data_queue::retire_rows( dq_data_ref *dqd, int n_rows ) {
 }
 
 void data_queue::retire_tstamp( dq_tstamp_ref *dqts ) {
-  lock();
+  lock(__FILE__,__LINE__);
   nl_assert( dqts == first_dqr );
   first_dqr = dqts->next_dqr;
   if ( first_dqr == 0 ) last_dqr = first_dqr;

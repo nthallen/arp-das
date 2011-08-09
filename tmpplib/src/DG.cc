@@ -54,7 +54,7 @@ void data_generator::transmit_data( int single_row ) {
         hdrs.s.hdr.tm_type = TMTYPE_TSTAMP;
         SETIOV(&iov[0], &hdrs, sizeof(tm_hdr_t));
         SETIOV(&iov[1], &dqts->TS, sizeof(dqts->TS));
-        lock();
+        lock(__FILE__, __LINE__);
         if ( dg_bfr_fd != -1 ) {
           rc = writev(dg_bfr_fd, iov, 2);
           check_writev( rc, sizeof(tm_hdr_t)+sizeof(dqts->TS),
@@ -86,7 +86,7 @@ void data_generator::transmit_data( int single_row ) {
             SETIOV(&iov[2], row[0], n_rows2 * nbQrow );
             n_iov = 3;
           }
-          lock();
+          lock(__FILE__,__LINE__);
           if ( dg_bfr_fd != -1 ) {
             rc = writev(dg_bfr_fd, iov, n_iov);
             unlock();
@@ -176,7 +176,7 @@ Command Summary:
 int data_generator::execute(const char *cmd) {
   if (cmd[0] == '\0') {
     tmr->settime(0);
-    lock();
+    lock(__FILE__,__LINE__);
     started = false;
     quit = true;
     if ( dg_bfr_fd != -1 ) {
@@ -194,7 +194,7 @@ int data_generator::execute(const char *cmd) {
       case 'c': tm_start(1); break;
       case 'e': tm_stop(); break;
       case 's':
-        lock();
+        lock(__FILE__,__LINE__);
         if (!started) {
           regulated = true;
           row_period_nsec_current = 0;
@@ -212,7 +212,7 @@ int data_generator::execute(const char *cmd) {
       case '>': tm_play(); break; // play
       case '+':
         if (regulation_optional) {
-          lock();
+          lock(__FILE__,__LINE__);
           if (!started || ( regulated && row_period_nsec_current == 0) )
             tm_play(0);
           else if ( regulated ) {
@@ -231,7 +231,7 @@ int data_generator::execute(const char *cmd) {
         break;
       case '-': // slower
         if (regulation_optional) {
-          lock();
+          lock(__FILE__,__LINE__);
           if (!started) tm_play(0);
           else {
             row_period_nsec_current = row_period_nsec_current * 3 / 2;
@@ -243,7 +243,7 @@ int data_generator::execute(const char *cmd) {
         break;
       case '}': // fast forward
         if (regulation_optional) {
-          lock();
+          lock(__FILE__,__LINE__);
           tmr->settime(0);
           regulated = false;
           if (started) {
@@ -263,7 +263,7 @@ int data_generator::execute(const char *cmd) {
 void data_generator::event(enum dg_event evt) {}
 
 void data_generator::tm_start(int lock_needed) {
-  if (lock_needed) lock();
+  if (lock_needed) lock(__FILE__,__LINE__);
   started = true;
   if ( regulated ) tmr->settime(row_period_nsec_current);
   else tmr->settime( 0 );
@@ -272,7 +272,7 @@ void data_generator::tm_start(int lock_needed) {
 }
 
 void data_generator::tm_play(int lock_needed) {
-  if (lock_needed) lock();
+  if (lock_needed) lock(__FILE__,__LINE__);
   regulated = true;
   row_period_nsec_current = row_period_nsec_default;
   if ( started ) {
@@ -282,7 +282,7 @@ void data_generator::tm_play(int lock_needed) {
 }
 
 void data_generator::tm_stop() {
-  lock();
+  lock(__FILE__,__LINE__);
   started = false;
   unlock();
   tmr->settime(0);
