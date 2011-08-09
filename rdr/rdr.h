@@ -23,7 +23,7 @@ class Reader : public data_generator, public data_client {
     void process_tstamp();
     void process_data();
     int  process_eof();
-    void lock();
+    void lock(const char *by = 0, int line = -1);
     void unlock();
     int it_blocked;
     sem_t it_sem;
@@ -34,6 +34,8 @@ class Reader : public data_generator, public data_client {
   private:
     mlf_def_t *mlf;
     Rdr_quit_pulse *RQP;
+    const char *locked_by_file;
+    int locked_by_line;
 };
 
 class Rdr_quit_pulse : public DG_dispatch_client {

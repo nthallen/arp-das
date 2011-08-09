@@ -98,6 +98,8 @@ Reader::Reader(int nQrows, int low_water, int bufsize, const char *path) :
   mlf_set_index( mlf, opt_start_file );
   regulated = opt_regulate;
   autostart = opt_autostart;
+  locked_by_file = 0;
+  locked_by_line = 0;
 }
 
 static void pt_create( void *(*func)(void *), pthread_t *thread, void *arg ) {
@@ -130,11 +132,13 @@ void Reader::control_loop() {
   pt_join( ot, "output_thread" );
 }
 
-void Reader::lock() {
+void Reader::lock(const char *by, int line) {
   int rv = pthread_mutex_lock(&dq_mutex);
   if (rv)
     nl_error( 3, "Mutex lock failed: %s",
             strerror(rv));
+  locked_by_file = by;
+  locked_by_line = line;
 }
 
 void Reader::unlock() {
@@ -145,7 +149,7 @@ void Reader::unlock() {
 }
 
 void Reader::service_row_timer() {
-  lock();
+  lock(__FILE__,__LINE__);
   if ( ot_blocked == OT_BLOCKED_TIME ||
        (!started && ot_blocked == OT_BLOCKED_STOPPED)) {
     ot_blocked = 0;
@@ -155,7 +159,7 @@ void Reader::service_row_timer() {
 }
 
 void Reader::event(enum dg_event evt) {
-  lock();
+  lock(__FILE__,__LINE__);
   switch (evt) {
     case dg_event_start:
       if (ot_blocked == OT_BLOCKED_STOPPED) {
@@ -211,7 +215,7 @@ void *output_thread(void *Reader_ptr ) {
 
 void *Reader::output_thread() {
   for (;;) {
-    lock();
+    lock(__FILE__,__LINE__);
     if ( quit || dc_quit ) {
       unlock();
       break;
@@ -224,23 +228,30 @@ void *Reader::output_thread() {
       if ( regulated ) {
         // timed loop
         for (;;) {
+	  int nr;
           ot_blocked = OT_BLOCKED_TIME;
           unlock();
           sem_wait(&ot_sem);
-          lock();
+          lock(__FILE__,__LINE__);
           int breakout = !started || !regulated || dc_quit;
           unlock();
           if (breakout) break;
           transmit_data(1); // only one row
-          if (allocate_rows(NULL) >= dq_low_water) {
-            lock();
+          nr = allocate_rows(NULL);
+          // if (allocate_rows(NULL) >= dq_low_water) {
+          // The problem with this is that when the
+          // queue is wrapping, the largest contiguous
+          // block does not change.
+          if ( (nr >= dq_low_water) ||
+	       (nr > 0 && first <= last) ) {
+            lock(__FILE__,__LINE__);
             if ( it_blocked == IT_BLOCKED_DATA ) {
               it_blocked = 0;
               sem_post(&it_sem);
             }
             unlock();
           }
-          lock(); /* needed in the inner loop */
+          lock(__FILE__,__LINE__); /* needed in the inner loop */
         }
       } else {
         // untimed loop
@@ -253,7 +264,7 @@ void *Reader::output_thread() {
           unlock();
           if (breakout) break;
           transmit_data(0);
-          lock();
+          lock(__FILE__,__LINE__);
         }
       }
     }
@@ -322,7 +333,7 @@ void Reader::process_data() {
   // time is reached.
   while ( n_rows ) {
     unsigned char *dest;
-    lock();
+    lock(__FILE__,__LINE__);
     if ( dc_quit ) {
       unlock();
       return;
@@ -361,7 +372,7 @@ int Reader::process_eof() {
   if ( data_client::bfr_fd == -1 ) {
     if ( opt_autoquit )
       RQP->pulse();
-    lock();
+    lock(__FILE__,__LINE__);
     if ( !dc_quit ) {
       it_blocked = IT_BLOCKED_EOF;
       unlock();
