@@ -76,14 +76,19 @@ int DG_cmd_io_write( resmgr_context_t *ctp,
   if ( msgsize > DG_cmd::DG_CMD_BUFSIZE )
     return E2BIG;
 
-  _IO_SET_WRITE_NBYTES( ctp, msg->i.nbytes );
 
   resmgr_msgread( ctp, buf, msgsize, sizeof(msg->i) );
   buf[msgsize] = '\0';
 
   // Handle the message
+  // Reply to sender before handling the command to
+  // reduce possibility of deadlock.
+  MsgReply(ctp->rcvid, msg->i.nbytes, NULL, 0);
   Cmd->execute(buf);
-  return EOK;
+  return _RESMGR_NOREPLY;
+
+  //_IO_SET_WRITE_NBYTES( ctp, msg->i.nbytes );
+  // return EOK;
 }
 
 /** DG_cmd::ready_to_quit() returns true if we are ready to terminate. For DG/cmd, that means all writers
