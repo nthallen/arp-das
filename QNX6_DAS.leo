@@ -491,12 +491,22 @@
 <v t="ntallen.20110628150418.2171" a="E"><vh>Trend Plot</vh>
 <v t="ntallen.20110706143111.2179"><vh>axes for trend plot</vh></v>
 <v t="ntallen.20110701115423.2175"><vh>Time Units</vh></v>
+<v t="ntallen.20110720104114.2197"><vh>Epoch</vh></v>
 <v t="ntallen.20110701115423.2176"><vh>X scaling</vh></v>
 <v t="ntallen.20110628150418.2172"><vh>Pt_MTrend</vh></v>
 <v t="ntallen.20110706143111.2180"><vh>plot_line_trend</vh></v>
-<v t="ntallen.20110711143914.2187"><vh>RTG_Variable_Range_Trend</vh></v>
-<v t="ntallen.20110706143111.2181" a="E"><vh>Sequence</vh>
+<v t="ntallen.20110711143914.2187"><vh>RTG_Variable_Range [Trend]</vh></v>
+<v t="ntallen.20110712114421.2189"><vh>RTG_Variable_Trend</vh></v>
+<v t="ntallen.20110712114421.2190"><vh>plot_axis  [trend]</vh>
+<v t="ntallen.20110802092555.2201"><vh>Limits</vh></v>
+<v t="ntallen.20110802092555.2202"><vh>check_limits (trend)</vh></v>
+</v>
+<v t="ntallen.20110706143111.2181"><vh>Sequence</vh>
+<v t="ntallen.20110714152530.2195"><vh>Top Level</vh></v>
 <v t="ntallen.20110706143111.2182"><vh>Reload</vh></v>
+</v>
+<v t="ntallen.20110712114421.2191" a="E"><vh>Todo</vh>
+<v t="ntallen.20110726112502.2199"><vh>n_lines &lt; ncols</vh></v>
 </v>
 </v>
 </v>
@@ -4964,7 +4974,16 @@ Tested PtMTrend, and if one trend does not contribute a point during a time samp
 
 My basic design also allows overlaying trended and untrended data (although not entirely clear how that would work.)
 </t>
-<t tx="ntallen.20110701115423.2175">    Note that in order to represent fractional seconds, I need a more
+<t tx="ntallen.20110701115423.2175">No need to define a per-channel epoch. Channels can report time in ASCII
+to maximum resolution required. The epoch can be set in PhRTG, probably
+using the first time reported. This could be set for each variable
+and for each axis. If there is a huge jump, the epoch and the variable
+should be reset.
+
+The epoch for the axis is needed to coordinate the time for multiple
+variables
+
+    Note that in order to represent fractional seconds, I need a more
     robust x coordinate. Seconds since 1970 requires more than 31 bits
     for anything below a second.
     
@@ -5048,7 +5067,10 @@ plot_axes::check_limits -&gt; plot_graph::check_limits -&gt; plot_line::check_li
         I want to get to plot_line_trend::render(), but I don't want axes_rescaled
         I want this to be a subtler check that says axes_trended</t>
 <t tx="ntallen.20110706143111.2182">Verify that incoming data is monotonic. If not, reset variable.</t>
-<t tx="ntallen.20110711143914.2187">subclass of RTG_Variable_Range for trending.
+<t tx="ntallen.20110711143914.2187">As with plot_axis_trend, this may be more easily handled
+not as a subclass but as a special case.
+
+subclass of RTG_Variable_Range for trending.
 RTG_Variable_Range provides:
     bool range_auto;
     scalar_t min, max;
@@ -5057,6 +5079,40 @@ with RTG_Variable_Range_Trend, auto and min are not options.
 max is derived from the data, and units_per_major_tick is
 selectable.
     scalar_t units_per_major_tick;
+    double epoch;
+
+
+update() is used to add data to a range, possibly expanding the range.
+changed() is used to set a range, noting whether the new value is different
+from the old. The trick is that I use the same function for range and limits,
+but limits generally need to consider other factors besides data range.</t>
+<t tx="ntallen.20110712114421.2189">Need to accumulate new data, but not commit it to the stream until reload_data
+Also we want the data queue to expand as needed based on the min range of graphs.
+Probably start with a reasonable queue size (512 points?) but then play it by ear.
+
+Accept incoming data: X Y [Y1 [Y2 ...]]
+Each row must have the same number of columns else reset.
+X values must be strictly increasing else reset.
+    Minor complication that reset should occur at reload_data, not
+    when the data is received. Hence:
+Use two deques (as queues) to store all the values:
+    Incoming()
+        Parse string
+        if X &lt;= pending.Xmax, reset pending
+        else if n_input_cols != pending.n_cols, reset pending pending.n_cols = n_input_cols
+        push_back(X) push_back(Y) ...
+        Xmax = X
+    reload_data()
+        If pending[0] &lt;= current.Xmax || pending.n_cols != current.n_cols, reset current(pending.n_cols)
+        while (!pending.empty()) current.push_back(pending.pop_front())
+        
+        
+
+Implementation
+    subclass of RTG_Variable_Data (not Matrix...)
+    y_vector(): Would be required by FFT derivations. Could disable those for trends for now.
+      Logical implementation would build a y_vector whenever called, which wouldn't be so bad.</t>
+<t tx="ntallen.20110712114421.2190">Don't make this a proper subclass, just add a boolean is_trend and epoch
 
 units will usually (always?) be seconds.
 min will be set by max - (units_per_major_tick * pixels)/major_tick_len
@@ -5065,6 +5121,97 @@ probably in set_scale():
     For trend axis, major_tick_len could be selected to be an even multiple of 
     pixels, or it could be set to a constant optimal tick length
 May need to derive plot_axis_trend from plot_axis in order to override
-  set_scale() and Update_Axis_Pane()</t>
+  set_scale() and Update_Axis_Pane()
+
+max should always be 0
+min = (units_per_major_tick * pixels)/major_tick_len
+span = -min;</t>
+<t tx="ntallen.20110712114421.2191">I have a simple trending implementation now, but it needs optimization:
+    Actually for non-trend plots as well, I should call xrow_range()
+    before drawing lines rather than keep rendering lots of stuff off
+    screen.
+    For trend plots, when x_axis_trended, we only need to redraw points
+    in the last widget. Shift the rest.
+
+Disable Trend option if vars are not Var_Trend: This logic is slightly flawed,
+since it would disable trending on derivations from trend data. However
+derivations on trend data are not working either, so maybe I should disable
+derivations on trend data... Invert might be nice, but it might need to be
+implemented differently for trend than for mlf.
+
+Added trending options to the axis pane. Now propagating those through
+the graph creation/rendering code.
+
+Decide how to handle epochs practically
+Decide how span is handled:
+    span should be the maximum span of current graph axes,
+    but not less than some standard number of samples.
+    How often do I check?
+        Every time new data arrives?
+        
+RTG_Variable_Range should be renamed RTG_Range
+plot_axis::limits should be of type RTG_Limits, similar to RTG_[Variable_]Range,
+  but different. Supports many of the same booleans, but not update(),
+  and changed() does something different.
+
+check_limits() in most or all cases should be renamed check_range()
+check_limits() should be something a little different
+
+7/21
+
+RTG_Variable_Range::check_required() should not be called for each line. It should be called
+at the plot_axes. Also need to sort out the trend at that level:
+    For trend, first set X.range_required and not Y.range_required.
+    Then determine the X limits, clear X.range_required and possibly
+    set Y.range_required</t>
+<t tx="ntallen.20110714152530.2195">
+RTG_Variable::reload_all()
+plot_figure::render
+  plot_pane::render
+    plot_axes::render
+      plot_axes:check_limits:
+        go through each figure, axes, graph, line, and where
+        limits are auto and data has changed, check range limits,
+        then call plot_axis::check_limits() to propagate change to the axes
+        Note that on the axises we keep track of both the range and the limits
+        plot_axes::check_limits invokes RTG_Variable_Range::check_limits to
+        update the range, then plot_axis::check_limits invokes it to update
+        the limits. At the moment, range and limits are often the same,
+        but when axes are drawn, we expect the limits to be different, but
+        we will want to preserve the range in case the dimensions change.
+      plot_axis::render
+      plot_graph::render
+        plot_line::render
+plot_obj::check_vars_for_updates()
+</t>
+<t tx="ntallen.20110720104114.2197">The concept of epoch is necessary only because we cannot store time precisely enough in a float (scalar_t). A double is in fact good enough, and we could just promote everything to double, but when trend plotting, it is also useful to consider a changing epoch which represents the current time. The advantage of that is that the axes don't actually need to change, just the data plotted on them.
+
+The main advantage to using scalar_t == float is that MLF is stored that way. Also, in general, for the purposes of graphing, there is no need for higher resolution, since the screen is a very low resolution medium. However the case of time is unique.
+
+So epoch is important when storing time in an RTG_Variable_Trend and when determining plot ranges on a plot_axis_trend.
+
+The trick is keeping them all straight.
+</t>
+<t tx="ntallen.20110726112502.2199">This is currently an assertion failure. Should simply delete any widgets and stop updating, but don't delete the plot_line, as it might come back.</t>
+<t tx="ntallen.20110802092555.2201">Oops: RTG_Limits::changed() cannot make sophisticated decisions about limits
+without access to all the options currently kept in the plot_axis object.
+It may make sense eventually to reabsorb the limits object into plot_axis.
+In any event plot_axis::check_limits() will probably not call
+RTG_Limits::changed() for any sophisticated computations (starting with
+trending.)</t>
+<t tx="ntallen.20110802092555.2202">units_per_Mtick should be set:
+    when axis is created
+    when combo box is updated
+Need a major_tick_wid var (pixels along the axis)
+    Should be set to a fixed value (15?) when trending is selected
+limits.span = limits.units_per_Mtick * pixels/major_tick_wid;
+units_per_pixel = limits.units_per_Mtick/major_tick_wid;
+
+if ( range.max &gt; limits.epoch ) {
+  extra_pixels = ceil((range.max-limits.epoch)/units_per_pixel);
+  limits.epoch += extra_pixels*units_per_pixel;
+  axis_limits_trended = true;
+}
+</t>
 </tnodes>
 </leo_file>
