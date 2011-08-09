@@ -131,9 +131,13 @@ bool plot_line::render() {
   RTG_Variable_Data *var = parent->variable;
   redraw_required = false;
   x_axis_trended = false;
-  unsigned npts = var->nrows;
+  unsigned i_min, i_max, npts;
   double x_epoch = ax->X.limits.limits_trend ?
     ax->X.limits.epoch : 0.;
+  var->xrow_range(ax->X.limits.min + x_epoch, ax->X.limits.max + x_epoch,
+    i_min, i_max );
+  // i_max should never be less than i_min-1, but just in case:
+  npts = i_max >= i_min ? i_max - i_min + 1 : 0;
   if (npts > idata.size()) {
     idata.resize(npts);
     nl_assert(idata.size() == npts);
@@ -141,8 +145,8 @@ bool plot_line::render() {
   // unsigned nw = (npts+pts_per_polygon-3)/(pts_per_polygon-1);
   for ( unsigned i = 0; i < npts; ++i ) {
     double X, Y;
-    if (!var->get(i, column, X, Y))
-      nl_error(4, "get failed for %s[%d]", name, i);
+    if (!var->get(i+i_min, column, X, Y))
+      nl_error(4, "get failed for %s[%d]", name, i+i_min);
     idata[i].x = ax->X.evaluate(X - x_epoch);
     idata[i].y = ax->Y.evaluate(Y);
   }
@@ -156,7 +160,8 @@ bool plot_line::render() {
     PtSetArg( &args[0], Pt_ARG_POINTS, &idata[i], np );
     if (wn < widgets.size()) PtSetResources( widgets[wn], 2, args );
     else {
-      widgets.push_back(PtCreateWidget(PtPolygon, ax->parent->widget, 2, args ));
+      widgets.push_back(
+	PtCreateWidget(PtPolygon, ax->parent->widget, 2, args ));
       PtRealizeWidget(widgets.back());
     }
   }
