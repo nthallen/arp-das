@@ -1,3 +1,6 @@
+/** \file DC.h
+ * Data Client Clases
+ */
 #ifndef DC_H_INCLUDED
 #define DC_H_INCLUDED
 #include <stdio.h>
@@ -5,6 +8,9 @@
 
 #ifdef __cplusplus
 
+/**
+ * \brief Defines interface for data client connection to TMbfr
+ */
 class data_client {
   public:
     data_client(int bufsize_in, int fast = 0, int non_block = 0);
