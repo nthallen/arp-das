@@ -26,11 +26,10 @@ for my $hdr ( @hdrs ) {
   die "No version defined for package $pkg\n" unless defined $version;
   my $pkgv = "$pkg-$version";
   my $pkgp = "/var/huarp/pkg/$pkgv";
+  my $tgz = "/var/huarp/pkgcache/$pkgv.tar.gz";
   if ( -d $pkgp ) {
     # Package/version is installed
     warn "Checking against installed $pkgv:\n";
-    my $tgz = "/var/huarp/pkgcache/$pkgv.tar.gz";
-    warn "Package $pkg tgz is missing\n" unless -f $tgz;
     if ( -f "$pkgp/Header" ) {
       if ( compare( $hdr, "$pkgp/Header" ) != 0 ) {
 	warn "pkgs/$pkg/Header has changed: New version required\n";
@@ -64,6 +63,9 @@ for my $hdr ( @hdrs ) {
   } else {
     warn "$pkgv not installed\n";
   }
+  my $have_tgz = -f $tgz;
+  my $tgz_time = $have_tgz ? -M $tgz : 0;
+  warn "Package $pkg tgz is missing\n" unless $have_tgz;
   for my $man ( @mani ) {
     my $fn = $man->{file};
     my $root = $man->{root};
@@ -75,6 +77,9 @@ for my $hdr ( @hdrs ) {
 	my $path = "$root/$_";
 	if ( ! -f $path && ! -d $path && ! -l $path ) {
 	  warn "Package $pkg: File $path missing\n";
+	  $RV = 1;
+	} elsif ( -f $path && $have_tgz && -M $path < $tgz_time ) {
+	  warn "Package $pkg: File $path is newer\n";
 	  $RV = 1;
 	}
       }
