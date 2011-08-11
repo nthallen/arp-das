@@ -60,4 +60,12 @@ for pkg in $*; do
   for i in Header MANIFEST MANIFEST_pkg; do
     echo $proot/$pkg-$pver/$i | sed -e 's,^/,,'
   done > $proot/$pkg-$pver/MANIFEST_pkg
+  archive=/var/huarp/pkgcache/$pkg-$pver.tar
+  cd /
+  for MAN in MANIFEST MANIFEST_pkg; do
+    tar -rf $archive --owner=0 --group=0 --no-recursion \
+      -T $proot/$pkg-$pver/$MAN ||
+      nl_error "tar failed creating archive for $pkg-$pver from $MAN\n"
+  done
+  gzip $archive || nl_error "gzip $archive failed"
 done
