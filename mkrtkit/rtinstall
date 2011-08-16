@@ -85,21 +85,80 @@ HERE
   echo Installation complete
 }
 
+crntcfg=''
+filesystem=qnx6
+
+function select_cfg {
+  cd $SRCPATH/repository
+  echo Available Install Sets:
+  n=1
+  defn=1
+  for cfg in *.cfg; do
+    if [ -f $cfg ]; then
+      cfg=${cfg%.cfg}
+      [ "$crntcfg" = "" ] && crntcfg=$cfg;
+      if [ $crntcfg = $cfg ]; then
+        iscrnt='*'
+        defn=$n
+      else
+        iscrnt=' '
+      fi
+      echo "  $n $iscrnt $cfg"
+      eval "cfg_$n=$cfg"
+    fi
+    let n=n+1
+  done
+  getresp Configuration $defn
+  eval "newcfg=\${cfg_$resp}"
+  if [ -n "$newcfg" && -f "$newcfg.cfg" ]; then
+    crntcfg=$newcfg;
+  else
+    echo "Unrecognized response"
+  fi
+}
+
+function toggle_fs {
+  case $filesystem in
+    qnx6) filesystem=qnx4;;
+    *) filesystem=qnx6;;
+  esac
+}
 
 while true; do
+  cd $SRCPATH/repository
+  echo Available Install Sets:
+  for cfg in *.cfg; do
+    if [ -f $cfg ]; then
+      cfg=${cfg%.cfg}
+      [ "$crntcfg" = "" ] && crntcfg=$cfg;
+      if [ $crntcfg = $cfg ]; then
+        iscrnt='*'
+      else
+        iscrnt=' '
+      fi
+      echo "  $iscrnt $cfg"
+    fi
+  done
+  cd /
+  echo "Filesystem for install [qnx4|qnx6]: $filesystem"
+  echo "[qnx4 is currently recommended for flash drives]"
   echo
   echo "1 Install"
-  echo "2 Invoke fdisk manually"
-  echo "3 Shell"
-  echo "4 Shutdown"
-  echo "5 Reboot"
+  echo "2 Select Install Set"
+  echo "3 Toggle Install Filesystem"
+  echo "4 Invoke fdisk manually"
+  echo "5 Shell"
+  echo "6 Shutdown"
+  echo "7 Reboot"
   getresp Option: 1
   case $resp in
-    1) install;;
-    2) fdisk /dev/hd0;;
-    3) sh;;
-    4) shutdown -b;;
-    5) shutdown;;
+    1) echo install $crntcfg $filesystem;;
+    2) select_cfg;;
+    3) toggle_fs;;
+    4) echo fdisk /dev/hd0;;
+    5) sh;;
+    6) echo shutdown -b;;
+    7) echo shutdown;;
     *) echo "Unrecognized option";;
   esac
 done
