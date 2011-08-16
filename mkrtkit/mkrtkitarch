@@ -42,6 +42,9 @@ $pkgdest = abs_path($pkgdest);
 
 my @reqlist;
 my @pkglist;
+
+my $toppkg = $ARGV[0];
+
 while ( @ARGV ) {
   my $pkg = pop(@ARGV);
   push( @reqlist, pkg_check($pkg, 'Command Line') );
@@ -102,18 +105,19 @@ if ( $create_bundle ) {
   system( "gzip $archive" ) && die "gzip $archive failed\n";
 } else {
   # Go through @pkglist and link to the archives from the repository directory
+  open( my $cfg, ">", "$pkgdest/$toppkg.cfg" ) ||
+    die "Cannot write $pkgdest/$toppkg.cfg\n";
   for my $pkg ( @pkglist ) {
     print "Linking archive $pkg->{name}.tar.gz into repository\n";
+    print $cfg "$pkg->{name}.tar.gz\n";
     unless ( symlink( "$pkgcache/$pkg->{name}.tar.gz",
 		     "$pkgdest/$pkg->{name}.tar.gz" ) ) {
-      if ( -l "$pkgdest/$pkg->{name}.tar.gz" ) {
-	warn "symlink for $pkg->{name}.tar.gz returned an error,\n",
-	    "but the link exists.\n";
-      } else {
+      if ( ! -l "$pkgdest/$pkg->{name}.tar.gz" ) {
 	die "symlink for $pkg->{name}.tar.gz failed\n";
       }
     }
   }
+  close($cfg) || warn "Error closing $pkgdest/$toppkg.cfg\n";
 }
 
 # pkg_check(name) verifies the syntax of a package reference

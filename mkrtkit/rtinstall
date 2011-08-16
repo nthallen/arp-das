@@ -33,28 +33,54 @@ getresp() {
 }
 
 function install {
-  if [ $(fdisk /dev/hd0 query -t179) -ne 0 ]; then
-    echo "Error: t179 partition already exists on first hard disk" 1>&2 
-    echo "Aborting installation" 1>&2 
+  cfg=$1
+  fs=$2
+  for ftype in t179 t79 t78 t77; do
+    if [ $(fdisk /dev/hd0 query -$ftype) -ne 0 ]; then
+      echo "Error: $ftype partition already exists on first hard disk" 1>&2 
+      echo "Aborting installation" 1>&2 
+      return 1
+    fi
+  done
+
+  if [ ! -f "$SRCPATH/repository/$cfg.cfg" ]; then
+    echo "Unknown config: '$cfg'"
     return 1
   fi
 
-  fdisk /dev/hd0 add -t179
-  fdisk /dev/hd0 boot -t179
-  fdisk /dev/hd0 loader
-  mount -e /dev/hd0
-  mkqnx6fs -Tdesktop /dev/hd0t179
-  mount -tqnx6 /dev/hd0t179 /install
-
-  if [ ! -d /install ]; then
-    echo "Error mounting /install"
-    return 1
-  fi
+  switch $fs in
+    qnx4)
+      fdisk /dev/hd0 add -t79
+      fdisk /dev/hd0 boot -t79
+      fdisk /dev/hd0 loader
+      mount -e /dev/hd0
+      dinit -h -f $SRCPATH/boot/fs/qnxbase.ifs /dev/hd0t79
+      mount -tqnx4 /dev/hd0t79 /install
+      if [ ! -d/install ]; then
+	echo "Error mountint /install"
+	return 1
+      fi;;
+    qnx6)
+      fdisk /dev/hd0 add -t179
+      fdisk /dev/hd0 boot -t179
+      fdisk /dev/hd0 loader
+      mount -e /dev/hd0
+      mkqnx6fs -Tdesktop /dev/hd0t179
+      mount -tqnx6 /dev/hd0t179 /install
+      if [ ! -d /install ]; then
+	echo "Error mounting /install"
+	return 1
+      fi
+      cp $SRCPATH/boot/fs/*.ifs /install/.boot/;;
+    *)
+      echo "Unrecognized filesystem option"
+      return 1;;
+  esac
 
   cd /install
-  for instarchive in $SRCPATH/repository/*.tar.gz; do
-	  echo "Extracting $instarchive"
-	  tar -zxf $instarchive
+  while read arch; do
+    echo "Extraction $SRCPATH/repository/$arch"
+    tar -zxf $SRCPATH/repository/$arch
   done
 
   # This bit is here since the system really wants everything 
@@ -73,11 +99,8 @@ function install {
 
   mkdir -p /install/boot/fs
   cp $SRCPATH/boot/fs/*.ifs /install/boot/fs/
-  cp $SRCPATH/boot/fs/*.ifs /install/.boot/
 
-  cat >/install/.diskroot <<HERE
-mount=/
-HERE
+  echo "mount=/" >/install/.diskroot
 
   [ -d /install/etc/system/config ] || mkdir -p /install/etc/system/config
   touch /install/etc/system/config/nophoton
@@ -110,10 +133,10 @@ function select_cfg {
   done
   getresp Configuration $defn
   eval "newcfg=\${cfg_$resp}"
-  if [ -n "$newcfg" && -f "$newcfg.cfg" ]; then
+  if [ -n "$newcfg" -a -f "$newcfg.cfg" ]; then
     crntcfg=$newcfg;
   else
-    echo "Unrecognized response"
+    echo "\aUnrecognized response"
   fi
 }
 
@@ -126,6 +149,8 @@ function toggle_fs {
 
 while true; do
   cd $SRCPATH/repository
+  echo
+  echo ========================================
   echo Available Install Sets:
   for cfg in *.cfg; do
     if [ -f $cfg ]; then
@@ -142,8 +167,8 @@ while true; do
   cd /
   echo "Filesystem for install [qnx4|qnx6]: $filesystem"
   echo "[qnx4 is currently recommended for flash drives]"
-  echo
-  echo "1 Install"
+  echo ========================================
+  echo "1 Install $crntcfg $filesystem"
   echo "2 Select Install Set"
   echo "3 Toggle Install Filesystem"
   echo "4 Invoke fdisk manually"
@@ -152,13 +177,13 @@ while true; do
   echo "7 Reboot"
   getresp Option: 1
   case $resp in
-    1) echo install $crntcfg $filesystem;;
+    1) install $crntcfg $filesystem;;
     2) select_cfg;;
     3) toggle_fs;;
-    4) echo fdisk /dev/hd0;;
+    4) fdisk /dev/hd0;;
     5) sh;;
-    6) echo shutdown -b;;
-    7) echo shutdown;;
-    *) echo "Unrecognized option";;
+    6) shutdown -b;;
+    7) shutdown;;
+    *) echo "\aUnrecognized option";;
   esac
 done

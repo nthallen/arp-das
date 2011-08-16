@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# mkrtkit pkg
+# mkrtkit pkg [pkg ...]
 function nl_error {
   echo "mkrtkit: $*" >&2
   exit 1
@@ -54,7 +54,10 @@ chmod a+x ./rtinstall
 
 # This is the configuration-specific part of the script.
 # Copy each of the archives you created earlier to ./repository:
-/usr/local/sbin/mkrtkitarch repository $pkg || nl_error mkrtkitarch failed
+for pkgs in ; do
+  /usr/local/sbin/mkrtkitarch repository $pkgs ||
+    nl_error mkrtkitarch failed on package $pkgs
+done
 pkgtgz=`ls repository/$pkg-*`
 pver=`expr $pkgtgz : "repository/$pkg-\([0-9][0-9.]*\).tar.gz"`
 echo "pkgtgz = $pkgtgz, pver = $pver"
