@@ -48,7 +48,7 @@ function install {
     return 1
   fi
 
-  switch $fs in
+  case $fs in
     qnx4)
       fdisk /dev/hd0 add -t79
       fdisk /dev/hd0 boot -t79
