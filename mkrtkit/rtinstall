@@ -35,6 +35,7 @@ getresp() {
 function install {
   cfg=$1
   fs=$2
+  echo Checking for existing disk partitions
   for ftype in t179 t79 t78 t77; do
     if [ $(fdisk /dev/hd0 query -$ftype) -ne 0 ]; then
       echo "Error: $ftype partition already exists on first hard disk" 1>&2 
@@ -152,6 +153,20 @@ function toggle_fs {
     *) filesystem=qnx6;;
   esac
 }
+
+for ftype in t179 t79 t78 t77; do
+  if [ -e /dev/hd0$ftype ]; then
+    echo Dismounting /dev/hd0$ftype
+    umount /dev/hd0$ftype
+  fi
+  if [ $(fdisk /dev/hd0 query -$ftype) -ne 0 ]; then
+    echo "***************************************************"
+    echo "Partition of type $ftype already exists on /dev/hd0"
+    echo "To install, you must first invoke fdisk manually"
+    echo "and delete that partition."
+    echo "***************************************************\a"
+  fi
+done
 
 while true; do
   cd $SRCPATH/repository
