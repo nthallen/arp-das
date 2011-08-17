@@ -54,10 +54,12 @@ function install {
       fdisk /dev/hd0 boot -t79
       fdisk /dev/hd0 loader
       mount -e /dev/hd0
+      echo Formatting /dev/hd0t79 with QNX4 Filesystem
       dinit -h -f $SRCPATH/boot/fs/qnxbase.ifs /dev/hd0t79
+      echo Mounting /dev/hd0t79 as /install
       mount -tqnx4 /dev/hd0t79 /install
       if [ ! -d/install ]; then
-	echo "Error mountint /install"
+	echo "Error mounting /install"
 	return 1
       fi;;
     qnx6)
@@ -65,7 +67,9 @@ function install {
       fdisk /dev/hd0 boot -t179
       fdisk /dev/hd0 loader
       mount -e /dev/hd0
+      echo Formatting /dev/hd0t179 with QNX6 Filesystem
       mkqnx6fs -Tdesktop /dev/hd0t179
+      echo Mounting /dev/hd0t179 as /install
       mount -tqnx6 /dev/hd0t179 /install
       if [ ! -d /install ]; then
 	echo "Error mounting /install"
@@ -78,10 +82,11 @@ function install {
   esac
 
   cd /install
+  echo Beginning installation of $cfg archives
   while read arch; do
-    echo "Extraction $SRCPATH/repository/$arch"
+    echo "Extracting $SRCPATH/repository/$arch"
     tar -zxf $SRCPATH/repository/$arch
-  done
+  done <$SRCPATH/repository/$cfg.cfg
 
   # This bit is here since the system really wants everything 
   # rooted at / but the archives include files in x86/*. If x86 
@@ -97,6 +102,7 @@ function install {
     ln -s . x86
   fi
 
+  echo Copying boot images
   mkdir -p /install/boot/fs
   cp $SRCPATH/boot/fs/*.ifs /install/boot/fs/
 
