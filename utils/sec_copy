@@ -1,6 +1,10 @@
 #! /bin/sh
+#ifdef __USAGE
 # sec_copy <tgtnode>
 # example: sec_copy radflt
+#
+# Copies various security files to the designated node.
+#endif
 
 if [ `id -u` != 0 ]; then
   exec /usr/pkg/bin/sudo $0 $*

@@ -1,6 +1,8 @@
 #! /bin/sh
-# lib_dist <tgtnode> <lib> ...
-# example: lib_dist radgse tm
+#ifdef __USAGE
+#%C <tgtnode> <lib> ...
+#example: lib_dist radgse tm
+#endif
 
 if [ `id -u` != 0 ]; then
   exec /usr/pkg/bin/sudo $0 $*

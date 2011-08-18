@@ -1,6 +1,8 @@
 #! /bin/sh
-# pkg2pkg <pkg> ...
-# example: pkg2pkg perl sudo
+#ifdef __USAGE
+#%C <pkg> ...
+#example: pkg2pkg perl sudo
+#endif
 
 if [ `id -u` != 0 ]; then
   exec /usr/pkg/bin/sudo $0 $*

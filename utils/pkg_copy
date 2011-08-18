@@ -1,6 +1,8 @@
 #! /bin/sh
-# pkg_copy <tgtnode> <pkg> ...
-# example: pkg_copy radflt perl sudo
+#ifdef __USAGE
+#%C <tgtnode> <pkg> ...
+#example: pkg_copy radflt perl sudo
+#endif
 
 if [ `id -u` != 0 ]; then
   exec /usr/pkg/bin/sudo $0 $*
