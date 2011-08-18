@@ -1,12 +1,14 @@
 #! /usr/bin/perl -w
 use strict;
 
-# Usage:
-#   osupdate
+#ifdef __USAGE
+#   osupdate [-n]
 #     update the current node against the reference node
-#   osupdate nodename
+#   osupdate [-n] nodename
 #     update the specified node against the reference node
-
+#
+#     -n Do nothing, just report what would be done
+#endif
 
 # Look through /var/huarp/pkg to see what packages are installed,
 # sorting by package and version.
@@ -16,6 +18,9 @@ use strict;
 # For each installed package, check to see if a newer version
 # is available. If so, remove all the old versions and install
 # the new version.
+# When installing, check to make sure all dependent packages
+# are also installed.
+
 if ( $> != 0 ) {
   exec 'sudo', $0, @ARGV;
   die "exec sudo failed\n";
@@ -23,6 +28,11 @@ if ( $> != 0 ) {
 
 my $node;
 my $npath = '';
+my $doit = 1;
+if ( @ARGV && $ARGV[0] eq '-n') {
+  $doit = 0;
+  shift @ARGV;
+}
 if ( @ARGV ) {
   $node = shift @ARGV;
   $npath = "/net/$node";
@@ -30,9 +40,10 @@ if ( @ARGV ) {
 
 my $refnode = 'nortvm650';
 my $cache = "/net/$refnode/var/huarp/pkgcache";
+my $refpkg = "/net/$refnode/var/huarp/pkg";
 
 my @pkgs;
-my %pkg;
+my %pkg; # the currently installed packages
 my $pkgdir = "$npath/var/huarp/pkg";
 chdir $pkgdir || die "Cannot chdir $pkgdir\n";
 for my $pkg ( <*> ) {
@@ -49,7 +60,7 @@ for my $pkg ( sort @pkgs ) {
 
 # Now check for available packages
 my @avpkgs;
-my %avpkg;
+my %avpkg; # the available packages
 chdir $cache ||
   die "Cannot chdir $cache\n";
 for my $pkg ( <*> ) {
@@ -65,6 +76,9 @@ for my $pkg ( sort @avpkgs ) {
   $avpkg{$pkg} = [ sort { ver_comp($b,$a); } @{$avpkg{$pkg}} ];
 }
 
+
+my @plan; # array of arrayrefs with e.g. [ 'uninstall' $pp ]
+
 # Now for each installed package, check to see if there is
 # a newer available package.
 for my $pkg ( sort @pkgs ) {
@@ -77,17 +91,54 @@ for my $pkg ( sort @pkgs ) {
       print "Upgrading ", ver_print($inst), " to ",
 	    ver_print($avail), "\n";
       while ( @{$pkg{$pkg}} ) {
-	uninstall( $npath, pop @{$pkg{$pkg}} );
+	push @plan, [ uninstall => pop @{$pkg{$pkg}} ];
       }
-      install( $npath, $avail );
+      # now install any dependent packages that aren't installed
+      my $hdr = "$refpkg/" . ver_print($avail) . "/Header";
+      if ( open( my $hdrfh, "<", $hdr ) ) {
+	while (<$hdrfh>) {
+	  if ( s/^\s*Requires:\s*// ) {
+	    my @pkgs = split(' ');
+	    for my $reqpkg (@pkgs) {
+	      $reqpkg =~ s/^(\w+)(?:-(\d+(?:\.\d+)*))?$/$1/;
+	      if ( ! defined $pkg{$reqpkg} ) {
+		if ( defined $avpkg{$reqpkg} ) {
+		  my $pp = $avpkg{$reqpkg}->[0];
+		  print "Installing " . ver_print($pp) .
+			" required by " . ver_print($avail) . "\n";
+		  push( @plan, [ 'install', $pp ] );
+		  $pkg{$reqpkg} = [ $pp ];
+		} else {
+		  warn "Unable to locate package '$reqpkg' required by " .
+		    ver_print($avail) . "\n";
+		}
+	      }
+	    }
+	  }
+	}
+      	close($hdrfh) || warn "Error closing $hdr\n";
+      } else {
+      	die "No Header for " . ver_print($avail) . "\n";
+      }
+      push @plan, [ install => $avail ];
     }
   }
 }
 
-
-sub uninstall {
-  my ( $npath, $pp ) = @_;
-  print "  [Uninstalling ", ver_print($pp), " from $npath/]\n";
+while (@plan) {
+  my $cmdset = shift @plan;
+  my ( $cmd, $pp ) = @$cmdset;
+  if ( $doit ) {
+    if ( $cmd eq 'install' ) {
+      install( $npath, $pp );
+    } elsif ( $cmd eq 'uninstall' ) {
+      uninstall( $npath, $pp );
+    } else {
+      die "Invalid command in \@plan\n";
+    }
+  } else {
+    print "$cmd: ", ver_print($pp), "\n";
+  }
 }
 
 sub install {
@@ -137,4 +188,47 @@ sub ver_comp {
 sub ver_print {
   my $a = shift;
   return $a->{root} . '-' . join '.', @{$a->{ver}};
+}
+
+
+sub uninstall {
+  my ( $npath, $pp ) = @_;
+  my $pkgdir = "$npath/var/huarp/pkg";
+  my $pkg = ver_print($pp);
+  print "  [Uninstalling $pkg from $npath/]\n";
+  my @manifests;
+  my $proot = "$pkgdir/$pkg";
+  my $hdr = "$proot/Header";
+  open( my $hdrfh, "<", $hdr ) ||
+    die "Unable to locate package header for $pkg\n";
+  while (<$hdrfh>) {
+    if ( m/^Files:\s*(\w+)\s\@/ ) {
+      push @manifests, "$proot/$1";
+    }
+  }
+  close($hdrfh) || warn "Error closing $hdr\n";
+  while (@manifests) {
+    my @dirs;
+    my $manifest = shift @manifests;
+    open( my $cont, "<", $manifest ) ||
+      die "Unable to read manifest $manifest\n";
+    while (<$cont>) {
+      chomp;
+      my $path = "$npath/$_";
+      if ( -d $path ) {
+	push(@dirs, $path);
+      } elsif ( -f $path ) {
+	# print "rm $path\n";
+	unlink $path;
+      }
+    }
+    close($cont) || warn "Error closing manifest $manifest\n";
+    while ( @dirs ) {
+      my $dir = pop(@dirs);
+      # print "rmdir $dir\n";
+      rmdir $dir;
+    }
+  }
+  rmdir $proot || warn "Unable to remove package directory '$proot'\n";
+  # print "rmdir $proot\n";
 }
