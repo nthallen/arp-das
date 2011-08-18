@@ -1,5 +1,5 @@
 # Package gse
 #  OS CD Installation package for a GSE system
-Version: 2.4
-Requires: develop mozilla-6.5.0 sudo perllink ncurses screen
+Version: 2.5
+Requires: develop mozilla sudo perllink ncurses screen fftwf
 Files: MANIFEST_pkg @ /

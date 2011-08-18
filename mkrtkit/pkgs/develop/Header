@@ -1,6 +1,6 @@
 # develop package
-Version: 2.4
-Requires: flight-1.0 gcc-6.5.0
+Version: 2.5
+Requires: flight gcc
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
 Files: MANIFEST_cdr @ /
