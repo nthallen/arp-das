@@ -19,6 +19,10 @@ typedef struct {
   signed long step[4];
   unsigned char status[4];
 } OMS_TM_Data;
+#define OMS_STAT_DIR 8
+#define OMS_STAT_DONE 4
+#define OMS_STAT_LIMIT 2
+#define OMS_STAT_HOME 1
 
 #ifdef __cplusplus
 };

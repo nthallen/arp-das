@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 #include "nortlib.h"
 #include "oui.h"
 #include "omsdrv.h"
@@ -297,7 +298,71 @@ static int setup_interrupt( int irq, int coid, short code ) {
 /** Parse data into the OMS_status structure
  */
 static void parse_tm_data( readreq *req ) {
+  char *p;
+  int i = 0;
+
   // ######
+  // The request string is AARPRI, so I'm expecting
+  // \d+,\d+,\d+,\d+;
+  // [PM][DN][LN][HN],[PM][DN][LN][HN],[PM][DN][LN][HN],[PM][DN][LN][HN]
+  // [PM] direction
+  // [DN] done (ignore)
+  // [LN] limit in this direction
+  // [HN] home
+  p = req->ibuf;; 
+  if ( ! isdigit(*p) ) {
+    nl_error( 2, "Unrecognized response from OMS:" );
+    return;
+  }
+  while (isdigit(*p) && i < 4) {
+    long int pos = 0;
+    while (isdigit(*p))
+      pos = pos*10 + *p++ - '0';
+    OMS_status.step[i++] = pos;
+    switch (*p) {
+      case '\0':
+	nl_error(2, "Short response 1" );
+	return;
+      case '-':
+	nl_error(2, "Negative number reported");
+	return;
+      case ',':
+	++p;
+	break;
+      case ';':
+	break;
+    }
+  }
+  // Should only reach here when pointing to ';'
+  // unless i == 4
+  if ( *p++ != ';' ) {
+    nl_error(2, "Too many values reported");
+    return;
+  }
+  i = 0;
+  while (isalpha(*p)) {
+    unsigned char status = 0;
+    if ( *p == 'P' ) status |= OMS_STAT_DIR;
+    else if (*p != 'M') {
+      nl_error( 1, "Invalid char in dir" );
+    }
+    if ( *++p == 'D') status |= OMS_STAT_DONE;
+    else if (*p != 'N') {
+      nl_error( 1, "Invalid char in done" );
+    }
+    if ( *++p == 'L') status |= OMS_STAT_LIMIT;
+    else if (*p != 'N') {
+      nl_error( 1, "Invalid char in limit" );
+    }
+    if ( *++p == 'H') status |= OMS_STAT_HOME;
+    else if (*p != 'N') {
+      nl_error( 1, "Invalid char in home" );
+    }
+    OMS_status.status[i++] = status;
+    if ( *++p == ',' ) p++;
+    else break;
+  }
+
 }
 
 int main( int argc, char **argv ) {
@@ -318,7 +383,7 @@ int main( int argc, char **argv ) {
 
   iid = setup_interrupt( oms_irq, coid, EXPINT_PULSE_CODE );
   open_cmd_fd( coid, CMD_PULSE_CODE, 0 );
-  init_tm_request( "OMS_status", coid, "AARPQA", 8,
+  init_tm_request( "OMS_status", coid, "AARPRI", 2,
       &OMS_status, sizeof(OMS_status), parse_tm_data);
 
   // Initialize the board

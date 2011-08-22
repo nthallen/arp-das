@@ -72,85 +72,85 @@ static int hc_state = 0;
 static int ibuf_idx = 0;
 int handle_char( char c ) {
   if ( current_req == NULL ) {
-	current_req = dequeue_req( pending_queue );
-	current_req->n_req_togo = current_req->n_req;
+    current_req = dequeue_req( pending_queue );
+    current_req->n_req_togo = current_req->n_req;
   }
   if ( current_req != NULL ) {
-	switch ( c ) {
-	  case '#':
-	  case '$':
-	  case '@':
-	  case '!':
-		/* Except in the case where an invalid read request
-		results in a command error ('#'), these should not
-		affect queued read requests. Perhaps in that case,
-		the error should be written into the buffer of the
-		top queued read request and reported. */
-		hc_state = 0;
-		return 0;
-	  case '\n':
-	  case '\r':
-		break;
-	  default:
-		if ( isprint(c) ) {
-		  if ( hc_state != 2 ) {
-			ibuf_idx = 0;
-			/* unexpected character */
-			hc_state = 2;
-		  }
-		} else {
-		  /* unexpected unprintable char, discarded */
-		  hc_state = 0;
-		  return 0;
-		}
-		break;
-	}
-	switch ( hc_state ) {
-	  case 0:
-		if ( c == '\n' ) {
-		  hc_state = 1;
-		  ibuf_idx = 0;
-		  return 0;
-		}
-		break;
-	  case 4: /* 4 is like 0, but doesn't reset ibuf_idx */
-		if ( c == '\n' ) {
-		  hc_state = 1;
-		  return 0;
-		} else if ( c == '\r' )
-		  return 0;
-		break;
-	  case 1:
-		if ( c == '\r' ) { hc_state = 2; return 0; }
-		break;
-	  case 2:
-		if ( c == '\r' ) {
-		  /* ignore */
-		} else if ( c == '\n' ) {
-		  current_req->n_req_togo--;
-		  current_req->ibuf[ibuf_idx++] =
-			current_req->n_req_togo ? ';' : '\0';
-		  hc_state = 3;
-		} else current_req->ibuf[ibuf_idx++] = c;
-		return 0;
-	  case 3:
-		if ( c == '\r' ) {
-		  hc_state = 0;
-		  if ( current_req->n_req_togo == 0 ) {
-			enqueue_req( satisfied_queue, current_req );
-			current_req = NULL;
-			return 1;
-		  } else hc_state = 4;
-		  return 0;
-		}
-		break;
-	  default:
-		/* invalid hc_state! reset it */
-		hc_state = 0;
-		return 0;
-	}
-	/* invalid character... */
+    switch ( c ) {
+      case '#':
+      case '$':
+      case '@':
+      case '!':
+	/* Except in the case where an invalid read request
+	results in a command error ('#'), these should not
+	affect queued read requests. Perhaps in that case,
+	the error should be written into the buffer of the
+	top queued read request and reported. */
 	hc_state = 0;
+	return 0;
+      case '\n':
+      case '\r':
+	break;
+      default:
+	if ( isprint(c) ) {
+	  if ( hc_state != 2 ) {
+	    ibuf_idx = 0;
+	    /* unexpected character */
+	    hc_state = 2;
+	  }
+	} else {
+	  /* unexpected unprintable char, discarded */
+	  hc_state = 0;
+	  return 0;
+	}
+	break;
+    }
+    switch ( hc_state ) {
+      case 0:
+	if ( c == '\n' ) {
+	  hc_state = 1;
+	  ibuf_idx = 0;
+	  return 0;
+	}
+	break;
+      case 4: /* 4 is like 0, but doesn't reset ibuf_idx */
+	if ( c == '\n' ) {
+	  hc_state = 1;
+	  return 0;
+	} else if ( c == '\r' )
+	  return 0;
+	break;
+      case 1:
+	if ( c == '\r' ) { hc_state = 2; return 0; }
+	break;
+      case 2:
+	if ( c == '\r' ) {
+	  /* ignore */
+	} else if ( c == '\n' ) {
+	  current_req->n_req_togo--;
+	  current_req->ibuf[ibuf_idx++] =
+	    current_req->n_req_togo ? ';' : '\0';
+	  hc_state = 3;
+	} else current_req->ibuf[ibuf_idx++] = c;
+	return 0;
+      case 3:
+	if ( c == '\r' ) {
+	  hc_state = 0;
+	  if ( current_req->n_req_togo == 0 ) {
+	    enqueue_req( satisfied_queue, current_req );
+	    current_req = NULL;
+	    return 1;
+	  } else hc_state = 4;
+	  return 0;
+	}
+	break;
+      default:
+	/* invalid hc_state! reset it */
+	hc_state = 0;
+	return 0;
+    }
+    /* invalid character... */
+    hc_state = 0;
   } else {
 	/* else no pending requests, so character is discarded */
   }
