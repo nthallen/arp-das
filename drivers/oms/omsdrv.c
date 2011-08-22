@@ -153,15 +153,16 @@ static int service_cmd(void) {
     if ( rv > 0 ) {
       ibuf[rv] = '\0';
       if ( ibuf[0] == 'W' ) {
-	ibuf[rv] = '\0';
-	oms_queue_output( ibuf+1 );
+        ibuf[rv] = '\0';
+        oms_queue_output( ibuf+1 );
       } else if ( ibuf[0] == 'Q' ) {
-	return 1;
+        return 1;
       } else {
-	nl_error(2, "Unknown command: '%c'", ibuf[0] );
+        nl_error(2, "Unknown command: '%c'", ibuf[0] );
       }
-    } else if ( rv == 0 ) return 1; // quit command
-    else if ( rv == -1 ) {
+    } else if ( rv == 0 ) {
+      return 1; // quit command
+    } else if ( rv == -1 ) {
       if ( errno != EAGAIN && errno != EINTR)
         nl_error(3, "Received error %d from read() in check_command()", errno );
     } else nl_error(4, "Bad return value [%d] from read in check_command", rv );
