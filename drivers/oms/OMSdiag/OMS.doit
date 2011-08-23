@@ -1,0 +1,4 @@
+display OMSdisp
+client OMSdiagclt
+memo
+batchfile interact

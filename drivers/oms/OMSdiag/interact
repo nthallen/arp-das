@@ -1,0 +1,13 @@
+# Startup script for OMSdiag
+  Launch memo memo -o $Experiment.log
+  Launch TM/DCo TMbfr
+
+  memo=/dev/huarp/$Experiment/memo
+  echo "Running script interact" >$memo
+
+  Launch DG/cmd OMSdiagcol
+  Launch cmd/server OMSdiagsrvr
+  Launch - lgr -N `mlf_find LOG`
+  Launch - omsdrv -i4 -vv
+# Launch - OMSdiagalgo -v
+

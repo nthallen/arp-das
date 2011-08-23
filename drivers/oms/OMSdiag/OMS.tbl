@@ -1,0 +1,20 @@
+OMS {
+  HBox { +-; Title: "OMS"; -+ };
+  "0:" (OMS_0_Step,9) (OMS_0_Stat,4);
+  "1:" (OMS_1_Step,9) (OMS_1_Stat,4);
+  "2:" (OMS_2_Step,9) (OMS_2_Stat,4);
+  "3:" (OMS_3_Step,9) (OMS_3_Stat,4);
+  { Stale: (OMS_Stale) }
+}
+
+MF {
+  +-+;
+  (flttime,9) (MFCtr);
+}
+
+{ HBox { |+; {
+    [OMS];
+    [MF]
+  }; |+ };
+  -;
+}
