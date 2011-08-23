@@ -4,14 +4,14 @@
 <follow> msg
 <opts> "i:"
 <sort>
-	-i Specify IRQ used by the PC68 board
+	-i Specify IRQ used by the PC78 board
 <unsort>
 <blank>
-Driver for Oregon Micro Systems PC68 Motor Controller Board.
+Driver for Oregon Micro Systems PC78 Motor Controller Board.
 <blank>
 <init>
-	oms_init_options( argc, argv );
+  oms_init_options( argc, argv );
 
-<package> msghdr_init
+<package> msghdr_default
 <init>
-  msg_hdr = "OMS";
+  char *msg_hdr_default = "OMS";

@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <hw/inout.h>
 #include "omsint.h"
+#include "nortlib.h"
 
 static readreq *current_req;
 
@@ -62,6 +63,7 @@ void service_int( void ) {
 	 <cr> => state 2
 	 <lf> => state 1 (error)
    state 2
+	 This is where we enqueue printable characters
 	 <cr> => state 2
 	 <lf> => state 3
    state 3
@@ -73,7 +75,8 @@ static int ibuf_idx = 0;
 int handle_char( char c ) {
   if ( current_req == NULL ) {
     current_req = dequeue_req( pending_queue );
-    current_req->n_req_togo = current_req->n_req;
+    if (current_req)
+      current_req->n_req_togo = current_req->n_req;
   }
   if ( current_req != NULL ) {
     switch ( c ) {
@@ -86,6 +89,7 @@ int handle_char( char c ) {
 	affect queued read requests. Perhaps in that case,
 	the error should be written into the buffer of the
 	top queued read request and reported. */
+	nl_error(1, "Read error code '%c' from OMS", c );
 	hc_state = 0;
 	return 0;
       case '\n':
@@ -96,10 +100,15 @@ int handle_char( char c ) {
 	  if ( hc_state != 2 ) {
 	    ibuf_idx = 0;
 	    /* unexpected character */
+	    nl_error( -2, "Unexpect printable char '%c' in hc_state %d",
+	      c, hc_state );
 	    hc_state = 2;
 	  }
 	} else {
 	  /* unexpected unprintable char, discarded */
+	  nl_error(-2,
+	    "Unexpected non-printable char in state %d: %d",
+	    hc_state, c );
 	  hc_state = 0;
 	  return 0;
 	}
@@ -125,6 +134,7 @@ int handle_char( char c ) {
 	break;
       case 2:
 	if ( c == '\r' ) {
+	  nl_error(-2,"Discarding CR in hc_state 2" );
 	  /* ignore */
 	} else if ( c == '\n' ) {
 	  current_req->n_req_togo--;
@@ -153,6 +163,7 @@ int handle_char( char c ) {
     hc_state = 0;
   } else {
 	/* else no pending requests, so character is discarded */
+    nl_error( -2, "Unexpected character code %d", c );
   }
   return 0;
 }
@@ -172,6 +183,7 @@ int enqueue_req( reqqueue *queue, readreq *req ) {
   queue->tail = next;
   return 0;
 }
+
 readreq *dequeue_req( reqqueue *queue ) {
   readreq *req;
   int next;
@@ -200,6 +212,7 @@ int enqueue_char( charqueue *queue, char qchar ) {
   }
   return 0;
 }
+
 char dequeue_char( charqueue *queue ) {
   char qchar;
   int next;

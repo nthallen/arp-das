@@ -23,6 +23,7 @@
 char omsdrv_c_id[] = "$UID: seteuid.oui,v $";
 static reqqueue *free_queue;
 static int oms_irq = 0;
+static int oms_iid;
 static int cmd_fd = -1;
 static struct sigevent cmd_event;
 
@@ -93,7 +94,7 @@ static void init_tm_request( char *name, int coid,
   nlr = set_response( 1 );
   newreq->req->u.tm.handler = handler;
   newreq->req->u.tm.tmid =
-    Col_send_init( name, tmdata, size, 1 );
+    Col_send_init( name, tmdata, size, 0 );
   if ( newreq->req->u.tm.tmid != NULL )
     Col_send_arm(newreq->req->u.tm.tmid, coid, TM_PULSE_CODE,
       n_tm_requests-1);
@@ -113,6 +114,7 @@ static void oms_queue_output( char *cmd ) {
 
 static void service_tm(int value) {
   if ( value < n_tm_requests ) {
+    nl_error( -2, "Enqueueing TM request %d", value);
     tm_data_req *tmd = tm_data[value];
     enqueue_req( pending_queue, tmd->req );
     oms_queue_output( tmd->cmd );
@@ -153,6 +155,7 @@ static int service_cmd(void) {
     rv = read(cmd_fd, ibuf, IBUF_SIZE-1);
     if ( rv > 0 ) {
       ibuf[rv] = '\0';
+      nl_error(-2, "Received command '%s'", ibuf);
       if ( ibuf[0] == 'W' ) {
         ibuf[rv] = '\0';
         oms_queue_output( ibuf+1 );
@@ -177,8 +180,13 @@ static int service_cmd(void) {
 }
 
 static int service_pulse( int code, int value ) {
+  // nl_error(-3, "Received pulse code %d value %d", code, value );
   switch (code) {
-    case EXPINT_PULSE_CODE: service_int(); break;
+    case EXPINT_PULSE_CODE:
+      service_int();
+      if (InterruptUnmask(oms_irq, oms_iid) < 0)
+	nl_error(1, "Error %d from InterruptUnmask", errno);
+      break;
     case CMD_PULSE_CODE: return service_cmd();
     case TM_PULSE_CODE: service_tm(value); break;
     default:
@@ -264,6 +272,7 @@ static void open_cmd_fd( int coid, short code, int value ) {
   if ( cmd_fd < 0 ) {
     nl_error(3, "Unable to open command channel" );
   }
+  nl_error(-2, "Command fd %d opened to %s", cmd_fd, cmddev );
 
   /* Initialize cmd event */
   cmd_event.sigev_notify = SIGEV_PULSE;
@@ -271,6 +280,7 @@ static void open_cmd_fd( int coid, short code, int value ) {
   cmd_event.sigev_priority = SIGEV_PULSE_PRIO_INHERIT;
   cmd_event.sigev_code = code;
   cmd_event.sigev_value.sival_int = value;
+  service_cmd();
 }
 
 static void close_cmd_fd(void) {
@@ -288,6 +298,7 @@ static int setup_interrupt( int irq, int coid, short code ) {
   intr_event.sigev_priority = SIGEV_PULSE_PRIO_INHERIT;
   intr_event.sigev_code = EXPINT_PULSE_CODE;
   intr_event.sigev_value.sival_int = 0;
+  ThreadCtl(_NTO_TCTL_IO,0);
   iid = InterruptAttachEvent(oms_irq, &intr_event,
       _NTO_INTR_FLAGS_PROCESS | _NTO_INTR_FLAGS_TRK_MSK );
   if (iid == -1)
@@ -309,6 +320,7 @@ static void parse_tm_data( readreq *req ) {
   // [DN] done (ignore)
   // [LN] limit in this direction
   // [HN] home
+  nl_error( -2, "parse_tm_data: '%s'", req->ibuf );
   p = req->ibuf;; 
   if ( ! isdigit(*p) ) {
     nl_error( 2, "Unrecognized response from OMS:" );
@@ -366,7 +378,7 @@ static void parse_tm_data( readreq *req ) {
 }
 
 int main( int argc, char **argv ) {
-  int chid, coid, iid;
+  int chid, coid;
   
   oui_init_options( argc, argv );
 
@@ -381,13 +393,14 @@ int main( int argc, char **argv ) {
     nl_error( 3, "Error %d from ChannelCreate()", errno );
   coid = ConnectAttach( ND_LOCAL_NODE, 0, chid, _NTO_SIDE_CHANNEL, 0);
 
-  iid = setup_interrupt( oms_irq, coid, EXPINT_PULSE_CODE );
-  open_cmd_fd( coid, CMD_PULSE_CODE, 0 );
-  init_tm_request( "OMS_status", coid, "AARPRI", 2,
-      &OMS_status, sizeof(OMS_status), parse_tm_data);
+  oms_iid = setup_interrupt( oms_irq, coid, EXPINT_PULSE_CODE );
 
   // Initialize the board
   out8( PC68_CONTROL, 0xA0 ); /* IRQ_E & IBF_E & !TBE_E */
+
+  open_cmd_fd( coid, CMD_PULSE_CODE, 0 );
+  init_tm_request( "OMS_status", coid, "AARPRI", 2,
+      &OMS_status, sizeof(OMS_status), parse_tm_data);
   
   new_request( "\004WY", OMSREQ_LOG, 1, "PC68 ID" );
 
@@ -398,7 +411,7 @@ int main( int argc, char **argv ) {
   operate(chid);
 
   nl_error( 0, "Shutting Down" );
-  InterruptDetach(iid);
+  InterruptDetach(oms_iid);
   close_cmd_fd();
   shutdown_tm_requests();
   nl_error( 0, "Terminated" );
@@ -408,7 +421,7 @@ int main( int argc, char **argv ) {
 void oms_init_options( int argc, char **argv ) {
   int c;
 
-  optind = 0; /* start from the beginning */
+  optind = OPTIND_RESET; /* start from the beginning */
   opterr = 0; /* disable default error message */
   while ((c = getopt(argc, argv, opt_string)) != -1) {
     switch (c) {
