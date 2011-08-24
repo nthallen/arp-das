@@ -9,6 +9,8 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <signal.h>
+#include <time.h>
 #include "nortlib.h"
 #include "oui.h"
 #include "omsdrv.h"
@@ -18,6 +20,7 @@
 #define CMD_PULSE_CODE (_PULSE_CODE_MINAVAIL + 0)
 #define TM_PULSE_CODE (_PULSE_CODE_MINAVAIL + 1)
 #define EXPINT_PULSE_CODE (_PULSE_CODE_MINAVAIL + 2)
+#define TIMER_PULSE_CODE (_PULSE_CODE_MINAVAIL + 3)
 #define MAX_IRQ_104 12
 
 char omsdrv_c_id[] = "$UID: seteuid.oui,v $";
@@ -26,21 +29,22 @@ static int oms_irq = 0;
 static int oms_iid;
 static int cmd_fd = -1;
 static struct sigevent cmd_event;
+static timer_id oms_timer;
 
 OMS_TM_Data OMS_status;
 
-readreq * allocate_request( char *cmd, int type,
-		      int n_req, char *hdr ) {
+readreq * allocate_request( char *cmd, int type, char *hdr ) {
   char *hdrsrc;
   readreq *req;
   
   if ( cmd == NULL )
-	nl_error( 4, "NULL cmd in allocate_request" );
+    nl_error( 4, "NULL cmd in allocate_request" );
   
   req = dequeue_req( free_queue );
   if ( req == NULL ) req = malloc(sizeof(readreq));
   req->req_type = type;
-  req->n_req = n_req;
+  strncpy( req->cmd, cmd, IBUF_SIZE-1 );
+  req->cmd[IBUF_SIZE-1] = '\0';
   switch ( type ) {
     case OMSREQ_IGNORE: break;
     case OMSREQ_PROCESSTM: break;
@@ -76,8 +80,8 @@ static tm_data_req *tm_data[MAX_TM_REQUESTS];
 static int n_tm_requests;
 
 static void init_tm_request( char *name, int coid,
-		char *cmd, int n_req, void *tmdata, int size,
-		void (*handler)(readreq *)) {
+                char *cmd, void *tmdata, int size,
+                void (*handler)(readreq *)) {
   int nlr;
   tm_data_req *newreq;
   
@@ -88,8 +92,8 @@ static void init_tm_request( char *name, int coid,
   newreq = tm_data[n_tm_requests++] =
       new_memory(sizeof(tm_data_req));
   newreq->req =
-    allocate_request( cmd, OMSREQ_PROCESSTM, n_req, NULL );
-  newreq->cmd = nl_strdup( cmd );
+    allocate_request( cmd, OMSREQ_PROCESSTM, NULL );
+  // newreq->cmd = nl_strdup( cmd );
   newreq->pending = 0;
   nlr = set_response( 1 );
   newreq->req->u.tm.handler = handler;
@@ -117,35 +121,37 @@ static void service_tm(int value) {
     nl_error( -2, "Enqueueing TM request %d", value);
     tm_data_req *tmd = tm_data[value];
     enqueue_req( pending_queue, tmd->req );
-    oms_queue_output( tmd->cmd );
+    pq_check();
   }
 }
 
-void new_request( char *cmd, int type, int n_req, char *hdr ) {
+/**
+ * Allocates a readreq and enqueues it.
+ */
+void new_request( char *cmd, int type, char *hdr ) {
   readreq *req =
-	allocate_request( cmd, type, n_req, hdr);
+        allocate_request( cmd, type, hdr);
   enqueue_req( pending_queue, req );
-  oms_queue_output( cmd );
+  pq_check();
 }
 
+/**
+ * Data handler for data received from the OMS78
+ */
 void handle_recv_data( void ) {
-  readreq *req;
-  
-  while ( (req = dequeue_req( satisfied_queue )) != NULL ) {
-    switch ( req->req_type ) {
-      case OMSREQ_IGNORE: break;
-      case OMSREQ_PROCESSTM:
-	(req->u.tm.handler)(req);
-	Col_send( req->u.tm.tmid );
-	continue; /* TM requests are static */
-      case OMSREQ_LOG:
-	nl_error( 0, "%s: %s", req->u.hdr, req->ibuf );
-	break;
-      default:
-	nl_error( 4, "Invalid req_type: %d", req->req_type );
-    }
-    enqueue_req( free_queue, req );
+  switch ( current_req->req_type ) {
+    case OMSREQ_IGNORE: break;
+    case OMSREQ_PROCESSTM:
+      (req->u.tm.handler)(req);
+      Col_send( req->u.tm.tmid );
+      break;
+    case OMSREQ_LOG:
+      nl_error( 0, "%s: %s", req->u.hdr, req->ibuf );
+      break;
+    default:
+      nl_error( 4, "Invalid req_type in handle_recv_data: %d", req->req_type );
   }
+  pq_recycle();
 }
 
 static int service_cmd(void) {
@@ -158,7 +164,8 @@ static int service_cmd(void) {
       nl_error(-2, "Received command '%s'", ibuf);
       if ( ibuf[0] == 'W' ) {
         ibuf[rv] = '\0';
-        oms_queue_output( ibuf+1 );
+        // oms_queue_output( ibuf+1 );
+        new_request(ibuf+1, OMSREQ_NO_RESPONSE, NULL );
       } else if ( ibuf[0] == 'Q' ) {
         return 1;
       } else {
@@ -185,10 +192,11 @@ static int service_pulse( int code, int value ) {
     case EXPINT_PULSE_CODE:
       service_int();
       if (InterruptUnmask(oms_irq, oms_iid) < 0)
-	nl_error(1, "Error %d from InterruptUnmask", errno);
+        nl_error(1, "Error %d from InterruptUnmask", errno);
       break;
     case CMD_PULSE_CODE: return service_cmd();
     case TM_PULSE_CODE: service_tm(value); break;
+    case TIMER_PULSE_CODE:
     default:
       nl_error( 2, "Invalid pulse code: %d", code );
   }
@@ -213,55 +221,6 @@ void operate( int chid ) {
         break;
     }
   }
-
-// ### This is the old code, to be deleted.
-// ### Need to write service_cmd();
-//    who = Receive( 0, &cmd, sizeof( cmd ) );
-//    if ( who != -1 ) {
-//      if ( who == recv_proxy ) handle_recv_proxy();
-//      else {
-//	int i;
-//	for ( i = 0; i < n_tm_requests; i++ ) {
-//	  if ( who == tm_data[i]->tm_proxy ) {
-//	    handle_tm_proxy( tm_data[i] );
-//	    break;
-//	  }
-//	}
-//	if ( i >= n_tm_requests ) {
-//	  if ( cmd.hdr.signature != OMS_SIG )
-//	    reply_byte( who, REP_UNKN );
-//	  else {
-//	    rep.hdr.status = 0;
-//	    switch ( cmd.hdr.function ) {
-//	      case OMSMSG_READ:
-//		new_request( cmd.command, OMSREQ_REPLY, cmd.hdr.n_req,
-//					who, NULL);
-//		continue; /* don't reply yet... */
-//	      case OMSMSG_READ_LOG:
-//		new_request( cmd.command, OMSREQ_LOG, cmd.hdr.n_req,
-//					0, NULL);
-//		break;
-//	      case OMSMSG_READ_IGNORE:
-//		new_request( cmd.command, OMSREQ_IGNORE, cmd.hdr.n_req,
-//					who, NULL);
-//		break;
-//	      case OMSMSG_WRITE:
-//		nl_error( -2, "Write: \"%s\"", cmd.command );
-//		oms_queue_output( cmd.command );
-//		break;
-//	      case OMSMSG_QUIT:
-//		oms_done = 1;
-//		break;
-//	      default:
-//		rep.hdr.status = 1;
-//		break;
-//	    }
-//	    Reply( who, &rep, sizeof(rep) );
-//	  }
-//	}
-//      }
-//    }
-
 }
 
 static void open_cmd_fd( int coid, short code, int value ) {
@@ -287,6 +246,29 @@ static void close_cmd_fd(void) {
   close(cmd_fd);
 }
 
+static void setup_timer( int coid, int code, timer_t *timer ) {
+  struct sigevent tmr_event;
+  
+  /* Initialize tmr event */
+  tmr_event.sigev_notify = SIGEV_PULSE;
+  tmr_event.sigev_coid = coid;
+  tmr_event.sigev_priority = SIGEV_PULSE_PRIO_INHERIT;
+  tmr_event.sigev_code = code;
+  tmr_event.sigev_value.sival_int = 0;
+  if ( timer_create(CLOCK_REALTIME, &tmr_event, timer) )
+    nl_error( 3, "timer_create() failed: %s", strerror(errno) );
+}
+
+void set_oms_timeout( int ms ) {
+  struct itimerspec ts;
+  ts.it_value.tv_sec = 0;
+  ts.it_value.tv_nsec = ms*1000000L;
+  ts.it_interval.tv_sec = 0;
+  ts.it_interval.tv_nsec = 0;
+  if ( timer_settime(oms_timer, 0, &ts, NULL) != 0 )
+    nl_error( 2, "Error from timer_settime(): %s", strerror(errno) );
+}
+
 static int setup_interrupt( int irq, int coid, short code ) {
   struct sigevent intr_event;
   int iid;
@@ -306,75 +288,101 @@ static int setup_interrupt( int irq, int coid, short code ) {
   return iid;
 }
 
-/** Parse data into the OMS_status structure
+int parse_spaces( char * const *p, int required ) {
+  char *s = *p;
+  if ( required && !isspace(*s)) return 1;
+  while (isspace(*s)) ++s;
+  *p = s;
+  return 0;
+}
+
+int parse_long( char * const *p, long *lval ) {
+  int sign = 1;
+  long val = 0L;
+  char *s = *p;
+  if ( *s == '-' ) {
+    sign = -1;
+    ++s;
+  }
+  if ( !isdigit(*s) ) return 1;
+  while (isdigit(*s)) {
+    val = val * 10 + *s++ - '0';
+  }
+  *lval = val*sign;
+  *p = s;
+  return 0;
+}
+
+int parse_char( char * const *p, char c ) {
+  if ( **p == c ) {
+    ++(*p);
+    return 0;
+  }
+  return 1;
+}
+
+int parse_status( char * const *p, unsigned char *status ) {
+  *status = 0;
+  return
+    parse_status_bit( &p, status, "MP", OMS_STAT_DIR_OUT ) ||
+    parse_status_bit( &p, status, "ND", OMS_STAT_DONE) ||
+    parse_status_bit( &p, status, "NL", OMS_STAT_LIMIT) ||
+    parse_status_bit( &p, status, "NH", OMS_STAT_HOME );
+}
+
+/**
+ * Handler for TM data read from the OMS78
  */
 static void parse_tm_data( readreq *req ) {
   char *p;
   int i = 0;
 
-  // ######
   // The request string is AARPRI, so I'm expecting
-  // \d+,\d+,\d+,\d+;
-  // [PM][DN][LN][HN],[PM][DN][LN][HN],[PM][DN][LN][HN],[PM][DN][LN][HN]
+  // \d+,\d+,\d+,\d+\n\n\r\r
+  // [PM][DN][LN][HN],[PM][DN][LN][HN],[PM][DN][LN][HN],[PM][DN][LN][HN]\n\r\r
   // [PM] direction
-  // [DN] done (ignore)
+  // [DN] done
   // [LN] limit in this direction
   // [HN] home
-  nl_error( -2, "parse_tm_data: '%s'", req->ibuf );
-  p = req->ibuf;; 
-  if ( ! isdigit(*p) ) {
-    nl_error( 2, "Unrecognized response from OMS:" );
-    return;
+  nl_error( -2, "parse_tm_data: '%s'", quote_np(req->ibuf) );
+  p = req->ibuf;
+  if ( parse_spaces(&p, 0) ||
+       parse_long(&p, &OMS_status.step[0] ) || parse_char(&p, ',' ) ||
+       parse_long(&p, &OMS_status.step[1] ) || parse_char(&p, ',' ) ||
+       parse_long(&p, &OMS_status.step[2] ) || parse_char(&p, ',' ) ||
+       parse_long(&p, &OMS_status.step[3] ) || parse_spaces(&p, 1) ||
+       parse_status(&p,&OMS_status.status[0] ) || parse_char(&p, ',') ||
+       parse_status(&p,&OMS_status.status[1] ) || parse_char(&p, ',') ||
+       parse_status(&p,&OMS_status.status[2] ) || parse_char(&p, ',') ||
+       parse_status(&p,&OMS_status.status[3] ) || parse_spaces(&p, 1) ) {
+    nl_error( 2, "Parse error in tm data: %s", quote_np(req->ibuf) );
   }
-  while (isdigit(*p) && i < 4) {
-    long int pos = 0;
-    while (isdigit(*p))
-      pos = pos*10 + *p++ - '0';
-    OMS_status.step[i++] = pos;
-    switch (*p) {
-      case '\0':
-	nl_error(2, "Short response 1" );
-	return;
-      case '-':
-	nl_error(2, "Negative number reported");
-	return;
-      case ',':
-	++p;
-	break;
-      case ';':
-	break;
-    }
-  }
-  // Should only reach here when pointing to ';'
-  // unless i == 4
-  if ( *p++ != ';' ) {
-    nl_error(2, "Too many values reported");
-    return;
-  }
-  i = 0;
-  while (isalpha(*p)) {
-    unsigned char status = 0;
-    if ( *p == 'P' ) status |= OMS_STAT_DIR;
-    else if (*p != 'M') {
-      nl_error( 1, "Invalid char in dir" );
-    }
-    if ( *++p == 'D') status |= OMS_STAT_DONE;
-    else if (*p != 'N') {
-      nl_error( 1, "Invalid char in done" );
-    }
-    if ( *++p == 'L') status |= OMS_STAT_LIMIT;
-    else if (*p != 'N') {
-      nl_error( 1, "Invalid char in limit" );
-    }
-    if ( *++p == 'H') status |= OMS_STAT_HOME;
-    else if (*p != 'N') {
-      nl_error( 1, "Invalid char in home" );
-    }
-    OMS_status.status[i++] = status;
-    if ( *++p == ',' ) p++;
-    else break;
-  }
+}
 
+#define QBUF_SIZE (IBUF_SIZE*4)
+char *quote_np(char *s) {
+  static qbuf[QBUF_SIZE];
+  unsigned oi = 0;
+  while ( oi < QBUF_SIZE-4 && *s != '\0' ) {
+    if ( isprint(*s) ) {
+      qbuf[oi++] = *s;
+    } else {
+      if ( oi < QBUF_SIZE-8 ) {
+        int n;
+        n = sprintf(&qbuf[oi], QBUF_SIZE-4-oi, "<%02X>", *s);
+        oi += n;
+      } else break;
+    }
+    ++s;
+  }
+  if ( *s != '\0' ) {
+    nl_assert(oi <= QBUF_SIZE-4);
+    qbuf[oi++] = '.';
+    qbuf[oi++] = '.';
+    qbuf[oi++] = '.';
+  }
+  qbuf[oi] = '\0';
+  return qbuf;
 }
 
 int main( int argc, char **argv ) {
@@ -394,6 +402,7 @@ int main( int argc, char **argv ) {
   coid = ConnectAttach( ND_LOCAL_NODE, 0, chid, _NTO_SIDE_CHANNEL, 0);
 
   oms_iid = setup_interrupt( oms_irq, coid, EXPINT_PULSE_CODE );
+  setup_timer( coid, TIMER_PULSE_CODE, &oms_timer );
 
   // Initialize the board
   out8( PC68_CONTROL, 0xA0 ); /* IRQ_E & IBF_E & !TBE_E */
@@ -402,10 +411,11 @@ int main( int argc, char **argv ) {
   init_tm_request( "OMS_status", coid, "AARPRI", 2,
       &OMS_status, sizeof(OMS_status), parse_tm_data);
   
-  new_request( "\004WY", OMSREQ_LOG, 1, "PC68 ID" );
+  new_request( "", OMSREQ_IGNORE, NULL );
+  new_request( "\004WY", OMSREQ_LOG, "PC68 ID" );
 
   // Initialize speed for X and Y; No return
-  oms_queue_output( "AXVL1000;AYVL480;" );
+  new_request( "AXVL1000;AYVL480;", OMSREQ_NO_RESPONSE, NULL );
   nl_error( 0, "Initialized" );
   
   operate(chid);
@@ -426,12 +436,12 @@ void oms_init_options( int argc, char **argv ) {
   while ((c = getopt(argc, argv, opt_string)) != -1) {
     switch (c) {
       case 'i':
-	oms_irq = atoi(optarg);
-	break;
+        oms_irq = atoi(optarg);
+        break;
       case '?':
-	nl_error(3, "Unrecognized Option -%c", optopt);
+        nl_error(3, "Unrecognized Option -%c", optopt);
       default:
-	break;
+        break;
     }
   }
   if ( oms_irq == 0 )

@@ -1,3 +1,6 @@
+#ifndef OMSINT_H_INCLUDED
+#define OMSINT_H_INCLUDED
+
 #include <sys/types.h>
 #include "collect.h"
 
@@ -14,9 +17,7 @@
 
 #define IBUF_SIZE 80
 typedef struct readreq_s {
-  int n_req;
   int req_type;
-  int n_req_togo;
   union {
     struct {
       send_id tmid;
@@ -24,11 +25,13 @@ typedef struct readreq_s {
     } tm;
     char hdr[IBUF_SIZE];
   } u;
+  char cmd[IBUF_SIZE];
   char ibuf[IBUF_SIZE];
 } readreq;
 #define OMSREQ_IGNORE 0
 #define OMSREQ_PROCESSTM 1
 #define OMSREQ_LOG    2
+#define OMSREQ_NO_RESPONSE 3
 /* cmd can hold
    - the text of the command which solicited the
    request a replacement header for log requests
@@ -36,8 +39,6 @@ typedef struct readreq_s {
 
 typedef struct {
   readreq *req;
-  pid_t tm_proxy;
-  char *cmd;
   int pending;
 } tm_data_req;
 
@@ -52,21 +53,29 @@ typedef struct {
 } charqueue;
 
 extern reqqueue *pending_queue;
-extern reqqueue *satisfied_queue;
 extern charqueue *output_queue;
-extern int enqueue_req( reqqueue *queue, readreq *req );
-extern readreq *dequeue_req( reqqueue *queue );
-extern int enqueue_char( charqueue *queue, char qchar );
-extern char dequeue_char( charqueue *queue );
-extern reqqueue *new_reqqueue( int size );
-extern charqueue *new_charqueue( int size );
-extern void handle_recv_data(void);
+int enqueue_req( reqqueue *queue, readreq *req );
+readreq *dequeue_req( reqqueue *queue );
+int enqueue_char( charqueue *queue, char qchar );
+char dequeue_char( charqueue *queue );
+reqqueue *new_reqqueue( int size );
+charqueue *new_charqueue( int size );
+void handle_recv_data(void);
 
 /* omsdrv.c */
 void oms_init_options( int argc, char **argv );
+char *quote_np(const char *s);
 
 /* omsirq.c */
 void service_int( void );
+void pq_recycle(void);
+void pq_timeout(void);
+extern readreq *current_req;
 
-#define OMS_PROXY 2
-#define OMS_ST_PROXY 4
+#define PQ_MODE_IDLE
+#define PQ_MODE_SENDING
+#define PQ_MODE_RECEIVING
+#define OMS_INITIAL_TIMEOUT 500
+#define OMS_PAUSE_TIMEOUT 10
+
+#endif
