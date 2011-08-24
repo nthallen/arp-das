@@ -1,8 +1,8 @@
-# Makefile Generated Mon Aug 22 13:25:28 EDT 2011
+# Makefile Generated Wed Aug 24 14:49:12 EDT 2011
 MNC=OMSdiag
 HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/oms/OMSdiag
 SPECFILE=OMSdiag.spec
-SRC=base.tmc OMS.tbl OMS.doit OMS.cmd
+SRC=base.tmc OMS.tbl OMS.doit
 TOOL=OMSdiag.spec Makefile
 SCRIPT=interact
 OBJ=OMSdiagcol.cc OMSdiag.pcm tm.dac OMSdiagcoloui.c OMSdiagcoloui.o
@@ -20,7 +20,8 @@ SRCDIST=OMS.tbl base.tmc
 NONRCS=
 TMCBASE=base.tmc
 CMDBASE=/usr/local/share/huarp/root.cmd
-CMDBASE+=/usr/local/share/huarp/getcon.cmd OMS.cmd
+CMDBASE+=/usr/local/share/huarp/getcon.cmd
+CMDBASE+=/usr/local/share/huarp/OMS.cmd
 RCS=$(SRC) $(TOOL) $(SCRIPT)
 SOURCE=$(RCS) $(NONRCS)
 OBJECT=$(OBJ) *.err
@@ -88,8 +89,8 @@ OMSdispnc.o : OMSdispnc.cc
 doit.dep : OMS.doit
 	mkdoit3 -M -o doit  OMS.doit
 -include doit.dep
-OMSdiagcmd.cc : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd OMS.cmd
-	$(CMDGEN) -d OMSdiagcmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd OMS.cmd
+OMSdiagcmd.cc : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd /usr/local/share/huarp/OMS.cmd
+	$(CMDGEN) -d OMSdiagcmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd /usr/local/share/huarp/OMS.cmd
 OMSdiagclt.o : OMSdiagcmd.cc
 	$(COMPILE.clt) OMSdiagcmd.cc
 OMSdiagcltoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui

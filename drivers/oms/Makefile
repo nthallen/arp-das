@@ -2,6 +2,7 @@ TOOL=Makefile todo
 SRC=omsdrv.c omsirq.c omsqueue.c omsdrv.oui
 SRC+=omsdrv.h omsint.h
 SRC+=testoms.c testdrv.c
+SRC+=OMS.cmd
 DRVOBJ=omsdrv.o omsirq.o omsqueue.o omsdrvoui.o
 OBJ=testoms.o testdrv.o
 OBJ+=omsdrvoui.c
@@ -31,9 +32,11 @@ omsqueue.o : omsqueue.c omsint.h
 omsdrvoui.c : omsdrv.oui
 	$(OUI) omsdrv.oui
 
-install :
-	cp omsdrv /usr/local/bin
-	cp omsdrv.h /usr/local/include
+install : omsdrv omsdrv.h OMS.cmd
+	@if [ `id -u` != 0 ]; then echo Must be root to install; exit 1; fi
+	@cp -vn omsdrv /usr/local/bin
+	@cp -vn omsdrv.h /usr/local/include
+	@cp -vn OMS.cmd /usr/local/share/huarp
 
 testoms : testoms.o
 	rm -f testoms

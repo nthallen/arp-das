@@ -1,7 +1,7 @@
 tmcbase = base.tmc
 cmdbase = /usr/local/share/huarp/root.cmd
 cmdbase = /usr/local/share/huarp/getcon.cmd
-cmdbase = OMS.cmd
+cmdbase = /usr/local/share/huarp/OMS.cmd
 
 TGTDIR = $(TGTNODE)/home/OMSdiag
 
