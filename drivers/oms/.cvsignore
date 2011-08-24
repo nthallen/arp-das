@@ -1,3 +1,4 @@
+.gdbinit
 testoms.o
 testdrv.o
 omsdrvoui.c
