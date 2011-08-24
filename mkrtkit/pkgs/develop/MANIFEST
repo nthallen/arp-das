@@ -43,6 +43,7 @@ usr/local/include/md5.h
 usr/local/include/mlf.h
 usr/local/include/nctable.h
 usr/local/include/nl_assert.h
+usr/local/include/omsdrv.h
 usr/local/include/rational.h
 usr/local/include/dtoe.h
 usr/local/include/tm.h
@@ -90,6 +91,7 @@ usr/local/share/huarp/rtinstall
 usr/local/share/huarp/flttime.tmc
 usr/local/share/huarp/appgen.mk
 usr/local/share/huarp/getcon.cmd
+usr/local/share/huarp/OMS.cmd
 usr/local/share/huarp/root.cmd
 usr/local/share/huarp/dev_copy.sed
 usr/local/share/huarp/edf2ext.awk
