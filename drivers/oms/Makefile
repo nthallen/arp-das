@@ -18,7 +18,7 @@ LDFLAGS=-L /usr/local/lib -l tm -lnort
 
 include /usr/local/share/huarp/appgen.mk
 
-.PHONY : install
+.PHONY : install clean
 
 omsdrv : $(DRVOBJ)
 	rm -f omsdrv
@@ -38,11 +38,5 @@ install : omsdrv omsdrv.h OMS.cmd
 	@cp -vn omsdrv.h /usr/local/include
 	@cp -vn OMS.cmd /usr/local/share/huarp
 
-testoms : testoms.o
-	rm -f testoms
-	$(LINK.priv) testoms.o
-	/usr/local/sbin/promote testoms
-
-testdrv : testdrv.o
-	$(LINK.norm) testdrv.o
-testdrv.o : testdrv.c
+clean :
+	rm -f omsdrv *.o omsdrvoui.c FullBuild.*
