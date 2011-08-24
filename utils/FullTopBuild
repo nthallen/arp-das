@@ -98,6 +98,7 @@ process QNX6/ssp_driver FullBuild make install
 process QNX6/idx64 FullBuild make install
 process QNX6/hart FullBuild make install
 process QNX6/playback FullBuild make install
+process QNX6/oms FullBuild make install
 
 # The eli build is somewhat more interactive due to some latent
 # bug in odin... Ideally eli should be build before FullTopBuild
