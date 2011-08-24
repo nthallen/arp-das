@@ -53,6 +53,7 @@ typedef struct {
 } charqueue;
 
 extern reqqueue *pending_queue;
+extern reqqueue *free_queue;
 extern charqueue *output_queue;
 int enqueue_req( reqqueue *queue, readreq *req );
 readreq *dequeue_req( reqqueue *queue );
@@ -65,16 +66,18 @@ void handle_recv_data(void);
 /* omsdrv.c */
 void oms_init_options( int argc, char **argv );
 char *quote_np(const char *s);
+void set_oms_timeout( int ms );
 
 /* omsirq.c */
 void service_int( void );
+void pq_check(void);
 void pq_recycle(void);
 void pq_timeout(void);
 extern readreq *current_req;
 
-#define PQ_MODE_IDLE
-#define PQ_MODE_SENDING
-#define PQ_MODE_RECEIVING
+#define PQ_MODE_IDLE 0
+#define PQ_MODE_SENDING 1
+#define PQ_MODE_RECEIVING 2
 #define OMS_INITIAL_TIMEOUT 500
 #define OMS_PAUSE_TIMEOUT 10
 

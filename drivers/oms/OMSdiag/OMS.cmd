@@ -6,17 +6,24 @@
 &omscommand
   : Drive &omsaxis &omsdir &omsdistance * {
       if ( $3 ) {
-	if_oms.Turf( "WA%cMR%ld;GO", $2, $3*$4 );
+	if_oms.Turf( "WA%cMR%ld;GO;", $2, $3*$4 );
       } else {
-	if_oms.Turf( "WA%cMA%ld;GO", $2, $4 );
+	if_oms.Turf( "WA%cMA%ld;GO;", $2, $4 );
       }
     }
   : Set &omsaxis Speed &omsspeed * {
-      if_oms.Turf( "WA%cVL%ld", $2, $4 );
+      if_oms.Turf( "WA%cVL%ld;", $2, $4 );
     }
   : Preset &omsaxis Position &omsdistance * {
-      if_oms.Turf( "WA%cLP%ld", $2, $4 );
+      if_oms.Turf( "WA%cLP%ld;", $2, $4 );
     }
+  : Stop &omsaxis * {
+      if_oms.Turf( "WA%cST;", $2 );
+    }
+  : Other %s (Enter OMS Command String) * {
+      if_oms.Turf( "W%s;", $2 );
+    }
+  : Quit * { if_oms.Turf(""); }
   ;
 &omsaxis <char>
   : 0 { $0 = 'X'; }

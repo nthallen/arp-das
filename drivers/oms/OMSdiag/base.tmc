@@ -9,22 +9,22 @@ TM typedef unsigned char oms_stat_t { text "%4u" oms_stat_text(); }
 
 %{
   static const char *oms_stat_graph[] = {
+    " <- ",
+    " <-H",
+    "|<- ",
+    "|<-H",
+    " <  ",
+    " < H",
+    "|<  ",
+    "|< H",
     "->  ",
     "-> H",
     "->| ",
     "->|H",
-    " >  "
+    " >  ",
     " > H",
     " >| ",
-    " >|H",
-    " <- "
-    " <-H",
-    "|<- ",
-    "|<-H",
-    " <  "
-    " < H",
-    "|<  ",
-    "|< H"
+    " >|H"
   };
   static const char *oms_stat_text(oms_stat_t s) {
     return oms_stat_graph[s & 0xF];

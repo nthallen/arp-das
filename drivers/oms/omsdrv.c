@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <time.h>
 #include "nortlib.h"
+#include "nl_assert.h"
 #include "oui.h"
 #include "omsdrv.h"
 #include "omsint.h"
@@ -24,12 +25,12 @@
 #define MAX_IRQ_104 12
 
 char omsdrv_c_id[] = "$UID: seteuid.oui,v $";
-static reqqueue *free_queue;
+reqqueue *free_queue;
 static int oms_irq = 0;
 static int oms_iid;
 static int cmd_fd = -1;
 static struct sigevent cmd_event;
-static timer_id oms_timer;
+static timer_t oms_timer;
 
 OMS_TM_Data OMS_status;
 
@@ -46,8 +47,10 @@ readreq * allocate_request( char *cmd, int type, char *hdr ) {
   strncpy( req->cmd, cmd, IBUF_SIZE-1 );
   req->cmd[IBUF_SIZE-1] = '\0';
   switch ( type ) {
-    case OMSREQ_IGNORE: break;
-    case OMSREQ_PROCESSTM: break;
+    case OMSREQ_NO_RESPONSE:
+    case OMSREQ_IGNORE:
+    case OMSREQ_PROCESSTM:
+      break;
     case OMSREQ_LOG:
       hdrsrc = hdr == NULL ? cmd : hdr;
       strncpy( req->u.hdr, hdrsrc, IBUF_SIZE-1 );
@@ -112,10 +115,6 @@ static void shutdown_tm_requests(void) {
   }
 }
 
-static void oms_queue_output( char *cmd ) {
-  while ( *cmd != '\0' ) enqueue_char(output_queue, *cmd++);
-}
-
 static void service_tm(int value) {
   if ( value < n_tm_requests ) {
     nl_error( -2, "Enqueueing TM request %d", value);
@@ -139,17 +138,21 @@ void new_request( char *cmd, int type, char *hdr ) {
  * Data handler for data received from the OMS78
  */
 void handle_recv_data( void ) {
+  char *s;
   switch ( current_req->req_type ) {
     case OMSREQ_IGNORE: break;
     case OMSREQ_PROCESSTM:
-      (req->u.tm.handler)(req);
-      Col_send( req->u.tm.tmid );
+      (current_req->u.tm.handler)(current_req);
+      // Col_send( current_req->u.tm.tmid );
       break;
     case OMSREQ_LOG:
-      nl_error( 0, "%s: %s", req->u.hdr, req->ibuf );
+      s = current_req->ibuf;
+      while (*s != '\0' && !isprint(*s)) ++s;
+      nl_error( 0, "%s: %s", current_req->u.hdr, s );
       break;
     default:
-      nl_error( 4, "Invalid req_type in handle_recv_data: %d", req->req_type );
+      nl_error( 4, "Invalid req_type in handle_recv_data: %d",
+	  current_req->req_type );
   }
   pq_recycle();
 }
@@ -196,7 +199,7 @@ static int service_pulse( int code, int value ) {
       break;
     case CMD_PULSE_CODE: return service_cmd();
     case TM_PULSE_CODE: service_tm(value); break;
-    case TIMER_PULSE_CODE:
+    case TIMER_PULSE_CODE: pq_timeout(); break;
     default:
       nl_error( 2, "Invalid pulse code: %d", code );
   }
@@ -246,8 +249,9 @@ static void close_cmd_fd(void) {
   close(cmd_fd);
 }
 
-static void setup_timer( int coid, int code, timer_t *timer ) {
+static timer_t setup_timer( int coid, int code ) {
   struct sigevent tmr_event;
+  timer_t timer;
   
   /* Initialize tmr event */
   tmr_event.sigev_notify = SIGEV_PULSE;
@@ -255,8 +259,9 @@ static void setup_timer( int coid, int code, timer_t *timer ) {
   tmr_event.sigev_priority = SIGEV_PULSE_PRIO_INHERIT;
   tmr_event.sigev_code = code;
   tmr_event.sigev_value.sival_int = 0;
-  if ( timer_create(CLOCK_REALTIME, &tmr_event, timer) )
+  if ( timer_create(CLOCK_REALTIME, &tmr_event, &timer) )
     nl_error( 3, "timer_create() failed: %s", strerror(errno) );
+  return timer;
 }
 
 void set_oms_timeout( int ms ) {
@@ -288,18 +293,18 @@ static int setup_interrupt( int irq, int coid, short code ) {
   return iid;
 }
 
-int parse_spaces( char * const *p, int required ) {
-  char *s = *p;
+int parse_spaces( const char **p, int required ) {
+  const char *s = *p;
   if ( required && !isspace(*s)) return 1;
   while (isspace(*s)) ++s;
   *p = s;
   return 0;
 }
 
-int parse_long( char * const *p, long *lval ) {
+int parse_long( const char **p, long *lval ) {
   int sign = 1;
   long val = 0L;
-  char *s = *p;
+  const char *s = *p;
   if ( *s == '-' ) {
     sign = -1;
     ++s;
@@ -313,7 +318,7 @@ int parse_long( char * const *p, long *lval ) {
   return 0;
 }
 
-int parse_char( char * const *p, char c ) {
+int parse_char( const char **p, char c ) {
   if ( **p == c ) {
     ++(*p);
     return 0;
@@ -321,29 +326,39 @@ int parse_char( char * const *p, char c ) {
   return 1;
 }
 
-int parse_status( char * const *p, unsigned char *status ) {
+int parse_status_bit( const char **p, unsigned char *status,
+      const char *opts, unsigned char flag ) {
+  if (**p == opts[0]) {
+    ++(*p);
+  } else if (**p == opts[1]) {
+    ++(*p);
+    *status |= flag;
+  } else return 1;
+  return 0;
+}
+
+int parse_status( const char **p, unsigned char *status ) {
   *status = 0;
   return
-    parse_status_bit( &p, status, "MP", OMS_STAT_DIR_OUT ) ||
-    parse_status_bit( &p, status, "ND", OMS_STAT_DONE) ||
-    parse_status_bit( &p, status, "NL", OMS_STAT_LIMIT) ||
-    parse_status_bit( &p, status, "NH", OMS_STAT_HOME );
+    parse_status_bit( p, status, "MP", OMS_STAT_DIR_OUT ) ||
+    parse_status_bit( p, status, "ND", OMS_STAT_DONE) ||
+    parse_status_bit( p, status, "NL", OMS_STAT_LIMIT) ||
+    parse_status_bit( p, status, "NH", OMS_STAT_HOME );
 }
 
 /**
  * Handler for TM data read from the OMS78
+ * The request string is AARPRI, so I'm expecting
+ * \d+,\d+,\d+,\d+\n\n\r\r
+ * [PM][DN][LN][HN],[PM][DN][LN][HN],[PM][DN][LN][HN],[PM][DN][LN][HN]\n\r\r
+ * [PM] direction
+ * [DN] done
+ * [LN] limit in this direction
+ * [HN] home
  */
 static void parse_tm_data( readreq *req ) {
-  char *p;
-  int i = 0;
+  const char *p;
 
-  // The request string is AARPRI, so I'm expecting
-  // \d+,\d+,\d+,\d+\n\n\r\r
-  // [PM][DN][LN][HN],[PM][DN][LN][HN],[PM][DN][LN][HN],[PM][DN][LN][HN]\n\r\r
-  // [PM] direction
-  // [DN] done
-  // [LN] limit in this direction
-  // [HN] home
   nl_error( -2, "parse_tm_data: '%s'", quote_np(req->ibuf) );
   p = req->ibuf;
   if ( parse_spaces(&p, 0) ||
@@ -357,11 +372,16 @@ static void parse_tm_data( readreq *req ) {
        parse_status(&p,&OMS_status.status[3] ) || parse_spaces(&p, 1) ) {
     nl_error( 2, "Parse error in tm data: %s", quote_np(req->ibuf) );
   }
+  nl_error( -2, "parse_tm_data: %02X,%02X,%02X,%02X",
+	  OMS_status.status[0],
+	  OMS_status.status[1],
+	  OMS_status.status[2],
+	  OMS_status.status[3] );
 }
 
 #define QBUF_SIZE (IBUF_SIZE*4)
-char *quote_np(char *s) {
-  static qbuf[QBUF_SIZE];
+char *quote_np(const char *s) {
+  static char qbuf[QBUF_SIZE];
   unsigned oi = 0;
   while ( oi < QBUF_SIZE-4 && *s != '\0' ) {
     if ( isprint(*s) ) {
@@ -369,7 +389,7 @@ char *quote_np(char *s) {
     } else {
       if ( oi < QBUF_SIZE-8 ) {
         int n;
-        n = sprintf(&qbuf[oi], QBUF_SIZE-4-oi, "<%02X>", *s);
+        n = snprintf(&qbuf[oi], QBUF_SIZE-4-oi, "<%02X>", *s);
         oi += n;
       } else break;
     }
@@ -391,7 +411,6 @@ int main( int argc, char **argv ) {
   oui_init_options( argc, argv );
 
   pending_queue = new_reqqueue(10);
-  satisfied_queue = new_reqqueue(10);
   free_queue = new_reqqueue(10);
   output_queue = new_charqueue(80);
 
@@ -402,13 +421,13 @@ int main( int argc, char **argv ) {
   coid = ConnectAttach( ND_LOCAL_NODE, 0, chid, _NTO_SIDE_CHANNEL, 0);
 
   oms_iid = setup_interrupt( oms_irq, coid, EXPINT_PULSE_CODE );
-  setup_timer( coid, TIMER_PULSE_CODE, &oms_timer );
+  oms_timer = setup_timer( coid, TIMER_PULSE_CODE );
 
   // Initialize the board
   out8( PC68_CONTROL, 0xA0 ); /* IRQ_E & IBF_E & !TBE_E */
 
   open_cmd_fd( coid, CMD_PULSE_CODE, 0 );
-  init_tm_request( "OMS_status", coid, "AARPRI", 2,
+  init_tm_request( "OMS_status", coid, "AARPRI",
       &OMS_status, sizeof(OMS_status), parse_tm_data);
   
   new_request( "", OMSREQ_IGNORE, NULL );

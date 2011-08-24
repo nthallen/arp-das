@@ -3,6 +3,7 @@
 #include <hw/inout.h>
 #include "omsint.h"
 #include "nortlib.h"
+#include "nl_assert.h"
 
 readreq *current_req;
 
@@ -11,6 +12,8 @@ charqueue *output_queue;
 volatile int tbe_enabled = 0;
 volatile int irq_seen = 0;
 volatile int irq_still_asserted = 0;
+static int pq_mode = PQ_MODE_IDLE;
+
 extern void handle_char( char c );
 
 /*
@@ -70,7 +73,6 @@ void service_int( void ) {
          <cr> => state 0
          <lf> => state 1 (error)
 */
-static int hc_state = 0;
 static int ibuf_idx = 0;
 void handle_char( char c ) {
   switch (pq_mode) {
@@ -234,6 +236,10 @@ int enqueue_char( charqueue *queue, char qchar ) {
   return 0;
 }
 
+static void oms_queue_output( char *cmd ) {
+  while ( *cmd != '\0' ) enqueue_char(output_queue, *cmd++);
+}
+
 char dequeue_char( charqueue *queue ) {
   char qchar;
   int next;
@@ -268,7 +274,6 @@ char dequeue_char( charqueue *queue ) {
   }
 */
 
-static int pq_mode = PQ_MODE_IDLE;
 
 void pq_check(void) {
   if (pq_mode != PQ_MODE_IDLE) return;
@@ -277,7 +282,7 @@ void pq_check(void) {
   if (current_req == NULL) return;
   pq_mode = PQ_MODE_SENDING;
   oms_queue_output(current_req->cmd);
-  if (current_req->type == OMSREQ_NO_RESPONSE) {
+  if (current_req->req_type == OMSREQ_NO_RESPONSE) {
     pq_recycle();
   } else {
     set_oms_timeout( OMS_INITIAL_TIMEOUT );
@@ -288,19 +293,21 @@ void pq_check(void) {
  * Dispose of current_req
  */
 void pq_recycle(void) {
-  switch (current_req->type) {
+  switch (current_req->req_type) {
     case OMSREQ_IGNORE:
     case OMSREQ_LOG:
     case OMSREQ_NO_RESPONSE:
       enqueue_req( free_queue, current_req );
       break;
     case OMSREQ_PROCESSTM:
+      Col_send( current_req->u.tm.tmid );
       break;
     default:
-      nl_error(4, "Invalid request type: %d", current_req->type );
+      nl_error(4, "Invalid request type: %d",
+		current_req->req_type );
   }
   current_req = NULL;
-  pq_mode = PG_MODE_IDLE;
+  pq_mode = PQ_MODE_IDLE;
   pq_check();
 }
 
@@ -309,7 +316,7 @@ void pq_timeout(void) {
     case PQ_MODE_IDLE: return;
     case PQ_MODE_SENDING:
       nl_assert(current_req != NULL);
-      switch (current_req->type) {
+      switch (current_req->req_type) {
         case OMSREQ_IGNORE: break;
         case OMSREQ_PROCESSTM:
           nl_error(2, "Timeout waiting for TM data" );
@@ -319,7 +326,8 @@ void pq_timeout(void) {
             current_req->cmd );
           break;
         default:
-          nl_error(4, "Invalid request type: %d", current_req->type );
+          nl_error(4, "Invalid request type: %d",
+		    current_req->req_type );
       }
       pq_recycle();
       break;
@@ -327,7 +335,7 @@ void pq_timeout(void) {
       if (ibuf_idx >= IBUF_SIZE) {
         current_req->ibuf[IBUF_SIZE-1] = '\0';
         nl_error( 2, "Input buffer overflow on command '%s': '%s'",
-          current_req->cmd, quote_np(current_req(ibuf)) );
+          current_req->cmd, quote_np(current_req->ibuf) );
       } else {
         current_req->ibuf[ibuf_idx] = '\0';
       }
@@ -335,4 +343,5 @@ void pq_timeout(void) {
       break;
     default:
       nl_error(4, "Invalid pq_mode value in pq_timeout: %d", pq_mode );
+  }
 }

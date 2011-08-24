@@ -8,6 +8,6 @@
   Launch DG/cmd OMSdiagcol
   Launch cmd/server OMSdiagsrvr
   Launch - lgr -N `mlf_find LOG`
-  Launch - omsdrv -i4 -vv
+  Launch - omsdrv -i4
 # Launch - OMSdiagalgo -v
 
