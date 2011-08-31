@@ -31,6 +31,8 @@ install-sbin : $(SBIN)
 install-data : $(DATA)
 	mkdir -p $(PREFIX)/share/huarp
 	$(INSTALL) $(DATA) $(PREFIX)/share/huarp
+	$(INSTALL) usbinst.build /boot/build
+	mkifs /boot/build/usbinst.build /boot/fs/usbinst.ifs
 install-pkgs :
 	mkdir -p $(PKGPREFIX)/pkg
 	@for pkg in $(PKGS); do \
