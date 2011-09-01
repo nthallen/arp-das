@@ -9,5 +9,6 @@
 #
 PROJECT_ROOT=@ROOT@
 BUILDNAME=phrtg_g
+QCONFIG=$(QNX_TARGET)/usr/include/qconfig.mk
 include Makefile
 
