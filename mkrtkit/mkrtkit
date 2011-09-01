@@ -1,22 +1,105 @@
 #! /bin/sh
 #
-# mkrtkit pkg [pkg ...]
+# mkrtkit [--usb] pkg [pkg ...]
 function nl_error {
   echo "mkrtkit: $*" >&2
   exit 1
 }
 
-pkg=$1
-[ -n "$pkg" ] || nl_error No package specified
-
 if [ `id -u` != 0 ]; then
   exec /usr/pkg/bin/sudo $0 $*
 fi
 
-# This needs a lot of work
-#   could skip initializing the working directory if it already exists
-#   Decide how to specify what packages to include (command line)
-#
+function usb_installer {
+  bootroot=$1
+  mtpart=`mount | grep "on $bootroot type"`
+  mtpart=${mtpart%% *}
+  mtpart=/dev/${mtpart##*/dev/}
+  mtdev=${mtpart%t*}
+
+  # echo "mtpart is '$mtpart' mtdev is '$mtdev'"
+
+  newusb=''
+
+  for dev in /dev/umass[0-9]; do
+    if [ -e $dev -a $dev != $mtdev ]; then
+      if [ -n "$newusb" ]; then
+	echo "More than one target device discovered: '$dev'"
+      else
+	newusb=$dev
+      fi
+    fi
+  done
+  if [ -z "$newusb" ]; then
+    echo "No target USB device located"
+    return
+  fi
+  echo "Ready to install to $newusb"
+  parts=''
+  hasparts=no
+  for part in ${newusb}t*; do
+    [ -e $part ] && parts="$parts $part"
+  done
+  if [ -n "$parts" ]; then
+    echo "$newusb has existing partitions"
+    hasparts=yes
+    echo "Dismounting:"
+    for part in $parts; do
+      echo "  $part"
+      umount $part
+    done
+  fi
+  /sbin/fdisk $newusb show | grep -q "^[1-4]\. [^-]" && hasparts=yes
+  if [ $hasparts = yes ]; then
+    echo "If you want to preserve the data on this drive, stop now."
+    echo "Otherwise, we will invoke fdisk, so you can manually"
+    echo "delete any existing partitions."
+    echo -n "Continue? [N/y]: "
+    read j
+    case $j in
+      [yY]*) ;;
+      *) echo "Aborting USB initialization"; return;;
+    esac
+    /sbin/fdisk $newusb
+    hasparts=no
+    /sbin/fdisk $newusb show | grep -q "^[1-4]\. [^-]" && hasparts=yes
+    if [ $hasparts = yes ]; then
+      echo "Partitions still found on $newusb: aborting USB initialization"
+      return
+    fi
+  fi
+  echo -n "Continue with installation to $newusb? [N/y]: "
+  read j
+  case $j in
+    [yY]*) ;;
+    *) echo "Aborting USB initialization"; return;;
+  esac
+  /sbin/fdisk $newusb add -t79
+  /sbin/fdisk $newusb boot -t79
+  /sbin/fdisk $newusb loader
+  mount -e $newusb
+  echo Formatting ${newusb}t79 with QNX4 Filesystem
+  dinit -h -f ./boot/fs/usbinst.ifs ${newusb}t79
+  echo Mounting ${newusb}t79 as /fs/usbinst
+  mount -tqnx4 ${newusb}t79 /fs/usbinst
+  if [ ! -d /fs/usbinst ]; then
+    echo "Error mounting ${newusb}t79 as /fs/usbinst"
+    return
+  fi
+  cp -pR rtinstall instflop.dat boot repository /fs/usbinst
+  umount ${newusb}t79
+  echo "Initialization of ${newusb} as installation media complete"
+}
+
+init_usb=no
+if [ "$1" == "--usb" ]; then
+  init_usb=yes
+  shift
+fi
+[ -z "$1" ] && nl_error "Must specify at least one package"
+# Use the first package name as part of the iso filename
+pkg=$1
+
 # Make a working directory and change into it:
 [ -d rtkit_image ] || mkdir rtkit_image
 cd rtkit_image
@@ -36,6 +119,7 @@ if [ ! -f ./boot/fs/qnxbase.qfs ]; then
     nl_error "Unable to locate qnxbase.qfs. Need an install CD source\n";
   cp -n /fs/cd0/boot/fs/qnxbase.qfs /fs/cd0/boot/fs/*.ifs ./boot/fs
 fi
+cp -n /boot/fs/usbinst.ifs ./boot/fs
 
 # Copy the Runtime Kit version of the CD boot image (instflop-rtkit.dat) from the
 # rtkit directory in the root directory of the Installation and Boot CD to the
@@ -58,17 +142,20 @@ for pkgs in ; do
   /usr/local/sbin/mkrtkitarch repository $pkgs ||
     nl_error mkrtkitarch failed on package $pkgs
 done
-pkgtgz=`ls repository/$pkg-*`
-pver=`expr $pkgtgz : "repository/$pkg-\([0-9][0-9.]*\).tar.gz"`
-echo "pkgtgz = $pkgtgz, pver = $pver"
 
-# mkisofs options:
-#  -r create rationalized Rock Ridge directory
-#  -b <image> Set El Torito boot image name
-#  -c <cat>   Set El Torito boot catalog name
-#  -J         Joliet directory (relaxed file name restrictions)
-#  -f         Follow symlinks (for repositories)
-#  -o <iso>   Output .iso
-mkisofs -r -b instflop.dat -c boot/isocatalog -J -f -o ../rtkit-$pkg-$pver.iso .
-cd ..
-# rm -r rtkit_image
+if [ $init_usb = yes ]; then
+  usb_installer /
+else
+  pkgtgz=`ls repository/$pkg-*`
+  pver=`expr $pkgtgz : "repository/$pkg-\([0-9][0-9.]*\).tar.gz"`
+  echo "pkgtgz = $pkgtgz, pver = $pver"
+
+  # mkisofs options:
+  #  -r create rationalized Rock Ridge directory
+  #  -b <image> Set El Torito boot image name
+  #  -c <cat>   Set El Torito boot catalog name
+  #  -J         Joliet directory (relaxed file name restrictions)
+  #  -f         Follow symlinks (for repositories)
+  #  -o <iso>   Output .iso
+  mkisofs -r -b instflop.dat -c boot/isocatalog -J -f -o ../rtkit-$pkg-$pver.iso .
+fi
