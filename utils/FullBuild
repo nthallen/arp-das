@@ -15,17 +15,13 @@ function nl_error {
 function compile {
   echo
   echo "============"
-  echo "$*"
+  echo "$* in $PWD"
   date
   id
   echo "QNX_HOST=$QNX_HOST QNX_TARGET=$QNX_TARGET"
   echo "============"
   $* || nl_error $* failed
 }
-
-# Create FullBuild.log before sudo to make sure
-# user can write to it.
-[ -f FullBuild.log ] || touch FullBuild.log
 
 FORCE=''
 if [ "$1" = "-f" ]; then
@@ -49,13 +45,18 @@ for arg in $*; do
   esac
 done
 
+if [ `id -u` = 0 -a -n "$SUDO_USER" ]; then
+  unsu="sudo -E -u $SUDO_USER"
+else
+  unsu=""
+fi
+
+# Create FullBuild.log as user to make sure
+# user can write to it.
+[ -f FullBuild.log ] || $unsu touch FullBuild.log
+
 # Now handle multiple arguments
 if [ "$2" != "" ]; then
-  if [ `id -u` = 0 -a -n "$SUDO_USER" ]; then
-    unsu="sudo -E -u $SUDO_USER"
-  else
-    unsu=""
-  fi
   for arg in $*; do
     case "$arg" in
       configure)
