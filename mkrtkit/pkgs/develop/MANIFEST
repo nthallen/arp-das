@@ -53,6 +53,7 @@ usr/local/include/nortlib.h
 usr/local/include/idx64.h
 usr/local/include/tma.h
 usr/local/include/subbus.h
+usr/local/include/subbusd.h
 usr/local/include/qclid.h
 usr/local/include/specq.h
 usr/local/include/tmctime.h

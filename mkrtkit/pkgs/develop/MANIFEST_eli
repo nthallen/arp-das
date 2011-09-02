@@ -688,13 +688,6 @@ usr/local/lib/Eli/info/2.0.8/examples/sets/symbol.lido
 usr/local/lib/Eli/info/2.0.8/examples/sets/t.c
 usr/local/lib/Eli/info/2.0.8/examples/sets/word.gla
 usr/local/lib/Eli/info/2.0.8/html
-usr/local/lib/Eli/info/2.0.8/html/FOOT.html
-usr/local/lib/Eli/info/2.0.8/html/HEAD.html
-usr/local/lib/Eli/info/2.0.8/html/chain.gif
-usr/local/lib/Eli/info/2.0.8/html/graph1.gif
-usr/local/lib/Eli/info/2.0.8/html/graph2.gif
-usr/local/lib/Eli/info/2.0.8/html/mapcon.gif
-usr/local/lib/Eli/info/2.0.8/html/remote.gif
 usr/local/lib/Eli/kwd
 usr/local/lib/Eli/kwd/PKGVER.1
 usr/local/lib/Eli/kwd/PKGVER
@@ -979,8 +972,8 @@ usr/local/lib/Eli/tp/1.0.3/tpOut.sh
 usr/local/lib/Eli/version
 usr/local/lib/Eli/version/PKGVER.1
 usr/local/lib/Eli/version/PKGVER
-usr/local/lib/Eli/version/4.7.3
-usr/local/lib/Eli/version/4.7.3/version.dg
+usr/local/lib/Eli/version/4.7.4
+usr/local/lib/Eli/version/4.7.4/version.dg
 usr/local/lib/Odin
 usr/local/lib/Odin/LIBVER
 usr/local/lib/Odin/PKGLST

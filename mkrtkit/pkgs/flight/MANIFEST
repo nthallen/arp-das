@@ -28,6 +28,7 @@ usr/local/bin/reduce
 usr/local/bin/saverun
 usr/local/bin/sbswitch
 usr/local/bin/sspdrv
+usr/local/bin/subbusd_sc104
 usr/local/bin/subbusd_serusb
 usr/local/bin/syscon
 usr/local/bin/unsu
