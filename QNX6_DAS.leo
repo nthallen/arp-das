@@ -27,7 +27,7 @@
 </v>
 <v t="ntallen.20070815151915"><vh>Status</vh>
 <v t="ntallen.20080729145409"><vh>Overview</vh></v>
-<v t="ntallen.20071127160602"><vh>OS Install</vh>
+<v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
 <v t="ntallen.20090225110248"><vh>Install 6.4.0</vh></v>
@@ -36,8 +36,10 @@
 <v t="ntallen.20090911120219"><vh>phrtg compile hacks</vh></v>
 <v t="ntallen.20090930220540"><vh>Eli 4.6.1 CVS</vh></v>
 </v>
-<v t="ntallen.20100723121747.2023"><vh>Install 6.5.0</vh>
+<v t="ntallen.20100723121747.2023" a="E"><vh>Install 6.5.0</vh>
 <v t="ntallen.20101124082052.2043"><vh>C++ Compile issue</vh></v>
+<v t="ntallen.20110817142313.2207"><vh>Hercules</vh></v>
+<v t="ntallen.20110901091119.2215"><vh>Reinstall 6.5.0</vh></v>
 </v>
 <v t="ntallen.20101129134921.2045"><vh>Eli</vh></v>
 <v t="ntallen.20090824123722"><vh>Runtime kit Creation and Usage</vh>
@@ -394,8 +396,8 @@
 <v t="ntallen.20110421132300.2130"><vh>Information to maintain</vh></v>
 </v>
 </v>
-<v t="ntallen.20070404221945.3" a="E"><vh>Graphics</vh>
-<v t="ntallen.20090203160910" a="E"><vh>PhRTG</vh>
+<v t="ntallen.20070404221945.3"><vh>Graphics</vh>
+<v t="ntallen.20090203160910"><vh>PhRTG</vh>
 <v t="ntallen.20090316133552"><vh>Bugs</vh>
 <v t="ntallen.20090422104622"><vh>Marking line visible does not redraw...</vh></v>
 <v t="ntallen.20090316133552.1"><vh>Resolved: Divider Issue</vh></v>
@@ -476,11 +478,11 @@
 <v t="ntallen.20090219084511.5"><vh>Line Properties</vh></v>
 </v>
 </v>
-<v t="ntallen.20090203162108.1" a="E"><vh>Photon Issues</vh>
+<v t="ntallen.20090203162108.1"><vh>Photon Issues</vh>
 <v t="ntallen.20090227092327"><vh>Command Line Options</vh></v>
 <v t="ntallen.20090227131711"><vh>Cleanup</vh></v>
 <v t="ntallen.20090204093154"></v>
-<v t="ntallen.20090331165341" a="E"><vh>Rendering</vh>
+<v t="ntallen.20090331165341"><vh>Rendering</vh>
 <v t="ntallen.20090401155216"><vh>Root</vh></v>
 <v t="ntallen.20090403102636.1"><vh>Variables</vh></v>
 <v t="ntallen.20090331165341.1"><vh>Window</vh></v>
@@ -488,7 +490,7 @@
 <v t="ntallen.20090331165341.3"><vh>Axes</vh></v>
 <v t="ntallen.20090331165341.4"><vh>Graph</vh></v>
 <v t="ntallen.20090331165341.5"><vh>Line</vh></v>
-<v t="ntallen.20110628150418.2171" a="E"><vh>Trend Plot</vh>
+<v t="ntallen.20110628150418.2171"><vh>Trend Plot</vh>
 <v t="ntallen.20110706143111.2179"><vh>axes for trend plot</vh></v>
 <v t="ntallen.20110701115423.2175"><vh>Time Units</vh></v>
 <v t="ntallen.20110720104114.2197"><vh>Epoch</vh></v>
@@ -505,7 +507,7 @@
 <v t="ntallen.20110714152530.2195"><vh>Top Level</vh></v>
 <v t="ntallen.20110706143111.2182"><vh>Reload</vh></v>
 </v>
-<v t="ntallen.20110712114421.2191" a="E"><vh>Todo</vh>
+<v t="ntallen.20110712114421.2191"><vh>Todo</vh>
 <v t="ntallen.20110726112502.2199"><vh>n_lines &lt; ncols</vh></v>
 </v>
 </v>
@@ -632,7 +634,7 @@
 <v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
 <v t="ntallen.20070817133522.3"><vh>QNX6</vh>
-<v t="ntallen.20071127160602"></v>
+<v t="ntallen.20071127160602" a="E"></v>
 <v t="ntallen.20110102095209.2061"><vh>cmdgen</vh></v>
 <v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
 <v t="ntallen.20080716155154.1"><vh>DG.h</vh>
@@ -649,9 +651,20 @@
 <v t="ntallen.20070817133522.5"></v>
 </v>
 </v>
-<v t="ntallen.20110211111845.2089"><vh>QNX6 Sys Admin</vh>
-<v t="ntallen.20110211111845.2090"><vh>mkrtkit</vh>
-<v t="ntallen.20110211111845.2091"><vh>Version Numbering</vh></v>
+<v t="ntallen.20110211111845.2089" a="E"><vh>QNX6 Sys Admin</vh>
+<v t="ntallen.20071127160602" a="E"></v>
+<v t="ntallen.20110211111845.2090" a="E"><vh>mkrtkit</vh>
+<v t="ntallen.20110211111845.2091" a="E"><vh>Version Numbering</vh>
+<v t="ntallen.20110902103207.2217"><vh>Installation Packages</vh></v>
+<v t="ntallen.20110902103207.2218"><vh>chkpkgs</vh></v>
+</v>
+<v t="ntallen.20110816134921.2205"><vh>Installing onto QNX4 partition</vh></v>
+<v t="ntallen.20110818152635.2209" a="E"><vh>osupdate</vh>
+<v t="ntallen.20110902103207.2219"><vh>osupdate off the network</vh></v>
+</v>
+<v t="ntallen.20110831091607.2211"><vh>Formatting a USB Flash Drive as Installer</vh>
+<v t="ntallen.20110831091607.2212"><vh>Replicating USB Flash Installer</vh></v>
+</v>
 </v>
 </v>
 </v>
@@ -4281,14 +4294,19 @@ Need:
     $(QNX_TARGET)/x86/lib
     $(QNX_TARGET)/x86/usr/lib
     $(QNX_TARGET)/x86/lib/gcc/4.4.2</t>
-<t tx="ntallen.20101129134921.2045">cvs -d:pserver:anonymous@eli-project.cvs.sourceforge.net:/cvsroot/eli-project login
+<t tx="ntallen.20101129134921.2045">The hostname of the build system must resolve in DNS or the Odin build will fail
+
+cvs -d:pserver:anonymous@eli-project.cvs.sourceforge.net:/cvsroot/eli-project login
 # empty password
 cvs -z3 -d:pserver:anonymous@eli-project.cvs.sourceforge.net:/cvsroot/eli-project co -P Elidistrib
 unset ODIN_LOCALIPC # default is supposed to be TCP/IP
 cd Elidistrib
 ./symlinks # need to do this once after checkout. Runs autoconf
 ./configure --prefix=/usr/local --without-XView --without-Xaw --without-tcltk
-./BUILD [-nobrowsers]
+make (runs BUILD)
+# ./BUILD [-nobrowsers]
+sudo make install
+
 </t>
 <t tx="ntallen.20101206091106.2047">Document how to generate manifests for a new version of the operating system.
 
@@ -5213,5 +5231,287 @@ if ( range.max &gt; limits.epoch ) {
   axis_limits_trended = true;
 }
 </t>
+<t tx="ntallen.20110816134921.2205">The QNX4 filesystem is recommended for flash (find the reference)
+  System Architecture/Filesystems/Power-Safe filesystem
+
+Therefore we will want to have the installer give the option of formatting for QNX4:
+    fdisk /dev/hd0 -t79
+    fdisk /dev/hd0 boot -t79
+    fdisk /dev/hd0 loader
+    mount -e /dev/hd0
+    dinit -h -f /fs/cd0/boot/fs/qnxbase.ifs /dev/hd0t79
+    mount -tqnx4 /dev/hd0t79 /install
+
+Implemented in rtinstall now
+</t>
+<t tx="ntallen.20110817142313.2207">Hercules II uses the NS83815 network adapter that is no longer supported,
+but the driver can be copied from a QNX 6.3.2 distribution, which I have
+done. The device is not identified in the enumerator, so we need to
+start the driver manually in /etc/rc.d/rc.local:
+    mount -T io-pkt devn-ns83815.so
+    netmanager
+    /usr/sbin/sshd
+
+Also need to:
+    # to get it boot up running qnet, referenced from /etc/system/sysinit:
+    touch /etc/system/config/useqnet
+
+Create /etc/net.cfg:
+    # nto network config file v1.2
+    version v1.2
+    
+    [global]
+    hostname hercules7
+    domain local.net
+    nameserver 10.0.0.16
+    
+    [en0]
+    type ethernet
+    manual_ip 10.10.0.4
+    manual_netmask 255.255.255.0
+
+Create or copy in passwd, group, shadow, sudoers, pkg.sh, pkg.ksh
+
+Create ssh host key
+    ssh-keygen -b1024 -trsa -f/etc/ssh/ssh_host_rsa_key -N ""
+</t>
+<t tx="ntallen.20110818152635.2209">osupdate is now tied to the same packages as mkrtkit.
+Updating a system involves deleting the old package
+and installing the new one. This can present some backwards
+compatibility issues. If the new package has new libraries,
+user's applications will need to be rebuilt. This should
+be as simple as "make clean; make". When it is a concern,
+the old version of the library can be included in the
+new package, but it will not be easy to rebuild the old
+version of the library, e.g. from scratch. In such an
+event, the old library should simply be removed from the
+package, and we should move forward. If the old version is
+ever so important that it must be supported indefinitely,
+a branch of the CVS tree should be created as necessary.</t>
+<t tx="ntallen.20110831091607.2211">The drive should show up as /dev/umass0 (most likely with a /dev/umass0t6 partition)
+umount /dev/umass0t6
+
+    fdisk /dev/umass0 -t79
+    fdisk /dev/umass0 boot -t79
+    fdisk /dev/umass0 loader
+    mount -e /dev/umass0
+    dinit -h -f usbinst.ifs /dev/umass0t79
+    mount -tqnx4 /dev/umass0t79 /installer
+
+Now copy all the usual stuff that is part of the rtkit image. I use cp -R
+in order to copy the actual tar.gz archives, not the soft links.
+
+    cd rtkit_image
+    cp -pR rtinstall instflop.dat boot repository /installer/
+   
+Then you're good to go:
+    
+    umount /dev/umass0t79
+
+It would be nice to have this generation scripted. It could clearly be part of mkrtkit if you don't want an ISO, but it would also be nice if the installer could replicate itself onto a(nother) flash drive, since setting up the whole rtkit hierarchy is way beyond what is necessary.</t>
+<t tx="ntallen.20110831091607.2212">To replicate, first need to identify the drive we want to install to and make sure it isn't our boot media. rtinstall gets passed the mountpoint of the boot media. Can discover the underlying device and partition via mount:
+    mtpt=`mount | grep $bootroot`
+    mtpt=${mtpt%% *} # first word is partition
+    mtpt=${mtpt##/dev/}
+    mtdev=/dev/${mtpt%t*}
+
+Now look for umass devices. Let's assume there is only one umass device that is not our boot device:
+    newusb=''
+    for dev in /dev/umass[0-9]; do
+      if [ -e $dev -a $dev != $mtdev ]; then
+        if [ -n "$newusb" ]; then
+          echo "More than one target device discovered: '$dev'"
+        else
+          newusb=$dev
+        fi
+      fi
+    done
+    if [ -z "$newusb" ]; then
+      echo "No target USB device located"
+      return;
+    fi</t>
+<t tx="ntallen.20110901091119.2215">Set hostname (nortvm650a) using networking GUI
+  touch /etc/system/config/useqnet
+reboot
+  cd /net/radgse/usr/local/sbin
+  ./sec_copy radgse nortvm650a
+start up nortvm650 in order to retrieve dup_homedir script...
+Need to run dup_homedir on nortvm650 because sudo is not yet installed
+
+Create ssh host key
+    ssh-keygen -b1024 -trsa -f/etc/ssh/ssh_host_rsa_key -N ""
+
+/etc/rc.d/rc.local copied from nortvm650:
+    
+    setconf CS_LIBPATH $(getconf CS_LIBPATH):/usr/pkg/lib
+    # This is for DACS USB interface:
+    /sbin/devc-serusb -d vid=0x0403,did=0x6010,module=ftdi
+    /usr/sbin/sshd
+
+# Remove non-x86 targets from /usr/qnx641/target/qnx6
+# (Installation media was x86 only, so not an issue)
+
+# Required for phrtg-native build below
+ln -s /usr/local $QNX_TARGET/usr/local
+
+install pkg bootstrap, pkgs
+
+
+Bootstrap pkgsrc
+Adapted from pkgsrc instructions:
+  http://community.qnx.com/sf/wiki/do/viewPage/projects.pkgsrc/wiki/BinaryPackages
+
+  Edit /etc/profile to add /usr/pkg/bin and /usr/pkg/sbin to PATH
+  Add to /etc/rc.d/rc.local:
+    setconf CS_LIBPATH $(getconf CS_LIBPATH):/usr/pkg/lib
+  mkdir /var/tmp
+  download pkgsrc bootstrap bootstrap.tar.gz and unpack in /
+    ftp://ftp.netbsd.org/pub/pkgsrc/packages/QNX/i386/6.5.0_head_20101224/bootstrap.tar.gz
+  Set PKG_PATH in /root/.profile:
+    export PKG_PATH=ftp://ftp.NetBSD.org/pub/pkgsrc/packages/QNX/&lt;arch&gt;/&lt;vers&gt;/All
+    &lt;arch&gt; is i386
+    &lt;vers&gt; is 6.5.0_head_20101224
+
+Install: These packages need to be identified individually by going to the site and
+  seeing what the current version is. These are accurate as of 110901
+    pkg_add -v &lt;package&gt;
+    
+    # openssh # Included in 6.4.1
+    perl-5.12.2nb1
+    sudo-1.7.2p6   # not in dist: installed from rtkit iso
+    m4-1.4.15
+    autoconf-2.68
+    automake-1.11.1nb1
+    gtexinfo-4-13 # not entirely sure I need this...
+    libtool-2.2.6b
+    ncurses-5.7nb4
+    screen-4.0.3nb4
+    fftw-# don't actually need to install: using fftwf in phrtg
+    fftwf-3.2.1nb1
+    scmgit-base-1.7.3.4nb1 # (maybe)
+    uemacs-4.0nb1 # for Nick
+
+Install cdrtools from QNX downloads third party page:
+    This is a version compiled for 6.3.2, but hopefully still works.
+    cdrtools-201beta-bin-qnx.tgz
+    Interesting to know if this will be rebuilt.
+    I should make this into a separate package. Currently included in develop
+
+For FullBuild to work reliabily, we need to allow some environment variables
+through sudo:
+    
+    Defaults env_keep = "QNX_HOST QNX_TARGET MAKEFLAGS PATH"
+    root  ALL=(ALL) SETENV: ALL
+    nort  ALL=(ALL) SETENV: ALL
+
+We will also want to grant sudo NOPASSWD to group flight for several utilities:
+    
+    %flight ALL= NOPASSWD: \
+        /usr/local/bin/fixdisk, \
+        /usr/local/sbin/promote, \
+        /usr/local/sbin/signal_parent, \
+        /usr/local/bin/distribute
+
+These should be in the sudoers file that is copied over.
+
+Build Eli before FullTopBuild (see neighboring node)
+
+For FullTopBuild, first need to check out a bunch of things
+  # make sure CVS_RSH is defined
+  export CVS_RSH=ssh
+  set CVSROOT=:ext:forge.abcd.harvard.edu:/cvsroot/arp-das
+  cvs checkout QNX6Build
+  cd QNX6Build
+  QNX6/utils/FullTopBuild
+  
+    
+    +QNX6/utils  includes a config.site
+    +nortutil (only os-independent: select binaries and select install tool)
+      make sure /usr/bin/perl points to perl (/usr/pkg/bin/perl)
+    +nortlib[2]                FullBuild with internal sudo, stop on error
+    +cmdgen       (lex/yacc)   FullBuild with internal sudo, stop on error
+    +oui          (lex/yacc)   FullBuild with internal sudo, stop on error
+    +QNX6/tmlib   (TM library)  FullBuild with internal sudo, stop on error
+    +QNX6/tmphlib (need for display programs and keyboard client programs) FullBuild+
+    +QNX6/tmpplib (C++ interface for TM) FullBuild+
+    +QNX6/displib (needed for display programs generated via phtable) FullBuild+ Did not specify CC=qcc CXX=QCC
+    +QNX6/tmutil  (checks path of sudo. no configure, make, make install) installed
+
+    +QNX6/tmc (no configure, make, make install)
+    +QNX6/TMbfr/resmgr (no configure, make, make install)
+    +QNX6/lgr (no configure, make, make install)
+    +QNX6/rdr (no configure, make, make install)
+    +QNX6/memo (no configure, make, make install)
+    +QNX6/phrtg-native (make, make install)
+    +tmcalgo (no configure, make, make install)
+    +QNX6/qcliutil (no configure, make, make install)
+    +snafu  FullBuild
+    
+    +QNX6/dccc
+    +QNX6/diagnost (minus scdebug)
+    +QNX6/Diagsuite
+    +QNX6/ssp_driver
+    +QNX6/idx64
+
+    +eli compiler tools (required for table, qclicomp?)
+    
+    +phtable (provide Makefile to invoke eli)
+    +qclicomp (or qclicompsrc?)(provide Makefile to invoke eli)
+
+    Try installing Leo, what the heck!
+
+Now to setup mkrtkit:
+    cd mkrtkit
+    cvs update -P # prune empty directories
+    sudo make install-progs
+    ./chkpkgs
+    /usr/local/sbin/pkg2pkg [on whatever packages are reported as missing]
+    sudo make install-pkgs
+I ran a number of the tests first, ran into bugs where directories were not created,
+fixed those. Ran into a problem because old directories that were deleted popped up
+when restored in CVS. I should probably go into the repository and clean those
+directories out. I have made the tests less sensitive to empty directories...
+
+</t>
+<t tx="ntallen.20110902103207.2217">I had the idea that:
+    Installation packages should be packages with no files of their own,
+    just a Header
+    Keeping track of the version number is then tricky, since nothing updates
+    
+Packages 'gse' and 'flight_inst' are installation packages, but I used
+gse and flight on the first multi-install CDs. Go figure.
+
+I think now that these should be handled a little differently.
+It's generally not unreasonable to update one package independently of another.
+If there is a dependency in the change, then both packages should be updated.
+I don't offer the provision to update packages individually. I generally expect
+everyone to update to current. Hence maintaining lists of explicit version
+dependencies between packages is overkill.
+
+For installation sets, keeping a list of archives that are part of the
+installation makes sense, and the version can be incremented when any of the
+included packages is updated.</t>
+<t tx="ntallen.20110902103207.2218">Currently checks mkrtkit/pkgs/*/Header
+    If it finds that the package is installed, it does several
+    comparisons between the uninstalled package and the installed
+    package and also tests the files in the MANIFESTS against
+    the modification time of the archive.
+What chkpkgs does not do is:
+    Look at the Requires: list to make sure those packages
+    exist
+    Check any packages that are installed but do not have a
+    source listing. This is true of anything converted via
+    pkg2pkg
+
+In general, it does not make sense for multiple versions of a
+package to be installed. osupdate tries to clean this up, but
+install_pkg should do that on the development system.
+
+chkpkgs could check that this condition holds
+install_pkg can leave the archives, but should eliminate the
+/var/pkg/foo-old.version directory and contents</t>
+<t tx="ntallen.20110902103207.2219">Currently osupdate uses the Header on the source node to check
+dependencies. I should use the Header on the target node, then
+provide a command-line argument to specify the cache</t>
 </tnodes>
 </leo_file>
