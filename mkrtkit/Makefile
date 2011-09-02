@@ -34,7 +34,6 @@ install-data : $(DATA)
 	$(INSTALL) usbinst.build /boot/build
 	mkifs /boot/build/usbinst.build /boot/fs/usbinst.ifs
 install-pkgs :
-	mkdir -p $(PKGPREFIX)/pkg
 	@for pkg in $(PKGS); do \
 	  [ -f pkgs/$$pkg/Makefile ] && make -C pkgs/$$pkg install; \
 	  ./chkpkgs $$pkg || exit 1; \
