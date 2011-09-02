@@ -35,45 +35,53 @@ $pkgname =~ m/^\w+$/ or
   die "Invalid package name: '$pkgname'\n";
 
 my $pkgroot = "/var/huarp/pkg";
+my $pkgcache = "/var/huarp/pkgcache";
 my $pkg = pkg_read_header($pkgname);
 my $src = "pkgs/$pkgname";
 my $dest = "$pkgroot/$pkgname-$pkg->{Version}";
-my $archive = "/var/huarp/pkgcache/$pkgname-$pkg->{Version}.tar";
+my $archive = "$pkgcache/$pkgname-$pkg->{Version}.tar";
 my $rdest = $dest; $rdest =~ s|^/||;
 
 -d $pkgroot || mkpath($pkgroot) ||
   die "Fatal: Unable to create pkgroot $pkgroot\n";
-if ( -d $dest || -f $archive || -f "$archive.gz" ) {
+-d $pkgcache || mkpath($pkgcache) ||
+  die "Fatal: Unable to create pkgcache $pkgcache\n";
+if ( -d $dest ) {
   warn "$pkgname-$pkg->{Version} already installed: skipping\n";
-  exit(0);
-}
-mkpath($dest) ||
-  die "Fatal: Unable to create package destination $dest\n";
-my $MP = "$dest/MANIFEST_pkg";
-open( my $MPfh, ">$MP" ) || die "Unable to write $MP\n";
-print $MPfh "$rdest/Header\n";
-copy( "$src/Header", "$dest/Header" );
-for my $mf ( @{$pkg->{Files}} ) {
-  my $manifest = $mf->{List};
-  print $MPfh "$rdest/$manifest\n";
-  if ( $manifest ne "MANIFEST_pkg" ) {
-    copy( "$src/$manifest", "$dest/$manifest" ) ||
-      die "Copy $src/$manifest $dest/$manifest failed\n";
+} else {
+  mkpath($dest) ||
+    die "Fatal: Unable to create package destination $dest\n";
+  my $MP = "$dest/MANIFEST_pkg";
+  open( my $MPfh, ">$MP" ) || die "Unable to write $MP\n";
+  print $MPfh "$rdest/Header\n";
+  copy( "$src/Header", "$dest/Header" );
+  for my $mf ( @{$pkg->{Files}} ) {
+    my $manifest = $mf->{List};
+    print $MPfh "$rdest/$manifest\n";
+    if ( $manifest ne "MANIFEST_pkg" ) {
+      copy( "$src/$manifest", "$dest/$manifest" ) ||
+	die "Copy $src/$manifest $dest/$manifest failed\n";
+    }
   }
+  close $MPfh || warn "Error closing $dest/MANIFEST_pkg\n";
+  print "Installed: $dest\n";
 }
-close $MPfh || warn "Error closing $dest/MANIFEST_pkg\n";
-# Create the archive:
-my $cwd = getcwd();
-print "Creating archive $archive.gz\n";
-for my $mf ( @{$pkg->{Files}} ) {
-  chdir($mf->{SrcRoot}) || die;
-  system( "tar -rf $archive --owner=0 --group=0 --no-recursion " .
-	  "-T $dest/$mf->{List}" ) &&
-    die "tar failed creating archive for $pkg->{name}\n";
+if ( -f $archive || -f "$archive.gz" ) {
+  warn "$archive already exists: will not overwrite\n";
+} else {
+  # Create the archive:
+  my $cwd = getcwd();
+  print "Creating archive $archive.gz\n";
+  for my $mf ( @{$pkg->{Files}} ) {
+    chdir($mf->{SrcRoot}) || die;
+    system( "tar -rf $archive --owner=0 --group=0 --no-recursion " .
+	    "-T $dest/$mf->{List}" ) &&
+      die "tar failed creating archive for $pkg->{name}\n";
+  }
+  chdir($cwd);
+  system("gzip $archive") && die "gzip $archive failed\n";
+  print "Created archive $archive.gz\n";
 }
-chdir($cwd);
-system("gzip $archive") && die "gzip $archive failed\n";
-print "Installed: $dest\n";
 exit(0);
 
 sub pkg_read_header {
