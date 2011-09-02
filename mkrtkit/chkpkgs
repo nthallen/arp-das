@@ -20,7 +20,10 @@ for my $hdr ( @hdrs ) {
     if ( $_ =~ m/^Version: *(\S+)\s*$/ ) {
       $version = $1;
     } elsif ( $_ =~ m/^Files:\s*(\w+)\s+\@\s+(\S+)$/ ) {
-      push(@mani, { file => $1, root => $2 });
+      my $file = $1;
+      my $root = $2;
+      $root =~ s,^(.*[^/])$,$1/,;
+      push(@mani, { file => $file, root => $root });
     }
   }
   die "No version defined for package $pkg\n" unless defined $version;
@@ -74,7 +77,7 @@ for my $hdr ( @hdrs ) {
 	die "Unable to read pkgs/$pkg/$fn\n";
       while (<$fn>) {
 	s/\s*$//; # chomp
-	my $path = "$root/$_";
+	my $path = "$root$_";
 	if ( ! -f $path && ! -d $path && ! -l $path ) {
 	  warn "Package $pkg: File $path missing\n";
 	  $RV = 1;
