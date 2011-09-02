@@ -1,6 +1,6 @@
 # develop package
-Version: 2.4.3
-Requires: flight gcc
+Version: 2.4.4
+Requires: flight gcc photon mozilla sudo perllink ncurses screen fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
 Files: MANIFEST_cdr @ /

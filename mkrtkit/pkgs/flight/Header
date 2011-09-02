@@ -1,5 +1,5 @@
 # Package flight
-Version: 2.4.2
-Requires: qnx-6.5.0
+Version: 2.4.3
+Requires: qnx
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /

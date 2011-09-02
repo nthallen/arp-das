@@ -2,21 +2,124 @@
 use strict;
 use File::Compare;
 
+# chkpgks looks at packages in pkgs/*/Header
+#  If package is installed, it compares the uninstalled
+#  files with the installed files, requiring a version
+#  bump if anything has changed. Then it compares
+#  the modification times of the files listed in the
+#  MANIFESTs to the creation time of the archive.
+
 
 my $RV = 0;
 
-my @hdrs = @ARGV ? (map "pkgs/$_/Header", @ARGV) :
-  <pkgs/*/Header>;
+# First catalog what packages we have, both uninstalled
+# and installed.
+my @pkgs;
+my %pkg; # the currently installed packages
+my %missing; # missing packages
+my $pkgdir = "/var/huarp/pkg";
+# First the uninstalled
+for my $pkg ( <pkgs/*/Header> ) {
+  if ( -f $pkg ) {
+    $pkg =~ s|^pkgs/(.*)/Header$|$1|;
+    $pkg{$pkg} = [];
+    push @pkgs, $pkg;
+  }
+}
+# Now the installed
+for my $pkg ( <$pkgdir/*> ) {
+  if ( -d $pkg ) {
+    my $pp = pkg_check($pkg, $pkgdir);
+    if ( ! defined $pkg{$pp->{root}} ) {
+      $pkg{$pp->{root}} = [];
+      push @pkgs, $pp->{root};
+    }
+    push @{$pkg{$pp->{root}}}, $pp;
+  }
+}
+for my $pkg ( sort @pkgs ) {
+  $pkg{$pkg} = [ sort { ver_comp($b,$a); } @{$pkg{$pkg}} ];
+}
 
-# print map "$_\n", @hdrs;
+# Complain if we have more than one version installed:
+for my $pkg ( sort @pkgs ) {
+  if ( @{$pkg{$pkg}} > 1 ) {
+    warn "$pkg: multiple versions installed\n";
+    $RV = 1;
+  }
+}
 
-for my $hdr ( @hdrs ) {
-  $hdr =~ m,pkgs/([^/]+)/Header, || die;
-  my $pkg = $1;
+# Now let's handle the command line
+# If explicit packages are on the command line, check
+# them. Otherwise, check all the packages.
+my @checklist = @ARGV ? @ARGV : @pkgs;
+for my $pkg ( @checklist ) {
+  $RV = 1 if check_header($pkg);
+}
+
+# Report missing packages
+for my $reqd ( sort keys %missing ) {
+  warn "$reqd: not found, required by ",
+    join( ", ", @{$missing{$reqd}} ), "\n";
+}
+
+exit($RV);
+
+sub pkg_check {
+  my ( $pkg, $src ) = @_;
+  if ( $pkg =~ m|^(?:.*/)?(\w+)(?:-(\d+(?:\.\d+)*))?$| ) {
+    my $root = $1;
+    my @ver;
+    @ver = split( /\./, $2 ) if $2;
+    return { root => $root, ver => \@ver, src => $src };
+  } else {
+    die "Invalid package reference: '$pkg' from $src\n";
+  }
+}
+
+sub ver_comp {
+  # I am going with slow so I can call this function
+  # outside sort.
+  my ( $a, $b ) = @_;
+  my $i = 0;
+  my $va = $a->{ver};
+  my $vb = $b->{ver};
+  for ( my $i = 0; ; ++$i ) {
+    if ( $i >= @$va ) {
+      if ( $i >= @$vb ) {
+        return 0;
+      } else {
+        return -1;
+      }
+    } elsif ( $i >= @$vb ) {
+      return 1;
+    }
+    my $rv = $va->[$i] <=> $vb->[$i];
+    return $rv if $rv;
+  }
+}
+
+sub ver_print {
+  my $a = shift;
+  return $a->{root} . '-' . join '.', @{$a->{ver}};
+}
+
+sub check_header {
+  my $pkg = shift;
+  my $hdr = "pkgs/$pkg/Header";
+  my $havesource = 1;
+  if ( ! -f $hdr ) {
+    $hdr = "$pkgdir/" .
+	    ver_print($pkg{$pkg}->[0]) . "/Header";
+    $havesource = 0;
+  }
+  die "FATAL: Could not find Header for '$pkg'\n" unless -f $hdr;
+  my $RV = 0;
   my $version;
   my @mani;
   open(my $fh, "<", $hdr) || die "Unable to read '$hdr'\n";
   while (<$fh>) {
+    s/\s*$//;
     if ( $_ =~ m/^Version: *(\S+)\s*$/ ) {
       $version = $1;
     } elsif ( $_ =~ m/^Files:\s*(\w+)\s+\@\s+(\S+)$/ ) {
@@ -24,6 +127,18 @@ for my $hdr ( @hdrs ) {
       my $root = $2;
       $root =~ s,^(.*[^/])$,$1/,;
       push(@mani, { file => $file, root => $root });
+    } elsif ( $_ =~ m/^Requires:\s*(\w+(?:\s+\w+)*)$/ ) {
+      my @reqd = split ' ', $1;
+      for my $reqd ( @reqd ) {
+	if ( ! defined $pkg{$reqd} ) {
+	  $missing{$reqd} ||= [];
+	  push @{$missing{$reqd}}, $pkg;
+	  $RV = 1;
+	}
+      }
+    } elsif ( $_ =~ m/^\s*#/ ) {
+    } else {
+      warn "$pkg: Unrecognized content in $hdr: '$_'\n";
     }
   }
   die "No version defined for package $pkg\n" unless defined $version;
@@ -31,44 +146,46 @@ for my $hdr ( @hdrs ) {
   my $pkgp = "/var/huarp/pkg/$pkgv";
   my $tgz = "/var/huarp/pkgcache/$pkgv.tar.gz";
   if ( -d $pkgp ) {
-    # Package/version is installed
-    warn "Checking against installed $pkgv:\n";
-    if ( -f "$pkgp/Header" ) {
-      if ( compare( $hdr, "$pkgp/Header" ) != 0 ) {
-	warn "pkgs/$pkg/Header has changed: New version required\n";
-	$RV = 1;
+    if ( $havesource ) {
+      # Package/version is installed
+      # warn "  $pkg: Checking source definitions against installed $pkgv:\n";
+      if ( -f "$pkgp/Header" ) {
+	if ( compare( $hdr, "$pkgp/Header" ) != 0 ) {
+	  warn "$pkg: Header has changed: New version required\n";
+	  $RV = 1;
+	}
+      } else {
+	warn "$pkg: $pkgp/Header is missing\n";
       }
-    } else {
-      warn "$pkgp/Header is missing\n";
-    }
-    for my $man ( @mani ) {
-      my $fn = $man->{file};
-      if ( $fn ne "MANIFEST_pkg" ) {
-	if ( -f "pkgs/$pkg/$fn" ) {
-	  if ( -f "$pkgp/$fn" ) {
-	    if ( compare("pkgs/$pkg/$fn", "$pkgp/$fn") != 0 ) {
-	      warn "pkgs/$pkg/$fn has changed: New version required\n";
+      for my $man ( @mani ) {
+	my $fn = $man->{file};
+	if ( $fn ne "MANIFEST_pkg" ) {
+	  if ( -f "pkgs/$pkg/$fn" ) {
+	    if ( -f "$pkgp/$fn" ) {
+	      if ( compare("pkgs/$pkg/$fn", "$pkgp/$fn") != 0 ) {
+		warn "$pkg: $fn has changed: New version required\n";
+		$RV = 1;
+	      }
+	    } else {
+	      warn "$pkg: $pkgp/$fn missing.\n";
 	      $RV = 1;
 	    }
 	  } else {
-	    warn "$pkgp/$fn missing.\n";
+	    warn "$pkg: $fn missing\n";
 	    $RV = 1;
-	  }
-	} else {
-	  warn "pkgs/$pkg/$fn missing\n";
-	  $RV = 1;
-	  if ( ! -f "$pkgp/$fn" ) {
-	    warn "$pkgp/$fn missing too!\n";
+	    if ( ! -f "$pkgp/$fn" ) {
+	      warn "$pkg: $pkgp/$fn missing too!\n";
+	    }
 	  }
 	}
       }
     }
   } else {
-    warn "$pkgv not installed\n";
+    warn "$pkg: $pkgv not installed\n";
   }
   my $have_tgz = -f $tgz;
   my $tgz_time = $have_tgz ? -M $tgz : 0;
-  warn "Package $pkg tgz is missing\n" unless $have_tgz;
+  warn "$pkg: $tgz is missing\n" unless $have_tgz;
   for my $man ( @mani ) {
     my $fn = $man->{file};
     my $root = $man->{root};
@@ -79,47 +196,15 @@ for my $hdr ( @hdrs ) {
 	s/\s*$//; # chomp
 	my $path = "$root$_";
 	if ( ! -f $path && ! -d $path && ! -l $path ) {
-	  warn "Package $pkg: File $path missing\n";
+	  warn "$pkg: File $path missing\n";
 	  $RV = 1;
 	} elsif ( -f $path && $have_tgz && -M $path < $tgz_time ) {
-	  warn "Package $pkg: File $path is newer\n";
+	  warn "$pkg: File $path is newer\n";
 	  $RV = 1;
 	}
       }
-      close($fn) || warn "Error closing pkgs/$pkg/$fn\n";
+      close($fn) || warn "$pkg: Error closing pkgs/$pkg/$fn\n";
     }
   }
+  return $RV;
 }
-exit($RV);
-# if [ x"$1" != x ]; then
-#   for i in $*; do
-#     args="$args pkgs/$i/Header"
-#   done
-# else
-#   args=`find pkgs -name Header`
-# fi
-# for hdr in $args; do
-#   pkg=${hdr%/Header}
-#   echo "Checking $pkg"
-#   while read fline; do
-#     if expr "$fline" : "Files:" >/dev/null; then
-#       fline=${fline#Files: }
-#       manif=${fline% @*}
-#       root=${fline#*@ }
-#       case $root in
-# 	*/) ;;
-# 	*) root="$root/";;
-#       esac
-#       if [ ! $manif = MANIFEST_pkg ]; then
-# 	[ -f $pkg/$manif ] || nl_error "Cannot locate $pkg/$manif"
-# 	while read fspec; do
-# 	  if [ ! -d $root$fspec -a ! -f $root$fspec -a ! -h $root$fspec ]; then
-# 	    echo "$pkg/$manif: File not found: $root$fspec"
-# 	    OK=no
-# 	  fi
-# 	done < $pkg/$manif
-#       fi
-#     fi
-#   done <$hdr
-# done
-# [ "$OK" = "yes" ] || nl_error "Errors seen"

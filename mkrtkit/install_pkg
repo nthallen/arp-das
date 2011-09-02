@@ -25,7 +25,7 @@ use Cwd qw(getcwd abs_path);
 #      since the previous version
 # If either of these changes have occured, report as an error,
 # indicating that this package needs to have its version incremented.
-### Alternately
+### Alternately (and this has been implemented)
 # Never overwrite an existing installation
 # Use chkpkgs to decide if a version needs to be incremented
 
@@ -49,6 +49,13 @@ my $rdest = $dest; $rdest =~ s|^/||;
 if ( -d $dest ) {
   warn "$pkgname-$pkg->{Version} already installed: skipping\n";
 } else {
+  # Need to remove any old package directories
+  my @oldpkg = grep -d, <$pkgroot/$pkgname-[0-9]*>;
+  for my $oldpkg ( @oldpkg ) {
+    warn "$pkgname: Removing old version: $oldpkg\n";
+    system("rm -rf $oldpkg") &&
+      die "FATAL: rm -rf $oldpkg failed\n";
+  }
   mkpath($dest) ||
     die "Fatal: Unable to create package destination $dest\n";
   my $MP = "$dest/MANIFEST_pkg";
@@ -64,23 +71,23 @@ if ( -d $dest ) {
     }
   }
   close $MPfh || warn "Error closing $dest/MANIFEST_pkg\n";
-  print "Installed: $dest\n";
+  print "$pkgname: Installed to $dest\n";
 }
 if ( -f $archive || -f "$archive.gz" ) {
-  warn "$archive already exists: will not overwrite\n";
+  warn "$pkgname: $archive already exists: will not overwrite\n";
 } else {
   # Create the archive:
   my $cwd = getcwd();
-  print "Creating archive $archive.gz\n";
+  print "$pkgname: Creating archive $archive.gz\n";
   for my $mf ( @{$pkg->{Files}} ) {
     chdir($mf->{SrcRoot}) || die;
     system( "tar -rf $archive --owner=0 --group=0 --no-recursion " .
 	    "-T $dest/$mf->{List}" ) &&
-      die "tar failed creating archive for $pkg->{name}\n";
+      die "FATAL: $pkgname: tar failed creating archive for $pkg->{name}\n";
   }
   chdir($cwd);
   system("gzip $archive") && die "gzip $archive failed\n";
-  print "Created archive $archive.gz\n";
+  print "$pkgname: Created archive $archive.gz\n";
 }
 exit(0);
 
