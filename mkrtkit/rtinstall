@@ -115,6 +115,108 @@ function install {
   echo Installation complete
 }
 
+function usb_installer {
+  bootroot=$1
+  mtpart=`mount | grep "on $bootroot type"`
+  mtpart=${mtpart%% *}
+  mtpart=/dev/${mtpart##*/dev/}
+  mtdev=${mtpart%t*}
+
+  # echo "mtpart is '$mtpart' mtdev is '$mtdev'"
+
+  newusb=''
+
+  for dev in /dev/umass[0-9]; do
+    if [ -e $dev -a $dev != $mtdev ]; then
+      if [ -n "$newusb" ]; then
+	echo "More than one target device discovered: '$dev'"
+      else
+	newusb=$dev
+      fi
+    fi
+  done
+  if [ -z "$newusb" ]; then
+    echo "No target USB device located"
+    return
+  fi
+  echo "Ready to install to $newusb"
+  parts=''
+  hasparts=no
+  for part in ${newusb}t*; do
+    [ -e $part ] && parts="$parts $part"
+  done
+  if [ -n "$parts" ]; then
+    echo "$newusb has existing partitions"
+    hasparts=yes
+    echo "Dismounting:"
+    for part in $parts; do
+      echo "  $part"
+      umount $part
+    done
+  fi
+  fdisk $newusb show | grep -q "^[1-4]\. [^-]" && hasparts=yes
+  if [ $hasparts = yes ]; then
+    echo "If you want to preserve the data on this drive, stop now."
+    echo "Otherwise, we will invoke fdisk, so you can manually"
+    echo "delete any existing partitions."
+    echo -n "Continue? [N/y]: "
+    read j
+    case $j in
+      [yY]*) ;;
+      *) echo "Aborting USB initialization"; return;;
+    esac
+    fdisk $newusb
+    hasparts=no
+    fdisk $newusb show | grep -q "^[1-4]\. [^-]" && hasparts=yes
+    if [ $hasparts = yes ]; then
+      echo "Partitions still found on $newusb: aborting USB initialization"
+      return
+    fi
+  fi
+  echo -n "Continue with installation to $newusb? [N/y]: "
+  read j
+  case $j in
+    [yY]*) ;;
+    *) echo "Aborting USB initialization"; return;;
+  esac
+  fdisk $newusb add -t79
+  fdisk $newusb boot -t79
+  fdisk $newusb loader
+  mount -e $newusb
+  # Now need to double-check that this did not go so far as
+  # to automount the drive
+  mntd=`mount | grep $newusb`
+  if [ -n "$mntd" ]; then
+    fs=${mntd#* on }
+    fs=${fs%% *}
+    if [ -e "$fs" ]; then
+      echo "Oops, mount over-mounted automatically to $fs: umounting"
+      umount $fs
+      if [ -e "$fs" ]; then
+	echo "Apparently failed to umount $fs. Aborting"
+	return
+      fi
+    else
+      echo "Failed to deal with mount response: '%mntd'"
+      echo "Aborting USB initialization"
+      return
+    fi
+  fi
+  echo Formatting ${newusb}t79 with QNX4 Filesystem
+  dinit -h -f ./boot/fs/usbinst.ifs ${newusb}t79
+  echo Mounting ${newusb}t79 as /fs/usbinst
+  mount -tqnx4 ${newusb}t79 /fs/usbinst
+  if [ ! -d /fs/usbinst ]; then
+    echo "Error mounting ${newusb}t79 as /fs/usbinst"
+    return
+  fi
+  echo Copying installation files
+  cp -pR rtinstall instflop.dat boot repository /fs/usbinst
+  echo Dismounting ${newusb}t79
+  umount ${newusb}t79
+  echo "Initialization of ${newusb} as installation media complete"
+}
+
 crntcfg=''
 filesystem=qnx6
 
@@ -193,18 +295,20 @@ while true; do
   echo "2 Select Install Set"
   echo "3 Toggle Install Filesystem"
   echo "4 Invoke fdisk manually"
-  echo "5 Shell"
-  echo "6 Shutdown"
-  echo "7 Reboot"
+  echo "5 Create USB Flash Installer"
+  echo "6 Shell"
+  echo "7 Shutdown"
+  echo "8 Reboot"
   getresp Option: 1
   case $resp in
     1) install $crntcfg $filesystem;;
     2) select_cfg;;
     3) toggle_fs;;
     4) fdisk /dev/hd0;;
-    5) sh;;
-    6) shutdown -b;;
-    7) shutdown;;
+    5) cd $SRCPATH; usb_installer $SRCPATH;;
+    6) sh;;
+    7) shutdown -b;;
+    8) shutdown;;
     *) echo "\aUnrecognized option";;
   esac
 done
