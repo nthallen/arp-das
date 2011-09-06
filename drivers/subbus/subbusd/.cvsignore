@@ -3,3 +3,4 @@ subbusd_serusb
 subbusd_sc104
 sc104oui.c
 serusboui.c
+FullBuild.*

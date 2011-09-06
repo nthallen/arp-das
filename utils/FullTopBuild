@@ -90,10 +90,12 @@ process QNX6/phrtg-native FullBuild make install
 process tmcalgo FullBuild make install
 process QNX6/qcliutil FullBuild make install
 process snafu FullBuild all
-# process QNX6/subbusd FullBuild make install
+process QNX6/subbus_2010/subbusd FullBuild make install
 process QNX6/dccc FullBuild make install
 process QNX6/diagnost FullBuild make install
 process QNX6/diagsuite FullBuild make install
+process QNX6/DACSutil FullBuild make install
+process QNX6/specq FullBuild make install
 process QNX6/ssp_driver FullBuild make install
 process QNX6/idx64 FullBuild make install
 process QNX6/hart FullBuild make install

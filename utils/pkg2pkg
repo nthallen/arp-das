@@ -14,10 +14,12 @@ function nl_error {
 }
 
 proot=/var/huarp/pkg
+pcache=/var/huarp/pkgcache
 
 
 [ -z "$1" ] && nl_error "Usage: pkg2pkg <pkg> ..."
 [ -d $proot ] || mkdir $proot || nl_error Unable to create $proot
+[ -d $pcache ] || mkdir $pcache || nl_error Unable to create $pcache
 
 for pkg in $*; do
   pkgcnt=`ls -d /var/db/pkg/$pkg* 2>/dev/null | wc -l`
