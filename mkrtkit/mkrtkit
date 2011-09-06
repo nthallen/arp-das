@@ -78,6 +78,25 @@ function usb_installer {
   /sbin/fdisk $newusb boot -t79
   /sbin/fdisk $newusb loader
   mount -e $newusb
+  # Now need to double-check that this did not go so far as
+  # to automount the drive
+  mntd=`mount | grep $newusb`
+  if [ -n "$mntd" ]; then
+    fs=${mntd#* on }
+    fs=${fs%% *}
+    if [ -e "$fs" ]; then
+      echo "Oops, mount over-mounted automatically to $fs: umounting"
+      umount $fs
+      if [ -e "$fs" ]; then
+	echo "Apparently failed to umount $fs. Aborting"
+	return
+      fi
+    else
+      echo "Failed to deal with mount response: '%mntd'"
+      echo "Aborting USB initialization"
+      return
+    fi
+  fi
   echo Formatting ${newusb}t79 with QNX4 Filesystem
   dinit -h -f ./boot/fs/usbinst.ifs ${newusb}t79
   echo Mounting ${newusb}t79 as /fs/usbinst
