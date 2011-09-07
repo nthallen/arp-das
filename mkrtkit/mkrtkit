@@ -1,6 +1,9 @@
 #! /bin/sh
-#
+
+#ifdef __USAGE
 # mkrtkit [--usb] pkg [pkg ...]
+#endif
+
 function nl_error {
   echo "mkrtkit: $*" >&2
   exit 1
@@ -92,7 +95,7 @@ function usb_installer {
 	return
       fi
     else
-      echo "Failed to deal with mount response: '%mntd'"
+      echo "Failed to deal with mount response: '$mntd'"
       echo "Aborting USB initialization"
       return
     fi
@@ -105,7 +108,9 @@ function usb_installer {
     echo "Error mounting ${newusb}t79 as /fs/usbinst"
     return
   fi
-  cp -pR rtinstall instflop.dat boot repository /fs/usbinst
+  echo Copying installation files
+  cp -pr rtinstall instflop.dat boot repository /fs/usbinst
+  echo umounting ${newusb}t79
   umount ${newusb}t79
   echo "Initialization of ${newusb} as installation media complete"
 }
@@ -165,9 +170,15 @@ done
 if [ $init_usb = yes ]; then
   usb_installer /
 else
-  pkgtgz=`ls repository/$pkg-*`
-  pver=`expr $pkgtgz : "repository/$pkg-\([0-9][0-9.]*\).tar.gz"`
-  echo "pkgtgz = $pkgtgz, pver = $pver"
+  isoname=''
+  for pkgs in ; do
+    if [ -n "$isoname" ]; then
+      isoname="$isoname-$pkgs"
+    else
+      isoname=$pkgs
+    fi
+  done
+  isoname=$isoname-`date +%y%m%d`
 
   # mkisofs options:
   #  -r create rationalized Rock Ridge directory
@@ -176,5 +187,5 @@ else
   #  -J         Joliet directory (relaxed file name restrictions)
   #  -f         Follow symlinks (for repositories)
   #  -o <iso>   Output .iso
-  mkisofs -r -b instflop.dat -c boot/isocatalog -J -f -o ../rtkit-$pkg-$pver.iso .
+  mkisofs -r -b instflop.dat -c boot/isocatalog -J -f -o ../$isoname.iso .
 fi

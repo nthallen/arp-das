@@ -76,7 +76,7 @@ function install {
 	echo "Error mounting /install"
 	return 1
       fi
-      cp $SRCPATH/boot/fs/*.ifs /install/.boot/;;
+      cp $SRCPATH/boot/fs/qnxbase*.ifs /install/.boot/;;
     *)
       echo "Unrecognized filesystem option"
       return 1;;
@@ -111,6 +111,9 @@ function install {
 
   [ -d /install/etc/system/config ] || mkdir -p /install/etc/system/config
   touch /install/etc/system/config/nophoton
+
+  [ -d /install/usr/photon/config ] &&
+    cp /install/usr/photon/config/crtc-settings /install/etc/system/config
 
   echo Installation complete
 }
@@ -211,7 +214,7 @@ function usb_installer {
     return
   fi
   echo Copying installation files
-  cp -pR rtinstall instflop.dat boot repository /fs/usbinst
+  cp -pr rtinstall instflop.dat boot repository /fs/usbinst
   echo Dismounting ${newusb}t79
   umount ${newusb}t79
   echo "Initialization of ${newusb} as installation media complete"
