@@ -11,6 +11,7 @@ while (<>) {
   s/\x92/'/g; # ’
   s/\x93/"/g; # “
   s/\x94/"/g; # ”
+  s/\x95/+/g; # •
   s/\xEC/"/g; # ì
   s/\xEE/"/g; # î
   s|\xBD|1/2|g; # 1/2 ligature
