@@ -16,6 +16,8 @@ LDFLAGS=${LDFLAGS--L/usr/local/lib}
 AC_PROG_CC
 AC_PROG_YACC
 AM_PROG_LEX
+AC_CHECK_PROG(HAVE_USEMSG,usemsg,[true])
+AM_CONDITIONAL([USE_USEMSG],[test x$HAVE_USEMSG = xtrue ])
 
 # Checks for libraries.
 AC_SEARCH_LIBS(compile_init_options,[nort nortlib],[],[AC_MSG_ERROR(nortlib is required)])
