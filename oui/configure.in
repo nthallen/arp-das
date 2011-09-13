@@ -9,6 +9,7 @@ AC_PROG_CC
 AC_PROG_YACC
 AM_PROG_LEX
 AC_CHECK_PROG(USEMSG, usemsg, usemsg, :)
+AM_CONDITIONAL([USE_USEMSG],[test x$HAVE_USEMSG = xtrue ])
 
 dnl Checks for libraries.
 AC_CHECK_LIB(nort, nl_error, , AC_MSG_ERROR(Library nort is required))
