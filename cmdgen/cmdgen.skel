@@ -128,13 +128,13 @@ static short ioflags;
 #ifdef QNX_CONS
   #include "nl_cons.h"
 #elif defined SNAFU_CURSES
-  #include "curses.h"
+  #include <ncurses/curses.h>
   #include "scurses.h"
 #elif defined PHOTON_INTERFACE
   #include <Pt.h>
   #include "nlphcmd.h"
 #elif defined NCT_INTERFACE
-  #include <ncurses.h>
+  #include <ncurses/curses.h>
   #include "nctable.h"
 #endif
 
