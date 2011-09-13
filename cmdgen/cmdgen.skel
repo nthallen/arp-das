@@ -3,7 +3,6 @@
 #include <ctype.h>
 #include <unistd.h>
 #include "cmdalgo.h"
-#include "tm.h" /* for ci* library functions */
 #include "nortlib.h" /* Included for cis_init. prototype(), nl_error() */
 #include "nl_assert.h"
                      /* <stdio.h>   Included by nortlib.h */
@@ -102,6 +101,10 @@ static short ioflags;
 #else /* default to all actions to support existing usage */
   #define SERVER_ACTIONS
   #define CLIENT_ACTIONS
+#endif
+
+#if defined CLIENT || defined SERVER
+  #include "tm.h" /* for ci* library functions */
 #endif
 
 #if ! (defined CMD_INTERACT_MODE || defined CMD_BATCH_MODE)
