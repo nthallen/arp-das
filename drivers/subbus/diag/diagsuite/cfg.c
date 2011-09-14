@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <curses.h>
+#include <ncurses/curses.h>
 #ifdef __QNX__
   #if defined(__QNXNTO__)
     #include "port.h"

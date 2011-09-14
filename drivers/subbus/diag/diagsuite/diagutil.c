@@ -1,8 +1,5 @@
-#include <curses.h>
+#include <ncurses/curses.h>
 #undef getch
-#ifdef DOS
-  #include <dos.h>
-#endif
 #if defined(__QNX__) && ! defined(__QNXNTO__)
   #define FAR_PTR far
 #else

@@ -6,12 +6,9 @@
    Written January 18, 1990
 */
 
-#include <curses.h>
+#include <ncurses/curses.h>
 #undef getch
 #include <stdio.h>
-#ifdef DOS
-  #include <dos.h>
-#endif
 #if defined( __QNX__ )
   #if defined(__QNXNTO__)
     #include <sys/neutrino.h>

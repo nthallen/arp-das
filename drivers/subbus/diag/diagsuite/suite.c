@@ -11,12 +11,8 @@
    ======================================================================
 */
 
-#include <curses.h>
+#include <ncurses/curses.h>
 #undef getch
-#ifdef DOS
-  #include <dos.h>
-  #include "reslib.h"
-#endif
 #include <assert.h>
 #include <time.h>
 #include <stdlib.h>
