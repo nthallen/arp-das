@@ -12,8 +12,9 @@ OBJS += main_$(BASE).o
 LIBS = curses subbus lat curses_utils termlib
 HDRS = attribut.h define.h diagmenu.h scdiag.h sic.h syscon.h
 DOCS = diags.bak syscon.hlp scdiag.cfg
-CFLAGS = -I/usr/local/include -Wall -g -D$(BASE)
-LDFLAGS = -Wl,-rpath -Wl,/usr/local/lib -L/usr/local/lib
+CFLAGS = -Wall -g -D$(BASE)
+CPPFLAGS = -I/usr/pkg/include -I/usr/local/include
+LDFLAGS = -Wl,-rpath -Wl,/usr/local/lib -L/usr/pkg/lib -L/usr/local/lib
 
 # include $(SRCDIR)/tgt.mk
 
