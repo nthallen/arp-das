@@ -86,8 +86,6 @@ void diag_name_attr( int dnum, int attr ) {
 
 void diag_name(int dnum) {
   diag_name_attr( dnum, ATTR_NAME );
-  // attrset(ATTR_NAME);
-  // mvaddstr(FIRST_NAME_ROW+diag_number, NAME_COL, name);
 }
 
 void diag_status(unsigned char attr, char *text, ...) {
@@ -129,8 +127,6 @@ void diag_status(unsigned char attr, char *text, ...) {
 
 void diag_test(int diag_number) {
   wmove(stdscr, FIRST_NAME_ROW+diag_number, STATUS_COL);
-  // mvWrtNAttr(stdscr, ATTR_EXEC, NAME_WIDTH,
-  //   FIRST_NAME_ROW+diag_number, NAME_COL);
   diag_name_attr(diag_number, ATTR_EXEC);
   refresh();
   diag_list[diag_number].func(mode);
@@ -208,19 +204,15 @@ int main(int argc,char *argv[]) {
   if (mode!=MAN_MODE)
     do {
       for (diag_number = 0; diag_number < N_DIAGS; diag_number++) {
-        // mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH,
-	//   FIRST_NAME_ROW+diag_number, NAME_COL);  
-	diag_name_attr(diag_number, ATTR_NAME);
+        diag_name_attr(diag_number, ATTR_NAME);
         if (diag_ok(diag_number)) {
-           diag_test(diag_number);
-           // mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH,
-	   //    FIRST_NAME_ROW+diag_number, NAME_COL);  
-	   diag_name_attr(diag_number, ATTR_NAME);
-           refresh();
-         }
+          diag_test(diag_number);
+          diag_name_attr(diag_number, ATTR_NAME);
+          refresh();
+        }
       }
       if (wgetch(stdscr)==ESCAPE) break;  
-      }    
+    }    
     while (mode==CON_MODE);        
  
      
@@ -231,13 +223,9 @@ int main(int argc,char *argv[]) {
   /* manual mode loop */
   if (!ender) {
     for (diag_number = 0; diag_number < N_DIAGS; diag_number++)
-      // mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH,
-      //   FIRST_NAME_ROW+diag_number, NAME_COL);
       diag_name(diag_number);
     diag_number=0;
     while(!diag_ok(diag_number)&&diag_number<N_DIAGS) diag_number++;  
-    // mvWrtNAttr(stdscr, ATTR_HILT, NAME_WIDTH,
-    //    FIRST_NAME_ROW+diag_number, NAME_COL);
     diag_name_attr( diag_number, ATTR_HILT );
     keypad(stdscr,TRUE);
     refresh();
@@ -257,12 +245,9 @@ int main(int argc,char *argv[]) {
        }
        if (c==ESCAPE) break;
        if (last_diag != diag_number)
-         // mvWrtNAttr(stdscr, ATTR_NAME, NAME_WIDTH,
-	 //    FIRST_NAME_ROW+last_diag, NAME_COL);
-	 diag_name(last_diag);
-       // mvWrtNAttr(stdscr, ATTR_HILT, NAME_WIDTH,
-       //   FIRST_NAME_ROW+diag_number, NAME_COL);
+         diag_name(last_diag);
        diag_name_attr(diag_number, ATTR_HILT);
+       touchwin(stdscr);
        refresh();
     } 
   }

@@ -52,9 +52,7 @@ char *to_str(char *out, unsigned short dat, int radix, int res) {
     return(out);
 }
 
-
-int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, int addrs[], int numcycaddr) {
-    
+   
 #define BOXES { wattrset(dispwin,ATTR_EXEC); wattrset(statwin,ATTR_EXEC); \
                 box(dispwin,VERT_DOUBLE,HORIZ_DOUBLE); \
                 box(statwin,VERT_SINGLE,HORIZ_SINGLE); }
@@ -100,7 +98,8 @@ int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, in
                    STATUS(att,c); REFRESHER; \
                    noecho(); nodelay(dispwin,TRUE);\
                    break;
-    
+
+int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, int addrs[], int numcycaddr) {
     int c, i, j, k, kk, numcols, ok=0, cycle=0, step=1;
     unsigned short dat=0;
     float lines,cols,numaddr;
@@ -144,7 +143,6 @@ int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, in
             case KEY_RIGHT:mvwaddstr(statwin,1,j,KEY_RSTR); j+=sizeof(KEY_RSTR)-1; break;
             default:if (!isupper(cmds[i])) {
                  mvwaddch(statwin,1,j,(char)cmds[i]); j++;
-
             }
         }
     
@@ -155,7 +153,6 @@ int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, in
        strcpy(statbuf,CRSTAT);
        STATUS(att,CTRLR);
     }
-    
     
     /* display address(es) */
     statbuf[0]=NULCHR;
@@ -175,7 +172,7 @@ int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, in
        if (c!=ERR) {
           while (!proceed && i<numcmds) {
              if (c==cmds[i]) proceed++; else i++;
-	 }
+         }
        }
        if ((ok>2||cycle) &&proceed && (c!=CR&&c!=M&&c!=m&&c!=B&&c!=b))proceed=0;
        if (!proceed&&cycle) { c=CTRLC; proceed++; }
@@ -199,26 +196,26 @@ int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, in
             case D: case d:
                    SETUP_REC(DATASTAT,1,FIELD_ADDR+2,1);
                    { int tmp;
-		     stch_i(out,&tmp);
-		     dat = (unsigned short)tmp;
-		   }
+                     stch_i(out,&tmp);
+                     dat = (unsigned short)tmp;
+                   }
                    if (dat>maxlim) dat=minlim;
                    if (dat<minlim) dat=maxlim;
                    UNSET_REC(1);
             case L: case l:
                    SETUP_REC(MAXLIMSTAT,1,FIELD_ADDR+2,1);
                    { int tmp;
-		     stch_i(out, &tmp);
-		     maxlim = tmp;
-		   }
+                     stch_i(out, &tmp);
+                     maxlim = tmp;
+                   }
                    maxlim=(maxlim) ? maxlim : 0xFFFF;
                    UNSET_REC(1);
             case CTRLL:       
                    SETUP_REC(MINLIMSTAT,1,FIELD_ADDR+2,1);
                    { int tmp;
-		     stch_i(out, &tmp);
-		     minlim = tmp;
-		   }
+                     stch_i(out, &tmp);
+                     minlim = tmp;
+                   }
                    minlim=(minlim) ? minlim : 0;
                    UNSET_REC(1);
             case PLUS:
