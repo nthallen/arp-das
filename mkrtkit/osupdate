@@ -3,12 +3,29 @@ use strict;
 use Getopt::Std;
 
 #ifdef __USAGE
-#   osupdate [-n]
-#     update the current node against the reference node
-#   osupdate [-n] nodename
-#     update the specified node against the reference node
+#   osupdate [-n] [-r ref_node] [-s repository]
+#       [-A package] [-R package] [nodename]
+#     update the current node or the specified node.
 #
-#     -n Do nothing, just report what would be done
+#   Options:
+#     -n
+#        Do nothing, just report what would be done
+#     -r ref_node
+#        Make changes relative to the specified
+#        reference node. Default reference node
+#        is nortvm650a
+#     -s repository
+#        Instead of a reference node, use the archives
+#        in the specified repository directory.
+#     -A package
+#     -R package
+#        Add (-A) or remove (-R) the specified package
+#        from the node during the update.
+#
+#Examples:
+#   osupdate # Update the current node from nortvm650a
+#   osupdate -n # Just state what would be updated
+#   osupdate -s /fs/usb0/repository # Update from an install disk
 #endif
 
 # Look through /var/huarp/pkg to see what packages are installed,
@@ -32,14 +49,21 @@ my @add;
 my @remove;
 my $node;
 my $npath = '';
+my $refnode = 'nortvm650a';
+my $repository;
+
 while ( @ARGV ) {
   my $arg = shift @ARGV;
   if ( $arg eq '-n' ) {
     $doit = 0;
-  } elsif ( $arg eq '-a' && @ARGV ) {
+  } elsif ( $arg eq '-A' && @ARGV ) {
     push @add, shift @ARGV;
-  } elsif ( $arg eq '-r' && @ARGV ) {
+  } elsif ( $arg eq '-R' && @ARGV ) {
     push @remove, shift @ARGV;
+  } elsif ( $arg eq '-r' && @ARGV ) {
+    $refnode = shift @ARGV;
+  } elsif ( $arg eq '-s' && @ARGV ) {
+    $repository = shift @ARGV;
   } elsif ( $arg =~ m/^-/ ) {
     die "Invalid option or no argument supplied: '$arg'\n";
   } else {
@@ -49,9 +73,17 @@ while ( @ARGV ) {
   }
 }
 
-my $refnode = 'nortvm650';
-my $cache = "/net/$refnode/var/huarp/pkgcache";
-my $refpkg = "/net/$refnode/var/huarp/pkg";
+my $cache;
+my $refpkg;
+my @recheck;
+
+if ( $repository ) {
+  $cache = $repository;
+  $refpkg = "$npath/var/huarp/pkg";
+} else {
+  $cache = "/net/$refnode/var/huarp/pkgcache";
+  $refpkg = "/net/$refnode/var/huarp/pkg";
+}
 
 my @pkgs;
 my %pkg; # the currently installed packages
@@ -175,6 +207,10 @@ while ( @depchk ) {
 	}
       }
       close($hdrfh) || warn "Error closing $hdr\n";
+    } elsif ( $repository ) {
+      warn "No Header for " . ver_print($avail) .
+	": will rerun after installations\n";
+      push @recheck, ver_print($avail);
     } else {
       die "No Header for " . ver_print($avail) . "\n";
     }
@@ -243,6 +279,15 @@ while (@plan) {
   } else {
     print "$cmd: ", ver_print($pp), "\n";
   }
+}
+
+if ( @recheck ) {
+  print
+    "The following packages need to be checked\n" .
+    "for dependencies after their installation:\n",
+    map( "  $_\n", @recheck );
+  print
+    "You should re-run osupdate.\n";
 }
 
 sub install {

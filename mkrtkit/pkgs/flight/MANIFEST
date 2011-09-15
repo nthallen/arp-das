@@ -90,3 +90,4 @@ usr/local/lib/libtmpp.so.1
 usr/local/sbin/promote
 usr/local/sbin/flight.sh
 usr/local/sbin/signal_parent
+usr/local/share/huarp/scdiag.cfg
