@@ -2,6 +2,9 @@
 
 SRCS = $(wildcard *.c)
 TARGETS = syscon card ana104
+SCOBJ = sccfg.o cfg.o
+LDFLAGS = -L/usr/pkg/lib -L/usr/local/lib
+CPPFLAGS = -I/usr/pkg/include -I/usr/local/lib
 
 all : $(TARGETS)
 syscon : $(SRCS)
@@ -10,6 +13,10 @@ card : $(SRCS)
 	make -f Makefile.eil BASE=card
 ana104 : $(SRCS)
 	make -f Makefile.eil BASE=ana104
+sccfg : $(SCOBJ)
+	$(LINK.c) -o sccfg $(SCOBJ) -lncurses
+sccfg.o : sccfg/sccfg.c
+	$(COMPILE.c) -I./ -o sccfg.o sccfg/sccfg.c
 clean :
 	rm -f *.o $(TARGETS)
 install : $(TARGETS)
