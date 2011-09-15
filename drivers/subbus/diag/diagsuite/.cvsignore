@@ -1,4 +1,5 @@
 *.use
+sc_cfg
 syscon
 card
 ana104
