@@ -13,6 +13,7 @@
 
 int init_attrs(char *fname, int *attributes, int max) {
   FILE *fp;
+  char filename[80];
   char buf[20];
   int i;
 
@@ -21,7 +22,11 @@ int init_attrs(char *fname, int *attributes, int max) {
     init_pair(i+1, COLOR_WHITE, COLOR_BLACK );
   }
   i = 0;
-  fp = fopen(fname, "rb");
+  fp = fopen(fname, "r" );
+  if ( fp == NULL ) {
+    snprintf( filename, 80, "/usr/local/share/huarp/%s", fname );
+    fp = fopen(filename, "r" );
+  }
   if (fp != NULL) {
     for (; i < max; i++) {
       int attr, ifg, ibg;

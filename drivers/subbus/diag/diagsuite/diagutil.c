@@ -99,13 +99,14 @@ char *to_str(char *out, unsigned short dat, int radix, int res) {
                    noecho(); nodelay(dispwin,TRUE);\
                    break;
 
-int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, int addrs[], int numcycaddr) {
+int disp_addrs(int from, int to, int radix, int res, int cmds[],
+	int numcmds, int addrs[], int numcycaddr) {
     int c, i, j, k, kk, numcols, ok=0, cycle=0, step=1;
     unsigned short dat=0;
     float lines,cols,numaddr;
     WINDOW *dispwin, *statwin;
     char out[19], statbuf[30];
-    unsigned char att, a1;
+    int att, a1;
     int stat,proceed, statline, statcol=0, addrsindex=0;
     unsigned int maxlim=0xFFFF, minlim=0;
     long int chk;
@@ -124,6 +125,8 @@ int disp_addrs(int from, int to, int radix, int res, int cmds[], int numcmds, in
     
     dispwin=newpad((int)lines+2,(int)cols+2);
     statwin=newpad((int)lines+6,(int)cols+10);
+    wbkgdset(dispwin,ATTR_EXEC);
+    wbkgdset(statwin,ATTR_EXEC);
     wclear(dispwin); wclear(statwin);
     keypad(dispwin,TRUE); BOXES;
     

@@ -81,6 +81,7 @@ static int diag_number;
 
 void diag_name_attr( int dnum, int attr ) {
   attrset(attr);
+  bkgdset(attr);
   mvaddstr(FIRST_NAME_ROW+dnum, NAME_COL, diag_list[dnum].name);
 }
 
@@ -88,7 +89,7 @@ void diag_name(int dnum) {
   diag_name_attr( dnum, ATTR_NAME );
 }
 
-void diag_status(unsigned char attr, char *text, ...) {
+void diag_status(int attr, char *text, ...) {
   char buf[100], *offstr, *p1, which[5];
   int i;
   va_list ap;
@@ -98,6 +99,7 @@ void diag_status(unsigned char attr, char *text, ...) {
   logs to logfile if needed and sets the global status variable */
   
   attrset(ATTR_MAIN);
+  bkgdset(ATTR_MAIN);
   for (i = 0; i < (COLS - 1 - STATUS_COL); i++) buf[i] = ' ';
   buf[i] = '\0';
   mvaddstr(FIRST_NAME_ROW+diag_number, STATUS_COL, buf);
@@ -105,6 +107,7 @@ void diag_status(unsigned char attr, char *text, ...) {
   vsprintf(buf, text, ap);
   va_end(ap);
   attrset(attr);
+  bkgdset(attr);
   mvaddstr(FIRST_NAME_ROW+diag_number, STATUS_COL, buf);
   if (attr==ATTR_FAIL) status=1;
   else if (status==ATTR_WARN&&status<1) status=-1;   
@@ -177,11 +180,13 @@ int main(int argc,char *argv[]) {
 #endif
   
   /* set up the screen */
-  init_attrs(CFG_FILE,attributes,MAX_ATTRS);
   if (((int)initscr()) == ERR) printf("Cannot initscr()");
+  start_color();
+  init_attrs(CFG_FILE,attributes,MAX_ATTRS);
   cbreak();
   noecho();
   attrset(ATTR_MAIN);
+  bkgdset(ATTR_MAIN);
   clear();
   box(stdscr, VERT_DOUBLE, HORIZ_DOUBLE);
   
@@ -189,6 +194,7 @@ int main(int argc,char *argv[]) {
   width = strlen(logo_str)+2;
   logo = subwin(stdscr, 3, width, 2, (COLS-width)/2);
   wattrset(logo, ATTR_LOGO);
+  wbkgdset(logo, ATTR_LOGO);
   wclear(logo);
   box(logo, VERT_SINGLE, HORIZ_SINGLE);
   mvwaddstr(logo, 1, 1, logo_str);
@@ -254,7 +260,8 @@ int main(int argc,char *argv[]) {
 
  /* clean up */
  refresh();
- attrset(7);
+ attrset(A_NORMAL);
+ bkgdset(A_NORMAL);
  clear();
  if (logfd) {
    time(&t); fprintf(logfd,"program %s ended at %s",progname,ctime(&t));
