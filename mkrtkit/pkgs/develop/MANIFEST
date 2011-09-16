@@ -25,7 +25,6 @@ usr/local/bin/phtable
 usr/local/bin/prepCD
 usr/local/bin/qclicomp
 usr/local/bin/settime
-usr/local/bin/snafu
 usr/local/bin/snafucfg
 usr/local/bin/specq
 usr/local/bin/sps2mat
