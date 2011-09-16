@@ -1,5 +1,5 @@
 # make include files for appgen QNX6 output.
-CPPFLAGS=-I/usr/local/include
+CPPFLAGS=-I/usr/local/include -I/usr/pkg/include
 
 # CXX and CXXLINK are used for compiling and linking c++ apps
 # We need to use the same compiler that is used in building
