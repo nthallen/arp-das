@@ -88,6 +88,7 @@ usr/local/lib/libtmpp.la
 usr/local/lib/libtmpp.so
 usr/local/lib/libtmpp.so.0
 usr/local/lib/libtmpp.so.1
+usr/local/sbin/getcon
 usr/local/sbin/promote
 usr/local/sbin/flight.sh
 usr/local/sbin/signal_parent
