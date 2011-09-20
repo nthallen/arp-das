@@ -1,8 +1,8 @@
 .deps
 .libs
+DCnc.lo
 DCph.lo
 Makefile
 Makefile.in
 libdisp.la
 libdispnc.la
-libdispnc_la-DCnc.lo
