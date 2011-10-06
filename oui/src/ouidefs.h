@@ -1,11 +1,22 @@
 /* oui.h Data definitions for oui
  * $Log$
+ * Revision 1.2  1994/09/16 15:09:36  nort
+ * Added sort_output
+ *
  * Revision 1.1  1994/09/15  19:45:31  nort
  * Initial revision
  *
  */
 #ifndef _OUI_H
 #define _OUI_H
+
+#include "config.h"
+
+#if HAVE_STRCASECMP
+  #if ! HAVE_STRICMP
+    #define stricmp strcasecmp
+  #endif
+#endif
 
 #ifndef _LLOFSTR_INCLUDED
   #include "ll_of_str.h"
