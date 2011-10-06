@@ -1,5 +1,8 @@
 /* cmdgen.h Definitions for Command Parser Generator
  * $Log$
+ * Revision 1.6  2007/05/01 17:42:27  ntallen
+ * Added %INTERFACE <name> spec
+ *
  * Revision 1.5  2004/10/08 17:07:09  nort
  * Mostly keyword differences
  *
@@ -21,6 +24,13 @@
  *
  */
 #include <stdio.h>
+#include "config.h"
+
+#if HAVE_STRCASECMP
+  #if ! HAVE_STRICMP
+    #define stricmp strcasecmp
+  #endif
+#endif
  
 #define TABSIZE 4
 struct vtyp {
