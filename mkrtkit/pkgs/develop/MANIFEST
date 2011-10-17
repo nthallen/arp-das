@@ -5,6 +5,7 @@ usr/local/bin/chk_display
 usr/local/bin/chk_extract
 usr/local/bin/cmdgen
 usr/local/bin/con2html
+usr/local/bin/cycle
 usr/local/bin/DACStest
 usr/local/bin/decipher
 usr/local/bin/flttime
@@ -26,6 +27,7 @@ usr/local/bin/prepCD
 usr/local/bin/qclicomp
 usr/local/bin/settime
 usr/local/bin/snafucfg
+usr/local/bin/solfmt
 usr/local/bin/specq
 usr/local/bin/sps2mat
 usr/local/bin/tmc

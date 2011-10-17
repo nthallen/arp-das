@@ -27,6 +27,7 @@ usr/local/bin/rdr
 usr/local/bin/reduce
 usr/local/bin/saverun
 usr/local/bin/sbswitch
+usr/local/bin/soldrv
 usr/local/bin/snafu
 usr/local/bin/sspdrv
 usr/local/bin/subbusd_sc104
