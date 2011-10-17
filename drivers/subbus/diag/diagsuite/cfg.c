@@ -33,10 +33,13 @@ int init_attrs(char *fname, int *attributes, int max) {
       short fg, bg;
       if ( fgets(buf, 20, fp) == NULL ) break;
       if ( sscanf(buf, "%d%d%d", &attr, &ifg, &ibg) == 3 ) {
-        attributes[i] = (attr & ~A_COLOR) | COLOR_PAIR(i+1);
-        fg = ifg % COLORS;
-        bg = ibg % COLORS;
-        init_pair( i+1, fg, bg );
+        attributes[i] = (attr & ~A_COLOR);
+        if ( COLORS ) {
+	  attributes[i] |= COLOR_PAIR(i+1);
+	  fg = ifg % COLORS;
+	  bg = ibg % COLORS;
+	  init_pair( i+1, fg, bg );
+	}
       }
     }
     fclose(fp); return(1);
@@ -53,7 +56,7 @@ int save_attrs(char *name, int *attributes, int max) {
   for (i = 0; i < max; i++) {
     short foreground, background;
     pair_content(i+1, &foreground, &background);
-    fprintf(fp, "%d %d %d\n", attributes[i] & ~A_COLOR, foreground, background);
+    fprintf(fp, "%ld %d %d\n", attributes[i] & ~A_COLOR, foreground, background);
   }
   fclose(fp);
   return(1);
