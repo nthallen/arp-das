@@ -19,5 +19,5 @@ install : soldrv
 	@cp -vn soldrv /usr/local/bin
 
 clean :
-	rm -f *.o soldrv
+	rm -f *.o soldrv FullBuild.*
 all : soldrv
