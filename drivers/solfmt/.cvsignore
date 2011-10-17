@@ -1,3 +1,4 @@
+FullBuild.*
 solfmt.o
 compile.o
 get_tokens.o
@@ -10,10 +11,6 @@ read_sol.o
 read_val.o
 read_pxy.o
 routines.o
-*.err
 *.sol
 *.sft
-*.map
-soldrv.use
 solfmt
-soldrv
