@@ -1,5 +1,8 @@
 # Makefile for solfmt
 # $Log$
+# Revision 1.6  2011/03/27 19:12:00  ntallen
+# -rpath
+#
 # Revision 1.5  2011/02/24 01:32:16  ntallen
 # Cleanup
 #
@@ -59,6 +62,6 @@ solfmt.o : solfmt.c
 read_pxy.o : read_pxy.c proxies.h
 
 clean :
-	rm -f *.o solfmt
+	rm -f *.o solfmt FullBuild.*
 install : solfmt
 	@cp -vn solfmt /usr/local/bin
