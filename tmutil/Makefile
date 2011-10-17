@@ -19,8 +19,10 @@ LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 all : parent getcon
 install : install-sbin install-bin install-data install-oui
 install-sbin : checksudo
+	chmod +x $(SBIN)
 	@$(INSTALL) $(SBIN) $(TGTNODE)/usr/local/sbin
 install-bin : checksudo
+	chmod +x $(BIN)
 	@$(INSTALL) $(BIN) $(TGTNODE)/usr/local/bin
 install-data :
 	@$(INSTALL) $(DATA) $(TGTNODE)/usr/local/share/huarp
