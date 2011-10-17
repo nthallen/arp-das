@@ -3,7 +3,7 @@ MNC=cycle
 SUBDIRS=test cyctst
 SOURCE=$(TOOL) $(SRC)
 
-TOOL=Makefile Odinfile
+TOOL=Makefile Odinfile todo
 SRC=cycle.HEAD.phi
 SRC+=cycle.con
 SRC+=regexpr.con
@@ -18,4 +18,14 @@ SRC+=trigger.lido
 SRC+=cycle.ptg
 SRC+=cycle.specs
 SRC+=cycle.pdl
-SRC+=todo
+
+.PHONY : install clean
+cycle : cycle.exe
+	cp -f cycle.exe cycle
+	chmod u+w cycle
+cycle.exe : $(SRC)
+	eli cycle.exe
+install : cycle
+	@cp -v cycle /usr/local/bin/cycle
+clean :
+	rm -f FullBuild.* cycle cycle.exe

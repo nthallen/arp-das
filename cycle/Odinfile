@@ -1,2 +1,3 @@
 %run == test/input.cyc+cmd=(cycle.specs:exe):stdout
 %visitprocs.c == cycle.specs:level_4_specs:ligaBe/visitprocs.c
+cycle.exe == cycle.specs:exe
