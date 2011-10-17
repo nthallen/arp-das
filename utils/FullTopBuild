@@ -95,6 +95,8 @@ process QNX6/dccc FullBuild make install
 process QNX6/diagnost FullBuild make install
 process QNX6/diagsuite FullBuild make install
 process QNX6/DACSutil FullBuild make install
+process QNX6/soldrv FullBuild make install
+process QNX6/solfmt FullBuild make install
 process QNX6/specq FullBuild make install
 process QNX6/ssp_driver FullBuild make install
 process QNX6/idx64 FullBuild make install
