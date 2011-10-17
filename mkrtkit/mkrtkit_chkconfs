@@ -61,13 +61,13 @@ sub chk_man {
 		"found in package $pathpkg{$comp}\n";
 	  }
 	} else {
-	  warn "$pkg:$comp ($dir) not found\n";
+	  warn "$pkg:$comp ($dir) not listed in package $pkg\n";
 	}
 	if ( defined $pathsrc{$comp} ) {
 	  if ( $pathsrc{$comp} ne $File::Find::dir ) {
 	    warn "$pkg:$comp ($dir) also sourced from $pathsrc{$comp}";
 	  } else {
-	    warn "$pkg:$comp ($dir) specified more than once";
+	    warn "$pkg:$comp ($dir) specified more than once in mkrtkit.conf files";
 	  }
 	} else {
 	  $pathsrc{$comp} = $File::Find::dir;
@@ -80,6 +80,6 @@ sub chk_man {
 
 find( \&chk_man, "../.." );
 
-print map "$pathpkg{$_}:$_ unsourced\n",
+print map "$pathpkg{$_}:$_ not listed in any mkrtkit.conf file\n",
   grep ! defined $pathsrc{$_},
   sort keys %pathpkg;
