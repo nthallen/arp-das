@@ -36,6 +36,8 @@ install-data : $(DATA)
 install-pkgs :
 	@for pkg in $(PKGS); do \
 	  [ -f pkgs/$$pkg/Makefile ] && make -C pkgs/$$pkg install; \
-	  ./chkpkgs $$pkg || exit 1; \
-	  ./install_pkg $$pkg || exit 1; \
+	  if [ -f pkgs/$$pkg/Header ]; then \
+	    ./chkpkgs $$pkg || exit 1; \
+	    ./install_pkg $$pkg || exit 1; \
+	  fi; \
 	done

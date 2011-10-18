@@ -108,7 +108,7 @@ sub check_header {
   my $pkg = shift;
   my $hdr = "pkgs/$pkg/Header";
   my $havesource = 1;
-  if ( ! -f $hdr ) {
+  if ( ! -f $hdr && defined $pkg{$pkg} ) {
     $hdr = "$pkgdir/" .
 	    ver_print($pkg{$pkg}->[0]) . "/Header";
     $havesource = 0;
