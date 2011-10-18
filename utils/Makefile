@@ -10,7 +10,7 @@ PREFIX=$(TGTNODE)/usr/local
 
 .PHONY : all install install-sbin install-bin install-osdata install-data
 all : install
-install : install-bin install-osdata install-sbin install-data
+install : install-bin install-osdata install-sbin install-data install-profile
 install-sbin : $(SBIN)
 	mkdir -p $(PREFIX)/sbin
 	@$(INSTALL) $(SBIN) $(PREFIX)/sbin
@@ -28,6 +28,10 @@ install-data : $(DATA)
 install-osdata : $(OSDATA)
 	mkdir -p $(PREFIX)/share
 	@$(INSTALL) $(OSDATA) $(PREFIX)/share
+install-profile : pkg.sh
+	[ -d /etc/profile.d ] || mkdir /etc/profile.d
+	@cp -vn pkg.sh /etc/profile.d/pkg.sh
+	ln -fs ./pkg.sh /etc/profile.d/pkg.ksh
 #install-oui : $(OUI)
 #	@mkdir -p $(PREFIX)/share/oui
 #	@$(INSTALL) $(OUI) $(PREFIX)/share/oui
