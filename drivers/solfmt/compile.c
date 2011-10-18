@@ -1,6 +1,9 @@
 /* compile.c takes the information in solenoids and modes and compiles it
    into a numerical code.
    $Log$
+   Revision 1.5  2011/02/24 01:36:21  ntallen
+   Cleanup
+
    Revision 1.4  2011/02/24 00:57:59  ntallen
    Clean compile
 
@@ -44,7 +47,7 @@ static char rcsid[] =
       "$Id$";
 
 #define MODE_CODE_SIZE 10000
-#define MAX_SW 25
+#define MAX_SW 64
 char mode_code[MODE_CODE_SIZE];
 int mci = 0;    /* index into mode_code */
 int verbose = 0;
