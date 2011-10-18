@@ -1,4 +1,5 @@
 /* nparam.c Parametrized values for ntable (the text version ) */
+#include "err.h"
 #include "param.h"
 #include "tablelib.h"
 
@@ -12,7 +13,7 @@ static PtWidget_t *window;
 
 void SetupPhoton( int preview ) {
   if (PtInit(NULL) == -1)
-      PtExit(EXIT_FAILURE);
+    message(DEADLY,"Unable to initialize Photon", 0, &curpos);
   do_output = preview;
 }
 
