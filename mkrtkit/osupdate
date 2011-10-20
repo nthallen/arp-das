@@ -199,8 +199,8 @@ while ( @depchk ) {
 	    if ( ! defined $pkgplan{$reqpkg} ) {
 	      $pkgplan{$reqpkg} = { };
 	      push(@depchk, $reqpkg);
-	      push(@{$pkgplan->{deps}}, $reqpkg);
 	    }
+	    push(@{$pkgplan->{deps}}, $reqpkg);
 	    $pkgplan{$reqpkg}->{req_by} ||= [];
 	    push(@{$pkgplan{$reqpkg}->{req_by}}, $pkg);
 	  }
