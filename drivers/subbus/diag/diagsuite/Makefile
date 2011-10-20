@@ -3,7 +3,8 @@
 SRCS = $(wildcard *.c)
 TARGETS = syscon card ana104 sc_cfg
 SCOBJ = sccfg.o cfg.o
-LDFLAGS = -L/usr/pkg/lib -L/usr/local/lib
+LDFLAGS = -L/usr/pkg/lib -L/usr/local/lib \
+  -Wl,-rpath,/usr/pkg/lib -Wl,-rpath,/usr/local/lib
 CPPFLAGS = -I/usr/pkg/include -I/usr/local/lib
 
 all : $(TARGETS)
@@ -18,7 +19,7 @@ sc_cfg : $(SCOBJ)
 sccfg.o : sccfg/sccfg.c
 	$(COMPILE.c) -I./ -o sccfg.o sccfg/sccfg.c
 clean :
-	rm -f *.o $(TARGETS)
+	rm -f *.o $(TARGETS) FullBuild.*
 install : $(TARGETS)
 	cp -v $(TARGETS) $(TGTNODE)/usr/local/bin
 	mkdir -p $(TGTNODE)/usr/local/share/huarp
