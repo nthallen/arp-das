@@ -1,6 +1,9 @@
 /* digital3.c is a diagnostic for checking out any and all digital
  * input or output boards in their flight configurations.
  * $Log$
+ * Revision 1.2  2011/10/21 18:48:18  ntallen
+ * Ported to QNX6
+ *
  * Revision 1.1  2011/10/21 14:11:57  ntallen
  * Copied from QNX4
  *
@@ -68,14 +71,19 @@ static char rcsid[] =
    X            PORTS READBACK TEST: ===DISCONNECT DIGIO CONNECTORS===
 */
 #ifdef __QNX__
-  #define EXTENDED_KEY 0xFF
-  #define	KEY_PGUP	0x01A2
-  #define	KEY_PGDN	0x01AA
-  #define	KEY_LEFT	0x01A4
-  #define	KEY_RIGHT	0x01A6
-  #define	KEY_DOWN	0x01A9
-  #define	KEY_UP		0x01A1
-  #define	KEY_F1		0x0181
+  #ifdef __QNXNTO__
+    #include "kbhit.h"
+  #else
+    #error QNXNTO was not defined
+    #define EXTENDED_KEY 0xFF
+    #define	KEY_PGUP	0x01A2
+    #define	KEY_PGDN	0x01AA
+    #define	KEY_LEFT	0x01A4
+    #define	KEY_RIGHT	0x01A6
+    #define	KEY_DOWN	0x01A9
+    #define	KEY_UP		0x01A1
+    #define	KEY_F1		0x0181
+  #endif
 #else
   #define EXTENDED_KEY 0
   #define	KEY_PGUP	0x0149
@@ -302,7 +310,9 @@ int kgetch(void) {
   int c;
   if (kbhit()) {
     c = getch();
-    if (c == EXTENDED_KEY) c = 0x100 | getch();
+    #ifdef EXTENDED_KEY
+      if (c == EXTENDED_KEY) c = 0x100 | getch();
+    #endif
   } else c = -1;
   return c;
 }
