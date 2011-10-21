@@ -1,0 +1,3 @@
+%C
+Test Digio64 and ICC Digio Boards.
+A help menu is available once in the program.
