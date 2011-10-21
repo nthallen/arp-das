@@ -1,6 +1,9 @@
-/* digital2.c is a diagnostic for checking out any and all digital
+/* digital3.c is a diagnostic for checking out any and all digital
  * input or output boards in their flight configurations.
  * $Log$
+ * Revision 1.1  2011/10/21 14:11:57  ntallen
+ * Copied from QNX4
+ *
  * Revision 1.2  2007/11/21 16:50:39  nort
  * Source
  *
@@ -30,13 +33,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <conio.h>
 #include "subbus.h"
+#include "kbhit.h"
 
-#pragma off (unreferenced)
-  static char rcsid[] =
-	"$Id$";
-#pragma on (unreferenced)
+static char rcsid[] =
+      "$Id$";
 
 /* The test will not require the user to select which board s/he wishes
    to test.  The diagnostic knows which ports are input and which
@@ -145,24 +146,24 @@ struct bddf {
   unsigned int control;
   unsigned int initcmd;
 } boards[] = {
-  HERE_NOT_ICC, "Disc0", 0x806, 0x8989,
-  HERE_NOT_ICC, "Disc1", 0x826, 0x8989,
-  HERE_NOT_ICC, "Disc2", 0x846, 0x8989,
-  HERE_NOT_ICC, "Dstat", 0x406, 0x9B9B,
-  HERE_NOT_ICC, "Digio0 Chips 1&3", 0x866, 0x8282,
-  HERE_NOT_ICC, "Digio0 Chips 2&4", 0x886, 0x8989,
-  HERE_NOT_ICC, "Digio1 Chips 1&3", 0x8A6, 0x8282,
-  HERE_NOT_ICC, "Digio1 Chips 2&4", 0x8C6, 0x8989,
-  HERE_NOT_ICC, "Main Ozone", 0x8E6, 0x0089,
-  HERE_NOT_ICC, "Water Vapor", 0x8EE, 0x0089,
-  HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x800", 0x806, 0xFFFF,
-  HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x820", 0x826, 0xFFFF,
-  HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x840", 0x846, 0xFFFF,
-  HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x860", 0x866, 0xFFFF,
-  HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x880", 0x886, 0xFFFF,
-  HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x8A0", 0x8A6, 0xFFFF,
-  HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x8C0", 0x8C6, 0xFFFF,
-  HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x8E0", 0x8E6, 0xFFFF
+  { HERE_NOT_ICC, "Disc0", 0x806, 0x8989 },
+  { HERE_NOT_ICC, "Disc1", 0x826, 0x8989 },
+  { HERE_NOT_ICC, "Disc2", 0x846, 0x8989 },
+  { HERE_NOT_ICC, "Dstat", 0x406, 0x9B9B },
+  { HERE_NOT_ICC, "Digio0 Chips 1&3", 0x866, 0x8282 },
+  { HERE_NOT_ICC, "Digio0 Chips 2&4", 0x886, 0x8989 },
+  { HERE_NOT_ICC, "Digio1 Chips 1&3", 0x8A6, 0x8282 },
+  { HERE_NOT_ICC, "Digio1 Chips 2&4", 0x8C6, 0x8989 },
+  { HERE_NOT_ICC, "Main Ozone", 0x8E6, 0x0089 },
+  { HERE_NOT_ICC, "Water Vapor", 0x8EE, 0x0089 },
+  { HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x800", 0x806, 0xFFFF },
+  { HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x820", 0x826, 0xFFFF },
+  { HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x840", 0x846, 0xFFFF },
+  { HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x860", 0x866, 0xFFFF },
+  { HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x880", 0x886, 0xFFFF },
+  { HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x8A0", 0x8A6, 0xFFFF },
+  { HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x8C0", 0x8C6, 0xFFFF },
+  { HERE_NOT_104, "Digio64 50pin Connector @ Addr 0x8E0", 0x8E6, 0xFFFF }
 };
 #define N_BOARDS (sizeof(boards)/sizeof(struct bddf))
 
@@ -172,11 +173,11 @@ unsigned int pattern[] = { 0, 0x5555, 0xAAAA, 0xFFFF, 0x0101, 0x0202,
 
 /* orders defines the order of bits on the buffer chips */
 int orders[5][8] = {
-  9,7,5,3,2,4,6,8,
-  7,8,9,6,5,4,3,2,
-  9,8,7,6,5,4,3,2,
-  3,4,5,6,7,8,9,2,
-  2,3,4,5,6,7,8,9
+  { 9,7,5,3,2,4,6,8 },
+  { 7,8,9,6,5,4,3,2 },
+  { 9,8,7,6,5,4,3,2 },
+  { 3,4,5,6,7,8,9,2 },
+  { 2,3,4,5,6,7,8,9 }
 };
 
 struct pd {
@@ -190,100 +191,100 @@ struct pd {
   int con_pin;
   int flags;
 } port_data[] = {
-  0, "Z9", 'A', 0x808, "Z11", 0, "J8", 2, FL_OUTPUT,
-  0, "Z9", 'B', 0x80A, "Z12", 1, "J8", 10, FL_OUTPUT,
-  0, "Z10", 'A', 0x811, "Z14", 0, "J8", 21, FL_OUTPUT,
-  0, "Z10", 'B', 0x813, "Z13", 2, "J8", 29, FL_OUTPUT,
-  1, "Z9", 'A', 0x828, "Z11", 0, "J8", 2, FL_OUTPUT,
-  1, "Z9", 'B', 0x82A, "Z12", 1, "J8", 10, FL_OUTPUT,
-  1, "Z10", 'A', 0x831, "Z14", 0, "J8", 21, FL_OUTPUT,
-  1, "Z10", 'B', 0x833, "Z13", 2, "J8", 29, FL_OUTPUT,
-  2, "Z9", 'A', 0x848, "Z11", 0, "J8", 2, FL_OUTPUT,
-  2, "Z9", 'B', 0x84A, "Z12", 1, "J8", 10, FL_OUTPUT,
-  2, "Z10", 'A', 0x851, "Z14", 0, "J8", 21, FL_OUTPUT,
-  2, "Z10", 'B', 0x853, "Z13", 2, "J8", 29, FL_OUTPUT,
-  3, "Z9", 'A', 0x408, "Z11", 0, "J8", 2, FL_INPUT,
-  3, "Z9", 'B', 0x40A, "Z12", 1, "J8", 10, FL_INPUT,
-  3, "Z10", 'A', 0x411, "Z14", 0, "J8", 21, FL_INPUT,
-  3, "Z10", 'B', 0x413, "Z13", 2, "J8", 29, FL_INPUT,
-  4, "U1", 'A', 0x868, "U11", 2, "J8",  2, FL_OUTPUT,
-  4, "U1", 'B', 0x86A, "U12", 2, "J8", 10, FL_INPUT,
-  4, "U1", 'C', 0x86C, "U13", 3, "J8", 18, FL_OUTPUT | FL_SHUFFLED,
-  5, "U2", 'A', 0x888, "U15", 2, "J8", 26, FL_OUTPUT,
-  5, "U2", 'B', 0x88A, "U16", 2, "J8", 34, FL_OUTPUT,
-  5, "U2", 'C', 0x88C, "U17", 3, "J8", 42, FL_INPUT | FL_SHUFFLED,
-  4, "U3", 'A', 0x871, "U19", 2, "J9",  2, FL_OUTPUT,
-  4, "U3", 'B', 0x873, "U20", 2, "J9", 10, FL_INPUT,
-  4, "U3", 'C', 0x875, "U21", 3, "J9", 18, FL_OUTPUT | FL_SHUFFLED,
-  5, "U4", 'A', 0x891, "U23", 2, "J9", 26, FL_OUTPUT,
-  5, "U4", 'B', 0x893, "U24", 2, "J9", 34, FL_OUTPUT,
-  5, "U4", 'C', 0x895, "U25", 3, "J9", 42, FL_INPUT | FL_SHUFFLED,
-  6, "U1", 'A', 0x8A8, "U11", 2, "J8",  2, FL_OUTPUT,
-  6, "U1", 'B', 0x8AA, "U12", 2, "J8", 10, FL_INPUT,
-  6, "U1", 'C', 0x8AC, "U13", 3, "J8", 18, FL_OUTPUT | FL_SHUFFLED,
-  7, "U2", 'A', 0x8C8, "U15", 2, "J8", 26, FL_OUTPUT,
-  7, "U2", 'B', 0x8CA, "U16", 2, "J8", 34, FL_OUTPUT,
-  7, "U2", 'C', 0x8CC, "U17", 3, "J8", 42, FL_INPUT | FL_SHUFFLED,
-  6, "U3", 'A', 0x8B1, "U19", 2, "J9",  2, FL_OUTPUT,
-  6, "U3", 'B', 0x8B3, "U20", 2, "J9", 10, FL_INPUT,
-  6, "U3", 'C', 0x8B5, "U21", 3, "J9", 18, FL_OUTPUT | FL_SHUFFLED,
-  7, "U4", 'A', 0x8D1, "U23", 2, "J9", 26, FL_OUTPUT,
-  7, "U4", 'B', 0x8D3, "U24", 2, "J9", 34, FL_OUTPUT,
-  7, "U4", 'C', 0x8D5, "U25", 3, "J9", 42, FL_INPUT | FL_SHUFFLED,
-  8, "U20", 'A', 0x8E0, "U23", 4, "VC2", 2, FL_OUTPUT,
-  8, "U20", 'B', 0x8E2, "U24", 4, "VC2", 18, FL_OUTPUT,
-  8, "U20", 'C', 0x8E4, "U25", 4, "VC2", 10, FL_INPUT,
-  9, "U20", 'A', 0x8E8, "U23", 4, "VC2", 2, FL_OUTPUT,
-  9, "U20", 'B', 0x8EA, "U24", 4, "VC2", 18, FL_OUTPUT,
-  9, "U20", 'C', 0x8EC, "U25", 4, "VC2", 10, FL_INPUT,
-  10, "U1", '1', 0x808, "U1", -1, "J", 2, FL_PROGRAMMABLE,
-  10, "U1", '2', 0x811, "U1", -1, "J", 10, FL_PROGRAMMABLE,
-  10, "U1", '3', 0x80A, "U1", -1, "J", 18, FL_PROGRAMMABLE,
-  10, "U1", '4', 0x813, "U1", -1, "J", 26, FL_PROGRAMMABLE,
-  10, "U1", '5', 0x80C, "U1", -1, "J", 34, FL_PROGRAMMABLE,
-  10, "U1", '6', 0x815, "U1", -1, "J", 42, FL_PROGRAMMABLE,
-  11, "U1", '1', 0x828, "U1", -1, "J", 2, FL_PROGRAMMABLE,
-  11, "U1", '2', 0x831, "U1", -1, "J", 10, FL_PROGRAMMABLE,
-  11, "U1", '3', 0x82A, "U1", -1, "J", 18, FL_PROGRAMMABLE,
-  11, "U1", '4', 0x833, "U1", -1, "J", 26, FL_PROGRAMMABLE,
-  11, "U1", '5', 0x82C, "U1", -1, "J", 34, FL_PROGRAMMABLE,
-  11, "U1", '6', 0x835, "U1", -1, "J", 42, FL_PROGRAMMABLE,
-  12, "U1", '1', 0x848, "U1", -1, "J", 2, FL_PROGRAMMABLE,
-  12, "U1", '2', 0x851, "U1", -1, "J", 10, FL_PROGRAMMABLE,
-  12, "U1", '3', 0x84A, "U1", -1, "J", 18, FL_PROGRAMMABLE,
-  12, "U1", '4', 0x853, "U1", -1, "J", 26, FL_PROGRAMMABLE,
-  12, "U1", '5', 0x84C, "U1", -1, "J", 34, FL_PROGRAMMABLE,
-  12, "U1", '6', 0x855, "U1", -1, "J", 42, FL_PROGRAMMABLE,
-  13, "U1", '1', 0x868, "U1", -1, "J", 2, FL_PROGRAMMABLE,
-  13, "U1", '2', 0x871, "U1", -1, "J", 10, FL_PROGRAMMABLE,
-  13, "U1", '3', 0x86A, "U1", -1, "J", 18, FL_PROGRAMMABLE,
-  13, "U1", '4', 0x873, "U1", -1, "J", 26, FL_PROGRAMMABLE,
-  13, "U1", '5', 0x86C, "U1", -1, "J", 34, FL_PROGRAMMABLE,
-  13, "U1", '6', 0x875, "U1", -1, "J", 42, FL_PROGRAMMABLE,
-  14, "U1", '1', 0x888, "U1", -1, "J", 2, FL_PROGRAMMABLE,
-  14, "U1", '2', 0x891, "U1", -1, "J", 10, FL_PROGRAMMABLE,
-  14, "U1", '3', 0x88A, "U1", -1, "J", 18, FL_PROGRAMMABLE,
-  14, "U1", '4', 0x893, "U1", -1, "J", 26, FL_PROGRAMMABLE,
-  14, "U1", '5', 0x88C, "U1", -1, "J", 34, FL_PROGRAMMABLE,
-  14, "U1", '6', 0x895, "U1", -1, "J", 42, FL_PROGRAMMABLE,
-  15, "U1", '1', 0x8A8, "U1", -1, "J", 2, FL_PROGRAMMABLE,
-  15, "U1", '2', 0x8B1, "U1", -1, "J", 10, FL_PROGRAMMABLE,
-  15, "U1", '3', 0x8AA, "U1", -1, "J", 18, FL_PROGRAMMABLE,
-  15, "U1", '4', 0x8B3, "U1", -1, "J", 26, FL_PROGRAMMABLE,
-  15, "U1", '5', 0x8AC, "U1", -1, "J", 34, FL_PROGRAMMABLE,
-  15, "U1", '6', 0x8B5, "U1", -1, "J", 42, FL_PROGRAMMABLE,
-  16, "U1", '1', 0x8C8, "U1", -1, "J", 2, FL_PROGRAMMABLE,
-  16, "U1", '2', 0x8D1, "U1", -1, "J", 10, FL_PROGRAMMABLE,
-  16, "U1", '3', 0x8CA, "U1", -1, "J", 18, FL_PROGRAMMABLE,
-  16, "U1", '4', 0x8D3, "U1", -1, "J", 26, FL_PROGRAMMABLE,
-  16, "U1", '5', 0x8CC, "U1", -1, "J", 34, FL_PROGRAMMABLE,
-  16, "U1", '6', 0x8D5, "U1", -1, "J", 42, FL_PROGRAMMABLE,
-  17, "U1", '1', 0x8E8, "U1", -1, "J", 2, FL_PROGRAMMABLE,
-  17, "U1", '2', 0x8F1, "U1", -1, "J", 10, FL_PROGRAMMABLE,
-  17, "U1", '3', 0x8EA, "U1", -1, "J", 18, FL_PROGRAMMABLE,
-  17, "U1", '4', 0x8F3, "U1", -1, "J", 26, FL_PROGRAMMABLE,
-  17, "U1", '5', 0x8EC, "U1", -1, "J", 34, FL_PROGRAMMABLE,
-  17, "U1", '6', 0x8F5, "U1", -1, "J", 42, FL_PROGRAMMABLE
+  { 0, "Z9", 'A', 0x808, "Z11", 0, "J8", 2, FL_OUTPUT },
+  { 0, "Z9", 'B', 0x80A, "Z12", 1, "J8", 10, FL_OUTPUT },
+  { 0, "Z10", 'A', 0x811, "Z14", 0, "J8", 21, FL_OUTPUT },
+  { 0, "Z10", 'B', 0x813, "Z13", 2, "J8", 29, FL_OUTPUT },
+  { 1, "Z9", 'A', 0x828, "Z11", 0, "J8", 2, FL_OUTPUT },
+  { 1, "Z9", 'B', 0x82A, "Z12", 1, "J8", 10, FL_OUTPUT },
+  { 1, "Z10", 'A', 0x831, "Z14", 0, "J8", 21, FL_OUTPUT },
+  { 1, "Z10", 'B', 0x833, "Z13", 2, "J8", 29, FL_OUTPUT },
+  { 2, "Z9", 'A', 0x848, "Z11", 0, "J8", 2, FL_OUTPUT },
+  { 2, "Z9", 'B', 0x84A, "Z12", 1, "J8", 10, FL_OUTPUT },
+  { 2, "Z10", 'A', 0x851, "Z14", 0, "J8", 21, FL_OUTPUT },
+  { 2, "Z10", 'B', 0x853, "Z13", 2, "J8", 29, FL_OUTPUT },
+  { 3, "Z9", 'A', 0x408, "Z11", 0, "J8", 2, FL_INPUT },
+  { 3, "Z9", 'B', 0x40A, "Z12", 1, "J8", 10, FL_INPUT },
+  { 3, "Z10", 'A', 0x411, "Z14", 0, "J8", 21, FL_INPUT },
+  { 3, "Z10", 'B', 0x413, "Z13", 2, "J8", 29, FL_INPUT },
+  { 4, "U1", 'A', 0x868, "U11", 2, "J8",  2, FL_OUTPUT },
+  { 4, "U1", 'B', 0x86A, "U12", 2, "J8", 10, FL_INPUT },
+  { 4, "U1", 'C', 0x86C, "U13", 3, "J8", 18, FL_OUTPUT | FL_SHUFFLED },
+  { 5, "U2", 'A', 0x888, "U15", 2, "J8", 26, FL_OUTPUT },
+  { 5, "U2", 'B', 0x88A, "U16", 2, "J8", 34, FL_OUTPUT },
+  { 5, "U2", 'C', 0x88C, "U17", 3, "J8", 42, FL_INPUT | FL_SHUFFLED },
+  { 4, "U3", 'A', 0x871, "U19", 2, "J9",  2, FL_OUTPUT },
+  { 4, "U3", 'B', 0x873, "U20", 2, "J9", 10, FL_INPUT },
+  { 4, "U3", 'C', 0x875, "U21", 3, "J9", 18, FL_OUTPUT | FL_SHUFFLED },
+  { 5, "U4", 'A', 0x891, "U23", 2, "J9", 26, FL_OUTPUT },
+  { 5, "U4", 'B', 0x893, "U24", 2, "J9", 34, FL_OUTPUT },
+  { 5, "U4", 'C', 0x895, "U25", 3, "J9", 42, FL_INPUT | FL_SHUFFLED },
+  { 6, "U1", 'A', 0x8A8, "U11", 2, "J8",  2, FL_OUTPUT },
+  { 6, "U1", 'B', 0x8AA, "U12", 2, "J8", 10, FL_INPUT },
+  { 6, "U1", 'C', 0x8AC, "U13", 3, "J8", 18, FL_OUTPUT | FL_SHUFFLED },
+  { 7, "U2", 'A', 0x8C8, "U15", 2, "J8", 26, FL_OUTPUT },
+  { 7, "U2", 'B', 0x8CA, "U16", 2, "J8", 34, FL_OUTPUT },
+  { 7, "U2", 'C', 0x8CC, "U17", 3, "J8", 42, FL_INPUT | FL_SHUFFLED },
+  { 6, "U3", 'A', 0x8B1, "U19", 2, "J9",  2, FL_OUTPUT },
+  { 6, "U3", 'B', 0x8B3, "U20", 2, "J9", 10, FL_INPUT },
+  { 6, "U3", 'C', 0x8B5, "U21", 3, "J9", 18, FL_OUTPUT | FL_SHUFFLED },
+  { 7, "U4", 'A', 0x8D1, "U23", 2, "J9", 26, FL_OUTPUT },
+  { 7, "U4", 'B', 0x8D3, "U24", 2, "J9", 34, FL_OUTPUT },
+  { 7, "U4", 'C', 0x8D5, "U25", 3, "J9", 42, FL_INPUT | FL_SHUFFLED },
+  { 8, "U20", 'A', 0x8E0, "U23", 4, "VC2", 2, FL_OUTPUT },
+  { 8, "U20", 'B', 0x8E2, "U24", 4, "VC2", 18, FL_OUTPUT },
+  { 8, "U20", 'C', 0x8E4, "U25", 4, "VC2", 10, FL_INPUT },
+  { 9, "U20", 'A', 0x8E8, "U23", 4, "VC2", 2, FL_OUTPUT },
+  { 9, "U20", 'B', 0x8EA, "U24", 4, "VC2", 18, FL_OUTPUT },
+  { 9, "U20", 'C', 0x8EC, "U25", 4, "VC2", 10, FL_INPUT },
+  { 10, "U1", '1', 0x808, "U1", -1, "J", 2, FL_PROGRAMMABLE },
+  { 10, "U1", '2', 0x811, "U1", -1, "J", 10, FL_PROGRAMMABLE },
+  { 10, "U1", '3', 0x80A, "U1", -1, "J", 18, FL_PROGRAMMABLE },
+  { 10, "U1", '4', 0x813, "U1", -1, "J", 26, FL_PROGRAMMABLE },
+  { 10, "U1", '5', 0x80C, "U1", -1, "J", 34, FL_PROGRAMMABLE },
+  { 10, "U1", '6', 0x815, "U1", -1, "J", 42, FL_PROGRAMMABLE },
+  { 11, "U1", '1', 0x828, "U1", -1, "J", 2, FL_PROGRAMMABLE },
+  { 11, "U1", '2', 0x831, "U1", -1, "J", 10, FL_PROGRAMMABLE },
+  { 11, "U1", '3', 0x82A, "U1", -1, "J", 18, FL_PROGRAMMABLE },
+  { 11, "U1", '4', 0x833, "U1", -1, "J", 26, FL_PROGRAMMABLE },
+  { 11, "U1", '5', 0x82C, "U1", -1, "J", 34, FL_PROGRAMMABLE },
+  { 11, "U1", '6', 0x835, "U1", -1, "J", 42, FL_PROGRAMMABLE },
+  { 12, "U1", '1', 0x848, "U1", -1, "J", 2, FL_PROGRAMMABLE },
+  { 12, "U1", '2', 0x851, "U1", -1, "J", 10, FL_PROGRAMMABLE },
+  { 12, "U1", '3', 0x84A, "U1", -1, "J", 18, FL_PROGRAMMABLE },
+  { 12, "U1", '4', 0x853, "U1", -1, "J", 26, FL_PROGRAMMABLE },
+  { 12, "U1", '5', 0x84C, "U1", -1, "J", 34, FL_PROGRAMMABLE },
+  { 12, "U1", '6', 0x855, "U1", -1, "J", 42, FL_PROGRAMMABLE },
+  { 13, "U1", '1', 0x868, "U1", -1, "J", 2, FL_PROGRAMMABLE },
+  { 13, "U1", '2', 0x871, "U1", -1, "J", 10, FL_PROGRAMMABLE },
+  { 13, "U1", '3', 0x86A, "U1", -1, "J", 18, FL_PROGRAMMABLE },
+  { 13, "U1", '4', 0x873, "U1", -1, "J", 26, FL_PROGRAMMABLE },
+  { 13, "U1", '5', 0x86C, "U1", -1, "J", 34, FL_PROGRAMMABLE },
+  { 13, "U1", '6', 0x875, "U1", -1, "J", 42, FL_PROGRAMMABLE },
+  { 14, "U1", '1', 0x888, "U1", -1, "J", 2, FL_PROGRAMMABLE },
+  { 14, "U1", '2', 0x891, "U1", -1, "J", 10, FL_PROGRAMMABLE },
+  { 14, "U1", '3', 0x88A, "U1", -1, "J", 18, FL_PROGRAMMABLE },
+  { 14, "U1", '4', 0x893, "U1", -1, "J", 26, FL_PROGRAMMABLE },
+  { 14, "U1", '5', 0x88C, "U1", -1, "J", 34, FL_PROGRAMMABLE },
+  { 14, "U1", '6', 0x895, "U1", -1, "J", 42, FL_PROGRAMMABLE },
+  { 15, "U1", '1', 0x8A8, "U1", -1, "J", 2, FL_PROGRAMMABLE },
+  { 15, "U1", '2', 0x8B1, "U1", -1, "J", 10, FL_PROGRAMMABLE },
+  { 15, "U1", '3', 0x8AA, "U1", -1, "J", 18, FL_PROGRAMMABLE },
+  { 15, "U1", '4', 0x8B3, "U1", -1, "J", 26, FL_PROGRAMMABLE },
+  { 15, "U1", '5', 0x8AC, "U1", -1, "J", 34, FL_PROGRAMMABLE },
+  { 15, "U1", '6', 0x8B5, "U1", -1, "J", 42, FL_PROGRAMMABLE },
+  { 16, "U1", '1', 0x8C8, "U1", -1, "J", 2, FL_PROGRAMMABLE },
+  { 16, "U1", '2', 0x8D1, "U1", -1, "J", 10, FL_PROGRAMMABLE },
+  { 16, "U1", '3', 0x8CA, "U1", -1, "J", 18, FL_PROGRAMMABLE },
+  { 16, "U1", '4', 0x8D3, "U1", -1, "J", 26, FL_PROGRAMMABLE },
+  { 16, "U1", '5', 0x8CC, "U1", -1, "J", 34, FL_PROGRAMMABLE },
+  { 16, "U1", '6', 0x8D5, "U1", -1, "J", 42, FL_PROGRAMMABLE },
+  { 17, "U1", '1', 0x8E8, "U1", -1, "J", 2, FL_PROGRAMMABLE },
+  { 17, "U1", '2', 0x8F1, "U1", -1, "J", 10, FL_PROGRAMMABLE },
+  { 17, "U1", '3', 0x8EA, "U1", -1, "J", 18, FL_PROGRAMMABLE },
+  { 17, "U1", '4', 0x8F3, "U1", -1, "J", 26, FL_PROGRAMMABLE },
+  { 17, "U1", '5', 0x8EC, "U1", -1, "J", 34, FL_PROGRAMMABLE },
+  { 17, "U1", '6', 0x8F5, "U1", -1, "J", 42, FL_PROGRAMMABLE }
 };
 #define N_PORTS (sizeof(port_data)/sizeof(struct pd))
 
@@ -306,7 +307,7 @@ int kgetch(void) {
   return c;
 }
 
-#define do_reset(ADDR) write_ack(0, ADDR, 0)
+#define do_reset(ADDR) write_ack(ADDR, 0)
 
 /* Digio64 board functions */
 #define IS_DIGIO64(B) (boards[B].present == HERE_104)
@@ -314,7 +315,7 @@ int kgetch(void) {
 
 void toggle_cmden(unsigned int addr) {
   unsigned int c;
-  c = read_subbus(0, addr);
+  c = read_subbus(addr);
   if (c & 0x1) {
     c &= 0x0;
     printf("Command Enable is distributed through this Connector unit\n");
@@ -323,14 +324,14 @@ void toggle_cmden(unsigned int addr) {
     c |= 0x1;
     printf("Command Strobe is distributed through this Connector unit\n");
   }
-  write_subbus(0, addr, c);
+  write_subbus(addr, c);
 }
 
 void setport(struct pd *p_d, int in) {
   unsigned int cp;
   unsigned int s = 0;
   /* get control word for board */
-  cp = read_subbus(0, boards[p_d->board].control);
+  cp = read_subbus(boards[p_d->board].control);
   /* set port */
   switch (p_d->port) {
   case '1':
@@ -350,33 +351,27 @@ void setport(struct pd *p_d, int in) {
   case 1:
     cp |= s;
     p_d->flags |= FL_INPUT;
-    write_subbus(0, boards[p_d->board].control, cp);
+    write_subbus(boards[p_d->board].control, cp);
     break;
   case 0:
     cp &= ~s;
     p_d->flags |= FL_OUTPUT;
-    write_subbus(0, boards[p_d->board].control, cp);
+    write_subbus(boards[p_d->board].control, cp);
     break;
   }
 }
 
 unsigned int read_vers(unsigned int addr) {
   unsigned int r;
-  write_subbus(0, 0, 0);
-  r = read_subbus(0, addr);
+  write_subbus(0, 0);
+  r = read_subbus(addr);
   r &= 0x6060;
   return(r);
 }
 
 /* returns non-zero if we know how to set the cmdstrobe */
 int do_cmdstrobe( int asserted ) {
-  if ( subbus_features & SBF_CMDSTROBE )
-	set_cmdstrobe( asserted );
-  else if ( subbus_subfunction == SB_SYSCON ) {
-	if (asserted) outp(0x30E, 3);
-	else outp(0x30E, 2);
-  } else return 0;
-  return 1;
+  return set_cmdstrobe( asserted );
 }
 
 /* Z9-4|----|Z11-9  Z11-11|-------|J8-2 */
@@ -426,14 +421,14 @@ void readback (int which) {
 	mask = (addr & 1) ? 0xFF00 : 0xFF;
 	value = 0;
 	for (j = 0; j < N_PATS; j++) {
-	  write_subbus(0, addr, pattern[j]);
-          write_subbus(0, 0, (unsigned int)(~pattern[j]));
+	  write_subbus(addr, pattern[j]);
+          write_subbus(0, (unsigned int)(~pattern[j]));
 	  if (which==HERE_104)
-	    value |= ((~read_subbus(0,addr)) ^ pattern[j]) & mask;
+	    value |= ((~read_subbus(addr)) ^ pattern[j]) & mask;
 	  else
-	    value |= (read_subbus(0,addr) ^ pattern[j]) & mask;
+	    value |= (read_subbus(addr) ^ pattern[j]) & mask;
 	}
-	write_subbus(0, addr, 0);
+	write_subbus(addr, 0);
 	if (value != 0)
 	  printf("Error: %s chip %s port %c. Bits failing: %04X\n",
 		 boards[port_data[port].board].name,
@@ -454,9 +449,9 @@ int do_cmdenable(int set) {
   return(old_cmdenbl);
 }
 
-void main(void) {
+int main(void) {
   int port, bit, shift, pin, i;
-  int state, looping, c, j;
+  int state, looping, c;
   unsigned int value, mask;
   struct pd *p_d;
   unsigned int pc_104;
@@ -478,7 +473,7 @@ void main(void) {
       if (pc_104 != 0) {
 	if (boards[i].present != HERE_NOT_104) continue;
 	else {
-	  if (write_ack(0, boards[i].control, boards[i].initcmd) == 0) {
+	  if (write_ack(boards[i].control, boards[i].initcmd) == 0) {
 	    printf("Can't initialise board %s",boards[i].name);
 	    continue;
 	  }
@@ -489,7 +484,7 @@ void main(void) {
       } else {
 	if (boards[i].present != HERE_NOT_ICC) continue;
 	else {
-	  if (write_ack(0, boards[i].control, boards[i].initcmd) == 0) {
+	  if (write_ack(boards[i].control, boards[i].initcmd) == 0) {
 	    printf("Can't initialise board %s",boards[i].name);
 	    continue;
 	  }
@@ -508,7 +503,7 @@ void main(void) {
   if (num_icc_boards) {
     for (i = 0; i < N_BOARDS; i++) {
       if (boards[i].present == HERE_ICC)
-	write_subbus(0, boards[i].control, boards[i].initcmd);
+	write_subbus(boards[i].control, boards[i].initcmd);
     }
   }
 
@@ -558,7 +553,7 @@ void main(void) {
 	/* perform the tight loop action */
 	/* If output, flip the bit; if input, display the port */
 	if ((p_d->flags & FL_OUTPUT) == 0) {
-	  mask = (read_subbus(0, p_d->address) >> shift) & 0xFF;
+	  mask = (read_subbus(p_d->address) >> shift) & 0xFF;
 	  if (mask != value) {
 	    value = mask;
 	    for (mask = 0x80; mask != 0; mask >>= 1)
@@ -569,7 +564,7 @@ void main(void) {
 	} else 
 	  if (looping == LOOP_WILDLY || looping == LOOP_ONCE) {
 	  value ^= mask;
-	  write_subbus(0, p_d->address, value);
+	  write_subbus(p_d->address, value);
 	  if (looping == LOOP_ONCE) {
 	    if (IS_DIGIO64(p_d->board))
 	      printf((value & mask) ? 
@@ -643,13 +638,13 @@ void main(void) {
 	    break;
 	  case KEY_PGUP: /* Return to the previous port */
 	    if (p_d->flags & FL_OUTPUT)
-	      write_subbus(0, p_d->address, 0);
+	      write_subbus(p_d->address, 0);
 	    port = new_port(port, -1);
 	    state = STATE_NEW_PORT;
 	    break;
 	  case KEY_PGDN: /* Advance to the next port */
 	    if (p_d->flags & FL_OUTPUT)
-	      write_subbus(0, p_d->address, 0);
+	      write_subbus(p_d->address, 0);
 	    port = new_port(port, 1);
 	    state = STATE_NEW_PORT;
 	    break;
@@ -696,4 +691,5 @@ void main(void) {
   }
   disarm_sic();
   putc('\n', stdout);
+  return 0;
 }
