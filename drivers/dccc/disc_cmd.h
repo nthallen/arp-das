@@ -39,7 +39,7 @@
 #define SELECT 4
 /* #define NDCC 4 */
 
-#define MAX_CMDS 20
+#define MAX_CMDS 40
 typedef struct {
   char cmd_type; // D, M, Q
   int n_cmds;
