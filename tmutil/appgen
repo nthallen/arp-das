@@ -461,9 +461,9 @@ for i in $basetargets; do
   unset LINK
   case $i in
     *col)   LINK=priv;;
-    *clt)   LINK=normCXX;;
-    *cltnc) LINK=normCXX;;
-    *srvr)  LINK=privCXX;;
+    *clt)   LINK=norm; cxx=CXX;;
+    *cltnc) LINK=norm; cxx=CXX;;
+    *srvr)  LINK=priv; cxx=CXX;;
     *.dccc) por="\$(LIBSRC)/dccc.por"
 	    deps="$deps $por\n\t@\$(DCCC)$deps";;
     *.sft)  set -- $deps
