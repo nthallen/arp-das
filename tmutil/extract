@@ -6,6 +6,7 @@
 #	-z <time> specify end time (see "use rdr")
 #	-F <no> specify the first data file number
 #	-L <no> specify the last data file number
+#       -d invoke pterm gdb on each extraction
 #
 #Run extraction programs on data in specified directory
 #
@@ -58,6 +59,9 @@
 #are ignored here, but will be used by the script "reduce" 
 #when invoking extract. This allows custom extractions to 
 #override values in Experiment.config gracefully.
+#
+#When using -d, if a .gdbinit file exists in the current
+#directory, it will be passed to the gdb invocation(s).
 
 typeset appname=`basename $0`
 function nl_error {
@@ -69,13 +73,16 @@ function nl_error {
 # Handle arguments
 #----------------------------------------------------------------
 typeset time_opts=""
-while getopts "rg:z:F:L:" option; do
+typeset debug=no
+typeset gdbinit=""
+while getopts "drg:z:F:L:" option; do
   case $option in
 	r) EXTRACT_DEPTH=1;;
 	g) time_opts="$time_opts -g $OPTARG";;
 	z) time_opts="$time_opts -z $OPTARG";;
 	F) time_opts="$time_opts -F $OPTARG";;
 	L) time_opts="$time_opts -L $OPTARG";;
+	d) debug=yes; [ -f .gdbinit ] && gdbinit="-x $PWD/.gdbinit";;
 	\?) echo; exit 1;;
 	*) echo Unsupported option: -$option; exit 1;;
   esac
@@ -223,7 +230,11 @@ TMbfr &
 waitfor /dev/huarp/$Experiment/TM/DCo || exit 1
 for ext in ; do
   # echo "ext: $ext"
-  $ext -h "$ext" &
+  if [ $debug = yes ]; then
+    pterm gdb $gdbinit $ext &
+  else
+    $ext -h "$ext" &
+  fi
   shift
 done
 echo "extract: rdr $RDR_OPTS $time_opts -AqP $dir" >/dev/huarp/$Experiment/memo
