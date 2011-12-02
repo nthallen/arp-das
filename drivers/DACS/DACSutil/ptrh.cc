@@ -18,6 +18,10 @@ ptrh::ptrh( const char *id_in, USHRT base, USHRT C1, USHRT C2,
   C6d = C6/838860800.;
   Off = Sens = 0.;
   stale = 1;
+  DACSbuild = 0;
+  if ( !read_ack(0x81, &DACSbuild) ) {
+    nl_error(2, "No acknowledge reading DACS build" );
+  }
 }
 
 /**
@@ -35,9 +39,12 @@ int ptrh::check_coeff( int i, USHRT C_in) {
 
 void ptrh::check_coeffs() {
   int i, ok = 1;
+  int coeff_offset = 4;
+
+  if ( DACSbuild >= 16 ) coeff_offset = -2;
   for (i = 1; i < 6; ++i) {
     USHRT A, C;
-    A = base_addr + 4 + 2*i;
+    A = base_addr + coeff_offset + 2*i;
     if (!read_ack(A, &C)) {
       nl_error(2, "PTRH[%s] No acknowledge on addr 0x04X", id, A);
     } else {

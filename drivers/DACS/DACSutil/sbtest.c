@@ -316,26 +316,40 @@ static void ana_in_read_cfg(void) {
 }
 
 
-static void ptrh_test(unsigned short base, const char *desc) {
+static void ptrh_test(unsigned short DACSbuild, int ptrh_n,
+		      const char *desc) {
   unsigned short SHT21T, SHT21RH, status;
   unsigned short C1, C2, C3, C4, C5, C6;
   unsigned short Dta, Dtb;
   unsigned long D1, D2;
+  unsigned short cfg_offset;
+  unsigned short stat_offset;
+  unsigned short base;
   long dT;
   double RH, Ta;
   double Tb, P, Off, Sens;
-  status = read_report( base + 0x000, "PTRH Status" );
+
+  if (DACSbuild >= 16) {
+    cfg_offset = 0;
+    stat_offset = 0xC;
+    base = 0x200 + 0x20*ptrh_n;
+  } else {
+    cfg_offset = 0x6;
+    stat_offset = 0;
+    base = 0x300 + 0x20*ptrh_n;
+  }
+  status = read_report( base + stat_offset, "PTRH Status" );
   if (status == 0) {
     printf("No response from %s PTRH\n", desc);
   } else {
-    SHT21T = read_report( base + 0x002, "SHT21 Temperature" );
-    SHT21RH = read_report( base + 0x004, "SHT21 Relative Humidity" );
-    C1 = read_report( base + 0x006, "MS5607 C1" );
-    C2 = read_report( base + 0x008, "MS5607 C2" );
-    C3 = read_report( base + 0x00A, "MS5607 C3" );
-    C4 = read_report( base + 0x00C, "MS5607 C4" );
-    C5 = read_report( base + 0x00E, "MS5607 C5" );
-    C6 = read_report( base + 0x010, "MS5607 C6" );
+    SHT21T = read_report( base + stat_offset+0x002, "SHT21 Temperature" );
+    SHT21RH = read_report( base + stat_offset+0x004, "SHT21 Relative Humidity" );
+    C1 = read_report( base + cfg_offset, "MS5607 C1" );
+    C2 = read_report( base + cfg_offset+2, "MS5607 C2" );
+    C3 = read_report( base + cfg_offset+4, "MS5607 C3" );
+    C4 = read_report( base + cfg_offset+6, "MS5607 C4" );
+    C5 = read_report( base + cfg_offset+8, "MS5607 C5" );
+    C6 = read_report( base + cfg_offset+0xA, "MS5607 C6" );
     Dta = read_report( base + 0x012, "MS5607 D1(15:0)" );
     Dtb = read_report( base + 0x014, "MS5607 D1(23:16)" );
     D1 = (((unsigned long)Dtb)<<16) + Dta;
@@ -382,23 +396,23 @@ static const char *Inst[] = {
 
 int main(int argc, char **argv) {
   int rv, i;
-  unsigned short data;
+  unsigned short DACSbuild;
+  unsigned short inst_id;
 
   if ( load_subbus() == 0 )
     nl_error( 3, "Unable to load subbus library" );
-  rv = read_ack( 0, &data );
+  rv = read_ack( 0, &DACSbuild );
   if ( rv ) nl_error(2, "Unexpected ACK reading from 0" );
-  rv = read_ack( 0x80, &data );
+  rv = read_ack( 0x80, &DACSbuild );
   if ( rv ) {
-    unsigned short inst_id;
     rv = read_ack(0x81, &inst_id);
     if ( !rv )
-      nl_error( 2, "No ack reading instrument ID for build #%u", data );
+      nl_error( 2, "No ack reading instrument ID for build #%u", DACSbuild );
     else { 
       if (inst_id >= N_INST_IDS)
 	nl_error( 2, "Instrument ID %u out of range", inst_id);
       else
-	nl_error( 0, "%s: DACS Build #%u\n", Inst[inst_id], data );
+	nl_error( 0, "%s: DACS Build #%u\n", Inst[inst_id], DACSbuild );
     }
   } else {
     nl_error( 2, "No acknowledge reading DACS build number" );
@@ -429,8 +443,25 @@ int main(int argc, char **argv) {
     } else if ( strcmp(argv[i], "ana_in_read_cfg") == 0 ) {
       ana_in_read_cfg();
     } else if ( strcmp(argv[i], "ptrh") == 0 ) {
-      ptrh_test(0x300, "DACS");
-      ptrh_test(0x320, "SPV");
+      switch (inst_id) {
+	case 1:
+	  ptrh_test(DACSbuild, 0, "DACS");
+	  ptrh_test(DACSbuild, 1, "SPV");
+	  break;
+	case 2:
+	  ptrh_test(DACSbuild, 0, "DACS");
+	  ptrh_test(DACSbuild, 1, "DPV");
+	  ptrh_test(DACSbuild, 2, "LPV");
+	  break;
+	case 3:
+	  ptrh_test(DACSbuild, 0, "DACS");
+	  ptrh_test(DACSbuild, 1, "SW0");
+	  ptrh_test(DACSbuild, 2, "SW1");
+	  break;
+	default:
+	  ptrh_test(DACSbuild, 0, "DACS");
+	  break;
+      }
     } else nl_error( 3, "Unrecognized test: '%s'", argv[i]);
   }
 

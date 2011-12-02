@@ -30,6 +30,7 @@ class ptrh {
     double Off, Sens;
     int check_coeff( int i, USHRT C);
     int stale;
+    unsigned short DACSbuild;
 };
 
 #endif
