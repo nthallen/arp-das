@@ -97,6 +97,7 @@ static void process_request(void) {
             no_response = 1; break;
           case 'A':
           case 'R':
+          case 'M':
           case 'W':
           case 'V':
           case 'S':
@@ -330,6 +331,7 @@ static void process_response( char *buf ) {
   char exp_req = '\0';
   int exp_args = 0;
   if ( resp_code != '\0' ) {
+    // We can process args in the general case
     if (read_hex( &s, &arg0 )) {
       ++n_args;
       if (*s == ':') {
@@ -518,7 +520,7 @@ static int sb_timeout( message_context_t * ctp, int code,
       nl_error( 1, "%sUSB request '%c' timed out",
         (cur_req->type == SBDR_TYPE_INTERNAL) ? "Internal " : "",
         cur_req->request[0] );
-      dequeue_request( -ETIMEDOUT, 0, 0, 0, "" );
+      dequeue_request( 100, 0, 0, 0, "" );
     }
   }
   return 0;
