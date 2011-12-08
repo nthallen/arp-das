@@ -609,7 +609,7 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
         req->data.d1.data );
       break;
     case SBC_MREAD:
-      enqueue_sbreq(SB_TYPE_CLIENT, rcvid, req->data.d4.multread_cmd);
+      enqueue_sbreq(SBDR_TYPE_CLIENT, rcvid, req->data.d4.multread_cmd);
       return;
     case SBC_WRITECACHE:
       rv = sb_cache_write(req->data.d0.address, req->data.d0.data);

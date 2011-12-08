@@ -50,7 +50,7 @@ extern int write_ack(unsigned short addr, unsigned short data);
 extern int read_ack(unsigned short addr, unsigned short *data);
 #define write_subbus(x,y) write_ack(x,y)
 extern subbus_mread_req *pack_mread_request( int n_reads, const char *req );
-extern subbus_mread_req *pack_mread_requests( unsigned short addr, ... );
+extern subbus_mread_req *pack_mread_requests( unsigned int addr, ... );
 extern int mread_subbus( subbus_mread_req *req, unsigned short *data);
 extern int set_cmdenbl(int value);
 extern int set_cmdstrobe(int value);

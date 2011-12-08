@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <stdarg.h>
 #include "subbus.h"
 #include "nortlib.h"
 #include "nl_assert.h"
@@ -408,7 +409,7 @@ static subbus_mread_req *pack_mread( int req_len, int n_reads, const char *req_s
   subbus_mread_req *req = (subbus_mread_req *)new_memory(req_size);
   req->req_len = req_size;
   req->n_reads = n_reads;
-  strcpy( req->req, req_str );
+  strcpy( req->multread_cmd, req_str );
   return req;
 }
 
