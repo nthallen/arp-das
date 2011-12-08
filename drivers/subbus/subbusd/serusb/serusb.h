@@ -18,6 +18,7 @@ typedef struct {
   int type;
   int status;
   int rcvid;
+  unsigned short n_reads;
   char request[SB_SERUSB_MAX_REQUEST];
 } sbd_request_t;
 

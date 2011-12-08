@@ -132,7 +132,8 @@ static void process_request(void) {
 /**
  * This is where we serialize the request.
  */
-static void enqueue_sbreq( int type, int rcvid, char *req ) {
+static void enqueue_sbreq( int type, int rcvid, char *req,
+	unsigned short n_reads ) {
   sbd_request_t *sbr = &sbdrq[sbdrq_tail];
   int i;
   int new_tail = sbdrq_tail+1;
@@ -156,6 +157,7 @@ static void enqueue_sbreq( int type, int rcvid, char *req ) {
   sbr->request[i] = '\0';
   nl_error( -2, "Enqueued: '%*.*s'", i-1, i-1, sbr->request );
   sbr->status = SBDR_STATUS_QUEUED;
+  sbr->n_reads = n_reads;
   old_tail = sbdrq_tail;
   sbdrq_tail = new_tail;
   /* If the queue was empty, process this first request */
@@ -243,14 +245,14 @@ static void dequeue_request( signed short status, int n_args,
     case 4:
       // 'M' response and request (tested before calling)
       rep.hdr.ret_type = SBRT_MREAD;
-      nl_assert(cur_req->request[0] == 'M');
+      nl_assert(cur_req->request[0] == 'M' && cur_req->n_reads != 0);
       // Look at req n_reads, then parse responses. Don't parse more
       // than n_reads values. If we encounter 'm', switch status to
       // -1. If we encounter 'E', switch status to the error code
       // and return with no data. If we get the wrong number of
-      { int n_reads = cur_req->data.d4.n_reads;
+      { int n_reads = cur_req->n_reads;
         int i = 0;
-        const char *p = s;
+        char *p = s;
         nl_assert( n_reads > 0 && n_reads <= 50 );
         while ( i < n_reads && rsize == 0 ) {
           switch ( *p ) {
@@ -270,12 +272,13 @@ static void dequeue_request( signed short status, int n_args,
           break;
         }
         if ( rsize == 0 ) {
-          if ( i != n_reads || *p != '\n' ) {
+          if ( i != n_reads || *p != '\0' ) {
             rep.hdr.status = 101; // Wrong number of read values returned
             rsize = sizeof(subbusd_rep_hdr_t);
           } else {
             rep.data.mread.n_reads = n_reads;
-            rsize = sizeof(subbusd_rep_hdr_t) + (n_reads+1) * sizeof(unsigned short);
+            rsize = sizeof(subbusd_rep_hdr_t) +
+		    (n_reads+1) * sizeof(unsigned short);
           }
         }
       }
@@ -325,7 +328,7 @@ static void process_interrupt( unsigned int nb ) {
           nl_assert( rv == EOK );
           nl_assert( nb == bn );
           snprintf( sreq, 8, "u%X\n", addr );
-          enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, sreq );
+          enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, sreq, 0 );
           break;
         default:
           nl_error( 4, "Unexpected error %d from MsgDeliverEvent: %s",
@@ -374,7 +377,7 @@ static void process_response( char *buf ) {
     if ( cur_req != NULL && cur_req->request[0] == 'M' ) {
       // We have to push the parsing into dequeue_request() because we need
       // direct access to the reply structure.
-      dequeue_request(SBS_OK, 4, 0, 0, buf); ###
+      dequeue_request(SBS_OK, 4, 0, 0, buf);
       return;
     } else {
       status = RESP_UNEXP;
@@ -662,7 +665,8 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
         req->data.d1.data );
       break;
     case SBC_MREAD:
-      enqueue_sbreq(SBDR_TYPE_CLIENT, rcvid, req->data.d4.multread_cmd);
+      enqueue_sbreq(SBDR_TYPE_CLIENT, rcvid, req->data.d4.multread_cmd,
+		    req->data.d4.n_reads);
       return;
     case SBC_WRITECACHE:
       rv = sb_cache_write(req->data.d0.address, req->data.d0.data);
@@ -723,7 +727,7 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
     default:
       nl_error(4, "Undefined command in incoming_sbreq!" );
   }
-  enqueue_sbreq( SBDR_TYPE_CLIENT, rcvid, sreq );
+  enqueue_sbreq( SBDR_TYPE_CLIENT, rcvid, sreq, 0 );
 }
 
 void init_subbus(dispatch_t *dpp ) {
@@ -738,8 +742,8 @@ void init_subbus(dispatch_t *dpp ) {
   // pulse_attach();
 
   /* Enqueue initialization requests */
-  enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "\n" );
-  enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "V\n" );
+  enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "\n", 0 );
+  enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "V\n", 0 );
 }
 
 void shutdown_subbus(void) {
