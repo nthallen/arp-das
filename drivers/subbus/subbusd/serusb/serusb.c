@@ -172,16 +172,41 @@ static int sb_data_arm(void) {
 }
 
 /**
+ Parses the input string for a hexadecimal integer.
+ @return zero on failure.
+ */
+static int read_hex( char **sp, unsigned short *arg ) {
+  char *s = *sp;
+  unsigned short val = 0;
+  if ( ! isxdigit(*s) )
+    return 0;
+  while ( isxdigit(*s) ) {
+    val *= 16;
+    if ( isdigit(*s) )
+      val += *s - '0';
+    else
+      val += tolower(*s) - 'a' + 10;
+    ++s;
+  }
+  *arg = val;
+  *sp = s;
+  return 1;
+}
+
+/**
  * Sends the response to the client (if any) and
- * removes it from the queue. Does not initiate
- * processing of the next command.
+ * removes it from the queue. Initiates
+ * processing of the next command if one is waiting.
  * Current assumption:
  *    n_args maps 1:1 onto SBRT_ codes
  *    n_args == 3 is only for 'V' request/response
+ *    n_args == 4 is only for 'M' request/response
+ * We need to parse the 'M' response here rather than in process_response()
+ * because we need direct access to the reply structure.
  */
 static void dequeue_request( signed short status, int n_args,
   unsigned short arg0, unsigned short arg1, char *s ) {
-  int rv, rsize;
+  int rv, rsize = 0;
   subbusd_rep_t rep;
 
   nl_assert( cur_req != NULL);
@@ -213,6 +238,46 @@ static void dequeue_request( signed short status, int n_args,
           break;
         default: 
           break; // picked up and reported below
+      }
+      break;
+    case 4:
+      // 'M' response and request (tested before calling)
+      rep.hdr.ret_type = SBRT_MREAD;
+      nl_assert(cur_req->request[0] == 'M');
+      // Look at req n_reads, then parse responses. Don't parse more
+      // than n_reads values. If we encounter 'm', switch status to
+      // -1. If we encounter 'E', switch status to the error code
+      // and return with no data. If we get the wrong number of
+      { int n_reads = cur_req->data.d4.n_reads;
+        int i = 0;
+        const char *p = s;
+        nl_assert( n_reads > 0 && n_reads <= 50 );
+        while ( i < n_reads && rsize == 0 ) {
+          switch ( *p ) {
+            case 'm':
+              rep.hdr.status = -1; // No acknowledge on at least one read
+              // fall through
+            case 'M':
+              ++p;
+              if ( ! read_hex( &p, &rep.data.mread.rvals[i++] ) ) {
+                rep.hdr.status = 102; // DACS reply syntax error
+                rsize = sizeof(subbusd_rep_hdr_t);
+              }
+              continue;
+            default:
+              break;
+          }
+          break;
+        }
+        if ( rsize == 0 ) {
+          if ( i != n_reads || *p != '\n' ) {
+            rep.hdr.status = 101; // Wrong number of read values returned
+            rsize = sizeof(subbusd_rep_hdr_t);
+          } else {
+            rep.data.mread.n_reads = n_reads;
+            rsize = sizeof(subbusd_rep_hdr_t) + (n_reads+1) * sizeof(unsigned short);
+          }
+        }
       }
       break;
     case 2:
@@ -275,29 +340,14 @@ static void process_interrupt( unsigned int nb ) {
 }
 
 
-/**
- Parses the input string for a hexadecimal integer.
- @return zero on failure.
- */
-static int read_hex( char **sp, unsigned short *arg ) {
-  char *s = *sp;
-  unsigned short val = 0;
-  if ( ! isxdigit(*s) )
-    return 0;
-  while ( isxdigit(*s) ) {
-    val *= 16;
-    if ( isdigit(*s) )
-      val += *s - '0';
-    else
-      val += tolower(*s) - 'a' + 10;
-    ++s;
-  }
-  *arg = val;
-  *sp = s;
-  return 1;
-}
+#define RESP_OK 0
+#define RESP_UNREC 1 /* Unrecognized code */
+#define RESP_UNEXP 2 /* Unexpected code */
+#define RESP_INV 3 /* Invalid response syntax */
+#define RESP_INTR 4 /* Interrupt code */
+#define RESP_ERR 5 /* Error from serusb */
 
-/* process_response() reviews the response in
+/** process_response() reviews the response in
    the buffer to determine if it is a suitable
    response to the current request. If so, it
    is returned to the requester.
@@ -311,16 +361,6 @@ static int read_hex( char **sp, unsigned short *arg ) {
    a NUL, so we are guaranteed to have a NUL-
    terminated string.
  */
-#define RESP_OK 0
-#define RESP_UNREC 1 /* Unrecognized code */
-#define RESP_UNEXP 2 /* Unexpected code */
-#define RESP_INV 3 /* Invalid response syntax */
-#define RESP_INTR 4 /* Interrupt code */
-#define RESP_ERR 5 /* Error from serusb */
-
-/** parses the ASCII response from serusb
- * and prepares it for dequeue_request()
- */
 static void process_response( char *buf ) {
   int status = RESP_OK;
   unsigned short arg0, arg1;
@@ -330,99 +370,110 @@ static void process_response( char *buf ) {
   char resp_code = *s++;
   char exp_req = '\0';
   int exp_args = 0;
-  if ( resp_code != '\0' ) {
-    // We can process args in the general case
-    if (read_hex( &s, &arg0 )) {
-      ++n_args;
-      if (*s == ':') {
-        ++s;
-        if ( read_hex( &s, &arg1 ) ) {
-          ++n_args;
-          if ( *s == ':' ) {
-            ++s; // points to name
+  if ( resp_code == 'M' || resp_code == 'm' )  {
+    if ( cur_req != NULL && cur_req->request[0] == 'M' ) {
+      // We have to push the parsing into dequeue_request() because we need
+      // direct access to the reply structure.
+      dequeue_request(SBS_OK, 4, 0, 0, buf); ###
+      return;
+    } else {
+      status = RESP_UNEXP;
+    }
+  } else {
+    if ( resp_code != '\0' ) {
+      // We can process args in the general case
+      if (read_hex( &s, &arg0 )) {
+        ++n_args;
+        if (*s == ':') {
+          ++s;
+          if ( read_hex( &s, &arg1 ) ) {
             ++n_args;
-          } else {
-            status = RESP_INV;
-          }
-        } else status = RESP_INV;
+            if ( *s == ':' ) {
+              ++s; // points to name
+              ++n_args;
+            } else {
+              status = RESP_INV;
+            }
+          } else status = RESP_INV;
+        } else if ( *s != '\0' ) {
+          status = RESP_INV;
+        }
       } else if ( *s != '\0' ) {
         status = RESP_INV;
       }
-    } else if ( *s != '\0' ) {
-      status = RESP_INV;
     }
-  }
-  // Check response for self-consistency
-  // Check that response is appropriate for request
-  switch (resp_code) {
-    case 'R':
-      exp_req = 'R';
-      exp_args = 1;
-      sbs_ok_status = SBS_ACK;
-      break;
-    case 'r':
-      exp_req = 'R';
-      exp_args = 1;
-      sbs_ok_status = SBS_NOACK;
-      break;
-    case 'W':
-      exp_req = 'W';
-      exp_args = 0;
-      sbs_ok_status = SBS_ACK;
-      break;
-    case 'w':
-      exp_req = 'W';
-      exp_args = 0;
-      sbs_ok_status = SBS_NOACK;
-      break;
-    case 'V':
-      exp_req = 'V';
-      exp_args = 3;
-      break;
-    case 'I':
-      status = RESP_INTR;
-      exp_req = '\0';
-      exp_args = 1;
-      break;
-    case 'A':
-    case 'B':
-    case 'S':
-    case 'C':
-    case 'F':
-      exp_req = resp_code;
-      exp_args = 0;
-      break;
-    case '0':
-      exp_req = '\n';
-      exp_args = 0;
-      break;
-    case 'D':
-    case 'f':
-    case 'i':
-    case 'u':
-      exp_req = resp_code;
-      exp_args = 1;
-      break;
-    case 'E':
-      status = RESP_ERR;
-      exp_req = '\0';
-      exp_args = 1;
-      break;
-    default:
-      status = RESP_UNREC;
-      break;
-  }
-  switch (status) {
-    case RESP_OK:
-      if ( cur_req == NULL || cur_req->request[0] != exp_req) {
-        status = RESP_UNEXP;
+    // Check response for self-consistency
+    // Check that response is appropriate for request
+    switch (resp_code) {
+      case 'R':
+        exp_req = 'R';
+        exp_args = 1;
+        sbs_ok_status = SBS_ACK;
         break;
-      } // fall through
-    case RESP_INTR:
-    case RESP_ERR:
-      if (n_args != exp_args)
-        status = RESP_INV;
-      break;
+      case 'r':
+        exp_req = 'R';
+        exp_args = 1;
+        sbs_ok_status = SBS_NOACK;
+        break;
+      case 'W':
+        exp_req = 'W';
+        exp_args = 0;
+        sbs_ok_status = SBS_ACK;
+        break;
+      case 'w':
+        exp_req = 'W';
+        exp_args = 0;
+        sbs_ok_status = SBS_NOACK;
+        break;
+      case 'V':
+        exp_req = 'V';
+        exp_args = 3;
+        break;
+      case 'I':
+        status = RESP_INTR;
+        exp_req = '\0';
+        exp_args = 1;
+        break;
+      case 'A':
+      case 'B':
+      case 'S':
+      case 'C':
+      case 'F':
+        exp_req = resp_code;
+        exp_args = 0;
+        break;
+      case '0':
+        exp_req = '\n';
+        exp_args = 0;
+        break;
+      case 'D':
+      case 'f':
+      case 'i':
+      case 'u':
+        exp_req = resp_code;
+        exp_args = 1;
+        break;
+      case 'E':
+        status = RESP_ERR;
+        exp_req = '\0';
+        exp_args = 1;
+        break;
+      default:
+        status = RESP_UNREC;
+        break;
+    }
+    switch (status) {
+      case RESP_OK:
+        if ( cur_req == NULL || cur_req->request[0] != exp_req) {
+          status = RESP_UNEXP;
+          break;
+        } // fall through
+      case RESP_INTR:
+      case RESP_ERR:
+        if (n_args != exp_args)
+          status = RESP_INV;
+        break;
+    }
   }
   switch (status) {
     case RESP_OK:
