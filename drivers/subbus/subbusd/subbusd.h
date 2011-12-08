@@ -2,6 +2,7 @@
 #define SUBBUSD_H_INCLUDED
 #include <sys/iomsg.h>
 #include <sys/siginfo.h>
+#include "subbus.h"
 
 #define SUBBUSD_MGRID_OFFSET 1
 #define SUBBUSD_MGRID (_IOMGR_PRIVATE_BASE + SUBBUSD_MGRID_OFFSET)
@@ -43,6 +44,7 @@ typedef struct __attribute__((__packed__)) {
 #define SBC_READCACHE 12
 #define SBC_WRITECACHE 13
 #define SBC_QUIT 14
+#define SBC_MREAD 15
 
 typedef struct __attribute__((__packed__)) {
   unsigned short address;
@@ -65,18 +67,13 @@ typedef struct __attribute__((__packed__)) {
 } subbusd_req_data3;
 
 typedef struct __attribute__((__packed__)) {
-  unsigned short n_reads;
-  char multread_cmd[256];
-} subbusd_req_data4;
-
-typedef struct __attribute__((__packed__)) {
   subbusd_req_hdr_t sbhdr;
   union {
     subbusd_req_data0 d0;
     subbusd_req_data1 d1;
     subbusd_req_data2 d2;
     subbusd_req_data3 d3;
-    subbusd_req_data4 d4;
+    subbus_mread_req d4;
   } data;
 } subbusd_req_t;
 
@@ -92,6 +89,7 @@ typedef struct __attribute__((__packed__)) {
  * whether we want acknowledge info or not.
  */
 typedef struct __attribute__((__packed__)) {
+  unsigned short n_reads;
   unsigned short rvals[2*SB_MAX_MREAD];
 } subbusd_mread_t;
 

@@ -608,6 +608,9 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
       snprintf( sreq, SB_SERUSB_MAX_REQUEST, "R%04X\n",
         req->data.d1.data );
       break;
+    case SBC_MREAD:
+      enqueue_sbreq(SB_TYPE_CLIENT, rcvid, req->data.d4.multread_cmd);
+      return;
     case SBC_WRITECACHE:
       rv = sb_cache_write(req->data.d0.address, req->data.d0.data);
       if (rv != 1) {

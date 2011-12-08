@@ -34,6 +34,12 @@ extern "C" {
 #define SBF_NVRAM 0x80   /* Any NVRAM at all! */
 #define SBF_CMDSTROBE 0x100 /* CmdStrobe Function */
 
+typedef struct __attribute__((__packed__)) {
+  unsigned short req_len;
+  unsigned short n_reads;
+  char multread_cmd[256];
+} subbus_mread_req;
+
 extern int load_subbus(void);
 
 extern unsigned short subbus_version;
@@ -43,6 +49,9 @@ extern unsigned short read_subbus(unsigned short addr);
 extern int write_ack(unsigned short addr, unsigned short data);
 extern int read_ack(unsigned short addr, unsigned short *data);
 #define write_subbus(x,y) write_ack(x,y)
+extern subbus_mread_req *pack_mread_request( int n_reads, const char *req );
+extern subbus_mread_req *pack_mread_requests( unsigned short addr, ... );
+extern int mread_subbus( subbus_mread_req *req, unsigned short *data);
 extern int set_cmdenbl(int value);
 extern int set_cmdstrobe(int value);
 extern unsigned short read_switches(void);

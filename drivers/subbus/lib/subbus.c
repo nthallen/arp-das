@@ -58,6 +58,8 @@ static int send_to_subbusd( unsigned short command, void *data,
     case SBRT_CAP:
       nl_assert( rv == sizeof(subbusd_rep_hdr_t) + sizeof(subbusd_cap_t));
       break;
+    case SBRT_MREAD:
+      break;
     default:
       nl_error( 4, "Unknown return type: %d", sb_reply.hdr.ret_type );
   }
@@ -376,3 +378,111 @@ int subbus_quit(void) {
   return send_to_subbusd( SBC_QUIT, NULL, 0, SBRT_NONE );
 }
 
+/**
+ * Passes the raw command directly to the subbus driver and parses
+ * the return string for a multi-read. Up to n_read values will be
+ * written into the array pointed to by the data argument.
+ * @return Zero on success. If return value is positive, it is the
+ * error code returned by the DACS and no values are reported.
+ * If it is negative, it indicates that although the requested number
+ * of values are reported, at least one of the values did not have
+ * an acknowledge, and a zero value was reported.
+ */
+int mread_subbus( subbus_mread_req *req, unsigned short *data) {
+  // rv should be the number of bytes retuned from subbusd into sb_reply.
+  int rv;
+  if ( req == NULL ) return 200;
+  rv = send_to_subbusd( SBC_MREAD, req, req->req_len, SBRT_MREAD );
+  if ( rv <= 0 ) {
+    int i;
+    nl_assert( req->n_reads == sb_reply.data.mread.n_reads );
+    for ( i = 0; i < sb_reply.data.mread.n_reads; ++i ) {
+      data[i] = sb_reply.data.mread.rvals[i];
+    }
+  }
+  return rv;
+}
+
+static subbus_mread_req *pack_mread( int req_len, int n_reads, const char *req_str ) {
+  int req_size = 2*sizeof(unsigned short) + req_len + 1;
+  subbus_mread_req *req = (subbus_mread_req *)new_memory(req_size);
+  req->req_len = req_size;
+  req->n_reads = n_reads;
+  strcpy( req->req, req_str );
+  return req;
+}
+
+subbus_mread_req *pack_mread_requests( unsigned int addr, ... ) {
+  unsigned short addrs[50];
+  int n_reads = 0;
+  
+  { unsigned int val = addr;
+    va_list va;
+    if ( addr == 0 ) return NULL;
+    va_start( va, addr );
+    while ( val != 0 && n_reads < 50 ) {
+      addrs[n_reads++] = (unsigned short) val;
+      val =  va_arg(va, unsigned int);
+    }
+    va_end(va);
+  }
+  { char buf[256];
+    int nc = 0;
+    int space = 256;
+    int i = 0;
+    int nb;
+
+    nb = snprintf( buf, space, "M%X#", n_reads );
+    nl_assert(nb < space);
+    nc += nb;
+    space -= nb;
+    while ( i < n_reads ) {
+      nb = 0;
+      if ( i+2 < n_reads && addrs[i] <= addrs[i+1] && addrs[i+1] <= addrs[i+2] ) {
+        unsigned d1 = addrs[i+1]-addrs[i];
+        unsigned d2 = addrs[i+2]-addrs[i+1];
+        if ( d1 == d2 ) {
+          // We'll use either the s:i:e syntax or the n@a syntax.
+          int j;
+          for ( j = 2; i+j+1 < n_reads; ++j) {
+            if ( addrs[i+j] + d1 != addrs[i+j+1] )
+              break;
+          }
+          // Now we'll handle samples from i to i+j
+          if ( d1 == 0 ) {
+            nb = snprintf( buf+nc, space, "%X@%X,", j-i+1, addrs[i] );
+          } else {
+            nb = snprintf( buf+nc, space, "%X:%X:%X,", addrs[i], d1, addrs[j] );
+          }
+          i += j+1;
+        }
+      }
+      if (nb == 0) {
+        // We did not use an optimization, so just output an address
+        nb = snprintf( buf+nc, space, "%X,", addrs[i++] );
+      }
+      if ( nb >= space ) {
+        nl_error( 2, "Buffer overflow in pack_mread_requests()" );
+        return NULL;
+      }
+      nc += nb;
+      space -= nb;
+    }
+    // replace the trailing comma with a newline:
+    buf[nc-1] = '\n';
+    return pack_mread( nc, n_reads, buf );
+  }
+}
+
+subbus_mread_req *pack_mread_request( int n_reads, const char *req ) {
+  char buf[256];
+  int space = 256;
+  int nb;
+
+  nb = snprintf( buf, space, "M%X#%s\n", n_reads, req );
+  if ( nb >= space ) {
+    nl_error( 2, "Buffer overflow in pack_mread_request()" );
+    return NULL;
+  }
+  return pack_mread( nb, n_reads, buf );
+}

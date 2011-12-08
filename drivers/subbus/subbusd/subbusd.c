@@ -35,8 +35,8 @@ static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
   
   nb = MsgRead(ctp->rcvid, &sbdmsg, sizeof(sbdmsg), 0);
   if ( nb < sizeof(subbusd_req_hdr_t) ||
-	sbdmsg.sbhdr.iohdr.mgrid != SUBBUSD_MGRID ||
-	sbdmsg.sbhdr.sb_kw != SB_KW)
+       sbdmsg.sbhdr.iohdr.mgrid != SUBBUSD_MGRID ||
+       sbdmsg.sbhdr.sb_kw != SB_KW)
     return ENOSYS;
   /* check the size of the incoming message */
   switch ( sbdmsg.sbhdr.command ) {
@@ -62,6 +62,13 @@ static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
       nb_exp = sizeof(subbusd_req_data2); break;
     case SBC_INTDET:
       nb_exp = sizeof(subbusd_req_data3); break;
+    case SBC_MREAD:
+      nb_exp = 3*sizeof(unsigned short);
+      if ( nb >= nb_exp ) {
+        nl_assert( sbdmsg.data.d4.req_len >= nb_exp );
+        nb_exp = sbdmsg.data.d4.req_len;
+      }
+      break;
     default:
       return ENOSYS;
   }
