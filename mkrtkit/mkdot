@@ -1,0 +1,21 @@
+#! /bin/sh
+echo "Creating pkg_dep.dot"
+{
+echo "digraph G {"
+echo '  size="10,7.5"; ratio=fill; concentrate=true;'
+
+find pkgs -name Header | while read hdr; do
+  pkg=${hdr#pkgs/}
+  pkg=${pkg%%/*}
+  req=`grep Requires: $hdr | sed -e 's/Requires: *//'`
+  # echo "Package '$pkg' requires '$req'"
+  for dep in $req; do
+    echo "  $pkg -> $dep;"
+  done
+done
+
+echo '}'
+} >pkg_dep.dot
+echo "Running dot"
+dot -Tpdf -opkg_dep.pdf pkg_dep.dot
+echo "Result in pkg_dep.pdf"
