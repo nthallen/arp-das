@@ -6,6 +6,7 @@ usr/local/bin/ana104
 usr/local/bin/bckpln
 usr/local/bin/card
 usr/local/bin/dccc
+usr/local/bin/digital3
 usr/local/bin/dircksum
 usr/local/bin/dircompare
 usr/local/bin/distribute

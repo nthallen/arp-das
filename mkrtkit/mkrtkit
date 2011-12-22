@@ -1,7 +1,7 @@
 #! /bin/sh
 
 #ifdef __USAGE
-# mkrtkit [--usb] pkg [pkg ...]
+# mkrtkit [--usb] [--nomedia] pkg [pkg ...]
 #endif
 
 function nl_error {
@@ -116,8 +116,12 @@ function usb_installer {
 }
 
 init_usb=no
+nomedia=no
 if [ "$1" == "--usb" ]; then
   init_usb=yes
+  shift
+elif [ "$1" == "--nomedia" ]; then
+  nomedia=yes
   shift
 fi
 [ -z "$1" ] && nl_error "Must specify at least one package"
@@ -169,7 +173,7 @@ done
 
 if [ $init_usb = yes ]; then
   usb_installer /
-else
+elif [ $nomedia = no ]; then
   isoname=''
   for pkgs in ; do
     if [ -n "$isoname" ]; then
