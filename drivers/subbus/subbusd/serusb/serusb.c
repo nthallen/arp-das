@@ -495,7 +495,7 @@ static void process_response( char *buf ) {
       nl_error( 2, "Invalid response: '%s'", ascii_escape(buf) );
       break;
     case RESP_ERR:
-      nl_error( 2, "Error code %d from DACS", ascii_escape(buf) );
+      nl_error( 2, "Error code %s from DACS", ascii_escape(buf) );
       break;
     default:
       nl_error( 4, "Invalid status: %d", status );
@@ -617,9 +617,15 @@ static void init_serusb(dispatch_t *dpp, int ionotify_pulse,
     nl_error(3, "Could not create timer: %s",
       strerror(errno));
   timeout_enable.it_value.tv_sec = 0;
-  timeout_enable.it_value.tv_nsec = 100000000L;
+  timeout_enable.it_value.tv_nsec = 100000000L; // 100 msecs
   timeout_enable.it_interval.tv_sec = 0;
   timeout_enable.it_interval.tv_nsec = 100000000L;
+
+  // timeout_enable.it_value.tv_sec = 1; // 1 sec for debugging
+  // timeout_enable.it_value.tv_nsec = 0;
+  // timeout_enable.it_interval.tv_sec = 1;
+  // timeout_enable.it_interval.tv_nsec = 0;
+
   timeout_disable.it_value.tv_sec = 0;
   timeout_disable.it_value.tv_nsec = 0;
   timeout_disable.it_interval.tv_sec = 0;
