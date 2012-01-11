@@ -1,0 +1,8 @@
+# DACS_CI.txt
+Experiment=DACS_CI
+HomeDir=/home/DACS_CI
+N_PTRH=8
+N_AO_CHIPS=4
+IDX_N_CHANNELS=1
+N_QCLICTRL=3
+CTR_UG_N_BDS=0
