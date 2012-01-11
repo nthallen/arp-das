@@ -35,7 +35,7 @@ EOF
 tmcbase="types.tmc /usr/local/share/huarp/flttime.tmc"
 cmdbase="/usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd cmdenbl.cmd"
 tbl=""
-col=""
+col="/usr/local/share/huarp/DACS_ID.tmc"
 
 function add_files {
   for f in $*; do
@@ -64,3 +64,17 @@ add_files AO.tmc AO.cmd AO.tbl
 # Counters
 # Voltage Monitor
 # Syscon
+
+# spec file
+{
+  for f in $tmcbase; do
+    echo "tmcbase = $f"
+  done
+  for f in $cmdbase; do
+    echo "cmdbase = $f"
+  done
+  echo "${mnc}srvr : -lsubbus"
+  echo "${mnc}col : $col -lsubbus"
+  echo "${mnc}disp : $tbl"
+    
+} >$srcdir/$mnc.spec
