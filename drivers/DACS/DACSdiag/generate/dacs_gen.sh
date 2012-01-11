@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/sh
 # Source code generator for generic DACS
 # Takes a single argument, the experiment mnemonic
 # dot-executes the configuration file $Experiment.txt
@@ -10,7 +10,7 @@ function nl_error {
 [ -n "$1" ] || nl_error Must specify experiment
 mnc=$1
 [ -f "$mnc.txt" ] || nl_error "Cannot locate configuration file $mnc.txt"
-. $mnc.txt
+. ./$mnc.txt
 [ -n "$Experiment" ] || nl_error "Experiment not defined in $mnc.txt"
 [ "$Experiment" = "$mnc" ] || nl_error "Experiment does not match configuration name"
 [ -n "$HomeDir" ] || nl_error "HomeDir not defined in $mnc.txt"
@@ -51,12 +51,12 @@ function add_files {
 
 # AI
 cp AI.cmd AI.tbl $srcdir
-./genai.pl $srcdir
+./gen_ai.pl $srcdir
 add_files AI.tmc AI_col.tmc AI.cmd AI.tbl
 
 # AO
-./genao.pl $srcdir $N_AO_CHIPS
-add_files AO.tmc AO.cmd AO.tbl
+./gen_ao.pl $srcdir $N_AO_CHIPS
+add_files AO.tmc AO_col.tmc AO.cmd AO.tbl
 
 # PTRH
 # QCLI
@@ -64,6 +64,28 @@ add_files AO.tmc AO.cmd AO.tbl
 # Counters
 # Voltage Monitor
 # Syscon
+
+cat <<EOF >$srcdir/interact
+# Startup script for DACS Diagnostic
+  Launch memo memo -o \$Experiment.log
+  memo=/dev/huarp/\$Experiment/memo
+  Launch TM/DCo TMbfr
+  echo "Running script interact" >\$memo
+# Launch dccc   dccc -f \$TMBINDIR/dccc.dccc
+  Launch DG/cmd ${Experiment}col
+  Launch cmd/server ${Experiment}srvr
+  Launch - lgr -N \`mlf_find LOG\`
+# Launch - idx64 \`cat \$TMBINDIR/idx64.idx64\`
+# Launch - ${Experiment}algo -v
+EOF
+
+chmod +x $srcdir/interact
+
+cat <<EOF >$srcdir/$Experiment.doit
+display ${Experiment}disp
+client ${Experiment}clt
+memo
+EOF
 
 # spec file
 {
@@ -73,8 +95,13 @@ add_files AO.tmc AO.cmd AO.tbl
   for f in $cmdbase; do
     echo "cmdbase = $f"
   done
+  echo
+  echo "SCRIPT = interact"
+  echo "TGTDIR = $HomeDir"
+  echo
   echo "${mnc}srvr : -lsubbus"
   echo "${mnc}col : $col -lsubbus"
   echo "${mnc}disp : $tbl"
+  echo "doit : ${mnc}.doit"
     
 } >$srcdir/$mnc.spec

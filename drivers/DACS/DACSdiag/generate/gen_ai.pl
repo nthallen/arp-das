@@ -76,7 +76,7 @@ for my $row ( 8 .. 10 ) {
     # print "TM 1/2 Hz AIC $cchan; Address $cchan 0x$caddr;\n";
     # push @group, $cchan;
   }
-  print $tmc "\n%{\n  subbus_mread_req *Mux${row}Bank{$bank}_req;\n%}\n";
+  print $tmc "\n%{\n  subbus_mread_req *Mux${row}Bank${bank}_req;\n%}\n";
   printf $col
     "    Mux${row}Bank${bank}_req = pack_mread_request( 8, \"%X:2:%X\" );\n",
     0xC00 + $row*32 + $bank*16, 0xC00 + $row*32 + $bank*16 + 7*2;
@@ -87,6 +87,6 @@ for my $row ( 8 .. 10 ) {
     "}\n\n";
 }
 
-print $col "  }\n%}\nTM_INIT_FUNC ai_init();\n";
+print $col "  }\n%}\nTM INITFUNC ai_init();\n";
 close $tmc;
 close $col;
