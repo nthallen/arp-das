@@ -30,10 +30,10 @@ void ptrhm::check_coeffs() {
 void ptrhm::pack() {
   char req[15];
   snprintf(req, 15, "%X:2:%X", base_addr + 12, base_addr + 26 );
-  preq = pack_request( 7, req );
+  preq = pack_mread_request( 7, req );
 }
 
-void ptrhm::collect() {
+void ptrhm::acquire() {
   if (preq == 0) pack();
   mread_subbus(preq, P);
 }

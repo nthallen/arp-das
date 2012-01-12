@@ -11,7 +11,7 @@ class ptrhm {
     ptrhm( const char *id, USHRT base, USHRT C1, USHRT C2,
            USHRT C3, USHRT C4, USHRT C5, USHRT C6);
     void check_coeffs();
-    void collect();
+    void acquire();
     inline USHRT Status() { return P[0]; }
     inline USHRT SHT21T() { return P[1]; }
     inline USHRT SHT21RH() { return P[2]; }
@@ -33,6 +33,7 @@ class ptrhm {
     unsigned long C5d;
     double Off, Sens;
     int check_coeff( int i, USHRT C);
+    void pack();
     int stale;
 };
 

@@ -63,8 +63,8 @@ add_files AO.tmc AO_col.tmc AO.cmd AO.tbl
 # PTRH
 if [ -n "$N_PTRH" -a "$N_PTRH" != "0" ]; then
   cp ptrhm.cc ptrhm_col.cc ptrhm.h $srcdir
-  ./gen_ptrh $srcdir $N_PTRH
-  add_files ptrhm_col.cc ptrh.tmc ptrh_col.tmc ptrh_conv.tmc ptrh.tbl
+  ./gen_ptrh.pl $srcdir $N_PTRH
+  add_files ptrhm_col.cc PTRH.tmc PTRH_col.tmc PTRH_conv.tmc PTRH.tbl
   tmcbase="$tmcbase ptrhm.cc"
 fi
 
