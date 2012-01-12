@@ -36,12 +36,14 @@ tmcbase="types.tmc /usr/local/share/huarp/flttime.tmc"
 cmdbase="/usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd cmdenbl.cmd"
 tbl=""
 col="/usr/local/share/huarp/DACS_ID.tmc"
+conv=""
 
 function add_files {
   for f in $*; do
     [ -f $srcdir/$f ] || nl_error "File $srcdir/$f not found"
     case $f in
-      *_col.tmc) col="$col $f";;
+      *_col.*) col="$col $f";;
+      *_conv.*) conv="$conv $f";;
       *.tmc) tmcbase="$tmcbase $f";;
       *.cmd) cmdbase="$cmdbase $f";;
       *.tbl) tbl="$tbl $f";;
@@ -59,6 +61,13 @@ add_files AI.tmc AI_col.tmc AI.cmd AI.tbl
 add_files AO.tmc AO_col.tmc AO.cmd AO.tbl
 
 # PTRH
+if [ -n "$N_PTRH" -a "$N_PTRH" != "0" ]; then
+  cp ptrhm.cc ptrhm_col.cc ptrhm.h $srcdir
+  ./gen_ptrh $srcdir $N_PTRH
+  add_files ptrhm_col.cc ptrh.tmc ptrh_col.tmc ptrh_conv.tmc ptrh.tbl
+  tmcbase="$tmcbase ptrhm.cc"
+fi
+
 # QCLI
 # Indexer
 # Counters
@@ -101,7 +110,7 @@ EOF
   echo
   echo "${mnc}srvr : -lsubbus"
   echo "${mnc}col : $col -lsubbus"
-  echo "${mnc}disp : $tbl"
+  echo "${mnc}disp : $conv $tbl"
   echo "doit : ${mnc}.doit"
     
 } >$srcdir/$mnc.spec

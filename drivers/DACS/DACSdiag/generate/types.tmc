@@ -25,4 +25,10 @@ TM typedef AI16 PBI { text "%5.2lf"; convert AMPS; }
     40000, 4.9831
   }
 
+TM typedef unsigned char MS5607Db { text "%3d"; }
+TM typedef UINT PTRH_S { text " %03x"; }
+TM typedef double PTRHT_t { text "%5.1lf"; }
+TM typedef double SHT21RH_t { text "%4.1lf"; }
+TM typedef double PTRHP_t { text "%7.2lf"; }
+
 TM 4 Hz UINT Synch, MFCtr;
