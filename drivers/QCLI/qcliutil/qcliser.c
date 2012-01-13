@@ -44,22 +44,22 @@ unsigned short read_qcli( int fresh ) {
     rv = readcond( qcli_fd, buf, SBUFSIZE, SBUFSIZE, 1, 4 );
     if ( rv == 0 || (rv == -1 && errno == EAGAIN) ) {
       if ( responding ) {
-	nl_error( 2, "QCLI is not responding" );
-	responding = 0;
+        nl_error( 2, "QCLI is not responding" );
+        responding = 0;
       }
       return 0;
     } else if ( rv == -1 ) {
       nl_error( 1, "readcond(qcli_fd) returned error %d: %s",
-	    errno, strerror(errno) );
+            errno, strerror(errno) );
       return 0;
     } else if ( rv & 1 ) {
       nl_error( 2, "QCLI returned an odd number of bytes (%d)", rv );
       continue;
     } else {
       if ( rv == SBUFSIZE )
-	nl_error( 1, "Input buffer is full" );
+        nl_error( 1, "Input buffer is full" );
       if ( !responding )
-	nl_error( 0, "QCLI is responding" );
+        nl_error( 0, "QCLI is responding" );
       responding = 1;
       status = (buf[rv-2]<<8) + buf[rv-1];
       return status;
@@ -87,6 +87,10 @@ void write_qcli( unsigned short value ) {
 unsigned short wr_rd_qcli( unsigned short value ) {
   write_qcli( value );
   return read_qcli(1);
+}
+
+void wr_stop_qcli(  unsigned short value ) {
+  wr_rd_qcli( value );
 }
 
 void qcli_port_init( char *port ) {

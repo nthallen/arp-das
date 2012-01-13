@@ -95,7 +95,6 @@ qcli_data_t qcli_data;
 #define CMDEE_BUFSIZE 160
 // Return non-zero on EOF
 int read_cmd( int cmd_fd ) {
-  int rv;
   qcli_cmd_defp cd;
   char buf[CMDEE_BUFSIZE];
   int nb = read( cmd_fd, buf, CMDEE_BUFSIZE-1 );
@@ -109,49 +108,49 @@ int read_cmd( int cmd_fd ) {
   if ( cd != NULL ) {
     switch ( cd->index ) {
       case SW:
-        rv = wr_rd_qcli( QCLI_SELECT_WAVEFORM + cd->value + 8 );
+        wr_stop_qcli( QCLI_SELECT_WAVEFORM + cd->value + 8 );
         qcli_data.qcli_wave = cd->value;
         break;
       case RW:
-        rv = wr_rd_qcli( QCLI_RUN_WAVEFORM );
+        wr_stop_qcli( QCLI_RUN_WAVEFORM );
         break;
       case ST:
-        rv = wr_rd_qcli( QCLI_STOP );
+        wr_stop_qcli( QCLI_STOP );
         break;
       case CE:
-        rv = wr_rd_qcli( QCLI_CLEAR_ERROR );
+        wr_stop_qcli( QCLI_CLEAR_ERROR );
         break;
       case TN:
         write_qcli( QCLI_LOAD_MSB + ((cd->value >> 8) & 0xFF) );
-        rv = wr_rd_qcli( QCLI_WRITE_TON + (cd->value & 0xFF) );
+        wr_stop_qcli( QCLI_WRITE_TON + (cd->value & 0xFF) );
         break;
       case TF:
         write_qcli( QCLI_LOAD_MSB + ((cd->value >> 8) & 0xFF) );
-        rv = wr_rd_qcli( QCLI_WRITE_TOFF + (cd->value & 0xFF) );
+        wr_stop_qcli( QCLI_WRITE_TOFF + (cd->value & 0xFF) );
         break;
       case TP:
         write_qcli( QCLI_LOAD_MSB + ((cd->value >> 8) & 0xFF) );
-        rv = wr_rd_qcli( QCLI_WRITE_TPRE + (cd->value & 0xFF) );
+        wr_stop_qcli( QCLI_WRITE_TPRE + (cd->value & 0xFF) );
         break;
       case D0:
         write_qcli( QCLI_SELECT_DAC + 0 );
         write_qcli( QCLI_LOAD_MSB + ((cd->value >> 8) & 0xFF) );
-        rv = wr_rd_qcli( QCLI_WRITE_DAC + (cd->value & 0xFF) );
+        wr_stop_qcli( QCLI_WRITE_DAC + (cd->value & 0xFF) );
         break;
       case D1:
         write_qcli( QCLI_SELECT_DAC + 1 );
         write_qcli( QCLI_LOAD_MSB + ((cd->value >> 8) & 0xFF) );
-        rv = wr_rd_qcli( QCLI_WRITE_DAC + (cd->value & 0xFF) );
+        wr_stop_qcli( QCLI_WRITE_DAC + (cd->value & 0xFF) );
         break;
       case D2:
         write_qcli( QCLI_SELECT_DAC + 2 );
         write_qcli( QCLI_LOAD_MSB + ((cd->value >> 8) & 0xFF) );
-        rv = wr_rd_qcli( QCLI_WRITE_DAC + (cd->value & 0xFF) );
+        wr_stop_qcli( QCLI_WRITE_DAC + (cd->value & 0xFF) );
         break;
       case D3:
         write_qcli( QCLI_SELECT_DAC + 3 );
         write_qcli( QCLI_LOAD_MSB + ((cd->value >> 8) & 0xFF) );
-        rv = wr_rd_qcli( QCLI_WRITE_DAC + (cd->value & 0xFF) );
+        wr_stop_qcli( QCLI_WRITE_DAC + (cd->value & 0xFF) );
         break;
       case QU:
         return 1;

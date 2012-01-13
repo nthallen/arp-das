@@ -27,19 +27,32 @@ qclisd : $(SSRVROBJ)
 qclisdoui.c : qclid.oui qcliser.oui
 	$(OUI) qclid.oui qcliser.oui
 
-qcliprog : qcliprog.o qcliutil.o qclisb.o qcliprogoui.o
-	$(LINK.priv) qcliprog.o qcliutil.o qclisb.o qcliprogoui.o $(LIBS)
+DSRVROBJ= qclisrvr.o qclidacsdoui.o qcliutil.o qclidacs.o
+qclidacsd : $(DSRVROBJ)
+	$(LINK.norm) $(DSRVROBJ) $(LIBS) -ltm
+	usemsg qclidacsd qclidacsdoui.c
+qclidacsdoui.c : qclid.oui qclidacs.oui
+	$(OUI) qclid.oui qclidacs.oui
+
+qcliprog : qcliprog.o qcliutil.o qclisb.o qcliprogoui.o qcliver.o
+	$(LINK.priv) qcliprog.o qcliutil.o qclisb.o qcliprogoui.o qcliver.o $(LIBS)
 	usemsg qcliprog qcliprogoui.c
 	promote qcliprog
 qcliprog.o : qcliprog.c qcliutil.h
 qcliprogoui.c : qcliprog.oui qclisb.oui
 	$(OUI) qcliprog.oui qclisb.oui
 
-qclisprog : qcliprog.o qcliutil.o qcliser.o qclisprogoui.o
-	$(LINK.norm) qcliprog.o qcliutil.o qcliser.o qclisprogoui.o $(LIBS)
+qclisprog : qcliprog.o qcliutil.o qcliser.o qclisprogoui.o qcliver.o
+	$(LINK.norm) qcliprog.o qcliutil.o qcliser.o qclisprogoui.o qcliver.o $(LIBS)
 	usemsg qclisprog qclisprogoui.c
 qclisprogoui.c : qcliprog.oui qcliser.oui
 	$(OUI) qcliprog.oui qcliser.oui
+
+qclidprog : qcliprog.o qcliutil.o qclidacs.o qclisprogoui.o
+	$(LINK.norm) qcliprog.o qcliutil.o qclidacs.o qclisprogoui.o $(LIBS)
+	usemsg qclidprog qclidprogoui.c
+qclidprogoui.c : qcliprog.oui qclidacs.oui
+	$(OUI) qcliprog.oui qclidacs.oui
 
 qclitest : qclitest.o qcliutil.o qclisb.o qclitestoui.o
 	$(LINK.priv) qclitest.o qcliutil.o qclisb.o qclitestoui.o $(LIBS)

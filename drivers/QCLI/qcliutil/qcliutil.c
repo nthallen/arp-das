@@ -47,7 +47,7 @@ static int qcli_error_reported = 0;
 /* Returns zero if status matches. Otherwise prints the
    text and optionally dumps the status word. */
 int check_status( unsigned short status, unsigned short mask,
-		unsigned short value, char *text, int dump ) {
+        unsigned short value, char *text, int dump ) {
   if ( (status & mask) == value ) return 0;
   qcli_error_reported = 1;
   nl_error( 2, "%s", text );
@@ -57,13 +57,13 @@ int check_status( unsigned short status, unsigned short mask,
 
 void delay3msec(void) {
   #ifdef USE_DELAY
-	delay(3);
+    delay(3);
   #else
-	struct timespec tp;
-	tp.tv_sec = 0;
-	tp.tv_nsec = 3000000L;
-	if ( nanosleep( &tp, NULL ) != 0 )
-	  nl_error( 3, "nano_sleep saw signal" );
+    struct timespec tp;
+    tp.tv_sec = 0;
+    tp.tv_nsec = 3000000L;
+    if ( nanosleep( &tp, NULL ) != 0 )
+      nl_error( 3, "nano_sleep saw signal" );
   #endif
 }
 
@@ -71,7 +71,7 @@ void delay3msec(void) {
    Returns non-zero on success, zero in case of errors
    verbose:
      0 - prints errors only
-	 1 - prints progress and errors
+     1 - prints progress and errors
 */
 int qcli_diags( int verbose ) {  
   unsigned short qcli_status;
@@ -83,95 +83,95 @@ int qcli_diags( int verbose ) {
   if (verbose) printf("QCLI Diagnostics\n");
   qcli_status = wr_rd_qcli( QCLI_STOP );
   if ( qcli_status & QCLI_S_ERR ) {
-	qcli_status = wr_rd_qcli( QCLI_CLEAR_ERROR );
+    qcli_status = wr_rd_qcli( QCLI_CLEAR_ERROR );
   }
   if ( check_status( qcli_status, QCLI_S_FWERR, 0,
-		"Error status observed on startup", 1 ) )
-	return 0;
+        "Error status observed on startup", 1 ) )
+    return 0;
 
   /* Verify that QCLI is in Idle mode. If not, try
      to put it into Idle */
   if ( verbose ) nl_error( 0, "Verifying Idle Status:\n" );
   if ( ( qcli_status & QCLI_S_MODE ) != QCLI_IDLE_MODE ) {
-	qcli_status = wr_rd_qcli( QCLI_STOP );
+    qcli_status = wr_rd_qcli( QCLI_STOP );
   }
   if ( check_status( qcli_status, QCLI_S_MODE, QCLI_IDLE_MODE,
-		"QCLI Not in Idle Mode after issuing STOP", 0 ) +
-	   check_status( qcli_status, QCLI_S_FWERR, 0,
-	     "QCLI reports error after issuing STOP", 0 ) ) {
-	if ( verbose) report_status(qcli_status);
-	return 0;
+        "QCLI Not in Idle Mode after issuing STOP", 0 ) +
+       check_status( qcli_status, QCLI_S_FWERR, 0,
+         "QCLI reports error after issuing STOP", 0 ) ) {
+    if ( verbose) report_status(qcli_status);
+    return 0;
   }
 
   /* Test the bad opcode error */
   if ( verbose ) nl_error( 0, "Issuing invalid opcode:\n" );
   qcli_status = wr_rd_qcli( QCLI_BAD_CMD );
   if ( ! check_status( qcli_status, QCLI_S_CORDTE, QCLI_S_CORDTE,
-		"CORDTE not observed", 1 ) ) {
-	if (verbose) nl_error( 0, "CORDTE Error Observed as expected\n" );
-	qcli_status = wr_rd_qcli( QCLI_CLEAR_ERROR );
-	if ( check_status( qcli_status, QCLI_S_CORDTE, 0,
-			"CORDTE not cleared", 0 ) |
-		 check_status( qcli_status, QCLI_S_FWERR, 0,
-		    "Error bits observed after CLEAR_ERROR", 0 )
-		) report_status( qcli_status );
-	else if (verbose) nl_error( 0, "CORDTE Cleared as expected\n" );
+        "CORDTE not observed", 1 ) ) {
+    if (verbose) nl_error( 0, "CORDTE Error Observed as expected\n" );
+    qcli_status = wr_rd_qcli( QCLI_CLEAR_ERROR );
+    if ( check_status( qcli_status, QCLI_S_CORDTE, 0,
+            "CORDTE not cleared", 0 ) |
+         check_status( qcli_status, QCLI_S_FWERR, 0,
+            "Error bits observed after CLEAR_ERROR", 0 )
+        ) report_status( qcli_status );
+    else if (verbose) nl_error( 0, "CORDTE Cleared as expected\n" );
   }
   
   /* Test CMDERR by issuing Run - but only if we
      are not ready */
   if ( qcli_status & QCLI_S_READY ) {
-	if (verbose) nl_error( 0, "Skipping CMDERR test\n" );
+    if (verbose) nl_error( 0, "Skipping CMDERR test\n" );
   } else {
-	if (verbose) nl_error( 0, "Issuing PROGRAM_SECTOR from IDLE:\n" );
-	qcli_status = wr_rd_qcli( QCLI_PROGRAM_SECTOR );
-	if ( ! check_status( qcli_status, QCLI_S_CMDERR, QCLI_S_CMDERR,
-		  "CMDERR not observed", 1 ) ) {
-	  if (verbose) nl_error( 0, "CMDERR Observed\n");
-	  qcli_status = wr_rd_qcli( QCLI_CLEAR_ERROR );
-	  if ( !(check_status( qcli_status, QCLI_S_CMDERR, 0,
-			"CMDERR not cleared", 1 ) ||
-		   check_status( qcli_status, QCLI_S_FWERR, 0,
-			 "Error status observed after CLEAR_ERROR", 1 ))) {
-		 if (verbose) nl_error( 0, "CMDERR Cleared as expected\n" );
-	  }
-	}
+    if (verbose) nl_error( 0, "Issuing PROGRAM_SECTOR from IDLE:\n" );
+    qcli_status = wr_rd_qcli( QCLI_PROGRAM_SECTOR );
+    if ( ! check_status( qcli_status, QCLI_S_CMDERR, QCLI_S_CMDERR,
+          "CMDERR not observed", 1 ) ) {
+      if (verbose) nl_error( 0, "CMDERR Observed\n");
+      qcli_status = wr_rd_qcli( QCLI_CLEAR_ERROR );
+      if ( !(check_status( qcli_status, QCLI_S_CMDERR, 0,
+            "CMDERR not cleared", 1 ) ||
+           check_status( qcli_status, QCLI_S_FWERR, 0,
+             "Error status observed after CLEAR_ERROR", 1 ))) {
+         if (verbose) nl_error( 0, "CMDERR Cleared as expected\n" );
+      }
+    }
   }
   
   if (verbose) nl_error( 0, "Testing Program Mode:\n" );
   write_qcli( QCLI_LOAD_MSB | 0 );
   qcli_status = wr_rd_qcli( QCLI_WRITE_ADDRESS | 0 );
   if ( check_status( qcli_status, QCLI_S_MODE, QCLI_PROGRAM_MODE,
-	    "Not in PROGRAM Mode after WRITE_ADDRESS", 0 ) |
-	   check_status( qcli_status, QCLI_S_CHKSUM, 0,
-		 "CHECKSUM bit set after WRITE_ADDRESS", 0 ) )
-	report_status( qcli_status );
+        "Not in PROGRAM Mode after WRITE_ADDRESS", 0 ) |
+       check_status( qcli_status, QCLI_S_CHKSUM, 0,
+         "CHECKSUM bit set after WRITE_ADDRESS", 0 ) )
+    report_status( qcli_status );
   qcli_status = wr_rd_qcli( QCLI_WRITE_DATA | 0x55 );
   check_status( qcli_status, QCLI_S_CHKSUM, QCLI_S_CHKSUM,
-	"CHKSUM bit not set after writing data", 1 );
+    "CHKSUM bit not set after writing data", 1 );
   write_qcli( QCLI_LOAD_MSB | 0xFF );
   qcli_status = wr_rd_qcli( QCLI_WRITE_DATA | 0xAB );
   check_status( qcli_status, QCLI_S_CHKSUM, 0,
-	"CHKSUM bit not cleared after writing complementary data", 1 );
+    "CHKSUM bit not cleared after writing complementary data", 1 );
   write_qcli( QCLI_LOAD_MSB | 0x55 );
   qcli_status = wr_rd_qcli( QCLI_WRITE_DATA | 0x55 );
   check_status( qcli_status, QCLI_S_CHKSUM, QCLI_S_CHKSUM,
-	"CHKSUM bit not set after writing 3rd data word", 1 );
+    "CHKSUM bit not set after writing 3rd data word", 1 );
   write_qcli( QCLI_LOAD_MSB | 0xAA );
   qcli_status = wr_rd_qcli( QCLI_WRITE_CHKSUM | 0xAB );
   check_status( qcli_status, QCLI_S_CHKSUM, 0,
-	"CHKSUM bit not cleared after writing complementary checksum", 1 );
+    "CHKSUM bit not cleared after writing complementary checksum", 1 );
   qcli_status = wr_rd_qcli( QCLI_WRITE_DATA | 0x55 );
   check_status( qcli_status, QCLI_S_CHKSUM, QCLI_S_CHKSUM,
-	"CHKSUM bit not set after writing 4th data word", 1 );
+    "CHKSUM bit not set after writing 4th data word", 1 );
   write_qcli( QCLI_LOAD_MSB | 0 );
   qcli_status = wr_rd_qcli( QCLI_WRITE_ADDRESS | 0 );
   check_status( qcli_status, QCLI_S_CHKSUM, 0,
-	"CHECKSUM bit not cleared after WRITE_ADDRESS", 1 );
+    "CHECKSUM bit not cleared after WRITE_ADDRESS", 1 );
   
   qcli_status = wr_rd_qcli( QCLI_STOP );
   check_status( qcli_status, QCLI_S_MODE, QCLI_IDLE_MODE,
-	"Not IDLE after STOP", 1 );
+    "Not IDLE after STOP", 1 );
 
   return !qcli_error_reported;
 }

@@ -8,6 +8,8 @@
 #define ANAIO_HRDAC_OFFSET 0x70
 #define ANAIO_HRADC_OFFSET 0x78
 #define DAC_MODE_BITS 0x0C
+#define QCLI_BASE 0x1000
+#define QCLI_INC  0x0010
 
 #define QCLI_S_BUSY     0x8000
 #define QCLI_S_CHKSUM   0x4000
@@ -55,6 +57,7 @@ int check_status( unsigned short status, unsigned short mask,
 unsigned short read_qcli( int fresh );
 void write_qcli( unsigned short value );
 unsigned short wr_rd_qcli( unsigned short value );
+void wr_stop_qcli( unsigned short value );
 int qcli_diags( int verbose );
 void qclisrvr_init( int argc, char **argv );
 void delay3msec(void);

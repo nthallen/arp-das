@@ -1,0 +1,10 @@
+<package> qcli
+<include> "qcliutil.h"
+<include> subbus_reqd
+<follow> msg
+<follow> subbus_reqd
+<opts> "d:"
+<sort>
+	-d <qcli_number> QCLI board number
+<init>
+  qclisrvr_init(argc, argv);
