@@ -31,4 +31,8 @@ TM typedef double PTRHT_t { text "%5.1lf"; }
 TM typedef double SHT21RH_t { text "%4.1lf"; }
 TM typedef double PTRHP_t { text "%7.2lf"; }
 
+/* QCLI/SSP types */
+TM typedef double CELCIUS;
+TM typedef long L20 { text "%8ld"; }
+
 TM 4 Hz UINT Synch, MFCtr;

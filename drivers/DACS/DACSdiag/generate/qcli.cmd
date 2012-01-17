@@ -52,9 +52,9 @@
 
 &command
   : &SSP Start * {
-        hsatod_setup_t *setup = ssp_bd[$1].setup;
+        hsatod_setup_t *setup = sspqcli_bd[$1].setup;
         if (setup->NAvg > 0) {
-	  ssp_bd[$1].intf->Turf(
+	  sspqcli_bd[$1].if_ssp->Turf(
 	   "DA NF:%ld NS:%d NA:%d NC:%d NE:%d "
 	   "T%c:0 TS:%d A%c EN\n",
 	   setup->FSample, setup->NSample/setup->NAvg,
@@ -65,29 +65,29 @@
 	   (setup->Options & HSAD_TRIG_AUTO) ? 'E' : 'D' );
         } else nl_error(2, "SSP %d NAvg out of range", $1+1);
       }
-  : &SSP Stop * { ssp_bd[$1].intf->Turf( "DA" ); }
-  : &SSP Reset * { ssp_bd[$1].intf->Turf( "XR" ); }
-  : &SSP Exit * { ssp_bd[$1].intf->Turf( "XX" ); }
+  : &SSP Stop * { sspqcli_bd[$1].if_ssp->Turf( "DA" ); }
+  : &SSP Reset * { sspqcli_bd[$1].if_ssp->Turf( "XR" ); }
+  : &SSP Exit * { sspqcli_bd[$1].if_ssp->Turf( "XX" ); }
   : &SSP Set NSample %ld (Number of Samples) * {
-        ssp_bd[$1].setup->NSample = $4;
+        sspqcli_bd[$1].setup->NSample = $4;
       }
   : &SSP Set FSample %ld (Raw Sample Frequency) * {
-        ssp_bd[$1].setup->FSample = $4;
+        sspqcli_bd[$1].setup->FSample = $4;
       }
   : &SSP Set NAvg %ld (Number of Consecutive Samples to Average) * {
-        ssp_bd[$1].setup->NAvg = $4;
+        sspqcli_bd[$1].setup->NAvg = $4;
       }
   : &SSP Set NCoadd %d (Number of Scans to Coadd) * {
-        ssp_bd[$1].setup->NCoadd = $4;
+        sspqcli_bd[$1].setup->NCoadd = $4;
       }
   : &SSP Set Trigger &Trigger * {
           nl_error( 0, "Set trigger command: '%s'", $4 );
-          ssp_bd[$1].intf->Turf( $4 );
+          sspqcli_bd[$1].if_ssp->Turf( $4 );
       }
   : &SSP Set Trigger Level %d (Enter Trigger Level) &TrigPolarity * {
-          ssp_bd[$1].intf->Turf( "%s:%d\n", $6, $5 );
+          sspqcli_bd[$1].if_ssp->Turf( "%s:%d\n", $6, $5 );
       }
-  : &SSP Logging &LogEnable * { ssp_bd[$1].intf->Turf( $3 ); }
+  : &SSP Logging &LogEnable * { sspqcli_bd[$1].if_ssp->Turf( $3 ); }
   ;
 
 &Trigger <const char *>

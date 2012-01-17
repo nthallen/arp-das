@@ -38,9 +38,8 @@ tbl=""
 col="/usr/local/share/huarp/DACS_ID.tmc"
 conv=""
 
-function add_files {
+function add_files_nochk {
   for f in $*; do
-    [ -f $srcdir/$f ] || nl_error "File $srcdir/$f not found"
     case $f in
       *_col.*) col="$col $f";;
       *_conv.*) conv="$conv $f";;
@@ -49,6 +48,13 @@ function add_files {
       *.tbl) tbl="$tbl $f";;
     esac
   done
+}
+
+function add_files {
+  for f in $*; do
+    [ -f $srcdir/$f ] || nl_error "File $srcdir/$f not found"
+  done
+  add_files_nochk $*
 }
 
 # AI
@@ -72,7 +78,16 @@ fi
 if [ -n "$N_QCLICTRL" -a "$N_QCLICTRL" != "0" ]; then
   cp qcli.cmd $srcdir
   ./gen_qcli.pl $srcdir $N_QCLICTRL
+  wavefiles=''
+  i=0
+  while [ $i -lt $N_QCLICTRL ]; do
+    perl -pe "s/\\@QCLI\\@/QCLI_$i/g" waves.qcli >$srcdir/waves$i.qcli
+    # cp waves.qcli $srcdir/waves$i.qcli
+    wavefiles="$wavefiles waves$i.cmd waves$i.tmc"
+    let i=i+1
+  done
   add_files qcli.cmd qclis.cmd qcli.tmc qcli_col.tmc qcli_conv.tmc qcli.tbl
+  add_files_nochk $wavefiles
 fi
 
 # Indexer
@@ -118,5 +133,16 @@ EOF
   echo "${mnc}col : $col -lsubbus"
   echo "${mnc}disp : $conv $tbl"
   echo "doit : ${mnc}.doit"
+  echo "%%"
+  if [ -n "$N_QCLICTRL" -a "$N_QCLICTRL" != "0" ]; then
+    i=0
+    while [ $i -lt $N_QCLICTRL ]; do
+      echo "waves$i.cmd waves$i.out waves$i.tmc waves$i.m : waves$i.qcli"
+      echo "\tqclicomp -o waves$i.out -c waves$i.cmd -d waves$i.tmc \\"
+      echo "\t  -v waves$i.log -m waves$i.m waves$i.qcli || \\"
+      echo "\t  ( rm -f waves$i.out waves$i.cmd waves$i.tmc waves$i.log waves$i.m; false )"
+      let i=i+1
+    done
+  fi
     
 } >$srcdir/$mnc.spec
