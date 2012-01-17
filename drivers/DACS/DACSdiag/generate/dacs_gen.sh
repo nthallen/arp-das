@@ -69,6 +69,12 @@ if [ -n "$N_PTRH" -a "$N_PTRH" != "0" ]; then
 fi
 
 # QCLI
+if [ -n "$N_QCLICTRL" -a "$N_QCLICTRL" != "0" ]; then
+  cp qcli.cmd $srcdir
+  ./gen_qcli.pl $srcdir $N_QCLICTRL
+  add_files qcli.cmd qclis.cmd qcli.tmc qcli_col.tmc qcli_conv.tmc qcli.tbl
+fi
+
 # Indexer
 # Counters
 # Voltage Monitor
