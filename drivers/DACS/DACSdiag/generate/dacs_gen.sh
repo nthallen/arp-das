@@ -95,7 +95,8 @@ fi
 # Voltage Monitor
 # Syscon
 
-cat <<EOF >$srcdir/interact
+{
+  cat <<EOF
 # Startup script for DACS Diagnostic
   Launch memo memo -o \$Experiment.log
   memo=/dev/huarp/\$Experiment/memo
@@ -106,8 +107,19 @@ cat <<EOF >$srcdir/interact
   Launch cmd/server ${Experiment}srvr
   Launch - lgr -N \`mlf_find LOG\`
 # Launch - idx64 \`cat \$TMBINDIR/idx64.idx64\`
-# Launch - ${Experiment}algo -v
 EOF
+
+  if [ -n "$N_QCLICTRL" -a "$N_QCLICTRL" != "0" ]; then
+    i=0
+    while [ $i -lt $N_QCLICTRL ]; do
+      echo "  Launch - sspdrv -b$i -hSSP_$i -N `mlf_find SSP_$i`"
+      echo "  Launch - qclidacsd -h QCLI_$i -d $i"
+      let i=i+1
+    done
+  fi
+
+  echo "# Launch - ${Experiment}algo -v"
+} >$srcdir/interact
 
 chmod +x $srcdir/interact
 

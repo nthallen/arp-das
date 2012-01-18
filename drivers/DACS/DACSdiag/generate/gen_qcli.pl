@@ -62,7 +62,8 @@ Calibration ( T_HtSink_t, CELCIUS ) { 0, 0, 256, 1 }
 EOF
 ;
 
-for my $QCLI ( @qcli ) {
+for my $QN ( 0 .. $#qcli ) {
+  my $QCLI = $qcli[$QN];
   print $tmc <<EOF
 TM "Receive" ${QCLI} 1;
 
@@ -79,6 +80,10 @@ Group ${QCLI}_grp ( ${QCLI}_Wave, ${QCLI}_s ) {
 }
 EOF
   ;
+  printf $tmc
+    "TM 1 HZ XLONG ${QCLI}_CS; Address ${QCLI}_CS 0x%X;\n",
+    0x1000 + $QN*0x10;
+
 }
 
 for my $SSP ( @ssp ) {
@@ -182,9 +187,9 @@ for my $QN ( 0 .. $#qcli ) {
 
 $QCLI {
   HBox { +-; Title: "$QCLI"; -+ };
-  Wave: (${QCLI}_Wave,10);
-  Mode: { (${QCLI}_mode,7) (${QCLI}_laser,3); };
-  Stale: (${QCLI}_Stale,5);
+  Wave: HBox { (${QCLI}_Wave,10); HGlue 0+1 };
+  Mode: { (${QCLI}_mode,7) (${QCLI}_laser,3) 
+          Stale: (${QCLI}_Stale,5) };
   SSP { (${SSP}_Num,8) (${SSP}_Status,7); }
 }
 
@@ -194,7 +199,6 @@ ${SSP} {
     { File: (${SSP}_Num,8);
       Scan: (${SSP}_SN,8);
       Skip: (${SSP}_TS,8);
-      Status: (${SSP}_Status,7);
       Stale: (${SSP}_Stale,5);
     }; +|; {
       ""  >"1|2|3 ";
@@ -215,17 +219,22 @@ ${QCLI}_S {
   HBox { +-; Title: "${QCLI} Status"; -+ };
   HBox {
     {
-      Ready:         (${QCLI}_ready,3);
-      Busy:          (${QCLI}_busy,3);
-      Select:        (${QCLI}_waveerr,4);
-      Flash:         (${QCLI}_flash,2);
-      Cksum:         (${QCLI}_cksum,1);
+      Rdy:     (${QCLI}_ready,3);
+      Busy:    (${QCLI}_busy,3);
+      Sel:     (${QCLI}_waveerr,4);
+      Flsh:    (${QCLI}_flash,2);
+      Cksm:    (${QCLI}_cksum,1);
     }; |; {
-      "QCLI T:"      (${QCLI}_dot,4);
-      "Laser T:"     (${QCLI}_lot,4);
-      "Laser I:"     (${QCLI}_loc,4);
-      "Inv Cmd:"     (${QCLI}_cordte,4);
-      "Cmd Err:"     (${QCLI}_cmderr,4);
+      "DOT:"   (${QCLI}_dot,4);
+      "LOT:"   (${QCLI}_lot,4);
+      "LOC:"   (${QCLI}_loc,4);
+      "COR:"   (${QCLI}_cordte,4);
+      "CErr:"  (${QCLI}_cmderr,4);
+    }; |; {
+      Com:  (${QCLI}_present,4);
+      Act:  (${QCLI}_rw,2);
+      FIFO: (${QCLI}_fifodep,3);
+      Err:  (${QCLI}_err,2);
     }
   }
 }
@@ -259,6 +268,7 @@ print $conv <<EOF
   const char *ok_fail_text[] = { "  ok", "FAIL" };
   const char *no_yes_text[]  = { " no", "yes" };
   const char *off_on_text[] = { "off", " on" };
+  const char *rw_text[] = { "--", "-W", "R-", "RW" };
   const char *qclimode_text[] = {
 	"   idle",
 	"program",
@@ -286,46 +296,66 @@ TM typedef int twobits_t { text "%02b"; }
 TM typedef int off_on_t { text "%3d" off_on_text[]; }
 TM typedef int qclimode_t { text "%7d" qclimode_text[]; }
 TM typedef int SSP_OVF { text "%5d" ovf_text[]; }
+TM typedef int rw_t { text "%2d" rw_text[]; }
+TM typedef unsigned char fifodep_t { text "%3u"; }
+TM typedef unsigned char qclierr_t { text "%02x"; }
 EOF
 ;
 for my $QCLI ( @qcli ) {
   print $conv <<EOF
 
 no_yes_t ${QCLI}_busy; invalidate ${QCLI}_busy;
- { ${QCLI}_busy = (${QCLI}_s & 0x8000) ? 1 : 0;
-   validate ${QCLI}_busy; }
+  { ${QCLI}_busy = (${QCLI}_s & 0x8000) ? 1 : 0;
+    validate ${QCLI}_busy; }
 onebit_t ${QCLI}_cksum; invalidate ${QCLI}_cksum;
- { ${QCLI}_cksum = (${QCLI}_s & 0x4000) ? 1 : 0;
-   validate ${QCLI}_cksum; }
+  { ${QCLI}_cksum = (${QCLI}_s & 0x4000) ? 1 : 0;
+    validate ${QCLI}_cksum; }
 ok_fail_t ${QCLI}_cmderr; invalidate ${QCLI}_cmderr;
- { ${QCLI}_cmderr = (${QCLI}_s & 0x2000) ? 1 : 0;
-   validate ${QCLI}_cmderr; }
+  { ${QCLI}_cmderr = (${QCLI}_s & 0x2000) ? 1 : 0;
+    validate ${QCLI}_cmderr; }
 off_on_t ${QCLI}_laser; invalidate ${QCLI}_laser;
- { ${QCLI}_laser = (${QCLI}_s & 0x1000) ? 0 : 1;
-   validate ${QCLI}_laser; }
+  { ${QCLI}_laser = (${QCLI}_s & 0x1000) ? 0 : 1;
+    validate ${QCLI}_laser; }
 ok_fail_t ${QCLI}_cordte; invalidate ${QCLI}_cordte;
- { ${QCLI}_cordte = (${QCLI}_s & 0x0800) ? 1 : 0;
-   validate ${QCLI}_cordte; }
+  { ${QCLI}_cordte = (${QCLI}_s & 0x0800) ? 1 : 0;
+    validate ${QCLI}_cordte; }
 no_yes_t ${QCLI}_ready; invalidate ${QCLI}_ready;
- { ${QCLI}_ready = (${QCLI}_s & 0x0200) ? 1 : 0;
-   validate ${QCLI}_ready; }
+  { ${QCLI}_ready = (${QCLI}_s & 0x0200) ? 1 : 0;
+    validate ${QCLI}_ready; }
 ok_fail_t ${QCLI}_waveerr; invalidate ${QCLI}_waveerr;
- { ${QCLI}_waveerr = (${QCLI}_s & 0x0100) ? 1 : 0;
-   validate ${QCLI}_waveerr; }
+  { ${QCLI}_waveerr = (${QCLI}_s & 0x0100) ? 1 : 0;
+    validate ${QCLI}_waveerr; }
 twobits_t ${QCLI}_flash; invalidate ${QCLI}_flash;
- { ${QCLI}_flash = (${QCLI}_s & 0x00C0) >> 6;
-   validate ${QCLI}_flash; }
+  { ${QCLI}_flash = (${QCLI}_s & 0x00C0) >> 6;
+    validate ${QCLI}_flash; }
 ok_fail_t ${QCLI}_dot; invalidate ${QCLI}_dot;
- { ${QCLI}_dot = (${QCLI}_s & 0x0020) ? 1 : 0;
-   validate ${QCLI}_dot; }
+  { ${QCLI}_dot = (${QCLI}_s & 0x0020) ? 1 : 0;
+    validate ${QCLI}_dot; }
 ok_fail_t ${QCLI}_lot; invalidate ${QCLI}_lot;
- { ${QCLI}_lot = (${QCLI}_s & 0x0010) ? 1 : 0;
-   validate ${QCLI}_lot; }
+  { ${QCLI}_lot = (${QCLI}_s & 0x0010) ? 1 : 0;
+    validate ${QCLI}_lot; }
 ok_fail_t ${QCLI}_loc; invalidate ${QCLI}_loc;
- { ${QCLI}_loc = (${QCLI}_s & 0x0008) ? 1 : 0;
-   validate ${QCLI}_loc; }
+  { ${QCLI}_loc = (${QCLI}_s & 0x0008) ? 1 : 0;
+    validate ${QCLI}_loc; }
 qclimode_t ${QCLI}_mode; invalidate ${QCLI}_mode;
- { ${QCLI}_mode = ${QCLI}_s & 0x7; validate ${QCLI}_mode; }
+  { ${QCLI}_mode = ${QCLI}_s & 0x7; validate ${QCLI}_mode; }
+rw_t ${QCLI}_rw; invalidate ${QCLI}_rw;
+  { ${QCLI}_rw = ((${QCLI}_CS & 0x4000) ? 2 : 0) +
+                ((${QCLI}_CS & 0x400) ? 1 : 0);
+    validate ${QCLI}_rw;
+  }
+ok_fail_t ${QCLI}_present; invalidate ${QCLI}_present;
+  { ${QCLI}_present = (${QCLI}_CS & 0x800) ? 0 : 1;
+    validate ${QCLI}_present;
+  }
+fifodep_t ${QCLI}_fifodep; invalidate ${QCLI}_fifodep;
+  { ${QCLI}_fifodep = ${QCLI}_CS & 0xFF;
+    validate ${QCLI}_fifodep;
+  }
+qclierr_t ${QCLI}_err; invalidate ${QCLI}_err;
+  { ${QCLI}_err = ((${QCLI}_CS >> 8) & 0xBB) ^ 0x8;
+    validate ${QCLI}_err;
+  }
 EOF
 ;
 }
