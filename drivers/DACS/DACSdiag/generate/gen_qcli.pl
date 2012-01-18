@@ -267,7 +267,6 @@ print $conv <<EOF
 %{
   const char *ok_fail_text[] = { "  ok", "FAIL" };
   const char *no_yes_text[]  = { " no", "yes" };
-  const char *off_on_text[] = { "off", " on" };
   const char *rw_text[] = { "--", "-W", "R-", "RW" };
   const char *qclimode_text[] = {
 	"   idle",
@@ -293,7 +292,6 @@ TM typedef int ok_fail_t { text "%4d" ok_fail_text[]; }
 TM typedef int no_yes_t { text "%3d" no_yes_text[]; }
 TM typedef int onebit_t { text "%1d"; }
 TM typedef int twobits_t { text "%02b"; }
-TM typedef int off_on_t { text "%3d" off_on_text[]; }
 TM typedef int qclimode_t { text "%7d" qclimode_text[]; }
 TM typedef int SSP_OVF { text "%5d" ovf_text[]; }
 TM typedef int rw_t { text "%2d" rw_text[]; }

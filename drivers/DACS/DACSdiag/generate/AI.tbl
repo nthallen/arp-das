@@ -40,5 +40,5 @@ AD {
 {
   HBox { |+; [AD]; |+ };
   -;
-    >{ Time: (flttime,8) MFCtr: (MFCtr,5) }
+  HBox { { AI: (AIStat,12) };  >{ Time: (flttime,8) MFCtr: (MFCtr,5) } }
 }

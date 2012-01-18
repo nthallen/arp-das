@@ -90,10 +90,23 @@ if [ -n "$N_QCLICTRL" -a "$N_QCLICTRL" != "0" ]; then
   add_files_nochk $wavefiles
 fi
 
+# Digio
+./gen_digio.pl $srcdir CP_NCMDS=$CP_NCMDS CP_DS=$CP_DS PB_S=$PB_S
+add_files digio.tmc digio_conv.tmc digio.cmd digio.tbl
+# digio.dccc will be handled manually below in .spec and interact
+
 # Indexer
 # Counters
 # Voltage Monitor
 # Syscon
+{
+  cat <<EOF
+State Init {
+      > Telemetry Start
+   +1 > CmdEnbl On
+}
+EOF
+} >$srcdir/$mnc.tma
 
 {
   cat <<EOF
@@ -102,7 +115,7 @@ fi
   memo=/dev/huarp/\$Experiment/memo
   Launch TM/DCo TMbfr
   echo "Running script interact" >\$memo
-# Launch dccc   dccc -f \$TMBINDIR/dccc.dccc
+  Launch dccc   dccc -f \$TMBINDIR/digio.dccc
   Launch DG/cmd ${Experiment}col
   Launch cmd/server ${Experiment}srvr
   Launch - lgr -N \`mlf_find LOG\`
@@ -118,7 +131,7 @@ EOF
     done
   fi
 
-  echo "# Launch - ${Experiment}algo -v"
+  echo "  Launch - ${Experiment}algo -v"
 } >$srcdir/interact
 
 chmod +x $srcdir/interact
@@ -138,12 +151,13 @@ EOF
     echo "cmdbase = $f"
   done
   echo
-  echo "SCRIPT = interact"
+  echo "SCRIPT = interact digio.dccc"
   echo "TGTDIR = $HomeDir"
   echo
   echo "${mnc}srvr : -lsubbus"
   echo "${mnc}col : $col -lsubbus"
   echo "${mnc}disp : $conv $tbl"
+  echo "${mnc}algo : $mnc.tma"
   echo "doit : ${mnc}.doit"
   echo "%%"
   if [ -n "$N_QCLICTRL" -a "$N_QCLICTRL" != "0" ]; then

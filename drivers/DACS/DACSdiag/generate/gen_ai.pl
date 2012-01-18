@@ -36,6 +36,8 @@ print $col
   "    sbwr(0xC1E, 0x100);\n",
   "    sbwr(0xC5E, 0x120);\n",
   "    sbwr(0xC9E, 0x140);\n";
+
+print $tmc "TM 2 Hz AIStat_i AIStat; Address AIStat 0xE00;\n";
 for my $row (0 .. 7 ) {
   for my $bank ( 0, 1 ) {
     my @group;
@@ -45,10 +47,6 @@ for my $row (0 .. 7 ) {
       my $chan = "AI$addr";
       print $tmc "TM 2 Hz AI16 $chan; Address $chan 0x$addr;\n";
       push @group, $chan;
-      # my $caddr = sprintf( "%03X", $naddr+1 );
-      # my $cchan = "AIC$addr";
-      # print "TM 2 Hz AIC $cchan; Address $cchan 0x$caddr;\n";
-      # push @group, $cchan;
     }
     print $tmc "\n%{\n  subbus_mread_req *Row${row}Bank${bank}_req;\n%}\n";
     printf $col "    Row${row}Bank${bank}_req = pack_mread_request( 8, \"%X:2:%X\" );\n",
@@ -69,7 +67,7 @@ for my $row ( 8 .. 10 ) {
     my $naddr = 0xC00 + $row*32 + $bank*16 + $col*2;
     my $addr = sprintf( "%03X", $naddr );
     my $chan = "AI$addr";
-    print $tmc "TM 2 Hz AI16 $chan; Address $chan 0x$addr;\n";
+    print $tmc "TM 2 Hz PBI $chan; Address $chan 0x$addr;\n";
     push @group, $chan;
     # my $caddr = sprintf( "%03X", $naddr+1 );
     # my $cchan = "AIC$addr";

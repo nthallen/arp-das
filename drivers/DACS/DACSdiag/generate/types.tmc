@@ -25,6 +25,11 @@ TM typedef AI16 PBI { text "%5.2lf"; convert AMPS; }
     40000, 4.9831
   }
 
+TM typedef unsigned short AIStat_i {
+  text "%012b";
+  Collect x = sbrwa(x.address);
+}
+
 TM typedef unsigned char MS5607Db { text "%3d"; }
 TM typedef UINT PTRH_S { text " %03x"; }
 TM typedef double PTRHT_t { text "%5.1lf"; }
@@ -34,5 +39,10 @@ TM typedef double PTRHP_t { text "%7.2lf"; }
 /* QCLI/SSP types */
 TM typedef double CELCIUS;
 TM typedef long L20 { text "%8ld"; }
+
+%{
+  const char *off_on_text[] = { "off", " on" };
+%}
+TM typedef int off_on_t { text "%3d" off_on_text[]; }
 
 TM 4 Hz UINT Synch, MFCtr;
