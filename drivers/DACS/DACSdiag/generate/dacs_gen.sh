@@ -125,7 +125,7 @@ EOF
   if [ -n "$N_QCLICTRL" -a "$N_QCLICTRL" != "0" ]; then
     i=0
     while [ $i -lt $N_QCLICTRL ]; do
-      echo "  Launch - sspdrv -b$i -hSSP_$i -N `mlf_find SSP_$i`"
+      echo "  Launch - sspdrv -b$i -hSSP_$i -N \`mlf_find SSP_$i\`"
       echo "  Launch - qclidacsd -h QCLI_$i -d $i"
       let i=i+1
     done
