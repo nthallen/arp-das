@@ -120,10 +120,14 @@ State Init {
 EOF
 } >$srcdir/$mnc.tma
 
+have_idx='#'
+idx_script=''
+if [ -n "$IDX_N_CHANNELS" -a "$IDX_N_CHANNELS" != "0" ]; then
+  have_idx=' '
+  idx_script=' idx64.idx64'
+fi
+
 {
-  have_idx='#'
-  [ -n "$IDX_N_CHANNELS" -a "$IDX_N_CHANNELS" != "0" ] &&
-    have_idx=' '
   cat <<EOF
 # Startup script for DACS Diagnostic
   Launch memo memo -o \$Experiment.log
@@ -166,7 +170,7 @@ EOF
     echo "cmdbase = $f"
   done
   echo
-  echo "SCRIPT = interact digio.dccc"
+  echo "SCRIPT = interact digio.dccc$idx_script"
   echo "TGTDIR = $HomeDir"
   echo
   echo "${mnc}srvr : -lsubbus"
