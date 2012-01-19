@@ -1,6 +1,9 @@
 /*
  * Discrete command card controller program.
  * $Log$
+ * Revision 1.7  2011/02/18 19:41:31  ntallen
+ * Reworking of interface preparatory to switching to resmgr
+ *
  * Revision 1.6  2010/09/10 13:07:51  ntallen
  * Minor edit and relink for libsubbus.so.1
  *
@@ -161,7 +164,11 @@ void parse_cmd(char *tbuf, int nb, cmd_t *pcmd ) {
     pcmd->cmd_type = tbuf[i++];
     for (;;) {
       unsigned int val;
-      if ( readunum(tbuf, &i, &val) ) return;
+      if ( readunum(tbuf, &i, &val) ) {
+	nl_error( 2, "n_cmds=%d nb=%d cmd='%s'",
+	  pcmd->n_cmds, nb, tbuf );
+	return;
+      }
       pcmd->cmds[pcmd->n_cmds].cmd = val;
       if ( val > n_cmds ) {
 	nl_error( 2, "Invalid command number" );
