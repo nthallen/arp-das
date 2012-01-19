@@ -52,7 +52,11 @@ function add_files_nochk {
 
 function add_files {
   for f in $*; do
-    [ -f $srcdir/$f ] || nl_error "File $srcdir/$f not found"
+    case $f in
+      /*) fname=$f;;
+      *) fname=$srcdir/$f;;
+    esac
+    [ -f $fname ] || nl_error "File $fname not found"
   done
   add_files_nochk $*
 }
@@ -96,6 +100,14 @@ add_files digio.tmc digio_conv.tmc digio.cmd digio.tbl
 # digio.dccc will be handled manually below in .spec and interact
 
 # Indexer
+if [ -n "$IDX_N_CHANNELS" -a "$IDX_N_CHANNELS" != "0" ]; then
+  ./gen_idx.pl $srcdir $IDX_N_CHANNELS
+  ( cd $srcdir; idx64cfg idx64.idx idx64 )
+  add_files /usr/local/share/huarp/idx64.cmd idx64drv.cmd
+  add_files idx64.tmc idx64col.tmc idx64.tbl
+  conv="$conv idx64flag.tmc"
+fi
+
 # Counters
 # Voltage Monitor
 # Syscon
@@ -109,6 +121,9 @@ EOF
 } >$srcdir/$mnc.tma
 
 {
+  have_idx='#'
+  [ -n "$IDX_N_CHANNELS" -a "$IDX_N_CHANNELS" != "0" ] &&
+    have_idx=' '
   cat <<EOF
 # Startup script for DACS Diagnostic
   Launch memo memo -o \$Experiment.log
@@ -119,7 +134,7 @@ EOF
   Launch DG/cmd ${Experiment}col
   Launch cmd/server ${Experiment}srvr
   Launch - lgr -N \`mlf_find LOG\`
-# Launch - idx64 \`cat \$TMBINDIR/idx64.idx64\`
+$have_idx Launch - idx64 \`cat \$TMBINDIR/idx64.idx64\`
 EOF
 
   if [ -n "$N_QCLICTRL" -a "$N_QCLICTRL" != "0" ]; then
