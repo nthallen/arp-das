@@ -91,7 +91,7 @@ EOF
 
 for my $ptrh (0 .. $n_ptrh-1) {
   print $tbl "  \"$ptrh:\"  (PTRH${ptrh}_T1C,5) (PTRH${ptrh}_T2C,5) ",
-    "(PTRH${ptrh}_RHC,4) (PTRH${ptrh}_P,7) (PTRH${ptrh}_PTRHS,3);\n";
+    "(PTRH${ptrh}_RHC,4) (PTRH${ptrh}_P,7) (PTRH${ptrh}_PTRHS,4);\n";
 }
 
 print $tbl
