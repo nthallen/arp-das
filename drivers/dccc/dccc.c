@@ -1,6 +1,9 @@
 /*
  * Discrete command card controller program.
  * $Log$
+ * Revision 1.8  2012/01/19 19:25:07  ntallen
+ * A little verbosity in error case.
+ *
  * Revision 1.7  2011/02/18 19:41:31  ntallen
  * Reworking of interface preparatory to switching to resmgr
  *
@@ -171,7 +174,7 @@ void parse_cmd(char *tbuf, int nb, cmd_t *pcmd ) {
       }
       pcmd->cmds[pcmd->n_cmds].cmd = val;
       if ( val > n_cmds ) {
-	nl_error( 2, "Invalid command number" );
+	nl_error( 2, "Invalid command number: %d", val );
 	return;
       }
       if ( pcmd->n_cmds == 0 ) {
@@ -326,11 +329,11 @@ static void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
       sel_line(cmds[cmd_idx].port, cmds[cmd_idx].mask, value);
       break;
     case SPARE: cmd_ok = 0;
-      nl_error(MSG_WARN,"command type SPARE received");
+      nl_error(MSG_WARN,"command %d of type SPARE received", cmd_idx);
       break;
     default: cmd_ok = 0;
-      nl_error(MSG_WARN, "unknown command type %d received",
-	cmds[cmd_idx].type);
+      nl_error(MSG_WARN, "command %d: unknown command type %d received",
+	cmd_idx, cmds[cmd_idx].type);
     } /* switch */
   }
 
