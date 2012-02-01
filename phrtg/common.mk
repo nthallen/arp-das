@@ -32,7 +32,7 @@ EXTRA_LIBVPATH+=$(QNX_TARGET)/usr/local/lib /usr/pkg/lib
 #===== LIBS - a space-separated list of library items to be included in the link.
 LIBS+=fftw3f nort tm
 #===== LDFLAGS - add the flags to the linker command line.
-LDFLAGS+=-Wl,-rpath -Wl,/usr/local/lib
+LDFLAGS+=-Wl,-rpath,/usr/local/lib -Wl,-rpath,/usr/pkg/lib
 #===== CCFLAGS - add the flags to the C compiler command line. 
 CCFLAGS+=-w2 -O0
 include $(MKFILES_ROOT)/qmacros.mk
