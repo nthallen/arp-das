@@ -9,6 +9,8 @@ DACStest : sbtest.o
 	cc $(LDFLAGS) -o DACStest sbtest.o $(LIBS)
 sbbench : sbbench.o
 	cc $(LDFLAGS) -o sbbench sbbench.o $(LIBS)
+sbtest : sbtest.o
+	cc $(LDFLAGS) -o sbtest sbtest.o $(LIBS)
 install : ai_cfg.h ptrh.h DACStest
 	@cp -vn ai_cfg.h ptrh.h /usr/local/include/
 	@cp -vn DACStest /usr/local/bin

@@ -370,6 +370,16 @@ static void ptrh_test(unsigned short DACSbuild, int ptrh_n,
   }
 }
 
+static void qcli_test( int qcli_num ) {
+  unsigned short base;
+  base = 0x1000 + 0x10*qcli_num;
+  read_report( base, "QCLI Controller Status" );
+  read_report( base+2, "QCLI Status" );
+  write_ack( base+6, 0xAA55 );
+  write_ack( base+6, 0xA050 );
+  write_ack( base+8, 0x55AA );
+}
+
 static unsigned short cfgs[] = {
   0x01, 0x02, 0x00, 0x08, 0x10, 0x18, 0x14, 0x1C };
 
@@ -421,6 +431,7 @@ int main(int argc, char **argv) {
     nl_error( 0, "Select from the following: \n"
 	"  idx\n"
 	"  ptrh\n"
+	"  qcli\n"
 	"  timeout\n"
 	"  ana_in_cfg\n"
 	"  ana_in_cfg_rows\n"
@@ -455,13 +466,21 @@ int main(int argc, char **argv) {
 	  break;
 	case 3:
 	  ptrh_test(DACSbuild, 0, "DACS");
-	  ptrh_test(DACSbuild, 1, "SW0");
-	  ptrh_test(DACSbuild, 2, "SW1");
+	  ptrh_test(DACSbuild, 1, "MQCL");
+	  ptrh_test(DACSbuild, 2, "MLPV");
+	  ptrh_test(DACSbuild, 3, "MDPV");
+	  ptrh_test(DACSbuild, 4, "CQCL");
+	  ptrh_test(DACSbuild, 5, "CLPV");
+	  ptrh_test(DACSbuild, 6, "IDPV");
+	  ptrh_test(DACSbuild, 7, "ILPV");
+	  ptrh_test(DACSbuild, 8, "IQCL");
 	  break;
 	default:
 	  ptrh_test(DACSbuild, 0, "DACS");
 	  break;
       }
+    } else if ( strcmp(argv[i], "qcli") == 0 ) {
+      qcli_test(2);
     } else nl_error( 3, "Unrecognized test: '%s'", argv[i]);
   }
 
