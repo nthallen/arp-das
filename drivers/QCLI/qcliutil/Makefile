@@ -1,7 +1,7 @@
 SRC=qclitest.c qcliutil.c qcliutil.h
 TOOL=Makefile todo
 #TARGET=qclid qcliprog qclitest chktime qcliread icoswave.out
-TARGET=qclisd qclisprog qclistest
+TARGET=qclisd qclisprog qclistest qclidacsd qclidprog qclidtest
 INCLUDE_HEADERS=qclid.h
 CFLAGS=-Wall -g
 LDFLAGS=-L/usr/local/lib
@@ -29,7 +29,7 @@ qclisdoui.c : qclid.oui qcliser.oui
 
 DSRVROBJ= qclisrvr.o qclidacsdoui.o qcliutil.o qclidacs.o
 qclidacsd : $(DSRVROBJ)
-	$(LINK.norm) $(DSRVROBJ) $(LIBS) -ltm
+	$(LINK.norm) $(DSRVROBJ) $(LIBS) -ltm -lsubbus
 	usemsg qclidacsd qclidacsdoui.c
 qclidacsdoui.c : qclid.oui qclidacs.oui
 	$(OUI) qclid.oui qclidacs.oui
@@ -48,8 +48,8 @@ qclisprog : qcliprog.o qcliutil.o qcliser.o qclisprogoui.o qcliver.o
 qclisprogoui.c : qcliprog.oui qcliser.oui
 	$(OUI) qcliprog.oui qcliser.oui
 
-qclidprog : qcliprog.o qcliutil.o qclidacs.o qclisprogoui.o
-	$(LINK.norm) qcliprog.o qcliutil.o qclidacs.o qclisprogoui.o $(LIBS)
+qclidprog : qcliprog.o qcliutil.o qclidacs.o qclidprogoui.o
+	$(LINK.norm) qcliprog.o qcliutil.o qclidacs.o qclidprogoui.o $(LIBS) -lsubbus
 	usemsg qclidprog qclidprogoui.c
 qclidprogoui.c : qcliprog.oui qclidacs.oui
 	$(OUI) qcliprog.oui qclidacs.oui
@@ -67,6 +67,12 @@ qclistest : qclitest.o qcliutil.o qcliser.o qclistestoui.o
 	usemsg qclistest qclistestoui.c
 qclistestoui.c : qcliser.oui
 	$(OUI) qcliser.oui
+
+qclidtest : qclitest.o qcliutil.o qclidacs.o qclidtestoui.o
+	$(LINK.norm) qclitest.o qcliutil.o qclidacs.o qclidtestoui.o $(LIBS) -lsubbus
+	usemsg qclidtest qclidtestoui.c
+qclidtestoui.c : qclidacs.oui
+	$(OUI) qclidacs.oui
 
 qcliread : qcliread.o qcliutil.o
 	$(LINK.priv) qcliread.o qcliutil.o $(LIBS)

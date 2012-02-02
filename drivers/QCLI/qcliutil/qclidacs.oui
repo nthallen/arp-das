@@ -1,8 +1,8 @@
 <package> qcli
 <include> "qcliutil.h"
-<include> subbus_reqd
+<include> subbus
 <follow> msg
-<follow> subbus_reqd
+<follow> subbus
 <opts> "d:"
 <sort>
 	-d <qcli_number> QCLI board number

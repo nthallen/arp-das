@@ -10,7 +10,10 @@
 #include "qcliutil.h"
 #include "qcliprog.h"
 
-int opt_w, opt_v;
+int opt_vw = 0, n_opts = 0;
+#define OPT_V 0
+#define OPT_W 1
+
 char *ifilename;
 FILE *ifile;
 
@@ -21,13 +24,16 @@ void qcliprog_init( int argc, char **argv ) {
   opterr = 0; /* disable default error message */
   while ((c = getopt(argc, argv, opt_string)) != -1) {
     switch (c) {
-      case 'w': opt_w = 1; break;
-      case 'v': opt_v = 1; break;
+      case 'w': opt_vw |= (OPT_W << n_opts++); break;
+      case 'v': opt_vw |= (OPT_V << n_opts++); break;
       case '?':
         nl_error(3, "Unrecognized Option -%c", optopt);
     }
   }
-  if ( ! ( opt_w | opt_v ) ) opt_v = 1;
+  if ( n_opts == 0 ) { // default to verify
+    n_opts = 1;
+    opt_vw = OPT_V;
+  }
   if ( optind < argc )
     ifilename = argv[optind++];
   if ( optind < argc )
@@ -174,7 +180,7 @@ void write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
   }
   qcli_status = wr_rd_qcli( QCLI_PROGRAM_SECTOR );
   if ( (qcli_status & QCLI_S_MODE) == QCLI_PSECTOR_MODE ) {
-    printf( "I actually saw Program Sector Mode!\n" );
+    // printf( "I actually saw Program Sector Mode!\n" );
     qcli_status = read_qcli(1);
   }
   if ( (qcli_status & QCLI_S_MODE) != QCLI_PROGRAM_MODE ) {
@@ -196,7 +202,7 @@ void write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
       /* Should probably signal a retry */
     }
   }
-  printf( "Successfully wrote block at addr 0x%04X\n", startaddr );
+  nl_error(0, "Successfully wrote block at addr 0x%04X", startaddr );
   fflush(stdout);
 }
 
@@ -220,6 +226,7 @@ int verify_program( unsigned short *prog, long proglen ) {
     if ( verify_block( addr, prog, blocklen ) )
       rv = 1;
     proglen -= blocklen;
+    prog += blocklen;
     addr += blocklen;
   }
   write_qcli( QCLI_STOP );
@@ -229,22 +236,29 @@ int verify_program( unsigned short *prog, long proglen ) {
 int main( int argc, char **argv ) {
   long proglen;
   unsigned short *prog;
+  int rv = 0;
   
   oui_init_options( argc, argv );
-  /* qcliprog_init( argc, argv ); */
   prog = load_program( &proglen );
-  printf("Successfully loaded program of %ld words from %s\n",
+  nl_error(0, "Successfully loaded program of %ld words from %s",
     proglen, ifilename );
-  /* if ( load_subbus() == 0 )
-    nl_error( 3, "No subbus library" ); */
-  /* qcli_addr_init( opt_n ); */
-  if ( qcli_diags( 0 ) ) printf( "Diagnostics passed\n" );
-  else nl_error( 3, "Errors observed during diagnostics\n" );
-  if ( opt_w ) write_program( prog, proglen );
-  if ( opt_v ) {
-    if ( verify_program( prog, proglen ) )
-      nl_error( 3, "Program did not verify" );
-    else printf( "Program verified completely\n" );
+  if ( qcli_diags( 0 ) ) nl_error( 0, "Diagnostics passed" );
+  else nl_error( 3, "Errors observed during diagnostics" );
+  while (n_opts) {
+    --n_opts;
+    switch ( opt_vw & 1 ) {
+      case OPT_W:
+	write_program( prog, proglen );
+	rv = 0;
+	break;
+      case OPT_V:
+	if ( verify_program( prog, proglen ) ) {
+	  rv = n_opts ? 2 : 3;
+	  nl_error( rv, "Program did not verify" );
+	} else nl_error( -1, "Program verified completely" );
+	break;
+    }
+    opt_vw >>= 1;
   }
   return 0;
 }
