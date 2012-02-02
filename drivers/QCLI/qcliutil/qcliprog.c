@@ -214,7 +214,7 @@ void write_program( unsigned short *prog, long proglen ) {
     proglen -= blocklen;
     addr += blocklen;
   }
-  write_qcli( QCLI_STOP );
+  wr_stop_qcli( QCLI_STOP );
 }
 
 /* returns zero if everything checks out */
@@ -229,7 +229,7 @@ int verify_program( unsigned short *prog, long proglen ) {
     prog += blocklen;
     addr += blocklen;
   }
-  write_qcli( QCLI_STOP );
+  wr_stop_qcli( QCLI_STOP );
   return rv;
 }
 
