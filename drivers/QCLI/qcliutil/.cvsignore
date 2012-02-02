@@ -5,3 +5,9 @@ qclistestoui.c
 qclisdoui.c
 qclisd
 FullBuild.*
+qclidtestoui.c
+qclidtest
+qclidprogoui.c
+qclidprog
+qclidacsdoui.c
+qclidacsd
