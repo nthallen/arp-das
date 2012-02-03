@@ -26,19 +26,6 @@ ptrhm::ptrhm( const char *id_in, USHRT base, USHRT C1, USHRT C2,
 }
 
 /**
- * @return non-zero if coefficient is different
- */
-int ptrhm::check_coeff( int i, USHRT C_in) {
-  nl_assert( i >= 1 && i <= 6 );
-  if ( C_in != C[i-1] ) {
-    nl_error(2, "PTRH[%s] C%d = 0x%04X, expected 0x%04X",
-      id, i, C_in, C[i-1]);
-    return 1;
-  }
-  return 0;
-}
-
-/**
  * @return Temperature in Celcius
  */
 double ptrhm::SHT21T( USHRT S1 ) {

@@ -48,6 +48,10 @@ print $tmc <<EOF
 
 TM typedef unsigned char SSP_Status_t { text "%7d" SSP_Status_Text(); }
 TM typedef unsigned short XLONG { text "%5d"; }
+TM typedef unsigned short QCLI_CS_t {
+  text "%5d";
+  collect x = sbrwa(x.address);
+}
 
 /* T_FPGA_t: MAX6628 output, resolution 1/16 degree
  *   reported as 128 bits per degree celcius */
@@ -81,7 +85,7 @@ Group ${QCLI}_grp ( ${QCLI}_Wave, ${QCLI}_s ) {
 EOF
   ;
   printf $tmc
-    "TM 1 HZ XLONG ${QCLI}_CS; Address ${QCLI}_CS 0x%X;\n",
+    "TM 1 HZ QCLI_CS_t ${QCLI}_CS; Address ${QCLI}_CS 0x%X;\n",
     0x1000 + $QN*0x10;
 
 }
@@ -170,7 +174,7 @@ for my $QCLI ( 0 .. $#qcli ) {
   print $cmd <<EOF
   : Select $qcli[$QCLI] Waveform &$qcli[$QCLI]_Wave * {
       *sspqcli_bd[$QCLI].setup = $qcli[$QCLI]_Waves[\$4];
-      if_$ssp[$QCLI].Turf( "SW:%d\\n", \$4 );
+      if_$qcli[$QCLI].Turf( "SW:%d\\n", \$4 );
     }
 EOF
   ;

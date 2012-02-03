@@ -79,6 +79,7 @@ if [ -n "$N_PTRH" -a "$N_PTRH" != "0" ]; then
 fi
 
 # QCLI
+QCLI_SCRIPT=''
 if [ -n "$N_QCLICTRL" -a "$N_QCLICTRL" != "0" ]; then
   cp qcli.cmd $srcdir
   ./gen_qcli.pl $srcdir $N_QCLICTRL
@@ -88,6 +89,7 @@ if [ -n "$N_QCLICTRL" -a "$N_QCLICTRL" != "0" ]; then
     perl -pe "s/\\@QCLI\\@/QCLI_$i/g" waves.qcli >$srcdir/waves$i.qcli
     # cp waves.qcli $srcdir/waves$i.qcli
     wavefiles="$wavefiles waves$i.cmd waves$i.tmc"
+    QCLI_SCRIPT="$QCLI_SCRIPT waves$i.out"
     let i=i+1
   done
   add_files qcli.cmd qclis.cmd qcli.tmc qcli_col.tmc qcli_conv.tmc qcli.tbl
@@ -134,6 +136,19 @@ fi
   memo=/dev/huarp/\$Experiment/memo
   Launch TM/DCo TMbfr
   echo "Running script interact" >\$memo
+EOF
+
+  if [ -n "$N_QCLICTRL" -a "$N_QCLICTRL" != "0" ]; then
+    echo "\n# Verify and/or Program QCLIs"
+    i=0
+    while [ $i -lt $N_QCLICTRL ]; do
+      echo "  qclidprog -h QCLI_$i -d$i -cwc \$TMBINDIR/waves$i.out"
+      let i=i+1
+    done
+    echo
+  fi
+
+  cat <<EOF
   Launch dccc   dccc -f \$TMBINDIR/digio.dccc
   Launch DG/cmd ${Experiment}col
   Launch cmd/server ${Experiment}srvr
@@ -171,6 +186,7 @@ EOF
   done
   echo
   echo "SCRIPT = interact digio.dccc$idx_script"
+  [ -n "$QCLI_SCRIPT" ] && echo "SCRIPT =$QCLI_SCRIPT"
   echo "TGTDIR = $HomeDir"
   echo
   echo "${mnc}srvr : -lsubbus"
