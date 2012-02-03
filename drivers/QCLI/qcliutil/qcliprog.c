@@ -25,7 +25,7 @@ void qcliprog_init( int argc, char **argv ) {
   while ((c = getopt(argc, argv, opt_string)) != -1) {
     switch (c) {
       case 'w': opt_vw |= (OPT_W << n_opts++); break;
-      case 'v': opt_vw |= (OPT_V << n_opts++); break;
+      case 'c': opt_vw |= (OPT_V << n_opts++); break;
       case '?':
         nl_error(3, "Unrecognized Option -%c", optopt);
     }
@@ -202,7 +202,7 @@ void write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
       /* Should probably signal a retry */
     }
   }
-  nl_error(0, "Successfully wrote block at addr 0x%04X", startaddr );
+  nl_error(0, "Wrote block at addr 0x%04X", startaddr );
   fflush(stdout);
 }
 
@@ -240,7 +240,7 @@ int main( int argc, char **argv ) {
   
   oui_init_options( argc, argv );
   prog = load_program( &proglen );
-  nl_error(0, "Successfully loaded program of %ld words from %s",
+  nl_error(0, "Loaded %ld words from %s",
     proglen, ifilename );
   if ( qcli_diags( 0 ) ) nl_error( 0, "Diagnostics passed" );
   else nl_error( 3, "Errors observed during diagnostics" );

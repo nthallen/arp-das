@@ -7,7 +7,7 @@ CFLAGS=-Wall -g
 LDFLAGS=-L/usr/local/lib
 
 include /usr/local/share/huarp/appgen.mk
-LIBS=-lnort
+LIBS=-lnort -ltm
 
 all : $(TARGET)
 

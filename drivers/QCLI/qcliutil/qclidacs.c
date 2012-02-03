@@ -57,6 +57,7 @@ int verify_block( unsigned short addr, unsigned short *prog, int blocklen ) {
   static subbus_mread_req *vreq = 0;
   unsigned short ctrlr_status;
   unsigned short remaining;
+  unsigned short blk_addr = addr;
   int rv = 0;
 
   if ( vreq == 0 ) {
@@ -95,9 +96,9 @@ int verify_block( unsigned short addr, unsigned short *prog, int blocklen ) {
     }
     for ( i = 0; i < remaining && i < 32; ++i ) {
       if ( i < blocklen && vbuf[i] != prog[i] ) {
-        nl_error( 2, "  %04X: program=%04X read=%04X",
+        nl_error( -2, "  %04X: program=%04X read=%04X",
           addr+i, prog[i], vbuf[i] );
-        rv = 1;
+        ++rv;
       }
     }
     addr += i;
@@ -105,7 +106,12 @@ int verify_block( unsigned short addr, unsigned short *prog, int blocklen ) {
     remaining -= i;
     blocklen -= i;
   }
+  if ( rv ) {
+    nl_error(2, "Block 0x%04X: %d words failed on verify",
+	blk_addr, rv );
+  }
   return rv;
+
 }
 
 void qcli_addr_init( int bdnum ) {

@@ -80,7 +80,7 @@ int qcli_diags( int verbose ) {
 
   /* Verify that no errors are asserted. If any are,
      attempt to clear them */
-  if (verbose) printf("QCLI Diagnostics\n");
+  if (verbose) nl_error(0, "QCLI Diagnostics");
   qcli_status = wr_rd_qcli( QCLI_STOP );
   if ( qcli_status & QCLI_S_ERR ) {
     qcli_status = wr_rd_qcli( QCLI_CLEAR_ERROR );
@@ -91,7 +91,7 @@ int qcli_diags( int verbose ) {
 
   /* Verify that QCLI is in Idle mode. If not, try
      to put it into Idle */
-  if ( verbose ) nl_error( 0, "Verifying Idle Status:\n" );
+  if ( verbose ) nl_error( 0, "Verifying Idle Status:" );
   if ( ( qcli_status & QCLI_S_MODE ) != QCLI_IDLE_MODE ) {
     qcli_status = wr_rd_qcli( QCLI_STOP );
   }
@@ -104,41 +104,41 @@ int qcli_diags( int verbose ) {
   }
 
   /* Test the bad opcode error */
-  if ( verbose ) nl_error( 0, "Issuing invalid opcode:\n" );
+  if ( verbose ) nl_error( 0, "Issuing invalid opcode:" );
   qcli_status = wr_rd_qcli( QCLI_BAD_CMD );
   if ( ! check_status( qcli_status, QCLI_S_CORDTE, QCLI_S_CORDTE,
         "CORDTE not observed", 1 ) ) {
-    if (verbose) nl_error( 0, "CORDTE Error Observed as expected\n" );
+    if (verbose) nl_error( 0, "CORDTE Error Observed as expected" );
     qcli_status = wr_rd_qcli( QCLI_CLEAR_ERROR );
     if ( check_status( qcli_status, QCLI_S_CORDTE, 0,
             "CORDTE not cleared", 0 ) |
          check_status( qcli_status, QCLI_S_FWERR, 0,
             "Error bits observed after CLEAR_ERROR", 0 )
         ) report_status( qcli_status );
-    else if (verbose) nl_error( 0, "CORDTE Cleared as expected\n" );
+    else if (verbose) nl_error( 0, "CORDTE Cleared as expected" );
   }
   
   /* Test CMDERR by issuing Run - but only if we
      are not ready */
   if ( qcli_status & QCLI_S_READY ) {
-    if (verbose) nl_error( 0, "Skipping CMDERR test\n" );
+    if (verbose) nl_error( 0, "Skipping CMDERR test" );
   } else {
-    if (verbose) nl_error( 0, "Issuing PROGRAM_SECTOR from IDLE:\n" );
+    if (verbose) nl_error( 0, "Issuing PROGRAM_SECTOR from IDLE:" );
     qcli_status = wr_rd_qcli( QCLI_PROGRAM_SECTOR );
     if ( ! check_status( qcli_status, QCLI_S_CMDERR, QCLI_S_CMDERR,
           "CMDERR not observed", 1 ) ) {
-      if (verbose) nl_error( 0, "CMDERR Observed\n");
+      if (verbose) nl_error( 0, "CMDERR Observed");
       qcli_status = wr_rd_qcli( QCLI_CLEAR_ERROR );
       if ( !(check_status( qcli_status, QCLI_S_CMDERR, 0,
             "CMDERR not cleared", 1 ) ||
            check_status( qcli_status, QCLI_S_FWERR, 0,
              "Error status observed after CLEAR_ERROR", 1 ))) {
-         if (verbose) nl_error( 0, "CMDERR Cleared as expected\n" );
+         if (verbose) nl_error( 0, "CMDERR Cleared as expected" );
       }
     }
   }
   
-  if (verbose) nl_error( 0, "Testing Program Mode:\n" );
+  if (verbose) nl_error( 0, "Testing Program Mode:" );
   write_qcli( QCLI_LOAD_MSB | 0 );
   qcli_status = wr_rd_qcli( QCLI_WRITE_ADDRESS | 0 );
   if ( check_status( qcli_status, QCLI_S_MODE, QCLI_PROGRAM_MODE,
