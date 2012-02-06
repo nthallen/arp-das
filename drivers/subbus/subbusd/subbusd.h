@@ -111,6 +111,10 @@ typedef struct __attribute__((__packed__)) {
 #define SBS_OK 0
 #define SBS_ACK 1
 #define SBS_NOACK 2
+#define SBS_REQ_SYNTAX (-1)
+#define SBS_RESP_SYNTAX (-2)
+#define SBS_RESP_ERROR (-3)
+#define SBS_TIMEOUT (-4)
 
 /* ret_type values */
 #define SBRT_NONE 0 // Just return the status

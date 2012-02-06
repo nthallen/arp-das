@@ -248,24 +248,40 @@ static void dequeue_request( signed short status, int n_args,
       nl_assert(cur_req->request[0] == 'M' && cur_req->n_reads != 0);
       // Look at req n_reads, then parse responses. Don't parse more
       // than n_reads values. If we encounter 'm', switch status to
-      // -1. If we encounter 'E', switch status to the error code
-      // and return with no data. If we get the wrong number of
+      // SBS_NOACK. If we encounter 'E', switch status to
+      // SBS_RESP_ERROR, report the error code, and return with no
+      // data. If we get the wrong number of responses, report
+      // SBS_RESP_SYNTAX, complain and return with no data
       { int n_reads = cur_req->n_reads;
         int i = 0;
         char *p = s;
+        unsigned short errval;
+
         nl_assert( n_reads > 0 && n_reads <= 50 );
         while ( i < n_reads && rsize == 0 ) {
           switch ( *p ) {
             case 'm':
-              rep.hdr.status = -1; // No acknowledge on at least one read
+              rep.hdr.status = SBS_NOACK; // No acknowledge on at least one read
               // fall through
             case 'M':
               ++p;
               if ( ! read_hex( &p, &rep.data.mread.rvals[i++] ) ) {
-                rep.hdr.status = 102; // DACS reply syntax error
+                rep.hdr.status = SBS_RESP_SYNTAX; // DACS reply syntax error
                 rsize = sizeof(subbusd_rep_hdr_t);
+                break;
               }
               continue;
+	    case 'E':
+              ++p;
+              if ( ! read_hex( &p, &errval ) ) {
+		nl_error(2,"Invalid error in mread response");
+		rep.hdr.status = SBS_RESP_SYNTAX;
+	      } else {
+		nl_error(2, "DACS reported error %d on mread", errval );
+		rep.hdr.status = SBS_RESP_ERROR;
+	      }
+	      rsize = sizeof(subbusd_rep_hdr_t);
+	      break;
             default:
               break;
           }
@@ -273,7 +289,8 @@ static void dequeue_request( signed short status, int n_args,
         }
         if ( rsize == 0 ) {
           if ( i != n_reads || *p != '\0' ) {
-            rep.hdr.status = 101; // Wrong number of read values returned
+	    // Wrong number of read values returned
+            rep.hdr.status = SBS_RESP_SYNTAX;
             rsize = sizeof(subbusd_rep_hdr_t);
           } else {
             rep.data.mread.n_reads = n_reads;

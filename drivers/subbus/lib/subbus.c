@@ -383,18 +383,18 @@ int subbus_quit(void) {
  * Passes the raw command directly to the subbus driver and parses
  * the return string for a multi-read. Up to n_read values will be
  * written into the array pointed to by the data argument.
- * @return Zero on success. If return value is positive, it is the
- * error code returned by the DACS and no values are reported.
- * If it is negative, it indicates that although the requested number
- * of values are reported, at least one of the values did not have
- * an acknowledge, and a zero value was reported.
+ * @return Zero on success. If return value is negative, it is the
+ * error code returned by the subbusd driver and no values are reported.
+ * If it is positive (SBS_NOACK), it indicates that although the
+ * requested number of values are reported, at least one of the
+ * values did not have an acknowledge, and a zero value was reported.
  */
 int mread_subbus( subbus_mread_req *req, unsigned short *data) {
   // rv should be the number of bytes retuned from subbusd into sb_reply.
   int rv;
   if ( req == NULL ) return 200;
   rv = send_to_subbusd( SBC_MREAD, req, req->req_len, SBRT_MREAD );
-  if ( rv <= 0 ) {
+  if ( rv >= 0 ) {
     int i;
     nl_assert( req->n_reads == sb_reply.data.mread.n_reads );
     for ( i = 0; i < sb_reply.data.mread.n_reads; ++i ) {
