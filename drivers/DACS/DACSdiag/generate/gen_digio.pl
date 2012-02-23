@@ -109,8 +109,8 @@ print $tmc
   " */\n",
   "TM typedef unsigned char DStat {\n",
   "  text \"%02X\"; collect x = sbrba(x.address); }\n";
-gen_tmc( "DS", $CP_DS, $CP_NCMDS );
-gen_tmc( "S", $PB_S, 24 );
+gen_tmc( "DS", $CP_DS, $CP_NCMDS, 0 );
+gen_tmc( "S", $PB_S, 24, 1 );
 
 close $tmc;
 close $conv;
@@ -150,7 +150,7 @@ close $tbl;
 
 sub gen_tmc {
   use integer;
-  my ( $suff, $dig_IO, $ns ) = @_;
+  my ( $suff, $dig_IO, $ns, $inv ) = @_;
   for my $cmd ( 0 .. $ns-1 ) {
     my $pin = $cmd + $dig_IO;
     my $connport = $pin/8;
@@ -167,6 +167,9 @@ sub gen_tmc {
     }
     print $conv
       "off_on_t $var; invalidate $var;\n",
-      "{ $var = ($pvar >> $bit) & 1; Validate $var; }\n";
+      $inv ?
+	"{ $var = ($pvar & (1<<$bit)) ? 0 : 1;" :
+	"{ $var = ($pvar >> $bit) & 1;",
+      " Validate $var; }\n";
   }
 }

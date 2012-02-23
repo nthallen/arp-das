@@ -25,12 +25,21 @@ cp cmdenbl.cmd $srcdir
 cat <<EOF >$srcdir/Experiment.config
 Experiment=$Experiment
 HomeDir=$HomeDir
-RUNFILE=interact
 SUBBUSD=serusb
 RunType=ask
 # Extractions=
 # Analysis=
 EOF
+
+if [ -n "$FlightNode" ]; then
+  cat <<EOF >>$srcdir/Experiment.config
+FlightNode=$FlightNode
+SCRIPT_OVERRIDE=/net/$FlightNode$HomeDir/script
+RUNFILE=runfile
+EOF
+else
+  echo "RUNFILE=interact" >>$srcdir/Experiment.config
+fi
 
 tmcbase="types.tmc /usr/local/share/huarp/flttime.tmc"
 cmdbase="/usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd cmdenbl.cmd"
@@ -111,6 +120,11 @@ if [ -n "$IDX_N_CHANNELS" -a "$IDX_N_CHANNELS" != "0" ]; then
 fi
 
 # Counters
+if [ -n "$CTR_UG_N_BDS" -a "$CTR_UG_N_BDS" != "0" ]; then
+  ./gen_ctr.pl $srcdir $CTR_UG_N_BDS
+  add_files ctr.tmc ctr_conv.tmc ctr_col.tmc ctr.tbl
+fi
+
 # Voltage Monitor
 # Syscon
 {
@@ -173,6 +187,7 @@ chmod +x $srcdir/interact
 cat <<EOF >$srcdir/$Experiment.doit
 display ${Experiment}disp
 client ${Experiment}clt
+batchfile interact
 memo
 EOF
 
@@ -187,7 +202,7 @@ EOF
   echo
   echo "SCRIPT = interact digio.dccc$idx_script"
   [ -n "$QCLI_SCRIPT" ] && echo "SCRIPT =$QCLI_SCRIPT"
-  echo "TGTDIR = $HomeDir"
+  echo "TGTDIR = \$(TGTNODE)$HomeDir"
   echo
   echo "${mnc}srvr : -lsubbus"
   echo "${mnc}col : $col -lsubbus"
@@ -207,3 +222,4 @@ EOF
   fi
     
 } >$srcdir/$mnc.spec
+( cd $srcdir; appgen; )
