@@ -125,7 +125,12 @@ if [ -n "$CTR_UG_N_BDS" -a "$CTR_UG_N_BDS" != "0" ]; then
   add_files ctr.tmc ctr_conv.tmc ctr_col.tmc ctr.tbl
 fi
 
-# Voltage Monitor
+# Power Monitor
+if [ -n "$N_PWRMON" -a "$N_PWRMON" != "0" ]; then
+  ./gen_pm.pl $srcdir $N_PWRMON
+  add_files pwrmon.tmc pwrmon_conv.tmc pwrmon.tbl
+fi
+
 # Syscon
 {
   cat <<EOF

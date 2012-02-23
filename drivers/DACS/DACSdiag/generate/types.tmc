@@ -45,6 +45,7 @@ TM typedef long L20 { text "%8ld"; }
 %}
 TM typedef int off_on_t { text "%3d" off_on_text[]; }
 
+/* Counter types */
 %{
   #define CT24long(x) ((long)((x).low) + (((unsigned long)((x).high))<<16))
 %}
@@ -59,6 +60,20 @@ TM typedef struct {
 } CT24 {
   text "%8ld";
   convert L20 CT24long();
+}
+
+/* Power Monitor types */
+TM typedef unsigned short PwrMon_I {
+  text "%5u";
+  collect x = sbrwa(x.address);
+}
+TM typedef unsigned short PwrMon_V {
+  text "%5u";
+  collect x = sbrwa(x.address);
+}
+TM typedef unsigned char PwrMon_S {
+  text "%3u";
+  collect x = sbrba(x.address);
 }
 
 TM 4 Hz UINT Synch, MFCtr;

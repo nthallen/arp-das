@@ -1,5 +1,9 @@
 #! /usr/bin/perl -w
-# Responsible for generating AI.tmc and AI_col.tmc
+# Responsible for generating
+#  ctr.tmc
+#  ctr_col.tmc
+#  ctr_conv.tmc
+#  ctr.tbl
 
 my $srcdir = $ARGV[0];
 my $n_ctr_bds = $ARGV[1] || die "Must specify CTR_UG_N_BDS\n";
