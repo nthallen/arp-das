@@ -1,0 +1,74 @@
+#! /bin/sh
+# Anderson Group Data Acquisition System
+# Installer Script for installing to existing
+# development systems.
+#
+# The four archives that are part of the QNX
+# base install are:
+#   qnx photon mozilla gcc
+# This script will install the header files from
+# the archives into /var/huarp/pkg without
+# overwriting the QNX installation. It will
+# then offer the installation choices that
+# rtinstall does, based on the .cfg files in
+# repository.
+#
+# If there is an existing installation, it
+# probably makes sense to use osupdate to
+# upgrade, but osupdate is not part of every
+# installation, and it requires perl.
+
+function nl_error {
+  echo "installer: $*" >&2
+  exit 1
+}
+
+rep=`dirname $0`/repository
+echo "repository is $rep"
+[ -d $rep ] || nl_error Cannot locate repository
+# current: list of packages already in place
+# outdated: list of installed packages which are out of date
+# required: list of packages we need to install
+for pkg in qnx photon mozilla gcc; do
+  instpkg=`ls -d /var/huarp/pkg/${pkg}-* 2>/dev/null`
+  reppkg=`ls $rep/${pkg}-*.tar.gz`
+  [ -n "$reppkg" ] ||
+    nl_error Unable to locate archive for package $pkg
+  reppkg=`basename $reppkg`
+  reppkg=${reppkg%.tar.gz}
+  if [ -n "$instpkg" ]; then
+    # check the version against the repository
+    instpkg=`basename $instpkg`
+    if [ "$instpkg" = "$reppkg" ]; then
+      current="$current $pkg"
+    else
+      outdated="$outdated $pkg"
+      echo "$pkg outdated: installed: $instpkg  repo: $reppkg"
+    fi
+  else
+    # We need to install
+    required="$required $pkg"
+  fi
+done
+
+[ -n "$current" ] &&
+  echo "Package(s) $current are current."
+[ -n "$required" ] &&
+  echo "Package(s) $required are required."
+[ -n "$outdated" ] &&
+  nl_error "Package(s) $outdated are outdated."
+
+[ `id -un` = root ] || nl_error Must run installer as root
+[ -d /var/huarp/pkg ] || mkdir -p /var/huarp/pkg ||
+  nl_error Unable to create /var/huarp/pkg
+for pkg in $required; do
+  reparch=`ls $rep/${pkg}-*.tar.gz`
+  [ -n "$reparch" ] ||
+    nl_error Unable to locate archive for package $pkg
+  # reparch=`fullpath $reparch`
+  reppkg=`basename $reparch`
+  reppkg=${reppkg%.tar.gz}
+  echo "Installing headers for $reppkg"
+  # We only install the package indexes:
+  tar -C / -xzf $reparch --anchored var/huarp/pkg
+done
