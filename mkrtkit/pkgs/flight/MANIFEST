@@ -23,6 +23,8 @@ usr/local/bin/parent
 usr/local/bin/playbackclt
 usr/local/bin/playbackcltnc
 usr/local/bin/playbacksrvr
+usr/local/bin/qclidacsd
+usr/local/bin/qclidprog
 usr/local/bin/qclisd
 usr/local/bin/qclisprog
 usr/local/bin/qclistest

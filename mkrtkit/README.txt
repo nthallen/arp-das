@@ -50,7 +50,7 @@ Run chkpkgs
   existing archive. As soon as an update is required, we can
   stop comparing.
   Check MANIFESTS to make sure all listed files exist
-Run install
+Run sudo make install-pkgs
   Install will not overwrite an installation
   Install will create the tar.gz file
 

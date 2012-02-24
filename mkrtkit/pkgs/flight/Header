@@ -1,5 +1,5 @@
 # Package flight
-Version: 2.4.12
+Version: 2.5.0
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
