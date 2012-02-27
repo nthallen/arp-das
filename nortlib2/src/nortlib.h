@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.21  2009/03/02 17:11:30  ntallen
+ * Added const to char* declarations as necessary.
+ *
  * Revision 1.20  2008/08/16 14:44:26  ntallen
  * MSG codes from msg.h
  *
@@ -85,46 +88,13 @@ void *nl_new_memory(size_t size);
 void nl_free_memory(void *p);
 char *nrtl_strdup(const char *s);
 
-/* dccc.c */
-unsigned short DigSelect( unsigned short cmd, unsigned short val );
+/* ascii_escape.c */
+char *ascii_escape(const char *ibuf);
 
 #if defined(__QNXNTO__)
   #define OPTIND_RESET 1
 #else
   #define OPTIND_RESET 0
-#endif
-
-/* QNX4 Section: Items to be migrated out if/when they are ported */
-#if defined(__QNX__) && ! defined(__QNXNTO__)
-  int memo_shutdown( nid_t node ); /* memo.c */
-  pid_t nl_find_name(nid_t node, const char *name); /* find_name.c */
-  char *nl_make_name(const char *base, int global); /* make_name.c */
-  pid_t nl_make_proxy(void *msg, int size); /* make_proxy.c */
-  pid_t find_DG(void); /* find_dg.c */
-  int send_DG(void *msg, int size); /* send_dg.c */
-  pid_t find_CC(int dg_ok); /* find_cc.c */
-  int send_CC(void *msg, int size, int dg_ok); /* send_cc.c */
-  int send_dascmd(int type, int value, int dg_ok); /* senddasc.c */
-  int reply_byte(pid_t sent_pid, unsigned char msg); /* repbyte.c */
-  int Soldrv_set_proxy(unsigned char selector, unsigned char ID, void *msg, int size); /* solprox.c */
-  int Soldrv_reset_proxy(unsigned char selector, unsigned char ID); /* solprox.c */
-  pid_t get_server_proxy(const char *name, int global, const char *cmd); /* cmdprox.c */
-
-  /* getcon.c */
-  char *getcon_server_name( pid_t ppid );
-  int getcon_release( char *conname );
-
-  #if defined __386__
-  #  pragma library (nortlib3r)
-  #elif defined __SMALL__
-  #  pragma library (nortlibs)
-  #elif defined __COMPACT__
-  #  pragma library (nortlibc)
-  #elif defined __MEDIUM__
-  #  pragma library (nortlibm)
-  #elif defined __LARGE__
-  #  pragma library (nortlibl)
-  # endif
 #endif
 
 #ifdef __cplusplus
