@@ -1,5 +1,7 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "dtoe.h"
+
 char rcsid_dtoe_c[] =
 	"$Header$";
   
