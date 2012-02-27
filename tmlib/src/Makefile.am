@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libtm.la
-libtm_la_LDFLAGS = -version-info 1:0:1
+libtm_la_LDFLAGS = -version-info 2:0:2
 libtm_la_SOURCES = cic.c cicf.c cictrans.c \
    tm_dev_name.c tm_open_name.c company.h cis_stubs.c timetext.c \
    tmctime.h colsend.c collect.h tm_info.c msg.c ci_cmdee.c civ.c \

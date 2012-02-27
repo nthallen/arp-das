@@ -92,9 +92,37 @@ static void write_msg( char *buf, int nb, FILE *fp, char *dest ) {
   fflush(fp);
 }
 
-#define MSG_MAX_INTERNAL 250
-int msg( int level, const char *fmt, ... ) {
+/**
+ * msg() supports the nl_error() interface, but provides
+ * a considerable amount of additional functionality to
+ * support logging of messages within an application with
+ * multiple executables. Through command-line options, msg()
+ * can be configured to log to stderr and/or to a log file
+ * and/or to the memo application, and adds a timestamp
+ * to each message. See nl_error() for definition of the
+ * level options.
+ * @return the level argument.
+ */
+int msg( int level, const char *fmt, ...) {
   va_list args;
+  int rv;
+
+  va_start(args, fmt);
+  rv = msgv( level, fmt, args );
+  va_end(args);
+  return rv;
+}
+
+/**
+ * msgv() is a version of the msg() function that
+ * takes a va_list for format arguments, allowing
+ * more complex reporting functions to built on
+ * top of the msg() functionality. Internally
+ * msg() calls msgv().
+ * @return the level argument.
+ */
+#define MSG_MAX_INTERNAL 250
+int msgv( int level, const char *fmt, va_list args ) {
   char *lvlmsg;
   char msgbuf[MSG_MAX_INTERNAL+2];
   time_t now = time(NULL);
@@ -119,9 +147,7 @@ int msg( int level, const char *fmt, ... ) {
   nb = 9 + strlen(lvlmsg);
   nb += snprintf( msgbuf+nb, MSG_MAX_INTERNAL-nb, "%s: ", msg_app_hdr );
   // I am guaranteed that we have not yet overflowed the buffer
-  va_start(args, fmt);
   nb += vsnprintf( msgbuf+nb, MSG_MAX_INTERNAL-nb, fmt, args );
-  va_end(args);
   if ( nb > MSG_MAX_INTERNAL ) nb = MSG_MAX_INTERNAL;
   if ( msgbuf[nb-1] != '\n' ) msgbuf[nb++] = '\n';
   // msgbuf[nb] = '\0';
