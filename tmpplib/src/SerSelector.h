@@ -6,6 +6,19 @@
 #include "collect.h"
 #include "tm.h"
 
+/**
+ * A Selectee wrapper for Col_send() and friends to support sending data to
+ * collection. The data structure should be defined in a header file shared
+ * with collection and declared in tmc as 'TM "Receive" <name> 1'. The 1
+ * indicates that data will be reported synchronously to telemetry.
+ * The intention is that the same data structure will be shared with
+ * another Selectee (possibly one derived from Ser_Sel) to record data
+ * as it is received.
+ *
+ * Whenever the data is written to telemetry, Selector::set_gflag(0)
+ * is called. Another Selectee can request to be notified of this by
+ * setting bit Selector::gflag(0) in their flags word.
+ */
 class TM_Selectee : public Selectee {
   public:
     TM_Selectee( const char *name, void *data, unsigned short size );
@@ -15,12 +28,20 @@ class TM_Selectee : public Selectee {
     send_id TMid;
 };
 
+/**
+ * A Selectee to monitor a command channel. The default channel is
+ * "cmd/Quit" and the default action is to terminate the event loop,
+ * but this can be overridden in a subclass.
+ */
 class Cmd_Selectee : public Selectee {
   public:
     Cmd_Selectee( const char *name = "cmd/Quit" );
     int ProcessData(int flag);
 };
 
+/**
+ * A Selectee for monitoring a serial line.
+ */
 class Ser_Sel : public Selectee {
   public:
     Ser_Sel(const char *path, int open_flags, int bufsz);

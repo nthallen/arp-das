@@ -40,6 +40,12 @@ class Selector {
     void delete_child(int fd_in);
     int update_flags(int fd_in, int flag);
     void set_gflag( unsigned gflag_index );
+    /**
+     * Method to map a global flag number to a bit mask to be
+     * set in a Selectee's flags word.
+     * @param gflag_index global flag bit number
+     * @return bit mask selecting the specified global flag.
+     */
     static inline int gflag(unsigned gflag_index) {
       return( 1 << (gflag_index+4) );
     }

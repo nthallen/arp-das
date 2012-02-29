@@ -18,17 +18,28 @@ TM_Selectee::TM_Selectee( const char *name, void *data,
   }
 }
 
+/**
+ * Issues Col_send_reset()
+ */
 TM_Selectee::~TM_Selectee() {
   Col_send_reset(TMid);
   fd = -1;
 }
 
+/**
+ * Calls Col_send() and sets gflag(0)
+ */
 int TM_Selectee::ProcessData(int flag) {
   Col_send(TMid);
   Stor->set_gflag(0);
   return 0;
 }
 
+/**
+ * Opens the specified channel using tm_dev_name() and
+ * tm_open_name(). By default, tm_open_name will produce a
+ * fatal error if the resulting path is not found.
+ */
 Cmd_Selectee::Cmd_Selectee( const char *name ) : Selectee() {
   fd = tm_open_name( tm_dev_name(name), NULL, O_RDONLY );
   flags = Selector::Sel_Read;
@@ -38,6 +49,11 @@ int Cmd_Selectee::ProcessData(int flag) {
   return 1;
 }
 
+/**
+ * @param path The full path to the serial device
+ * @param open_flags Flags from <fcntl.h> passed to open()
+ * @param bufsz The size buffer to be allocated.
+ */
 Ser_Sel::Ser_Sel(const char *path, int open_flags, int bufsz )
     : Selectee() {
   fd = tm_open_name(path, NULL, open_flags);
@@ -57,6 +73,9 @@ Ser_Sel::Ser_Sel(const char *path, int open_flags, int bufsz )
   n_suppressed = 0;
 }
 
+/**
+ * Frees the allocated buffer and reports statistics.
+ */
 Ser_Sel::~Ser_Sel() {
   free_memory(buf);
   buf = 0;
@@ -66,7 +85,15 @@ Ser_Sel::~Ser_Sel() {
 }
 
 /**
+ * Initializes the serial parameters for the device. The min
+ * and time parameters can be used to optimize reads. See
+ * tcsetattr VMIN and VTIME parameters for more information.
+ * @param baud The desired baud rate
+ * @param number of data bits (5-8)
  * @param par 'n', 'e', 'o', 'm', 's' for none, even, odd, mark or space.
+ * @param stopbits The number of stop bits: 1 or 2
+ * @param min The minimum number of characters to respond to
+ * @param time The time gap value
  */
 void Ser_Sel::setup( int baud, int bits, char par, int stopbits,
 		int min, int time ) {
@@ -114,6 +141,13 @@ void Ser_Sel::setup( int baud, int bits, char par, int stopbits,
     nl_error( 2, "Error on tcsetattr: %s", strerror(errno) );
 }
 
+/**
+ * Reads characters from the device, reporting any errors.
+ * Guarantees that buf is NUL-terminated, and sets nc to the
+ * total number of characters. Each call to fillbuf() increments
+ * the n_fills counter, which is reported at termination
+ * @return non-zero on error.
+ */
 int Ser_Sel::fillbuf() {
   int i;
   ++n_fills;
@@ -129,6 +163,13 @@ int Ser_Sel::fillbuf() {
   return 0;
 }
 
+/**
+ * Each call to consume() increments the n_empties counter which is
+ * reported at termination. If n_fills is much greater than n_empties,
+ * you may need to adjust your min and time settings for more efficient
+ * operation.
+ * @param nchars number of characters to remove from front of buffer
+ */
 void Ser_Sel::consume(int nchars) {
   if ( nchars > 0 ) {
     ++n_empties;
@@ -171,6 +212,9 @@ void Ser_Sel::report_err( const char *fmt, ... ) {
   }
 }
 
+/**
+ * Indicate that data has successfully been received.
+ */
 void Ser_Sel::report_ok() {
   if ( n_errors > 0 ) {
     if ( --n_errors <= 0 && n_suppressed ) {
@@ -180,6 +224,13 @@ void Ser_Sel::report_ok() {
   }
 }
 
+/**
+ * Parsing utility function that searches forward in the buffer for the
+ * specified start character. Updates cp to point just past the start
+ * char. If the character is not found, the buffer is emptied.
+ * @param c The search character
+ * @return zero if the character is found.
+ */
 int Ser_Sel::not_found( char c ) {
   while ( cp < nc ) {
     if ( buf[cp++] == c )
@@ -192,6 +243,12 @@ int Ser_Sel::not_found( char c ) {
   return 1;
 }
 
+/**
+ * Parsing utility function to read in a decimal integer starting
+ * at the current position.
+ * @param[out] val The integer value
+ * @return zero if an integer was converted, non-zero if the current char is not a digit.
+ */
 int Ser_Sel::not_int( int &val ) {
   if ( isdigit(buf[cp]) ) {
     val = buf[cp++] - '0';
@@ -206,6 +263,15 @@ int Ser_Sel::not_int( int &val ) {
   }
 }
 
+/**
+ * Parsing utility function to check that the string matches the
+ * input at the current position. On success, advances cp to just
+ * after the matched string. On failure, cp points to the first
+ * character that does not match. If only a partial record was
+ * received, that could be the NUL at the end of the buffer.
+ * @param str The comparison string.
+ * @return zero if the string matches the input buffer.
+ */
 int Ser_Sel::not_str( const char *str ) {
   int start_cp = cp;
   const char *s = str;
@@ -226,6 +292,13 @@ int Ser_Sel::not_str( const char *str ) {
   return 0;
 }
 
+/**
+ * Parsing utility function to convert a string in the input
+ * buffer to a float value. Updates cp to point just after the
+ * converted string on success.
+ * @param val[out] The converted value
+ * @return zero if the conversion succeeded.
+ */
 int Ser_Sel::not_float( float &val ) {
   char *endptr;
   int ncf;
