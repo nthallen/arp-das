@@ -2,15 +2,6 @@ Makefile.in
 Makefile
 .deps
 .libs
-DC.lo
-DG.lo
-DG_Resmgr.lo
-DG_cmd.lo
-DG_data.lo
-DG_tmr.lo
-DGcol.lo
-DQ.lo
-tminitfunc.lo
-cis.lo
+*.lo
 libtmpp.la
 FullBuild.*

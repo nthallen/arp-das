@@ -1,12 +1,14 @@
 lib_LTLIBRARIES = libtmpp.la
-libtmpp_la_LDFLAGS = -version-info 1:0:0
+libtmpp_la_LDFLAGS = -version-info 2:0:1
 libtmpp_la_SOURCES = DC.cc DC.h DG.cc DG.h DG_Resmgr.cc \
    DG_Resmgr.h DG_cmd.cc DG_cmd.h DG_data.cc DG_data.h DG_tmr.cc \
    DG_tmr.h DGcol.cc DGcol.h DQ.cc DQ.h tminitfunc.cc \
-   cis.cc cis.h
+   cis.cc cis.h \
+   Selector.h Selector.cc Selectee.cc Timeout.h Timeout.cc \
+   SerSelector.h SerSelector.cc
 
 include_HEADERS = DC.h DG.h DG_Resmgr.h DG_cmd.h DG_data.h \
-  DG_tmr.h DQ.h DGcol.h
+  DG_tmr.h DQ.h DGcol.h Selector.h SerSelector.h Timeout.h
 
 ouidir = $(datadir)/oui
 oui_HEADERS = dc.oui
