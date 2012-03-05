@@ -89,7 +89,7 @@ Ser_Sel::~Ser_Sel() {
  * and time parameters can be used to optimize reads. See
  * tcsetattr VMIN and VTIME parameters for more information.
  * @param baud The desired baud rate
- * @param number of data bits (5-8)
+ * @param bits number of data bits (5-8)
  * @param par 'n', 'e', 'o', 'm', 's' for none, even, odd, mark or space.
  * @param stopbits The number of stop bits: 1 or 2
  * @param min The minimum number of characters to respond to

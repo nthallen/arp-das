@@ -1,5 +1,9 @@
-/* Copyright 2001 by the President and Fellows of Harvard College
+/* Copyright 2012 by the President and Fellows of Harvard College */
+
+/*! \file tm.h
+ * \brief Defines basic telemetry formats
  */
+
 #ifndef TM_H
 #define TM_H
 
@@ -40,7 +44,12 @@ typedef struct {
 #define TM_HDR_SIZE_T3 8
  
 
-/* Time stamp information */
+/**
+ * The time stamp establishes the relationship between
+ * minor frame counter and real time. The precision is
+ * intended to be at least the minor frame rate.
+ * Accuracy depends on many other factors.
+ */
 typedef struct {
   mfc_t mfc_num;
   time_t secs;
@@ -51,7 +60,16 @@ typedef struct {
   unsigned char md5[16];     /* MD5 digest of core TM frame definitions */
 } tmid_t;
 
-/* nrowsper/nsecsper = rows/sec */
+/**
+ * tm_dac_t defines the core parameters of a telemetry frame
+ * including the MD5 digest of the .pcm frame summary, which
+ * includes signal names and their placement in the frame.
+ * This information in stored in tm.dac, which is stored
+ * along with the data. If the tm.dac data does not match,
+ * then the format is probably incompatible.
+ *
+ * note: nrowsper/nsecsper = rows/sec
+ */
 typedef struct {
   tmid_t    tmid;
   tm_hdrw_t nbminf;
@@ -66,6 +84,11 @@ typedef struct {
 } __attribute__((packed)) tm_dac_t;
 #define TMF_INVERTED 1
 
+/**
+ * tm_info_t extends the tm_dac_t information with some
+ * calculated values for easy reference and the current
+ * timestamp.
+ */
 typedef struct {
   tm_dac_t tm;      /* data info */
   unsigned short nrowminf;    /* number rows per minor frame */
@@ -73,7 +96,8 @@ typedef struct {
   tstamp_t t_stmp;          /* current time stamp */
 } tm_info_t;
 
-/* tm_data_t1_t applies when tmtype is TMTYPE_DATA_T1
+/**
+   tm_data_t1_t applies when tmtype is TMTYPE_DATA_T1
    This structure type can be used when entire minor frames are
    being transmitted. This is true iff nrows is a multiple
    of nrowminf and the first row transmitted is the first row
@@ -91,7 +115,8 @@ typedef struct {
   unsigned char data[2];
 } __attribute__((packed)) tm_data_t1_t;
 
-/* tm_data_t2_t applies when tmtype is TMTYPE_DATA_T2
+/**
+   tm_data_t2_t applies when tmtype is TMTYPE_DATA_T2
    This structure type can be used to transmit rows even
    when the whole minor frame is not present since the
    mfctr and rownum of the first row are included in
@@ -110,7 +135,8 @@ typedef struct {
   unsigned char data[2];
 } __attribute__((packed)) tm_data_t2_t;
 
-/* tm_data_t3_t applies when tmtype is TMTYPE_DATA_T3
+/**
+   tm_data_t3_t applies when tmtype is TMTYPE_DATA_T3
    This structure type can be used only in the case where
    nrowminf=1, mfc_lsb=0 and mfc_msb=1. data is compressed
    by stripping off the leading mfctr and trailing synch
@@ -127,7 +153,8 @@ typedef struct {
   unsigned char data[2];
 } __attribute__((packed)) tm_data_t3_t;
 
-/* tm_data_t4_t applies when tmtype is TMTYPE_DATA_T4
+/**
+   tm_data_t4_t applies when tmtype is TMTYPE_DATA_T4
    This structure type can be used under the same conditions
    as tm_data_t3_t. The difference is the inclusion of a
    cksum dword which can be used to verify the data.
@@ -148,6 +175,10 @@ typedef struct {
   unsigned char data[2];
 } __attribute__((packed)) tm_data_t4_t;
 
+/**
+ * tm_msg_t is the logical format of TM messages to and
+ * from TMbfr.
+ */
 typedef struct tm_msg {
   tm_hdr_t hdr;
   union {
@@ -160,7 +191,8 @@ typedef struct tm_msg {
   } body;
 } __attribute__((packed)) tm_msg_t;
 
-/* tm_hdrs_t is a combination of all the header types,
+/**
+   tm_hdrs_t is a combination of all the header types,
    defining the minimum size struct we need to read
    in to understand the rest of the message. The message
    layout is best understood in the tm_msg_t structure,

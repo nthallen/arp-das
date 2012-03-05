@@ -11,6 +11,10 @@
 <vnodes>
 <v t="ntallen.20091104124904.1987"><vh>@chapters</vh></v>
 <v t="ntallen.20070319130904" a="E"><vh>QNX6 Data Acquisition Architecture</vh>
+<v t="ntallen.20120226201115.2245" a="E"><vh>Change Log</vh>
+<v t="ntallen.20120226201115.2246"><vh>2/25/12 Added ascii_escape() to nortlib</vh></v>
+<v t="ntallen.20120226201115.2247"><vh>2/25/12 Added msgv() to tmlib</vh></v>
+</v>
 <v t="ntallen.20110216082835.2101"><vh>Todo</vh>
 <v t="ntallen.20110216082835.2102"><vh>Switch DCCC to res mgr</vh>
 <v t="ntallen.20110216082835.2103"><vh>done: Cmdgen: define new syntax</vh>
@@ -27,7 +31,7 @@
 </v>
 <v t="ntallen.20070815151915"><vh>Status</vh>
 <v t="ntallen.20080729145409"><vh>Overview</vh></v>
-<v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
+<v t="ntallen.20071127160602"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
 <v t="ntallen.20090225110248"><vh>Install 6.4.0</vh></v>
@@ -36,7 +40,7 @@
 <v t="ntallen.20090911120219"><vh>phrtg compile hacks</vh></v>
 <v t="ntallen.20090930220540"><vh>Eli 4.6.1 CVS</vh></v>
 </v>
-<v t="ntallen.20100723121747.2023" a="E"><vh>Install 6.5.0</vh>
+<v t="ntallen.20100723121747.2023"><vh>Install 6.5.0</vh>
 <v t="ntallen.20101124082052.2043"><vh>C++ Compile issue</vh></v>
 <v t="ntallen.20110817142313.2207"><vh>Hercules</vh></v>
 <v t="ntallen.20110901091119.2215"><vh>Reinstall 6.5.0</vh></v>
@@ -584,7 +588,7 @@
 </v>
 </v>
 </v>
-<v t="ntallen.20070404221945.4"><vh>Drivers</vh>
+<v t="ntallen.20070404221945.4" a="E"><vh>Drivers</vh>
 <v t="ntallen.20110117144243.2077"><vh>General</vh></v>
 <v t="ntallen.20110131090023.2079"><vh>Subbus</vh>
 <v t="ntallen.20110131090023.2080"><vh>Subbusd</vh>
@@ -592,6 +596,16 @@
 <v t="ntallen.20110131090023.2083"><vh>subbusd_sc104</vh></v>
 </v>
 <v t="ntallen.20110131090023.2081"><vh>libsubbus</vh></v>
+<v t="ntallen.20111207092629.2231"><vh>Adding Multi-read functionality</vh>
+<v t="ntallen.20111207092629.2232"><vh>application &lt;-&gt; libsubbus</vh>
+<v t="ntallen.20111207092629.2235"><vh>Serial Request Format</vh></v>
+</v>
+<v t="ntallen.20111207092629.2233"><vh>libsubbus &lt;-&gt; subbusd</vh></v>
+<v t="ntallen.20111207092629.2234"><vh>subbusd &lt;-&gt; DACS</vh>
+<v t="ntallen.20111207092629.2235"></v>
+<v t="ntallen.20111207092629.2236"><vh>Serial Response Format</vh></v>
+</v>
+</v>
 <v t="ntallen.20070404221945.5"><vh>Subbus Old Implementation</vh></v>
 </v>
 <v t="ntallen.20070404221945.6"><vh>SCDC/DCCC</vh></v>
@@ -612,6 +626,7 @@
 <v t="ntallen.20091112115242.1999"><vh>gpib232_write_read( addr, cmd, rep, nb )</vh></v>
 </v>
 </v>
+<v t="ntallen.20120225211959.2243"><vh>SerSelector</vh></v>
 </v>
 <v t="ntallen.20070323134835"><vh>Resmgr Notes</vh>
 <v t="ntallen.20070323134835.1"><vh>resmgr_attach()</vh>
@@ -633,8 +648,8 @@
 <v t="ntallen.20070817133522.1"><vh>QNX4</vh>
 <v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
-<v t="ntallen.20070817133522.3"><vh>QNX6</vh>
-<v t="ntallen.20071127160602" a="E"></v>
+<v t="ntallen.20070817133522.3" a="E"><vh>QNX6</vh>
+<v t="ntallen.20071127160602"></v>
 <v t="ntallen.20110102095209.2061"><vh>cmdgen</vh></v>
 <v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
 <v t="ntallen.20080716155154.1"><vh>DG.h</vh>
@@ -651,22 +666,27 @@
 <v t="ntallen.20070817133522.5"></v>
 </v>
 </v>
-<v t="ntallen.20110211111845.2089" a="E"><vh>QNX6 Sys Admin</vh>
-<v t="ntallen.20071127160602" a="E"></v>
-<v t="ntallen.20110211111845.2090" a="E"><vh>mkrtkit</vh>
-<v t="ntallen.20110211111845.2091" a="E"><vh>Version Numbering</vh>
+<v t="ntallen.20110211111845.2089"><vh>QNX6 Sys Admin</vh>
+<v t="ntallen.20071127160602"></v>
+<v t="ntallen.20110211111845.2090"><vh>mkrtkit</vh>
+<v t="ntallen.20110211111845.2091"><vh>Version Numbering</vh>
 <v t="ntallen.20110902103207.2217"><vh>Installation Packages</vh></v>
 <v t="ntallen.20110902103207.2218"><vh>chkpkgs</vh></v>
 </v>
 <v t="ntallen.20110816134921.2205"><vh>Installing onto QNX4 partition</vh></v>
-<v t="ntallen.20110818152635.2209" a="E"><vh>osupdate</vh>
+<v t="ntallen.20110818152635.2209"><vh>osupdate</vh>
 <v t="ntallen.20110902103207.2219"><vh>osupdate off the network</vh></v>
 </v>
+<v t="ntallen.20110902103207.2220"><vh>MD5sums</vh></v>
 <v t="ntallen.20110831091607.2211"><vh>Formatting a USB Flash Drive as Installer</vh>
 <v t="ntallen.20110831091607.2212"><vh>Replicating USB Flash Installer</vh></v>
 </v>
 </v>
 </v>
+</v>
+<v t="ntallen.20110930133820.2225"><vh>Linux Port?</vh>
+<v t="ntallen.20110930133820.2227"><vh>Motivation</vh></v>
+<v t="ntallen.20110930133820.2226"><vh>Issues</vh></v>
 </v>
 </vnodes>
 <tnodes>
@@ -921,7 +941,7 @@ Create a MsgReceive() loop to listen for commands or interrupts
   When a TM pulse arrives, write current TM data
 
 </t>
-<t tx="ntallen.20070404221945.8"></t>
+<t tx="ntallen.20070404221945.8">Probably unnecessary</t>
 <t tx="ntallen.20070404221945.9">Implemented (in part) within subbusd
 </t>
 <t tx="ntallen.20070409132623">Flash app to display different modes of operation</t>
@@ -4577,6 +4597,17 @@ will require different drivers. At present, we require support for DACS and
 SYSCON/104, so there will be two drivers:
     subbusd_serusb
     subbusd_sc104
+
+The current implementations are all under QNX6/subbus_2010:
+    lib
+    subbusd
+      serusb
+      syscon104
+
+These old directories are now obsolete:
+    QNX6/subbus
+    QNX6/ssubbus_usb
+    QNX6/subbusd
 </t>
 <t tx="ntallen.20110131090023.2080"></t>
 <t tx="ntallen.20110131090023.2081"></t>
@@ -5287,7 +5318,8 @@ version of the library, e.g. from scratch. In such an
 event, the old library should simply be removed from the
 package, and we should move forward. If the old version is
 ever so important that it must be supported indefinitely,
-a branch of the CVS tree should be created as necessary.</t>
+a branch of the CVS tree should be created as necessary.
+</t>
 <t tx="ntallen.20110831091607.2211">The drive should show up as /dev/umass0 (most likely with a /dev/umass0t6 partition)
 umount /dev/umass0t6
 
@@ -5513,5 +5545,102 @@ install_pkg can leave the archives, but should eliminate the
 <t tx="ntallen.20110902103207.2219">Currently osupdate uses the Header on the source node to check
 dependencies. I should use the Header on the target node, then
 provide a command-line argument to specify the cache</t>
+<t tx="ntallen.20110902103207.2220">When install_pkg or pkg2pkg creates an archive, I should also create an MD5 file.
+Both should be included in the ISO or install image.
+osupdate should run an check against the MD5 sum (although this could be
+suppressed if running osupdate on multiple nodes.)
+Ideally, rtinstall might run md5sum as well
+
+No md5sum on QNX6, none in pkgsrc... It can't be that difficult.
+
+Could certainly do dircksum, or I could create an md5sum using perl</t>
+<t tx="ntallen.20110930133820.2225">@nocolor
+</t>
+<t tx="ntallen.20110930133820.2226">The biggest issue for porting from QNX6 to Linux has to do with IPC. In most cases, I have implemented IPC on QNX6 using the device driver framework to map functionality into the /dev hierarchy. This has the advantage of redefining many operations as unidirectional transfers rather than send/receive combinations, which should map more easily onto Linux IPC mechanisms.</t>
+<t tx="ntallen.20110930133820.2227">There are cases where being able to process data in a non-QNX environment would be useful. In some situations that are not I/O bound, it might be handy to be able to run the entire data acquisition architecture on Linux.</t>
+<t tx="ntallen.20111207092629.2231">The motivation for multi-read functionality is that the serusb implementation is rate-limited by the latency of the USB protocol to send a request and receive the reply. If we have a large number of channels to read, I expect we will be able to achieve greater throughput by combining requests. "M0A00:2:0A1E" will read 16 channels at addresses 0A00, 0A02, 0A04 ... 0A1E.
+
+I am choosing to encode the request in ASCII to be easily compatible with the DACS protocol, which is ASCII based, since it is the DACS which is motivating this functionality. The function could easily be implemented for syscon104 as well, which could minimize calls through the stack at the expense of some ASCII decoding.
+
+In defining this functionality, there are 3 interfaces that must be traversed:
+    application &lt;-&gt; libsubbus
+    libsubbus &lt;-&gt; subbusd
+    subbusd &lt;-&gt; DACS</t>
+<t tx="ntallen.20111207092629.2232"></t>
+<t tx="ntallen.20111207092629.2233">The interface between libsubbus and subbusd is a send/receive round trip message as in QNX4.
+For efficiency, the request will come in in the ASCII format required for forwarding to the DACS, but subbusd will be responsible for parsing the ASCII response.
+
+Many of the libsubbus routines return non-zero on success, but since we would like to reflect several possible error conditions, it makes sense to return zero on success and the non-zero error code on error. The error codes returned from DACS are all small positive values. I might also like to return -1 to indicate not all addresses were acknowledged. Hence a zero return means the requested number of values were read, acknowledged and reported. A return value of -1 means the requested number of values are being reported, any non-zero values were acknowledged, but at least one of the zero values was not acknowledged.
+
+Besides that, I don't see a need for individual acknowledgement back to the application.
+</t>
+<t tx="ntallen.20111207092629.2234">The request string is passed directly to the DACS
+The request string (including the trailing newline) cannot exceed 256 bytes
+The response string (ncluding the trailing newline) cannot exceed SB_SERUSB_MAX_REQUEST, which is 256 bytes
+This limits the number of values read to a safe limit of 51. Since leading zeros are truncated, it is possible more values would fit, but not wise to count on it. It would be easy to extend the size of the read buffer in subbusd_serusb if we find we need to read more than 51 values in one shot.
+
+It is important to prevent the DACS from getting into an endless loop. Hence increments must be non-zero and less than 0x8000. Also loops will terminate if the address becomes less than the start address or if the number of values read exceeds 50. I am adding a count (not to exceed 50) as part of the protocol, so output can stop when the count is reached.
+</t>
+<t tx="ntallen.20111207092629.2235">The request protocol defined here is the ASCII string transmitted to the DACS, but in order to maintain efficiency, it is also the string passed to the library. The library 
+
+&lt;req&gt;
+  : M &lt;count&gt; '#' &lt;addr_list&gt; '\n'
+&lt;addr_list&gt;
+  : &lt;addr_list_elt&gt;
+  : &lt;addr_list&gt; ',' &lt;addr_list_elt&gt;
+&lt;addr_list_elt&gt;
+  : &lt;addr&gt;
+  : &lt;addr&gt; ':' &lt;incr&gt; ':' &lt;addr&gt;
+  : &lt;count&gt; '@' &lt;addr&gt;
+
+&lt;count&gt;, &lt;addr&gt;, &lt;incr&gt; are all 1-4 hex digits
+
+The &lt;count&gt; '@' &lt;addr&gt; syntax is proposed, but there is as yet no application.
+It could be used to verify the update rate of the A/D circuitry, for example, or it might be a way to empty a FIFO of some sort.
+</t>
+<t tx="ntallen.20111207092629.2236">
+The response string defined here is the ASCII response from the DACS. The driver will parse  this string and return the parsed results to the library and the application.
+
+&lt;resp&gt;
+  : &lt;words&gt; &lt;error&gt; '\n'
+  : &lt;word&gt; &lt;words&gt; '\n'
+&lt;words&gt;
+  :
+  : &lt;words&gt; &lt;word&gt;
+&lt;word&gt;
+  : 'M' &lt;hex-word&gt;  # read acknowledged
+  : 'm' '0'         # read not acknowledged, value zero reported
+&lt;error&gt;
+  : 'E' &lt;dec-error-code&gt;
+
+Unless an error is encountered, the number of response words should match the request.
+If an error is encountered, it will be returned to the library with no data, even if a partial result has been obtained.</t>
+<t tx="ntallen.20120225211959.2243">C++ library including Selector/Selectee functionality and specialized for a basic serial device reporting to telemetry.
+
+Basic assumptions:
+    Data will by synchronized with TM
+    Data will be written to TM on synch, then device will be polled (if necessary)
+    When device data is received, the TMdata structure will be updated, but
+    it does not need to be pushed back to TM, since that will happen synchronously.
+    For starters, the only command interface will be for quit, but this could be
+    extended for commandable devices.
+
+TM_Selectee:
+    Thin wrapper around Col_send(). Since Col_send() does not support remote connections,
+    assumption is that the driver will run on the TM node and access the serial device
+    remotely if necessary.
+    TM_Selectee::ProcessData() will call Col_send(), then set_gflag(0);
+    The SerSelectee can set its gflag(0) to get a kick on synch.</t>
+<t tx="ntallen.20120226201115.2245"></t>
+<t tx="ntallen.20120226201115.2246">This being an interface superset, it warrants a new lib number
+    libnort.so.0 =&gt; libnort.so.1
+Applications built against libnort.so.0 should work fine with libnort.so.1
+if we replace libnort.so.0 with a soft link to libnort.so.1.
+Applications built against libnort.so.1 will not work with libnort.so.0.
+
+For the time being, I will distribute both versions, which will save me
+having to rebuild the whole shebang, but if I ever lose libnort.so.0,
+that will be the correct course of action.</t>
+<t tx="ntallen.20120226201115.2247">As with nortlib, this results in libtm.so.2, which is backwards compatible with libtm.so.1.</t>
 </tnodes>
 </leo_file>
