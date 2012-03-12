@@ -5,10 +5,12 @@ libtmpp_la_SOURCES = DC.cc DC.h DG.cc DG.h DG_Resmgr.cc \
    DG_tmr.h DGcol.cc DGcol.h DQ.cc DQ.h tminitfunc.cc \
    cis.cc cis.h \
    Selector.h Selector.cc Selectee.cc Timeout.h Timeout.cc \
-   SerSelector.h SerSelector.cc
+   SerSelector.h SerSelector.cc \
+   cpu_usage.cc cpu_usage.h
 
 include_HEADERS = DC.h DG.h DG_Resmgr.h DG_cmd.h DG_data.h \
-  DG_tmr.h DQ.h DGcol.h Selector.h SerSelector.h Timeout.h
+  DG_tmr.h DQ.h DGcol.h Selector.h SerSelector.h Timeout.h \
+  cpu_usage.h
 
 ouidir = $(datadir)/oui
 oui_HEADERS = dc.oui
