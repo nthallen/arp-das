@@ -1,0 +1,6 @@
+%{
+  #include "cpu_usage.h"
+  cpu_usage CPU;
+%}
+TM INITFUNC CPU.init();
+Collect CPU_Pct = CPU.report(1);

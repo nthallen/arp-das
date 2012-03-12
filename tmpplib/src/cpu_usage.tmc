@@ -1,0 +1,2 @@
+TM typedef unsigned char CPU_Pct_t { text "%3u"; }
+TM 1 Hz CPU_Pct_t CPU_Pct;

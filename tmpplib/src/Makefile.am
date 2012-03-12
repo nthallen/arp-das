@@ -14,6 +14,8 @@ include_HEADERS = DC.h DG.h DG_Resmgr.h DG_cmd.h DG_data.h \
 
 ouidir = $(datadir)/oui
 oui_HEADERS = dc.oui
+huarpdir = $(datadir)/huarp
+huarp_HEADERS = cpu_usage.tmc cpu_usage_col.tmc
 
 # Need to set CPPFLAGS in configure, so this isn't necessary:
 # AM_CPPFLAGS = -I /usr/local/include
