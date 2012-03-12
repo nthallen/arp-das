@@ -1,0 +1,4 @@
+%{
+  #include "tmdf.h"
+  TMDF_t TMDF;
+%}
