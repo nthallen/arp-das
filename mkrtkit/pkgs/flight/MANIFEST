@@ -38,6 +38,7 @@ usr/local/bin/sspdrv
 usr/local/bin/subbusd_sc104
 usr/local/bin/subbusd_serusb
 usr/local/bin/syscon
+usr/local/bin/tmdf
 usr/local/bin/unsu
 usr/local/lib/libdisp.a
 usr/local/lib/libdisp.la
@@ -55,6 +56,7 @@ usr/local/lib/libnort.a
 usr/local/lib/libnort.la
 usr/local/lib/libnort.so
 usr/local/lib/libnort.so.0
+usr/local/lib/libnort.so.1
 usr/local/lib/libsnfbatch.a
 usr/local/lib/libsnfbatch.la
 usr/local/lib/libsnfbatch.so
@@ -81,6 +83,7 @@ usr/local/lib/libtm.la
 usr/local/lib/libtm.so
 usr/local/lib/libtm.so.0
 usr/local/lib/libtm.so.1
+usr/local/lib/libtm.so.2
 usr/local/lib/libtmnc.a
 usr/local/lib/libtmnc.la
 usr/local/lib/libtmnc.so
@@ -94,6 +97,7 @@ usr/local/lib/libtmpp.la
 usr/local/lib/libtmpp.so
 usr/local/lib/libtmpp.so.0
 usr/local/lib/libtmpp.so.1
+usr/local/lib/libtmpp.so.2
 usr/local/sbin/getcon
 usr/local/sbin/promote
 usr/local/sbin/flight.sh
