@@ -13,21 +13,22 @@ TMDF_t TMDF;
 
 class TMDF_Selectee : public TM_Selectee {
   public:
-    TMDF_Selectee( int seconds, const char *name, void *data,
+    TMDF_Selectee( unsigned seconds, const char *name, void *data,
 	  unsigned short size );
     ~TMDF_Selectee();
-    int Process_Data(int flag);
+    int ProcessData(int flag);
   private:
     int fd;
-    int secs;
+    unsigned secs;
     time_t next;
 };
 
-TMDF_Selectee::TMDF_Selectee( int seconds, const char *name,
+TMDF_Selectee::TMDF_Selectee( unsigned seconds, const char *name,
 	void *data, unsigned short size )
     : TM_Selectee(name, data, size ) {
   fd = open(df_path, O_RDONLY);
   next = 0;
+  secs = seconds;
   if (fd < 0) {
     nl_error( 2, "Error opening %s: %s", df_path,
       strerror(errno) );
@@ -38,7 +39,7 @@ TMDF_Selectee::~TMDF_Selectee() {
   if (fd >= 0) close(fd);
 }
 
-int TMDF_Selectee::Process_Data(int flag) {
+int TMDF_Selectee::ProcessData(int flag) {
   if (fd >= 0) {
     time_t now = time(NULL);
     if ( next == 0 || now >= next ) {
@@ -52,18 +53,24 @@ int TMDF_Selectee::Process_Data(int flag) {
 	blks = blks * 65535. / buf.f_blocks;
 	TMDF.usage = (blks > 65535) ? 65535 :
 	  ((unsigned short)blks);
+	nl_error(-2, "f_blocks = %d  f_bavail = %d",
+	  buf.f_blocks, buf.f_bavail );
       }
+    } else {
+      nl_error(-3, "next: %lu  now: %lu", next, now );
     }
   }
-  return 0;
+  return TM_Selectee::ProcessData(flag);
 }
 
 int main(int argc, char **argv) {
   oui_init_options(argc, argv);
+  nl_error(0, "Startup");
   { Selector S;
     Cmd_Selectee QC;
     TMDF_Selectee TM( 60, "TMDF", &TMDF, sizeof(TMDF));
     S.add_child(&QC);
+    S.add_child(&TM);
     S.event_loop();
   }
   nl_error(0, "Terminating");
