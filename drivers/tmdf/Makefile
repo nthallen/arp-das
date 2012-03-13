@@ -19,9 +19,9 @@ tmdfoui.c : tmdf.oui
 	oui -o tmdfoui.c tmdf.oui
 
 clean :
-	@rm -f *.o tmdfoui.c tmdf
+	@rm -f *.o tmdfoui.c tmdf FullBuild*
 
 install : tmdf tmdf.tmc tmdf_col.tmc
-	cp tmdf $(BINDIR)
-	cp tmdf.h $(INCDIR)
-	cp tmdf.tmc tmdf_col.tmc $(HUARPDIR)
+	@cp -vn tmdf $(BINDIR)
+	@cp -vn tmdf.h $(INCDIR)
+	@cp -vn tmdf.tmc tmdf_col.tmc $(HUARPDIR)
