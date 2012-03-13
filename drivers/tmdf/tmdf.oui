@@ -1,10 +1,20 @@
 <package> tmdf
 <include> msg
 <follow> msg
+<include> "tmdf_int.h"
+
+<opts> "p:T:"
+<sort>
+	-p <path> Filesystem to monitor. Defaults to "/"
+	-T <name> Name for TM "Receive"
 
 <unsort>
 Monitors disk space on "/" and reports percent used to
 telemetry.
+
+<switch>
+  case 'p': df_path = optarg; break;
+  case 'T': tmdf_name = optarg; break;
 
 <package> msghdr_default
 <var>

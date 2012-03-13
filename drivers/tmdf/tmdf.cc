@@ -7,8 +7,10 @@
 #include "nortlib.h"
 #include "oui.h"
 #include "tmdf.h"
+#include "tmdf_int.h"
 
 const char *df_path = "/";
+const char *tmdf_name = "TMDF";
 TMDF_t TMDF;
 
 class TMDF_Selectee : public TM_Selectee {
@@ -68,7 +70,7 @@ int main(int argc, char **argv) {
   nl_error(0, "Startup");
   { Selector S;
     Cmd_Selectee QC;
-    TMDF_Selectee TM( 60, "TMDF", &TMDF, sizeof(TMDF));
+    TMDF_Selectee TM( 60, tmdf_name, &TMDF, sizeof(TMDF));
     S.add_child(&QC);
     S.add_child(&TM);
     S.event_loop();
