@@ -11,7 +11,7 @@ char *ascii_escape(const char *ibuf) {
   static char ebuf[ESC_BUF_SIZE+3];
   int ix = 0, ox = 0;
   while (ibuf[ix] != '\0' && ox < ESC_BUF_SIZE ) {
-    char c = ibuf[ix++];
+    int c = (unsigned char)ibuf[ix++];
     if ( isprint(c) ) {
       ebuf[ox++] = c;
     } else {
