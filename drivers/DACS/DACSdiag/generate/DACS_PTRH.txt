@@ -1,0 +1,14 @@
+# DACS_PTRH.txt
+# For bench setup with I2C switch connected to HWV
+# connector board
+Experiment=DACS_PTRH
+HomeDir=/home/DACS_PTRH
+N_PTRH=3
+N_AO_CHIPS=2
+IDX_N_CHANNELS=1
+N_QCLICTRL=1
+N_PWRMON=1
+CTR_UG_N_BDS=3
+CP_NCMDS=32
+CP_DS=64
+PB_S=128
