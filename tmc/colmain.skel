@@ -1,6 +1,9 @@
 /* Skeleton headers section */
 /* colmain.skel Skeleton for collection main program
  * $Log$
+ * Revision 1.11  2011/03/08 14:05:30  ntallen
+ * Check for dg_event_quit in addition to dg_event_stop
+ *
  * Revision 1.10  2008/09/07 16:11:19  ntallen
  * Pre-declare VSET functions
  *
@@ -75,9 +78,6 @@ int check_ts = 1;
 %data_defs%
 
 /* Skeleton main_program section */
-// ### Make collector a #define and create a subclass
-// ### for subbus that overrides the event(dq_event_stop) and
-// ### Collect_row() methods
 int main(int argc, char **argv) {
   oui_init_options(argc, argv);
   nl_error( 0, "Startup");
@@ -116,7 +116,8 @@ void tmc_collector::event(enum dg_event evt) {
 }
 
 /**
- * Should come up with a test to guarantee that the right thing happens in all circumstances. 
+ * Should come up with a test to guarantee that the right thing
+ * happens in all circumstances. 
  */
 void tmc_collector::service_row_timer() {
   time_t rtime;
@@ -146,8 +147,9 @@ void tmc_collector::service_row_timer() {
     //t1 = t0 + d(2^16 - m* - m0)/n
     next_minor_frame = ROLLOVER_MFC;
     commit_tstamp( 0, tm_info.t_stmp.secs +
-      MFSECDEN * ((long)USHRT_MAX - tm_info.t_stmp.mfc_num - next_minor_frame + 1) /
-        MFSECNUM );
+      MFSECDEN *
+      ((long)USHRT_MAX - tm_info.t_stmp.mfc_num - next_minor_frame + 1) /
+      MFSECNUM );
   } else if ( next_minor_frame - tm_info.t_stmp.mfc_num > TS_MFC_LIMIT) {
     // q = floor((m-m0)/n)
     // m1 = m0+q*n
