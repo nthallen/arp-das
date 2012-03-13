@@ -296,8 +296,12 @@ sub install {
   my $archive = "$cache/" . ver_print($pp) . ".tar.gz";
   -f $archive || die "Archive $archive not found\n";
   chdir "$npath/" || die "Cannot chdir $npath/\n";
-  system( "tar -xzf $archive" ) &&
-    die "Error from tar -xzf $archive\n";
+  if ( system( "tar -xzf $archive" ) ) {
+    warn "'tar -xzf $archive' reported errors: retrying\n";
+    system( "tar -xzf $archive" ) &&
+      die "Error from tar -xzf $archive\n";
+    warn "'tar -xzf $archive' second attempt succeeded\n";
+  }
 }
 
 sub pkg_check {
