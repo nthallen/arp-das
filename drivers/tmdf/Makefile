@@ -3,9 +3,12 @@ CPPFLAGS=-I/usr/local/include
 CXXFLAGS=-Wall -g
 CFLAGS=-Wall -g
 LIBS=-ltmpp -ltm -lnort
+BINDIR=/usr/local/bin
+HUARPDIR=/usr/local/share/huarp
+INCDIR=/usr/local/include
 
 OBJ = tmdf.o tmdfoui.o
-.PHONY : clean all
+.PHONY : clean all install
 
 all : tmdf
 
@@ -17,3 +20,8 @@ tmdfoui.c : tmdf.oui
 
 clean :
 	@rm -f *.o tmdfoui.c tmdf
+
+install : tmdf tmdf.tmc tmdf_col.tmc
+	cp tmdf $(BINDIR)
+	cp tmdf.h $(INCDIR)
+	cp tmdf.tmc tmdf_col.tmc $(HUARPDIR)

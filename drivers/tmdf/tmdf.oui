@@ -2,6 +2,10 @@
 <include> msg
 <follow> msg
 
+<unsort>
+Monitors disk space on "/" and reports percent used to
+telemetry.
+
 <package> msghdr_default
 <var>
   char *msg_hdr_default = "TMDF";
