@@ -1,0 +1,4 @@
+#! /bin/sh
+for i in ; do
+  phtable -p $i >/dev/null &
+done
