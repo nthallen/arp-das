@@ -96,7 +96,7 @@ Ser_Sel::~Ser_Sel() {
  * @param time The time gap value
  */
 void Ser_Sel::setup( int baud, int bits, char par, int stopbits,
-		int min, int time ) {
+                int min, int time ) {
   struct termios termios_p;
   int bitsflag;
 
@@ -282,8 +282,8 @@ int Ser_Sel::not_str( const char *str ) {
   while ( *s != '\0' ) {
     if ( *s != buf[cp] ) {
       if ( cp < nc )
-	report_err( "Expected string '%s' at column %d",
-	  str, start_cp );
+        report_err( "Expected string '%s' at column %d",
+          str, start_cp );
       return 1;
     }
     ++s;
