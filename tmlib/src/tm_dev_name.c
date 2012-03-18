@@ -1,4 +1,4 @@
-/* nl_make_name() provides a general-purpose approach to finding other
+/* tm_dev_name.c provides a general-purpose approach to finding other
  */
 #include <stdlib.h>
 #include <string.h>
@@ -10,26 +10,31 @@
 
 /** \brief Build a standard name for QNX6 resource
 
-<code>#include "tm.h"<br>
-char *tm_dev_name(const char *base);</code>
+  <code>#include "tm.h"<br>
+  const char *tm_dev_name(const char *base);</code>
 
-tm_dev_name() returns a string of the form:
-/dev/huarp/exp/base where exp is the current value of the
-environment variable "Experiment" and base is the input
-argument string. This is the standard means of building
-resource names within the ARP Data Acquisition System
-architecture.
+  If the input base string does not start with a '/',
+  tm_dev_name() builds a string of the form:
+  /dev/huarp/exp/base where exp is the current value of the
+  environment variable "Experiment" and base is the input
+  argument string. This is the standard means of building
+  resource names within the ARP Data Acquisition System
+  architecture.
 
-Returns a pointer to a static buffer containing the expanded name.
-You must save the string if it is needed for long.
+  Returns a pointer to a static buffer containing the expanded name.
+  You must save the string if it is needed for long.
 
+  @return the input string if it begins with a '/'. Otherwise
+  returns a pointer to a static buffer containing the expanded
+  name.
 */
-char *tm_dev_name(const char *base) {
+const char *tm_dev_name(const char *base) {
   static char name[PATH_MAX];
   char *exp;
   int nb;
   
   assert(base != NULL);
+  if ( base[0] == '/' ) return base;
   exp = getenv("Experiment");
   if (exp == NULL) exp = "none";
   nb = snprintf( name, PATH_MAX, "/dev/%s/%s/%s", COMPANY, exp, base );
@@ -40,31 +45,3 @@ char *tm_dev_name(const char *base) {
   }
   return name;
 }
-/*
-=Name tm_dev_name(): Build a standard name for QNX6 resource
-=Subject TMlib
-=Synopsis
-
-#include "tm.h"
-char *tm_dev_name(const char *base);
-
-=Description
-
-  tm_dev_name() returns a string of the form:
-  /dev/huarp/exp/base where exp is the current value of the
-  environment variable "Experiment" and base is the input
-  argument string. This is the standard means of building
-  resource names within the ARP Data Acquisition System
-  architecture.
-
-=Returns
-
-  A pointer to a static buffer containing the expanded name.
-  You must save the string if it is needed for long.
-
-=SeeAlso
-
-  =TMlib= functions.
-
-=End
-*/

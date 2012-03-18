@@ -231,7 +231,7 @@ extern char *TM_buf;
   extern "C" {
 #endif
 
-extern char *tm_dev_name(const char *base);
+extern const char *tm_dev_name(const char *base);
 extern int tm_open_name(const char *name, const char *node, int flags);
 
 /* Command Interpreter Client (CIC) and Server (CIS) Utilities
