@@ -50,6 +50,7 @@
 #   *.sft
 # The following source types are supported:
 #   *.edf
+#   *.cdf (same as .edf, but csv output)
 #   *.cfg
 #   *.tbl
 #   *.tma
@@ -375,6 +376,8 @@ for i in $basetargets; do
   use_all .edf ${i}edf.oui "\n\t\$(EDF2OUI)" $deps
   replace_each .edf ext.tmc "\$(EDF2EXT)" $deps &&
     lssp=' -lssp -lmem -lm'
+  use_all .cdf ${i}cdf.oui "\n\t\$(EDF2OUI)" $deps
+  replace_each .cdf ext.tmc "\$(EDF2EXT)" $deps
   # replace_each .cfg attr.tmc "\$(DATAATTR)" $deps
   replace_each .cyc cyc.tmc  "\$(CYCLE)" $deps
   case $i in
