@@ -22,12 +22,14 @@ class csv_col {
 
 class csv_file {
   public:
-    csv_file(const char *name, int n_cols);
+    csv_file(const char *name, unsigned int n_cols);
     ~csv_file();
-    void init_col(int col_num, const char *colname, const char *fmt = NULL);
+    void init();
+    void init_col(unsigned int col_num, const char *colname,
+                  const char *fmt = NULL);
     void set_time(double T);
-    void set_col(int col_num, double dval);
-    void set_col(int col_num, const char *sval);
+    void set_col(unsigned int col_num, double dval);
+    void set_col(unsigned int col_num, const char *sval);
   private:
     void flush_headers();
     void flush_row();

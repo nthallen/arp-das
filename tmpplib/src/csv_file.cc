@@ -37,6 +37,7 @@ void csv_col::dsval_resize(int newsize) {
 }
 
 void csv_col::set(double dval) {
+  nl_assert(format);
   int sz = snprintf(dsval, dsval_size, format, dval);
   if (sz >= dsval_size) {
     dsval_resize(sz+5);
@@ -59,17 +60,20 @@ void csv_col::reset() {
 }
 
 
-csv_file::csv_file(const char *name, int n_cols) {
+csv_file::csv_file(const char *name, unsigned int n_cols) {
   filename = name;
   cols.resize(n_cols);
   time_set = false;
+}
+
+void csv_file::init() {
   fp = fopen( filename, "w" );
   if (fp == NULL)
     nl_error(3, "Cannot open output file %s", filename);
 }
 
 csv_file::~csv_file() {
-  int i;
+  unsigned int i;
   if (time_set) flush_row();
   fclose(fp);
   for (i = 0; i < cols.size(); ++i) {
@@ -77,14 +81,16 @@ csv_file::~csv_file() {
   }
 }
 
-void csv_file::init_col(int col_num, const char *colname, const char *fmt) {
+void csv_file::init_col(unsigned int col_num, const char *colname,
+          const char *fmt) {
   if (time_set)
     nl_error(3, "csv_file::init_col() after time_set");
-  if (col_num < 0 || col_num >= cols.size())
+  if (col_num >= cols.size())
     nl_error(3, "col_num %d out of range in csv_file::init_col", col_num);
   if (cols[col_num])
     nl_error(3, "Illegal redefinition of column %d in csv_file::init_col",
       col_num);
+  if (col_num == 0 && fmt == 0) fmt = "%.0lf";
   cols[col_num] = new csv_col(colname, fmt);
 }
 
@@ -102,7 +108,7 @@ void csv_file::set_time(double T) {
 }
 
 void csv_file::flush_headers() {
-  int i;
+  unsigned int i;
   nl_assert(cols[0]);
   fprintf(fp, "%s", cols[0]->header());
   for (i = 1; i < cols.size(); ++i) {
@@ -112,7 +118,7 @@ void csv_file::flush_headers() {
 }
 
 void csv_file::flush_row() {
-  int i;
+  unsigned int i;
   fprintf(fp, "%s", cols[0]->output() );
   for (i = 1; i < cols.size(); ++i) {
     fprintf(fp, ",");
@@ -127,18 +133,18 @@ void csv_file::flush_row() {
 /**
  * This interface is not for column zero (Time)
  */
-void csv_file::set_col(int col_num, double dval) {
+void csv_file::set_col(unsigned int col_num, double dval) {
   if (col_num < 1 || col_num >= cols.size()) {
-    nl_error(3, "col_num %d out of range in csv_file::set_col", col_num);
+    nl_error(3, "col_num %u out of range in csv_file::set_col", col_num);
   } else if (cols[col_num] == NULL) {
-    nl_error(3, "column %d undefined in csv_file::set_col", col_num);
+    nl_error(3, "column %u undefined in csv_file::set_col", col_num);
   } else cols[col_num]->set(dval);
 }
 
-void csv_file::set_col(int col_num, const char *sval) {
+void csv_file::set_col(unsigned int col_num, const char *sval) {
   if (col_num < 1 || col_num >= cols.size()) {
-    nl_error(3, "col_num %d out of range in csv_file::set_col", col_num);
+    nl_error(3, "col_num %u out of range in csv_file::set_col", col_num);
   } else if (cols[col_num] == NULL) {
-    nl_error(3, "column %d undefined in csv_file::set_col", col_num);
+    nl_error(3, "column %u undefined in csv_file::set_col", col_num);
   } else cols[col_num]->set(sval);
 }
