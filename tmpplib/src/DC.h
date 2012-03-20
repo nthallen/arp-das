@@ -42,7 +42,7 @@ class data_client {
     unsigned int toread; /// number of bytes needed before next action
     bool tm_info_ready;
     char *buf;
-    void init(int bufsize_in, int non_block, char *srcfile);
+    void init(int bufsize_in, int non_block, const char *srcfile);
 };
 
 #define DC_STATE_HDR 0

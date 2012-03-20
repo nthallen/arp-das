@@ -48,7 +48,7 @@ void DG_cmd::attach() {
   io_funcs.write = DG_cmd_io_write;
   
   iofunc_attr_init( &DG_cmd::cmd_attr, S_IFNAM | 0222, 0, 0 ); // write-only
-  char *wr_devname = tm_dev_name( "DG/cmd" );
+  const char *wr_devname = tm_dev_name( "DG/cmd" );
   dev_id = resmgr_attach( dpp, &resmgr_attr, wr_devname, _FTYPE_ANY, 0,
                     &DG_cmd::connect_funcs, &DG_cmd::io_funcs, &DG_cmd::cmd_attr );
   if ( dev_id == -1 )

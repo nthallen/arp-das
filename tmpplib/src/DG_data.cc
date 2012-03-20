@@ -86,7 +86,7 @@ DG_data::DG_data(DG_dispatch *dispatch, const char *name_in, void *data,
   IOFUNC_NOTIFY_INIT( data_attr.notify );
   char tbuf[80];
   snprintf(tbuf, 79, "DG/data/%s", name);
-  char *wr_devname = tm_dev_name( tbuf );
+  const char *wr_devname = tm_dev_name( tbuf );
   dev_id = resmgr_attach( dpp, &resmgr_attr, wr_devname, _FTYPE_ANY, 0,
                     &connect_funcs, &io_funcs, &data_attr );
   if ( dev_id == -1 )

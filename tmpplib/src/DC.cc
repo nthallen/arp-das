@@ -17,7 +17,7 @@ void dc_set_srcnode(char *nodename) {
   data_client::srcnode = nodename;
 }
 
-void data_client::init(int bufsize_in, int non_block, char *srcfile) {
+void data_client::init(int bufsize_in, int non_block, const char *srcfile) {
   bufsize = bufsize_in;
   bytes_read = 0;
   next_minor_frame = 0;
