@@ -1,5 +1,10 @@
 # edf2ext.awk Converts .edf files to .ext for TMC input.
 # $Log$
+# Revision 1.6  2010/08/13 18:22:43  ntallen
+# ss_close_all() on insert error.
+# This does not save a full spreadsheet, but it does save others
+# that were open at the time.
+#
 # Revision 1.5  2010/08/13 18:10:47  ntallen
 # Typo
 #
@@ -35,8 +40,17 @@
 # spreadsheet deleteme 6
 #  1 O3Ref %6.0lf Ct24_Double
 #
-BEGIN { rv = 0 }
+BEGIN {
+  rv = 0
+  using_sps = 0
+  using_csv = 0
+}
 /^ *spreadsheet/ {
+  if (using_csv) {
+    system( "echo " FILENAME ":" NR " Cannot produce both csv and spreadsheet >&2" )
+    exit( rv = 1 )
+  }
+  using_sps = 1
   if (written == 1) nsps++
   else {
     print "%{ /* edf2ext.awk reading " FILENAME " */"
@@ -91,6 +105,34 @@ BEGIN { rv = 0 }
   if (NF > 3 && $4 == "separate") sep[nsps] = "y"
   next
 }
+/^ *csv/ {
+  if (using_sps) {
+    system( "echo " FILENAME ":" NR " Cannot produce both csv and spreadsheet >&2" )
+    exit( rv = 1 )
+  }
+  using_csv = 1
+  if (written == 1) nsps++
+  else {
+    print "%{ /* edf2ext.awk reading " FILENAME " */"
+    print "  #include \"csv_file.h\""
+    print "  #include \"msg.h\""
+    print "  #include \"tmctime.h\""
+    printf "\n"
+    print "  #define Ct24_Long(x) (0xFFFFFF & *(TMLONG *)&x)"
+    print "  #define Ct24_Double(x) (double)Ct24_Long(x)"
+    print "  #define To_Double(x) (double)(x)"
+    printf "\n"
+    print "  static double ext_delta = 0.;"
+    printf "\n"
+    written = 1;
+    nsps = 0;
+  }
+  sps[nsps] = $2
+  ncols[nsps] = $3
+  cond[nsps] = ""
+  if (NF > 3 && $4 == "separate") sep[nsps] = "y"
+  next
+}
 /^[ \t]*condition/ {
   cnd = $0
   sub( "^[ \t]*condition[ \t]*", "", cnd )
@@ -99,10 +141,21 @@ BEGIN { rv = 0 }
 }
 /^[ \t]*[0-9]/ {
   datum[nsps,$1] = $2
-  if (NF >= 3) datfmt[nsps,$1] = $3
-  else datfmt[nsps,$1] = "%9.2e"
-  if (NF >= 4) datcnv[nsps,$1] = $4
-  else datcnv[nsps,$1] = "convert"
+  if (using_sps) {
+    if (NF >= 3) datfmt[nsps,$1] = $3
+    else datfmt[nsps,$1] = "%9.2e"
+    if (NF >= 4) datcnv[nsps,$1] = $4
+    else datcnv[nsps,$1] = "convert"
+  } else {
+    if (NF >= 3) {
+      datfmt[nsps,$1] = $3
+      if (NF >= 4) datcnv[nsps,$1] = $4
+      else datcnv[nsps,$1] = "convert"
+    } else {
+      datfmt[nsps,$1] = ""
+      datcnv[nsps,$1] = "text"
+    }
+  }
   next
 }
 /init_only/ { init_only = "yes"; next }
@@ -113,56 +166,115 @@ BEGIN { rv = 0 }
 }
 END {
   if ( rv ) { exit(1); }
-  # print the spreadsheet declarations
-  for (i = 0; i <= nsps; i++)
-    print "  sps_ptr " sps[i] ";"
+  if (using_sps) {
+    # print the spreadsheet declarations
+    for (i = 0; i <= nsps; i++)
+      print "  sps_ptr " sps[i] ";"
 
-  # print the initializations
-  print "  void initialize(void) {"
-  print "    {"
-  print "      char *s;"
-  print "      s = getenv(\"EXT_DELTA\");"
-  print "      if (s != NULL) {"
-  print "        ext_delta=atof(s);"
-  print "        msg(MSG, \"Using Time Delta of %lf\", ext_delta);"
-  print "      }"
-  print "    }"
-  for (i = 0; i <= nsps; i++) {
-    print "    " sps[i] " = edf_ss_open( \"" sps[i] "\", " ncols[i] " );"
-    print "    ss_set_column(" sps[i] ", 0, \"%14.11lt\", \"Time\");"
-    for (j = 1; j < ncols[i]; j++) {
-      if (datfmt[i,j] == "") datfmt[i,j] = "%9.2e"
-      printf "    ss_set_column(" sps[i] ", " j ", "
-      print "\"" datfmt[i,j] "\", \"" datum[i,j] "\");"
-    }
-  }
-  print "  }"
-  
-  # print the terminations
-  print "  void terminate(void) {"
-  for (i = 0; i <= nsps; i++) {
-    print "    ss_close(" sps[i] ");"
-  }
-  print "  }"
-  print "%}"
-
-  # print the extraction statements
-  if (init_only != "yes") {
+    # print the initializations
+    print "  void initialize(void) {"
+    print "    {"
+    print "      char *s;"
+    print "      s = getenv(\"EXT_DELTA\");"
+    print "      if (s != NULL) {"
+    print "        ext_delta=atof(s);"
+    print "        msg(MSG, \"Using Time Delta of %lf\", ext_delta);"
+    print "      }"
+    print "    }"
     for (i = 0; i <= nsps; i++) {
-      k = 0;
+      print "    " sps[i] " = edf_ss_open( \"" sps[i] "\", " ncols[i] " );"
+      print "    ss_set_column(" sps[i] ", 0, \"%14.11lt\", \"Time\");"
       for (j = 1; j < ncols[i]; j++) {
-        if (datum[i,j] != "") {
-          if (k > 0 && sep[i] == "y") print "}"
-          if (k == 0 || sep[i] == "y") {
-            print cond[i] "{"
-            print "  edf_ss_insert_val(" sps[i] ", dtime()+ext_delta, 0);"
-          }
-          printf "  ss_set(" sps[i] ", " j ", "
-          print datcnv[i,j] "(", datum[i,j] "));"
-          k++;
-        }
+        if (datfmt[i,j] == "") datfmt[i,j] = "%9.2e"
+        printf "    ss_set_column(" sps[i] ", " j ", "
+        print "\"" datfmt[i,j] "\", \"" datum[i,j] "\");"
       }
-      print "}"
+    }
+    print "  }"
+    
+    # print the terminations
+    print "  void terminate(void) {"
+    for (i = 0; i <= nsps; i++) {
+      print "    ss_close(" sps[i] ");"
+    }
+    print "  }"
+    print "%}"
+
+    # print the extraction statements
+    if (init_only != "yes") {
+      for (i = 0; i <= nsps; i++) {
+        k = 0;
+        for (j = 1; j < ncols[i]; j++) {
+          if (datum[i,j] != "") {
+            if (k > 0 && sep[i] == "y") print "}"
+            if (k == 0 || sep[i] == "y") {
+              print cond[i] "{"
+              print "  edf_ss_insert_val(" sps[i] ", dtime()+ext_delta, 0);"
+            }
+            printf "  ss_set(" sps[i] ", " j ", "
+            print datcnv[i,j] "(", datum[i,j] "));"
+            k++;
+          }
+        }
+        print "}"
+      }
+    }
+  } else {
+    # print the csv_file declarations
+    for (i = 0; i <= nsps; i++)
+      print "  csv_file " sps[i]"(\"" sps[i] ".csv\", " ncols[i] ");"
+
+    # print the initializations
+    print "  void initialize(void) {"
+    print "    {"
+    print "      char *s;"
+    print "      s = getenv(\"EXT_DELTA\");"
+    print "      if (s != NULL) {"
+    print "        ext_delta=atof(s);"
+    print "        msg(MSG, \"Using Time Delta of %lf\", ext_delta);"
+    print "      }"
+    print "    }"
+    for (i = 0; i <= nsps; i++) {
+      print "    " sps[i] ".init();"
+      if (datum[i,0] == "") datum[i,0] = "Time";
+      for (j = 0; j < ncols[i]; j++) {
+        printf "    " sps[i] ".init_col(" j ", \"" datum[i,j] "\""
+        if ( datfmt[i,j] != "" ) printf ", \"%s\"", datfmt[i,j]
+        print ");"
+      }
+    }
+    print "  }"
+    
+    print "%}"
+    print "TM INITFUNC initialize();"
+
+    # print the extraction statements
+    if (init_only != "yes") {
+      for (i = 0; i <= nsps; i++) {
+        k = 0;
+        for (j = 1; j < ncols[i]; j++) {
+          if (datum[i,j] != "") {
+            if (k > 0 && sep[i] == "y") print "}"
+            if (k == 0 || sep[i] == "y") {
+              print cond[i] "{"
+              if (using_sps) {
+                print "  edf_ss_insert_val(" sps[i] ", dtime()+ext_delta, 0);"
+              } else {
+                print "  " sps[i] ".set_time(" sps[i] ", dtime()+ext_delta, 0);"
+              }
+            }
+            if (using_sps) {
+              printf "  ss_set(" sps[i] ", " j ", "
+              print datcnv[i,j] "(" datum[i,j] "));"
+            } else {
+              printf "  " sps[i] ".set_col(" j ", "
+              print datcnv[i,j] "(" datum[i,j] "));"
+            }
+            k++
+          }
+        }
+        print "}"
+      }
     }
   }
 }
