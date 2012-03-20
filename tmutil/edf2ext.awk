@@ -1,5 +1,8 @@
 # edf2ext.awk Converts .edf files to .ext for TMC input.
 # $Log$
+# Revision 1.7  2012/03/20 18:34:41  ntallen
+# Added csv capability
+#
 # Revision 1.6  2010/08/13 18:22:43  ntallen
 # ss_close_all() on insert error.
 # This does not save a full spreadsheet, but it does save others
@@ -260,7 +263,7 @@ END {
               if (using_sps) {
                 print "  edf_ss_insert_val(" sps[i] ", dtime()+ext_delta, 0);"
               } else {
-                print "  " sps[i] ".set_time(" sps[i] ", dtime()+ext_delta, 0);"
+                print "  " sps[i] ".set_time(dtime()+ext_delta);"
               }
             }
             if (using_sps) {
