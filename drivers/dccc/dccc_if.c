@@ -15,7 +15,7 @@
     int nb = read( cmd_fd, tbuf, DCCC_MAX_CMD_BUF );
     if ( nb == -1 )
       nl_error( 3, "Error reading from command interface: %s",
-	strerror(errno));
+        strerror(errno));
     parse_cmd(tbuf, nb, pcmd);
   }
 
@@ -37,7 +37,7 @@
   #include <sys/dispatch.h>
 
   static int io_write(resmgr_context_t *ctp, io_write_t *msg,
-		      RESMGR_OCB_T *ocb);
+                      RESMGR_OCB_T *ocb);
 
   static resmgr_connect_funcs_t    connect_funcs;
   static resmgr_io_funcs_t         io_funcs;
@@ -71,7 +71,7 @@
 
     /* initialize functions for handling messages */
     iofunc_func_init(_RESMGR_CONNECT_NFUNCS, &connect_funcs, 
-		     _RESMGR_IO_NFUNCS, &io_funcs);
+                     _RESMGR_IO_NFUNCS, &io_funcs);
     /* io_funcs.read = io_read; */
     io_funcs.write = io_write;
     // connect_funcs.open = iofunc_open_hook;
@@ -85,13 +85,13 @@
     /* Build device name */
     /* attach our device name */
     id = resmgr_attach(dpp,            /* dispatch handle        */
-		       &resmgr_attr,   /* resource manager attrs */
-		       tm_dev_name("dccc"),  /* device name            */
-		       _FTYPE_ANY,     /* open type              */
-		       0,              /* flags                  */
-		       &connect_funcs, /* connect routines       */
-		       &io_funcs,      /* I/O routines           */
-		       &attr);         /* handle                 */
+                       &resmgr_attr,   /* resource manager attrs */
+                       tm_dev_name("dccc"),  /* device name            */
+                       _FTYPE_ANY,     /* open type              */
+                       0,              /* flags                  */
+                       &connect_funcs, /* connect routines       */
+                       &io_funcs,      /* I/O routines           */
+                       &attr);         /* handle                 */
     if (id == -1)
       nl_error(3, "Unable to attach name.");
 
@@ -103,11 +103,11 @@
 
     while ( 1 ) {
       if ((ctp = dispatch_block(ctp)) == NULL) {
-	nl_error(4, "block_error" );
+        nl_error(4, "block_error" );
       }
       dispatch_handler(ctp);
       if ( DCCC_Done && ctp->resmgr_context.rcvid == 0 &&
-	    attr.count == 0 ) break;
+            attr.count == 0 ) break;
     }
   }
 

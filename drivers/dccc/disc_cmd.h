@@ -2,9 +2,9 @@
 #define DISC_CMD_H
 
 /* 
-	disc_cmd.h	- defines type of commands that dccc handles.
-	Modified by Eil July 1991 for QNX.
-	Modified by Nort Feb 18 2010 for QNX6 rearch.
+        disc_cmd.h	- defines type of commands that dccc handles.
+        Modified by Eil July 1991 for QNX.
+        Modified by Nort Feb 18 2010 for QNX6 rearch.
 */
 
 #define N_DISC_CMDS   100

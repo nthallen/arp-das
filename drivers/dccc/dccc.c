@@ -1,6 +1,9 @@
 /*
  * Discrete command card controller program.
  * $Log$
+ * Revision 1.9  2012/01/23 16:34:36  ntallen
+ * A little more verbosity
+ *
  * Revision 1.8  2012/01/19 19:25:07  ntallen
  * A little verbosity in error case.
  *
@@ -161,72 +164,72 @@ void parse_cmd(char *tbuf, int nb, cmd_t *pcmd ) {
       case 'M': multi = 1; break;
       case 'N': multi = 1; need_vals = 1; break;
       default:
-	nl_error( 2, "Invalid command type received" );
-	return;
+        nl_error( 2, "Invalid command type received" );
+        return;
     }
     pcmd->cmd_type = tbuf[i++];
     for (;;) {
       unsigned int val;
       if ( readunum(tbuf, &i, &val) ) {
-	nl_error( 2, "n_cmds=%d nb=%d cmd='%s'",
-	  pcmd->n_cmds, nb, tbuf );
-	return;
+        nl_error( 2, "n_cmds=%d nb=%d cmd='%s'",
+          pcmd->n_cmds, nb, tbuf );
+        return;
       }
       pcmd->cmds[pcmd->n_cmds].cmd = val;
       if ( val > n_cmds ) {
-	nl_error( 2, "Invalid command number: %d", val );
-	return;
+        nl_error( 2, "Invalid command number: %d", val );
+        return;
       }
       if ( pcmd->n_cmds == 0 ) {
-	cmd_variety = cmds[val].type;
-	switch (cmd_variety) {
-	  case STEP:
-	  case STRB:
-	    if ( need_vals ) {
-	      nl_error(2, "Command does not match header");
-	      return;
-	    }
-	    break;
-	  case SET:
-	  case SELECT:
-	    if ( ! need_vals ) {
-	      nl_error(2, "Command does not match header");
-	      return;
-	    }
-	    break;
-	}
+        cmd_variety = cmds[val].type;
+        switch (cmd_variety) {
+          case STEP:
+          case STRB:
+            if ( need_vals ) {
+              nl_error(2, "Command does not match header");
+              return;
+            }
+            break;
+          case SET:
+          case SELECT:
+            if ( ! need_vals ) {
+              nl_error(2, "Command does not match header");
+              return;
+            }
+            break;
+        }
       } else {
-	if ( cmds[val].type != cmd_variety ) {
-	  nl_error( 2, "Mismatched command in multi" );
-	  return;
-	}
+        if ( cmds[val].type != cmd_variety ) {
+          nl_error( 2, "Mismatched command in multi" );
+          return;
+        }
       }
       if ( need_vals ) {
-	skip_space( tbuf, &i );
-	if ( tbuf[i++] != '=' ) {
-	  nl_error( 2, "Expected '=' for value" );
-	  return;
-	}
-	readunum( tbuf, &i, &val );
-	pcmd->cmds[pcmd->n_cmds].value = val;
+        skip_space( tbuf, &i );
+        if ( tbuf[i++] != '=' ) {
+          nl_error( 2, "Expected '=' for value" );
+          return;
+        }
+        readunum( tbuf, &i, &val );
+        pcmd->cmds[pcmd->n_cmds].value = val;
       }
       ++pcmd->n_cmds;
       skip_space( tbuf, &i );
       if ( tbuf[i] == '\0' ) break;
       else if ( tbuf[i] == ',' ) {
-	if ( multi ) {
-	  i++;
-	  if ( pcmd->n_cmds >= MAX_CMDS ) {
-	    nl_error( 2, "Too many commands in multi-command" );
-	    return;
-	  }
-	} else {
-	  nl_error(2,"Multiple commands listed for single-command syntax");
-	  return;
-	}
+        if ( multi ) {
+          i++;
+          if ( pcmd->n_cmds >= MAX_CMDS ) {
+            nl_error( 2, "Too many commands in multi-command" );
+            return;
+          }
+        } else {
+          nl_error(2,"Multiple commands listed for single-command syntax");
+          return;
+        }
       } else {
-	nl_error( 2, "Syntax error" );
-	return;
+        nl_error( 2, "Syntax error" );
+        return;
       }
     }
   }
@@ -313,7 +316,7 @@ static void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
       break;
     case SET:
       nl_error(MSG_DEBUG,
-	"SET: PORT %d, mask %04X, value %04X, command index %d",
+        "SET: PORT %d, mask %04X, value %04X, command index %d",
         ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask,
         value, cmd_idx);
       if (cmds[cmd_idx].mask)
@@ -323,7 +326,7 @@ static void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
       break;
     case SELECT:
       nl_error(MSG_DEBUG,
-	"SELECT: PORT %d, mask %04X, value %04X, command index %d",
+        "SELECT: PORT %d, mask %04X, value %04X, command index %d",
         ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask,
         value, cmd_idx);
       sel_line(cmds[cmd_idx].port, cmds[cmd_idx].mask, value);
@@ -333,7 +336,7 @@ static void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
       break;
     default: cmd_ok = 0;
       nl_error(MSG_WARN, "command %d: unknown command type %d received",
-	cmd_idx, cmds[cmd_idx].type);
+        cmd_idx, cmds[cmd_idx].type);
     } /* switch */
   }
 

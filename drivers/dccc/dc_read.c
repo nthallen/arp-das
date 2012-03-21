@@ -18,13 +18,13 @@ int get_type(char *buf, int *type) {
         else *type = STRB;
         return(0);
       case 'E':
-	if (code[i] == 'L')
+        if (code[i] == 'L')
           if ((code[++i] != 'E') || code[++i] != 'C' || code[++i] != 'T' ||
-	      (code[++i] != '\0')) break;
-	  else {
-	    *type= SELECT;
-	    return(0);
-	  }
+              (code[++i] != '\0')) break;
+          else {
+            *type= SELECT;
+            return(0);
+          }
         else if ((code[i++] != 'T') || (code[i] != '\0')) break;
         *type= SET;
         return(0);
