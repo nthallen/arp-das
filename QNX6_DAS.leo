@@ -11,7 +11,8 @@
 <vnodes>
 <v t="ntallen.20091104124904.1987"><vh>@chapters</vh></v>
 <v t="ntallen.20070319130904" a="E"><vh>QNX6 Data Acquisition Architecture</vh>
-<v t="ntallen.20120226201115.2245" a="E"><vh>Change Log</vh>
+<v t="ntallen.20120226201115.2245"><vh>Change Log</vh>
+<v t="ntallen.20120314113810.2255"><vh>3/12/12 Added cpu_usage and tmdf</vh></v>
 <v t="ntallen.20120226201115.2246"><vh>2/25/12 Added ascii_escape() to nortlib</vh></v>
 <v t="ntallen.20120226201115.2247"><vh>2/25/12 Added msgv() to tmlib</vh></v>
 </v>
@@ -125,7 +126,7 @@
 <v t="ntallen.20100927130121.2033"><vh>tmnclib</vh></v>
 </v>
 </v>
-<v t="ntallen.20070502121159.1"><vh>Implementation</vh>
+<v t="ntallen.20070502121159.1" a="E"><vh>Implementation</vh>
 <v t="ntallen.20070320121924"><vh>cmdgen</vh>
 <v t="ntallen.20070501165557"><vh>Done</vh>
 <v t="ntallen.20070411152334"><vh>Add Interface Definitions</vh>
@@ -162,6 +163,9 @@
 <v t="ntallen.20080516115802.1"><vh>memo</vh></v>
 <v t="ntallen.20091022143321"><vh>mkdoit3	</vh></v>
 <v t="ntallen.20091022143321.1"><vh>algorithm status</vh></v>
+<v t="ntallen.20120314113810.2256" a="E"><vh>edf for ascii output</vh>
+<v t="ntallen.20120320094259.2263"><vh>Example csv code</vh></v>
+</v>
 </v>
 <v t="ntallen.20070502121159.6"><vh>Design</vh>
 <v t="ntallen.20070319130904.1"><vh>Data</vh>
@@ -392,6 +396,7 @@
 <v t="ntallen.20110113085104.2075"><vh>Dependencies</vh></v>
 </v>
 </v>
+<v t="ntallen.20120314113810.2256" a="E"></v>
 </v>
 <v t="ntallen.20110421132300.2127"><vh>Data Management</vh>
 <v t="ntallen.20110421132300.2128"><vh>The Need</vh></v>
@@ -588,7 +593,7 @@
 </v>
 </v>
 </v>
-<v t="ntallen.20070404221945.4" a="E"><vh>Drivers</vh>
+<v t="ntallen.20070404221945.4"><vh>Drivers</vh>
 <v t="ntallen.20110117144243.2077"><vh>General</vh></v>
 <v t="ntallen.20110131090023.2079"><vh>Subbus</vh>
 <v t="ntallen.20110131090023.2080"><vh>Subbusd</vh>
@@ -644,11 +649,14 @@
 <v t="ntallen.20070330134656.4"><vh>OCB</vh></v>
 <v t="ntallen.20070330134656.5"><vh>Strategy for multiple readers</vh></v>
 </v>
-<v t="ntallen.20070817133522"><vh>Documentation</vh>
+<v t="ntallen.20070817133522" a="E"><vh>Documentation</vh>
 <v t="ntallen.20070817133522.1"><vh>QNX4</vh>
 <v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
 <v t="ntallen.20070817133522.3" a="E"><vh>QNX6</vh>
+<v t="ntallen.20120318122206.2259" a="E"><vh>Examples of Communication Strategies</vh>
+<v t="ntallen.20120318122206.2260"><vh>Send/Receive Messages</vh></v>
+</v>
 <v t="ntallen.20071127160602"></v>
 <v t="ntallen.20110102095209.2061"><vh>cmdgen</vh></v>
 <v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
@@ -664,6 +672,8 @@
 </v>
 <v t="ntallen.20070817133522.4"><vh>DC</vh></v>
 <v t="ntallen.20070817133522.5"></v>
+<v t="ntallen.20120309103850.2251"><vh>Report CPU Utilization</vh></v>
+<v t="ntallen.20120309103850.2252"><vh>Report Diskspace</vh></v>
 </v>
 </v>
 <v t="ntallen.20110211111845.2089"><vh>QNX6 Sys Admin</vh>
@@ -5642,5 +5652,74 @@ For the time being, I will distribute both versions, which will save me
 having to rebuild the whole shebang, but if I ever lose libnort.so.0,
 that will be the correct course of action.</t>
 <t tx="ntallen.20120226201115.2247">As with nortlib, this results in libtm.so.2, which is backwards compatible with libtm.so.1.</t>
+<t tx="ntallen.20120309103850.2251">Open the file (/proc/pid/as), not the /proc/pid directory.
+
+#include &lt;devctl.h&gt;
+#include &lt;sys/procfs.h&gt;
+
+procfs_info my_info;
+
+devctl( fd, DCMD_PROC_INFO, &amp;my_info, sizeof(my_info), NULL);
+
+procfs_status my_status;
+
+devctl( fd, DCMD_PROC_STATUS, &amp;my_status, sizeof(my_status),
+        NULL);
+        
+
+idle threads run at priority 0. Looks like they are tid 1-N where N is the number of CPUs.
+
+
+procfs_status my_status;
+
+my_status.tid = 1;
+devctl( fd, DCMD_PROC_TIDSTATUS, &amp;my_status, sizeof(my_status),
+        NULL);</t>
+<t tx="ntallen.20120309103850.2252">Use fstatvfs();
+</t>
+<t tx="ntallen.20120314113810.2255">Basic utilities for monitoring CPU utilization and disk usage</t>
+<t tx="ntallen.20120314113810.2256">csv &lt;name&gt; &lt;n_columns&gt; [ separate ]
+  [ condition if ( ... ) | condition depending on (...) ]
+  &lt;column&gt; &lt;mnemonic&gt; [ &lt;format&gt; [ &lt;conversion&gt; ] ]
+
+If &lt;format&gt; is omitted, text() will be used
+If &lt;format&gt; is specified and &lt;conversion&gt; is omitted,
+  fprintf(ofp, &lt;format&gt;, convert() ) will be used
+If &lt;conversion&gt; is specified:
+  fprintf(ofp, &lt;format&gt;, &lt;conversion&gt;() ) will be used
+
+As with the sps extraction, this is a simple text substitution, so '0+' or '1*' will return unconverted data.
+
+csv = new csv_out( name, cols
+  </t>
+<t tx="ntallen.20120318122206.2259"></t>
+<t tx="ntallen.20120318122206.2260">subbusd:
+    Uses resource manager framework to attach name, then IO_MSG to do
+    old-fashioned send/receive/reply.
+DSDaq:
+    Uses resource manager framework like subbusd, but also accepts
+    ascii writes for use with cmd framework. (possible alternative
+    would be to read commands, but that would require setting up
+    ionotify pulses.)</t>
+<t tx="ntallen.20120320094259.2263">#include &lt;time.h&gt;
+#include "csv_file.h"
+
+int main(int argc, char **argv) {
+  double T;
+  int i;
+  csv_file cf("csv_test.txt", 4);
+  cf.init_col(0, "t", "%.3lf");
+  cf.init_col(1, "Col1"); // text column
+  // missing column 2
+  cf.init_col(3, "Col2", "%.3lf"); // double column
+  T = time(NULL);
+  for (i = 0; i &lt; 20; ++i) {
+    cf.set_time(T);
+    cf.set_col(1, "foo");
+    cf.set_col(3, T*1E-6);
+    T += .125;
+  }
+}
+</t>
 </tnodes>
 </leo_file>
