@@ -30,7 +30,7 @@ sub shortname {
   my $try = join '', $pre,
     map lc,
       grep m/[A-Z]/,
-	split( //, $name );
+        split( //, $name );
   my $lcname = lc $name;
   for my $short ( $try, "$pre$lcname", "${pre}_$lcname" ) {
     unless ( defined $longname{$short} ) {
@@ -54,11 +54,11 @@ while (<>) {
   } elsif ( m/^ROWS\s+(\d+)/ ) {
     $ui_limit = $1;
   } elsif ( m|^\s*(\d+(?:/\d+)?(?:\#\d+(?:/\d+)?)?) # rate
-	       \s+(\w+(?::\w+:\d+)?)(?::([-+*/]\S+))? # mnemonic
-	       \s+(\w+) # group
-	       \s+(\w+) # plot
-	       (?:\s+(\w+))?
-	       \s*$|x ) {
+               \s+(\w+(?::\w+:\d+)?)(?::([-+*/]\S+))? # mnemonic
+               \s+(\w+) # group
+               \s+(\w+) # plot
+               (?:\s+(\w+))?
+               \s*$|x ) {
     my ( $rate, $mnemonic, $scale, $group, $plot, $legend ) =
       ( $1, $2, $3, $4, $5, $6 );
     my $datum;
@@ -72,9 +72,9 @@ while (<>) {
     $rate{$rate} = {} unless defined $rate{$rate};
     $rate{$rate}->{$datum} = 1;
     if ( defined( $datarate{$datum} ) &&
-	 $datarate{$datum} ne $rate ) {
+         $datarate{$datum} ne $rate ) {
       warn "Datum '$datum' extracted at both ",
-	"$rate and $datarate{$datum} Hz\n";
+        "$rate and $datarate{$datum} Hz\n";
     } else {
       $datarate{$datum} = $rate;
     }
@@ -146,7 +146,7 @@ for my $grp ( @group ) {
     $plot =~ s/^$grp//;
     my $plottext =
       join " ", grep /./, split( /([A-Z][a-z]+)/,
-	$plot );
+        $plot );
     print UI
       "f = ne_dialg(f, 'add', 1, 0, 'p$experiment$plt', '$plottext' );\n";
     open( PLT, ">p$experiment$plt.m" ) ||
@@ -159,26 +159,26 @@ for my $grp ( @group ) {
       map { ref($_) ? $_->{mnc} . $_->{scale} : $_ } @{$plot{$plt}};
     if ( grep /:/, @mnemonics ) {
       die "Plot $plt mixes analog and digital data\n"
-	if grep !/:/, @mnemonics;
+        if grep !/:/, @mnemonics;
       print PLT
-	"h = ne_dstat({\n  ",
-	join( "; ...\n	",
-	  map { m/^(\w+):(\w+):(\d+)$/; "'$1', '$2', $3"; }
-	    @mnemonics ),
-	" }, '$plot', varargin{:} );\n";
+        "h = ne_dstat({\n  ",
+        join( "; ...\n	",
+          map { m/^(\w+):(\w+):(\d+)$/; "'$1', '$2', $3"; }
+            @mnemonics ),
+        " }, '$plot', varargin{:} );\n";
     } else {
       my @legends =
-	map { s/_/\\_/g; "'$_'" }
-	  map { ref($_) ? $_->{legend} : $_ }
-	    @{$plot{$plt}};
+        map { s/_/\\_/g; "'$_'" }
+          map { ref($_) ? $_->{legend} : $_ }
+            @{$plot{$plt}};
       print PLT
-	"h = timeplot({",
-	join( ",", map "'$_'", @mnemonics ), "}, ...\n",
-	"      '$grouptext $plottext', ...\n",
-	"      '$plot', ...\n",
-	"      {",
-	join( ",", @legends ), "}, ...\n",
-	"      varargin{:} );\n";
+        "h = timeplot({",
+        join( ",", map "'$_'", @mnemonics ), "}, ...\n",
+        "      '$grouptext $plottext', ...\n",
+        "      '$plot', ...\n",
+        "      {",
+        join( ",", @legends ), "}, ...\n",
+        "      varargin{:} );\n";
     }
     close PLT || warn "Error closing p$experiment$plt.m\n";
   }
