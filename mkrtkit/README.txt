@@ -40,8 +40,7 @@ UPDATE STRATEGY
 
 Run mkrtkit_chkconfs
   Makes sure any new files have been added to appropriate MANIFESTS.
-  This test currently is run against the installed package MANIFESTS,
-  but this should be changed to run against the source MANIFESTS.
+  This test is run against the source package MANIFESTS,
 
 Run chkpkgs
   Read Header to determine Version, list of MANIFESTS

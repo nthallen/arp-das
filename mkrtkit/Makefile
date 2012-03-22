@@ -18,7 +18,7 @@ PKGPREFIX=$(TGTNODE)/var/huarp
 PKGS := $(filter-out CVS, $(notdir $(wildcard pkgs/*)))
 
 .PHONY : test all install install-bin install-sbin install-data \
- install-progs install-pkgs
+ install-progs install-pkgs check
 test :
 	@echo PKGS are $(PKGS)
 install-progs : install-sbin install-data
@@ -41,3 +41,7 @@ install-pkgs :
 	    ./install_pkg $$pkg || exit 1; \
 	  fi; \
 	done
+check :
+	@./mkrtkit_chkconfs 2>&1 | less
+	@./chkpkgs 2>&1 | less
+	@echo "'sudo make install-pkgs' to install"

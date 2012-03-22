@@ -23,6 +23,7 @@ usr/local/bin/nctable
 usr/local/bin/oui
 usr/local/bin/phrtg
 usr/local/bin/phtable
+usr/local/bin/phtbl
 usr/local/bin/prepCD
 usr/local/bin/qclicomp
 usr/local/bin/settime
