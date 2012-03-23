@@ -1,5 +1,8 @@
 # edf2ext.awk Converts .edf files to .ext for TMC input.
 # $Log$
+# Revision 1.8  2012/03/20 18:50:27  ntallen
+# Changes to support CSV output
+#
 # Revision 1.7  2012/03/20 18:34:41  ntallen
 # Added csv capability
 #
@@ -57,6 +60,7 @@ BEGIN {
   if (written == 1) nsps++
   else {
     print "%{ /* edf2ext.awk reading " FILENAME " */"
+    # A trailing }
     print "  #include <stdlib.h>"
     print "  #include <errno.h>"
     print "  #include \"ssp.h\""
@@ -117,6 +121,7 @@ BEGIN {
   if (written == 1) nsps++
   else {
     print "%{ /* edf2ext.awk reading " FILENAME " */"
+    # a trailing }
     print "  #include \"csv_file.h\""
     print "  #include \"msg.h\""
     print "  #include \"tmctime.h\""
@@ -140,6 +145,12 @@ BEGIN {
   cnd = $0
   sub( "^[ \t]*condition[ \t]*", "", cnd )
   cond[nsps] = cnd " "
+  next
+}
+/^[ \t]*nan-text/ {
+  cnd = $0
+  sub( "^[ \t]*nan-text[ \t]*", "", cnd )
+  nan_text[nsps] = cnd
   next
 }
 /^[ \t]*[0-9]/ {
@@ -201,6 +212,7 @@ END {
       print "    ss_close(" sps[i] ");"
     }
     print "  }"
+    # A leading {
     print "%}"
 
     # print the extraction statements
@@ -224,8 +236,14 @@ END {
     }
   } else {
     # print the csv_file declarations
-    for (i = 0; i <= nsps; i++)
-      print "  csv_file " sps[i]"(\"" sps[i] ".csv\", " ncols[i] ");"
+    for (i = 0; i <= nsps; i++) {
+      if (nan_text[i] == "") {
+        nan = ""
+      } else {
+        nan = ", \"" nan_text[i] "\""
+      }
+      print "  csv_file " sps[i]"(\"" sps[i] ".csv\", " ncols[i] nan ");"
+    }
 
     # print the initializations
     print "  void initialize(void) {"
@@ -247,7 +265,7 @@ END {
       }
     }
     print "  }"
-    
+    # A leading { 
     print "%}"
     print "TM INITFUNC initialize();"
 
