@@ -3,6 +3,7 @@
  * These classes definee the runtime for extraction to CSV output
  */
 #include <malloc.h>
+#include <ctype.h>
 #include "csv_file.h"
 #include "nortlib.h"
 #include "nl_assert.h"
@@ -74,7 +75,7 @@ void csv_col::set(const char *tval) {
       while (isdigit(*s)) ++s;
     } else is_num = false;
   }
-  if (isnum && *s != '\0')
+  if (is_num && *s != '\0')
     is_num = false;
   if (!is_num) {
     if (!warned) {
