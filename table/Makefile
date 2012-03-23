@@ -21,5 +21,5 @@ nctable.exe : $(NCSRCS)
 install : all
 	@cp -v phtable nctable phtbl /usr/local/bin/
 clean :
-	rm -f phtable phtable.exe dbphtable nctable nctable.exe
+	rm -f phtable phtable.exe dbphtable nctable nctable.exe FullBuild.*
 	@echo "Execute 'eli -r' if you want to reset the cache"
