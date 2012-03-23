@@ -17,3 +17,8 @@ install : ai_cfg.h ptrh.h DACStest
 	@cp -vn DACS_ID.tmc /usr/local/share/huarp
 bench_ptrh : bench_ptrh.o ptrh.o
 	$(CXX) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o bench_ptrh bench_ptrh.o ptrh.o $(LIBS)
+
+.PHONY : clean
+clean :
+	rm -f DACStest *.o FullBuild.*
+
