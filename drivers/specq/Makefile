@@ -10,7 +10,7 @@ specqoui.c : specq.oui
 .PHONY: all clean install install-bin
 all : specq
 clean :
-	rm -f *.o specqoui.c specq
+	rm -f *.o specqoui.c specq FullBuild.*
 install : install-bin
 	@[ -d $(TGTNODE)/usr/local/include ] && \
 	cp -vn specq.h $(TGTNODE)/usr/local/include

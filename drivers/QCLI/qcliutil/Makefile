@@ -85,7 +85,7 @@ icoswave.out : icoswave.qcli
 
 .PHONY : clean all install install-bin install-include
 clean :
-	rm -f $(TARGET) *.o *oui.c
+	rm -f $(TARGET) *.o *oui.c FullBuild.*
 
 
 install : install-bin install-include

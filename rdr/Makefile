@@ -18,4 +18,4 @@ all : rdr
 install : rdr
 	@cp -vpn rdr /usr/local/bin
 clean :
-	rm -f *.o rdroui.c rdr
+	rm -f *.o rdroui.c rdr FullBuild.*

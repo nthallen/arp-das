@@ -9,7 +9,7 @@ TA_OBJS=tmcalgo.o grammar.o yylex.o states.o commands.o
 TA_OBJS+=tmcalgooui.o dot.o
 OBJ=$(TA_OBJS)
 INTERMED=y.tab.h y.tab.c grammar.c yylex.c tmcalgooui.c
-TEMPORARY=*.err tmcalgo.map sample.tmc
+TEMPORARY=*.err tmcalgo.map sample.tmc FullBuild.*
 
 # Maintenance definitions
 SOURCE=$(SRC) $(TOOL) $(DOC)
@@ -41,6 +41,6 @@ dot.o : dot.c dot.h
 .PHONY : all clean install
 all : $(TARGET)
 clean :
-	rm -f $(OBJ) $(INTERMED) $(TARGET)
+	rm -f $(OBJECT) $(TARGET)
 install : $(TARGET)
 	@cp -vn $(TARGET) /usr/local/bin
