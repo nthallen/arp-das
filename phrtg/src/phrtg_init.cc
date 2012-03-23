@@ -70,7 +70,7 @@ static void close_cmd_fd() {
 
 static void open_cmd_fd() {
   int old_response = set_response(0);
-  char *cmddev = tm_dev_name("cmd/phrtg");
+  const char *cmddev = tm_dev_name("cmd/phrtg");
   close_cmd_fd();
   cmd_fd = tm_open_name(cmddev, cmd_node, O_RDONLY);
   set_response(old_response);
