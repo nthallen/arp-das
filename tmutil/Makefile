@@ -14,7 +14,7 @@ CXXFLAGS=-Wall -g -I/usr/local/include -lang-c++
 LDFLAGS=-L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 
 .PHONY : all install install-sbin install-bin install-data
-.PHONY : checksudo
+.PHONY : checksudo clean
 
 all : parent getcon
 install : install-sbin install-bin install-data install-oui
@@ -50,3 +50,5 @@ getconoui.c : getcon.oui
 # expect to find it
 checksudo :
 	/usr/pkg/bin/sudo -V >/dev/null
+clean :
+	rm -f FullBuild.* *.o getcon DCtab parent
