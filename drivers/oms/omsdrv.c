@@ -228,7 +228,7 @@ void operate( int chid ) {
 
 static void open_cmd_fd( int coid, short code, int value ) {
   int old_response = set_response(0);
-  char *cmddev = tm_dev_name("cmd/oms");
+  const char *cmddev = tm_dev_name("cmd/oms");
   cmd_fd = tm_open_name(cmddev, NULL, O_RDONLY|O_NONBLOCK);
   set_response(old_response);
   if ( cmd_fd < 0 ) {
