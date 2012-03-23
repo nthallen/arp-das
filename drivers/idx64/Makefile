@@ -34,7 +34,7 @@ idx64oui.c : idx64.oui
 .PHONY : all clean install install-bin install-data install-config install-include
 all : idx64
 clean :
-	rm -f *.o idx64oui.c idx64
+	rm -f *.o idx64oui.c idx64 FullBuild.*
 install : install-bin install-data install-config install-include
 install-bin : $(BIN)
 	@cp -v $(BIN) $(BINDIR)
