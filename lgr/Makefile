@@ -18,4 +18,4 @@ all : lgr
 install : lgr
 	cp -vf lgr /usr/local/bin
 clean :
-	rm -f *.o lgr lgroui.c
+	rm -f *.o lgr lgroui.c FullBuild.*

@@ -15,4 +15,4 @@ all : memo
 install : memo
 	@cp -vp memo /usr/local/bin
 clean :
-	rm -f $(MEMO_OBJ) memo
+	rm -f $(MEMO_OBJ) memo FullBuild.*
