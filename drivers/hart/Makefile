@@ -29,4 +29,4 @@ install-bin : hartd
 install-dev : hartd.h
 	@cp -vn hartd.h $(TGTNODE)/usr/local/include
 clean :
-	rm -f $(TARGET) *.o hartdoui.c
+	rm -f $(TARGET) *.o hartdoui.c FullBuild.*

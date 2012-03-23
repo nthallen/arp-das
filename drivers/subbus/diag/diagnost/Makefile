@@ -1,4 +1,7 @@
 # $Log$
+# Revision 1.7  2011/02/24 17:35:30  ntallen
+# failtest should not need privilege
+#
 # Revision 1.6  2010/12/21 14:40:13  ntallen
 # Use subbus library
 #
@@ -62,6 +65,6 @@ sbswitch : sbswitch.o
 
 .PHONY : clean install all
 clean :
-	rm -rf *.o *oui.c $(TARGET)
+	rm -f *.o *oui.c $(TARGET) FullBuild.*
 install : $(TARGET)
 	@cp -vpn $(TARGET) /usr/local/bin
