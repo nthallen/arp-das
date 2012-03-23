@@ -13,6 +13,6 @@ TMbfroui.c : TMbfr.oui
 
 .PHONY : clean
 clean :
-	rm TMbfr TMbfr.o TMbfroui.o TMbfroui.c
+	rm -f TMbfr TMbfr.o TMbfroui.o TMbfroui.c FullBuild.*
 install :
 	@cp -vp TMbfr /usr/local/bin
