@@ -128,7 +128,10 @@
     /* My strategy for the moment will be to only write the first MEMO_BUF_SIZE
        characters. Later, I will loop somehow */
     msgsize = msg->i.nbytes;
-    if ( msgsize > DCCC_MAX_CMD_BUF ) msgsize = DCCC_MAX_CMD_BUF;
+    if ( msgsize > DCCC_MAX_CMD_BUF ) {
+      msgsize = DCCC_MAX_CMD_BUF;
+      nl_error(2, "Received message size %d: Truncated to %d", msg->i.nbytes, msgsize);
+    }
     resmgr_msgread( ctp, buf, msgsize, sizeof(msg->i) );
     parse_cmd( buf, msgsize, &pcmd );
     // Could return an error code here, but the log messages are

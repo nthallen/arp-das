@@ -1,6 +1,9 @@
 /*
  * Discrete command card controller program.
  * $Log$
+ * Revision 1.10  2012/03/21 16:08:06  ntallen
+ * Detab
+ *
  * Revision 1.9  2012/01/23 16:34:36  ntallen
  * A little more verbosity
  *
@@ -157,6 +160,7 @@ void parse_cmd(char *tbuf, int nb, cmd_t *pcmd ) {
     pcmd->n_cmds = 0;
     nl_assert( nb <= DCCC_MAX_CMD_BUF );
     tbuf[nb] = '\0';
+    nl_error(MSG_DEBUG, "Recd '%s'", tbuf);
     skip_space( tbuf, &i );
     switch ( tbuf[i] ) {
       case 'D': break;
