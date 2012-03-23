@@ -18,11 +18,12 @@ class csv_col {
     char *dsval;
     int dsval_size;
     const char *format;
+    bool warned;
 };
 
 class csv_file {
   public:
-    csv_file(const char *name, unsigned int n_cols);
+    csv_file(const char *name, unsigned int n_cols, const char *nan_text = NULL);
     ~csv_file();
     void init();
     void init_col(unsigned int col_num, const char *colname,
@@ -30,6 +31,7 @@ class csv_file {
     void set_time(double T);
     void set_col(unsigned int col_num, double dval);
     void set_col(unsigned int col_num, const char *sval);
+    static const char *nan;
   private:
     void flush_headers();
     void flush_row();

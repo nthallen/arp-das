@@ -12,6 +12,7 @@ csv_col::csv_col(const char *colname, const char *fmt) {
   format = fmt;
   dsval = 0;
   dsval_size = 0;
+  warned = false;
 }
 
 csv_col::~csv_col() {
@@ -47,7 +48,43 @@ void csv_col::set(double dval) {
 }
 
 void csv_col::set(const char *tval) {
-  int sz = snprintf(dsval, dsval_size, "%s", tval);
+  int sz;
+  const char *s = tval;
+  bool is_num = true;
+  // Check tval for numeric. If non, warn once, and replace text with nan
+  while ( isspace(*s) ) ++s;
+  if ( *s == '-' || *s == '+') ++s;
+  if ( isdigit(*s) ) {
+    while (isdigit(*s)) ++s;
+    if ( *s == '.' ) {
+      ++s;
+      while (isdigit(*s)) ++s;
+    }
+  } else if (*s == '.') {
+    if (isdigit(*s)) {
+      while (isdigit(*s)) ++s;
+    } else {
+      is_num = false;
+    }
+  }
+  if (is_num && tolower(*s) == 'e') {
+    ++s;
+    if ( *s == '-' || *s == '+') ++s;
+    if (isdigit(*s)) {
+      while (isdigit(*s)) ++s;
+    } else is_num = false;
+  }
+  if (isnum && *s != '\0')
+    is_num = false;
+  if (!is_num) {
+    if (!warned) {
+      nl_error(1,"Column '%s' reported at least one non-numeric value: '%s'",
+        cname, tval);
+      warned = true;
+    }
+    tval = csv_file::nan;
+  }
+  sz = snprintf(dsval, dsval_size, "%s", tval);
   if (sz >= dsval_size) {
     dsval_resize(sz+5);
     sz = snprintf(dsval, dsval_size, "%s", tval);
@@ -60,10 +97,12 @@ void csv_col::reset() {
 }
 
 
-csv_file::csv_file(const char *name, unsigned int n_cols) {
+csv_file::csv_file(const char *name, unsigned int n_cols, const char *nan_text) {
   filename = name;
   cols.resize(n_cols);
   time_set = false;
+  if (nan_text)
+    nan = nan_text;
 }
 
 void csv_file::init() {
@@ -71,6 +110,8 @@ void csv_file::init() {
   if (fp == NULL)
     nl_error(3, "Cannot open output file %s", filename);
 }
+
+const char *csv_file::nan = "";
 
 csv_file::~csv_file() {
   unsigned int i;
