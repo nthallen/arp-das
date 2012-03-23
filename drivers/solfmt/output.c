@@ -1,5 +1,8 @@
 /* output.c handles writing the ".sft" file.
  * $Log$
+ * Revision 1.4  2011/02/24 00:57:59  ntallen
+ * Clean compile
+ *
  * Revision 1.3  2011/02/23 19:38:40  ntallen
  * Changes for DCCC
  *
@@ -32,6 +35,8 @@
 static char rcsid[] =
       "$Id$";
 
+extern int verbose;
+
 #define MAX_STAT_ADDR        4
 static int status_addrs[MAX_STAT_ADDR] = { 0x408, 0x40A, 0x411, 0x413 };
 
@@ -46,11 +51,18 @@ void output(char *ofile) {
 
   fp = fopen(ofile, "wb");
   if (fp == NULL) nl_error(3,"Cannot open output file \"%s\"\n", ofile);
+  if (verbose) printf("Writing output to %s\n", ofile);
   fput_word(VERSION, fp);
   fputc(cmd_set, fp);
+  if (verbose)
+    printf("  VERSION: 0x%04X  Cmd_Set: 0x%02X\n", VERSION, cmd_set);
 
   /* Output solenoid definitions */
   fput_word(n_solenoids, fp);
+  if (verbose) {
+    printf("  n_solenoids: 0x%04X\n", n_solenoids);
+    printf("  Solenoid definitions: (suppressed)\n");
+  }
   for (i = 0; i < n_solenoids; i++) {
     fput_word(solenoids[i].open_cmd, fp);
     fput_word(solenoids[i].close_cmd, fp);
@@ -62,6 +74,8 @@ void output(char *ofile) {
 
   /* Output set point definitions */
   fput_word(n_set_points, fp);
+  if (verbose)
+    printf("  %d set point definitions (suppressed)\n", n_set_points);
   for (i = 0; i < n_set_points; i++) {
     fput_word(set_points[i].address, fp);
     fput_word(set_points[i].value, fp);
@@ -69,6 +83,8 @@ void output(char *ofile) {
 
   /* Output proxy definitions */
   fput_word(n_prxy_pts, fp);
+  if (verbose)
+    printf("  %d proxy point definitions (suppressed)\n", n_prxy_pts);
   for (i = 0; i < n_prxy_pts; i++)
 	fputc(prxy_pts[i], fp);
 
@@ -76,8 +92,20 @@ void output(char *ofile) {
     if (modes[i++].index != -1) max_mode = i;
   fput_word(max_mode, fp);
   for (i = 0; i < max_mode; i++) fput_word(modes[i].index, fp);
+  if (verbose) {
+    printf("  Modes: 0x%04X\n", max_mode);
+    for (i = 0; i < max_mode; i++) {
+      printf("    %d: 0x%04X\n", i, modes[i].index);
+    }
+  }
   fput_word(mci, fp);
   for (i = 0; i < mci; i++) fputc(mode_code[i], fp);
+  if (verbose) {
+    printf("  Mode Codes: 0x%04X\n", mci);
+    for (i = 0; i < mci; i++) {
+      printf("    0x%04X: 0x%02X\n", i, mode_code[i]);
+    }
+  }
   
   /* Now output the string table. First the strings, preceeded by
      a count of the total size */
@@ -86,16 +114,25 @@ void output(char *ofile) {
       n_bytes += strlen(dccc_strs[i]) + 1; // for the NUL
     }
     fput_word(n_bytes, fp);
+    if (verbose)
+      printf("  String Table: Total size 0x%04X\n", n_bytes);
     for ( i = 0; i < n_dccc_strs; i++ ) {
       char *s = dccc_strs[i];
       do {
         fputc( *s, fp );
       } while (*s++ != '\0');
+      if (verbose)
+        printf("    %d: '%s'\n", i, dccc_strs[i]);
     }
     /* Now output number of strings and a table of offsets */
     fput_word( n_dccc_strs, fp );
+    if (verbose) {
+      printf("  Table of strs: %d\n", n_dccc_strs );
+    }
     for ( n_bytes = 0, i = 0; i < n_dccc_strs; i++ ) {
       fput_word( n_bytes, fp );
+      if (verbose)
+        printf("    %d: %d\n", i, n_bytes);
       n_bytes += strlen(dccc_strs[i]) + 1; // for the NUL
     }
   }
