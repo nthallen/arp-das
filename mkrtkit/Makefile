@@ -42,6 +42,6 @@ install-pkgs :
 	  fi; \
 	done
 check :
-	@./mkrtkit_chkconfs 2>&1 | less
-	@./chkpkgs 2>&1 | less
+	@./mkrtkit_chkconfs 2>&1
+	@./chkpkgs 2>&1
 	@echo "'sudo make install-pkgs' to install"

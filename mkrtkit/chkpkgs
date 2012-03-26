@@ -108,6 +108,7 @@ sub check_header {
   my $pkg = shift;
   my $hdr = "pkgs/$pkg/Header";
   my $havesource = 1;
+  my $err_if_newer = 1;
   if ( ! -f $hdr && defined $pkg{$pkg} ) {
     $hdr = "$pkgdir/" .
 	    ver_print($pkg{$pkg}->[0]) . "/Header";
@@ -181,7 +182,11 @@ sub check_header {
       }
     }
   } else {
-    warn "$pkg: $pkgv not installed\n";
+    my $inst_ver = ver_print($pkg{$pkg}->[0]);
+    warn "$pkg: $pkgv not installed\n",
+         "  Will report differences from $inst_ver.\n";
+    $tgz = "/var/huarp/pkgcache/$inst_ver.tar.gz";
+    $err_if_newer = 0;
   }
   my $have_tgz = -f $tgz;
   my $tgz_time = $have_tgz ? -M $tgz : 0;
@@ -200,7 +205,7 @@ sub check_header {
 	  $RV = 1;
 	} elsif ( -f $path && $have_tgz && -M $path < $tgz_time ) {
 	  warn "$pkg: File $path is newer\n";
-	  $RV = 1;
+	  $RV = 1 if $err_if_newer;
 	}
       }
       close($fn) || warn "$pkg: Error closing pkgs/$pkg/$fn\n";

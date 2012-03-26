@@ -43,6 +43,7 @@ usr/local/include/ai_cfg.h
 usr/local/include/average.h
 usr/local/include/company.h
 usr/local/include/cpu_usage.h
+usr/local/include/csv_file.h
 usr/local/include/hartd.h
 usr/local/include/ll_of_str.h
 usr/local/include/md5.h
