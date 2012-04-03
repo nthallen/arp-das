@@ -26,9 +26,6 @@ cat <<EOF >$srcdir/Experiment.config
 Experiment=$Experiment
 HomeDir=$HomeDir
 SUBBUSD=serusb
-RunType=ask
-# Extractions=
-# Analysis=
 EOF
 
 if [ -n "$FlightNode" ]; then
@@ -38,8 +35,24 @@ SCRIPT_OVERRIDE=/net/$FlightNode$HomeDir/script
 RUNFILE=runfile
 EOF
 else
-  echo "RUNFILE=interact" >>$srcdir/Experiment.config
+  cat <<EOF >>$srcdir/Experiment.config
+# For remote operation, set FlightNode and make sure
+# SCRIPT_OVERRIDE is node-specific, so it points to the
+# same file for both client and server.
+
+# FlightNode=
+SCRIPT_OVERRIDE=$HomeDir/script
+
+RUNFILE=interact
+EOF
 fi
+
+cat <<EOF >>$srcdir/Experiment.config
+
+RunType=ask
+# Extractions=
+# Analysis=
+EOF
 
 tmcbase="types.tmc /usr/local/share/huarp/flttime.tmc"
 cmdbase="/usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd cmdenbl.cmd"

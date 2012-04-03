@@ -34,6 +34,7 @@ while ( @ARGV ) {
 die "CP_DS must be divisible by 8\n" if $CP_DS % 8;
 die "CP_DS must be >= CP_NCMDS*2\n" unless $CP_DS >= $CP_NCMDS*2;
 die "PB_S must be >= CP_DS+24\n" unless $PB_S >= $CP_DS+24;
+die "PB_S must be divisible by 8\n" unless $PB_S % 8 == 0;
 
 -d $srcdir || die "Source directory '$srcdir' not found\n";
 open( my $tmc, '>', "$srcdir/digio.tmc" ) ||
@@ -164,12 +165,11 @@ sub gen_tmc {
     unless ( $collected{$pvar} ) {
       $collected{$pvar} = 1;
       print $tmc "TM 1 Hz DStat $pvar; Address $pvar 0x$xaddr;\n";
+      print $tmc "  Collect $pvar = sbrba($pvar.address) ^ 0xFF;\n"
+        if $inv;
     }
     print $conv
       "off_on_t $var; invalidate $var;\n",
-      $inv ?
-	"{ $var = ($pvar & (1<<$bit)) ? 0 : 1;" :
-	"{ $var = ($pvar >> $bit) & 1;",
-      " Validate $var; }\n";
+      "  { $var = ($pvar >> $bit) & 1; Validate $var; }\n";
   }
 }
