@@ -10,6 +10,7 @@ N_AO_CHIPS=4
 IDX_N_CHANNELS=1
 N_QCLICTRL=3
 CTR_UG_N_BDS=0
+N_PWRMON=4
 
 # CP_NCMDS is the number of commands on the command processor
 CP_NCMDS=50

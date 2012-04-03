@@ -59,9 +59,9 @@ for my $pm_bd ( 0 .. $n_pm_bds-1 ) {
     "$bdname {\n",
     "  HBox { +-; Title: \"PwrMon $pm_bd\"; -+ };\n",
     "  >($TOStat,7)<;\n",
-    "  \"\"   >I<   >V<;\n",
-    "  \"1:\" HBox{ ($I1name,5); ($I1Sname,1) } HBox{ ($V1name,5); ($V1Sname,1) };\n",
-    "  \"2:\" HBox{ ($I2name,5); ($I2Sname,1) } HBox{ ($V2name,5); ($V2Sname,1) };\n",
+    "  \"\"   >\"I(mV)\"<   >V<;\n",
+    "  \"1:\" HBox{ ($I1name,5); ($I1Sname,1) } HBox{ ($V1name,7); ($V1Sname,1) };\n",
+    "  \"2:\" HBox{ ($I2name,5); ($I2Sname,1) } HBox{ ($V2name,7); ($V2Sname,1) };\n",
     "}\n\n";
 }
 
