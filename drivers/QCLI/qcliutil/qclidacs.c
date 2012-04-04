@@ -58,7 +58,8 @@ int verify_block( unsigned short addr, unsigned short *prog, int blocklen ) {
   unsigned short ctrlr_status;
   unsigned short remaining;
   unsigned short blk_addr = addr;
-  int rv = 0;
+  int rv = 0, retries = 0;
+  time_t v_start, v_now;
 
   if ( vreq == 0 ) {
     char rbuf[15];
@@ -74,12 +75,24 @@ int verify_block( unsigned short addr, unsigned short *prog, int blocklen ) {
     delay(10);
   }
   sbwr_chk( qcli_vaddr, addr ); // Request Verify
+  v_start = time(NULL);
   for (;;) {
     ctrlr_status = sbw_chk(board_base);
     if ( ctrlr_status & 0x200 ) break;
     if (!(ctrlr_status & 0x100)) {
       nl_error( 2, "Controller not in read mode: %04X", ctrlr_status );
       return 1;
+    }
+    v_now = time(NULL);
+    if ( difftime(v_now, v_start) > 3 ) {
+      nl_error( 2, "Timeout waiting for verify on addr %04X. "
+        "ctrlr_status: %04X", addr, ctrlr_status );
+      if ( ++retries > 2 ) return 1;
+      // Reset the controller and reissue the verify request
+      sbwr_chk(board_base+0xC,0);
+      delay(10);
+      sbwr_chk( qcli_vaddr, addr ); // Request Verify
+      v_start = time(NULL);
     }
   }
   remaining = ctrlr_status & 0xFF;
