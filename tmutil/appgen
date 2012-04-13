@@ -104,7 +104,7 @@ fi
 exec <$ifile >Makefile
 
 typeset targets prefix tmcbase cmdbase basetargets usage LINK usefiles
-typeset ouis
+typeset colbase ouis
 typeset SERVER
 typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC HOMEDIR DISTRIB SRCDIST TGTNODE TGTDIR
 
@@ -224,7 +224,7 @@ while read tgt mode deps; do
       =) for i in $deps; do add_member $tgt $i; done;;
       :) case $tgt in
 	   *algo) deps="$tmcbase $deps";;
-	   *col) deps="$tmcbase $deps";;
+	   *col) deps="$tmcbase $colbase $deps";;
 	   *ext) deps="$tmcbase $deps";;
 	   *disp) deps="$tmcbase $deps";;
 	   *dispnc) deps="$tmcbase $deps";;
@@ -274,6 +274,13 @@ if [ -n "$cmdbase" ]; then
   }
 fi
 
+if [ -n "$colbase" ]; then
+  is_member targets ${prefix}col || {
+    def_target ${prefix}col $tmcbase $colbase
+    for i in $colbase; do def_source $i; done
+  }
+fi
+
 #----------------------------------------------------------------
 # replace_each from to rule dependents
 #   Processes the list of dependents, replacing any ending in
@@ -291,7 +298,11 @@ function replace_each {
     ia=${rei%$from}
     if [ $ia$from = $rei ]; then
       new_i=${ia##*/}$to
-      if [ -n "$rule" ]; then rei="$rei\n\t$rule $rei"; fi
+      irule=${rule#-}
+      if [ "$irule" != "$rule" -a "$new_i" = "$ia$to" ]; then
+        irule=""
+      fi
+      if [ -n "$irule" ]; then rei="$rei\n\t$irule $rei"; fi
       def_target $new_i " $rei"
       rei=$new_i
       replaced=0
@@ -492,8 +503,8 @@ for i in $basetargets; do
     deps="$deps$ouifiles"
     replace_all .oui ${i}oui.c "\n\t\$(OUI)" $deps &&
       ouiout=${i}oui.c
-    replace_each .c .o "" $deps
-    replace_each .cc .o "" $deps && cxx=CXX
+    replace_each .c .o "-\$(COMPILE.c)" $deps
+    replace_each .cc .o "-\$(COMPILE.cc)" $deps && cxx=CXX
     unset libs odeps
     for dep in $deps; do
       case "x$dep" in
@@ -573,6 +584,7 @@ output_macro SRCDIST $SRCDIST
 output_macro NONRCS $NONRCS
 output_macro TMCBASE $tmcbase
 output_macro CMDBASE $cmdbase
+output_macro COLBASE $colbase
 echo 'RCS=$(SRC) $(TOOL) $(SCRIPT)'
 echo 'SOURCE=$(RCS) $(NONRCS)'
 echo 'OBJECT=$(OBJ) *.err'
@@ -594,7 +606,7 @@ echo "Makefile : $ifile"
 echo "\tappgen $ifile"
   # This was the cleandist option. No longer optional
   echo 'VERSION=`cat VERSION`'
-  echo 'extdistribution : $(DSTRB) $(SRCDIST)'
+  echo 'extdistribution : $(DSTRB) $(SRCDIST) VERSION'
   echo "\t@[ -d \$(TGTDIR)/bin ] || mkdir \$(TGTDIR)/bin"
   echo "\t@[ -d \$(TGTDIR)/bin/\$(VERSION) ] || mkdir \$(TGTDIR)/bin/\$(VERSION)"
   echo "\t@[ -d  \$(TGTDIR)/bin/\$(VERSION)/Base ] || mkdir \$(TGTDIR)/bin/\$(VERSION)/Base"
