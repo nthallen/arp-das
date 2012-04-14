@@ -7,10 +7,13 @@ Timeout::Timeout() {
   Clear();
 }
 
-// Timeout::Timeout(time_t secs, long msecs) {
-//   Set(secs, msecs );
-// }
-
+/**
+ * Specifies a desired timeout relative to the current time. The event loop
+ * will subtract the then-current time to determine the correct relative
+ * timeout value.
+ * @param secs Seconds
+ * @param msecs Milleseconds
+ */
 void Timeout::Set( time_t secs, long msecs ) {
   int whole_secs;
   int rv = clock_gettime(CLOCK_REALTIME, &when);
@@ -22,6 +25,9 @@ void Timeout::Set( time_t secs, long msecs ) {
   when.tv_nsec -= whole_secs*1000000000L;
 }
 
+/**
+ * Clears the timeout, indicating no timeout required.
+ */
 void Timeout::Clear() {
   when.tv_sec = 0L;
   when.tv_nsec = 0L;
