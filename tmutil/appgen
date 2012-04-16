@@ -219,13 +219,10 @@ while read tgt mode deps; do
     swsbase)
       for i in $deps; do
         j=${i%.sws}
-        add_member tmcbase $j.tmc
-        add_member tmcbase swstat.h
-        add_member tmcbase ${j}v.h
-        add_member colbase ${j}_col.tmc
-        add_member cmdbase $j.cmd
-        add_member tmcbase swstat.h
-        add_member tmcbase ${j}v.h
+        add_member tmcbase SWData.tmc
+        add_member tmcbase SWData.h
+        add_member colbase SWData_col.tmc
+        add_member cmdbase SWData.cmd
       done;;
     %%) break;;
   esac
@@ -301,10 +298,14 @@ fi
 # Returns TRUE if the substitution was applied
 #----------------------------------------------------------------
 function replace_each {
-  typeset from to redeps rei ia new_i replaced
+  typeset from to redeps rei ia new_i replaced hdeps
 
   replaced=1
   from=$1; to=$2; rule="$3"; shift; shift; shift
+  if [ "$1" = "-h" ]; then
+    hdeps=$2
+    shift; shift
+  fi
   for rei in $*; do
     ia=${rei%$from}
     if [ $ia$from = $rei ]; then
@@ -313,8 +314,8 @@ function replace_each {
       if [ "$irule" != "$rule" -a "$new_i" = "$ia$to" ]; then
         irule=""
       fi
-      if [ -n "$irule" ]; then rei="$rei\n\t$irule $rei"; fi
-      def_target $new_i " $rei"
+      if [ -n "$irule" ]; then rei="$rei$hdeps\n\t$irule $rei"; fi
+      def_target $new_i " $rei$hdeps"
       rei=$new_i
       replaced=0
     fi
@@ -410,6 +411,8 @@ for i in $basetargets; do
       replace_each .tbl tblnc.tmc "\$(NCTABLE)" $deps &&
 	ldisp=' -ldispnc -ltmnc -lncurses' &&
 	add_member ouis nctable;;
+    *algo)
+      replace_each .sws .tma "\$(COMPILE.sws)" $deps;;
   esac
   replace_all .tmg ${i}tmg.tmc "\n\t\$(TMG2TMC)" $deps &&
 	add_member ouis tmg
@@ -506,7 +509,7 @@ for i in $basetargets; do
   esac
 
   if [ -n "$LINK" ]; then
-    unset ouifiles ouiout
+    unset ouifiles ouiout hdeps cdeps
     add_member ouis msg
     for j in $ouis; do
       ouifiles="$ouifiles \$(OUIDIR)/$j.oui"
@@ -514,13 +517,25 @@ for i in $basetargets; do
     deps="$deps$ouifiles"
     replace_all .oui ${i}oui.c "\n\t\$(OUI)" $deps &&
       ouiout=${i}oui.c
-    replace_each .c .o "-\$(COMPILE.c)" $deps
-    replace_each .cc .o "-\$(COMPILE.cc)" $deps && cxx=CXX
+    for dep in $deps; do
+      case "x$dep" in
+        x-l*) cdeps="$cdeps $dep";;
+        *.o) cdeps="$cdeps $dep";;
+        *.c) cdeps="$cdeps $dep";;
+        *.cc) cdeps="$cdeps $dep";;
+        *.h) hdeps="$hdeps $dep";;
+	*) nl_error Unrecognized dependent $dep;;
+      esac
+    done
+    deps=$cdeps
+    replace_each .c .o "-\$(COMPILE.c)" -h "$hdeps" $deps
+    replace_each .cc .o "-\$(COMPILE.cc)" -h "$hdeps" $deps && cxx=CXX
     unset libs odeps
     for dep in $deps; do
       case "x$dep" in
 	x-l*) libs="$libs $dep";;
 	*.o) odeps="$odeps $dep";;
+	*.h) :;;
 	*) nl_error Unrecognized dependent $dep;;
       esac
     done
@@ -634,11 +649,8 @@ for i in $targets; do
 done
 
 if [ -n "$swsbase" ]; then
-  for i in $swsbase; do
-    j=${i%.sws}
-    echo "${j}v.h $j.tmc ${j}_col.tmc $j.cmd $j.tma | $i\n\tswscomp $i"
-  done
-  echo "swstat.h : $swsbase\n\tswscomp -h $swsbase"
+  echo "SWData.h SWData.tmc SWData_col.tmc SWData.cmd : $swsbase"
+  echo "\tswscomp -o SWData $swsbase"
 fi
 
 echo "\ntidy :\n\trm -f \$(OBJECT)"

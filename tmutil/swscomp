@@ -34,12 +34,19 @@ if ( $opts{A} ) {
   open($tma, ">", $prefix) ||
     die "Unable to write output file '$prefix'\n";
   $prefix =~ s/\.tma$//;
+  print $tma <<EOF;
+%{
+  #include "$prefix.h"
+%}
+
+EOF
 }
 
 sub tma_prolog {
   my ( $var ) = @_;
   print $tma <<EOF;
 Partition
+
 State ${var}_Wait NoLog {
   { int reSet_it;
     reSet_it = 1;
@@ -144,9 +151,9 @@ EOF
     die "Unable to write to ${prefix}_col.tmc\n";
   print $of <<EOF;
 %{
-  /* $prefix.tmc */
+  /* ${prefix}_col.tmc */
   #include "$prefix.h"
-  {$prefix}_t $prefix;
+  ${prefix}_t $prefix;
 %}
 EOF
   close $of || warn "Error closing ${prefix}_col.tmc\n";
@@ -172,7 +179,7 @@ EOF
   for my $var ( @vars ) {
     print $of "  : $var &$var { $prefix.$var = \$2; }\n";
   }
-  print $of "}\n";
+  print $of "  ;\n";
   for my $var ( @vars ) {
     print $of "&$var <int>\n  : Set %d { \$0 = \$2; }\n",
     map( "$_\n", @{$cmds{$var}}), "  ;\n";
