@@ -1,0 +1,181 @@
+#! /usr/bin/perl -w
+use strict;
+use Getopt::Std;
+
+my %opts;
+
+#ifdef __USAGE
+#%C	[options] files
+#	-o <prefix> Specify file prefix for output files
+#	-A Generate .tma file
+#  The default <prefix> is 'SWData'.
+#
+#  Without -A, four files are generated:
+#    <prefix>.h
+#    <prefix>.tmc
+#    <prefix>_col.tmc
+#    <prefix>.cmd
+#  With -A, either <prefix> or <prefix>.tma is generated.
+##endif
+getopts('o:A', \%opts);
+
+# For each var defined, need to create a member in the
+# transfer structure, TM variable.
+my @vars;
+# For each val defined, need to create #def in header
+my @vals;
+my %cmds;
+my $tma;
+my $prefix = $opts{o} || "SWData";
+my $curvar;
+
+if ( $opts{A} ) {
+  $prefix .= ".tma" unless $prefix =~ m/\.tma$/;
+  open($tma, ">", $prefix) ||
+    die "Unable to write output file '$prefix'\n";
+  $prefix =~ s/\.tma$//;
+}
+
+sub tma_prolog {
+  my ( $var ) = @_;
+  print $tma <<EOF;
+Partition
+State ${var}_Wait NoLog {
+  { int reSet_it;
+    reSet_it = 1;
+    switch ($var) {
+      default:
+      case 0: reSet_it = 0; break;
+EOF
+}
+
+sub tma_epilog {
+  my ( $var ) = @_;
+  print $tma <<EOF;
+    }
+    if (reSet_it) Validate ${var}_ReSet;
+  }
+}
+
+State ${var}_ReSet NoLog {
+  > _$var Set 0
+  Hold until ($var == 0) or 10;
+  Validate ${var}_Wait;
+}
+EOF
+}
+
+sub newvar {
+  my ($var) = @_;
+  if ($opts{A} && $curvar) {
+    tma_epilog($curvar);
+  }
+  $curvar = $var;
+  die "SW_Variable $var already used\n" if $cmds{$var};
+  $cmds{$var} = [];
+  push @vars, $curvar;
+  if ($opts{A}) {
+    tma_prolog($curvar);
+  }
+}
+
+for my $file ( @ARGV ) {
+  open(my $if, "<", $file);
+  while (my $line = <$if>) {
+    if ( $line =~ m/^\s*SW_Variable\s*:\s*(\w+)\s*(?:#.*)?$/ ) {
+      newvar($1);
+    } else {
+      if ($line =~
+            s/^\s*(SWS_[A-Z0-9_]+)\s*(\d+)\s*([^:]+):/      case $1:/ ) {
+        push(@vals, "$1 $2");
+        push(@{$cmds{$curvar}}, "  : $3 { \$0 = $2; }");
+        newvar("SWStat") unless $curvar;
+      }
+      if ( $opts{A} ) {
+        print $tma $line;
+      }
+    }
+  }
+}
+
+if ($opts{A}) {
+  if ($curvar) {
+    tma_epilog($curvar);
+  } else {
+    warn "No .tma output generated\n";
+  }
+} else {
+  # $prefix.h
+  my $of;
+  my $ucp = uc($prefix);
+  open($of, ">", "$prefix.h") ||
+    die "Unable to write to $prefix.h\n";
+  print $of <<EOF;
+/* $prefix.h */
+#ifndef ${ucp}_H_INCLUDED
+#define ${ucp}_H_INCLUDED
+
+typedef struct __attribute__((__packed__)) {
+EOF
+  print $of map "  unsigned short $_;\n", @vars;
+  print $of <<EOF;
+} ${prefix}_t;
+extern ${prefix}_t $prefix;
+
+EOF
+  print $of map "#define $_\n", @vals;
+  print $of "\n#endif\n";
+  close $of || warn "Error closing $prefix.h\n";
+
+  # $prefix.tmc
+  open($of, ">", "$prefix.tmc") ||
+    die "Unable to write to $prefix.tmc\n";
+  print $of <<EOF;
+TM "Receive" $prefix 0;
+
+EOF
+  print $of map
+    "TM 1 Hz UINT $_; collect $_ = $prefix.$_;\n",
+    @vars;
+  close $of || warn "Error closing $prefix.tmc\n";
+
+  # ${prefix}_col.tmc
+  open($of, ">", "${prefix}_col.tmc") ||
+    die "Unable to write to ${prefix}_col.tmc\n";
+  print $of <<EOF;
+%{
+  /* $prefix.tmc */
+  #include "$prefix.h"
+  {$prefix}_t $prefix;
+%}
+EOF
+  close $of || warn "Error closing ${prefix}_col.tmc\n";
+
+  # $prefix.cmd
+  open($of, ">", "${prefix}.cmd") ||
+    die "Unable to write to ${prefix}.cmd\n";
+  print $of <<EOF;
+%{
+  #include "$prefix.h"
+  #ifdef SERVER
+    ${prefix}_t $prefix;
+  #endif
+%}
+
+%INTERFACE <$prefix:DG/data>
+
+&command
+  : &SWTM * { if_$prefix.Turf(); }
+  ;
+&SWTM
+EOF
+  for my $var ( @vars ) {
+    print $of "  : $var &$var { $prefix.$var = \$2; }\n";
+  }
+  print $of "}\n";
+  for my $var ( @vars ) {
+    print $of "&$var <int>\n  : Set %d { \$0 = \$2; }\n",
+    map( "$_\n", @{$cmds{$var}}), "  ;\n";
+  }
+  close $of || warn "Error closing ${prefix}.cmd\n";
+}

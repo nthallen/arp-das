@@ -104,7 +104,7 @@ fi
 exec <$ifile >Makefile
 
 typeset targets prefix tmcbase cmdbase basetargets usage LINK usefiles
-typeset colbase ouis
+typeset colbase swsbase ouis
 typeset SERVER
 typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC HOMEDIR DISTRIB SRCDIST TGTNODE TGTDIR
 
@@ -216,6 +216,17 @@ while read tgt mode deps; do
     \#*) mode=#;;
     NOSUBBUS) subbus=no; mode="";;
     CLEANDIST) cleandist=yes; mode="";;
+    swsbase)
+      for i in $deps; do
+        j=${i%.sws}
+        add_member tmcbase $j.tmc
+        add_member tmcbase swstat.h
+        add_member tmcbase ${j}v.h
+        add_member colbase ${j}_col.tmc
+        add_member cmdbase $j.cmd
+        add_member tmcbase swstat.h
+        add_member tmcbase ${j}v.h
+      done;;
     %%) break;;
   esac
   if [ -n "$mode" ]; then
@@ -585,6 +596,7 @@ output_macro NONRCS $NONRCS
 output_macro TMCBASE $tmcbase
 output_macro CMDBASE $cmdbase
 output_macro COLBASE $colbase
+output_macro SWSBASE $swsbase
 echo 'RCS=$(SRC) $(TOOL) $(SCRIPT)'
 echo 'SOURCE=$(RCS) $(NONRCS)'
 echo 'OBJECT=$(OBJ) *.err'
@@ -620,6 +632,14 @@ for i in $targets; do
   eval deps=\"\$$depname\"
   echo "$i :$deps"
 done
+
+if [ -n "$swsbase" ]; then
+  for i in $swsbase; do
+    j=${i%.sws}
+    echo "${j}v.h $j.tmc ${j}_col.tmc $j.cmd $j.tma | $i\n\tswscomp $i"
+  done
+  echo "swstat.h : $swsbase\n\tswscomp -h $swsbase"
+fi
 
 echo "\ntidy :\n\trm -f \$(OBJECT)"
 echo "clean : tidy\n\trm -f \$(TARGET)"
