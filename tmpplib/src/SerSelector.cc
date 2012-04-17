@@ -203,7 +203,7 @@ void Ser_Sel::report_err( const char *fmt, ... ) {
     msgv( 2, fmt, args );
     va_end(args);
     if (nc)
-      msg( 2, "Input was: '%s'", ascii_escape(buf) );
+      msg( 2, "Input was: '%s'", ascii_escape(buf, nc) );
   } else {
     if ( !n_suppressed )
       msg( 2, "Error threshold reached: suppressing errors" );
@@ -272,25 +272,33 @@ int Ser_Sel::not_int( int &val ) {
  * @param str The comparison string.
  * @return zero if the string matches the input buffer.
  */
-int Ser_Sel::not_str( const char *str ) {
-  int start_cp = cp;
-  const char *s = str;
-  if ( cp < 0 || cp > nc || nc < 0 || nc >= bufsize || buf == 0 )
-    msg( 4, "Ser_Sel precondition failed: "
-      "cp = %d, nc = %d, bufsize = %d, buf %s",
-      cp, nc, bufsize, buf ? "not NULL" : "is NULL" );
-  while ( *s != '\0' ) {
-    if ( *s != buf[cp] ) {
+int Ser_Sel::not_str( const char *str, unsigned int len ) {
+  unsigned int start_cp = cp;
+  unsigned int i;
+  if ( cp < 0 || cp > nc || nc < 0 || buf == 0 )
+    nl_error( 4, "Ser_Sel precondition failed: "
+      "cp = %d, nc = %d, buf %s",
+      cp, nc, buf ? "not NULL" : "is NULL" );
+  for (i = 0; i < len; ++i) {
+    if ( str[i] != buf[start_cp+i] ) {
       if ( cp < nc )
         report_err( "Expected string '%s' at column %d",
-          str, start_cp );
+          ascii_escape(str, len), start_cp );
       return 1;
     }
-    ++s;
     ++cp;
   }
   return 0;
 }
+
+int Ser_Sel::not_str( const char *str ) {
+  return not_str(str, strlen(str));
+}
+
+int Ser_Sel::not_str(const std::string &s) {
+  return not_str(s.c_str(), s.length());
+}
+
 
 /**
  * Parsing utility function to convert a string in the input
@@ -317,4 +325,51 @@ int Ser_Sel::not_float( float &val ) {
     cp += ncf;
     return 0;
   }
+}
+
+const char *ascii_escape(const char *ibuf, int len) {
+  static std::string s;
+  char snbuf[8];
+  int ix = 0, nb;
+  s.clear();
+  while (ix < len ) {
+    unsigned char c = ibuf[ix++];
+    if ( isprint(c) ) {
+      s.push_back(c);
+    } else {
+      switch ( c ) {
+        case '\n':
+          s.push_back('\\');
+          s.push_back('n');
+          break;
+        case '\r':
+          s.push_back('\\');
+          s.push_back('r');
+          break;
+        case '\t':
+          s.push_back('\\');
+          s.push_back('t');
+          break;
+        default:
+          nb = snprintf( snbuf, 8, "\\x%02x", c);
+          s.append(snbuf);
+          break;
+      }
+    }
+  }
+  return s.c_str();
+}
+
+const char *ascii_escape(const std::string &s) {
+  return ascii_escape(s.c_str(), s.length());
+}
+
+/**
+ * Named differently to disambiguate from C version
+ * in nortlib2. Invokes the C++ versions, which
+ * have no inherent length limitation and can deal
+ * with embedded NULs.
+ */
+const char *ascii_esc(const char *str) {
+  return ascii_escape(str, strlen(str));
 }

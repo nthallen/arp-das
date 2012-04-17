@@ -62,6 +62,7 @@ void csv_col::set(const char *tval) {
       while (isdigit(*s)) ++s;
     }
   } else if (*s == '.') {
+    ++s;
     if (isdigit(*s)) {
       while (isdigit(*s)) ++s;
     } else {

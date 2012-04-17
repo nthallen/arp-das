@@ -2,6 +2,7 @@
 #define SERSELECTOR_H_INCLUDED
 /* SerSelector.h */
 
+#include <string>
 #include "Selector.h"
 #include "collect.h"
 #include "tm.h"
@@ -55,9 +56,11 @@ class Ser_Sel : public Selectee {
     void report_ok();
     int not_found( char c );
     int not_int( int &val );
-    int not_str( const char *str );
+    int not_str(const char *str, unsigned int len);
+    int not_str(const std::string &s);
+    int not_str(const char *str);
     int not_float( float &val );
-    int nc, cp;
+    unsigned int nc, cp;
     char *buf;
   private:
     int bufsize;
@@ -70,5 +73,9 @@ class Ser_Sel : public Selectee {
     int total_errors;
     int total_suppressed;
 };
+
+extern const char *ascii_escape(const char *str, int len);
+extern const char *ascii_escape(const std::string &s);
+extern const char *ascii_esc(const char *str);
 
 #endif
