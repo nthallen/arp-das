@@ -104,7 +104,7 @@ fi
 exec <$ifile >Makefile
 
 typeset targets prefix tmcbase cmdbase basetargets usage LINK usefiles
-typeset colbase swsbase ouis
+typeset colbase swsbase qclibase ouis
 typeset SERVER
 typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC HOMEDIR DISTRIB SRCDIST TGTNODE TGTDIR
 
@@ -223,6 +223,15 @@ while read tgt mode deps; do
         add_member tmcbase SWData.h
         add_member colbase SWData_col.tmc
         add_member cmdbase SWData.cmd
+      done;;
+    qclibase)
+      for i in $deps; do
+        j=${i%.qcli}
+        add_member tmcbase $j.tmc
+        add_member cmdbase $j.cmd
+        add_member DISTRIB $j.out
+        add_member SRCDIST $j.m $j.qcli
+        add_member OBJ $j.cmd $j.out $j.tmc $j.m $j.log
       done;;
     %%) break;;
   esac
@@ -612,6 +621,7 @@ output_macro TMCBASE $tmcbase
 output_macro CMDBASE $cmdbase
 output_macro COLBASE $colbase
 output_macro SWSBASE $swsbase
+output_macro QCLIBASE $qclibase
 echo 'RCS=$(SRC) $(TOOL) $(SCRIPT)'
 echo 'SOURCE=$(RCS) $(NONRCS)'
 echo 'OBJECT=$(OBJ) *.err'
@@ -651,6 +661,16 @@ done
 if [ -n "$swsbase" ]; then
   echo "SWData.h SWData.tmc SWData_col.tmc SWData.cmd : $swsbase"
   echo "\tswscomp -o SWData $swsbase"
+fi
+
+if [ -n "$qclibase" ]; then
+  for i in $qclibase; do
+    j=${i%.qcli}
+    echo "$j.cmd $j.out $j.tmc $j.m : $i"
+    echo "\tqclicomp -o $j.out -c $j.cmd -d $j.tmc \\"
+    echo "\t  -v $j.log -m $j.m $i || \\"
+    echo "\t  ( rm -f $j.out $j.cmd $j.tmc $j.log $j.m; false )"
+  done  
 fi
 
 echo "\ntidy :\n\trm -f \$(OBJECT)"

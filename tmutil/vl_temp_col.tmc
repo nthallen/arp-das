@@ -1,0 +1,28 @@
+%{
+  /* Routines to access onboard temperature readings
+     from Versalogic Python EBX-11 motherboard */
+  #include <errno.h>
+  #include <strings.h>
+  #include <hw/inout.h>
+  #include <sys/neutrino.h>
+  #include "msg.h"
+
+  #define HWM_index 0xC70
+  #define HWM_data 0xC71
+  #define BOARD_TEMP 0x26
+  #define CPU_TEMP 0x25
+
+  unsigned char read_vl_temp( unsigned short addr) {
+    signed char rv;
+    out8(HWM_index, addr);
+    rv = in8(HWM_data);
+    return rv;
+  }
+
+  void vl_temp_init() {
+    if (ThreadCtl(_NTO_TCTL_IO, 0) == -1)
+      msg(3, "ThreadCtl error: %s", strerror(errno));
+  }
+%}
+
+TM INITFUNC vl_temp_init();
