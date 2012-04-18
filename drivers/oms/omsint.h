@@ -79,6 +79,6 @@ extern readreq *current_req;
 #define PQ_MODE_SENDING 1
 #define PQ_MODE_RECEIVING 2
 #define OMS_INITIAL_TIMEOUT 500
-#define OMS_PAUSE_TIMEOUT 10
+#define OMS_PAUSE_TIMEOUT 20
 
 #endif
