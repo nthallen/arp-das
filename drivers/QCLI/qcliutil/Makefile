@@ -3,6 +3,7 @@ TOOL=Makefile todo
 #TARGET=qclid qcliprog qclitest chktime qcliread icoswave.out
 TARGET=qclisd qclisprog qclistest qclidacsd qclidprog qclidtest
 INCLUDE_HEADERS=qclid.h
+DATA_HEADERS=qcli.cmd
 CFLAGS=-Wall -g
 LDFLAGS=-L/usr/local/lib
 
@@ -83,15 +84,18 @@ qcliread.o : qcliread.c qcliutil.h
 icoswave.out : icoswave.qcli
 	qclicomp icoswave.qcli >icoswave.out
 
-.PHONY : clean all install install-bin install-include
+.PHONY : clean all install install-bin install-include install-data
 clean :
 	rm -f $(TARGET) *.o *oui.c FullBuild.*
 
 
-install : install-bin install-include
+install : install-bin install-include install-data
 
 install-bin : $(TARGET)
 	@cp -vn $(TARGET) $(TGTNODE)/usr/local/bin
 
 install-include :
 	@cp -vn $(INCLUDE_HEADERS) $(TGTNODE)/usr/local/include
+
+install-data :
+	@cp -vn $(DATA_HEADERS) $(TGTNODE)/usr/local/share/huarp
