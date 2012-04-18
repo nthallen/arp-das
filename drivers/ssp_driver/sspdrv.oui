@@ -18,6 +18,10 @@ The -b option identifies the SSP using the IP address
 10.0.0.200+board_id. This is too limiting in most cases,
 so the -H option in preferred.
 <blank>
+The -h header value is used for logging to memo and also
+defines the interfaces to telemetry collection and
+command reception.
+<blank>
 Logging config is a path string identifying the last
 file previously written and implicitly the next file
 to write. This is usually the direct output of the
