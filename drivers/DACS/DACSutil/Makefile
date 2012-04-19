@@ -4,7 +4,7 @@ LIBS=-lsubbus -lnort
 CPPFLAGS=-I /usr/local/include
 CFLAGS=-Wall -g
 CXXFLAGS=-Wall -g
-REFFILES=DACS_ID.tmc DACS_AI.cmd ptrhm.cc ptrhm_col.cc
+REFFILES=DACS_ID.tmc DACS_AI.cmd ptrhm.cc ptrhm_col.cc ptrhm.h
 
 DACStest : sbtest.o
 	cc $(LDFLAGS) -o DACStest sbtest.o $(LIBS)
