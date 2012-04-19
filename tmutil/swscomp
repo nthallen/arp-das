@@ -124,7 +124,7 @@ if ($opts{A}) {
 
 typedef struct __attribute__((__packed__)) {
 EOF
-  print $of map "  unsigned short $_;\n", @vars;
+  print $of map "  unsigned char $_;\n", @vars;
   print $of <<EOF;
 } ${prefix}_t;
 extern ${prefix}_t $prefix;
@@ -142,7 +142,7 @@ TM "Receive" $prefix 0;
 
 EOF
   print $of map
-    "TM 1 Hz UINT $_; collect $_ = $prefix.$_;\n",
+    "TM 1 Hz UCHAR $_; collect $_ = $prefix.$_;\n",
     @vars;
   close $of || warn "Error closing $prefix.tmc\n";
 
