@@ -1,3 +1,6 @@
+%{
+  #include "subbus.h"
+%}
 &command
   : AI Set Gain %d(Enter Channel Address) &ai_gain * {
       if ( $4 < 0xC00 || $4 > 0xDFE || ($4 & 1) )
