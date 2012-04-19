@@ -230,7 +230,11 @@ while read tgt mode deps; do
         add_member cmdbase $j.cmd
         add_member DISTRIB $j.out
         add_member SRCDIST $j.m $j.qcli
-        add_member OBJ $j.cmd $j.out $j.tmc $j.m $j.log
+        add_member OBJ $j.cmd
+        add_member OBJ $j.out
+        add_member OBJ $j.tmc
+        add_member OBJ $j.m
+        add_member OBJ $j.log
       done;;
     %%) break;;
   esac
@@ -644,7 +648,7 @@ fi
 
 echo 'include /usr/local/share/huarp/appgen.mk'
 echo
-echo 'all : Makefile $(TGT)'
+echo 'all : Makefile $(TGT) .cvsignore'
 echo "Makefile : $ifile"
 echo "\tappgen $ifile"
   # This was the cleandist option. No longer optional
@@ -681,8 +685,8 @@ fi
 
 echo "\ntidy :\n\trm -f \$(OBJECT)"
 echo "clean : tidy\n\trm -f \$(TARGET)"
-echo ".cvsignore :"
-echo "\t@for i in Makefile '.B4*' \$(OBJECT) \$(TARGET); do echo \"\$\$i\"; done >.cvsignore"
+echo ".cvsignore : Makefile"
+echo "\t@for i in \$(OBJECT) \$(TARGET); do echo \"\$\$i\"; done >.cvsignore"
 
 # Output anything beyond the %% in the spec file
 cat
