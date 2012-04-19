@@ -218,7 +218,6 @@ while read tgt mode deps; do
     CLEANDIST) cleandist=yes; mode="";;
     swsbase)
       for i in $deps; do
-        j=${i%.sws}
         add_member tmcbase SWData.tmc
         add_member tmcbase SWData.h
         add_member colbase SWData_col.tmc
@@ -421,7 +420,7 @@ for i in $basetargets; do
 	ldisp=' -ldispnc -ltmnc -lncurses' &&
 	add_member ouis nctable;;
     *algo)
-      replace_each .sws .tma "\$(COMPILE.sws)" $deps;;
+      replace_each .sws sws.tma "\$(COMPILE.sws)" $deps;;
   esac
   replace_all .tmg ${i}tmg.tmc "\n\t\$(TMG2TMC)" $deps &&
 	add_member ouis tmg
