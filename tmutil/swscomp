@@ -7,6 +7,7 @@ my %opts;
 #ifdef __USAGE
 #%C	[options] files
 #	-o <prefix> Specify file prefix for output files
+#	-p <prefix> Specify prefix for include files
 #	-A Generate .tma file
 #  The default <prefix> is 'SWData'.
 #
@@ -17,7 +18,7 @@ my %opts;
 #    <prefix>.cmd
 #  With -A, either <prefix> or <prefix>.tma is generated.
 ##endif
-getopts('o:A', \%opts);
+getopts('o:p:A', \%opts);
 
 # For each var defined, need to create a member in the
 # transfer structure, TM variable.
@@ -27,6 +28,7 @@ my @vals;
 my %cmds;
 my $tma;
 my $prefix = $opts{o} || "SWData";
+my $iprefix = $opts{p} || $prefix;
 my $curvar;
 
 if ( $opts{A} ) {
@@ -36,7 +38,7 @@ if ( $opts{A} ) {
   $prefix =~ s/\.tma$//;
   print $tma <<EOF;
 %{
-  #include "$prefix.h"
+  #include "$iprefix.h"
 %}
 
 EOF

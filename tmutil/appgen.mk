@@ -29,7 +29,8 @@ CMDGEN=cmdgen -o $@
 COMPILE.clt=$(COMPILE.cc) -o $@ -D CLIENT
 COMPILE.cltnc=$(COMPILE.cc) -o $@ -D CLIENT -D NCT_INTERFACE=1
 COMPILE.srvr=$(COMPILE.cc) -o $@ -D SERVER
-COMPILE.sws=swscomp -o $@ -A
+COMPILE.sws=swscomp -o $@ -p SWData -A
+COMPILE.tbl=phtable
 AWK=awk > $@ -f $(LIBSRC)
 FLD2DISP=$(AWK)/fld2disp.awk
 EDF2EXT=$(AWK)/edf2ext.awk
@@ -47,3 +48,10 @@ TMAREV=tmcalgo
 TMCALGO=$(TMAREV) -o $@
 # SOLFMT=sft () { cat $$* >$@tmp; solfmt -o$@ $@tmp; rm $@tmp; }; sft
 SOLFMT=solfmt -o$@
+
+%tbl.tmc : %.tbl
+	$(COMPILE.tbl) > $@.tmp $<
+	mv $@.tmp $@
+%tblnc.tmc : %.tbl
+	nctable > $@.tmp $<
+	mv $@.tmp $@

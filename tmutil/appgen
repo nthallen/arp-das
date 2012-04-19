@@ -303,6 +303,8 @@ fi
 #	the "from" pattern with a new dependent ending in the "to"
 #	pattern. Adds the new dependent as a target in its own right
 #	with the old dependent as a dependent.
+#   Rules starting with '-' are omitted unless the source is in
+#   a different directory.
 # Returns TRUE if the substitution was applied
 #----------------------------------------------------------------
 function replace_each {
@@ -322,8 +324,12 @@ function replace_each {
       if [ "$irule" != "$rule" -a "$new_i" = "$ia$to" ]; then
         irule=""
       fi
-      if [ -n "$irule" ]; then rei="$rei$hdeps\n\t$irule $rei"; fi
-      def_target $new_i " $rei$hdeps"
+      if [ -n "$irule" ]; then
+        rei="$rei$hdeps\n\t$irule $rei"
+      else
+        rei="$rei$hdeps"
+      fi
+      def_target $new_i " $rei"
       rei=$new_i
       replaced=0
     fi
@@ -413,10 +419,11 @@ for i in $basetargets; do
   replace_each .cyc cyc.tmc  "\$(CYCLE)" $deps
   case $i in
     *disp)
-      replace_each .tbl tbl.tmc "\$(TABLE)" $deps &&
+      # Go for the implicit rule
+      replace_each .tbl tbl.tmc "" $deps &&
 	ldisp=' -ldisp -ltmph -lph';;
     *dispnc)
-      replace_each .tbl tblnc.tmc "\$(NCTABLE)" $deps &&
+      replace_each .tbl tblnc.tmc "" $deps &&
 	ldisp=' -ldispnc -ltmnc -lncurses' &&
 	add_member ouis nctable;;
     *algo)
