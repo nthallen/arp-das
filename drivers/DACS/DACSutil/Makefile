@@ -4,6 +4,7 @@ LIBS=-lsubbus -lnort
 CPPFLAGS=-I /usr/local/include
 CFLAGS=-Wall -g
 CXXFLAGS=-Wall -g
+REFFILES=DACS_ID.tmc DACS_AI.cmd ptrhm.cc ptrhm_col.cc
 
 DACStest : sbtest.o
 	cc $(LDFLAGS) -o DACStest sbtest.o $(LIBS)
@@ -14,7 +15,7 @@ sbtest : sbtest.o
 install : ai_cfg.h ptrh.h DACStest
 	@cp -vn ai_cfg.h ptrh.h /usr/local/include/
 	@cp -vn DACStest /usr/local/bin
-	@cp -vn DACS_ID.tmc /usr/local/share/huarp
+	@cp -vn $(REFFILES) /usr/local/share/huarp
 bench_ptrh : bench_ptrh.o ptrh.o
 	$(CXX) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o bench_ptrh bench_ptrh.o ptrh.o $(LIBS)
 
