@@ -82,6 +82,7 @@ usr/local/include/DCph.h
 usr/local/include/hsatod.h
 usr/local/include/cmdalgo.h
 usr/local/include/memlib.h
+usr/local/include/ptrhm.h
 usr/local/include/snafuerr.h
 usr/local/include/snfbatch.h
 usr/local/include/ssp.h
@@ -101,8 +102,12 @@ usr/local/share/huarp/flttime.tmc
 usr/local/share/huarp/appgen.mk
 usr/local/share/huarp/cpu_usage.tmc
 usr/local/share/huarp/cpu_usage_col.tmc
+usr/local/share/huarp/DACS_AI.cmd
+usr/local/share/huarp/DACS_ID.tmc
 usr/local/share/huarp/getcon.cmd
 usr/local/share/huarp/OMS.cmd
+usr/local/share/huarp/ptrhm.cc
+usr/local/share/huarp/ptrhm_col.cc
 usr/local/share/huarp/root.cmd
 usr/local/share/huarp/dev_copy.sed
 usr/local/share/huarp/edf2ext.awk
@@ -113,8 +118,11 @@ usr/local/share/huarp/cmdgen.skel
 usr/local/share/huarp/idx64.cmd
 usr/local/share/huarp/idx64cfg.awk
 usr/local/share/huarp/phrtg.cmd
+usr/local/share/huarp/qcli.cmd
 usr/local/share/huarp/tmdf.tmc
 usr/local/share/huarp/tmdf_col.tmc
+usr/local/share/huarp/vl_temp.tmc
+usr/local/share/huarp/vl_temp_col.tmc
 usr/local/share/oui/compiler.oui
 usr/local/share/oui/civ.oui
 usr/local/share/oui/tma.oui
