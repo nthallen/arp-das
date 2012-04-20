@@ -1,5 +1,8 @@
 /* nortlib.h include file for nortlib
  * $Log$
+ * Revision 1.22  2012/02/27 01:03:50  ntallen
+ * Added ascii_escape() function
+ *
  * Revision 1.21  2009/03/02 17:11:30  ntallen
  * Added const to char* declarations as necessary.
  *
@@ -89,7 +92,7 @@ void nl_free_memory(void *p);
 char *nrtl_strdup(const char *s);
 
 /* ascii_escape.c */
-char *ascii_escape(const char *ibuf);
+const char *ascii_escape(const char *ibuf);
 
 #if defined(__QNXNTO__)
   #define OPTIND_RESET 1

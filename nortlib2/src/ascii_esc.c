@@ -7,7 +7,7 @@
  * string is limited to 82 characters, and is truncated if necessary.
  */
 #define ESC_BUF_SIZE 80
-char *ascii_escape(const char *ibuf) {
+const char *ascii_escape(const char *ibuf) {
   static char ebuf[ESC_BUF_SIZE+3];
   int ix = 0, ox = 0;
   while (ibuf[ix] != '\0' && ox < ESC_BUF_SIZE ) {
