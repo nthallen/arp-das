@@ -33,6 +33,25 @@ void Timeout::Clear() {
   when.tv_nsec = 0L;
 }
 
+/**
+ * @return true if a timeout value is set.
+ */
+bool Timeout::Set() {
+  return (when.tv_sec != 0 || when.tv_nsec != 0);
+}
+
+/**
+ * @return true if a timeout value has been set and has expired.
+ */
+bool Timeout::Expired() {
+  struct timespec now;
+  int rv;
+  if (!Set()) return false;
+  rv = clock_gettime(CLOCK_REALTIME, &now);
+  return (now.tv_sec > when.tv_sec ||
+          ((now.tv_sec == when.tv_sec) && (now.tv_nsec > when.tv_nsec));
+}
+
 TimeoutAccumulator::TimeoutAccumulator() {
   when.tv_sec = 0L;
   when.tv_nsec = 0L;

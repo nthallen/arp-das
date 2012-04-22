@@ -52,6 +52,7 @@ class Ser_Sel : public Selectee {
   protected:
     int fillbuf();
     void consume(int nchars);
+    void flush_input();
     void report_err( const char *msg, ... );
     void report_ok();
     int not_found( char c );
@@ -61,7 +62,7 @@ class Ser_Sel : public Selectee {
     int not_str(const char *str);
     int not_float( float &val );
     unsigned int nc, cp;
-    char *buf;
+    unsigned char *buf;
   private:
     int bufsize;
     int n_fills, n_empties;

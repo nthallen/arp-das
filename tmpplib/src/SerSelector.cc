@@ -184,6 +184,16 @@ void Ser_Sel::consume(int nchars) {
   }
 }
 
+/**
+ * Invokes fillbuf() until there is no input remaining.
+ */
+void Ser_Sel::flush_input() {
+  do {
+    nc = cp = 0;
+    if (fillbuf()) return;
+  } while (nc > 0);
+}
+
 #define QERR_THRESHOLD 5
 /**
  * Reports the error message, provided the qualified error count
@@ -245,16 +255,27 @@ int Ser_Sel::not_found( char c ) {
 
 /**
  * Parsing utility function to read in a decimal integer starting
- * at the current position.
+ * at the current position. Integer may be proceeded by optional
+ * whitespace and an optional sign.
  * @param[out] val The integer value
  * @return zero if an integer was converted, non-zero if the current char is not a digit.
  */
 int Ser_Sel::not_int( int &val ) {
+  bool negative = false;
+  // fillbuf() guarantees the buffer will be NUL-terminated, so any check
+  // that will fail on a NUL is OK without checking the cp < nc
+  while (isspace(buf[cp]))
+    ++cp;
+  if (buf[cp] == '-') {
+    negative = true;
+    ++cp;
+  } else if (buf[cp] == '+') ++cp;
   if ( isdigit(buf[cp]) ) {
     val = buf[cp++] - '0';
     while ( isdigit(buf[cp]) ) {
       val = 10*val + buf[cp++] - '0';
     }
+    if (negative) val = -val;
     return 0;
   } else {
     if ( cp < nc )

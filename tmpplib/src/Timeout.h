@@ -10,6 +10,8 @@ class Timeout {
     // Timeout( time_t secs, long msecs );
     void Set( time_t secs, long msecs );
     void Clear();
+    bool Set();
+    bool Expired();
     struct timespec when;
 };
 
