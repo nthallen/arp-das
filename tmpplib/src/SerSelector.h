@@ -63,9 +63,9 @@ class Ser_Sel : public Selectee {
     int not_float( float &val );
     unsigned int nc, cp;
     unsigned char *buf;
-  private:
     int bufsize;
     int n_fills, n_empties;
+  private:
     /** Number of qualified errors. Decremented by report_ok() */
     int n_errors;
     /** Number of messages currently suppressed. */
