@@ -49,7 +49,8 @@ bool Timeout::Expired() {
   if (!Set()) return false;
   rv = clock_gettime(CLOCK_REALTIME, &now);
   return (now.tv_sec > when.tv_sec ||
-          ((now.tv_sec == when.tv_sec) && (now.tv_nsec > when.tv_nsec));
+          ((now.tv_sec == when.tv_sec) &&
+           (now.tv_nsec > when.tv_nsec)));
 }
 
 TimeoutAccumulator::TimeoutAccumulator() {

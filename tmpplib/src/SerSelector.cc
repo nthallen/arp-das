@@ -63,7 +63,7 @@ Ser_Sel::Ser_Sel(const char *path, int open_flags, int bufsz )
       flags |= Selector::Sel_Read;
       break;
   }
-  buf = (char *)new_memory(bufsz);
+  buf = (unsigned char *)new_memory(bufsz);
   bufsize = bufsz;
   nc = cp = 0;
   n_fills = n_empties = 0;
@@ -213,7 +213,7 @@ void Ser_Sel::report_err( const char *fmt, ... ) {
     msgv( 2, fmt, args );
     va_end(args);
     if (nc)
-      msg( 2, "Input was: '%s'", ascii_escape(buf, nc) );
+      msg( 2, "Input was: '%s'", ascii_escape((char*)buf, nc) );
   } else {
     if ( !n_suppressed )
       msg( 2, "Error threshold reached: suppressing errors" );
@@ -335,8 +335,8 @@ int Ser_Sel::not_float( float &val ) {
     msg( 4, "Ser_Sel precondition failed: "
       "cp = %d, nc = %d, bufsize = %d, buf %s",
       cp, nc, bufsize, buf ? "not NULL" : "is NULL" );
-  val = strtof( &buf[cp], &endptr );
-  ncf = endptr - &buf[cp];
+  val = strtof( (char*)&buf[cp], &endptr );
+  ncf = endptr - (char*)&buf[cp];
   if ( ncf == 0 ) {
     if ( cp < nc )
       report_err( "Expected float at column %d", cp );
