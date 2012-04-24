@@ -67,6 +67,7 @@ Ser_Sel::Ser_Sel(const char *path, int open_flags, int bufsz )
   bufsize = bufsz;
   nc = cp = 0;
   n_fills = n_empties = 0;
+  n_eagain = n_eintr = 0;
   total_errors = 0;
   total_suppressed = 0;
   n_errors = 0;
@@ -82,6 +83,7 @@ Ser_Sel::~Ser_Sel() {
   nl_error( 0, "n_fills: %d  n_empties: %d "
     "total_errors: %d total_suppressed: %d",
     n_fills, n_empties, total_errors, total_suppressed );
+  nl_error( 0, "n_eagain: %d n_eintr: %d", n_eagain, n_eintr);
 }
 
 /**
@@ -153,10 +155,15 @@ int Ser_Sel::fillbuf() {
   ++n_fills;
   i = read( fd, &buf[nc], bufsize - 1 - nc );
   if ( i < 0 ) {
-    if ( errno == EAGAIN || errno == EINTR )
-      return 0;
-    nl_error( 2, "Error %d on read from serial port", errno );
-    return 1;
+    if ( errno == EAGAIN ) {
+      ++n_eagain;
+    } else if (errno == EINTR) {
+      ++n_eintr;
+    } else {
+      nl_error( 2, "Error %d on read from serial port", errno );
+      return 1;
+    }
+    return 0;
   }
   nc += i;
   buf[nc] = '\0';

@@ -65,6 +65,7 @@ class Ser_Sel : public Selectee {
     unsigned char *buf;
     int bufsize;
     int n_fills, n_empties;
+    int n_eagain, n_eintr;
   private:
     /** Number of qualified errors. Decremented by report_ok() */
     int n_errors;
