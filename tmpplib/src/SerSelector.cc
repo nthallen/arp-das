@@ -50,18 +50,23 @@ int Cmd_Selectee::ProcessData(int flag) {
 }
 
 /**
- * @param path The full path to the serial device
+ * @param path The full path to the serial device. If path == NULL,
+ * the fd will not be opened.
  * @param open_flags Flags from <fcntl.h> passed to open()
  * @param bufsz The size buffer to be allocated.
  */
 Ser_Sel::Ser_Sel(const char *path, int open_flags, int bufsz )
     : Selectee() {
-  fd = tm_open_name(path, NULL, open_flags);
-  switch (open_flags & O_ACCMODE) {
-    case O_RDWR:
-    case O_RDONLY:
-      flags |= Selector::Sel_Read;
-      break;
+  if (path == 0) {
+    fd = -1;
+  } else {
+    fd = tm_open_name(path, NULL, open_flags);
+    switch (open_flags & O_ACCMODE) {
+      case O_RDWR:
+      case O_RDONLY:
+        flags |= Selector::Sel_Read;
+        break;
+    }
   }
   buf = (unsigned char *)new_memory(bufsz);
   bufsize = bufsz;
