@@ -77,7 +77,7 @@ static int ibuf_idx = 0;
 void handle_char( char c ) {
   switch (pq_mode) {
     case PQ_MODE_IDLE:
-      nl_error(1, "Unexpected character %d in handle_char", c);
+      // nl_error(1, "Unexpected character %d in handle_char", c);
       break;
     case PQ_MODE_SENDING:
       ibuf_idx = 0;
