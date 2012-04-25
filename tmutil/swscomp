@@ -30,6 +30,7 @@ my $tma;
 my $prefix = $opts{o} || "SWData";
 my $iprefix = $opts{p} || $prefix;
 my $curvar;
+my $tma_output = 0;
 
 if ( $opts{A} ) {
   $prefix .= ".tma" unless $prefix =~ m/\.tma$/;
@@ -60,6 +61,7 @@ EOF
 
 sub tma_epilog {
   my ( $var ) = @_;
+  $tma_output = 0;
   print $tma <<EOF;
     }
     if (reSet_it) Validate ${var}_ReSet;
@@ -75,30 +77,45 @@ EOF
 }
 
 sub newvar {
-  my ($var) = @_;
-  if ($opts{A} && $curvar) {
+  my ($var, $ctype, $tmtype) = @_;
+  if ($opts{A} && $curvar && $tma_output) {
     tma_epilog($curvar);
   }
   $curvar = $var;
   die "SW_Variable $var already used\n" if $cmds{$var};
   $cmds{$var} = [];
-  push @vars, $curvar;
-  if ($opts{A}) {
-    tma_prolog($curvar);
-  }
+  push @vars, [ $curvar, $ctype, $tmtype ];
+  #if ($opts{A}) {
+  #  tma_prolog($curvar);
+  #}
 }
 
 for my $file ( @ARGV ) {
   open(my $if, "<", $file);
   while (my $line = <$if>) {
-    if ( $line =~ m/^\s*SW_Variable\s*:\s*(\w+)\s*(?:#.*)?$/ ) {
-      newvar($1);
+    if ( $line =~ m/^\s* SW_Variable \s* : \s*
+        (?: < ([^,]+) , ([^>]+) > \s* )?
+        (\w+)\s*(?:\#.*)?$/x ) {
+      my $ctype = $1 || "unsigned char";
+      my $tmtype = $2 || "UCHAR";
+      newvar($3, $ctype, $tmtype);
+    } elsif ( $line =~ s/^\s+:\s+/: / ) {
+      chomp($line);
+      push(@{$cmds{$curvar}}, "  $line");
     } else {
       if ($line =~
             s/^\s*(SWS_[A-Z0-9_]+)\s*(\d+)\s*([^:]+):/      case $1:/ ) {
         push(@vals, "$1 $2");
         push(@{$cmds{$curvar}}, "  : $3 { \$0 = $2; }");
         newvar("SWStat") unless $curvar;
+      }
+      if ( $curvar && ! $tma_output &&
+            $line !~ m/^\s*(?:#.*)?$/) {
+        if ( $opts{A} ) {
+          tma_prolog($curvar);
+        }
+        push(@{$cmds{$curvar}}, '  : Set %d { $0 = $2; }');
+        $tma_output = 1;
       }
       if ( $opts{A} ) {
         print $tma $line;
@@ -108,10 +125,8 @@ for my $file ( @ARGV ) {
 }
 
 if ($opts{A}) {
-  if ($curvar) {
+  if ($curvar && $tma_output) {
     tma_epilog($curvar);
-  } else {
-    warn "No .tma output generated\n";
   }
 } else {
   # $prefix.h
@@ -126,7 +141,7 @@ if ($opts{A}) {
 
 typedef struct __attribute__((__packed__)) {
 EOF
-  print $of map "  unsigned char $_;\n", @vars;
+  print $of map "  $_->[1] $_->[0];\n", @vars;
   print $of <<EOF;
 } ${prefix}_t;
 extern ${prefix}_t $prefix;
@@ -144,7 +159,7 @@ TM "Receive" $prefix 0;
 
 EOF
   print $of map
-    "TM 1 Hz UCHAR $_; collect $_ = $prefix.$_;\n",
+    "TM 1 Hz $_->[2] $_->[0]; collect $_->[0] = $prefix.$_->[0];\n",
     @vars;
   close $of || warn "Error closing $prefix.tmc\n";
 
@@ -178,13 +193,16 @@ EOF
   ;
 &SWTM
 EOF
-  for my $var ( @vars ) {
+  for my $vartup ( @vars ) {
+    my $var = $vartup->[0];
     print $of "  : $var &$var { $prefix.$var = \$2; }\n";
   }
   print $of "  ;\n";
-  for my $var ( @vars ) {
-    print $of "&$var <int>\n  : Set %d { \$0 = \$2; }\n",
-    map( "$_\n", @{$cmds{$var}}), "  ;\n";
+  for my $vartup ( @vars ) {
+    my $var = $vartup->[0];
+    my $vartype = $vartup->[1];
+    print $of "&$var <$vartype>\n",
+      map( "$_\n", @{$cmds{$var}}), "  ;\n";
   }
   close $of || warn "Error closing ${prefix}.cmd\n";
 }
