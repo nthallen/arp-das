@@ -31,6 +31,7 @@ usr/local/bin/snafucfg
 usr/local/bin/solfmt
 usr/local/bin/specq
 usr/local/bin/sps2mat
+usr/local/bin/swscomp
 usr/local/bin/tmc
 usr/local/bin/tmcalgo
 usr/local/bin/tomat
