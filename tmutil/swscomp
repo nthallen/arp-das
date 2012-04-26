@@ -23,6 +23,7 @@ getopts('o:p:A', \%opts);
 # For each var defined, need to create a member in the
 # transfer structure, TM variable.
 my @vars;
+my %vars;
 # For each val defined, need to create #def in header
 my @vals;
 my %cmds;
@@ -61,6 +62,7 @@ EOF
 
 sub tma_epilog {
   my ( $var ) = @_;
+  my $cmd = $vars{$var}->[2];
   $tma_output = 0;
   print $tma <<EOF;
     }
@@ -69,7 +71,7 @@ sub tma_epilog {
 }
 
 State ${var}_ReSet NoLog {
-  > _$var Set 0
+  > _$cmd Set 0
   Hold until ($var == 0) or 10;
   Validate ${var}_Wait;
 }
@@ -77,14 +79,15 @@ EOF
 }
 
 sub newvar {
-  my ($var, $ctype, $tmtype) = @_;
+  my ($var, $ctype, $tmtype, $cmd) = @_;
   if ($opts{A} && $curvar && $tma_output) {
     tma_epilog($curvar);
   }
   $curvar = $var;
   die "SW_Variable $var already used\n" if $cmds{$var};
   $cmds{$var} = [];
-  push @vars, [ $curvar, $ctype, $tmtype ];
+  $vars{$var} = [ $ctype, $tmtype, $cmd ];
+  push @vars, [ $curvar, $ctype, $tmtype, $cmd ];
   #if ($opts{A}) {
   #  tma_prolog($curvar);
   #}
@@ -95,10 +98,11 @@ for my $file ( @ARGV ) {
   while (my $line = <$if>) {
     if ( $line =~ m/^\s* SW_Variable \s* : \s*
         (?: < ([^,]+) , ([^>]+) > \s* )?
-        (\w+)\s*(?:\#.*)?$/x ) {
+        (\w+)\s*(\S.*)?$/x ) {
       my $ctype = $1 || "unsigned char";
       my $tmtype = $2 || "UCHAR";
-      newvar($3, $ctype, $tmtype);
+      my $cmdtext = $4 || $3;
+      newvar($3, $ctype, $tmtype, $cmdtext);
     } elsif ( $line =~ s/^\s+:\s+/: / ) {
       chomp($line);
       push(@{$cmds{$curvar}}, "  $line");
@@ -106,7 +110,7 @@ for my $file ( @ARGV ) {
       if ($line =~
             s/^\s*(SWS_[A-Z0-9_]+)\s*(\d+)\s*([^:]+):/      case $1:/ ) {
         push(@vals, "$1 $2");
-        push(@{$cmds{$curvar}}, "  : $3 { \$0 = $2; }");
+        push(@{$cmds{$curvar}}, "  : $3 { \$0 = $1; }");
         newvar("SWStat") unless $curvar;
       }
       if ( $curvar && ! $tma_output &&
@@ -195,7 +199,9 @@ EOF
 EOF
   for my $vartup ( @vars ) {
     my $var = $vartup->[0];
-    print $of "  : $var &$var { $prefix.$var = \$2; }\n";
+    my $cmd = $vartup->[3];
+    my $offset = scalar(split(' ', $cmd)) + 1;
+    print $of "  : $cmd &$var { $prefix.$var = \$$offset; }\n";
   }
   print $of "  ;\n";
   for my $vartup ( @vars ) {
