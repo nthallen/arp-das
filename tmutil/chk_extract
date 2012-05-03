@@ -21,13 +21,26 @@ while ( <$fh> ) {
   }
 }
 close($fh) || warn "Error closing $pcm[0]\n";
-print map "$rate{$_} Hz $_\n", sort keys %rate;
+
+# print map "$rate{$_} Hz $_\n", sort keys %rate;
 
 # Now check all tmc files for derived channels
 # and bit-selection patterns
 
 my %derived;
 my @bits;
+my %bits;
+my %bitmask;
+
+sub define_bit {
+  my ($bit, $word, $shift, $rate, $file) = @_;
+  my $key = "$word:$shift:$bit";
+  $bits{$key} = [ $bit, $word, $shift, $rate, $file ];
+  delete $derived{$bit} if $derived{$bit};
+  delete $rate{$bit} if defined $rate{$bit};
+  $rate{$key} = $rate;
+  $bitmask{"$word:$shift"} = $bit;
+}
 
 for my $file ( <*.tmc> ) {
   open $fh, "<", $file ||
@@ -35,6 +48,7 @@ for my $file ( <*.tmc> ) {
   while (<$fh>) {
     if ( m/Invalidate\s+(\w+);/i ) {
       $derived{$1} = $file;
+      $rate{$1} = 0;
     }
     if ( m/(\w+)\s*=\s*\(\s*(\w+) \s* >> \s*
            ((?:0x)?[0-9a-fA-F]+) \s* \) \s* & \s* 1;/x ) {
@@ -43,8 +57,7 @@ for my $file ( <*.tmc> ) {
       my $shift = $3;
       $shift = hex($shift) if $shift =~ m/^0x/;
       my $rate = $rate{$word} || 0;
-      push @bits, [ $bit, $word, $shift, $rate, $file ];
-      delete $derived{$bit} if $derived{$bit};
+      define_bit( $bit, $word, $shift, $rate, $file );
     }
     if ( m/(\w+) \s* = \s*
         \( \s* (\w+) \s* & \s* (0x[0-9a-fA-F]+) \s* \)
@@ -59,8 +72,7 @@ for my $file ( <*.tmc> ) {
       }
       if ( $mask == 1 ) {
 	my $rate = $rate{$word} || 0;
-	push @bits, [ $bit, $word, $shift, $rate, $file ];
-	delete $derived{$bit} if $derived{$bit};
+        define_bit( $bit, $word, $shift, $rate, $file );
       }
     }
   }
@@ -68,10 +80,62 @@ for my $file ( <*.tmc> ) {
 }
 
 # Now list all the bits, sorted by word, and shift
-print map "$_->[3] $_->[0]:$_->[1]:$_->[2] $_->[4]\n",
-  sort { $a->[1] cmp $b->[1] || $a->[2] <=> $b->[2] }
-  @bits;
+# print map "$_->[3] $_->[0]:$_->[1]:$_->[2] $_->[4]\n",
+#   sort { $a->[1] cmp $b->[1] || $a->[2] <=> $b->[2] }
+#   values %bits;
 
 # And list any other derived values:
-print map "0 $_ $derived{$_}\n",
-  sort keys %derived;
+# print map "0 $_ $derived{$_}\n",
+#   sort keys %derived;
+
+# Now read genui.txt if it exists and mark referenced channels as extracted
+# print "\n====> Checking Extractions\n";
+my %extracted;
+
+if ( open($fh, "<", "genui.txt") ) {
+  while (my $line = <$fh>) {
+    next unless $line =~ m,^\s*(\d+(?:/\d+)?)\s+(\w+)(?::(\w+):(\d+))?\s,;
+    my $rate = $1;
+    my $mnc = $2;
+    my $word = $3;
+    my $bit = $4;
+    my $chan = $word || $mnc;
+    if ( defined $rate{$chan} ) {
+      if ( $rate{$chan} ne $rate ) {
+        my $err = $rate{$chan} ? "Rate" : "Possible rate";
+        warn "$err mismatch for $chan: tmc: $rate{$chan} genui.txt: $rate\n";
+      }
+    } else {
+      warn "genui.txt: Unknown datum: $mnc\n";
+    }
+    if ( defined($word) ) {
+      my $tmc = $bitmask{"$word:$bit"};
+      if ( defined $tmc ) {
+        if ( $tmc ne $mnc ) {
+          warn "Bit name mismatch: tmc: $tmc genui.txt: $mnc\n";
+        }
+        # $mnc = "$tmc:$word:$bit";
+        $mnc = "$word:$bit:$tmc";
+      } else {
+        $mnc = "$word:$bit:$mnc";
+      }
+    }
+    $extracted{$mnc} = 1;
+    $extracted{$word} = 1 if $word;
+  }
+  close($fh) || warn "Error closing genui.txt\n";
+}
+
+# Now go through all the channels defined in %rate and report any
+# that are not extracted.
+
+for my $chan ( grep ! $extracted{$_}, sort keys %rate ) {
+  my $rate = $rate{$chan};
+  if ( $bits{$chan} ) {
+    my $cd = $bits{$chan};
+    # $bits{$key} = [ $bit, $word, $shift, $rate, $file ];
+    $chan = "$cd->[0]:$cd->[1]:$cd->[2] # $cd->[4]"
+  }
+  print "  $rate $chan\n";
+}
+
