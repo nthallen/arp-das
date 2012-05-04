@@ -4,7 +4,7 @@ BIN=decipher install_app mkpatch txt2html word2txt \
 # install by default
 NOINST=distill
 #INSTALL=/usr/bin/install
-INSTALL=cp -v
+INSTALL=cp -vn
 
 .PHONY : install checkperl
 

@@ -1,15 +1,31 @@
 #! /usr/bin/perl -w
-# Generate p$mnemonic, g$mnemonic, ui_$mnemonic and .edf outputs
 # Possible improvements:
 #   Option to include certain plots in multiple groups.
 #   Workaround is not terribly onerous, just an extra pl_ file.
 
+#ifdef __USAGE
+#%C	[-d matdir] [-c] inputfile
+#	-d matdir directory to write .m files. Default is
+#	current directory.
+#	-c generate .cdf instead of .edf
+#
+# Generates p$mnemonic, g$mnemonic, ui_$mnemonic and .edf outputs
+#
+# Input file format:
+#
 # HEADER text - appears at the top of GUI index
 # MNEMONIC \w+ - used all over to make names specific
 # HOMEDIR \S+ - the directory where we'll find run subdirectories
 # ROWS \d+ - used to decide when to create a new column in the GUI
 # \d+(/\d+)? \w+(:\w+:\d+)? \w+ \w+
 #  <Rate> <Mnemonic>[:<Mnemonic>:<bitnumber>] <group> <plot> [<legend>]
+
+use strict;
+use Getopt::Std;
+my %opts;
+getopts('cd:', \%opts);
+my $matdir = $opts{d} || '.';
+-d $matdir || die "Specified matdir '$matdir' is not a directory\n";
 
 my %group; # for each grp, list of plots in definition order
 my @group; # list of grps in definition order
@@ -98,20 +114,36 @@ while (<>) {
   }
 }
 
-open( EDF, ">${experiment}eng.edf" ) ||
-  die "Unable to write ${experiment}eng.edf\n";
-my @rates = sort keys %rate;
-for my $rate ( @rates ) {
-  my @vars = sort keys %{$rate{$rate}};
-  $rate =~ s|/|_|g;
-  my $n_var = @vars + 1;
-  print EDF "spreadsheet ${experiment}eng_$rate $n_var\n",
-    join( "\n", map "  $_ $vars[$_-1] %5.1lf", ( 1 .. @vars ) ),
-    "\n";
+if ( $opts{c} ) {
+  open( CDF, ">${experiment}eng.cdf" ) ||
+    die "Unable to write ${experiment}eng.cdf\n";
+  my @rates = sort keys %rate;
+  for my $rate ( @rates ) {
+    my @vars = sort keys %{$rate{$rate}};
+    $rate =~ s|/|_|g;
+    my $n_var = @vars + 1;
+    print CDF "csv ${experiment}eng_$rate $n_var\n",
+      "  0 T${experiment}eng_$rate %.3lf\n",
+      join( "\n", map "  $_ $vars[$_-1]", ( 1 .. @vars ) ),
+      "\n";
+  }
+  close CDF || warn "Error closing ${experiment}eng.cdf\n";
+} else {
+  open( EDF, ">${experiment}eng.edf" ) ||
+    die "Unable to write ${experiment}eng.edf\n";
+  my @rates = sort keys %rate;
+  for my $rate ( @rates ) {
+    my @vars = sort keys %{$rate{$rate}};
+    $rate =~ s|/|_|g;
+    my $n_var = @vars + 1;
+    print EDF "spreadsheet ${experiment}eng_$rate $n_var\n",
+      join( "\n", map "  $_ $vars[$_-1] %5.1lf", ( 1 .. @vars ) ),
+      "\n";
+  }
+  close EDF || warn "Error closing ${experiment}eng.edf\n";
 }
-close EDF || warn "Error closing ${experiment}eng.edf\n";
 
-open( UI, ">ui_$experiment.m" ) ||
+open( UI, ">", "${matdir}/ui_$experiment.m" ) ||
   die "Unable to open ui_$experiment.m\n";
 print UI
   "function ui_$experiment;\n",
@@ -130,7 +162,7 @@ for my $grp ( @group ) {
   print UI
     "f = ne_dialg(f, 'add', 0, 1, 'g$experiment$grp', '$grouptext' );\n";
   $ui_rows += @plots + 1;
-  open( GRP, ">g$experiment$grp.m" ) ||
+  open( GRP, ">", "${matdir}/g$experiment$grp.m" ) ||
     die "Unable to write g$experiment$grp.m\n";
   print GRP
     "function fig = g$experiment$grp(varargin);\n",
@@ -149,7 +181,7 @@ for my $grp ( @group ) {
         $plot );
     print UI
       "f = ne_dialg(f, 'add', 1, 0, 'p$experiment$plt', '$plottext' );\n";
-    open( PLT, ">p$experiment$plt.m" ) ||
+    open( PLT, ">", "${matdir}/p$experiment$plt.m" ) ||
       die "Unable to write to plt_$plt.m\n";
     print PLT
       "function p$experiment$plt(varargin);\n",
