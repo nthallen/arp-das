@@ -1,0 +1,40 @@
+#! /bin/sh
+
+# Given one argument, search through the MANPATH.
+# Look first for files under 'cat' directories,
+# then under 'man' directories.
+
+MANPATH=/usr/pkg/man:/usr/local/man
+
+function nl_error {
+  echo "man: $*" >&2
+  exit 1
+}
+
+topic=$1
+[ -n "$topic" ] || nl_error Must specify a topic
+
+
+manpath=$MANPATH:
+while [ -n "$manpath" ]; do
+  newpath=${manpath%%:*}
+  [ -z "$newpath" ] && break
+  manpath=${manpath#*:}
+  # echo "Trying path '$newpath'"
+  catdirs=`echo $newpath/cat*`
+  if [ "$catdirs" != "$newpath/cat*" ]; then
+    catfile=`find $newpath/cat* -name "$topic.*" | head -n1`
+    if [ -n "$catfile" ]; then
+      less -r $catfile
+      exit 0
+    fi
+  fi
+  manfile=`find $newpath/man* -name "$topic.*" | head -n1`
+  if [ -n "$manfile" ]; then
+    groff -Tascii -man $manfile | less -r
+    exit 0
+  fi
+done
+echo "No manual entry for $topic" >&2
+exit 1
+

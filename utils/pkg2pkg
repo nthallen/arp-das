@@ -20,10 +20,46 @@ pcache=/var/huarp/pkgcache
 [ -z "$1" ] && nl_error "Usage: pkg2pkg <pkg> ..."
 [ -d $proot ] || mkdir $proot || nl_error Unable to create $proot
 [ -d $pcache ] || mkdir $pcache || nl_error Unable to create $pcache
+pkgs=$*
+pkg=''
+pkgs=$*
+processed=''
 
-for pkg in $*; do
+# Assigns to pkg
+function next_pkg {
+  typeset first=''
+  typeset others=''
+  typeset ok
+  typeset pr
+  # echo "next_pkg: $pkgs"
+  for pkg in $pkgs; do
+    if [ -z "$first" ]; then
+      ok=yes
+      for pr in $processed; do
+        if [ $pr = $pkg ]; then
+          # echo "$pkg was already processed, skipping"
+          ok=no
+        fi
+      done
+      [ $ok = yes ] && first=$pkg
+    else
+      others="$others $pkg"
+    fi
+  done
+  pkg=$first
+  pkgs=$others
+  # echo "arglist return: '$pkg'"
+  [ -z "$pkg" ] && return 1
+  processed="$processed $pkg"
+  return 0
+}
+
+while [ -n "$pkgs" ]; do
+  next_pkg || break;
   pkgcnt=`ls -d /var/db/pkg/$pkg* 2>/dev/null | wc -l`
   pkgcnt=${pkgcnt##*( )}
+  depends=''
+
   case $pkgcnt in
     0) nl_error "No package found matching '$pkg'";;
     1) ;;
@@ -33,43 +69,61 @@ for pkg in $*; do
   pkgver=`ls -d /var/db/pkg/$pkg*`
   [ -d "$pkgver" ] || nl_error "Confused by pkg '$pkg': $pkgver"
   [ -f $pkgver/+CONTENTS ] || nl_error "No +CONTENTS in $pkgver"
-  echo "pkg is '$pkg' pkgver is '$pkgver'" >&2
-  echo "Processing $pkgver" >&2
-  pver=`expr $pkgver : "/var/db/pkg/$pkg-\\([0-9][0-9.]*\\)"`
-  [ -n "$pver" ] || nl_error "Could not discern valid version from $pkgver"
-  [ "$proot/$pkg-$pver" = "$pkgver" ] ||
-    echo "Truncating $pkgver to $pkg-$pver" >&2
-  [ -d "$proot/$pkg-$pver" ] || mkdir "$proot/$pkg-$pver" ||
-    nl_error Unable to create $proot/$pkg-$pver
-  { cwd=usr/pkg
-    ignore=''
-    while read line; do
-      case $line in
-	"@cwd /usr/pkg") cwd=usr/pkg;;
-	"@cwd .") cwd=${pkgver#/};;
-	"@cwd "*) nl_error "Unexpected cwd line: '$line'";;
-	"@pkgdep "*) echo "$line" >&2;; # could check...
-	"@ignore") ignore=y;;
-	@*) ;;
-	*) if [ -n "$ignore" ]; then ignore=''; else echo $cwd/$line; fi;;
-      esac
-    done <$pkgver/+CONTENTS
-    find $pkgver -type f | sed -e 's,^/,,'
-  } > $proot/$pkg-$pver/MANIFEST
-  { echo "# Package $pkg-$pver via pkg2pkg $pkgver"
-    echo "Version: $pver"
-    echo "Files: MANIFEST @ /"
-    echo "Files: MANIFEST_pkg @ /"
-  } > $proot/$pkg-$pver/Header
-  for i in Header MANIFEST MANIFEST_pkg; do
-    echo $proot/$pkg-$pver/$i | sed -e 's,^/,,'
-  done > $proot/$pkg-$pver/MANIFEST_pkg
-  archive=/var/huarp/pkgcache/$pkg-$pver.tar
-  cd /
-  for MAN in MANIFEST MANIFEST_pkg; do
-    tar -rf $archive --owner=0 --group=0 --no-recursion \
-      -T $proot/$pkg-$pver/$MAN ||
-      nl_error "tar failed creating archive for $pkg-$pver from $MAN\n"
-  done
-  gzip $archive || nl_error "gzip $archive failed"
+  echo "\nConverting  '$pkg' with '$pkgver'" >&2
+  ppver=`expr $pkgver : "/var/db/pkg/\\([a-zA-Z0-9_-]*-[0-9][0-9.]*\\)"`
+  [ -z "$ppver" -o "$ppver" = "0" ] &&
+    nl_error "Could not discern valid version from $pkgver"
+  pver=`expr $ppver : "[a-zA-Z0-9_-]*-\\([0-9][0-9.]*\\)"`
+  [ -z "$pver" -o "$pver" = "0" ] &&
+    nl_error "Could not discern valid version from $ppver"
+
+  [ "/var/db/pkg/$ppver" = "$pkgver" ] ||
+    echo "  Truncating $pkgver to $ppver" >&2
+  archive=/var/huarp/pkgcache/$ppver.tar
+  if [ -d "$proot/$ppver" ]; then
+    echo "  $proot/$ppver already exists: skipping" >&2
+  else
+    mkdir "$proot/$ppver" ||
+      nl_error Unable to create $proot/$ppver
+    { cwd=usr/pkg
+      ignore=''
+      while read line; do
+        case $line in
+          "@cwd /usr/pkg") cwd=usr/pkg;;
+          "@cwd .") cwd=${pkgver#/};;
+          "@cwd "*) nl_error "Unexpected cwd line: '$line'";;
+          "@pkgdep "*)
+            # echo "$line" >&2
+            dep=${line#@pkgdep }
+            dep=${dep%>*}
+            echo "  $ppver requires $dep" >&2
+            depends="$depends $dep"
+            pkgs="$pkgs $dep";;
+          "@ignore") ignore=y;;
+          @*) ;;
+          *) if [ -n "$ignore" ]; then ignore=''; else echo $cwd/$line; fi;;
+        esac
+      done <$pkgver/+CONTENTS
+      find $pkgver -type f | sed -e 's,^/,,'
+    } > $proot/$ppver/MANIFEST
+    { echo "# Package $ppver via pkg2pkg $pkgver"
+      echo "Version: $pver"
+      [ -n "$depends" ] && echo "Requires:$depends"
+      echo "Files: MANIFEST @ /"
+      echo "Files: MANIFEST_pkg @ /"
+    } > $proot/$ppver/Header
+    for i in Header MANIFEST MANIFEST_pkg; do
+      echo $proot/$ppver/$i | sed -e 's,^/,,'
+    done > $proot/$ppver/MANIFEST_pkg
+    rm -f ${archive}.gz
+  fi
+  if [ ! -f ${archive}.gz ]; then
+    # cd /
+    for MAN in MANIFEST MANIFEST_pkg; do
+      tar -rf $archive --owner=0 --group=0 --no-recursion \
+        -C / -T $proot/$ppver/$MAN ||
+        nl_error "tar failed creating archive for $ppver from $MAN\n"
+    done
+    gzip $archive || nl_error "gzip $archive failed"
+  fi
 done
