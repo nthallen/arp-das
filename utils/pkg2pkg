@@ -13,6 +13,10 @@ function nl_error {
   exit 1
 }
 
+function nl_warn {
+  echo "pkg2pkg: $*" >&2
+}
+
 proot=/var/huarp/pkg
 pcache=/var/huarp/pkgcache
 
@@ -54,22 +58,71 @@ function next_pkg {
   return 0
 }
 
+# Set pkgver to the best match for input pkg pattern
+function pick_pkg {
+  typeset pkg=$1
+  typeset pkgcnt
+  typeset pkgpat
+  typeset ambig=no
+
+  for pkgpat in "$pkg*" "$pkg-[0-9]*"; do
+    pkgcnt=`ls -d /var/db/pkg/$pkgpat 2>/dev/null | wc -l`
+    pkgcnt=${pkgcnt##*( )}
+
+    case $pkgcnt in
+      0) ;;
+      1) pkgver=`ls -d /var/db/pkg/$pkgpat`
+         return;;
+      *) ambig=yes;;
+    esac
+  done
+  # We failed
+  if [ $ambig = yes ]; then
+    echo >&2
+    ls -d /var/db/pkg/$pkg* >&2
+    nl_error "Package '$pkg' is ambiguous"
+  else
+    nl_error "Package '$pkg' not found"
+  fi
+}
+
+function process_contents {
+  cwd=usr/pkg
+  ignore=''
+  while read line; do
+    case $line in
+      "@cwd /usr/pkg") cwd=usr/pkg;;
+      "@cwd .") cwd=${pkgver#/};;
+      "@cwd "*) nl_error "Unexpected cwd line: '$line'";;
+      "@pkgdep "*)
+        # echo "$line" >&2
+        dep=${line#@pkgdep }
+        dep=${dep#\{}
+        dep=${dep%\}},
+        while [ -n "$dep" ]; do
+          dep1=${dep%%,*}
+          dep=${dep#*,}
+
+          dep1=${dep1%>*}
+          dep1=${dep1%<*}
+          nl_warn "  $ppver requires $dep1"
+          depends="$depends $dep1"
+          pkgs="$pkgs $dep1"
+        done;;
+      "@ignore") ignore=y;;
+      @*) ;;
+      *) if [ -n "$ignore" ]; then ignore=''; else echo $cwd/$line; fi;;
+    esac
+  done <$pkgver/+CONTENTS
+  find $pkgver -type f | sed -e 's,^/,,'
+}
+
 while [ -n "$pkgs" ]; do
   next_pkg || break;
-  pkgcnt=`ls -d /var/db/pkg/$pkg* 2>/dev/null | wc -l`
-  pkgcnt=${pkgcnt##*( )}
-  depends=''
-
-  case $pkgcnt in
-    0) nl_error "No package found matching '$pkg'";;
-    1) ;;
-    *) ls -d /var/db/pkg/$pkg*
-       nl_error "Package '$pkg' is ambiguous";;
-  esac
-  pkgver=`ls -d /var/db/pkg/$pkg*`
+  pick_pkg $pkg
   [ -d "$pkgver" ] || nl_error "Confused by pkg '$pkg': $pkgver"
   [ -f $pkgver/+CONTENTS ] || nl_error "No +CONTENTS in $pkgver"
-  echo "\nConverting  '$pkg' with '$pkgver'" >&2
+  nl_warn "\nConverting  '$pkg' with '$pkgver'"
   ppver=`expr $pkgver : "/var/db/pkg/\\([a-zA-Z0-9_-]*-[0-9][0-9.]*\\)"`
   [ -z "$ppver" -o "$ppver" = "0" ] &&
     nl_error "Could not discern valid version from $pkgver"
@@ -78,34 +131,15 @@ while [ -n "$pkgs" ]; do
     nl_error "Could not discern valid version from $ppver"
 
   [ "/var/db/pkg/$ppver" = "$pkgver" ] ||
-    echo "  Truncating $pkgver to $ppver" >&2
+    nl_warn "  Truncating $pkgver to $ppver"
   archive=/var/huarp/pkgcache/$ppver.tar
   if [ -d "$proot/$ppver" ]; then
-    echo "  $proot/$ppver already exists: skipping" >&2
+    nl_warn "  $proot/$ppver already exists: skipping"
+    process_contents > /dev/null
   else
     mkdir "$proot/$ppver" ||
       nl_error Unable to create $proot/$ppver
-    { cwd=usr/pkg
-      ignore=''
-      while read line; do
-        case $line in
-          "@cwd /usr/pkg") cwd=usr/pkg;;
-          "@cwd .") cwd=${pkgver#/};;
-          "@cwd "*) nl_error "Unexpected cwd line: '$line'";;
-          "@pkgdep "*)
-            # echo "$line" >&2
-            dep=${line#@pkgdep }
-            dep=${dep%>*}
-            echo "  $ppver requires $dep" >&2
-            depends="$depends $dep"
-            pkgs="$pkgs $dep";;
-          "@ignore") ignore=y;;
-          @*) ;;
-          *) if [ -n "$ignore" ]; then ignore=''; else echo $cwd/$line; fi;;
-        esac
-      done <$pkgver/+CONTENTS
-      find $pkgver -type f | sed -e 's,^/,,'
-    } > $proot/$ppver/MANIFEST
+    process_contents > $proot/$ppver/MANIFEST
     { echo "# Package $ppver via pkg2pkg $pkgver"
       echo "Version: $pver"
       [ -n "$depends" ] && echo "Requires:$depends"
