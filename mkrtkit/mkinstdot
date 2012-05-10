@@ -1,0 +1,22 @@
+#! /bin/sh
+echo "Creating pkg_indt_dep.dot"
+{
+  echo "digraph G {"
+  echo '  size="10,7.5"; ratio=fill; concentrate=true;'
+
+  find /var/huarp/pkg -name Header | while read hdr; do
+    pkg=${hdr#/var/huarp/pkg/}
+    pkg=${pkg%-*/Header}
+    req=`grep Requires: $hdr | sed -e 's/Requires: *//'`
+    echo "Package '$pkg' requires '$req'" >&2
+    for dep in $req; do
+      dep=${dep%-\[0-9\]*}
+      echo "  \"$pkg\" -> \"$dep\";"
+    done
+  done
+
+  echo '}'
+} >pkg_inst_dep.dot
+# echo "Running dot"
+# dot -Tpdf -opkg_dep.pdf pkg_dep.dot
+# echo "Result in pkg_dep.pdf"
