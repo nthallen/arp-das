@@ -29,6 +29,30 @@ pkg=''
 pkgs=$*
 processed=''
 
+# is_member setname member
+function is_member {
+  typeset i set
+  eval set=\"\$$1\"
+  if [ -n "$set" ]; then
+    for i in $set; do
+      if [ "$2" = "$i" ]; then return 0; fi
+    done
+  fi
+  return 1
+}
+
+# add_member setname member
+# returns true (0) if member was not in set
+# returns false (1) if member was in set
+function add_member {
+  if is_member $1 $2; then
+    return 1
+  else
+    eval $1=\"\$$1 \$2\";
+  fi
+  return 0
+}
+
 # Assigns to pkg
 function next_pkg {
   typeset first=''
@@ -37,24 +61,20 @@ function next_pkg {
   typeset pr
   # echo "next_pkg: $pkgs"
   for pkg in $pkgs; do
-    if [ -z "$first" ]; then
-      ok=yes
-      for pr in $processed; do
-        if [ $pr = $pkg ]; then
-          # echo "$pkg was already processed, skipping"
-          ok=no
-        fi
-      done
-      [ $ok = yes ] && first=$pkg
-    else
-      others="$others $pkg"
+    if ! is_member processed $pkg; then
+      if [ -z "$first" ]; then
+        first=$pkg
+      else
+        others="$others $pkg"
+      fi
     fi
   done
   pkg=$first
   pkgs=$others
   # echo "arglist return: '$pkg'"
   [ -z "$pkg" ] && return 1
-  processed="$processed $pkg"
+  add_member processed $pkg
+  # processed="$processed $pkg"
   return 0
 }
 
@@ -89,6 +109,7 @@ function pick_pkg {
 function process_contents {
   cwd=usr/pkg
   ignore=''
+  depends=''
   while read line; do
     case $line in
       "@cwd /usr/pkg") cwd=usr/pkg;;
@@ -106,8 +127,10 @@ function process_contents {
           dep1=${dep1%>*}
           dep1=${dep1%<*}
           nl_warn "  $ppver requires $dep1"
-          depends="$depends $dep1"
-          pkgs="$pkgs $dep1"
+          add_member depends $dep1
+          # depends="$depends $dep1"
+          add_member pkgs $dep1
+          # pkgs="$pkgs $dep1"
         done;;
       "@ignore") ignore=y;;
       @*) ;;
