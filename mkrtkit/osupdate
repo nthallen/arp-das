@@ -206,7 +206,10 @@ while ( @depchk ) {
       while (<$hdrfh>) {
 	if ( s/^\s*Requires:\s*// ) {
 	  my @pkgs =
-	    map {s/^(\w+)(?:-(\d+(?:\.\d+)*))?$/$1/; $_}
+	    map {
+                s/-\[0-9\]\*$//;
+                s/^([\w-]+)(?:-(\d+(?:\.\d+)*))?$/$1/;
+                $_}
 	      split(' ');
 	  $pkgplan->{deps} ||= [];
 	  for my $reqpkg (@pkgs) {
@@ -320,7 +323,7 @@ sub install {
 
 sub pkg_check {
   my ( $pkg, $src ) = @_;
-  if ( $pkg =~ m/^([\w-]+)(?:-(\d+(?:\.\d+)*))?(?:\.tar\.gz)?$/ ) {
+  if ( $pkg =~ m/^([\w-]+)(?:-(\d+(?:\.\d+)*))(?:\.tar\.gz)?$/ ) {
     my $root = $1;
     my @ver;
     @ver = split( /\./, $2 ) if $2;

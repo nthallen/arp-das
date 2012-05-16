@@ -185,12 +185,15 @@ sub check_header {
 	}
       }
     }
-  } else {
+  } elsif ( @{$pkg{$pkg}} ) {
     my $inst_ver = ver_print($pkg{$pkg}->[0]);
     warn "$pkg: $pkgv not installed\n",
          "  Will report differences from $inst_ver.\n";
     $tgz = "/var/huarp/pkgcache/$inst_ver.tar.gz";
     $err_if_newer = 0;
+  } else {
+    warn "$pkg: package not installed\n";
+    return 0;
   }
   my $have_tgz = -f $tgz;
   my $tgz_time = $have_tgz ? -M $tgz : 0;
