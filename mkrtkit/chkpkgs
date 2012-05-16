@@ -67,7 +67,7 @@ exit($RV);
 
 sub pkg_check {
   my ( $pkg, $src ) = @_;
-  if ( $pkg =~ m|^(?:.*/)?(\w+)(?:-(\d+(?:\.\d+)*))?$| ) {
+  if ( $pkg =~ m|^(?:.*/)?([\w-]+)(?:-(\d+(?:\.\d+)*))$| ) {
     my $root = $1;
     my @ver;
     @ver = split( /\./, $2 ) if $2;
@@ -119,6 +119,8 @@ sub check_header {
   my $version;
   my @mani;
   open(my $fh, "<", $hdr) || die "Unable to read '$hdr'\n";
+  my $hdrdir = $hdr;
+  $hdrdir =~ s,/Header$,, || die;
   while (<$fh>) {
     s/\s*$//;
     if ( $_ =~ m/^Version: *(\S+)\s*$/ ) {
@@ -127,10 +129,11 @@ sub check_header {
       my $file = $1;
       my $root = $2;
       $root =~ s,^(.*[^/])$,$1/,;
-      push(@mani, { file => $file, root => $root });
-    } elsif ( $_ =~ m/^Requires:\s*(\w+(?:\s+\w+)*)$/ ) {
+      push(@mani, { file => "$hdrdir/$file", root => $root });
+    } elsif ( $_ =~ m/^Requires:((?:\s+[\w-]+(?:-\[0-9\]\*)?)+)$/ ) {
       my @reqd = split ' ', $1;
       for my $reqd ( @reqd ) {
+        $reqd =~ s/-\[0-9\]\*$//;
 	if ( ! defined $pkg{$reqd} ) {
 	  $missing{$reqd} ||= [];
 	  push @{$missing{$reqd}}, $pkg;
@@ -160,6 +163,7 @@ sub check_header {
       }
       for my $man ( @mani ) {
 	my $fn = $man->{file};
+	$fn =~ s,^.*/,,; # strip of directory
 	if ( $fn ne "MANIFEST_pkg" ) {
 	  if ( -f "pkgs/$pkg/$fn" ) {
 	    if ( -f "$pkgp/$fn" ) {
@@ -194,10 +198,10 @@ sub check_header {
   for my $man ( @mani ) {
     my $fn = $man->{file};
     my $root = $man->{root};
-    if ( -f "pkgs/$pkg/$fn" ) {
-      open( my $fn, "<", "pkgs/$pkg/$fn" ) ||
-	die "Unable to read pkgs/$pkg/$fn\n";
-      while (<$fn>) {
+    if ( -f "$fn" ) {
+      open( my $fh, "<", "$fn" ) ||
+	die "Unable to read $fn\n";
+      while (<$fh>) {
 	s/\s*$//; # chomp
 	my $path = "$root$_";
 	if ( ! -f $path && ! -d $path && ! -l $path ) {
@@ -208,7 +212,7 @@ sub check_header {
 	  $RV = 1 if $err_if_newer;
 	}
       }
-      close($fn) || warn "$pkg: Error closing pkgs/$pkg/$fn\n";
+      close($fh) || warn "$pkg: Error closing $fn\n";
     }
   }
   return $RV;
