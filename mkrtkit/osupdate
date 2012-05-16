@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 use strict;
-use Getopt::Std;
+# use Getopt::Std;
 
 #ifdef __USAGE
 #   osupdate [-n] [-r ref_node] [-s repository]
@@ -123,7 +123,7 @@ my %avpkg; # the available packages
 chdir $cache ||
   die "Cannot chdir $cache\n";
 for my $pkg ( <*.tar.gz> ) {
-  $pkg =~ s/\.tar\.gz$//;
+  # $pkg =~ s/\.tar\.gz$//;
   my $pp = pkg_check($pkg, $cache);
   if ( ! defined $avpkg{$pp->{root}} ) {
     $avpkg{$pp->{root}} = [];
@@ -140,13 +140,27 @@ for my $pkg ( sort @avpkgs ) {
 my @depchk = sort @pkgs;
 my %pkgplan = map { $_ => {} } @depchk;
 # { uninstall => [ $pp ], install => $pp, dep => [ $pkg ]
-#   sup => [ $pkg ] }
+#   sup => [ $pkg ], req_by => [ who ] }
 
 # Handle explicit adds:
 for my $pkg ( @add ) {
-  if ( ! $pkgplan{$pkg} ) {
-    push @depchk, $pkg;
-    $pkgplan{$pkg} = { req_by => [ 'command line' ] };
+  if ( -f "$cache/$pkg.cfg" ) {
+    open(my $cfg, "<", "$cache/$pkg.cfg") ||
+      die "Unable to read $cache/$pkg.cfg\n";
+    while (my $line = <$cfg>) {
+      chomp $line;
+      my $pp = pkg_check($line, $cache);
+      if ( ! $pkgplan{$pp->{root}} ) {
+        push @depchk, $pp->{root};
+        $pkgplan{$pp->{root}} = { req_by => [ 'command line' ] };
+      }
+    }
+    close $cfg;
+  } else {
+    if ( ! $pkgplan{$pkg} ) {
+      push @depchk, $pkg;
+      $pkgplan{$pkg} = { req_by => [ 'command line' ] };
+    }
   }
 }
 
@@ -306,7 +320,7 @@ sub install {
 
 sub pkg_check {
   my ( $pkg, $src ) = @_;
-  if ( $pkg =~ m/^(\w+)(?:-(\d+(?:\.\d+)*))?$/ ) {
+  if ( $pkg =~ m/^([\w-]+)(?:-(\d+(?:\.\d+)*))?(?:\.tar\.gz)?$/ ) {
     my $root = $1;
     my @ver;
     @ver = split( /\./, $2 ) if $2;
