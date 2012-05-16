@@ -1,0 +1,5 @@
+# Package citco2
+#  Development base for CalTech CO2 Containers
+Version: 1.0
+Requires: develop p5-libwww curl libxml2
+Files: MANIFEST_pkg @ /
