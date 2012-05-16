@@ -62,7 +62,7 @@ while (@reqlist) {
     my @opts;
     @opts = sort { vercmp($a,$b) } map s|^.*/|| &&
        pkg_check($_, "Package directory: $pkgroot"),
-       glob "$pkgroot/$pkg->{root}-*";
+       glob "$pkgroot/$pkg->{root}-[0-9]*";
     # These are sorted in ascending order, so the last element
     # is the one we want
     die "Unable to locate package $pkg->{root} required by $pkg->{src}\n"
@@ -118,10 +118,14 @@ sub inst_pkg {
 # and returns a hashref with $root and @ver elements
 sub pkg_check {
   my ( $pkg, $src ) = @_;
-  if ( $pkg =~ m/^(\w+)(?:-(\d+(?:\.\d+)*))?$/ ) {
+  if ( $pkg =~ m/^([\w-]+)(?:-(\d+(?:\.\d+)*))$/ ) {
     my $root = $1;
     my @ver;
     @ver = split( /\./, $2 ) if $2;
+    return { root => $root, ver => \@ver, src => $src };
+  } elsif ( $pkg =~ m/^([\w-]+)$/ ) {
+    my $root = $1;
+    my @ver;
     return { root => $root, ver => \@ver, src => $src };
   } else {
     die "Invalid package reference: '$pkg' from $src\n";
@@ -163,8 +167,9 @@ sub pkg_read_header {
   while ( my $line = <HDR> ) {
     chomp $line;
     next if $line =~ m/^\s*(?:#.*)?$/;
-    if ( $line =~ m/^\s*Requires:((?:\s+[-\w.]+)*)$/ ) {
+    if ( $line =~ m/^\s*Requires:((?:\s+[-\w.]+(?:-\[0-9\]\*)?)*)$/ ) {
       for my $rpkg ( reverse split ' ', $1 ) {
+        $rpkg =~ s/-\[0-9\]\*$//;
       	my $rpkgpkg = pkg_check( $rpkg, $pkg->{name} );
         push( @reqlist, $rpkgpkg );
         push @{$pkg->{Requires}}, $rpkgpkg->{root};
