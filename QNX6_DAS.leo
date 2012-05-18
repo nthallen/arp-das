@@ -15,8 +15,6 @@
 <v t="ntallen.20120314113810.2255"><vh>3/12/12 Added cpu_usage and tmdf</vh></v>
 <v t="ntallen.20120226201115.2246"><vh>2/25/12 Added ascii_escape() to nortlib</vh></v>
 <v t="ntallen.20120226201115.2247"><vh>2/25/12 Added msgv() to tmlib</vh></v>
-</v>
-<v t="ntallen.20110216082835.2101"><vh>Todo</vh>
 <v t="ntallen.20110216082835.2102"><vh>Switch DCCC to res mgr</vh>
 <v t="ntallen.20110216082835.2103"><vh>done: Cmdgen: define new syntax</vh>
 <v t="ntallen.20110215130743.2097"><vh>Server writing commands to driver</vh></v>
@@ -30,6 +28,7 @@
 <v t="ntallen.20110218102714.2119"><vh>done: subbusd</vh></v>
 </v>
 </v>
+<v t="ntallen.20110216082835.2101"><vh>Todo</vh></v>
 <v t="ntallen.20070815151915"><vh>Status</vh>
 <v t="ntallen.20080729145409"><vh>Overview</vh></v>
 <v t="ntallen.20071127160602"><vh>OS Install</vh>
@@ -90,9 +89,6 @@
 <v t="ntallen.20080627131220.4"><vh>pkgsrc</vh></v>
 </v>
 </v>
-<v t="ntallen.20070815151915.3"><vh>Lessons</vh>
-<v t="ntallen.20090430131154"><vh>Linking Problem: 090430</vh></v>
-</v>
 <v t="ntallen.20070409132623"><vh>PR</vh>
 <v t="ntallen.20070409133739"><vh>Operation</vh>
 <v t="ntallen.20070409133739.1"><vh>Configurations</vh>
@@ -112,62 +108,7 @@
 </v>
 <v t="ntallen.20070409133739.3"><vh>Implementation</vh></v>
 </v>
-<v t="ntallen.20070413134915"><vh>QNX Development Issues</vh>
-<v t="ntallen.20070425144317"><vh>Handling more than one executable per project</vh></v>
-<v t="ntallen.20070413134915.1"><vh>Development Strategy</vh>
-<v t="ntallen.20070425144317.1"><vh>cmdgen</vh>
-<v t="ntallen.20070430134037"><vh>QNX4</vh></v>
-</v>
-<v t="ntallen.20070502121159"><vh>Names and Devices</vh></v>
-<v t="ntallen.20070425144317.4"><vh>nortlib</vh></v>
-<v t="ntallen.20070425144317.2"><vh>tmlib</vh></v>
-<v t="ntallen.20070425144317.3"><vh>tmphlib</vh></v>
-<v t="ntallen.20100927130121.2034"><vh>displib</vh></v>
-<v t="ntallen.20100927130121.2033"><vh>tmnclib</vh></v>
-</v>
-</v>
-<v t="ntallen.20070502121159.1" a="E"><vh>Implementation</vh>
-<v t="ntallen.20070320121924"><vh>cmdgen</vh>
-<v t="ntallen.20070501165557"><vh>Done</vh>
-<v t="ntallen.20070411152334"><vh>Add Interface Definitions</vh>
-<v t="ntallen.20070404111542"><vh>Initialization</vh></v>
-</v>
-<v t="ntallen.20070501165557.1"><vh>Figure out appropriate library flag</vh></v>
-<v t="ntallen.20070502121159.2"><vh>Syntax and version checking</vh>
-<v t="ntallen.20070502121159.3"><vh>cis must produce syntax error messages</vh></v>
-<v t="ntallen.20070502121159.4"><vh>cic must handle version test differently</vh></v>
-</v>
-<v t="ntallen.20070404165230.1"><vh>Handle Quit</vh></v>
-<v t="ntallen.20070501165557.2"><vh>Fix up the experiment path correctly in cis.c</vh></v>
-<v t="ntallen.20070508171951"><vh>cmdgen: cis_interface needs to be bracketed by #ifdef SERVER</vh></v>
-<v t="ntallen.20070508171951.1"><vh>cmdgen: cmdgen.skel needs main() changes for PHOTON</vh></v>
-<v t="ntallen.20070501165557.3"><vh>Tweak cmdgen.skel</vh></v>
-<v t="ntallen.20070501165557.4"><vh>Write a photon command client</vh></v>
-<v t="ntallen.20070508171951.3"><vh>cmdgen: cmdgen.skel needs to be distributed</vh></v>
-<v t="ntallen.20070509151554"><vh>Move oui libary to $(datadir)/oui</vh></v>
-<v t="ntallen.20070508171951.4"><vh>cmdgen: cmdgen.skel atexit() needs to be investigated</vh></v>
-<v t="ntallen.20070509151554.1"><vh>cmdgen: cmdgen.skel SERVER DISPLAY_EOL</vh></v>
-<v t="ntallen.20070508171951.5"><vh>Handle quit and exit in cmdclient</vh></v>
-<v t="ntallen.20070509151554.2"><vh>Move cmdclient.c into tmphlib</vh></v>
-<v t="ntallen.20070502121159.5"><vh>Memo interface can wait</vh></v>
-<v t="ntallen.20070509151554.3"><vh>Add default .cmd files as appropriate</vh></v>
-</v>
-<v t="ntallen.20070508171951.2"><vh>Todo</vh>
-<v t="ntallen.20070508171951.6"><vh>Draw polygon</vh></v>
-<v t="ntallen.20070508171951.7"><vh>Get a cursor in cmd_text somehow</vh></v>
-</v>
-</v>
-<v t="ntallen.20070509151554.4"><vh>appgen</vh>
-<v t="ntallen.20070509151554.5"><vh>command server</vh></v>
-</v>
-<v t="ntallen.20080516115802.1"><vh>memo</vh></v>
-<v t="ntallen.20091022143321"><vh>mkdoit3	</vh></v>
-<v t="ntallen.20091022143321.1"><vh>algorithm status</vh></v>
-<v t="ntallen.20120314113810.2256" a="E"><vh>edf for ascii output</vh>
-<v t="ntallen.20120320094259.2263"><vh>Example csv code</vh></v>
-</v>
-</v>
-<v t="ntallen.20070502121159.6"><vh>Design</vh>
+<v t="ntallen.20070502121159.6" a="E"><vh>Design</vh>
 <v t="ntallen.20070319130904.1"><vh>Data</vh>
 <v t="ntallen.20070524163205"><vh>Data Issues</vh>
 <v t="ntallen.20070524163205.1"><vh>What is the difference between the telemetry stream and the TM stream as returned from TMbfr?</vh>
@@ -347,7 +288,7 @@
 <v t="ntallen.20070330134656.1"></v>
 </v>
 <v t="ntallen.20070404165230"><vh>Support SELECT</vh></v>
-<v t="ntallen.20070404165230.1"></v>
+<v t="ntallen.20070404165230.1"><vh>Handle Quit</vh></v>
 <v t="ntallen.20070320150841.4"><vh>Incorporate cmdgen</vh></v>
 <v t="ntallen.20070404165230.2"><vh>Support Signals</vh></v>
 </v>
@@ -379,8 +320,10 @@
 <v t="ntallen.20070322160353.4"><vh>Terminate after at least one client has opened and all have closed</vh></v>
 </v>
 </v>
-<v t="ntallen.20100729115515.2029"><vh>subbus_usb</vh></v>
-<v t="ntallen.20090202133816"><vh>Utilities</vh>
+<v t="ntallen.20100729115515.2029"><vh>subbus_usb</vh>
+<v t="ntallen.20120417153231.2297"><vh>mread optimization</vh></v>
+</v>
+<v t="ntallen.20090202133816" a="E"><vh>Utilities</vh>
 <v t="ntallen.20090202133816.1"><vh>mkdoit</vh>
 <v t="ntallen.20090202133816.2"><vh>Dedicated Acquisition node</vh></v>
 <v t="ntallen.20110106130520.2064"><vh>doit [-ns] [-p run] [-i src] [start|stop|not|wait]</vh>
@@ -396,7 +339,18 @@
 <v t="ntallen.20110113085104.2075"><vh>Dependencies</vh></v>
 </v>
 </v>
-<v t="ntallen.20120314113810.2256" a="E"></v>
+<v t="ntallen.20120314113810.2256"><vh>edf for ascii output</vh>
+<v t="ntallen.20120320094259.2263"><vh>Example csv code</vh></v>
+</v>
+<v t="ntallen.20120413145112.2285" a="E"><vh>code generation</vh>
+<v t="ntallen.20120413145112.2286" a="E"><vh>Software Status</vh>
+<v t="ntallen.20120416101234.2290" a="E"><vh>Enhancements</vh>
+<v t="ntallen.20120416101234.2292"><vh>Support for specifying variable type</vh></v>
+<v t="ntallen.20120416101234.2291"><vh>Support for other SW variables</vh></v>
+</v>
+</v>
+<v t="ntallen.20120416101234.2289"><vh>QCLI</vh></v>
+</v>
 </v>
 <v t="ntallen.20110421132300.2127"><vh>Data Management</vh>
 <v t="ntallen.20110421132300.2128"><vh>The Need</vh></v>
@@ -593,6 +547,29 @@
 </v>
 </v>
 </v>
+<v t="ntallen.20070817133522" a="E"><vh>Documentation</vh>
+<v t="ntallen.20070817133522.1"><vh>QNX4</vh>
+<v t="ntallen.20070817133522.2"><vh>DG</vh></v>
+</v>
+<v t="ntallen.20070817133522.3" a="E"><vh>QNX6</vh>
+<v t="ntallen.20120318122206.2259"><vh>Examples of Communication Strategies</vh>
+<v t="ntallen.20120318122206.2260"><vh>Send/Receive Messages</vh></v>
+</v>
+<v t="ntallen.20071127160602"></v>
+<v t="ntallen.20110102095209.2061"><vh>cmdgen</vh></v>
+<v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
+<v t="ntallen.20080716155154.1"><vh>DG.h</vh>
+<v t="ntallen.20080716155154.2"><vh>Collector.h</vh></v>
+<v t="ntallen.20080716155154.3"><vh>Extractor.h</vh></v>
+</v>
+<v t="ntallen.20080716155154.4"><vh>DC.h</vh>
+<v t="ntallen.20080720213239"><vh>Simple Data Client</vh></v>
+<v t="ntallen.20080720213239.1"><vh>Photon Data Client</vh></v>
+<v t="ntallen.20080720213239.2"><vh>Data Client with Command Interface</vh></v>
+</v>
+</v>
+<v t="ntallen.20070817133522.4"><vh>DC</vh></v>
+<v t="ntallen.20070817133522.5"></v>
 <v t="ntallen.20070404221945.4"><vh>Drivers</vh>
 <v t="ntallen.20110117144243.2077"><vh>General</vh></v>
 <v t="ntallen.20110131090023.2079"><vh>Subbus</vh>
@@ -649,31 +626,19 @@
 <v t="ntallen.20070330134656.4"><vh>OCB</vh></v>
 <v t="ntallen.20070330134656.5"><vh>Strategy for multiple readers</vh></v>
 </v>
-<v t="ntallen.20070817133522" a="E"><vh>Documentation</vh>
-<v t="ntallen.20070817133522.1"><vh>QNX4</vh>
-<v t="ntallen.20070817133522.2"><vh>DG</vh></v>
-</v>
-<v t="ntallen.20070817133522.3" a="E"><vh>QNX6</vh>
-<v t="ntallen.20120318122206.2259" a="E"><vh>Examples of Communication Strategies</vh>
-<v t="ntallen.20120318122206.2260"><vh>Send/Receive Messages</vh></v>
-</v>
-<v t="ntallen.20071127160602"></v>
-<v t="ntallen.20110102095209.2061"><vh>cmdgen</vh></v>
-<v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
-<v t="ntallen.20080716155154.1"><vh>DG.h</vh>
-<v t="ntallen.20080716155154.2"><vh>Collector.h</vh></v>
-<v t="ntallen.20080716155154.3"><vh>Extractor.h</vh></v>
-</v>
-<v t="ntallen.20080716155154.4"><vh>DC.h</vh>
-<v t="ntallen.20080720213239"><vh>Simple Data Client</vh></v>
-<v t="ntallen.20080720213239.1"><vh>Photon Data Client</vh></v>
-<v t="ntallen.20080720213239.2"><vh>Data Client with Command Interface</vh></v>
-</v>
-</v>
-<v t="ntallen.20070817133522.4"><vh>DC</vh></v>
-<v t="ntallen.20070817133522.5"></v>
 <v t="ntallen.20120309103850.2251"><vh>Report CPU Utilization</vh></v>
 <v t="ntallen.20120309103850.2252"><vh>Report Diskspace</vh></v>
+<v t="ntallen.20120321121230.2265"><vh>Instrument Development Workflow</vh>
+<v t="ntallen.20120321121230.2266"><vh>Identify subsystems, commands and channels</vh></v>
+<v t="ntallen.20120321121230.2267"><vh>Assign Types, Addresses, Rates</vh></v>
+<v t="ntallen.20120321121230.2268"><vh>Create TMC definitions</vh></v>
+<v t="ntallen.20120321121230.2269"><vh>Create screen layouts</vh></v>
+<v t="ntallen.20120321121230.2270"><vh>Create extraction definitions</vh>
+<v t="ntallen.20120321121230.2272"><vh>Use chk_extract</vh></v>
+<v t="ntallen.20120321121230.2271"><vh>Use genui to layout engineering plots</vh></v>
+</v>
+</v>
+<v t="ntallen.20120517210920.2299"><vh>Photon or Not Photon</vh></v>
 </v>
 </v>
 <v t="ntallen.20110211111845.2089"><vh>QNX6 Sys Admin</vh>
@@ -692,6 +657,65 @@
 <v t="ntallen.20110831091607.2212"><vh>Replicating USB Flash Installer</vh></v>
 </v>
 </v>
+</v>
+<v t="ntallen.20070815151915.3"><vh>Lessons</vh>
+<v t="ntallen.20090430131154"><vh>Linking Problem: 090430</vh></v>
+</v>
+<v t="ntallen.20070413134915"><vh>QNX Development Issues</vh>
+<v t="ntallen.20070425144317"><vh>Handling more than one executable per project</vh></v>
+<v t="ntallen.20070413134915.1"><vh>Development Strategy</vh>
+<v t="ntallen.20070425144317.1"><vh>cmdgen</vh>
+<v t="ntallen.20070430134037"><vh>QNX4</vh></v>
+</v>
+<v t="ntallen.20070502121159"><vh>Names and Devices</vh></v>
+<v t="ntallen.20070425144317.4"><vh>nortlib</vh></v>
+<v t="ntallen.20070425144317.2"><vh>tmlib</vh></v>
+<v t="ntallen.20070425144317.3"><vh>tmphlib</vh></v>
+<v t="ntallen.20100927130121.2034"><vh>displib</vh></v>
+<v t="ntallen.20100927130121.2033"><vh>tmnclib</vh></v>
+</v>
+</v>
+<v t="ntallen.20070502121159.1"><vh>Implementation</vh>
+<v t="ntallen.20070320121924"><vh>cmdgen</vh>
+<v t="ntallen.20070501165557"><vh>Done</vh>
+<v t="ntallen.20070411152334"><vh>Add Interface Definitions</vh>
+<v t="ntallen.20070404111542"><vh>Initialization</vh></v>
+</v>
+<v t="ntallen.20070501165557.1"><vh>Figure out appropriate library flag</vh></v>
+<v t="ntallen.20070502121159.2"><vh>Syntax and version checking</vh>
+<v t="ntallen.20070502121159.3"><vh>cis must produce syntax error messages</vh></v>
+<v t="ntallen.20070502121159.4"><vh>cic must handle version test differently</vh></v>
+</v>
+<v t="ntallen.20070404165230.1"></v>
+<v t="ntallen.20070501165557.2"><vh>Fix up the experiment path correctly in cis.c</vh></v>
+<v t="ntallen.20070508171951"><vh>cmdgen: cis_interface needs to be bracketed by #ifdef SERVER</vh></v>
+<v t="ntallen.20070508171951.1"><vh>cmdgen: cmdgen.skel needs main() changes for PHOTON</vh></v>
+<v t="ntallen.20070501165557.3"><vh>Tweak cmdgen.skel</vh></v>
+<v t="ntallen.20070501165557.4"><vh>Write a photon command client</vh></v>
+<v t="ntallen.20070508171951.3"><vh>cmdgen: cmdgen.skel needs to be distributed</vh></v>
+<v t="ntallen.20070509151554"><vh>Move oui libary to $(datadir)/oui</vh></v>
+<v t="ntallen.20070508171951.4"><vh>cmdgen: cmdgen.skel atexit() needs to be investigated</vh></v>
+<v t="ntallen.20070509151554.1"><vh>cmdgen: cmdgen.skel SERVER DISPLAY_EOL</vh></v>
+<v t="ntallen.20070508171951.5"><vh>Handle quit and exit in cmdclient</vh></v>
+<v t="ntallen.20070509151554.2"><vh>Move cmdclient.c into tmphlib</vh></v>
+<v t="ntallen.20070502121159.5"><vh>Memo interface can wait</vh></v>
+<v t="ntallen.20070509151554.3"><vh>Add default .cmd files as appropriate</vh></v>
+</v>
+<v t="ntallen.20070508171951.2"><vh>Todo</vh>
+<v t="ntallen.20070508171951.6"><vh>Draw polygon</vh></v>
+<v t="ntallen.20070508171951.7"><vh>Get a cursor in cmd_text somehow</vh></v>
+</v>
+</v>
+<v t="ntallen.20070509151554.4"><vh>appgen</vh>
+<v t="ntallen.20070509151554.5"><vh>command server</vh></v>
+</v>
+<v t="ntallen.20080516115802.1"><vh>memo</vh></v>
+<v t="ntallen.20091022143321"><vh>mkdoit3	</vh></v>
+<v t="ntallen.20091022143321.1"><vh>algorithm status</vh></v>
+<v t="ntallen.20120314113810.2256"></v>
+</v>
+<v t="ntallen.20120328212136.2281"><vh>Releases</vh>
+<v t="ntallen.20120328212136.2282"><vh>120328</vh></v>
 </v>
 </v>
 <v t="ntallen.20110930133820.2225"><vh>Linux Port?</vh>
@@ -1074,7 +1098,8 @@ nl_find_name() actually opened a connection. Since the connection is now an fd, 
 
 The QNX6 function for building a name is tm_dev_name()
 The function for establishing a connection is tm_open_name( fqen, node, flags )</t>
-<t tx="ntallen.20070502121159.1"></t>
+<t tx="ntallen.20070502121159.1">This appears to be old status
+</t>
 <t tx="ntallen.20070502121159.2"></t>
 <t tx="ntallen.20070502121159.3"></t>
 <t tx="ntallen.20070502121159.4"></t>
@@ -5721,5 +5746,130 @@ int main(int argc, char **argv) {
   }
 }
 </t>
+<t tx="ntallen.20120321121230.2265"></t>
+<t tx="ntallen.20120321121230.2266">Not unreasonable to have a command or channel associated with more than
+one subsystem, particularly if one is a summary
+
+Collect information about channel requirements (range, calibration, etc.)</t>
+<t tx="ntallen.20120321121230.2267">Based on Interconnect, etc.
+</t>
+<t tx="ntallen.20120321121230.2268">type definitions from range data?
+</t>
+<t tx="ntallen.20120321121230.2269">Use subsystem organization as a starting point
+Use chk_display to confirm that everything [important]
+is displayed.
+</t>
+<t tx="ntallen.20120321121230.2270"></t>
+<t tx="ntallen.20120321121230.2271"></t>
+<t tx="ntallen.20120321121230.2272"></t>
+<t tx="ntallen.20120328212136.2281"></t>
+<t tx="ntallen.20120328212136.2282">2035463151 354136064 gse-flight_inst-120328.iso
+</t>
+<t tx="ntallen.20120413145112.2285"></t>
+<t tx="ntallen.20120413145112.2286">Software status as implemented consists of:
+    swstat.h defining message structure, values
+    swstat.cmd defining structure, interface to TM and
+      pairs command text with symbols from swstat.h
+    swstat.tma taking actions based on values
+
+SW_Variable: SWStat
+SWS_TAKEOFF 1 Altitude Takeoff: depending on (ON_GROUND) using_swp = 1; break;
+
+Could generate a default swstat.h if one does not already exists.
+Ditto for swstat.tmc, swstat_col.tmc
+
+SWS_ values should go into a separate file: swstatv.h
+swstat.cmd and swstat.tma would be generated from this file
+
+SWData.h
+  # generated from all .sws files (if it doesn't exist?)
+  #   Clearly I'm thinking there might be reason to add
+  #   additional variables to the data structure.
+  #   It might make more sense to provide a hook for
+  #   other vars.
+  # Add to SRC
+  defines swstat_t
+  extern swstat_t SWData
+  #include "swstatv.h"
+SWData.tmc # generated from all .sws files
+  # Add to tmcbase
+  TM "Receive" SWData 0
+  TM 1 Hz UCHAR SWStat; collect SWStat = SWData.SWStat;
+SWData_col.tmc # generated if it doesn't exist
+  # Add to colbase
+  #include "swstat.h"
+  swstat_t SWData;
+
+SWDatav.h
+SWData.cmd
+  # Add to cmdbase
+  # List .sws in cmdbase
+swstat.tma
+  # List .sws in algo dependency
+
+swsbase = swstat.sws
+    Add SWData.h to SRC
+    Add SWData.tmc to tmcbase, SRCDIST
+    Add SWData.cmd to cmdbase
+    Add SWData_col.tmc to colbase
+    Add rule to create swstat.tma</t>
+<t tx="ntallen.20120416101234.2289">The same kind of optimizations could apply to QCLI</t>
+<t tx="ntallen.20120416101234.2290"></t>
+<t tx="ntallen.20120416101234.2291">SW_Variable: &lt;float,PID_SP_t&gt; PID_SP
+  : PID_SP %f (Enter Setpoint Value) { SWData.PID_SP = $2; }
+
+Adds var to $prefix.h struct
+Adds command to &amp;SWTM definition with { $prefix.$var = $2; }
+Adds def to $prefix.tmc
+</t>
+<t tx="ntallen.20120416101234.2292"># Need to specify both C type and TM type
+SW_Variable: SWStat &lt;unsigned char&gt; UCHAR</t>
+<t tx="ntallen.20120417153231.2297">The basics of the mutli-read interface have been demonstrated to work.
+Now for practical application in an experiment. Suppose I have a group of channels:
+    
+    TM 1 Hz AI16 C24VT; Address C24VT 0xCB0; /* CO2 V/I 24v Supply Temp */
+    TM 1 Hz AI16 CCel1T; Address CCel1T 0xCB4; /* Cell Temp 1 CO2 */
+    TM 1 Hz AI16 CCel2T; Address CCel2T 0xCF4; /* Cell Temp 2 CO2 */
+    TM 1 Hz AI16 CCelCT; Address CCelCT 0xC7A; /* Cell Control Temp CO2 */
+    TM 1 Hz AI16 CCelHP; Address CCelHP 0xC32; /* Cell Pressure (1000 Torr) CO2 */
+
+And I want to read with mread_subbus(). First I have to pack the request:
+    mrq = pack_mread_requests(
+        C24VT.Address,
+        CCel1T.Address,
+        CCel2T.Address,
+        CCelCT.Address,
+        CCelHP.Address,
+        0);
+Then I need to allocate a place to hold the results of the mread:
+    unsigned short mrq_buf[5];
+    
+Perform the read and parcel out the results:
+    group mrq (C24VT, CCel1T, CCel2T, CCelCT, CCelHP) {
+        mread_subbus(mrg, &amp;mrq_buf[0]);
+        C24VT = mrq_buf[0];
+        CCel1T = mrq_buf[1];
+        CCel2T = mrq_buf[2];
+        CCelCT = mrq_buf[3];
+        CCelHP = mrq_buf[4];
+    }
+
+Might be nice to combine these:
+    mrq = pack_mread_requests(
+        C24VT.Address, &amp;C24VT,
+        CCel1T.Address, &amp;CCel1T,
+        CCel2T.Address, &amp;CCel2T,
+        CCelCT.Address, &amp;CCelCT,
+        CCelHP.Address, &amp;CCelHP,
+        0);
+    group mrq (C24VT, CCel1T, CCel2T, CCelCT, CCelHP) {
+        mread_subbus(mrg);
+    }
+    </t>
+<t tx="ntallen.20120517210920.2299">Photon is a GUI desktop environment that was originally created under QNX4 and carried through to QNX6. The data acquisition system can run with or without Photon. This page addresses some of the issues that might impact your choices and operations.
+
+Most of what the data acquisition system does is completely independent of the display. It is obviously the user interface functions where Photon can come into play. The data display and command client programs are built in both native Photon and ncurses-based versions. Under Photon, you also have access to a realtime graphics program and a somewhat dated version of the Firefox web browser.
+
+Building without photon creates non-functional versions of the Photon display programs (i.e. they run, but they don't display anything) If you are only accessing the system remotely and using the ncurses-based displays (./doit -s), then that should be fine. Rebuilding under Photon will generate the functional programs required.</t>
 </tnodes>
 </leo_file>

@@ -570,6 +570,7 @@ WARN_LOGFILE           =
 
 INPUT =  ../nortlib2/src tmlib/src tmpplib/src displib/src tmphlib/src
 INPUT += subbus_2010/lib subbus_2010/subbusd subbus_2010/subbusd/syscon104
+INPUT += subbus_2010/subbusd/serusb
 INPUT += TMbfr/resmgr ../cmdgen/cmdalgo.h
 
 # This tag can be used to specify the character encoding of the source files
