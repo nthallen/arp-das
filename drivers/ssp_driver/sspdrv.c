@@ -62,8 +62,8 @@ void sspdrv_init( const char *name, int argc, char * const *argv ) {
         mlf_config = optarg;
         break;
       case 'L':
-	latency = atoi(optarg);
-	break;
+        latency = atoi(optarg);
+        break;
       case '?':
         nl_error(3, "Unrecognized Option -%c", optopt);
     }
@@ -160,9 +160,9 @@ void read_cmd( int cmd_fd ) {
           return;
         }
         if ( tcp_state == FD_CONNECT ) {
-	  nl_error( 2, "EN suppressed: not connected" );
-	  head = tail;
-	  continue;
+          nl_error( 2, "EN suppressed: not connected" );
+          head = tail;
+          continue;
         }
         { ssp_config.NP = udp_create();
           char udp_buf[20];
@@ -178,7 +178,7 @@ void read_cmd( int cmd_fd ) {
         }
         udp_close();
         if ( tcp_state != FD_CONNECT )
-	  ssp_data.Status = SSP_STATUS_READY;
+          ssp_data.Status = SSP_STATUS_READY;
         break;
       case 'A':
         switch (*++tail) {
@@ -217,22 +217,22 @@ void read_cmd( int cmd_fd ) {
         }
         break;
       case 'X':
-      	switch (*++tail) {
-	  case 'R':
-	    udp_close();
-	    tcp_reset(board_hostname);
-	    head = ++tail;
-	    continue;
-	  case 'X':
-	    udp_close();
-	    head = ++tail;
-	    quit_received = 1;
-	    continue;
-	  default:
-	    report_invalid(head);
-	    return;
-      	}
-      	break;
+              switch (*++tail) {
+          case 'R':
+            udp_close();
+            tcp_reset(board_hostname);
+            head = ++tail;
+            continue;
+          case 'X':
+            udp_close();
+            head = ++tail;
+            quit_received = 1;
+            continue;
+          default:
+            report_invalid(head);
+            return;
+              }
+              break;
       case 'N':
         tail = read_num( head, &newval );
         if ( tail == NULL ) return;
@@ -333,7 +333,7 @@ int main( int argc, char **argv ) {
         nl_assert(udp_socket >= 0 && udp_socket < 32);
         FD_SET(udp_socket, &readfds );
         udp_width = udp_socket >= non_udp_width ?
-	   udp_socket + 1 : non_udp_width;
+           udp_socket + 1 : non_udp_width;
         break;
       default: nl_error(4, "Bad case for udp_state" );
     }
@@ -351,8 +351,8 @@ int main( int argc, char **argv ) {
       read_cmd( cmd_fd );
     if ( FD_ISSET(tm_data->fd, &writefds ) ) {
       if ( ssp_data.Status == SSP_STATUS_TRIG &&
-	   ++trigger_count > latency+1 )
-	ssp_data.Status = SSP_STATUS_ARMED;
+           ++trigger_count > latency+1 )
+        ssp_data.Status = SSP_STATUS_ARMED;
       Col_send(tm_data);
       ssp_data.Flags &= ~SSP_OVF_MASK;
     }
