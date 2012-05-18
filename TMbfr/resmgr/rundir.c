@@ -1,9 +1,13 @@
 #include <grp.h>
 #include <pwd.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include "rundir.h"
+#include "nortlib.h"
+#include "nl_assert.h"
 
 void mkfltdir(const char *dir, uid_t flt_uid, gid_t flt_gid) {
   struct stat buf;
@@ -34,13 +38,14 @@ void setup_rundir(void) {
   const char *Exp;
   char runexpdir[80];
   int nb;
+  struct stat buf;
 
   flt_user = getpwnam("flight");
   if (flt_user == NULL) nl_error(3, "No flight user" );
   flt_grp = getgrnam("flight");
   if (flt_grp == NULL) nl_error(3, "No flight group" );
-  flt_uid = flt_user->pw_uid
-  flt_gid = flt_grp->gr_gid
+  flt_uid = flt_user->pw_uid;
+  flt_gid = flt_grp->gr_gid;
 
   rundir = "/var/huarp/run";
   mkfltdir(rundir, flt_uid, flt_gid);
