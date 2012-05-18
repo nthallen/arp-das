@@ -12,6 +12,7 @@
 #include "nortlib.h"
 #include "nl_assert.h"
 #include "oui.h"
+#include "rundir.h"
 
 static int io_read (resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb);
 static int io_write(resmgr_context_t *ctp, io_write_t *msg, RESMGR_OCB_T *ocb);
@@ -293,6 +294,7 @@ int main(int argc, char **argv ) {
 
   oui_init_options( argc, argv );
   nl_error( 0, "Startup" );
+  setup_rundir();
   /* initialize dispatch interface */
   if((dpp = dispatch_create()) == NULL) {
       nl_error(3, "Unable to allocate dispatch handle.");
