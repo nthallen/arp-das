@@ -49,9 +49,23 @@ TMCALGO=$(TMAREV) -o $@
 # SOLFMT=sft () { cat $$* >$@tmp; solfmt -o$@ $@tmp; rm $@tmp; }; sft
 SOLFMT=solfmt -o$@
 
+# PHOTON Test:
+# If /dev/photon is not writable, phtable will fail, but we also
+# probably don't need the photon versions of display programs.
+# If the generated .tmc file is empty, the executable will still
+# link and run, but won't do anything useful. So if /dev/photon
+# is not writable, we'll just generate an empty output file.
+# Then when we make, if /dev/photon is writable and these output
+# files are empty, we'll remove them, forcing a remake.
+WPHOTON := $(shell [ -w /dev/photon ] && echo YES)
 %tbl.tmc : %.tbl
-	$(COMPILE.tbl) > $@.tmp $<
+ifeq ($(WPHOTON),YES)
+	$(COMPILE.tbl) $< > $@.tmp
 	mv $@.tmp $@
+else
+	cat /usr/local/share/huarp/nulltbl.tmc > $@
+endif
+
 %tblnc.tmc : %.tbl
 	nctable > $@.tmp $<
 	mv $@.tmp $@

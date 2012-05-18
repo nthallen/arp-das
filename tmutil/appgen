@@ -106,7 +106,9 @@ exec <$ifile >Makefile
 typeset targets prefix tmcbase cmdbase basetargets usage LINK usefiles
 typeset colbase swsbase qclibase ouis
 typeset SERVER
-typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC HOMEDIR DISTRIB SRCDIST TGTNODE TGTDIR
+typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC HOMEDIR DISTRIB SRCDIST
+typeset TGTNODE TGTDIR
+typeset PHTGT
 
 # is_member setname member
 function is_member {
@@ -178,6 +180,12 @@ function def_target {
     nl_error Target $tgt is in another directory.
   is_member SRC $tgt &&
     nl_error Target $tgt conflicts with previous source definition
+
+  # special case for conditional compilation
+  case $tgt in
+    *tbl.tmc) add_member PHTGT $tgt;;
+  esac
+
   if add_member targets $tgt; then
     [ -n "$basetargets" ] && OBJ="$OBJ $tgt"
     set_depname $tgt
@@ -576,7 +584,7 @@ unset -f replace_each replace_all
 
 # output_macro name definition
 # outputs name=definition, but adds continuation characters
-# to make it look nice (eventually)
+# to make it look nice
 function output_macro {
   typeset name i line
   name=$1; shift
@@ -632,6 +640,7 @@ output_macro CMDBASE $cmdbase
 output_macro COLBASE $colbase
 output_macro SWSBASE $swsbase
 output_macro QCLIBASE $qclibase
+output_macro PHTGT $PHTGT
 echo 'RCS=$(SRC) $(TOOL) $(SCRIPT)'
 echo 'SOURCE=$(RCS) $(NONRCS)'
 echo 'OBJECT=$(OBJ) *.err'
@@ -648,7 +657,9 @@ fi
 
 echo 'include /usr/local/share/huarp/appgen.mk'
 echo
-echo 'all : Makefile $(TGT) .cvsignore'
+echo '.PHONY : all extdistribution distribution clean check_photon'
+echo
+echo 'all : Makefile check_photon $(TGT) .cvsignore'
 echo "Makefile : $ifile"
 echo "\tappgen $ifile"
   # This was the cleandist option. No longer optional
@@ -661,6 +672,12 @@ echo "\tappgen $ifile"
   echo "\t@distribute \$(FORCE) \$(TGTDIR)/bin/\$(VERSION)/Base \$(SRCDIST)"
   echo 'distribution : extdistribution'
   echo "\t@distribute \$(FORCE) \$(TGTDIR) \$(IDISTRIB)"
+  echo 'check_photon :'
+  echo 'ifeq ($(WPHOTON),YES)'
+  echo '\t@for tgt in $(PHTGT); do \\'
+  echo '\t  cmp -s $$tgt /usr/local/share/huarp/nulltbl.tmc && echo Remaking $$tgt && rm -f $$tgt; \\'
+  echo '\tdone; true'
+  echo 'endif'
 
 for i in $targets; do
   set_depname $i
