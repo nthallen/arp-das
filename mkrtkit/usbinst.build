@@ -21,7 +21,9 @@
 	procmgr_symlink ../../proc/boot/libc.so.3 /usr/lib/ldqnx.so.2
 
 # Start up some consoles
-	devc-con -n4 &
+	io-hid -d usb -d ps2ser kbd:kbddev:ps2mouse:mousedev &
+	waitfor /dev/io-hid/io-hid
+	devc-con-hid -n4 &
 	reopen /dev/con1
 
 	display_msg .
@@ -101,12 +103,18 @@ devu-uhci.so
 devu-ohci.so
 devu-ehci.so
 
+# Libraries required by io-hid
+libhiddi.so.1
+devh-usb.so
+devh-ps2ser.so
+
 # The files above this line can be shared by mutiple processes
 [data=c]
 # Executables must currently be below this line
 
 # Include a console driver
-devc-con
+io-hid
+devc-con-hid
 
 # Include pci server
 pci-bios
