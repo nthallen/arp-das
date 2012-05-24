@@ -31,7 +31,7 @@
 <v t="ntallen.20110216082835.2101"><vh>Todo</vh></v>
 <v t="ntallen.20070815151915"><vh>Status</vh>
 <v t="ntallen.20080729145409"><vh>Overview</vh></v>
-<v t="ntallen.20071127160602"><vh>OS Install</vh>
+<v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
 <v t="ntallen.20090225110248"><vh>Install 6.4.0</vh></v>
@@ -46,7 +46,12 @@
 <v t="ntallen.20110901091119.2215"><vh>Reinstall 6.5.0</vh></v>
 </v>
 <v t="ntallen.20101129134921.2045"><vh>Eli</vh></v>
-<v t="ntallen.20090824123722"><vh>Runtime kit Creation and Usage</vh>
+<v t="ntallen.20090824123722" a="E"><vh>Runtime kit Creation and Usage</vh>
+<v t="ntallen.20120524101406.2307"><vh>rc.local</vh></v>
+<v t="ntallen.20120523112848.2301" a="E"><vh>Procedure</vh>
+<v t="ntallen.20120523133759.2305"><vh>Install Config Files</vh></v>
+<v t="ntallen.20120523112848.2302"><vh>Config Files</vh></v>
+</v>
 <v t="ntallen.20090505113338"><vh>Flight System Configuration</vh></v>
 <v t="ntallen.20091109122106.1991"><vh>GSE Initialization</vh></v>
 <v t="ntallen.20100726093122.2025"><vh>Add pkgs to install CD: done</vh>
@@ -108,7 +113,7 @@
 </v>
 <v t="ntallen.20070409133739.3"><vh>Implementation</vh></v>
 </v>
-<v t="ntallen.20070502121159.6" a="E"><vh>Design</vh>
+<v t="ntallen.20070502121159.6"><vh>Design</vh>
 <v t="ntallen.20070319130904.1"><vh>Data</vh>
 <v t="ntallen.20070524163205"><vh>Data Issues</vh>
 <v t="ntallen.20070524163205.1"><vh>What is the difference between the telemetry stream and the TM stream as returned from TMbfr?</vh>
@@ -323,7 +328,7 @@
 <v t="ntallen.20100729115515.2029"><vh>subbus_usb</vh>
 <v t="ntallen.20120417153231.2297"><vh>mread optimization</vh></v>
 </v>
-<v t="ntallen.20090202133816" a="E"><vh>Utilities</vh>
+<v t="ntallen.20090202133816"><vh>Utilities</vh>
 <v t="ntallen.20090202133816.1"><vh>mkdoit</vh>
 <v t="ntallen.20090202133816.2"><vh>Dedicated Acquisition node</vh></v>
 <v t="ntallen.20110106130520.2064"><vh>doit [-ns] [-p run] [-i src] [start|stop|not|wait]</vh>
@@ -342,9 +347,9 @@
 <v t="ntallen.20120314113810.2256"><vh>edf for ascii output</vh>
 <v t="ntallen.20120320094259.2263"><vh>Example csv code</vh></v>
 </v>
-<v t="ntallen.20120413145112.2285" a="E"><vh>code generation</vh>
-<v t="ntallen.20120413145112.2286" a="E"><vh>Software Status</vh>
-<v t="ntallen.20120416101234.2290" a="E"><vh>Enhancements</vh>
+<v t="ntallen.20120413145112.2285"><vh>code generation</vh>
+<v t="ntallen.20120413145112.2286"><vh>Software Status</vh>
+<v t="ntallen.20120416101234.2290"><vh>Enhancements</vh>
 <v t="ntallen.20120416101234.2292"><vh>Support for specifying variable type</vh></v>
 <v t="ntallen.20120416101234.2291"><vh>Support for other SW variables</vh></v>
 </v>
@@ -555,7 +560,7 @@
 <v t="ntallen.20120318122206.2259"><vh>Examples of Communication Strategies</vh>
 <v t="ntallen.20120318122206.2260"><vh>Send/Receive Messages</vh></v>
 </v>
-<v t="ntallen.20071127160602"></v>
+<v t="ntallen.20071127160602" a="E"></v>
 <v t="ntallen.20110102095209.2061"><vh>cmdgen</vh></v>
 <v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
 <v t="ntallen.20080716155154.1"><vh>DG.h</vh>
@@ -642,7 +647,7 @@
 </v>
 </v>
 <v t="ntallen.20110211111845.2089"><vh>QNX6 Sys Admin</vh>
-<v t="ntallen.20071127160602"></v>
+<v t="ntallen.20071127160602" a="E"></v>
 <v t="ntallen.20110211111845.2090"><vh>mkrtkit</vh>
 <v t="ntallen.20110211111845.2091"><vh>Version Numbering</vh>
 <v t="ntallen.20110902103207.2217"><vh>Installation Packages</vh></v>
@@ -5871,5 +5876,64 @@ Might be nice to combine these:
 Most of what the data acquisition system does is completely independent of the display. It is obviously the user interface functions where Photon can come into play. The data display and command client programs are built in both native Photon and ncurses-based versions. Under Photon, you also have access to a realtime graphics program and a somewhat dated version of the Firefox web browser.
 
 Building without photon creates non-functional versions of the Photon display programs (i.e. they run, but they don't display anything) If you are only accessing the system remotely and using the ncurses-based displays (./doit -s), then that should be fine. Rebuilding under Photon will generate the functional programs required.</t>
+<t tx="ntallen.20120523112848.2301">Boot off flash drive
+    Requires BIOS configuration to boot off USB
+Install appropriate package
+Reboot
+    May require BIOS reconfiguration to boot off disk
+Install Configuration Files
+
+Get network operations
+    May be enumerated, may need to run pci to identify the appropriate driver
+    If not enumerated and on a platform we are familiar with, it would be
+    handy to have the startup commands available as part of the install
+    May need to register the MAC address with autoreg
+    
+    touch /etc/system/config/useqnet
+    reboot
+    set hostname and domain
+        sudo hostname foo
+        sudo setconf DOMAIN arp.harvard.edu
+    /usr/local/sbin/sec_copy foo</t>
+<t tx="ntallen.20120523112848.2302">Site-specific and/or Platform-specific configuration files that would be handy to include in the install set
+
+/etc/passwd
+/etc/shadow
+/etc/group
+/usr/pkg/etc/sudoers
+
+/etc/net.cfg examples
+/etc/ntp.conf examples
+/etc/rc.d/rc.local examples
+    Network driver invocation
+    chkfsys for QNX4 partitions
+    ntpd (not for flight systems?)
+        /etc/ntp.
+    sshd (not for flight systems?)
+/etc/system/config/useqnet
+
+Setup standard  experiment directories
+/home/flight flight:flight g+w
+/home/$Experiment
+/home/$Experiment/bin</t>
+<t tx="ntallen.20120523133759.2305">There are site-specific, platform-specific, experiment-specific and system-specific configuration settings. The challenge is to figure out how to get these onto a newly configured system. If the network is easily configured, files could be copied over the network, but sometimes it is the network configuration itself that needs to be copied. Therefore at the very least, having a copy of key network configuration files for various platforms would be helpful.
+    Hercules II
+        /etc/rc.d/rc.local for network driver invocation
+        /etc/net.cfg example
+    Versalogic MEBX11
+        /etc/net.cfg example</t>
+<t tx="ntallen.20120524101406.2307">Things that might need to go into rc.local:
+    Network driver initialization (where enumeration fails) and netmanager invocation
+
+    echo "==&gt; Checking file system"
+    /sbin/chkfsys -Pqru /
+
+    echo "==&gt; Clean out huarp run dir"
+    rm -rf /var/huarp/run/*
+        
+    echo "==&gt; Starting Daemons"
+    /usr/sbin/sshd
+    /usr/sbin/ntpd
+ </t>
 </tnodes>
 </leo_file>
