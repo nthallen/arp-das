@@ -3,10 +3,13 @@
  */
 #include <fcntl.h>
 #include <string.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
+#include <process.h>
 #include "DC.h"
 #include "nortlib.h"
+#include "nl_assert.h"
 
 unsigned int data_client::next_minor_frame;
 unsigned int data_client::minf_row;
@@ -36,6 +39,20 @@ void data_client::init(int bufsize_in, int non_block, const char *srcfile) {
     srcfile ?
     tm_open_name( srcfile, srcnode, O_RDONLY | non_block ) :
     -1;
+  if (bfr_fd != -1) {
+    int nb1, nb2;
+    char *filename;
+    FILE *fp;
+    const char *Exp = getenv("Experiment");
+    if (Exp == NULL) Exp = "none";
+    nb1 = snprintf(NULL, 0, "/var/huarp/run/%s/%d", Exp, getpid());
+    filename = (char *)new_memory(nb1+1);
+    nb2 = snprintf(filename, nb1+1, "/var/huarp/run/%s/%d", Exp, getpid());
+    nl_assert(nb1 == nb2);
+    fp = fopen( filename, "w" );
+    if (fp) fclose(fp);
+    else nl_error(2, "Unable to create run file '%s'", filename);
+  }
 }
 
 data_client::data_client(int bufsize_in, int non_block, char *srcfile) {
