@@ -253,7 +253,7 @@ static iofunc_mount_t mountpoint = { 0, 0, 0, 0, &ocb_funcs };
 
 static int setup_mount( char *namebase, int node_type, int mode,
          IOFUNC_ATTR_T *attr, resmgr_io_funcs_t *funcs ) {
-  char *server_name;
+  const char *server_name;
   int mnt_id;
 
   iofunc_attr_init((iofunc_attr_t *)attr, S_IFNAM | mode, 0, 0);

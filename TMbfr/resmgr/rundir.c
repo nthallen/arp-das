@@ -29,31 +29,26 @@ void mkfltdir(const char *dir, uid_t flt_uid, gid_t flt_gid) {
     nl_error(3,"Error chowning directory %s: %s", dir, strerror(errno));
 }
 
-void setup_rundir(void) {
-  struct group *flt_grp;
-  struct passwd* flt_user;
-  uid_t flt_uid;
-  gid_t flt_gid;
-  const char *rundir;
+static const char *get_runexpdir() {
+  static char *red = 0;
   const char *Exp;
-  char runexpdir[80];
-  int nb;
-  struct stat buf;
+  int nb, nb2;
 
-  flt_user = getpwnam("flight");
-  if (flt_user == NULL) nl_error(3, "No flight user" );
-  flt_grp = getgrnam("flight");
-  if (flt_grp == NULL) nl_error(3, "No flight group" );
-  flt_uid = flt_user->pw_uid;
-  flt_gid = flt_grp->gr_gid;
-
-  rundir = "/var/huarp/run";
-  mkfltdir(rundir, flt_uid, flt_gid);
-
+  if (red) return red;
   Exp = getenv("Experiment");
   if (Exp == NULL) Exp = "none";
-  nb = snprintf(runexpdir, 80, "%s/%s", rundir, Exp);
-  nl_assert(nb < 80);
+  nb = snprintf(NULL, 0, "%s/%s", RUNDIR, Exp);
+  red = new_memory(nb+1);
+  nb2 = snprintf(red, nb+1, "%s/%s", RUNDIR, Exp);
+  nl_assert(nb2 == nb);
+  return red;
+}
+
+void delete_rundir(void) {
+  const char *runexpdir;
+  struct stat buf;
+
+  runexpdir = get_runexpdir();
   if (stat(runexpdir, &buf) != -1 || errno != ENOENT) {
     char rmcmd[80];
     int nb = snprintf(rmcmd, 80, "/bin/rm -rf %s", runexpdir);
@@ -68,5 +63,25 @@ void setup_rundir(void) {
       nl_error(3, "Failed to delete runexpdir %s", runexpdir);
     }
   } // else the directory does not exist
+}
+
+void setup_rundir(void) {
+  struct group *flt_grp;
+  struct passwd* flt_user;
+  uid_t flt_uid;
+  gid_t flt_gid;
+  const char *runexpdir;
+
+  flt_user = getpwnam("flight");
+  if (flt_user == NULL) nl_error(3, "No flight user" );
+  flt_grp = getgrnam("flight");
+  if (flt_grp == NULL) nl_error(3, "No flight group" );
+  flt_uid = flt_user->pw_uid;
+  flt_gid = flt_grp->gr_gid;
+
+  mkfltdir(RUNDIR, flt_uid, flt_gid);
+  delete_rundir();
+  atexit(&delete_rundir);
+  runexpdir = get_runexpdir();
   mkfltdir(runexpdir, flt_uid, flt_gid);
 }
