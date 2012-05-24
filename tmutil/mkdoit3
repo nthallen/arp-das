@@ -120,7 +120,11 @@ umask 2
 export Experiment
 
 function nl_error {
-  echo doit: $* >&2
+EOF
+
+print $fh "  echo $opts{o}: \$* >&2\n";
+
+print $fh <<'EOF';
   exit 1
 }
 
@@ -345,14 +349,19 @@ esac
 # Now we can assume that the DG stack has been
 # started one way or another.
 [ -f $logfile ] || touch $logfile
+EOF
 
-if [ ! -e $cmdsrvr ]; then
-  echo "doit: Waiting for cmd/server" 
-  while [ ! -e $cmdsrvr ]; do 
-    waitfor $cmdsrvr 2>/dev/null || sleep 2
-  done
-  echo "doit: Continuing"
-fi
+print $fh
+  map "$_\n",
+    'if [ ! -e $cmdsrvr ]; then',
+    "  echo \"$opts{o}: Waiting for cmd/server\"",
+    '  while [ ! -e $cmdsrvr ]; do',
+    '    waitfor $cmdsrvr 2>/dev/null || sleep 2',
+    '  done',
+    "  echo \"$opts{o}: Continuing\"",
+    'fi';
+
+print $fh <<'EOF';
 
 # allocate consoles as necessary
 case $dispmode in
@@ -361,6 +370,9 @@ case $dispmode in
       rc=screenrc.$session
       { echo startup_message off
         echo split
+	echo focus
+	echo resize 2
+	echo focus
 	# can't easily do this in a loop, as we need
 	# width and height for each screen
 EOF
@@ -371,13 +383,12 @@ for my $disp ( @display ) {
       "echo screen -t $scr->{screenname} /usr/local/sbin/getcon ",
       "$scr->{varname} \$session\n",
       " "x8, "echo width -w $scr->{width}\n",
-      " "x8, "echo height -w $scr->{height}\n";
+      " "x8, "#echo height -w $scr->{height}\n";
   }
 }
 
 print $fh <<'EOF';
 	echo focus
-	echo resize 2
 	echo screen -t clt /usr/local/sbin/getcon clt $session
 	echo height -w 2
 	echo width -w 80
@@ -386,16 +397,19 @@ EOF
 
 if ( $memo ) {
   print $fh <<'EOF';
-	if [ -r $logfile ]; then
-	  echo screen -t $logfileroot$logfilesuffix less +F $logfile
-	fi
+        if [ -r $logfile ]; then
+          echo screen -t $logfileroot$logfilesuffix less +F $logfile
+        fi
 EOF
 }
 
 print $fh <<'EOF';
-	pbarg=''
-	[ $srcmode = playback ] && pbarg=" -p $Run"
-	echo screen -t doit $0 $pbarg -sS $session screen
+        pbarg=''
+        [ $srcmode = playback ] && pbarg=" -p $Run"
+EOF
+
+print $fh "        echo screen -t $opts{o} \$0 \$pbarg -sS \$session screen\n";
+print $fh <<'EOF';
       } >$rc
       screen -c $rc
       clear
@@ -502,10 +516,18 @@ if [ -n "$pterm_pid" ]; then
   kill -sINT $pterm_pid
   # wait a bit so parent needn't report the termination
   sleep 1
-  echo "doit: Invoking parent for cleanup"
+EOF
+
+print $fh "  echo \"$opts{o}: Invoking parent for cleanup\"\n";
+
+print $fh <<'EOF';
   exec parent -qt1
 else
-  echo "doit: Invoking parent for cleanup"
+EOF
+
+print $fh "  echo \"$opts{o}: Invoking parent for cleanup\"\n";
+
+print $fh <<'EOF';
   exec parent -qt3
 fi
 EOF

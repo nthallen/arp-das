@@ -182,6 +182,11 @@ eval_dir bin/$VERSION
   nl_error Unable to locate valid bin directory for version $VERSION
 PATH=$MYPATH${PATH#:}
 
+function hdr {
+  time=`date +%H:%M:%S`
+  echo "$time extract: "
+}
+
 typeset rv='' wext hasext=''
 
 for i in; do
@@ -225,19 +230,34 @@ export TMLOGDIR=$dir
 export TMBINPATH=$MYPATH
 rv=0
 memo -o extract.log -V &
-waitfor /dev/huarp/$Experiment/memo || exit 1
+memo=/dev/huarp/$Experiment/memo
+waitfor $memo || exit 1
 TMbfr &
 waitfor /dev/huarp/$Experiment/TM/DCo || exit 1
 for ext in ; do
   # echo "ext: $ext"
   if [ $debug = yes ]; then
+    ndc0=`ls /var/huarp/run/$Experiment/ | wc -l`
     pterm gdb $gdbinit $ext &
+    while
+      ndc1=`ls /var/huarp/run/$Experiment/ | wc -l`;
+      [ $ndc0 = $ndc1 ];
+    do
+      echo `hdr`"extract: Waiting for gdb $ext to initialize" >$memo
+      sleep 5
+    done
   else
     $ext -h "$ext" &
+    extpid=$!
+    if waitfor /var/huarp/run/$Experiment/$extpid 2>/dev/null; then
+      echo "`hdr`$ext ($extpid) initialized" >$memo
+    else
+      echo "`hdr`ERROR: $ext ($extpid) failed to initialize" >$memo
+    fi
   fi
   shift
 done
-echo "extract: rdr $RDR_OPTS $time_opts -AqP $dir" >/dev/huarp/$Experiment/memo
+echo "`hdr`rdr $RDR_OPTS $time_opts -AqP $dir" >$memo
 rdr $RDR_OPTS $time_opts -AqP $dir || rv=1
 
 # rdr -v -c0 -n $# -Q $RDR_OPTS $time_opts -d $dir -f $dir/tm.dac &
