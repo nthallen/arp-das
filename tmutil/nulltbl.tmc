@@ -1,0 +1,4 @@
+%{
+  /* nulltbl.tmc */
+  #include "tablelib.h"
+%}
