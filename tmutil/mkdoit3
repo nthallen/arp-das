@@ -109,6 +109,7 @@ print $fh <<'EOF';
 #
 #options:
 #	-s use screen for text-mode data display
+#	-a use ASCII chars for line-drawing
 #	-n use photon pterms for text-mode data display
 #	-p <run> play back <run>
 #	-S <session> specify the session (used internally)
@@ -132,8 +133,10 @@ print $fh <<'EOF';
 #   srcmode as one of realtime, InetIn or playback
 #   dispmode as one of screen, pterm or photon
 session=$$
-while getopts "i:p:S:sn" opt; do
+ncopts=''
+while getopts "ai:p:S:sn" opt; do
   case $opt in
+    a) ncopts='-a';;
     i) srcmode=InetIn; InetSrc=$OPTARG;;
     p) srcmode=playback; Run=$OPTARG;;
     s) dispmode=screen; dispmodescreen=1;;
@@ -169,8 +172,8 @@ else
 fi
 
 case $dispmode in
-  screen) nc=nc;;
-  pterm) nc=nc;;
+  screen) nc=nc; ncopt=$ncopts;;
+  pterm) nc=nc; ncopt=$ncopts;;
   photon) nc='';;
   *) nl_error "Unknown dispmode: '$dispmode'";;
 esac
@@ -373,8 +376,6 @@ case $dispmode in
 	echo focus
 	echo resize 2
 	echo focus
-	# can't easily do this in a loop, as we need
-	# width and height for each screen
 EOF
 
 for my $disp ( @display ) {
@@ -387,14 +388,6 @@ for my $disp ( @display ) {
   }
 }
 
-print $fh <<'EOF';
-	echo focus
-	echo screen -t clt /usr/local/sbin/getcon clt $session
-	echo height -w 2
-	echo width -w 80
-	echo focus
-EOF
-
 if ( $memo ) {
   print $fh <<'EOF';
         if [ -r $logfile ]; then
@@ -404,11 +397,19 @@ EOF
 }
 
 print $fh <<'EOF';
+	echo focus
+	echo screen -t clt /usr/local/sbin/getcon clt $session
+	echo height -w 2
+	echo width -w 80
+	echo focus
+EOF
+
+print $fh <<'EOF';
         pbarg=''
         [ $srcmode = playback ] && pbarg=" -p $Run"
 EOF
 
-print $fh "        echo screen -t $opts{o} \$0 \$pbarg -sS \$session screen\n";
+print $fh "        echo screen -t $opts{o} \$0 \$pbarg \$ncopt -sS \$session screen\n";
 print $fh <<'EOF';
       } >$rc
       screen -c $rc
@@ -443,6 +444,10 @@ if ( $memo ) {
 if [ -r $logfile -a $dispmode != screen ]; then
   pterm -t $logfileroot$logfilesuffix less +F $logfile &
   pterm_pid=$!
+fi
+if [ -r $logfile -a $dispmode = screen ]; then
+  pterm_pid=`pidin -P less arg | grep -F "less +F $logfile" | head -n1`
+  pterm_pid=${pterm_pid% less +F $logfile}
 fi
 EOF
 }
@@ -484,7 +489,7 @@ if ( $phrtg ) {
 
 for my $disp ( @display ) {
   my $scr = $screen{$disp};
-  print $fh "Launch - $disp\$nc -t \$FlightNode$progopts{$disp}",
+  print $fh "Launch - $disp\$nc \$ncopt -t \$FlightNode$progopts{$disp}",
     map( " \$$_->{varname}_term", @$scr ), "\n";
 }
 
@@ -513,7 +518,7 @@ print $fh <<'EOF';
 # Leave the log up for a few seconds to view shutdown status
 if [ -n "$pterm_pid" ]; then
   sleep 2
-  kill -sINT $pterm_pid
+  kill $pterm_pid
   # wait a bit so parent needn't report the termination
   sleep 1
 EOF
