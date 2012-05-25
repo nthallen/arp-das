@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.21
+Version: 2.5.22
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
