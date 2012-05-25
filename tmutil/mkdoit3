@@ -378,6 +378,14 @@ case $dispmode in
 	echo focus
 EOF
 
+if ( $memo ) {
+  print $fh <<'EOF';
+        if [ -r $logfile ]; then
+          echo screen -t $logfileroot$logfilesuffix less +F $logfile
+        fi
+EOF
+}
+
 for my $disp ( @display ) {
   for my $scr ( @{$screen{$disp}} ) {
     print $fh " "x8,
@@ -386,14 +394,6 @@ for my $disp ( @display ) {
       " "x8, "echo width -w $scr->{width}\n",
       " "x8, "#echo height -w $scr->{height}\n";
   }
-}
-
-if ( $memo ) {
-  print $fh <<'EOF';
-        if [ -r $logfile ]; then
-          echo screen -t $logfileroot$logfilesuffix less +F $logfile
-        fi
-EOF
 }
 
 print $fh <<'EOF';
