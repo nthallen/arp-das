@@ -1,7 +1,13 @@
 # develop package
-Version: 2.5.22
+Version: 2.5.23
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
 Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
+
+# Changes:
+# 2.5.23
+#   freemem.tmc & freemem_col.tmc added
+#   tmdf.tmc (produce stars for missing vol)
+#   loop.cmd (Write to saverun.log for looping)

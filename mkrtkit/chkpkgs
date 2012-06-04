@@ -140,7 +140,7 @@ sub check_header {
 	  $RV = 1;
 	}
       }
-    } elsif ( $_ =~ m/^\s*#/ ) {
+    } elsif ( $_ =~ m/^\s*(?:#.*)?$/ ) {
     } else {
       warn "$pkg: Unrecognized content in $hdr: '$_'\n";
     }

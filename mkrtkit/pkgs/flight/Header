@@ -1,5 +1,11 @@
 # Package flight
-Version: 2.5.18
+Version: 2.5.19
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
+
+# Changes:
+# 2.5.19
+#   parent (-M <pid> option)
+#   flight.sh (LOOP_ON_FILE)
+#   tmdf (continue to monitor missing volumes)
