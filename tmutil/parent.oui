@@ -5,7 +5,7 @@
 <sort>
 	-q Quit when childless
 	-t <seconds> Send HUP to children after specified delay
-  -M <pid> Don't invoke -t until <pid> has terminated
+	-M <pid> Do not invoke -t until <pid> has terminated
 
 <switch>
   case 'M': monitor_pid = strtol(optarg, NULL, 10);

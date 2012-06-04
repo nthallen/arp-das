@@ -34,11 +34,11 @@ export Experiment
 umask g+w
 
 typeset launch_error=""
-typeset LOOPING=no
+typeset Looping=no
 typeset parent_loop=''
 [ -n "$FlightNode" -a -n "$LOOP_ON_FILE" ] && Looping=yes
 
-if [ $Looping = yes ]; then
+if [ "$Looping" = yes ]; then
   [ -n "$LOOP_STOP_FILE" ] || LOOP_STOP_FILE=loopstop.txt
   if [ -e "$LOOP_ON_FILE" ]; then
     echo "`date '+%F %T'`: Invoking reduce for LOOP_ON_FILE"
@@ -114,7 +114,7 @@ else
   script=${RUNFILE:-runfile.dflt}
 fi
 [ ${script#/} = "$script" ] && script=$TMBINDIR/$script
-if [ -x $script ]; then
+if [ -r $script ]; then
   echo flight.sh: `id`: Experiment=$Experiment script=$script
   . $script
 else
