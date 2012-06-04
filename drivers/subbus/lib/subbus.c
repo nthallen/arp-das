@@ -404,6 +404,25 @@ int mread_subbus( subbus_mread_req *req, unsigned short *data) {
   return rv;
 }
 
+/**
+ Packages a request string into a newly allocated structure that
+ can be passed to mread_subbus(). Called by pack_mread_request()
+ and pack_mread_requests(). The req_str syntax is:
+
+    <req>
+      : M <count> '#' <addr_list> '\n'
+    <addr_list>
+      : <addr_list_elt>
+      : <addr_list> ',' <addr_list_elt>
+    <addr_list_elt>
+      : <addr>
+      : <addr> ':' <incr> ':' <addr>
+      : <count> '@' <addr>
+
+    <count>, <addr>, <incr> are all 1-4 hex digits
+
+ @return the newly allocated request structure.
+ */
 static subbus_mread_req *pack_mread( int req_len, int n_reads, const char *req_str ) {
   int req_size = 2*sizeof(unsigned short) + req_len + 1;
   subbus_mread_req *req = (subbus_mread_req *)new_memory(req_size);
@@ -413,6 +432,11 @@ static subbus_mread_req *pack_mread( int req_len, int n_reads, const char *req_s
   return req;
 }
 
+/**
+ * Takes a zero-terminated list of addresses, generates the appropriate
+ * text request string and invokes pack_mread().
+ * @return the newly allocated request structure.
+ */
 subbus_mread_req *pack_mread_requests( unsigned int addr, ... ) {
   unsigned short addrs[50];
   int n_reads = 0;
@@ -475,6 +499,10 @@ subbus_mread_req *pack_mread_requests( unsigned int addr, ... ) {
   }
 }
 
+/**
+ * Takes a multi-read <addr-list> string and invokes pack_mread().
+ * @return the newly allocated request structure.
+ */
 subbus_mread_req *pack_mread_request( int n_reads, const char *req ) {
   char buf[256];
   int space = 256;
