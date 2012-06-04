@@ -42,6 +42,7 @@ function Launch {
   [ -n "$VERBOSE" ] && echo "Launch: $*"
   if { $* & }; then
     if [ "$name" != "-" ]; then
+      [ "$name" = "-DC-" ] && name="/var/huarp/run/$Experiment/$!"
       [ "${name#/}" = "$name" ] && name="/dev/huarp/$Experiment/$name"
       [ -n "$VERBOSE" ] && echo "Launch: Waiting for $!:$name"
       waitfor $name 10 || {
