@@ -15,6 +15,7 @@ static int saw_HUP = 0;
 static int saw_INT = 0;
 int quit_when_childless = 0;
 int parent_timeout = 0;
+pid_t monitor_pid = 0;
 
 void ChildHandler(int sig) {
   check_children = 1;
@@ -43,7 +44,9 @@ int main( int argc, char **argv ) {
   signal(SIGCHLD, ChildHandler);
   signal(SIGALRM, AlarmHandler);
   signal(SIGHUP, HUPHandler);
-  if (parent_timeout)
+  if (monitor_pid && !parent_timeout)
+    parent_timeout = 3;
+  if (parent_timeout && !monitor_pid)
     alarm(parent_timeout);
 
   while (have_children || !quit_when_childless) {
@@ -51,9 +54,9 @@ int main( int argc, char **argv ) {
       char msg[MSGSIZE];
       int rv = MsgReceive(chid, msg, MSGSIZE, NULL);
       if ( rv == -1 ) {
-	if (errno != EINTR) {
-	  nl_error( 2, "parent: Got a message!" );
-	}
+        if (errno != EINTR) {
+          nl_error( 2, "parent: Got a message!" );
+        }
       }
     }
     if (check_children) {
@@ -62,35 +65,38 @@ int main( int argc, char **argv ) {
       check_children = 0;
       pid = waitpid( -1, &status, WNOHANG );
       switch (pid) {
-	case 0:
-	  // nl_error( 0, "Still have children: none have died" );
-	  break;
-	case -1:
-	  switch (errno) {
-	    case ECHILD:
-	      have_children = 0;
-	      nl_error( 0, "parent: No more children" );
-	      break;
-	    case EINTR:
-	      nl_error( 0, "parent: SIGCHLD in waitpid()" );
-	      break;
-	    default:
-	      nl_error( 2, "parent: Unexpected error from waitpid(): %s",
-		strerror(errno));
-	  }
-	  break;
-	default:
-	  nl_error( 0, "parent: Process %d terminated", pid );
-	  check_children = 1;
-	  break;
+        case 0:
+          // nl_error( 0, "Still have children: none have died" );
+          break;
+        case -1:
+          switch (errno) {
+            case ECHILD:
+              have_children = 0;
+              nl_error( 0, "parent: No more children" );
+              break;
+            case EINTR:
+              nl_error( 0, "parent: SIGCHLD in waitpid()" );
+              break;
+            default:
+              nl_error( 2, "parent: Unexpected error from waitpid(): %s",
+                strerror(errno));
+          }
+          break;
+        default:
+          nl_error( 0, "parent: Process %d terminated", pid );
+          if (monitor_pid && pid == monitor_pid) {
+            alarm(parent_timeout);
+          }
+          check_children = 1;
+          break;
       }
     }
     if ( saw_timeout ) {
       saw_timeout = 0;
       if ( handled_INT )
-	nl_error( 3, "parent: Timed out waiting for children after INT" );
+        nl_error( 3, "parent: Timed out waiting for children after INT" );
       if ( handled_timeout )
-	nl_error( 3, "parent: Timed out waiting for children after timeout" );
+        nl_error( 3, "parent: Timed out waiting for children after timeout" );
       nl_error( 0, "parent: Received timeout, calling killpg()" );
       handled_timeout = 1;
       killpg(getpgid(getpid()), SIGHUP);
@@ -104,12 +110,12 @@ int main( int argc, char **argv ) {
       handled_INT = 1;
       quit_when_childless = 1;
       if ( have_children ) {
-	nl_error( 0, "parent: Received SIGINT, signaling children" );
-	check_children = 1;
-	killpg(getpgid(getpid()), SIGHUP);
-	alarm(3);
+        nl_error( 0, "parent: Received SIGINT, signaling children" );
+        check_children = 1;
+        killpg(getpgid(getpid()), SIGHUP);
+        alarm(3);
       } else {
-	nl_error( 0, "parent: Received SIGINT" );
+        nl_error( 0, "parent: Received SIGINT" );
       }
     }
   }

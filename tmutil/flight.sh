@@ -17,9 +17,7 @@ echo "\nRunning flight.sh: \c"; date
 # This is where we will decide what experiment we are
 #----------------------------------------------------------------
 cfile=Experiment.config
-if [ -f "$cfile.$NODE" ]; then
-  . $cfile.$NODE
-elif [ -f "$cfile" ]; then
+if [ -f "$cfile" ]; then
   . $cfile
 else
   echo flight.sh: missing $cfile >&2
@@ -33,7 +31,37 @@ else
 fi
 export Experiment
 
+umask g+w
+
 typeset launch_error=""
+typeset LOOPING=no
+typeset parent_loop=''
+[ -n "$FlightNode" -a -n "$LOOP_ON_FILE" ] && Looping=yes
+
+if [ $Looping = yes ]; then
+  [ -n "$LOOP_STOP_FILE" ] || LOOP_STOP_FILE=loopstop.txt
+  if [ -e "$LOOP_ON_FILE" ]; then
+    echo "`date '+%F %T'`: Invoking reduce for LOOP_ON_FILE"
+    reduce
+    if [ -e "$LOOP_ON_FILE" ]; then
+      echo "`date '+%F %T'`: reduce did not clear LOOP_ON_FILE '$LOOP_ON_FILE'"
+      rm -f $LOOP_STOP_FILE
+      exec parent
+    fi
+  elif [ -e "$LOOP_STOP_FILE" ]; then
+    echo "`date '+%F %T'`: Looping terminated"
+    rm -f $LOOP_STOP_FILE
+    exec parent
+  elif [ -n "$SCRIPT_OVERRIDE" ]; then
+    if [ -e "$SCRIPT_OVERRIDE" ]; then
+      echo "`date '+%F %T'`: Interactive invocation"
+    else
+      echo "`date '+%F %T'`: Bootup invocation"
+      exec parent
+    fi
+  fi
+  rm -f $LOOP_STOP_FILE
+fi
 
 function Launch {
   name=$1
@@ -41,6 +69,10 @@ function Launch {
   [ -n "$launch_error" ] && return 1
   [ -n "$VERBOSE" ] && echo "Launch: $*"
   if { $* & }; then
+    if [ $Looping = yes -a "$name" = "cmd/server" ]; then
+      parent_loop="-q -M $! -t 5"
+      touch $LOOP_STOP_FILE
+    fi
     if [ "$name" != "-" ]; then
       [ "$name" = "-DC-" ] && name="/var/huarp/run/$Experiment/$!"
       [ "${name#/}" = "$name" ] && name="/dev/huarp/$Experiment/$name"
@@ -59,11 +91,10 @@ function Launch {
   return 0
 }
 
-umask g+w
-
 if [ -n "$SUBBUSD" -a ! -e /dev/huarp/subbus ]; then
   Launch /dev/huarp/subbus subbusd_$SUBBUSD -V
 fi
+
 VERSION=1.0
 [ -f VERSION ] && VERSION=`cat VERSION`
 if [ -d bin/$VERSION/ ]; then
@@ -73,6 +104,7 @@ else
   TMBINDIR='.'
 fi
 export TMBINDIR
+
 if [ -n "$SCRIPT_OVERRIDE" -a -r "$SCRIPT_OVERRIDE" ]; then
   script=`cat $SCRIPT_OVERRIDE`
   rm $SCRIPT_OVERRIDE
@@ -92,4 +124,4 @@ fi
 
 typeset qoc
 [ -z "$FlightNode" ] && qoc="-q"
-exec parent $qoc
+exec parent $qoc $parent_loop
