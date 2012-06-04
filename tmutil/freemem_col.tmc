@@ -1,0 +1,38 @@
+%{
+  #include <sys/stat.h>
+  #include <sys/syspage.h>
+  #include <errno.h>
+  #include <limits.h>
+
+  unsigned short get_free_mem() {
+    int ret;
+    uint64_t fr;
+    struct stat64 sbuf;
+    ret = stat64("/proc", &sbuf);
+    if (ret == -1)
+      nl_error(3, "Error %d from stat64(/proc)", errno);
+    fr = sbuf.st_size / 10486;
+    if (fr > USHRT_MAX) fr = USHRT_MAX;
+    return (unsigned short) fr;
+  }
+
+  void report_total_mem() {
+    char *str = SYSPAGE_ENTRY(strings)->data;
+    struct asinfo_entry *as = SYSPAGE_ENTRY(asinfo);
+    unint64_t total;
+    unsigned num;
+    double dtot;
+    for (num = _syspage_ptr->asinfo.entry_size / sizeof(*as);
+         num > 0; --num ) {
+      if (strcmp(&str[as->name], "ram") == 0) {
+        total += as->end - as->start + 1;
+      }
+      ++as;
+    }
+    dtot = total / (1024.*1024.);
+    nl_error(0, "Total RAM: %.2lf MB", dtot);
+  }
+%}
+
+TM INITFUNC report_total_mem();
+
