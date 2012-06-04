@@ -1,7 +1,14 @@
+%{
+  /* Defines types for free memory reports.
+     Requires freemem_col.tmc to do the actual collection.
+     Definition of a freemem_t TM variable is left to
+     the experiment implementation where the appropriate
+     data rate can be selected.
+  */
+%}
 TM typedef double MB;
 TM typedef unsigned short freemem_t {
   convert MB; text "%6.2lf";
   collext x = get_free_mem();
 }
 Calibration (freemem_t, MB) { 0, 0, 60000, 600.00 }
-TM 1/2 Hz freemem_t freemem;
