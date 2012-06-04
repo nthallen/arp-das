@@ -8,7 +8,7 @@
 %}
 TM typedef double MB;
 TM typedef unsigned short freemem_t {
-  convert MB; text "%6.2lf";
-  collext x = get_free_mem();
+  convert MB; text "%7.2lf";
+  collect x = get_free_mem();
 }
-Calibration (freemem_t, MB) { 0, 0, 60000, 600.00 }
+Calibration (freemem_t, MB) { 0, 0, 60000, 1200.00 }

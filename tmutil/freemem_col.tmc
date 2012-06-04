@@ -11,7 +11,7 @@
     ret = stat64("/proc", &sbuf);
     if (ret == -1)
       nl_error(3, "Error %d from stat64(/proc)", errno);
-    fr = sbuf.st_size / 10486;
+    fr = sbuf.st_size / 20972;
     if (fr > USHRT_MAX) fr = USHRT_MAX;
     return (unsigned short) fr;
   }
@@ -19,7 +19,7 @@
   void report_total_mem() {
     char *str = SYSPAGE_ENTRY(strings)->data;
     struct asinfo_entry *as = SYSPAGE_ENTRY(asinfo);
-    unint64_t total;
+    uint64_t total = 0;
     unsigned num;
     double dtot;
     for (num = _syspage_ptr->asinfo.entry_size / sizeof(*as);
@@ -29,7 +29,8 @@
       }
       ++as;
     }
-    dtot = total / (1024.*1024.);
+    dtot = (double) total;
+    dtot /= (1024.*1024.);
     nl_error(0, "Total RAM: %.2lf MB", dtot);
   }
 %}
