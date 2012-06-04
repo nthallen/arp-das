@@ -31,7 +31,7 @@
 <v t="ntallen.20110216082835.2101"><vh>Todo</vh></v>
 <v t="ntallen.20070815151915"><vh>Status</vh>
 <v t="ntallen.20080729145409"><vh>Overview</vh></v>
-<v t="ntallen.20071127160602" a="E"><vh>OS Install</vh>
+<v t="ntallen.20071127160602"><vh>OS Install</vh>
 <v t="ntallen.20071127160602.1"><vh>Save</vh></v>
 <v t="ntallen.20071204104659"><vh>Install</vh></v>
 <v t="ntallen.20090225110248"><vh>Install 6.4.0</vh></v>
@@ -46,9 +46,9 @@
 <v t="ntallen.20110901091119.2215"><vh>Reinstall 6.5.0</vh></v>
 </v>
 <v t="ntallen.20101129134921.2045"><vh>Eli</vh></v>
-<v t="ntallen.20090824123722" a="E"><vh>Runtime kit Creation and Usage</vh>
+<v t="ntallen.20090824123722"><vh>Runtime kit Creation and Usage</vh>
 <v t="ntallen.20120524101406.2307"><vh>rc.local</vh></v>
-<v t="ntallen.20120523112848.2301" a="E"><vh>Procedure</vh>
+<v t="ntallen.20120523112848.2301"><vh>Procedure</vh>
 <v t="ntallen.20120523133759.2305"><vh>Install Config Files</vh></v>
 <v t="ntallen.20120523112848.2302"><vh>Config Files</vh></v>
 </v>
@@ -328,7 +328,7 @@
 <v t="ntallen.20100729115515.2029"><vh>subbus_usb</vh>
 <v t="ntallen.20120417153231.2297"><vh>mread optimization</vh></v>
 </v>
-<v t="ntallen.20090202133816"><vh>Utilities</vh>
+<v t="ntallen.20090202133816" a="E"><vh>Utilities</vh>
 <v t="ntallen.20090202133816.1"><vh>mkdoit</vh>
 <v t="ntallen.20090202133816.2"><vh>Dedicated Acquisition node</vh></v>
 <v t="ntallen.20110106130520.2064"><vh>doit [-ns] [-p run] [-i src] [start|stop|not|wait]</vh>
@@ -560,7 +560,7 @@
 <v t="ntallen.20120318122206.2259"><vh>Examples of Communication Strategies</vh>
 <v t="ntallen.20120318122206.2260"><vh>Send/Receive Messages</vh></v>
 </v>
-<v t="ntallen.20071127160602" a="E"></v>
+<v t="ntallen.20071127160602"></v>
 <v t="ntallen.20110102095209.2061"><vh>cmdgen</vh></v>
 <v t="ntallen.20080716155154"><vh>DataQueue.h</vh>
 <v t="ntallen.20080716155154.1"><vh>DG.h</vh>
@@ -633,7 +633,10 @@
 </v>
 <v t="ntallen.20120309103850.2251"><vh>Report CPU Utilization</vh></v>
 <v t="ntallen.20120309103850.2252"><vh>Report Diskspace</vh></v>
-<v t="ntallen.20120321121230.2265"><vh>Instrument Development Workflow</vh>
+<v t="ntallen.20120602171418.2310"><vh>Report Memory Utilization</vh>
+<v t="ntallen.20120602171418.2309"><vh>memrpt.c</vh></v>
+</v>
+<v t="ntallen.20120321121230.2265" a="E"><vh>Instrument Development Workflow</vh>
 <v t="ntallen.20120321121230.2266"><vh>Identify subsystems, commands and channels</vh></v>
 <v t="ntallen.20120321121230.2267"><vh>Assign Types, Addresses, Rates</vh></v>
 <v t="ntallen.20120321121230.2268"><vh>Create TMC definitions</vh></v>
@@ -643,11 +646,12 @@
 <v t="ntallen.20120321121230.2271"><vh>Use genui to layout engineering plots</vh></v>
 </v>
 </v>
+<v t="ntallen.20120314113810.2256"></v>
 <v t="ntallen.20120517210920.2299"><vh>Photon or Not Photon</vh></v>
 </v>
 </v>
 <v t="ntallen.20110211111845.2089"><vh>QNX6 Sys Admin</vh>
-<v t="ntallen.20071127160602" a="E"></v>
+<v t="ntallen.20071127160602"></v>
 <v t="ntallen.20110211111845.2090"><vh>mkrtkit</vh>
 <v t="ntallen.20110211111845.2091"><vh>Version Numbering</vh>
 <v t="ntallen.20110902103207.2217"><vh>Installation Packages</vh></v>
@@ -680,7 +684,7 @@
 <v t="ntallen.20100927130121.2033"><vh>tmnclib</vh></v>
 </v>
 </v>
-<v t="ntallen.20070502121159.1"><vh>Implementation</vh>
+<v t="ntallen.20070502121159.1" a="E"><vh>Implementation</vh>
 <v t="ntallen.20070320121924"><vh>cmdgen</vh>
 <v t="ntallen.20070501165557"><vh>Done</vh>
 <v t="ntallen.20070411152334"><vh>Add Interface Definitions</vh>
@@ -5935,5 +5939,60 @@ Setup standard  experiment directories
     /usr/sbin/sshd
     /usr/sbin/ntpd
  </t>
+<t tx="ntallen.20120602171418.2309">Try the following to get a more accurate view of the memory in use:
+    http://community.qnx.com/sf/discussion/do/listPosts/projects.core_os/discussion.newcode.topc9788
+
+#include &lt;errno.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;stdarg.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;sys/syspage.h&gt;
+
+uint64_t
+get_free_mem (void)
+{
+        int ret;
+        struct stat64 sbuf;
+        ret = stat64("/proc", &amp;sbuf);
+        if (ret == -1) {
+                printf("stat(/proc) failed: %s", strerror(errno));
+        }
+        return sbuf.st_size;
+}
+
+uint64_t
+get_total_mem (void)
+{
+        char *str = SYSPAGE_ENTRY(strings)-&gt;data;
+        struct asinfo_entry     *as = SYSPAGE_ENTRY(asinfo);
+        uint64_t total = 0;
+        unsigned num;
+
+        for (num = _syspage_ptr-&gt;asinfo.entry_size / sizeof(*as); num &gt;
+0; --num) {
+                if(strcmp(&amp;str[as-&gt;name], "ram") == 0) {
+                        total += as-&gt;end - as-&gt;start + 1;
+                }
+                ++as;
+        }
+        return total;
+}
+
+int
+main (int argc, char **argv)
+{
+        uint64_t free_mem = get_free_mem();
+        uint64_t total_mem = get_total_mem();
+        printf("FreeMem/TotalMem: %llu/%llu\n", free_mem,total_mem );
+        printf("Total Mem In Use: %llu bytes\n",total_mem-free_mem );
+        return EXIT_SUCCESS;
+}
+
+</t>
+<t tx="ntallen.20120602171418.2310">We could report total system memory at the beginning, then report free memory in MB.</t>
 </tnodes>
 </leo_file>
