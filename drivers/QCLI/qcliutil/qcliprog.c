@@ -187,7 +187,7 @@ void write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
     report_status( qcli_status );
     nl_error( 3, "Expected PROGRAM Mode" );
   }
-  { int nreads = 10;
+  { int nreads = 20; /* Up from 10 just to see... */
     while ( nreads-- > 0 &&
             (qcli_status & QCLI_S_FLSHDATA) !=
                     (last_word & QCLI_S_FLSHDATA) &&
