@@ -18,7 +18,7 @@
 # HOMEDIR \S+ - the directory where we'll find run subdirectories
 # ROWS \d+ - used to decide when to create a new column in the GUI
 # \d+(/\d+)? \w+(:\w+:\d+)? \w+ \w+
-#  <Rate> <Mnemonic>[:<Mnemonic>:<bitnumber>] <group> <plot> [<legend>]
+#  <Rate> <Mnemonic>[:<Mnemonic>:<bitnumber>] <group> <plot> [<format>] [<legend>]
 
 use strict;
 use Getopt::Std;
@@ -32,6 +32,7 @@ my @group; # list of grps in definition order
 my %plot; # for each shortname, list of data to plot
 my %rate; # for each rate a hash of data to extract
 my %datarate; # rate for each extracted datum
+my %format; # output format for each extracted datum
 my %shortname; # translation from longname to shortname
 my %longname; # translation from shortname to longname
 my $experiment = 'eng';
@@ -73,10 +74,11 @@ while (<>) {
                \s+(\w+(?::\w+:\d+)?)(?::([-+*/]\S+))? # mnemonic
                \s+(\w+) # group
                \s+(\w+) # plot
-               (?:\s+(\w+))?
+               (?:\s+(%\S+))? # format
+               (?:\s+(\w+))? # legend
                \s*$|x ) {
-    my ( $rate, $mnemonic, $scale, $group, $plot, $legend ) =
-      ( $1, $2, $3, $4, $5, $6 );
+    my ( $rate, $mnemonic, $scale, $group, $plot, $format, $legend ) =
+      ( $1, $2, $3, $4, $5, $6, $7 );
     my $datum;
     if ( $mnemonic =~ m/^\w+:(\w+):\d+$/ ) {
       $datum = $1;
@@ -94,6 +96,12 @@ while (<>) {
     } else {
       $datarate{$datum} = $rate;
     }
+    $format = '' unless defined $format;
+    if (defined( $format{$datum} ) &&
+        $format{$datum} ne $format) {
+      warn "Datum '$datum' extracted with multiple formats: '$format{$datum}' and '$format'\n";
+    }
+    $format{$datum} ||= $format;
     my $grp = shortname('', $group);
     my $plt = shortname($grp, $plot);
     unless ( defined $group{$grp} ) {
@@ -120,11 +128,12 @@ if ( $opts{c} ) {
   my @rates = sort keys %rate;
   for my $rate ( @rates ) {
     my @vars = sort keys %{$rate{$rate}};
+    my @formats = map $format{$_}, @vars;
     $rate =~ s|/|_|g;
     my $n_var = @vars + 1;
     print CDF "csv ${experiment}eng_$rate $n_var\n",
       "  0 T${experiment}eng_$rate %.3lf\n",
-      join( "\n", map "  $_ $vars[$_-1]", ( 1 .. @vars ) ),
+      join( "\n", map "  $_ $vars[$_-1] $formats[$_-1]", ( 1 .. @vars ) ),
       "\n";
   }
   close CDF || warn "Error closing ${experiment}eng.cdf\n";
