@@ -309,7 +309,7 @@ void nct_charset(int n) {
 }
 
 void nct_hrule( int winnum, int attr, int row, int col,
-		unsigned char *rule ) {
+                unsigned char *rule ) {
   unsigned char *r = rule;
   nct_select(winnum);
   // color_set(color_pair_table(attr), NULL);
@@ -321,7 +321,7 @@ void nct_hrule( int winnum, int attr, int row, int col,
 }
 
 void nct_vrule( int winnum, int attr, int row, int col,
-		unsigned char *rule ) {
+                unsigned char *rule ) {
   unsigned char *r = rule;
   nct_select(winnum);
   // color_set(color_pair_table(attr), NULL);
@@ -361,30 +361,31 @@ char nct_getch(void) {
       fd_set fs;
       FD_ZERO(&fs);
       for ( i = 0; i < ifds_opened; i++ ) {
-	int ifd = nct_display[i].ifd;
-	FD_SET( ifd, &fs );
-	if ( ifd >= width )
-	  width = ifd + 1;
+        int ifd = nct_display[i].ifd;
+        FD_SET( ifd, &fs );
+        if ( ifd >= width )
+          width = ifd + 1;
       }
       rv = select(width, &fs, NULL, NULL, NULL);
       if ( rv == -1 ) {
-	if ( errno != EINTR )
-	  nl_error( 3, "Error %d from select", errno );
+        if ( errno != EINTR )
+          nl_error( 3, "Error %d from select", errno );
       } else {
-	for ( i = 0; i < n_devs; i++ ) {
-	  int ifd = nct_display[i].ifd;
-	  if ( FD_ISSET( ifd, &fs ) ) {
-	    int nb = read( ifd, &ibuf[nc], IBUFSIZE-nc );
-	    if ( nb == -1 ) {
-	      if (errno != EAGAIN && errno != EINTR)
-		nl_error( 3, "Error %d from read()", errno );
-	    } else if ( nb == 0 )
-	      nl_error( 1, "Read 0 bytes" );
-	    else {
-	      nc += nb;
-	    }
-	  }
-	}
+        for ( i = 0; i < n_devs; i++ ) {
+          int ifd = nct_display[i].ifd;
+          if ( FD_ISSET( ifd, &fs ) ) {
+            int nb = read( ifd, &ibuf[nc], IBUFSIZE-nc );
+            if ( nb == -1 ) {
+              if (errno != EAGAIN && errno != EINTR)
+                nl_error( 3, "Error %d from read()", errno );
+            } else if ( nb == 0 ) {
+              nl_error( 0, "Read 0 bytes" );
+              exit(0);
+            } else {
+              nc += nb;
+            }
+          }
+        }
       }
     }
   }
