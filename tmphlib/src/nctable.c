@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ncurses.h>
+#include <unistd.h>
 #include "nortlib.h"
 #include "nctable.h"
 #include "nl_assert.h"
+#include "oui.h"
 
 #define MAX_DEVS 34
 
@@ -42,6 +44,27 @@ void nct_args( char *dev_name ) {
   if ( n_devs >= MAX_DEVS )
     nl_error( 2, "Too many devices specified" );
   else nct_display[n_devs++].dev_name = dev_name;
+}
+
+void nct_init_options(int argc, char **argv) {
+  int optltr;
+
+  optind = OPTIND_RESET;
+  opterr = 0;
+  while ((optltr = getopt(argc, argv, opt_string)) != -1) {
+    switch (optltr) {
+      case 'a':
+        nct_charset(NCT_CHARS_ASCII);
+        break;
+      case '?':
+        nl_error(3, "Unrecognized Option -%c", optopt);
+      default:
+        break;
+    }
+  }
+  for (; optind < argc; optind++) {
+    nct_args(argv[optind]);
+  }
 }
 
 static void nct_shutdown(void) {
