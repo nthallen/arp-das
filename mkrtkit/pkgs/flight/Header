@@ -1,10 +1,19 @@
 # Package flight
-Version: 2.5.19
+Version: 2.5.22
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.22
+#   libtmnc exit when zero bytes are read
+# 2.5.21
+#   libsubbus pack_mread_requests() packing algo bug
+#   subbus_serusb
+#     pass error codes correctly
+#     add verbosity on errors
+# 2.5.20
+#   qclidprog: extend programming timeout
 # 2.5.19
 #   parent (-M <pid> option)
 #   flight.sh (LOOP_ON_FILE)

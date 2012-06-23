@@ -1,5 +1,5 @@
 # Package citco2
 #  Development base for CalTech CO2 Containers
-Version: 1.1
-Requires: develop p5-libwww f2c curl libxml2
+Version: 1.2
+Requires: develop p5-libwww f2c curl libxml2 p5-Mail-Sendmail
 Files: MANIFEST_pkg @ /

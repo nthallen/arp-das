@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.23
+Version: 2.5.25
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,11 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.25
+#   /usr/local/bin/man: crude man implementation
+#   qclicomp: support StandardxP33 configuration
+# 2.5.24
+#   genui: support extract formats
 # 2.5.23
 #   freemem.tmc & freemem_col.tmc added
 #   tmdf.tmc (produce stars for missing vol)
