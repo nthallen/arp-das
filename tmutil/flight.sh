@@ -42,7 +42,7 @@ if [ "$Looping" = yes ]; then
   [ -n "$LOOP_STOP_FILE" ] || LOOP_STOP_FILE=loopstop.txt
   if [ -e "$LOOP_ON_FILE" ]; then
     echo "`date '+%F %T'`: Invoking reduce for LOOP_ON_FILE"
-    reduce
+    BEDTIME=yes reduce
     if [ -e "$LOOP_ON_FILE" ]; then
       echo "`date '+%F %T'`: reduce did not clear LOOP_ON_FILE '$LOOP_ON_FILE'"
       rm -f $LOOP_STOP_FILE
