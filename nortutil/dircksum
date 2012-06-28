@@ -142,11 +142,13 @@ sub dircksum {
 }
 
 # Process command-line args
-require "getopts.pl";
-use vars qw($opt_c $opt_o $opt_w $opt_v $opt_l);
-Getopts('wvclo:');
+#require "getopts.pl";
+use Getopt::Std;
 use Cwd;
 use File::Compare;
+
+use vars qw($opt_c $opt_o $opt_w $opt_v $opt_l);
+getopts('wvclo:');
 
 my $pwd = cwd;
 
