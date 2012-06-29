@@ -88,7 +88,7 @@ while (<>) {
                \s+(\w+) # plot
                (?:\s+(%\S+))? # format
                (?:\s+:(\w+))? # shortname
-               (?:\s+\[[^\]]+\])? # legend pos
+               (?:\s+(\[[^\]]+\]))? # legend pos
                (?:\s+(\w+))? # legend
                \s*$|x ) {
     my ( $rate, $mnemonic, $scale, $group, $plot, $format, $custfunc, $legpos, $legend ) =
