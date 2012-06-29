@@ -1,5 +1,8 @@
 /* calibr.c Handles calibration information.
  * $Log$
+ * Revision 1.4  2009/10/02 15:50:59  ntallen
+ * const char *
+ *
  * Revision 1.3  2009/05/22 13:17:01  ntallen
  * Replace call to ltoa with code for binary conversion
  * Remove use of min()
@@ -832,9 +835,14 @@ static void gen_itc_code(int n, struct intcnv *p, char *ovtxt) {
            The format would then be y = (n*(x-x0)+r)/d + y0.
            Currently y = (x*(n)+r)/d + y0
            This might require changes to the calculation of r
+           Mitigated 2012-06-29
         */
-        if (p->flag & ICNV_INT) fprintf(ofile, "%+d)", (short int) p->r);
-        else fprintf(ofile, "%+ld)", p->r);
+        #if UINT_MAX > 65536L
+          fprintf(ofile, "%+ld)", p->r);
+        #else
+          if (p->flag & ICNV_INT) fprintf(ofile, "%+d)", (short int) p->r);
+          else fprintf(ofile, "%+ld)", p->r);
+        #endif
       }
       if (p->d != 1) fprintf(ofile, "/(%ld)", p->d);
       if (p->y0 != 0) fprintf(ofile, "%+ld", p->y0);
