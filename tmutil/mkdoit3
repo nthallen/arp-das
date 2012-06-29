@@ -381,7 +381,7 @@ EOF
 if ( $memo ) {
   print $fh <<'EOF';
         if [ -r $logfile ]; then
-          echo screen -t $logfileroot$logfilesuffix less +F $logfile
+          echo "screen -t $logfileroot$logfilesuffix /bin/sh -c \"echo \$\$ >less.pid.$session; exec less +F $logfile\""
         fi
 EOF
 }
@@ -446,8 +446,10 @@ if [ -r $logfile -a $dispmode != screen ]; then
   pterm_pid=$!
 fi
 if [ -r $logfile -a $dispmode = screen ]; then
-  pterm_pid=`pidin -P less arg | grep -F "less +F $logfile" | head -n1`
-  pterm_pid=${pterm_pid% less +F $logfile}
+  # pterm_pid=`pidin -P less arg | grep -F "less +F $logfile" | head -n1`
+  # pterm_pid=${pterm_pid% less +F $logfile}
+  pterm_pid=`cat less.pid.$session`
+  rm -f less.pid.$session
 fi
 EOF
 }
