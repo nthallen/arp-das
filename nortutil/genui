@@ -30,6 +30,7 @@ my $matdir = $opts{d} || '.';
 my %group; # for each grp, list of plots in definition order
 my @group; # list of grps in definition order
 my %plot; # for each shortname, list of data to plot
+my %iscustom; # for each custom plot
 my %rate; # for each rate a hash of data to extract
 my %datarate; # rate for each extracted datum
 my %format; # output format for each extracted datum
@@ -39,6 +40,17 @@ my $experiment = 'eng';
 my $homedir = 'C:/home/Exp';
 my $header = 'Engineering Data';
 my $ui_limit = 20;
+
+sub set_shortname {
+  my ( $pre, $name, $func ) = @_;
+  die "Specified function name '$func' conflicts with earlier definition\n"
+  if defined $shortname{"$pre$name"} && $shortname{"$pre$name"} ne $func;
+  die "Specified function name '$func' conflicts with earlier definition\n"
+  if defined $longname{$func} && $longname{$func} ne "$pre$name";
+  $shortname{"$pre$name"} = $func;
+  $longname{$func} = "$pre$name";
+  $iscustom{$func} = 1;
+}
 
 sub shortname {
   my ( $pre, $name ) = @_;
@@ -75,10 +87,11 @@ while (<>) {
                \s+(\w+) # group
                \s+(\w+) # plot
                (?:\s+(%\S+))? # format
+               (?:\s+:(\w+))? # shortname
                (?:\s+(\w+))? # legend
                \s*$|x ) {
-    my ( $rate, $mnemonic, $scale, $group, $plot, $format, $legend ) =
-      ( $1, $2, $3, $4, $5, $6, $7 );
+    my ( $rate, $mnemonic, $scale, $group, $plot, $format, $custfunc, $legend ) =
+      ( $1, $2, $3, $4, $5, $6, $7, $8 );
     my $datum;
     if ( $mnemonic =~ m/^\w+:(\w+):\d+$/ ) {
       $datum = $1;
@@ -103,6 +116,7 @@ while (<>) {
     }
     $format{$datum} ||= $format;
     my $grp = shortname('', $group);
+    set_shortname($grp, $plot, $custfunc) if $custfunc;
     my $plt = shortname($grp, $plot);
     unless ( defined $group{$grp} ) {
       $group{$grp} = [];
@@ -178,7 +192,7 @@ for my $grp ( @group ) {
     "% g$experiment$grp(...)\n",
     "% $grouptext\n",
     "ffig = ne_group(varargin,'$grouptext',",
-    join( ",", map "'p$experiment$_'", @plots ),
+    join( ",", map "'" . ($iscustom{$_} ? "cust_" : "") . "p$experiment$_'", @plots ),
     ");\n",
     "if nargout > 0 fig = ffig; end\n";
   close GRP || warn "Error closing g$experiment$grp.m\n";
@@ -188,40 +202,44 @@ for my $grp ( @group ) {
     my $plottext =
       join " ", grep /./, split( /([A-Z][a-z]+)/,
         $plot );
+    my $qplt = "p$experiment$plt";
+    $qplt = "cust_$qplt" if $iscustom{$plt};
     print UI
-      "f = ne_dialg(f, 'add', 1, 0, 'p$experiment$plt', '$plottext' );\n";
-    open( PLT, ">", "${matdir}/p$experiment$plt.m" ) ||
-      die "Unable to write to plt_$plt.m\n";
-    print PLT
-      "function p$experiment$plt(varargin);\n",
-      "% p$experiment$plt( [...] );\n",
-      "% $grouptext $plottext\n";
-    my @mnemonics =
-      map { ref($_) ? $_->{mnc} . $_->{scale} : $_ } @{$plot{$plt}};
-    if ( grep /:/, @mnemonics ) {
-      die "Plot $plt mixes analog and digital data\n"
-        if grep !/:/, @mnemonics;
+      "f = ne_dialg(f, 'add', 1, 0, '$qplt', '$plottext' );\n";
+    if ( ! $iscustom{$plt} ) {
+      open( PLT, ">", "${matdir}/$qplt.m" ) ||
+        die "Unable to write to $qplt.m\n";
       print PLT
-        "h = ne_dstat({\n  ",
-        join( "; ...\n	",
-          map { m/^(\w+):(\w+):(\d+)$/; "'$1', '$2', $3"; }
-            @mnemonics ),
-        " }, '$plot', varargin{:} );\n";
-    } else {
-      my @legends =
-        map { s/_/\\_/g; "'$_'" }
-          map { ref($_) ? $_->{legend} : $_ }
-            @{$plot{$plt}};
-      print PLT
-        "h = timeplot({",
-        join( ",", map "'$_'", @mnemonics ), "}, ...\n",
-        "      '$grouptext $plottext', ...\n",
-        "      '$plot', ...\n",
-        "      {",
-        join( ",", @legends ), "}, ...\n",
-        "      varargin{:} );\n";
+        "function $qplt(varargin);\n",
+        "% $qplt( [...] );\n",
+        "% $grouptext $plottext\n";
+      my @mnemonics =
+        map { ref($_) ? $_->{mnc} . $_->{scale} : $_ } @{$plot{$plt}};
+      if ( grep /:/, @mnemonics ) {
+        die "Plot $plt mixes analog and digital data\n"
+          if grep !/:/, @mnemonics;
+        print PLT
+          "h = ne_dstat({\n  ",
+          join( "; ...\n	",
+            map { m/^(\w+):(\w+):(\d+)$/; "'$1', '$2', $3"; }
+              @mnemonics ),
+          " }, '$plot', varargin{:} );\n";
+      } else {
+        my @legends =
+          map { s/_/\\_/g; "'$_'" }
+            map { ref($_) ? $_->{legend} : $_ }
+              @{$plot{$plt}};
+        print PLT
+          "h = timeplot({",
+          join( ",", map "'$_'", @mnemonics ), "}, ...\n",
+          "      '$grouptext $plottext', ...\n",
+          "      '$plot', ...\n",
+          "      {",
+          join( ",", @legends ), "}, ...\n",
+          "      varargin{:} );\n";
+      }
+      close PLT || warn "Error closing $qplt.m\n";
     }
-    close PLT || warn "Error closing p$experiment$plt.m\n";
   }
 }
 print UI
