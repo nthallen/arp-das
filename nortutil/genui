@@ -88,10 +88,11 @@ while (<>) {
                \s+(\w+) # plot
                (?:\s+(%\S+))? # format
                (?:\s+:(\w+))? # shortname
+               (?:\s+\[[^\]]+\])? # legend pos
                (?:\s+(\w+))? # legend
                \s*$|x ) {
-    my ( $rate, $mnemonic, $scale, $group, $plot, $format, $custfunc, $legend ) =
-      ( $1, $2, $3, $4, $5, $6, $7, $8 );
+    my ( $rate, $mnemonic, $scale, $group, $plot, $format, $custfunc, $legpos, $legend ) =
+      ( $1, $2, $3, $4, $5, $6, $7, $8, $9 );
     my $datum;
     if ( $mnemonic =~ m/^\w+:(\w+):\d+$/ ) {
       $datum = $1;
@@ -129,7 +130,7 @@ while (<>) {
     $legend = $mnemonic unless defined $legend;
     $scale = '' unless defined $scale;
     push @{$plot{$plt}}, { mnc => $mnemonic, legend => $legend,
-      scale => $scale };
+      legpos => $legpos, scale => $scale };
   } else {
     chomp;
     warn "Syntax error: '$_'\n";
@@ -215,6 +216,14 @@ for my $grp ( @group ) {
         "% $grouptext $plottext\n";
       my @mnemonics =
         map { ref($_) ? $_->{mnc} . $_->{scale} : $_ } @{$plot{$plt}};
+      my @legpos =
+        grep $_, map { $_->{legpos} } @{$plot{$plt}};
+      die "More than one legend position specified for group/plot $grp/$plt\n"
+        if @legpos > 1;
+      my $legpos = '';
+      if ( @legpos ) {
+        $legpos = $legpos[0] . ", ";
+      }
       if ( grep /:/, @mnemonics ) {
         die "Plot $plt mixes analog and digital data\n"
           if grep !/:/, @mnemonics;
@@ -234,7 +243,7 @@ for my $grp ( @group ) {
           join( ",", map "'$_'", @mnemonics ), "}, ...\n",
           "      '$grouptext $plottext', ...\n",
           "      '$plot', ...\n",
-          "      {",
+          "      {$legpos",
           join( ",", @legends ), "}, ...\n",
           "      varargin{:} );\n";
       }
