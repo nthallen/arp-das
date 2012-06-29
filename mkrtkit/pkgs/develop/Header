@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.25
+Version: 2.5.28
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,14 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.28
+#   mkdoit3: Handle less under ncurses
+# 2.5.27
+#   New genui features for graph customization
+#   tmc optimization for single point calibration regions
+# 2.5.26
+#   /usr/local/bin/tmc: Generated calibration code was
+#     broken in 32-bit environment.
 # 2.5.25
 #   /usr/local/bin/man: crude man implementation
 #   qclicomp: support StandardxP33 configuration
