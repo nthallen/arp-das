@@ -1,5 +1,11 @@
 /* calibr.c Handles calibration information.
  * $Log$
+ * Revision 1.1  2012/06/29 17:15:52  nort
+ * Initial revision
+ *
+ * Revision 1.5  2012/06/29 12:53:03  ntallen
+ * Resolve 32-bit problem
+ *
  * Revision 1.4  2009/10/02 15:50:59  ntallen
  * const char *
  *
@@ -621,8 +627,12 @@ static struct intcnv *find_ndr(long int x0, long int x1, double m, double b) {
     } else dy = y - y0;
 
     for (;;) {
-      if (dy == 0) dmax = 1;
-      else {
+      if (dy == 0) {
+        nbest = 0;
+        drbest = 0;
+        dbest = 1;
+        break;
+      } else {
         dmax = op_range/dy;
         if (dmax > USHRT_MAX) dmax = USHRT_MAX; /* arbitrary limit */
       }
