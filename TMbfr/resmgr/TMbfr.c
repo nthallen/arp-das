@@ -625,7 +625,9 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
       while ( dqd->n_Qrows == 0 && dqd->next )
         dqd = dqd->next;
       assert( dqd->starting_Qrow == Data_Queue.first );
-      // We can expire the minimum of, nrows_req,
+      // We can expire the minimum of:
+      //   nrows_req,
+      //   Data_Queue.total_Qrows - Data_Queue.last - nrows_free
       //   dqd->n_Qrows == all rows in dqd
       //   Data_Queue.total_Qrows - dqd->starting_Qrow(largest contiguous)
       //   dqd->min_reader - dqd->Qrows_expired
@@ -636,6 +638,10 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
       // expiring would be readers, so min_read will return 0 unless
       // this dqd is the first.
       n_expire = nrows_req;
+      opt_expire = Data_Queue.total_Qrows - Data_Queue.last;
+      opt_expire = (opt_expire >= nrows_free) ?
+          opt_expire - nrows_free : 0;
+      if ( opt_expire < n_expire ) n_expire = opt_expire;
       if ( dqd->n_Qrows < n_expire ) n_expire = dqd->n_Qrows;
       opt_expire = Data_Queue.total_Qrows - dqd->starting_Qrow;
       if ( opt_expire < n_expire ) n_expire = opt_expire;
@@ -658,6 +664,7 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
         dqd->Qrows_expired += n_expire;
         nrows_free += n_expire;
         nrows_req -= n_expire;
+        assert(Data_Queue.last+nrows_free <= Data_Queue.total_Qrows);
         if ( dqd->n_Qrows == 0 && dqd->next )
           dqd = dq_expire_check(dqd);
         else break;
@@ -666,6 +673,7 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
   }
   assert( dqd->n_Qrows == 0 || dqd->starting_Qrow == Data_Queue.first );
   assert(nrows_free >= 0);
+  assert(Data_Queue.last+nrows_free <= Data_Queue.total_Qrows);
   ocb->part.nbdata = nrows_free * Data_Queue.nbQrow;
   ocb->part.dptr = Data_Queue.row[Data_Queue.last];
   ocb->rw.write.off_queue = 0;
