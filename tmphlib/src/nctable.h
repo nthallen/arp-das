@@ -12,6 +12,7 @@ extern void nct_init_options(int argc, char **argv);
 extern void nct_args( char *dev_name );
 extern void nct_charset(int n);
 extern int nct_init( const char *winname, int n_rows, int n_cols );
+extern int nct_cmdclt_init(void);
 extern void nct_refresh(void);
 extern void nct_string( int winnum, int attr, int row, int col,
 		const char *text );
