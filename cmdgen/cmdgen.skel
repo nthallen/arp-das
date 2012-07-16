@@ -1380,7 +1380,7 @@ int cmd_check(cmd_state *s) {
         return 0;
       #else
 	#ifdef NCT_INTERFACE
-	  nct_win = nct_init("cmd", 2, 80);
+	  nct_win = nct_cmdclt_init();
 	#endif
         do cmd_interact(); while ( cgc_forwarding != 0 );
         return cgc_exit_code;
