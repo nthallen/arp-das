@@ -251,27 +251,27 @@ while read tgt mode deps; do
       \#) : ;;
       =) for i in $deps; do add_member $tgt $i; done;;
       :) case $tgt in
-	   *algo) deps="$tmcbase $deps";;
-	   *col) deps="$tmcbase $colbase $deps";;
-	   *ext) deps="$tmcbase $deps";;
-	   *disp) deps="$tmcbase $deps";;
-	   *dispnc) deps="$tmcbase $deps";;
-	   *clt) deps="$cmdbase $deps";;
-	   *cltnc) deps="$cmdbase $deps";;
-	   *srvr) deps="$cmdbase $deps"; SERVER=$tgt;;
-	   *doit) : ;;
-	   *.dccc) : ;;
-	   *.sft) : ;;
-	   *) : ;;
-	 esac
-	 for i in $deps; do
-	   def_source $i
-	 done
-	 def_target $tgt $deps
-	 case $tgt in
-	   *disp) def_target ${tgt}nc $deps;;
-	   *clt) def_target ${tgt}nc $deps;;
-	 esac;;
+           *algo) deps="$tmcbase $deps";;
+           *col) deps="$tmcbase $colbase $deps";;
+           *ext) deps="$tmcbase $deps";;
+           *disp) deps="$tmcbase $deps";;
+           *dispnc) deps="$tmcbase $deps";;
+           *clt) deps="$cmdbase $deps";;
+           *cltnc) deps="$cmdbase $deps";;
+           *srvr) deps="$cmdbase $deps"; SERVER=$tgt;;
+           *doit) : ;;
+           *.dccc) : ;;
+           *.sft) : ;;
+           *) : ;;
+         esac
+         for i in $deps; do
+           def_source $i
+         done
+         def_target $tgt $deps
+         case $tgt in
+           *disp) def_target ${tgt}nc $deps;;
+           *clt) def_target ${tgt}nc $deps;;
+         esac;;
       *) echo Unknown mode $mode >&2 ;;
     esac
   fi
@@ -367,7 +367,7 @@ function replace_all {
     ia=${rai%$from}
     if [ $ia$from = $rai ]; then
       if [ -z "$ra_deps" ]; then
-	new_deps="$new_deps $to"
+        new_deps="$new_deps $to"
       fi
       ra_deps="$ra_deps $rai"
     else
@@ -433,18 +433,18 @@ for i in $basetargets; do
     *disp)
       # Go for the implicit rule
       replace_each .tbl tbl.tmc "" $deps &&
-	ldisp=' -ldisp -ltmph -lph';;
+        ldisp=' -ldisp -ltmph -lph';;
     *dispnc)
       replace_each .tbl tblnc.tmc "" $deps &&
-	ldisp=' -ldispnc -ltmnc -lncurses' &&
-	add_member ouis nctable;;
+        ldisp=' -ldispnc -ltmnc -lncurses' &&
+        add_member ouis nctable;;
     *algo)
       replace_each .sws sws.tma "\$(COMPILE.sws)" $deps;;
   esac
   replace_all .tmg ${i}tmg.tmc "\n\t\$(TMG2TMC)" $deps &&
-	add_member ouis tmg
+        add_member ouis tmg
   replace_each .DR ${i}DR.tmc 'DR2tmc >$@' $deps &&
-	add_member ouis drext
+        add_member ouis drext
   if replace_all .tma ${i}a.tmc " $SERVER\n\t\$(SERVER) ./$SERVER\n\t\$(TMCALGO) -V \"\`./$SERVER -R\`\"" $deps
   then
     [ -z "$SERVER" ] &&
@@ -454,18 +454,18 @@ for i in $basetargets; do
   case $i in
     *col)
       if replace_all .tmc $i.cc "\n\t\$(TMC.col)" $deps; then
-	add_member ouis collect
-	add_member ouis seteuid
-	# [ "$subbus" = "yes" ] && add_member ouis subbus_reqd
-	add_member DISTRIB ${i%col}.pcm
-	add_member DISTRIB tm.dac
-	add_member OBJ ${i%col}.pcm
-	add_member OBJ tm.dac
-	ltmpp=' -ltmpp'
+        add_member ouis collect
+        add_member ouis seteuid
+        # [ "$subbus" = "yes" ] && add_member ouis subbus_reqd
+        add_member DISTRIB ${i%col}.pcm
+        add_member DISTRIB tm.dac
+        add_member OBJ ${i%col}.pcm
+        add_member OBJ tm.dac
+        ltmpp=' -ltmpp'
       fi;;
     *)
       replace_all .tmc $i.cc "\n\t\$(TMC)" $deps &&
-	add_member ouis dc && ltmpp=' -ltmpp';;
+        add_member ouis dc && ltmpp=' -ltmpp';;
   esac
   case $i in
     *sft)
@@ -480,30 +480,30 @@ for i in $basetargets; do
   case $i in
     *clt)
       if replace_all cmd.cc $i.o "\n\t\$(COMPILE.clt)" $deps; then
-	add_member ouis kbdclt
-	ltmph=' -ltmph -lph'
-	ltmpp=' -ltmpp'
+        add_member ouis kbdclt
+        ltmph=' -ltmph -lph'
+        ltmpp=' -ltmpp'
       else
-	nl_error Client $i with no cmd.cc files
+        nl_error Client $i with no cmd.cc files
       fi;;
     *cltnc)
       if replace_all cmd.cc $i.o "\n\t\$(COMPILE.cltnc)" $deps; then
-	add_member ouis kbdclt
-	add_member ouis nctable
-	ltmph=' -ltmnc -lncurses'
-	ltmpp=' -ltmpp'
+        add_member ouis kbdclt
+        add_member ouis nctable
+        ltmph=' -ltmnc -lncurses'
+        ltmpp=' -ltmpp'
       else
-	nl_error Client $i with no cmd.cc files
+        nl_error Client $i with no cmd.cc files
       fi;;
     *srvr)
       if replace_all cmd.cc $i.o "\n\t\$(COMPILE.srvr)" $deps
       then
-	add_member ouis cis
-	add_member ouis seteuid
-	ltmpp=' -ltmpp'
-	# [ "$subbus" = "yes" ] && add_member ouis subbus_opt
+        add_member ouis cis
+        add_member ouis seteuid
+        ltmpp=' -ltmpp'
+        # [ "$subbus" = "yes" ] && add_member ouis subbus_opt
       else
-	nl_error Server $i with no cmd.cc files
+        nl_error Server $i with no cmd.cc files
       fi;;
   esac
   is_member deps -lsubbus && add_member ouis subbus
@@ -517,25 +517,16 @@ for i in $basetargets; do
   case $i in
     *col)   LINK=priv;;
     *clt)   LINK=norm; cxx=CXX;;
-    *cltnc) LINK=norm; cxx=CXX;;
-    *srvr)  LINK=priv; cxx=CXX;;
-    *.dccc) por="\$(LIBSRC)/dccc.por"
-	    deps="$deps $por\n\t@\$(DCCC)$deps";;
-    *.sft)  set -- $deps
-	    if [ $# -gt 1 ]; then
-	      deps="$deps\n\t\$(SOLFMT) $deps"
-	    else
-	      deps="$deps\n\tsolfmt -o$i $deps"
-	    fi;;
-    *doit)  def_target $i.dep "$deps\n\tmkdoit3 -M -o $i $deps\n-include $i.dep"
-	    deps="$deps\n\tmkdoit3 -o $i $deps"
-	    add_member IDISTRIB $i;;
-    *doit.dep)
-	    deps="$deps\n\tmkdoit3 -M -o ${i%.dep} $deps\ninclude $i";;
-    *)      LINK=norm;;
-  esac
+ *cltnc) LINK=norm; cxx=CXX;; *srvr) LINK=priv; cxx=CXX;; *.dccc) 
+por="\$(LIBSRC)/dccc.por" deps="$deps $por\n\t@\$(DCCC)$deps";; *.sft) 
+set -- $deps if [ $# -gt 1 ]; then deps="$deps\n\t\$(SOLFMT) $deps" 
+else deps="$deps\n\tsolfmt -o$i $deps" fi;; *doit) def_target $i.dep 
+"$deps\n\tmkdoit3 -M -o $i $deps\n-include $i.dep" 
+deps="$deps\n\tmkdoit3 -o $i $deps" add_member IDISTRIB $i;; *doit.dep) 
+deps="$deps\n\tmkdoit3 -M -o ${i%.dep} $deps\ninclude $i";; *) 
+LINK=norm;; esac 
 
-  if [ -n "$LINK" ]; then
+if [ -n "$LINK" ]; then
     unset ouifiles ouiout hdeps cdeps
     add_member ouis msg
     for j in $ouis; do
@@ -551,7 +542,7 @@ for i in $basetargets; do
         *.c) cdeps="$cdeps $dep";;
         *.cc) cdeps="$cdeps $dep";;
         *.h) hdeps="$hdeps $dep";;
-	*) nl_error Unrecognized dependent $dep;;
+        *) nl_error Unrecognized dependent $dep;;
       esac
     done
     deps=$cdeps
@@ -560,10 +551,10 @@ for i in $basetargets; do
     unset libs odeps
     for dep in $deps; do
       case "x$dep" in
-	x-l*) libs="$libs $dep";;
-	*.o) odeps="$odeps $dep";;
-	*.h) :;;
-	*) nl_error Unrecognized dependent $dep;;
+        x-l*) libs="$libs $dep";;
+        *.o) odeps="$odeps $dep";;
+        *.h) :;;
+        *) nl_error Unrecognized dependent $dep;;
       esac
     done
     deps="$odeps\n\t\$(LINK.$LINK$cxx)$odeps$libs$ldisp$ltmph$ltmpp -ltm$lssp -lnort"
