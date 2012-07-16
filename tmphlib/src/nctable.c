@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "nortlib.h"
 #include "nctable.h"
+#include "tm.h"
 #include "nl_assert.h"
 #include "oui.h"
 
@@ -23,6 +24,7 @@ static int n_scrs = 0;
 static int cur_scr_num;
 static char *ttype;
 static int ifds_opened = 0;
+static int nct_cmd_quit_fd = -1;
 
 static inline void nct_select(int n) {
   nl_assert(n < n_scrs );
@@ -85,6 +87,11 @@ static void nct_shutdown(void) {
   }
 }
 
+/**
+ * Initializes an ncurses display. nct_init() cannot be called
+ * after nct_getch().
+ * @return the screen number.
+ */
 int nct_init( const char *winname, int n_rows, int n_cols ) {
   FILE *ofp, *ifp;
   char *dev_name;
@@ -114,6 +121,13 @@ int nct_init( const char *winname, int n_rows, int n_cols ) {
   if ( n_scrs == 0 )
     atexit( &nct_shutdown );
   return n_scrs++;
+}
+
+int nct_cmdclt_init() {
+  int nct_win = nct_init("cmd", 2, 80);
+  if (cic_init()) exit(1);
+  nct_cmd_quit_fd = cic_cmd_quit_fd;
+  return nct_win;
 }
 
 void nct_refresh(void) {
@@ -371,7 +385,14 @@ char nct_getch(void) {
     d->ifd = open( d->dev_name, O_RDONLY|O_NONBLOCK );
     if ( d->ifd == -1 )
       nl_error(3, "Unable to read from %s: %d", d->dev_name, errno );
-    curs_set(1); // Turn on the cursor
+    if (ifds_opened < n_scrs) {
+      nct_select(ifds_opened);
+      curs_set(1); // Turn on the cursor
+    }
+  }
+  nl_assert(ifds_opened == n_devs);
+  if (nct_cmd_quit_fd >= 0) {
+    nct_display[ifds_opened++].ifd = nct_cmd_quit_fd;
   }
   for (;;) {
     if ( nc > 0 && bp < nc ) {

@@ -1,4 +1,4 @@
-<package> dispnc
+<package> nctable
 <include> "nctable.h"
 
 <opts> "a"
