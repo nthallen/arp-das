@@ -7,4 +7,5 @@
   Launch DG/cmd democol
   Launch cmd/server demosrvr
   Launch - lgr -N `mlf_find LOG`
+  Launch - tmdf
   Launch - demoalgo -v
