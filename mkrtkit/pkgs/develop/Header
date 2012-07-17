@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.28
+Version: 2.5.29
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,10 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.29
+#   cmdgen: just recompiled
+#   cmdgen.skel: reference new nct_cmdclt_init()
+#   nctable.oui: fixed package name
 # 2.5.28
 #   mkdoit3: Handle less under ncurses
 # 2.5.27
