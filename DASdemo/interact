@@ -1,0 +1,10 @@
+# Startup script for DASdemo
+  Launch memo memo -o $Experiment.log
+  memo=/dev/huarp/$Experiment/memo
+  Launch TM/DCo TMbfr
+  echo "Running script interact" >$memo
+
+  Launch DG/cmd democol
+  Launch cmd/server demosrvr
+  Launch - lgr -N `mlf_find LOG`
+  Launch - demoalgo -v

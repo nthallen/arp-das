@@ -1,0 +1,16 @@
+PC {
+  HBox { +-; Title: PC; -+ };
+  CPU: (CPU_Pct,3) %;
+  Disk: (Disk,5) %;
+  Mem:  (freemem,7) MB;
+}
+
+Status {
+  HBox { +-; Title: Status; -+ };
+  (flttime,9);
+  MFCtr: (MFCtr,5);
+}
+
+{ [PC];
+  [Status];
+}
