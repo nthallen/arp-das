@@ -7,7 +7,8 @@ PC {
 
 Status {
   HBox { +-; Title: Status; -+ };
-  (flttime,9);
+  SWStat: (SWStat,3);
+  >(flttime,9)<;
   MFCtr: (MFCtr,5);
 }
 

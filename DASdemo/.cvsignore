@@ -1,3 +1,7 @@
+SWData.cmd
+SWData.h
+SWData.tmc
+SWData_col.tmc
 demotbl.tmc
 demodisp.cc
 demodispoui.c
@@ -8,6 +12,7 @@ demodispnc.cc
 demodispncoui.c
 demodispncoui.o
 demodispnc.o
+demosws.tma
 demoalgoa.tmc
 demoalgo.cc
 demoalgooui.c

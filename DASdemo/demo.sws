@@ -1,0 +1,3 @@
+SW_Variable: SWStat SW Status
+  SWS_SHUTDOWN 1 Shutdown: Validate shutdown; break;
+
