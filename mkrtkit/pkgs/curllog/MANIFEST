@@ -4,3 +4,4 @@ usr/local/lib/libcurllog.a
 usr/local/lib/libcurllog.la
 usr/local/lib/libcurllog.so
 usr/local/lib/libcurllog.so.0
+usr/local/share/huarp/curllog.css

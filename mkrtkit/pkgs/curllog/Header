@@ -1,10 +1,12 @@
 # curllog package
-Version: 1.0.0
+Version: 1.0.1
 Requires: flight
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 1.0.1 2012-07-20
+#   Left out css source
 # 1.0.0 2012-07-06
 #   First packaging for QNX6
 
