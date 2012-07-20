@@ -390,8 +390,8 @@ char nct_getch(void) {
       curs_set(1); // Turn on the cursor
     }
   }
-  nl_assert(ifds_opened == n_devs);
-  if (nct_cmd_quit_fd >= 0) {
+  nl_assert(ifds_opened >= n_devs);
+  if (ifds_opened == n_devs && nct_cmd_quit_fd >= 0) {
     nct_display[ifds_opened++].ifd = nct_cmd_quit_fd;
   }
   for (;;) {
@@ -415,7 +415,7 @@ char nct_getch(void) {
         if ( errno != EINTR )
           nl_error( 3, "Error %d from select", errno );
       } else {
-        for ( i = 0; i < n_devs; i++ ) {
+        for ( i = 0; i < ifds_opened; i++ ) {
           int ifd = nct_display[i].ifd;
           if ( FD_ISSET( ifd, &fs ) ) {
             int nb = read( ifd, &ibuf[nc], IBUFSIZE-nc );
