@@ -165,3 +165,7 @@ int Selector::ProcessTimeout() { return 0; }
  * @return a Timeout * indicating the requested timeout value or NULL.
  */
 Timeout *Selector::GetTimeout() { return NULL; }
+
+extern "C" {
+  char libtmpp_is_present(void) { return '\0'; }
+}
