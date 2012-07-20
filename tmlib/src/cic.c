@@ -71,7 +71,7 @@ int cic_init(void) {
     return(1);
   nlrsave = set_response(NLRSP_WARN);
   cic_cmd_quit_fd = tm_open_name( tm_dev_name( "cmd/Quit" ),
-    cis_node, O_RDONLY );
+    cis_node, O_RDONLY|O_NONBLOCK );
   set_response(nlrsave);
   
   /* If specified, verify version */
