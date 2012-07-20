@@ -234,21 +234,26 @@ static void dequeue_request( signed short status, int n_args,
             case 'M':
               ++p;
               if ( ! read_hex( &p, &rep.data.mread.rvals[i++] ) ) {
+                nl_error(2,"DACS response syntax error: '%s'",
+                  ascii_escape(s));
                 rep.hdr.status = SBS_RESP_SYNTAX; // DACS reply syntax error
                 rsize = sizeof(subbusd_rep_hdr_t);
+                rep.hdr.ret_type = SBRT_NONE;
                 break;
               }
               continue;
 	    case 'E':
               ++p;
               if ( ! read_hex( &p, &errval ) ) {
-		nl_error(2,"Invalid error in mread response");
+		nl_error(2,"Invalid error in mread response: '%s'",
+                  ascii_escape(s));
 		rep.hdr.status = SBS_RESP_SYNTAX;
 	      } else {
 		nl_error(2, "DACS reported error %d on mread", errval );
 		rep.hdr.status = SBS_RESP_ERROR;
 	      }
 	      rsize = sizeof(subbusd_rep_hdr_t);
+              rep.hdr.ret_type = SBRT_NONE;
 	      break;
             default:
               break;
@@ -258,8 +263,11 @@ static void dequeue_request( signed short status, int n_args,
         if ( rsize == 0 ) {
           if ( i != n_reads || *p != '\0' ) {
 	    // Wrong number of read values returned
+            nl_error(2, "Expected %d, read %d: '%s'",
+              n_reads, i, ascii_escape(s));
             rep.hdr.status = SBS_RESP_SYNTAX;
             rsize = sizeof(subbusd_rep_hdr_t);
+            rep.hdr.ret_type = SBRT_NONE;
           } else {
             rep.data.mread.n_reads = n_reads;
             rsize = sizeof(subbusd_rep_hdr_t) +
