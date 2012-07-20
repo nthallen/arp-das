@@ -16,10 +16,11 @@ typedef struct {
 #define DIG_SSP 2
 /* These are QCLI configuration codes */
 #define QCLI_CFG_STANDARD 0
-#define QCLI_CFG_FASTRAMPx10 1
-#define QCLI_CFG_FASTRAMP 2
-#define QCLI_CFG_FASTRAMPx25 3
-#define QCLI_CFG_MAX 3
+#define QCLI_CFG_STANDARDxP33 1
+#define QCLI_CFG_FASTRAMPx10 2
+#define QCLI_CFG_FASTRAMP 3
+#define QCLI_CFG_FASTRAMPx25 4
+#define QCLI_CFG_MAX 4
 
 extern RateDefP NewRateDefPtr( double samples, int navg,
   int specd, int digitizer, CoordPtr pos );

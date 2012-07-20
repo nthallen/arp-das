@@ -2,7 +2,8 @@ SourceFile : ConfigCmds Wave+ .
 ConfigCmds : ConfigCmd* .
 ConfigCmd : QCLIConfig / Digitizer / Prefix .
 QCLIConfig : 'QCLIConfig' QCLIConfigType ';' .
-QCLIConfigType : 'Standard' / 'FastRamp' / 'FastRampx10' / 'FastRampx25' .
+QCLIConfigType : 'Standard' / 'StandardxP33' /
+                 'FastRamp' / 'FastRampx10' / 'FastRampx25' .
 Digitizer : 'Digitizer' DigitizerType ';' .
 DigitizerType : 'CPCI14' / 'CS210' / 'SSP' .
 Prefix : 'Prefix' Ident ';' .

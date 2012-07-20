@@ -8,4 +8,4 @@ qclicomp.exe : $(SRCS)
 	@echo SRCS are $(SRCS)
 	eli qclicomp.exe
 install : qclicomp
-	@cp -v qclicomp /usr/local/bin/qclicomp
+	@cp -v qclicomp $(TGTNODE)/usr/local/bin/qclicomp

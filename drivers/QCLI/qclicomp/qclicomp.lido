@@ -35,6 +35,9 @@ END;
 RULE: QCLIConfigType ::= 'Standard' COMPUTE
   QCLIConfigType.QCLIConfig = QCLI_CFG_STANDARD;
 END;
+RULE: QCLIConfigType ::= 'StandardxP33' COMPUTE
+  QCLIConfigType.QCLIConfig = QCLI_CFG_STANDARDxP33;
+END;
 RULE: QCLIConfigType ::= 'FastRamp' COMPUTE
   QCLIConfigType.QCLIConfig = QCLI_CFG_FASTRAMP;
 END;
