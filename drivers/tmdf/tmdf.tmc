@@ -1,6 +1,6 @@
 TM typedef double PERCENT;
 TM typedef unsigned short TMDF_Rpt { convert PERCENT; text "%5.2lf"; }
-  calibration (TMDF_Rpt, PERCENT) { 0, 0, 65535, 100 }
+  calibration (TMDF_Rpt, PERCENT) { 0, 0, 65534, 100, 65535, 1000 }
 TM "Receive" TMDF 1;
 TM 1 Hz TMDF_Rpt Disk;
 Collect Disk {

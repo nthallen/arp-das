@@ -42,25 +42,30 @@ TMDF_Selectee::~TMDF_Selectee() {
 }
 
 int TMDF_Selectee::ProcessData(int flag) {
-  if (fd >= 0) {
-    time_t now = time(NULL);
-    if ( next == 0 || now >= next ) {
+  time_t now = time(NULL);
+  if ( next == 0 || now >= next ) {
+    next = now + secs;
+    if (fd < 0)
+      fd = open(df_path, O_RDONLY);
+    if (fd >= 0) {
       struct statvfs buf;
-      next = now + secs;
       if (fstatvfs(fd, &buf) ) {
 	nl_error(2, "fstatvfs reported %s", strerror(errno));
+	TMDF.usage = 65535;
       } else {
 	double blks;
 	blks = (buf.f_blocks - buf.f_bavail);
-	blks = blks * 65535. / buf.f_blocks;
-	TMDF.usage = (blks > 65535) ? 65535 :
+	blks = blks * 65534. / buf.f_blocks;
+	TMDF.usage = (blks > 65534) ? 65534 :
 	  ((unsigned short)blks);
 	nl_error(-2, "f_blocks = %d  f_bavail = %d",
 	  buf.f_blocks, buf.f_bavail );
       }
     } else {
-      nl_error(-3, "next: %lu  now: %lu", next, now );
+      TMDF.usage = 65535;
     }
+  } else {
+    nl_error(-3, "next: %lu  now: %lu", next, now );
   }
   return TM_Selectee::ProcessData(flag);
 }
