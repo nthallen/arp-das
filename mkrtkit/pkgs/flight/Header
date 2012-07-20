@@ -1,10 +1,14 @@
 # Package flight
-Version: 2.5.25
+Version: 2.5.27
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.27
+#   libtmnc.*: Re-Fixed bug
+# 2.5.26
+#   libtmnc.*: Fixed bug
 # 2.5.25
 #   libtmnc.*: Added nct_cmdclt_init()
 #   libtmpp.*: Added libtmpp_is_present() C function for configure tests
