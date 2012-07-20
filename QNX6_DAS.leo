@@ -328,7 +328,7 @@
 <v t="ntallen.20100729115515.2029"><vh>subbus_usb</vh>
 <v t="ntallen.20120417153231.2297"><vh>mread optimization</vh></v>
 </v>
-<v t="ntallen.20090202133816" a="E"><vh>Utilities</vh>
+<v t="ntallen.20090202133816"><vh>Utilities</vh>
 <v t="ntallen.20090202133816.1"><vh>mkdoit</vh>
 <v t="ntallen.20090202133816.2"><vh>Dedicated Acquisition node</vh></v>
 <v t="ntallen.20110106130520.2064"><vh>doit [-ns] [-p run] [-i src] [start|stop|not|wait]</vh>
@@ -364,7 +364,7 @@
 <v t="ntallen.20110421132300.2130"><vh>Information to maintain</vh></v>
 </v>
 </v>
-<v t="ntallen.20070404221945.3"><vh>Graphics</vh>
+<v t="ntallen.20070404221945.3" a="E"><vh>Graphics</vh>
 <v t="ntallen.20090203160910"><vh>PhRTG</vh>
 <v t="ntallen.20090316133552"><vh>Bugs</vh>
 <v t="ntallen.20090422104622"><vh>Marking line visible does not redraw...</vh></v>
@@ -636,7 +636,11 @@
 <v t="ntallen.20120602171418.2310"><vh>Report Memory Utilization</vh>
 <v t="ntallen.20120602171418.2309"><vh>memrpt.c</vh></v>
 </v>
-<v t="ntallen.20120321121230.2265" a="E"><vh>Instrument Development Workflow</vh>
+<v t="ntallen.20120604124244.2313"><vh>Looping for long-term logging</vh>
+<v t="ntallen.20120604124244.2314"><vh>Loop resolution?</vh></v>
+<v t="ntallen.20120604124244.2315"><vh>Summary of options</vh></v>
+</v>
+<v t="ntallen.20120321121230.2265"><vh>Instrument Development Workflow</vh>
 <v t="ntallen.20120321121230.2266"><vh>Identify subsystems, commands and channels</vh></v>
 <v t="ntallen.20120321121230.2267"><vh>Assign Types, Addresses, Rates</vh></v>
 <v t="ntallen.20120321121230.2268"><vh>Create TMC definitions</vh></v>
@@ -648,9 +652,10 @@
 </v>
 <v t="ntallen.20120314113810.2256"></v>
 <v t="ntallen.20120517210920.2299"><vh>Photon or Not Photon</vh></v>
+<v t="ntallen.20120606164900.2319"><vh>genui</vh></v>
 </v>
 </v>
-<v t="ntallen.20110211111845.2089"><vh>QNX6 Sys Admin</vh>
+<v t="ntallen.20110211111845.2089" a="E"><vh>QNX6 Sys Admin</vh>
 <v t="ntallen.20071127160602"></v>
 <v t="ntallen.20110211111845.2090"><vh>mkrtkit</vh>
 <v t="ntallen.20110211111845.2091"><vh>Version Numbering</vh>
@@ -665,6 +670,18 @@
 <v t="ntallen.20110831091607.2211"><vh>Formatting a USB Flash Drive as Installer</vh>
 <v t="ntallen.20110831091607.2212"><vh>Replicating USB Flash Installer</vh></v>
 </v>
+</v>
+<v t="ntallen.20120621134143.2321" a="E"><vh>DHCPD and BIND for field network</vh>
+<v t="ntallen.20120621134143.2323" a="E"><vh>DNS</vh>
+<v t="ntallen.20120622110137.2327"><vh>named.conf</vh></v>
+<v t="ntallen.20120625153113.2329"><vh>localhost.zone</vh></v>
+<v t="ntallen.20120625153113.2330"><vh>localhost.rev</vh></v>
+<v t="ntallen.20120625153113.2331"><vh>pseudo_arp.zone</vh></v>
+<v t="ntallen.20120625153113.2332"><vh>pseudo_arp.rev</vh></v>
+</v>
+<v t="ntallen.20120626141653.2337"><vh>DHCPD</vh></v>
+<v t="ntallen.20120627100812.2339"><vh>Testing</vh></v>
+<v t="ntallen.20120621134143.2322"><vh>Email</vh></v>
 </v>
 </v>
 <v t="ntallen.20070815151915.3"><vh>Lessons</vh>
@@ -684,7 +701,7 @@
 <v t="ntallen.20100927130121.2033"><vh>tmnclib</vh></v>
 </v>
 </v>
-<v t="ntallen.20070502121159.1" a="E"><vh>Implementation</vh>
+<v t="ntallen.20070502121159.1"><vh>Implementation</vh>
 <v t="ntallen.20070320121924"><vh>cmdgen</vh>
 <v t="ntallen.20070501165557"><vh>Done</vh>
 <v t="ntallen.20070411152334"><vh>Add Interface Definitions</vh>
@@ -5934,7 +5951,10 @@ Setup standard  experiment directories
 
     echo "==&gt; Clean out huarp run dir"
     rm -rf /var/huarp/run/*
-        
+
+    echo "==&gt; Starting serusb driver for DACS"
+    /sbin/devc-serusb -d vid=0x0403,did=0x6010,module=ftdi
+            
     echo "==&gt; Starting Daemons"
     /usr/sbin/sshd
     /usr/sbin/ntpd
@@ -5993,6 +6013,310 @@ main (int argc, char **argv)
 }
 
 </t>
-<t tx="ntallen.20120602171418.2310">We could report total system memory at the beginning, then report free memory in MB.</t>
+<t tx="ntallen.20120602171418.2310">We could report total system memory at the beginning, then report free memory in MB.
+
+tmcbase = /usr/local/share/huarp/freemem.tmc
+colbase = /usr/local/share/huarp/freemem_col.tmc
+
+Add a definition for a freemem_t, specifying rate:
+    TM 1 Hz freemem_t freemem;
+    
+    FreeMem: (freemem,7) MB;
+</t>
+<t tx="ntallen.20120604124244.2313">This was first implemented with IFSloop, which was a simple shell script that operated on the interactive portion of the architecture. If a specific file was present after the interactive portion terminated, reduce would invoked and the system restarted. This required an interactive login on the console to maintain that interactive session at all times.
+
+I would like to build this functionality into flight.sh. The basic architecture of flight.sh is:
+    
+    Read Experiment.config for instrument configuration
+    Determine what script to invoke
+    Invoke the script
+    exec parent to provide global control
+    
+Everything in the script is run in the background and parent becomes the parent of
+all those processes. That allows the who tree to be shutdown if necessary simply
+by signaling parent. The most common use for that is during development when
+certain processes don't get the shutdown message.
+
+IFSloop was easy because the interactive portion does not run parent. The last
+program invoked could be run interactively, and when it quite, it could be
+assumed that it was done.
+
+What I need to do is add some functionality to parent:
+    parent -q: quit when childless
+    parent -t &lt;seconds&gt;: send HUP to children after &lt;seconds&gt; seconds
+    parent -M &lt;pid&gt;: Don't invoke -t &lt;secs&gt; until &lt;pid&gt; terminates
+
+Then I can save the pid of the command server (say), and pass that info to parent when looping
+
+RunLog=saverun.log
+LOOP_ON_FILE=saverun.log
+    
+    Read Experiment.config for instrument configuration
+    if FlightNode defined and LOOP_ON_FILE defined
+      if LOOP_ON_FILE exists
+        reduce
+        if LOOP_ON_FILE still exists
+          report error
+          exec parent
+        fi
+      else
+        report termination of loop
+        exec parent
+      fi
+    fi
+    Determine what script to invoke
+    Invoke the script
+    exec parent to provide global control
+
+Oops, this will not start up properly.
+
+In order for the loop to run unattended, the script must be well-defined without the use of SCRIPT_OVERRIDE, but that would also guarantee that the script would start on bootup. That might be a reasonable thing except that it is not desired by at least one of our long-running experiments.</t>
+<t tx="ntallen.20120604124244.2314">Don't start on bootup (without LOOP_ON_FILE)
+Don't start if restarted automatically without LOOP_ON_FILE
+Don't start on 'doit not'
+
+Start when invoked interactively (without LOOP_ON_FILE)
+Start if restarted automatically due to LOOP_ON_FILE
+
+The only way to tell the difference between interactive and automatic invocation is via SCRIPT_OVERRIDE
+SCRIPT_OVERRIDE and RUNFILE can (and should) refer to the same script, but the existence of SCRIPT_OVERRIDE
+notes that we are interactive.
+
+If you DO want to run on boot, don't define SCRIPT_OVERRIDE
+
+In the LOOP_ON_FILE, the idea of selecting the script based on an interactive choice does not make much sense, since the assumption is that the script will be invoked automatically
+
+bootup:
+    no SCRIPT_OVERRIDE file
+    no LOOP_ON_FILE
+    no LOOP_STOP_FILE
+
+interactive:
+    SCRIPT_OVERRIDE file
+    no LOOP_ON_FILE
+    no LOOP_STOP_FILE
+
+auto_restart
+    no SCRIPT_OVERRIDE file
+    LOOP_ON_FILE or LOOP_STOP_FILE</t>
+<t tx="ntallen.20120604124244.2315">ciFor any looping, must define the saverun variables to avoid questions:
+    RunType=raw/data
+    Dircksum=no
+    # Note that perl may not be part of the flight install package, so you may
+    # not be able to dircksum. Also dircksum adds considerable time to the saverun
+    # process, so you may want to do that portion in background processing after
+    # restarting the data acquisition.
+
+Don't start on boot, but reduce and restart if LOOP_ON_FILE is present:
+    LOOP_ON_FILE=saverun.log
+    RunLog=saverun.log
+    SCRIPT_OVERRIDE=/net/node/home/$Experiment/script
+    RUNFILE=interact
+    
+    batchfile interact
+
+Start on boot, reduce and restart if LOOP_ON_FILE is present:
+    LOOP_ON_FILE=saverun.log
+    RunLog=saverun.log
+    # SCRIPT_OVERRIDE=/net/node/home/$Experiment/script
+    RUNFILE=interact
+    
+    batchfile interact
+</t>
+<t tx="ntallen.20120606164900.2319">Feel free to reposition this note:
+
+genui tries to do several things in one simple interface:
+    Identify the channels that need to be extracted, their rates and formats
+    Define the engineering plots and their organization
+
+rate variable group plot [format] [:cust_plot] [legend]
+
+If I wanted to add a custom plot, it would be important to still identify the variables
+A custom plot should still fit into the namespace ( p${experiment}${shortname} ), in order to
+avoid path problems between experiments, but it should probably use the 'cust_' prefix to make
+it clear it is not generated.
+    </t>
+<t tx="ntallen.20120621134143.2321">For our field network configuration, we will use a wireless router to put our group on a private NAT LAN. In situations where the network is provided only via wireless, we will use a wireless bridge.
+
+On our local NAT LAN, we will provide:
+    QNX6 Server for disk storage, DHCPD and DNS
+    Printer(s), currently HP Deskjet
+    Wireless access via "Anderson Group" SSID, password "Global Warming"
+    SSH Tunneling of specific protocols back to the home network
+        FlexLM license manager ports for Mentor Graphics licenses
+        SMTP TLS 587
+
+Although the wireless router is capable of providing both DHCP and DNS, we will disable those features and provide them on the QNX6 Server in order to customize the functionality.
+
+Config parameters:
+    DNS Forwarders:
+    Local Network: 10.0.5.0/24
+    
+    Local Hosts:
+        Hostname:MAC Addr:IP Addr
+    Remote Hosts: (arp.harvard.edu hosts (i.e. in Cambridge) that don't go to DHCP)
+        Hostname IN A IP_Addr
+    CNAMES:
+        Hostname IN CNAME Hostname
+        </t>
+<t tx="ntallen.20120621134143.2322">Our email is configured as follows:
+    IMAP: endymion.arp.harvard.edu:143 STARTTLS Normal Password
+    SMTP: endymion.arp.harvard.edu:587 STARTTLS Normal Password
+
+The cert is currently self-signed for endymion.arp.harvard.edu.
+
+Having both services on the same hostname means that if we have to tunnel one, we have to tunnel both.
+Currently:
+    imap.arp.harvard.edu -&gt; endymion.arp.harvard.edu
+    smtp.arp.harvard.edu -&gt; www.arp.harvard.edu
+
+I should probably have smtp point to endymion as well, then announce that I am creating new certs and recommend switching to the function-specific names. This would allow me to do funky things in the field, redirecting one but not the other and still get the right certs.
+</t>
+<t tx="ntallen.20120621134143.2323">/etc/named.conf
+    Identifies where the zone files are
+/etc/named/
+    named.root # apparently not necessary as named has compiled-in root hints
+    root.cache # apparently generated
+    
+    </t>
+<t tx="ntallen.20120622110137.2327">// Anderson Group slave DNS server config
+
+// Subnets we allow queries from
+acl "arpnets" { 10.0.5.0/24; }
+options {
+        directory       "/etc/named";           // Working directory
+//      listen-on       { 10.0.5.5; };          // Only listen on a single IF
+        pid-file        "/var/run/named.pid";   // Put pid file in working dir
+        dump-file       "/var/run/named-dump.db";
+        statistics-file "/var/run/named.stats";
+        allow-query     { "arpnets"; };
+//      forward only; 
+        forwarders      { 139.169.160.2;        // JSC DNS
+                          139.169.31.2; };      // JSC DNS
+
+//      root-delegation-only exclude { "ad"; "ar"; "biz"; "cr"; "cu"; "de"; "dm"; 
+//              "id"; "lu"; "lv"; "md"; "ms"; "museum"; "name"; "no"; "pa"; "pf"; 
+//              "sr"; "to"; "tw"; "us"; "uy"; };        // disallow NXDOMAIN stealing
+};
+
+// Root server hints: I will assume these are unnecessary
+// zone "." { type hint; file "named.root"; };
+
+// Provide a mapping for loopback
+zone "0.0.127.in-addr.arpa" {
+        type master;
+        file "localhost.rev";
+        notify no;
+};
+
+zone "localhost" {
+        type master;
+        file "localhost.zone";
+        notify no;
+};
+
+// Provide mappings for local machines
+zone "5.0.10.in-addr.arpa" {
+        type master;
+        file "pseudo_arp.rev";
+        notify no;
+};
+
+// Master for field machines
+zone "arp.harvard.edu" {
+        type master;
+        file "pseudo_arp.zone";
+        notify no;
+};
+</t>
+<t tx="ntallen.20120625153113.2329">;        @(#)localhost.zone (Corlette) 1/03
+; $ORIGIN set to localhost by named.boot
+
+@       IN      SOA     arp.harvard.EDU. postmaster.arp.harvard.EDU.  (
+                                2012062500      ; Serial
+                                3600            ; Refresh
+                                900             ; Retry
+                                3600000         ; Expire
+                                3600 )          ; Minimum
+        IN      NS      dns.arp.harvard.EDU.
+localhost.      IN      NS      localhost.
+                IN      A       127.0.0.1
+</t>
+<t tx="ntallen.20120625153113.2330">;       @(#)localhost.rev       5.1 (Berkeley) 6/30/90
+
+@       IN      SOA     arp.harvard.EDU. root.huarp.harvard.edu (
+                                2003121800      ; Serial
+                                3600    ; Refresh
+                                900     ; Retry
+                                3600000 ; Expire
+                                3600 )  ; Minimum
+        IN      NS      dns.arp.harvard.EDU.
+1       IN      PTR     localhost.</t>
+<t tx="ntallen.20120625153113.2331">;       pseudo_arp.zone
+; $ORIGIN set to arp.harvard.edu by named.boot
+
+@       IN      SOA     arp.harvard.EDU. postmaster.arp.harvard.EDU.  (
+                                2012062500      ; Serial
+                                3600            ; Refresh
+                                900             ; Retry
+                                3600000         ; Expire
+                                3600 )          ; Minimum
+                IN      NS      dns.arp.harvard.EDU.
+localhost       IN      A       127.0.0.1
+abigail IN      A     10.0.5.33
+fldlas  IN      A     10.0.5.34
+fldcol  IN      A     10.0.5.35
+switch  IN      A     10.0.5.36
+dhcp-37 IN      A     10.0.5.37
+dhcp-38 IN      A     10.0.5.38
+
+router 1
+switch (I don't think our current switch has a web interface)
+printers (just fldcol for now)
+servers (fldqnx6, dns)
+qnx6 machines
+notebooks
+dynamic
+</t>
+<t tx="ntallen.20120625153113.2332">;       pseudo_arp.rev
+
+@       IN      SOA     arp.harvard.EDU. root.huarp.harvard.EDU. (
+                                2004113001      ; Serial
+                                3600    ; Refresh
+                                900     ; Retry
+                                3600000 ; Expire
+                                3600 )  ; Minimum
+        IN      NS      abigail.arp.harvard.EDU.
+33      IN      PTR     abigail.arp.harvard.EDU.
+34      IN      PTR     fldlas.arp.harvard.EDU.
+35      IN      PTR     fldcol.arp.harvard.EDU.
+36      IN      PTR     switch.arp.harvard.EDU.
+37      IN      PTR      dhcp-37.arp.harvard.EDU.</t>
+<t tx="ntallen.20120626141653.2337">Need to identify:
+    IP
+    netmask
+    domain
+    nameservers
+
+To convert MAC to colon-delimited:
+    sed -e 's/\([0-9a-f][0-9a-f]\)/\1:/g' -e 's/:$//'</t>
+<t tx="ntallen.20120627100812.2339">Procedure
+    Configure fldqnx6 with fixed IP on the NAT network 10.0.5.5
+    Connect Router to LAN
+    Connect PC to Router, acquire addr
+    Connect to Router web interface:
+        Change NAT network, web addr, DHCPD range
+        Reboot
+    Reacquire addr
+    Connect to Router web interface:
+        Disable DHCP, DNS
+    Connect fldqnx6 to the router
+    Start up DHCPD, NAMED
+    Reacquire addr, test configuration
+
+fldcol is apparently fixed IP (not in abigail's dhcpd.conf) so need to configure it
+maybe should make it DHCP? 10.0.5.2
+
+</t>
 </tnodes>
 </leo_file>
