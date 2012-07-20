@@ -463,7 +463,9 @@ subbus_mread_req *pack_mread_requests( unsigned int addr, ... ) {
     space -= nb;
     while ( i < n_reads ) {
       nb = 0;
-      if ( i+2 < n_reads && addrs[i] <= addrs[i+1] && addrs[i+1] <= addrs[i+2] ) {
+      if (i+2 < n_reads &&
+          addrs[i] <= addrs[i+1] &&
+          addrs[i+1] <= addrs[i+2] ) {
         unsigned d1 = addrs[i+1]-addrs[i];
         unsigned d2 = addrs[i+2]-addrs[i+1];
         if ( d1 == d2 ) {
@@ -477,7 +479,8 @@ subbus_mread_req *pack_mread_requests( unsigned int addr, ... ) {
           if ( d1 == 0 ) {
             nb = snprintf( buf+nc, space, "%X@%X,", j-i+1, addrs[i] );
           } else {
-            nb = snprintf( buf+nc, space, "%X:%X:%X,", addrs[i], d1, addrs[j] );
+            nb = snprintf( buf+nc, space, "%X:%X:%X,",
+              addrs[i], d1, addrs[i+j] );
           }
           i += j+1;
         }
