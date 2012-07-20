@@ -23,13 +23,13 @@ while [ -n "$manpath" ]; do
   # echo "Trying path '$newpath'"
   catdirs=`echo $newpath/cat*`
   if [ "$catdirs" != "$newpath/cat*" ]; then
-    catfile=`find $newpath/cat* -name "$topic.*" | head -n1`
+    catfile=`find $newpath/cat* -name "$topic.[0-8n]" | head -n1`
     if [ -n "$catfile" ]; then
       less -r $catfile
       exit 0
     fi
   fi
-  manfile=`find $newpath/man* -name "$topic.*" | head -n1`
+  manfile=`find $newpath/man* -name "$topic.[0-8n]" | head -n1`
   if [ -n "$manfile" ]; then
     groff -Tascii -man $manfile | less -r
     exit 0
