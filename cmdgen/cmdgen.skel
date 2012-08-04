@@ -1371,8 +1371,11 @@ int cmd_check(cmd_state *s) {
   }
 
   int main(int argc, char **argv) {
+    const char *name;
     oui_init_options(argc, argv);
-    nl_error(0, "Startup" );
+    name = getlogin();
+    if (name == NULL) name = "NULL";
+    nl_error(0, "Startup (%s)", name);
     atexit( cmd_exit );
     #ifdef CLIENT
       #if PHOTON_INTERFACE
