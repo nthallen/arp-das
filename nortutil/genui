@@ -252,7 +252,7 @@ for my $grp ( @group ) {
   }
 }
 print UI
-  "f = ne_listdirs(f, '$homedir', 8 );\n",
+  "f = ne_listdirs(f, '$homedir', ", int($ui_limit*.75), ");\n",
   "f = ne_dialg(f, 'newcol');\n",
   "f = ne_dialg(f, 'resize');\n";
 close UI || warn "Error closing ui_$experiment.m\n";
