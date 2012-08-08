@@ -2,8 +2,7 @@
 # appgen Application Generator for the
 # tmc/cmdgen/tmcalgo/etc family of compilers
 #__USAGE
-#%C	[-s] [spec file]
-#	-s Do not include subbus support by default
+#%C	[spec file]
 #
 #	Generates an application based on the spec_file input
 #	If spec file isn't specified, appgen will look for a
@@ -18,19 +17,16 @@
 # prefix = <prefix>  (optional: derived from spec file name)
 # tmcbase = <files>
 # cmdbase = <files>
-# NOSUBBUS
-# CLEANDIST - Flag to distribute into the bin hierarchy
+# colbase = <files>
+# qclibase = <files>
 # var = substitution (supported vars are SRC TOOL OBJ TGT DISTRIB
 #                     SCRIPT (source to be copied to $TGTDIR/bin/$VERSION)
 #                     SRCDIST (source to be copied to $TGTDIR/bin/$VERSION/Base)
 #                     IDISTRIB (to be copied to $TGTDIR)
 #                     MNC (defaults to prefix)
-#                     HOMEDIR (defaults to cwd, less node)
 #                     TGTNODE TGTDIR
 #                     SERVER (defaults if server is generated)
 #                     SUBDIRS (passed on to Makefile)
-#                     SUBDIRS4 (passed on to Makefile)
-#                     NONRCS (backed up as SOURCE, but not RCSed)
 # target : <files>
 # ...
 # %%
@@ -69,10 +65,8 @@ function nl_error {
   exit 1
 }
 
-typeset subbus=yes cleandist=yes
 while getopts "s" option; do
   case $option in
-	s) subbus=no;;
 	\?) nl_error ;;
 	*) nl_error Unsupported option: -$option;;
   esac
@@ -106,7 +100,7 @@ exec <$ifile >Makefile
 typeset targets prefix tmcbase cmdbase basetargets usage LINK usefiles
 typeset colbase swsbase qclibase ouis
 typeset SERVER
-typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC HOMEDIR DISTRIB SRCDIST
+typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC DISTRIB SRCDIST
 typeset TGTNODE TGTDIR
 typeset PHTGT
 
@@ -222,8 +216,6 @@ add_member IDISTRIB VERSION
 while read tgt mode deps; do
   case "$tgt" in
     \#*) mode=#;;
-    NOSUBBUS) subbus=no; mode="";;
-    CLEANDIST) cleandist=yes; mode="";;
     swsbase)
       for i in $deps; do
         add_member tmcbase SWData.tmc
@@ -456,7 +448,6 @@ for i in $basetargets; do
       if replace_all .tmc $i.cc "\n\t\$(TMC.col)" $deps; then
         add_member ouis collect
         add_member ouis seteuid
-        # [ "$subbus" = "yes" ] && add_member ouis subbus_reqd
         add_member DISTRIB ${i%col}.pcm
         add_member DISTRIB tm.dac
         add_member OBJ ${i%col}.pcm
@@ -501,7 +492,6 @@ for i in $basetargets; do
         add_member ouis cis
         add_member ouis seteuid
         ltmpp=' -ltmpp'
-        # [ "$subbus" = "yes" ] && add_member ouis subbus_opt
       else
         nl_error Server $i with no cmd.cc files
       fi;;
@@ -517,16 +507,25 @@ for i in $basetargets; do
   case $i in
     *col)   LINK=priv;;
     *clt)   LINK=norm; cxx=CXX;;
- *cltnc) LINK=norm; cxx=CXX;; *srvr) LINK=priv; cxx=CXX;; *.dccc) 
-por="\$(LIBSRC)/dccc.por" deps="$deps $por\n\t@\$(DCCC)$deps";; *.sft) 
-set -- $deps if [ $# -gt 1 ]; then deps="$deps\n\t\$(SOLFMT) $deps" 
-else deps="$deps\n\tsolfmt -o$i $deps" fi;; *doit) def_target $i.dep 
-"$deps\n\tmkdoit3 -M -o $i $deps\n-include $i.dep" 
-deps="$deps\n\tmkdoit3 -o $i $deps" add_member IDISTRIB $i;; *doit.dep) 
-deps="$deps\n\tmkdoit3 -M -o ${i%.dep} $deps\ninclude $i";; *) 
-LINK=norm;; esac 
+    *cltnc) LINK=norm; cxx=CXX;;
+    *srvr)  LINK=priv; cxx=CXX;;
+    *.dccc) por="\$(LIBSRC)/dccc.por"
+            deps="$deps $por\n\t@\$(DCCC)$deps";;
+    *.sft)  set -- $deps
+            if [ $# -gt 1 ]; then
+              deps="$deps\n\t\$(SOLFMT) $deps"
+            else
+              deps="$deps\n\tsolfmt -o$i $deps"
+            fi;;
+    *doit)  def_target $i.dep "$deps\n\tmkdoit3 -M -o $i $deps\n-include $i.dep"
+            deps="$deps\n\tmkdoit3 -o $i $deps"
+            add_member IDISTRIB $i;;
+    *doit.dep)
+            deps="$deps\n\tmkdoit3 -M -o ${i%.dep} $deps\ninclude $i";;
+    *)      LINK=norm;;
+  esac
 
-if [ -n "$LINK" ]; then
+  if [ -n "$LINK" ]; then
     unset ouifiles ouiout hdeps cdeps
     add_member ouis msg
     for j in $ouis; do
@@ -599,22 +598,14 @@ function output_macro {
 #----------------------------------------------------------------
 add_member TOOL $ifile
 add_member TOOL Makefile
-directory=$PWD
-case $directory in
-  //*/*) directory=/${PWD#//*/};;
-esac
 
 #----------------------------------------------------------------
 # Output the results
 #----------------------------------------------------------------
 echo "# Makefile Generated `date`"
 output_macro MNC ${MNC:-$prefix}
-output_macro HOMEDIR ${HOMEDIR:-$directory}
 if [ -n "$SUBDIRS" ]; then
   output_macro SUBDIRS $SUBDIRS
-fi
-if [ -n "$SUBDIRS4" ]; then
-  output_macro SUBDIRS4 $SUBDIRS4
 fi
 echo SPECFILE=$ifile
 output_macro SRC $SRC
@@ -625,7 +616,6 @@ output_macro TGT $TGT
 output_macro DISTRIB $DISTRIB
 output_macro IDISTRIB $IDISTRIB
 output_macro SRCDIST $SRCDIST
-output_macro NONRCS $NONRCS
 output_macro TMCBASE $tmcbase
 output_macro CMDBASE $cmdbase
 output_macro COLBASE $colbase
@@ -653,7 +643,6 @@ echo
 echo 'all : Makefile check_photon $(TGT) .cvsignore'
 echo "Makefile : $ifile"
 echo "\tappgen $ifile"
-  # This was the cleandist option. No longer optional
   echo 'VERSION=`cat VERSION`'
   echo 'extdistribution : $(DSTRB) $(SRCDIST) VERSION'
   echo "\t@[ -d \$(TGTDIR)/bin ] || mkdir \$(TGTDIR)/bin"
