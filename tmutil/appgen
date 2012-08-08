@@ -52,7 +52,7 @@
 #   *.tma
 #   *.cyc
 #   *.tmc
-#	*.tmg
+#   *.tmg
 #   *.cmd
 #   *.c
 #   *.cc
@@ -67,8 +67,8 @@ function nl_error {
 
 while getopts "s" option; do
   case $option in
-	\?) nl_error ;;
-	*) nl_error Unsupported option: -$option;;
+    \?) nl_error ;;
+    *) nl_error Unsupported option: -$option;;
   esac
 done
 let sval=$OPTIND-1
@@ -83,7 +83,7 @@ else
   for i in *.spec; do
     if [ -r $i ]; then
       if [ -n "$ifile" ]; then
-	nl_error More than one .spec file found: *.spec
+        nl_error More than one .spec file found: *.spec
       else ifile=$i
       fi
     fi
@@ -304,9 +304,9 @@ fi
 #----------------------------------------------------------------
 # replace_each from to rule dependents
 #   Processes the list of dependents, replacing any ending in
-#	the "from" pattern with a new dependent ending in the "to"
-#	pattern. Adds the new dependent as a target in its own right
-#	with the old dependent as a dependent.
+#   the "from" pattern with a new dependent ending in the "to"
+#   pattern. Adds the new dependent as a target in its own right
+#   with the old dependent as a dependent.
 #   Rules starting with '-' are omitted unless the source is in
 #   a different directory.
 # Returns TRUE if the substitution was applied
@@ -557,7 +557,7 @@ for i in $basetargets; do
       esac
     done
     deps="$odeps\n\t\$(LINK.$LINK$cxx)$odeps$libs$ldisp$ltmph$ltmpp -ltm$lssp -lnort"
-    [ -n "$ouiout" ] &&	deps="$deps\n\t\$(OUIUSE) $ouiout"
+    [ -n "$ouiout" ] && deps="$deps\n\t\$(OUIUSE) $ouiout"
     case $LINK in
       priv*) deps="$deps\n\t\$(PROMOTE) $i";;
     esac
