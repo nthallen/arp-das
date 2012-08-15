@@ -1,0 +1,442 @@
+#! /usr/bin/perl -w
+use strict;
+# use Getopt::Std;
+
+#ifdef __USAGE
+#   osupdate [-n] [-r ref_node] [-s repository]
+#       [-A package] [-R package] [nodename]
+#     update the current node or the specified node.
+#
+#   Options:
+#     -n
+#        Do nothing, just report what would be done
+#     -r ref_node
+#        Make changes relative to the specified
+#        reference node. Default reference node
+#        is nortvm650a
+#     -s repository
+#        Instead of a reference node, use the archives
+#        in the specified repository directory.
+#     -A package
+#     -R package
+#        Add (-A) or remove (-R) the specified package
+#        from the node during the update.
+#
+#Examples:
+#   osupdate # Update the current node from nortvm650a
+#   osupdate -n # Just state what would be updated
+#   osupdate -s /fs/usb0/repository # Update from an install disk
+#endif
+
+# Look through /var/huarp/pkg to see what packages are installed,
+# sorting by package and version.
+# Look through /net/$ref/var/huarp/pkgcache to see what packages
+# are available, sorting by package and version
+
+# For each installed package, check to see if a newer version
+# is available. If so, remove all the old versions and install
+# the new version.
+# When installing, check to make sure all dependent packages
+# are also installed.
+
+if ( $> != 0 ) {
+  exec 'sudo', $0, @ARGV;
+  die "exec sudo failed\n";
+}
+
+my $doit = 1;
+my @add;
+my @remove;
+my $node;
+my $npath = '';
+my $refnode = 'nortvm650a';
+my $repository;
+
+while ( @ARGV ) {
+  my $arg = shift @ARGV;
+  if ( $arg eq '-n' ) {
+    $doit = 0;
+  } elsif ( $arg eq '-A' && @ARGV ) {
+    push @add, shift @ARGV;
+  } elsif ( $arg eq '-R' && @ARGV ) {
+    push @remove, shift @ARGV;
+  } elsif ( $arg eq '-r' && @ARGV ) {
+    $refnode = shift @ARGV;
+  } elsif ( $arg eq '-s' && @ARGV ) {
+    $repository = shift @ARGV;
+  } elsif ( $arg =~ m/^-/ ) {
+    die "Invalid option or no argument supplied: '$arg'\n";
+  } else {
+    die "More than one node specified\n" if $node;
+    $node = $arg;
+    $npath = "/net/$node";
+  }
+}
+
+my $cache;
+my $refpkg;
+my @recheck;
+
+if ( $repository ) {
+  $cache = $repository;
+  $refpkg = "$npath/var/huarp/pkg";
+} else {
+  $cache = "/net/$refnode/var/huarp/pkgcache";
+  $refpkg = "/net/$refnode/var/huarp/pkg";
+}
+
+my $files_in_use = openfiles();
+
+my @pkgs;
+my %pkg; # the currently installed packages
+my $pkgdir = "$npath/var/huarp/pkg";
+chdir $pkgdir || die "Cannot chdir $pkgdir\n";
+for my $pkg ( <*> ) {
+  my $pp = pkg_check($pkg, $pkgdir);
+  if ( ! defined $pkg{$pp->{root}} ) {
+    $pkg{$pp->{root}} = [];
+    push @pkgs, $pp->{root};
+  }
+  push @{$pkg{$pp->{root}}}, $pp;
+}
+for my $pkg ( sort @pkgs ) {
+  $pkg{$pkg} = [ sort { ver_comp($b,$a); } @{$pkg{$pkg}} ];
+}
+
+if ( @remove ) {
+  for my $pkg ( @remove ) {
+    if ( $pkg{$pkg} ) {
+      while ( @{$pkg{$pkg}} ) {
+        my $pp = shift @{$pkg{$pkg}};
+        if ( $doit ) {
+          uninstall($npath, $pp);
+        } else {
+          print "  Uninstall ", ver_print($pp), "\n";
+        }
+      }
+    }
+  }
+  exit 0;
+}
+
+# Now check for available packages
+my @avpkgs;
+my %avpkg; # the available packages
+chdir $cache ||
+  die "Cannot chdir $cache\n";
+for my $pkg ( <*.tar.gz> ) {
+  # $pkg =~ s/\.tar\.gz$//;
+  my $pp = pkg_check($pkg, $cache);
+  if ( ! defined $avpkg{$pp->{root}} ) {
+    $avpkg{$pp->{root}} = [];
+    push @avpkgs, $pp->{root};
+  }
+  push @{$avpkg{$pp->{root}}}, $pp;
+}
+for my $pkg ( sort @avpkgs ) {
+  $avpkg{$pkg} = [ sort { ver_comp($b,$a); } @{$avpkg{$pkg}} ];
+}
+
+# Now for each installed package, check to see if there is
+# a newer available package.
+my @depchk = sort @pkgs;
+my %pkgplan = map { $_ => {} } @depchk;
+# { uninstall => [ $pp ], install => $pp, dep => [ $pkg ]
+#   sup => [ $pkg ], req_by => [ who ] }
+
+# Handle explicit adds:
+for my $pkg ( @add ) {
+  if ( -f "$cache/$pkg.cfg" ) {
+    open(my $cfg, "<", "$cache/$pkg.cfg") ||
+      die "Unable to read $cache/$pkg.cfg\n";
+    while (my $line = <$cfg>) {
+      chomp $line;
+      my $pp = pkg_check($line, $cache);
+      if ( ! $pkgplan{$pp->{root}} ) {
+        push @depchk, $pp->{root};
+        $pkgplan{$pp->{root}} = { req_by => [ 'command line' ] };
+      }
+    }
+    close $cfg;
+  } else {
+    if ( ! $pkgplan{$pkg} ) {
+      push @depchk, $pkg;
+      $pkgplan{$pkg} = { req_by => [ 'command line' ] };
+    }
+  }
+}
+
+while ( @depchk ) {
+  my $pkg = shift @depchk;
+  if ( ! defined $avpkg{$pkg} ) {
+    warn "No archives available for package $pkg\n";
+  } else {
+    my $avail = $avpkg{$pkg}->[0];
+    my $chkdep;
+    my $pkgplan = $pkgplan{$pkg};
+    if ( defined $pkg{$pkg} ) {
+      # $pkg is currently installed
+      my $inst = $pkg{$pkg}->[0];
+      if ( ver_comp( $inst, $avail ) < 0 ) {
+        print "Upgrading ", ver_print($inst), " to ",
+              ver_print($avail), "\n";
+        $pkgplan->{uninstall} ||= [];
+        while ( @{$pkg{$pkg}} ) {
+          push @{$pkgplan->{uninstall}}, pop @{$pkg{$pkg}};
+        }
+        $pkgplan->{install} = $avail;
+        $chkdep = $avail;
+      } else {
+        $chkdep = $inst;
+      }
+    } else {
+      my $req_by = $pkgplan->{req_by} ?
+        join(", ", @{$pkgplan->{req_by}}) : "unknown";
+      print "Installing ", ver_print($avail),
+            " required by $req_by\n";
+      $pkgplan->{install} = $avail;
+      $chkdep = $avail;
+      if ( $pkgplan->{req_by} && @{$pkgplan->{req_by}} == 1 &&
+           $req_by eq 'command line' ) {
+
+        shift @{$pkgplan->{req_by}};
+      }
+    }
+    # now install any dependent packages that aren't installed
+    my $hdr = "$refpkg/" . ver_print($chkdep) . "/Header";
+    if ( open( my $hdrfh, "<", $hdr ) ) {
+      while (<$hdrfh>) {
+        if ( s/^\s*Requires:\s*// ) {
+          my @pkgs =
+            map {
+                s/-\[0-9\]\*$//;
+                s/^([\w-]+)(?:-(\d+(?:\.\d+)*))?$/$1/;
+                $_}
+              split(' ');
+          $pkgplan->{deps} ||= [];
+          for my $reqpkg (@pkgs) {
+            if ( ! defined $pkgplan{$reqpkg} ) {
+              $pkgplan{$reqpkg} = { };
+              push(@depchk, $reqpkg);
+            }
+            push(@{$pkgplan->{deps}}, $reqpkg);
+            $pkgplan{$reqpkg}->{req_by} ||= [];
+            push(@{$pkgplan{$reqpkg}->{req_by}}, $pkg);
+          }
+        }
+      }
+      close($hdrfh) || warn "Error closing $hdr\n";
+    } elsif ( $repository ) {
+      warn "No Header for " . ver_print($avail) .
+        ": will rerun after installations\n";
+      push @recheck, ver_print($avail);
+    } else {
+      die "No Header for " . ver_print($avail) . "\n";
+    }
+  }
+}
+
+# Now try to find the root(s) of the %pkgplan tree
+my @roots;
+for my $pkg ( keys %pkgplan ) {
+  if (! defined $pkgplan{$pkg}->{req_by} ||
+      @{$pkgplan{$pkg}->{req_by}} == 0 ) {
+    push @roots, $pkg;
+  }
+}
+
+if ( @roots > 1 ) {
+  warn "There are multiple roots: ", join( ", ", @roots ), "\n";
+} elsif ( @roots == 0 ) {
+  warn "There are circular dependencies\n";
+  @roots = keys %pkgplan; # just punt
+}
+
+sub visit {
+  my $node = shift;
+  my @rv;
+  return @rv if $pkgplan{$node}->{visited};
+  $pkgplan{$node}->{visited} = 1;
+  if ( $pkgplan{$node}->{deps} ) {
+    for my $dep ( @{$pkgplan{$node}->{deps}} ) {
+      push @rv, visit($dep);
+    }
+  }
+  push @rv, $node;
+  return @rv;
+}
+
+my @outorder;
+for my $root ( @roots ) {
+  push @outorder, visit($root);
+}
+
+my @plan; # array of arrayrefs with e.g. [ 'uninstall' $pp ]
+for my $pkg ( @outorder ) {
+  my $pkp = $pkgplan{$pkg};
+  if ( $pkp->{uninstall} ) {
+    for my $pp ( @{$pkp->{uninstall}} ) {
+      push @plan, [ uninstall => $pp ];
+    }
+  }
+  if ( $pkp->{install} ) {
+    push @plan, [ install => $pkp->{install} ];
+  }
+}
+
+while (@plan) {
+  my $cmdset = shift @plan;
+  my ( $cmd, $pp ) = @$cmdset;
+  if ( $doit ) {
+    if ( $cmd eq 'install' ) {
+      install( $npath, $pp );
+    } elsif ( $cmd eq 'uninstall' ) {
+      uninstall( $npath, $pp );
+    } else {
+      die "Invalid command in \@plan\n";
+    }
+  } else {
+    print "$cmd: ", ver_print($pp), "\n";
+  }
+}
+
+if ( @recheck ) {
+  print
+    "The following packages need to be checked\n" .
+    "for dependencies after their installation:\n",
+    map( "  $_\n", @recheck );
+  print
+    "You should re-run osupdate.\n";
+}
+
+sub install {
+  my ( $npath, $pp ) = @_;
+  print "  Installing ", ver_print($pp), " to $npath/\n";
+  my $archive = "$cache/" . ver_print($pp) . ".tar.gz";
+  -f $archive || die "Archive $archive not found\n";
+  chdir "$npath/" || die "Cannot chdir $npath/\n";
+  if ( system( "tar -xzf $archive" ) ) {
+    warn "'tar -xzf $archive' reported errors: retrying\n";
+    system( "tar -xzf $archive" ) &&
+      die "Error from tar -xzf $archive\n";
+    warn "'tar -xzf $archive' second attempt succeeded\n";
+  }
+}
+
+sub pkg_check {
+  my ( $pkg, $src ) = @_;
+  if ( $pkg =~ m/^([\w-]+)(?:-(\d+(?:\.\d+)*))(?:\.tar\.gz)?$/ ) {
+    my $root = $1;
+    my @ver;
+    @ver = split( /\./, $2 ) if $2;
+    return { root => $root, ver => \@ver, src => $src };
+  } else {
+    die "Invalid package reference: '$pkg' from $src\n";
+  }
+}
+
+sub ver_comp {
+  # I am going with slow so I can call this function
+  # outside sort.
+  my ( $a, $b ) = @_;
+  my $i = 0;
+  my $va = $a->{ver};
+  my $vb = $b->{ver};
+  for ( my $i = 0; ; ++$i ) {
+    if ( $i >= @$va ) {
+      if ( $i >= @$vb ) {
+        return 0;
+      } else {
+        return -1;
+      }
+    } elsif ( $i >= @$vb ) {
+      return 1;
+    }
+    my $rv = $va->[$i] <=> $vb->[$i];
+    return $rv if $rv;
+  }
+}
+
+sub ver_print {
+  my $a = shift;
+  return $a->{root} . '-' . join '.', @{$a->{ver}};
+}
+
+sub openfiles {
+  my %files;
+  my $nodeopt = $node ? "-n $node" : "";
+  open(my $fh, "pidin $nodeopt fds |") ||
+    die "Unable to open pipe from pidin fds\n";
+  while (<$fh>) {
+    chomp;
+    my @w = split(' ');
+    if (@w == 5) {
+      my $path = pop @w;
+      if ( $path =~ m,^/, && $path !~ m,^/dev/, ) {
+        $files{$path} = 1;
+      }
+    }
+  }
+  close($fh);
+  return \%files;
+}
+
+sub pkg_files {
+  my ( $npath, $pp ) = @_;
+  my $pkgdir = "$npath/var/huarp/pkg";
+  my @files;
+  my $pkg = ver_print($pp);
+  my @manifests;
+  my $proot = "$pkgdir/$pkg";
+  my $hdr = "$proot/Header";
+  open( my $hdrfh, "<", $hdr ) ||
+    die "Unable to locate package header for $pkg\n";
+  while (<$hdrfh>) {
+    if ( m/^Files:\s*(\w+)\s\@/ ) {
+      push @manifests, "$proot/$1";
+    }
+  }
+  close($hdrfh) || warn "Error closing $hdr\n";
+  while (@manifests) {
+    my $manifest = shift @manifests;
+    open( my $cont, "<", $manifest ) ||
+      die "Unable to read manifest $manifest\n";
+    while (<$cont>) {
+      chomp;
+      my $path = "/$_";
+      push(@files, $path);
+    }
+    close($cont) || warn "Error closing manifest $manifest\n";
+  }
+  return @files;
+}
+
+sub uninstall {
+  my ( $npath, $pp ) = @_;
+  my @files = pkg_files($npath, $pp);
+  my $pkgdir = "$npath/var/huarp/pkg";
+  my $pkg = ver_print($pp);
+  print "  Uninstalling $pkg from $npath/\n";
+
+  my @dirs;
+  my @delay;
+  for my $file (@files) {
+    if ($files_in_use->{$file}) {
+      warn "$file listed more than once\n" if ($files_in_use->{$file} > 1);
+      $files_in_use->{$file} = 2;
+    } else {
+      ## This is where files might actually be deleted
+      # my $path = "$npath$file";
+      # if ( -d $path ) {
+        # push(@dirs, $path);
+      # } elsif ( -f $path ) {
+        # unlink $path;
+      # }
+    }
+  }
+  while ( @dirs ) {
+    my $dir = pop(@dirs);
+    # rmdir $dir;
+  }
+  # rmdir $proot || warn "Unable to remove package directory '$proot'\n";
+}
