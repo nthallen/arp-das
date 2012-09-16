@@ -19,6 +19,7 @@
 # cmdbase = <files>
 # colbase = <files>
 # qclibase = <files>
+# swsbase = <files>
 # var = substitution (supported vars are SRC TOOL OBJ TGT DISTRIB
 #                     SCRIPT (source to be copied to $TGTDIR/bin/$VERSION)
 #                     SRCDIST (source to be copied to $TGTDIR/bin/$VERSION/Base)
