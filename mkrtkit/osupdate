@@ -105,12 +105,12 @@ if ( @remove ) {
   for my $pkg ( @remove ) {
     if ( $pkg{$pkg} ) {
       while ( @{$pkg{$pkg}} ) {
-	my $pp = shift @{$pkg{$pkg}};
-	if ( $doit ) {
-	  uninstall($npath, $pp);
-	} else {
-	  print "  Uninstall ", ver_print($pp), "\n";
-	}
+        my $pp = shift @{$pkg{$pkg}};
+        if ( $doit ) {
+          uninstall($npath, $pp);
+        } else {
+          print "  Uninstall ", ver_print($pp), "\n";
+        }
       }
     }
   }
@@ -176,57 +176,57 @@ while ( @depchk ) {
       # $pkg is currently installed
       my $inst = $pkg{$pkg}->[0];
       if ( ver_comp( $inst, $avail ) < 0 ) {
-	print "Upgrading ", ver_print($inst), " to ",
-	      ver_print($avail), "\n";
-	$pkgplan->{uninstall} ||= [];
-	while ( @{$pkg{$pkg}} ) {
-	  push @{$pkgplan->{uninstall}}, pop @{$pkg{$pkg}};
-	}
-	$pkgplan->{install} = $avail;
-	$chkdep = $avail;
+        print "Upgrading ", ver_print($inst), " to ",
+              ver_print($avail), "\n";
+        $pkgplan->{uninstall} ||= [];
+        while ( @{$pkg{$pkg}} ) {
+          push @{$pkgplan->{uninstall}}, pop @{$pkg{$pkg}};
+        }
+        $pkgplan->{install} = $avail;
+        $chkdep = $avail;
       } else {
-	$chkdep = $inst;
+        $chkdep = $inst;
       }
     } else {
       my $req_by = $pkgplan->{req_by} ?
-	join(", ", @{$pkgplan->{req_by}}) : "unknown";
+        join(", ", @{$pkgplan->{req_by}}) : "unknown";
       print "Installing ", ver_print($avail),
-	    " required by $req_by\n";
+            " required by $req_by\n";
       $pkgplan->{install} = $avail;
       $chkdep = $avail;
       if ( $pkgplan->{req_by} && @{$pkgplan->{req_by}} == 1 &&
-	   $req_by eq 'command line' ) {
+           $req_by eq 'command line' ) {
 
-	shift @{$pkgplan->{req_by}};
+        shift @{$pkgplan->{req_by}};
       }
     }
     # now install any dependent packages that aren't installed
     my $hdr = "$refpkg/" . ver_print($chkdep) . "/Header";
     if ( open( my $hdrfh, "<", $hdr ) ) {
       while (<$hdrfh>) {
-	if ( s/^\s*Requires:\s*// ) {
-	  my @pkgs =
-	    map {
+        if ( s/^\s*Requires:\s*// ) {
+          my @pkgs =
+            map {
                 s/-\[0-9\]\*$//;
                 s/^([\w-]+)(?:-(\d+(?:\.\d+)*))?$/$1/;
                 $_}
-	      split(' ');
-	  $pkgplan->{deps} ||= [];
-	  for my $reqpkg (@pkgs) {
-	    if ( ! defined $pkgplan{$reqpkg} ) {
-	      $pkgplan{$reqpkg} = { };
-	      push(@depchk, $reqpkg);
-	    }
-	    push(@{$pkgplan->{deps}}, $reqpkg);
-	    $pkgplan{$reqpkg}->{req_by} ||= [];
-	    push(@{$pkgplan{$reqpkg}->{req_by}}, $pkg);
-	  }
-	}
+              split(' ');
+          $pkgplan->{deps} ||= [];
+          for my $reqpkg (@pkgs) {
+            if ( ! defined $pkgplan{$reqpkg} ) {
+              $pkgplan{$reqpkg} = { };
+              push(@depchk, $reqpkg);
+            }
+            push(@{$pkgplan->{deps}}, $reqpkg);
+            $pkgplan{$reqpkg}->{req_by} ||= [];
+            push(@{$pkgplan{$reqpkg}->{req_by}}, $pkg);
+          }
+        }
       }
       close($hdrfh) || warn "Error closing $hdr\n";
     } elsif ( $repository ) {
       warn "No Header for " . ver_print($avail) .
-	": will rerun after installations\n";
+        ": will rerun after installations\n";
       push @recheck, ver_print($avail);
     } else {
       die "No Header for " . ver_print($avail) . "\n";
@@ -386,10 +386,10 @@ sub uninstall {
       chomp;
       my $path = "$npath/$_";
       if ( -d $path ) {
-	push(@dirs, $path);
+        push(@dirs, $path);
       } elsif ( -f $path ) {
-	# print "rm $path\n";
-	unlink $path;
+        # print "rm $path\n";
+        unlink $path;
       }
     }
     close($cont) || warn "Error closing manifest $manifest\n";
