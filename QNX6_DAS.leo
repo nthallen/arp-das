@@ -364,7 +364,7 @@
 <v t="ntallen.20110421132300.2130"><vh>Information to maintain</vh></v>
 </v>
 </v>
-<v t="ntallen.20070404221945.3" a="E"><vh>Graphics</vh>
+<v t="ntallen.20070404221945.3"><vh>Graphics</vh>
 <v t="ntallen.20090203160910"><vh>PhRTG</vh>
 <v t="ntallen.20090316133552"><vh>Bugs</vh>
 <v t="ntallen.20090422104622"><vh>Marking line visible does not redraw...</vh></v>
@@ -552,11 +552,11 @@
 </v>
 </v>
 </v>
-<v t="ntallen.20070817133522" a="E"><vh>Documentation</vh>
+<v t="ntallen.20070817133522"><vh>Documentation</vh>
 <v t="ntallen.20070817133522.1"><vh>QNX4</vh>
 <v t="ntallen.20070817133522.2"><vh>DG</vh></v>
 </v>
-<v t="ntallen.20070817133522.3" a="E"><vh>QNX6</vh>
+<v t="ntallen.20070817133522.3"><vh>QNX6</vh>
 <v t="ntallen.20120318122206.2259"><vh>Examples of Communication Strategies</vh>
 <v t="ntallen.20120318122206.2260"><vh>Send/Receive Messages</vh></v>
 </v>
@@ -657,22 +657,24 @@
 </v>
 <v t="ntallen.20110211111845.2089" a="E"><vh>QNX6 Sys Admin</vh>
 <v t="ntallen.20071127160602"></v>
-<v t="ntallen.20110211111845.2090"><vh>mkrtkit</vh>
+<v t="ntallen.20110211111845.2090" a="E"><vh>mkrtkit</vh>
 <v t="ntallen.20110211111845.2091"><vh>Version Numbering</vh>
 <v t="ntallen.20110902103207.2217"><vh>Installation Packages</vh></v>
 <v t="ntallen.20110902103207.2218"><vh>chkpkgs</vh></v>
 </v>
 <v t="ntallen.20110816134921.2205"><vh>Installing onto QNX4 partition</vh></v>
-<v t="ntallen.20110818152635.2209"><vh>osupdate</vh>
+<v t="ntallen.20110818152635.2209" a="E"><vh>osupdate</vh>
 <v t="ntallen.20110902103207.2219"><vh>osupdate off the network</vh></v>
+<v t="ntallen.20120809122623.2341"><vh>OS update over the network</vh></v>
+<v t="ntallen.20120815135853.2343"><vh>Alternate approach</vh></v>
 </v>
 <v t="ntallen.20110902103207.2220"><vh>MD5sums</vh></v>
 <v t="ntallen.20110831091607.2211"><vh>Formatting a USB Flash Drive as Installer</vh>
 <v t="ntallen.20110831091607.2212"><vh>Replicating USB Flash Installer</vh></v>
 </v>
 </v>
-<v t="ntallen.20120621134143.2321" a="E"><vh>DHCPD and BIND for field network</vh>
-<v t="ntallen.20120621134143.2323" a="E"><vh>DNS</vh>
+<v t="ntallen.20120621134143.2321"><vh>DHCPD and BIND for field network</vh>
+<v t="ntallen.20120621134143.2323"><vh>DNS</vh>
 <v t="ntallen.20120622110137.2327"><vh>named.conf</vh></v>
 <v t="ntallen.20120625153113.2329"><vh>localhost.zone</vh></v>
 <v t="ntallen.20120625153113.2330"><vh>localhost.rev</vh></v>
@@ -6317,6 +6319,35 @@ To convert MAC to colon-delimited:
 fldcol is apparently fixed IP (not in abigail's dhcpd.conf) so need to configure it
 maybe should make it DHCP? 10.0.5.2
 
+</t>
+<t tx="ntallen.20120809122623.2341">By which I mean an actual update to the operating system.
+
+Categorize files in MANIFESTS as follows:
+    A: Files listed in the old MANIFEST
+    B: Files in use under the old system
+    C: Files listed in the new MANIFEST
+
+Currently osupdate removes A and restores C. However, removing A may not be possible if the files are in use.
+So the intersection of A and B is of interest. This represents files that must be deleted later.
+Also the intersection of B and C, which represents files that must be installed later
+
+In the absence of old MANIFESTs, we only worry about B &amp; C.</t>
+<t tx="ntallen.20120815135853.2343">Use /etc/rc.d/rc.setup-once
+    cp /etc/rc.d/rc.setup-once /etc/rc.d/rc.setup-once.qnx
+    put useful stuff in /etc/rc.d/rc.setup-once
+    rm /etc/system/setupisdone
+
+/etc/rc.d/rc.setup-once:
+    touch /etc/system/setupisdone
+    hostname rosamund
+    setconf DOMAIN arp.harvard.edu
+    io-pkt-v4-hc -d ns83815 -p qnet
+    exec sh
+
+This should leave us with only:
+    /sbin/io-pkt-v4-hc
+    /lib/dll/devn-ns83815.so (and this does not need to be updated)
+    /lib/dll/devnp-shim.so
 </t>
 </tnodes>
 </leo_file>
