@@ -1,5 +1,8 @@
 # edf2ext.awk Converts .edf files to .ext for TMC input.
 # $Log$
+# Revision 1.9  2012/03/23 20:10:13  ntallen
+# Add nan-text syntax
+#
 # Revision 1.8  2012/03/20 18:50:27  ntallen
 # Changes to support CSV output
 #
@@ -112,7 +115,7 @@ BEGIN {
   if (NF > 3 && $4 == "separate") sep[nsps] = "y"
   next
 }
-/^ *csv/ {
+/^ *(csv|json)/ {
   if (using_sps) {
     system( "echo " FILENAME ":" NR " Cannot produce both csv and spreadsheet >&2" )
     exit( rv = 1 )
@@ -139,8 +142,16 @@ BEGIN {
   ncols[nsps] = $3
   cond[nsps] = ""
   if (NF > 3 && $4 == "separate") sep[nsps] = "y"
+}
+/^ *csv/ {
+  json[nsps] = 0
   next
 }
+/^ *json/ {
+  json[nsps] = 1
+  next
+}
+
 /^[ \t]*condition/ {
   cnd = $0
   sub( "^[ \t]*condition[ \t]*", "", cnd )
@@ -256,7 +267,7 @@ END {
     print "      }"
     print "    }"
     for (i = 0; i <= nsps; i++) {
-      print "    " sps[i] ".init();"
+      printf "    " sps[i] ".init(%d);\n", json[i]
       if (datum[i,0] == "") datum[i,0] = "Time";
       for (j = 0; j < ncols[i]; j++) {
         printf "    " sps[i] ".init_col(" j ", \"" datum[i,j] "\""
