@@ -1,0 +1,29 @@
+#! /bin/sh
+#__USAGE
+#%C <homedir> <extraction>
+#
+#Wrapper script for running an extraction via inetd.
+
+function nl_error {
+  echo "json_ext: $*" >&2
+  exit 1
+}
+
+homedir=$1
+ext=$2
+PATH=/usr/local/bin:/usr/pkg/bin:/usr/bin:/bin
+
+[ -n "$homedir" -a -d "$homedir" ] ||
+  nl_error "homedir not found or undefined"
+[ -n "$ext" ] || nl_error "No extraction specified"
+cd $homedir
+[ -r Experiment.config ] ||
+  nl_error "Experiment.config not found in homedir '$homedir'"
+. ./Experiment.config
+[ -n "$Experiment" ] || nl_error "Experiment not defined"
+export Experiment
+ver=1.0
+[ -r VERSION ] && ver=`cat VERSION`
+[ -x bin/$ver/$ext ] || nl_error "Extraction bin/$ver/$ext not found"
+bin/$ver/$ext
+

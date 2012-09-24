@@ -1,5 +1,8 @@
 # edf2oui.awk Converts .edf files to .oui for extra usage
 # $Log$
+# Revision 1.2  2012/03/20 18:49:59  ntallen
+# Changes to support CSV output
+#
 # Revision 1.1  2008/09/22 13:36:29  ntallen
 # edf tools for QNX6
 #
@@ -13,7 +16,7 @@
 # spreadsheet deleteme 6
 #  1 O3Ref %6.0lf Ct24_Double
 #
-/^ *(spreadsheet|csv) / {
+/^ *(spreadsheet|csv|json) / {
   if (printed == 0) {
     print "<package> edfoui"
     printed = 1
@@ -26,6 +29,9 @@
 }
 /^ *csv / {
   print "CSV " sps ", " $3 " columns:"
+}
+/^ *json / {
+  print "JSON " sps ", " $3 " columns:"
 }
 /^[ \t]*[0-9]/ {
   printf "  %-13s[%2d] = %s\n", sps, $1, $2

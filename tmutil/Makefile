@@ -3,7 +3,7 @@
 #  The Anderson Group Data Acquisition System/QNX6
 BIN=TM appgen distribute parent saverun fixdisk mkinp tomat extract
 BIN+=mkcvsignore mkdoit3 mkexpdir reduce settime flttime chk_display
-BIN+=chk_extract CDimage prepCD swscomp
+BIN+=chk_extract CDimage prepCD swscomp json_ext
 SBIN=promote flight.sh signal_parent getcon
 DATA=appgen.mk edf2ext.awk edf2oui.awk Makefile.pm
 DATA+=nulltbl.tmc vl_temp.tmc vl_temp_col.tmc
