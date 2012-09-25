@@ -25,7 +25,7 @@ class csv_file {
   public:
     csv_file(const char *name, unsigned int n_cols, const char *nan_text = NULL);
     ~csv_file();
-    void init();
+    void init(int json = 0);
     void init_col(unsigned int col_num, const char *colname,
                   const char *fmt = NULL);
     void set_time(double T);
@@ -38,6 +38,7 @@ class csv_file {
     std::vector<csv_col*> cols;
     double cur_time;
     bool time_set;
+    bool json;
     const char *filename;
     FILE *fp;
 };

@@ -19,13 +19,16 @@
  * Whenever the data is written to telemetry, Selector::set_gflag(0)
  * is called. Another Selectee can request to be notified of this by
  * setting bit Selector::gflag(0) in their flags word.
+ *
+ * For tighter control over acquisition and reporting, you can overload
+ * ProcessData() in a subclass.
  */
 class TM_Selectee : public Selectee {
   public:
     TM_Selectee( const char *name, void *data, unsigned short size );
     ~TM_Selectee();
     int ProcessData(int flag);
-  private:
+  protected:
     send_id TMid;
 };
 

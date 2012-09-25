@@ -105,12 +105,18 @@ csv_file::csv_file(const char *name, unsigned int n_cols, const char *nan_text) 
   time_set = false;
   if (nan_text)
     nan = nan_text;
+  json = false;
 }
 
-void csv_file::init() {
-  fp = fopen( filename, "w" );
-  if (fp == NULL)
-    nl_error(3, "Cannot open output file %s", filename);
+void csv_file::init(int json_fmt) {
+  if (json_fmt) json = true;
+  if (json) {
+    fp = stdout;
+  } else {
+    fp = fopen( filename, "w" );
+    if (fp == NULL)
+      nl_error(3, "Cannot open output file %s", filename);
+  }
 }
 
 const char *csv_file::nan = "";
@@ -153,24 +159,37 @@ void csv_file::set_time(double T) {
 void csv_file::flush_headers() {
   unsigned int i;
   nl_assert(cols[0]);
-  fprintf(fp, "%s", cols[0]->header());
-  for (i = 1; i < cols.size(); ++i) {
-    fprintf(fp, ",%s", cols[i] ? cols[i]->header() : "");
+  if (!json) {
+    fprintf(fp, "%s", cols[0]->header());
+    for (i = 1; i < cols.size(); ++i) {
+      fprintf(fp, ",%s", cols[i] ? cols[i]->header() : "");
+    }
+    fprintf(fp, "\n");
   }
-  fprintf(fp, "\n");
 }
 
 void csv_file::flush_row() {
   unsigned int i;
-  fprintf(fp, "%s", cols[0]->output() );
-  for (i = 1; i < cols.size(); ++i) {
-    fprintf(fp, ",");
-    if (cols[i]) {
-      fprintf(fp, "%s", cols[i]->output() );
-      cols[i]->reset();
+  if (json) {
+    fprintf(fp, "{\n  \"%s\": %s", cols[0]->header(), cols[0]->output() );
+    for (i = 1; i < cols.size(); ++i) {
+      if (cols[i]) {
+        fprintf(fp, ",\n  \"%s\": %s", cols[i]->header(), cols[i]->output() );
+        cols[i]->reset();
+      }
     }
+    fprintf(fp, "\n}\n");
+  } else {
+    fprintf(fp, "%s", cols[0]->output() );
+    for (i = 1; i < cols.size(); ++i) {
+      fprintf(fp, ",");
+      if (cols[i]) {
+        fprintf(fp, "%s", cols[i]->output() );
+        cols[i]->reset();
+      }
+    }
+    fprintf(fp, "\n");
   }
-  fprintf(fp, "\n");
 }
 
 /**
