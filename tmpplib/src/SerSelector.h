@@ -58,7 +58,7 @@ class Ser_Sel : public Selectee {
     void flush_input();
     void report_err( const char *msg, ... );
     void report_ok();
-    int not_found( char c );
+    int not_found(unsigned char c);
     int not_int( int &val );
     int not_str(const char *str, unsigned int len);
     int not_str(const std::string &s);

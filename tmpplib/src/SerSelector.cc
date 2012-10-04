@@ -253,7 +253,7 @@ void Ser_Sel::report_ok() {
  * @param c The search character
  * @return zero if the character is found.
  */
-int Ser_Sel::not_found( char c ) {
+int Ser_Sel::not_found(unsigned char c) {
   while ( cp < nc ) {
     if ( buf[cp++] == c )
       return 0;
@@ -305,9 +305,10 @@ int Ser_Sel::not_int( int &val ) {
  * @param str The comparison string.
  * @return zero if the string matches the input buffer.
  */
-int Ser_Sel::not_str( const char *str, unsigned int len ) {
+int Ser_Sel::not_str( const char *str_in, unsigned int len ) {
   unsigned int start_cp = cp;
   unsigned int i;
+  const unsigned char *str = (const unsigned char *)str_in;
   if ( cp < 0 || cp > nc || nc < 0 || buf == 0 )
     nl_error( 4, "Ser_Sel precondition failed: "
       "cp = %d, nc = %d, buf %s",
@@ -316,7 +317,7 @@ int Ser_Sel::not_str( const char *str, unsigned int len ) {
     if ( str[i] != buf[start_cp+i] ) {
       if ( cp < nc )
         report_err( "Expected string '%s' at column %d",
-          ascii_escape(str, len), start_cp );
+          ascii_escape(str_in, len), start_cp );
       return 1;
     }
     ++cp;
