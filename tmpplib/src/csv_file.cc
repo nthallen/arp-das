@@ -179,6 +179,7 @@ void csv_file::flush_row() {
       }
     }
     fprintf(fp, "\n}\n");
+    fflush(fp);
   } else {
     fprintf(fp, "%s", cols[0]->output() );
     for (i = 1; i < cols.size(); ++i) {
