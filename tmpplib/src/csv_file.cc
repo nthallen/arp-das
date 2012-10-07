@@ -99,17 +99,17 @@ void csv_col::reset() {
 }
 
 
-csv_file::csv_file(const char *name, unsigned int n_cols, const char *nan_text) {
+csv_file::csv_file(const char *name, unsigned int n_cols,
+      const char *nan_text, int json_fmt) {
   filename = name;
   cols.resize(n_cols);
   time_set = false;
   if (nan_text)
     nan = nan_text;
-  json = false;
+  json = json_fmt ? true : false;
 }
 
-void csv_file::init(int json_fmt) {
-  if (json_fmt) json = true;
+void csv_file::init() {
   if (json) {
     fp = stdout;
   } else {
@@ -171,7 +171,8 @@ void csv_file::flush_headers() {
 void csv_file::flush_row() {
   unsigned int i;
   if (json) {
-    fprintf(fp, "{\n  \"%s\": %s", cols[0]->header(), cols[0]->output() );
+    fprintf(fp, "{\n  \"Record\": \"%s\",\n  \"%s\": %s",
+      filename, cols[0]->header(), cols[0]->output() );
     for (i = 1; i < cols.size(); ++i) {
       if (cols[i]) {
         fprintf(fp, ",\n  \"%s\": %s", cols[i]->header(), cols[i]->output() );
