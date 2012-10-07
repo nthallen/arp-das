@@ -15,6 +15,7 @@ usr/local/bin/failtest
 usr/local/bin/fixdisk
 usr/local/bin/hartd
 usr/local/bin/idx64
+usr/local/bin/json_ext
 usr/local/bin/lgr
 usr/local/bin/memo
 usr/local/bin/mlf_find
@@ -98,6 +99,7 @@ usr/local/lib/libtmpp.so
 usr/local/lib/libtmpp.so.0
 usr/local/lib/libtmpp.so.1
 usr/local/lib/libtmpp.so.2
+usr/local/lib/libtmpp.so.3
 usr/local/sbin/getcon
 usr/local/sbin/promote
 usr/local/sbin/flight.sh

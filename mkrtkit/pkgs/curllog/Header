@@ -1,10 +1,12 @@
 # curllog package
-Version: 1.0.1
-Requires: flight
+Version: 1.0.2
+Requires: flight curl libxml2 libidn libiconv zlib
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 1.0.2 2012-10-04
+#   Updated Dependencies
 # 1.0.1 2012-07-20
 #   Left out css source
 # 1.0.0 2012-07-06

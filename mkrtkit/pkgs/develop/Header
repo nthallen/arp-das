@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.29
+Version: 2.5.30
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,7 +7,16 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
-# 2.5.29
+# 2.5.30 2012-10-07
+#   appgen: cosmetic cleanup
+#   cmdgen.skel: identify user on DC startup
+#   genui: allow directory list to grow along with rest of UI 
+#   SerSelector.h: unsigned char fixes for BAT_SPAN
+#     Also make TM_id protected instead of private
+#   csv_file.h: Changes for JSON
+#   edf2ext.awk: Changes for JSON
+#   edf2oui.awk: Changes for JSON
+# 2.5.29 2012-07-17
 #   cmdgen: just recompiled
 #   cmdgen.skel: reference new nct_cmdclt_init()
 #   nctable.oui: fixed package name

@@ -1,10 +1,13 @@
 # Package flight
-Version: 2.5.27
+Version: 2.5.28
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.28
+#   Adding json_ext
+#   libtmpp.so.3: As noted in develop/Header Changes
 # 2.5.27
 #   libtmnc.*: Re-Fixed bug
 # 2.5.26
