@@ -32,6 +32,7 @@ class csv_file {
     void set_time(double T);
     void set_col(unsigned int col_num, double dval);
     void set_col(unsigned int col_num, const char *sval);
+    static void terminate_on_write_err(int sig);
     static const char *nan;
   private:
     void flush_headers();

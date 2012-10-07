@@ -4,6 +4,8 @@
  */
 #include <malloc.h>
 #include <ctype.h>
+#include <signal.h>
+#include <stdlib.h>
 #include "csv_file.h"
 #include "nortlib.h"
 #include "nl_assert.h"
@@ -110,6 +112,7 @@ csv_file::csv_file(const char *name, unsigned int n_cols,
 }
 
 void csv_file::init() {
+  signal(SIGPIPE, &terminate_on_write_err);
   if (json) {
     fp = stdout;
   } else {
@@ -117,6 +120,11 @@ void csv_file::init() {
     if (fp == NULL)
       nl_error(3, "Cannot open output file %s", filename);
   }
+}
+
+void csv_file::terminate_on_write_err(int sig) {
+  nl_error(0, "Received signal %d: Terminating", sig);
+  exit(0);
 }
 
 const char *csv_file::nan = "";
