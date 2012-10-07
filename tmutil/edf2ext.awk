@@ -1,5 +1,8 @@
 # edf2ext.awk Converts .edf files to .ext for TMC input.
 # $Log$
+# Revision 1.10  2012/09/23 21:04:44  ntallen
+# json mods
+#
 # Revision 1.9  2012/03/23 20:10:13  ntallen
 # Add nan-text syntax
 #
@@ -248,12 +251,21 @@ END {
   } else {
     # print the csv_file declarations
     for (i = 0; i <= nsps; i++) {
-      if (nan_text[i] == "") {
-        nan = ""
+      if (json[i]) {
+        if (nan_text[i] == "") {
+          nan = ", \"\\\"\\\"\""
+        } else {
+          nan = ", \"" nan_text[i] "\""
+        }
+        print "  csv_file " sps[i]"(\"" sps[i] "\", " ncols[i] nan ", 1);"
       } else {
-        nan = ", \"" nan_text[i] "\""
+        if (nan_text[i] == "") {
+          nan = ""
+        } else {
+          nan = ", \"" nan_text[i] "\""
+        }
+        print "  csv_file " sps[i]"(\"" sps[i] ".csv\", " ncols[i] nan ");"
       }
-      print "  csv_file " sps[i]"(\"" sps[i] ".csv\", " ncols[i] nan ");"
     }
 
     # print the initializations
@@ -267,7 +279,7 @@ END {
     print "      }"
     print "    }"
     for (i = 0; i <= nsps; i++) {
-      printf "    " sps[i] ".init(%d);\n", json[i]
+      printf "    " sps[i] ".init();\n"
       if (datum[i,0] == "") datum[i,0] = "Time";
       for (j = 0; j < ncols[i]; j++) {
         printf "    " sps[i] ".init_col(" j ", \"" datum[i,j] "\""
