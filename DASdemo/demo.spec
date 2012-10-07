@@ -20,6 +20,7 @@ OBJ = SWData.cmd SWData.h SWData.tmc SWData_col.tmc
 
 demodisp : demo.tbl
 demoalgo : demo.tma demo.sws
+demojsonext : demojson.cdf
 doit : demo.doit
 
 

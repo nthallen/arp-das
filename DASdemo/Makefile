@@ -1,21 +1,22 @@
-# Makefile Generated Fri Jul 20 14:01:22 EDT 2012
+# Makefile Generated Sun Sep 23 21:11:20 EDT 2012
 MNC=demo
-HOMEDIR=/home/nort/BUILD/QNX6Build/QNX6/DASdemo
 SPECFILE=demo.spec
 SRC=types.tmc base.tmc SWData.tmc SWData.h demo.tbl demo.tma
-SRC+=demo.sws demo.doit SWData.cmd SWData_col.tmc
+SRC+=demo.sws demojson.cdf demo.doit SWData.cmd SWData_col.tmc
 TOOL=demo.spec Makefile
 SCRIPT=interact
 OBJ=SWData.cmd SWData.h SWData.tmc SWData_col.tmc demotbl.tmc
 OBJ+=demodisp.cc demodispoui.c demodispoui.o demodisp.o demotblnc.tmc
 OBJ+=demodispnc.cc demodispncoui.c demodispncoui.o demodispnc.o
 OBJ+=demosws.tma demoalgoa.tmc demoalgo.cc demoalgooui.c
-OBJ+=demoalgooui.o demoalgo.o doit.dep democmd.cc democmd.dat
-OBJ+=democlt.o democltoui.c democltoui.o democltnc.o democltncoui.c
-OBJ+=democltncoui.o demosrvr.o demosrvroui.c demosrvroui.o democol.cc
-OBJ+=demo.pcm tm.dac democoloui.c democoloui.o democol.o
-TGT=demodisp demodispnc demoalgo doit democlt democltnc demosrvr
-TGT+=democol
+OBJ+=demoalgooui.o demoalgo.o demojsonextcdf.oui demojsonext.tmc
+OBJ+=demojsonext.cc demojsonextoui.c demojsonextoui.o demojsonext.o
+OBJ+=doit.dep democmd.cc democmd.dat democlt.o democltoui.c
+OBJ+=democltoui.o democltnc.o democltncoui.c democltncoui.o
+OBJ+=demosrvr.o demosrvroui.c demosrvroui.o democol.cc demo.pcm
+OBJ+=tm.dac democoloui.c democoloui.o democol.o
+TGT=demodisp demodispnc demoalgo demojsonext doit democlt democltnc
+TGT+=demosrvr democol
 DISTRIB=demo.pcm tm.dac
 IDISTRIB=Experiment.config VERSION doit
 SRCDIST=demo.tbl demo.tma types.tmc /usr/local/share/huarp/tmdf.tmc
@@ -23,7 +24,6 @@ SRCDIST+=/usr/local/share/huarp/cpu_usage.tmc
 SRCDIST+=/usr/local/share/huarp/freemem.tmc
 SRCDIST+=/usr/local/share/huarp/flttime.tmc base.tmc SWData.tmc
 SRCDIST+=SWData.h
-NONRCS=
 TMCBASE=types.tmc /usr/local/share/huarp/tmdf.tmc
 TMCBASE+=/usr/local/share/huarp/cpu_usage.tmc
 TMCBASE+=/usr/local/share/huarp/freemem.tmc
@@ -74,6 +74,9 @@ demodispnc : demodispnc.o demodispncoui.o
 demoalgo : demoalgo.o demoalgooui.o
 	$(LINK.normCXX) demoalgo.o demoalgooui.o -ltmpp -ltm -lnort
 	$(OUIUSE) demoalgooui.c
+demojsonext : demojsonext.o demojsonextoui.o
+	$(LINK.normCXX) demojsonext.o demojsonextoui.o -ltmpp -ltm -lnort
+	$(OUIUSE) demojsonextoui.c
 doit : demo.doit
 	mkdoit3 -o doit  demo.doit
 democlt : democlt.o democltoui.o
@@ -115,6 +118,16 @@ demoalgooui.c : $(OUIDIR)/tma.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 	$(OUI) $(OUIDIR)/tma.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
 demoalgooui.o : demoalgooui.c SWData.h
 demoalgo.o : demoalgo.cc SWData.h
+demojsonextcdf.oui : demojson.cdf
+	$(EDF2OUI) demojson.cdf
+demojsonext.tmc : demojson.cdf
+	$(EDF2EXT) demojson.cdf
+demojsonext.cc : types.tmc /usr/local/share/huarp/tmdf.tmc /usr/local/share/huarp/cpu_usage.tmc /usr/local/share/huarp/freemem.tmc /usr/local/share/huarp/flttime.tmc base.tmc SWData.tmc demojsonext.tmc
+	$(TMC) types.tmc /usr/local/share/huarp/tmdf.tmc /usr/local/share/huarp/cpu_usage.tmc /usr/local/share/huarp/freemem.tmc /usr/local/share/huarp/flttime.tmc base.tmc SWData.tmc demojsonext.tmc
+demojsonextoui.c : demojsonextcdf.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
+	$(OUI) demojsonextcdf.oui $(OUIDIR)/dc.oui $(OUIDIR)/msg.oui
+demojsonextoui.o : demojsonextoui.c SWData.h
+demojsonext.o : demojsonext.cc SWData.h
 doit.dep : demo.doit
 	mkdoit3 -M -o doit  demo.doit
 -include doit.dep

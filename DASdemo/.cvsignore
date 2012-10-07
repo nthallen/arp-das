@@ -18,6 +18,12 @@ demoalgo.cc
 demoalgooui.c
 demoalgooui.o
 demoalgo.o
+demojsonextcdf.oui
+demojsonext.tmc
+demojsonext.cc
+demojsonextoui.c
+demojsonextoui.o
+demojsonext.o
 doit.dep
 democmd.cc
 democmd.dat
@@ -40,6 +46,7 @@ democol.o
 demodisp
 demodispnc
 demoalgo
+demojsonext
 doit
 democlt
 democltnc
