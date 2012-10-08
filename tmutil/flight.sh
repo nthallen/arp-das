@@ -20,7 +20,8 @@ cfile=Experiment.config
 if [ -f "$cfile" ]; then
   . $cfile
 else
-  echo flight.sh: missing $cfile >&2
+  echo flight.sh: missing $cfile: stopping >&2
+  exec parent
 fi
 
 if [ -n "$Experiment" -a -n "$HomeDir" -a -d "$HomeDir" ]; then
