@@ -32,16 +32,18 @@ function nl_error {
 nl_error Unable to create $base subdirectory
 
 path=$base
+base_path=`basename $path`
 while true; do
   lastdir=`find $path -type d -level 1 -prune -regex [0-9]+ -printf "%f\n" |
 		  sort $dir -n | head -n1`
   [ -z "$lastdir" ] && break
   path="$path/$lastdir"
+  base_path="$base_path/$lastdir"
   # echo "Extended path to $path"
 done
 
 lastfile=`find $path -type f -level 1 -prune \
 			-regex ".*/[0-9][0-9]$suffix$" -printf "%f\n" |
 		  sort $dir | head -n1`
-path="$path/$lastfile"
+path="$base_path/$lastfile"
 echo "$path"
