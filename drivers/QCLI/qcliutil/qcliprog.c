@@ -229,7 +229,6 @@ int verify_program( unsigned short *prog, long proglen ) {
     prog += blocklen;
     addr += blocklen;
   }
-  wr_stop_qcli( QCLI_STOP );
   return rv;
 }
 

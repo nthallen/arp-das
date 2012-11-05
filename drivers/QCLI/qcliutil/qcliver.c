@@ -28,5 +28,6 @@ int verify_block( unsigned short addr, unsigned short *prog, int blocklen ) {
         addr, prog[addr], attempts );
     }
   }
+  wr_stop_qcli( QCLI_STOP );
   return rv;
 }
