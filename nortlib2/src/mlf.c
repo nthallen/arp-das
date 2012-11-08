@@ -124,10 +124,10 @@ static void mlf_set_ixs( mlf_def_t *mlf, int *ixs ) {
           mlf->flags |= MLF_INC_FIRST;
           return;
         }
-        end = sprintf( mlf->flvl[i].s, "/%02d", mlf->flvl[i].index );
-        if ( i < mlf->n_levels )
-          mlf->flvl[i+1].s = mlf->flvl[i].s + end;
       }
+      end = sprintf( mlf->flvl[i].s, "/%02d", mlf->flvl[i].index );
+      if ( i < mlf->n_levels )
+        mlf->flvl[i+1].s = mlf->flvl[i].s + end;
       if ( mlf->flvl[i].index < 0 )
         nl_error( 4, "Assertion failed: mlf->flvl[i].index < 0"	);
       mlf->index =
