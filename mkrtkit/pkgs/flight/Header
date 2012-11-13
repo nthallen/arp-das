@@ -1,10 +1,14 @@
 # Package flight
-Version: 2.5.28
+Version: 2.5.29
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.29
+#   libnort.so.1: Latent bug in mlf_set_ixs causing path corruption
+#   libtmpp.so.3: SerSelector changes to allow delayed initializations
+#   libtm.so.2: msg: output to stderr before init or if memo is missing
 # 2.5.28
 #   Adding json_ext
 #   libtmpp.so.3: As noted in develop/Header Changes
