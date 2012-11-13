@@ -35,18 +35,6 @@ class TM_Selectee : public Selectee {
 };
 
 /**
- * A Selectee to monitor a command channel. The default channel is
- * "cmd/Quit" and the default action is to terminate the event loop,
- * but this can be overridden in a subclass.
- */
-class Cmd_Selectee : public Ser_Sel {
-  public:
-    Cmd_Selectee(const char *name = "cmd/Quit");
-    Cmd_Selectee(const char *name, int bufsz);
-    int ProcessData(int flag);
-};
-
-/**
  * A Selectee for monitoring a serial line.
  */
 class Ser_Sel : public Selectee {
@@ -84,6 +72,19 @@ class Ser_Sel : public Selectee {
     int total_errors;
     int total_suppressed;
 };
+
+/**
+ * A Selectee to monitor a command channel. The default channel is
+ * "cmd/Quit" and the default action is to terminate the event loop,
+ * but this can be overridden in a subclass.
+ */
+class Cmd_Selectee : public Ser_Sel {
+  public:
+    Cmd_Selectee(const char *name = "cmd/Quit");
+    Cmd_Selectee(const char *name, int bufsz);
+    int ProcessData(int flag);
+};
+
 
 extern const char *ascii_escape(const char *str, int len);
 extern const char *ascii_escape(const std::string &s);
