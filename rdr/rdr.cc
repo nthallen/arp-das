@@ -51,17 +51,17 @@ void rdr_init( int argc, char **argv ) {
         opt_basepath = optarg;
         break;
       case 'k':
-	opt_kluge_a = 1;
-	break;
+        opt_kluge_a = 1;
+        break;
       case 'q':
-	opt_autoquit = 1;
-	break;
+        opt_autoquit = 1;
+        break;
       case 'F':
-	opt_start_file = strtoul(optarg, NULL, 10);
-	break;
+        opt_start_file = strtoul(optarg, NULL, 10);
+        break;
       case 'L':
-	opt_end_file = strtoul(optarg, NULL, 10);
-	break;
+        opt_end_file = strtoul(optarg, NULL, 10);
+        break;
       case '?':
         nl_error(3, "Unrecognized Option -%c", optopt);
     }
@@ -228,7 +228,7 @@ void *Reader::output_thread() {
       if ( regulated ) {
         // timed loop
         for (;;) {
-	  int nr;
+          int nr;
           ot_blocked = OT_BLOCKED_TIME;
           unlock();
           sem_wait(&ot_sem);
@@ -243,7 +243,7 @@ void *Reader::output_thread() {
           // queue is wrapping, the largest contiguous
           // block does not change.
           if ( (nr >= dq_low_water) ||
-	       (nr > 0 && first <= last) ) {
+               (nr > 0 && first <= last) ) {
             lock(__FILE__,__LINE__);
             if ( it_blocked == IT_BLOCKED_DATA ) {
               it_blocked = 0;
