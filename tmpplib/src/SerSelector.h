@@ -25,8 +25,10 @@
  */
 class TM_Selectee : public Selectee {
   public:
-    TM_Selectee( const char *name, void *data, unsigned short size );
+    TM_Selectee(const char *name, void *data, unsigned short size);
+    TM_Selectee();
     ~TM_Selectee();
+    void init(const char *name, void *data, unsigned short size);
     int ProcessData(int flag);
   protected:
     send_id TMid;
@@ -37,9 +39,10 @@ class TM_Selectee : public Selectee {
  * "cmd/Quit" and the default action is to terminate the event loop,
  * but this can be overridden in a subclass.
  */
-class Cmd_Selectee : public Selectee {
+class Cmd_Selectee : public Ser_Sel {
   public:
-    Cmd_Selectee( const char *name = "cmd/Quit" );
+    Cmd_Selectee(const char *name = "cmd/Quit");
+    Cmd_Selectee(const char *name, int bufsz);
     int ProcessData(int flag);
 };
 
@@ -49,7 +52,9 @@ class Cmd_Selectee : public Selectee {
 class Ser_Sel : public Selectee {
   public:
     Ser_Sel(const char *path, int open_flags, int bufsz);
+    Ser_Sel();
     ~Ser_Sel();
+    void init(const char *path, int open_flags, int bufsz);
     void setup( int baud, int bits, char par, int stopbits,
 		int min, int time );
   protected:
@@ -70,6 +75,7 @@ class Ser_Sel : public Selectee {
     int n_fills, n_empties;
     int n_eagain, n_eintr;
   private:
+    void sersel_init();
     /** Number of qualified errors. Decremented by report_ok() */
     int n_errors;
     /** Number of messages currently suppressed. */

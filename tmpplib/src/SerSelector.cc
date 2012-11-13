@@ -9,8 +9,17 @@
 #include "nl_assert.h"
 #include "msg.h"
 
-TM_Selectee::TM_Selectee( const char *name, void *data,
-      unsigned short size ) : Selectee() {
+TM_Selectee::TM_Selectee(const char *name, void *data,
+      unsigned short size) : Selectee() {
+  init(name, data, size);
+}
+
+TM_Selectee::TM_Selectee() : Selectee() {
+  TMid = 0;
+}
+
+void TM_Selectee::init(const char *name, void *data,
+      unsigned short size) {
   TMid = Col_send_init( name, data, size, 0 );
   if ( TMid ) {
     fd = TMid->fd;
@@ -40,10 +49,10 @@ int TM_Selectee::ProcessData(int flag) {
  * tm_open_name(). By default, tm_open_name will produce a
  * fatal error if the resulting path is not found.
  */
-Cmd_Selectee::Cmd_Selectee( const char *name ) : Selectee() {
-  fd = tm_open_name( tm_dev_name(name), NULL, O_RDONLY );
-  flags = Selector::Sel_Read;
-}
+Cmd_Selectee::Cmd_Selectee( const char *name ) :
+    Ser_Sel(tm_dev_name(name), O_RDONLY, 0) {}
+Cmd_Selectee::Cmd_Selectee( const char *name, int bufsz ) :
+    Ser_Sel(tm_dev_name(name), O_RDONLY, bufsz) {}
 
 int Cmd_Selectee::ProcessData(int flag) {
   return 1;
@@ -57,6 +66,21 @@ int Cmd_Selectee::ProcessData(int flag) {
  */
 Ser_Sel::Ser_Sel(const char *path, int open_flags, int bufsz )
     : Selectee() {
+  sersel_init();
+  init(path, open_flags, bufsz);
+}
+
+Ser_Sel::Ser_Sel() : Selectee() {
+  sersel_init();
+}
+
+/**
+ * @param path The full path to the serial device. If path == NULL,
+ * the fd will not be opened.
+ * @param open_flags Flags from <fcntl.h> passed to open()
+ * @param bufsz The size buffer to be allocated.
+ */
+void Ser_Sel::init(const char *path, int open_flags, int bufsz) {
   if (path == 0) {
     fd = -1;
   } else {
@@ -68,8 +92,16 @@ Ser_Sel::Ser_Sel(const char *path, int open_flags, int bufsz )
         break;
     }
   }
-  buf = (unsigned char *)new_memory(bufsz);
-  bufsize = bufsz;
+  if (bufsz > 0) {
+    buf = (unsigned char *)new_memory(bufsz);
+    bufsize = bufsz;
+  }
+}
+
+void Ser_Sel::sersel_init() {
+  fd = -1;
+  buf = 0;
+  bufsize = 0;
   nc = cp = 0;
   n_fills = n_empties = 0;
   n_eagain = n_eintr = 0;
@@ -83,7 +115,7 @@ Ser_Sel::Ser_Sel(const char *path, int open_flags, int bufsz )
  * Frees the allocated buffer and reports statistics.
  */
 Ser_Sel::~Ser_Sel() {
-  free_memory(buf);
+  if (buf) free_memory(buf);
   buf = 0;
   nl_error( 0, "n_fills: %d  n_empties: %d "
     "total_errors: %d total_suppressed: %d",
@@ -157,6 +189,7 @@ void Ser_Sel::setup( int baud, int bits, char par, int stopbits,
  */
 int Ser_Sel::fillbuf() {
   int i;
+  if (!buf) nl_error(4, "Ser_Sel::fillbuf with no buffer");
   ++n_fills;
   i = read( fd, &buf[nc], bufsize - 1 - nc );
   if ( i < 0 ) {
