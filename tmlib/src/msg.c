@@ -78,7 +78,8 @@ void msg_init_options(const char *hdr, int argc, char **argv) {
     memo_fp = fopen( tm_dev_name( "memo" ), "w" );
     if ( memo_fp == NULL ) {
       fprintf( stderr, "Unable to contact memo\n" );
-      exit(1);
+      write_to_stderr = 1;
+      write_to_memo = 0;
     }
   }
 }
@@ -154,7 +155,8 @@ int msgv( int level, const char *fmt, va_list args ) {
   // nb may be as big as MSG_MAX_INTERNAL+1
   // we don't need to transmit the trailing nul
 
-  if ( write_to_memo ) write_msg( msgbuf, nb, memo_fp, "memo" );
+  if ( write_to_memo )
+    write_msg( msgbuf, nb, memo_fp ? memo_fp : stderr, "memo" );
   if ( write_to_file ) write_msg( msgbuf, nb, file_fp, "file" );
   if ( write_to_stderr ) write_msg( msgbuf, nb, stderr, "stderr" );
   if ( level >= 4 ) abort();
