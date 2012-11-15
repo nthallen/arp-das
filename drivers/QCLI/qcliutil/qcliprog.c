@@ -240,9 +240,9 @@ int verify_program( unsigned short *prog, long proglen ) {
   return rv;
 }
 
-int write_verify_program(unsigned short *prog, long proglen) {
+void write_verify_program(unsigned short *prog, long proglen) {
   unsigned short addr = 0;
-  int rv = 0;
+
   while ( proglen > 0 ) {
     int ln_opts = n_opts;
     int lopt_vw = opt_vw;
@@ -267,18 +267,18 @@ int write_verify_program(unsigned short *prog, long proglen) {
       lopt_vw >>= 1;
     }
     if (block_unverified)
-      nl_error(3, "Programming and/or verification of block 0x%04X failed", addr);
+      nl_error(3, "Programming and/or verification of block 0x%04X failed",
+                  addr);
     proglen -= blocklen;
     prog += blocklen;
     addr += blocklen;
   }
-  return rv;
 }
 
 int main( int argc, char **argv ) {
   long proglen;
   unsigned short *prog;
-  int rv = 0, i;
+  int i;
   
   oui_init_options( argc, argv );
   prog = load_program( &proglen );
