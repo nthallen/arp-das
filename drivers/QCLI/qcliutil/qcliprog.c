@@ -157,7 +157,7 @@ unsigned short *load_program( long *proglenp ) {
   return prog;
 }
 
-void write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
+int write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
   unsigned short chksum = 0, qcli_status;
   unsigned short startaddr = addr;
   unsigned short last_word = prog[addr];
@@ -172,11 +172,14 @@ void write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
   chksum = -chksum;
   write_qcli( QCLI_LOAD_MSB | ((chksum>>8)&0xFF) );
   qcli_status = wr_rd_qcli( QCLI_WRITE_CHKSUM | (chksum&0xFF) );
-  if ( qcli_status & QCLI_S_CHKSUM )
-    nl_error( 3, "%04X - CHKSUM bit set", addr );
+  if ( qcli_status & QCLI_S_CHKSUM ) {
+    nl_error( 2, "0x%04X - CHKSUM failed after write", startaddr );
+    return 1;
+  }
   if ( qcli_status & QCLI_S_FWERR ) {
     report_status( qcli_status );
-    nl_error( 3, "Firmware error reported" );
+    nl_error( 2, "0x%04X: Firmware error reported after write", startaddr );
+    return 1;
   }
   qcli_status = wr_rd_qcli( QCLI_PROGRAM_SECTOR );
   if ( (qcli_status & QCLI_S_MODE) == QCLI_PSECTOR_MODE ) {
@@ -185,7 +188,9 @@ void write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
   }
   if ( (qcli_status & QCLI_S_MODE) != QCLI_PROGRAM_MODE ) {
     report_status( qcli_status );
-    nl_error( 3, "Expected PROGRAM Mode" );
+    nl_error( 2, "0x%04X: Expected PROGRAM Mode after program sector command",
+                  startaddr );
+    return 1;
   }
   { int nreads = 20; /* Up from 10 just to see... */
     while ( nreads-- > 0 &&
@@ -195,15 +200,18 @@ void write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
       qcli_status = read_qcli(1);
     if ( nreads < 0 ) {
       report_status( qcli_status );
-      nl_error( 3, "%04X: Valid data never observed", addr );
+      nl_error( 2, "0x%04X: Valid data never observed", startaddr );
+      return 1;
     } else if ( qcli_status & QCLI_S_FWERR ) {
       report_status( qcli_status );
-      nl_error( 3, "Firmware error detected" );
-      /* Should probably signal a retry */
+      nl_error( 2, "0x%04X: Firmware error detected after program sector",
+                    startaddr);
+      return 1;
     }
   }
   nl_error(0, "Wrote block at addr 0x%04X", startaddr );
   fflush(stdout);
+  return 0;
 }
 
 void write_program( unsigned short *prog, long proglen ) {
@@ -232,32 +240,57 @@ int verify_program( unsigned short *prog, long proglen ) {
   return rv;
 }
 
+int write_verify_program(unsigned short *prog, long proglen) {
+  unsigned short addr = 0;
+  int rv = 0;
+  while ( proglen > 0 ) {
+    int ln_opts = n_opts;
+    int lopt_vw = opt_vw;
+    int blocklen = proglen > 128 ? 128 : proglen;
+    int block_unverified = 1;
+    while (ln_opts && block_unverified) {
+      --ln_opts;
+      switch (lopt_vw & 1) {
+        case OPT_W:
+          if (write_block(addr, prog, blocklen)) {
+            int i;
+            for (i = 0; i < 4; ++i) {
+              if ( qcli_diags( 0 ) ) break;
+            }
+          }
+          break;
+        case OPT_V:
+          if (!verify_block( addr, prog, blocklen))
+            block_unverified = 0;
+          break;
+      }
+      lopt_vw >>= 1;
+    }
+    if (block_unverified)
+      nl_error(3, "Programming and/or verification of block 0x%04X failed", addr);
+    proglen -= blocklen;
+    prog += blocklen;
+    addr += blocklen;
+  }
+  return rv;
+}
+
 int main( int argc, char **argv ) {
   long proglen;
   unsigned short *prog;
-  int rv = 0;
+  int rv = 0, i;
   
   oui_init_options( argc, argv );
   prog = load_program( &proglen );
   nl_error(0, "Loaded %ld words from %s",
     proglen, ifilename );
-  if ( qcli_diags( 0 ) ) nl_error( 0, "Diagnostics passed" );
-  else nl_error( 3, "Errors observed during diagnostics" );
-  while (n_opts) {
-    --n_opts;
-    switch ( opt_vw & 1 ) {
-      case OPT_W:
-	write_program( prog, proglen );
-	rv = 0;
-	break;
-      case OPT_V:
-	if ( verify_program( prog, proglen ) ) {
-	  rv = n_opts ? 2 : 3;
-	  nl_error( rv, "Program did not verify" );
-	} else nl_error( -1, "Program verified completely" );
-	break;
-    }
-    opt_vw >>= 1;
+  for (i = 0; i < 4; ++i) {
+    if ( qcli_diags( 0 ) ) break;
   }
+  if (i < 4) {
+    if (i > 0) nl_error( 1, "Diagnostics passed after %d failure(s)", i );
+    else nl_error(0, "Diagnostics passed on first attempt");
+  } else nl_error(3, "Errors observed during diagnostics over %d attempts", i);
+  write_verify_program(prog, proglen);
   return 0;
 }
