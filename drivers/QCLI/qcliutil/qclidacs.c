@@ -32,6 +32,7 @@ static unsigned short sbw_chk( unsigned short addr ) {
    to process that command before requesting status.
 */
 unsigned short read_qcli( int fresh ) {
+  delay(10);
   return sbw_chk(qcli_raddr);
 }
 

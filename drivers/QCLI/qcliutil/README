@@ -29,3 +29,37 @@ QU
 Here we need a function that will read one command of the format above
 and return the command and the optional value. In this case, the value is
 always numeric, so doing the conversion while parsing makes some sense.
+
+QCLI DACS communication problems 121119
+  19:36:37 [ERROR] QCLI_C: CORDTE not observed
+  19:36:37 QCLI_C: Status = 0x14C0 Mode bits: 0
+  19:36:37 [ERROR] QCLI_C: Not in PROGRAM Mode after WRITE_ADDRESS
+  19:36:37 QCLI_C: Status = 0x14C0 Mode bits: 0
+  19:36:37 [ERROR] QCLI_C: CHKSUM bit not cleared after writing complementary data
+  19:36:37 QCLI_C: Status = 0x50C1 CHKSUM Mode bits: 1
+  19:36:37 [ERROR] QCLI_C: CHKSUM bit not set after writing 3rd data word
+  19:36:37 QCLI_C: Status = 0x1081 Mode bits: 1
+  19:36:37 [ERROR] QCLI_C: CHECKSUM bit not cleared after WRITE_ADDRESS
+  19:36:37 QCLI_C: Status = 0x5001 CHKSUM Mode bits: 1
+  19:36:37 [ERROR] QCLI_C: Not IDLE after STOP
+  19:36:37 QCLI_C: Status = 0x10C1 Mode bits: 1
+  19:36:37 [ERROR] QCLI_C: CORDTE not observed
+  19:36:37 QCLI_C: Status = 0x14C0 Mode bits: 0
+  19:36:37 [ERROR] QCLI_C: CMDERR not observed
+  19:36:37 QCLI_C: Status = 0x1CC0 CORDTE Mode bits: 0
+  19:36:37 [ERROR] QCLI_C: CHKSUM bit not set after writing 3rd data word
+  19:36:37 QCLI_C: Status = 0x3081 CMDERR Mode bits: 1
+  19:36:37 [ERROR] QCLI_C: CHKSUM bit not set after writing 4th data word
+  19:36:37 QCLI_C: Status = 0x3001 CMDERR Mode bits: 1
+  19:36:37 [ERROR] QCLI_C: CHECKSUM bit not cleared after WRITE_ADDRESS
+  19:36:37 QCLI_C: Status = 0x7001 CHKSUM CMDERR Mode bits: 1
+  19:36:37 [ERROR] QCLI_C: Not IDLE after STOP
+  19:36:37 QCLI_C: Status = 0x30C1 CMDERR Mode bits: 1
+  19:36:37 [ERROR] QCLI_C: Error status observed on startup
+  19:36:37 QCLI_C: Status = 0x34C0 CMDERR Mode bits: 0
+  19:36:37 [ERROR] QCLI_C: CORDTE not cleared
+  19:36:37 [ERROR] QCLI_C: Error bits observed after CLEAR_ERROR
+  19:36:37 QCLI_C: Status = 0x1CC0 CORDTE Mode bits: 0
+  19:36:37 [ERROR] QCLI_C: CMDERR not observed
+  19:36:37 QCLI_C: Status = 0x14C0 Mode bits: 0
+  19:36:37 [FATAL] QCLI_C: Errors observed during diagnostics over 4 attempts

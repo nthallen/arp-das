@@ -192,12 +192,24 @@ int write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
                   startaddr );
     return 1;
   }
+  /* Go into read mode to monitor TGL and DATA lines */
+  write_qcli(QCLI_LOAD_MSB | ((startaddr>>8) & 0xFF));
+  write_qcli(QCLI_WRITE_ADDRESS | (startaddr & 0xFF));
+  qcli_status = wr_rd_qcli(QCLI_READ_DATA);
   { int nreads = 20; /* Up from 10 just to see... */
-    while ( nreads-- > 0 &&
-            (qcli_status & QCLI_S_FLSHDATA) !=
-                    (last_word & QCLI_S_FLSHDATA) &&
-            (qcli_status & QCLI_S_FWERR) == 0 )
-      qcli_status = read_qcli(1);
+    int nmatch = 0;
+    while (nreads-- > 0) {
+      if ((qcli_status & (QCLI_S_FLSHDATA|QCLI_S_FLSHTGL)) ==
+          (last_word & (QCLI_S_FLSHDATA|QCLI_S_FLSHTGL))) {
+        if (++nmatch >= 5) break;
+      } else {
+        nmatch = 0;
+        qcli_status = read_qcli(0);
+      }
+    }
+    /* STOP in order to get out of read mode and get
+       actual status */
+    qcli_status = wr_rd_qcli(QCLI_STOP);
     if ( nreads < 0 ) {
       report_status( qcli_status );
       nl_error( 2, "0x%04X: Valid data never observed", startaddr );
@@ -248,6 +260,7 @@ void write_verify_program(unsigned short *prog, long proglen) {
     int lopt_vw = opt_vw;
     int blocklen = proglen > 128 ? 128 : proglen;
     int block_unverified = 1;
+    int block_verify_failed = 0;
     while (ln_opts && block_unverified) {
       --ln_opts;
       switch (lopt_vw & 1) {
@@ -255,13 +268,18 @@ void write_verify_program(unsigned short *prog, long proglen) {
           if (write_block(addr, prog, blocklen)) {
             int i;
             for (i = 0; i < 4; ++i) {
-              if ( qcli_diags( 0 ) ) break;
+              if (qcli_diags(0)) break;
             }
           }
           break;
         case OPT_V:
-          if (!verify_block( addr, prog, blocklen))
+          if (verify_block( addr, prog, blocklen)) {
+            block_verify_failed = 1;
+          } else {
             block_unverified = 0;
+            if (block_verify_failed)
+              nl_error(0, "Block 0x%04X: verified", addr);
+          }
           break;
       }
       lopt_vw >>= 1;
@@ -273,6 +291,7 @@ void write_verify_program(unsigned short *prog, long proglen) {
     prog += blocklen;
     addr += blocklen;
   }
+  nl_error(0, "Program written and/or verfied completely");
 }
 
 int main( int argc, char **argv ) {
