@@ -114,7 +114,7 @@ void nlph_cmdclt_init( void *(*cmd_thread)(void*)) {
   // Wrong: need to create a PtPolygon widget.
   PtAddFilterCallback( cmd_window, Ph_EV_KEY, my_key_event, NULL );
 
-  if ( cic_cmd_quit_fd == -1 ||
+  if ( cic_cmd_quit_fd != -1 &&
        PtAppAddFd( NULL, cic_cmd_quit_fd, Pt_FD_READ,
 	       cic_cmd_quit_func, NULL) )
     nl_error( 1, "Unable to initialize cmd/Quit link" ); 
