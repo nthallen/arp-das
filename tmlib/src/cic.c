@@ -65,35 +65,36 @@ void cic_options(int argcc, char **argvv, const char *def_prefix) {
 int cic_init(void) {
   int nlrsave;
   if (cis_fd != -1) return 0;
-  cis_fd = tm_open_name( tm_dev_name( CMDSRVR_NAME ),
-    cis_node, O_WRONLY );
-  if (cis_fd < 0)
-    return(1);
   nlrsave = set_response(NLRSP_WARN);
   cic_cmd_quit_fd = tm_open_name( tm_dev_name( "cmd/Quit" ),
     cis_node, O_RDONLY|O_NONBLOCK );
   set_response(nlrsave);
+  if (playback) return 0;
+  cis_fd = tm_open_name( tm_dev_name( CMDSRVR_NAME ),
+    cis_node, O_WRONLY );
+  if (cis_fd < 0)
+    return(1);
   
   /* If specified, verify version */
   if (ci_version[0] != '\0') {
     char vcheck[CMD_VERSION_MAX];
-	int nb = snprintf( vcheck, CMD_VERSION_MAX, "[%s:V%s]\n",
-	  cic_header, ci_version );
-	if ( nb >= CMD_VERSION_MAX )
-	  nl_error( nl_response, "Version string too long" );
-	else {
-	  int rb = write( cis_fd, vcheck, nb+1 );
-	  if ( rb == -1 ) {
-	    if (errno == EINVAL ) {
-		  if (nl_response)
-			nl_error(nl_response, "Incorrect Command Server Version");
-		} else nl_error(nl_response,
-		   "Error %d querying command server version", errno );
+    int nb = snprintf( vcheck, CMD_VERSION_MAX, "[%s:V%s]\n",
+      cic_header, ci_version );
+    if ( nb >= CMD_VERSION_MAX )
+      nl_error( nl_response, "Version string too long" );
+    else {
+      int rb = write( cis_fd, vcheck, nb+1 );
+      if ( rb == -1 ) {
+        if (errno == EINVAL ) {
+          if (nl_response)
+            nl_error(nl_response, "Incorrect Command Server Version");
+        } else nl_error(nl_response,
+           "Error %d querying command server version", errno );
         return(1);
       }
-	  if ( rb < nb+1 )
-		nl_error( 1, "Vcheck rb = %d instead of %d", rb, nb+1 );
-	}
+      if ( rb < nb+1 )
+        nl_error( 1, "Vcheck rb = %d instead of %d", rb, nb+1 );
+    }
   }
 
   return(0);
@@ -186,12 +187,12 @@ int ci_sendcmd(const char *cmdtext, int mode) {
       case E2BIG:
         nl_error( 4, "Unexpected E2BIG from cis" );
       case EINVAL:
-	if ( nl_response )
-	  nl_error( 2, "Syntax error from cis" );
+    if ( nl_response )
+      nl_error( 2, "Syntax error from cis" );
         return CMDREP_SYNERR;
       case EIO:
         if ( nl_response )
-	  nl_error( 2, "Execution error from cis" );
+      nl_error( 2, "Execution error from cis" );
         return CMDREP_EXECERR;
       default:
         nl_error( 3, "Unhandled error %d from cis", errno );
