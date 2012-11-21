@@ -65,7 +65,7 @@ void cic_options(int argcc, char **argvv, const char *def_prefix) {
 int cic_init(void) {
   int nlrsave;
   if (cis_fd != -1) return 0;
-  nlrsave = set_response(NLRSP_WARN);
+  nlrsave = set_response(playback ? NLRSP_QUIET : NLRSP_WARN);
   cic_cmd_quit_fd = tm_open_name( tm_dev_name( "cmd/Quit" ),
     cis_node, O_RDONLY|O_NONBLOCK );
   set_response(nlrsave);
