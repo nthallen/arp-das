@@ -1,0 +1,43 @@
+/*
+  0	lk204 initialized
+  1	pca9554 initialized
+  2	lk204 acknowledge
+  3	pca9554 acknowledge
+  4	key pressed (Rqueue_NonEmpty)
+  5	Wqueue_NonEmpty
+  6	Wqueue_Full
+  7	LKWrEn
+  8	BAT_PURGE_REQ
+  9	LAND_REQ
+  12	BAT_PURGE_LED
+  13	LAND_LED
+*/
+
+TM typedef unsigned char NIBBLE { text "%01x"; }
+
+NIBBLE PP_Init; Invalidate PP_Init;
+{ PP_Init = PPstat & 0xF; Validate PP_Init; }
+
+off_on_t PP_Key_Pressed; Invalidate PP_Key_Pressed;
+{ PP_Key_Pressed = (PPstat >> 4) & 1; Validate PP_Key_Pressed; }
+
+off_on_t PP_WQ_NonEmpty; Invalidate PP_WQ_NonEmpty;
+{ PP_WQ_NonEmpty = (PPstat >> 5) & 1; Validate PP_WQ_NonEmpty; }
+
+off_on_t PP_WQ_Full; Invalidate PP_WQ_Full;
+{ PP_WQ_Full = (PPstat >> 6) & 1; Validate PP_WQ_Full; }
+
+off_on_t PP_LKWrEn; Invalidate PP_LKWrEn;
+{ PP_LKWrEn = (PPstat >> 7) & 1; Validate PP_LKWrEn; }
+
+off_on_t PP_BAT_Purge_Req; Invalidate PP_BAT_Purge_Req;
+{ PP_BAT_Purge_Req = (PPstat >> 8) & 1; Validate PP_BAT_Purge_Req; }
+
+off_on_t PP_Land_Req; Invalidate PP_Land_Req;
+{ PP_Land_Req = (PPstat >> 9) & 1; Validate PP_Land_Req; }
+
+off_on_t PP_BAT_Purge_LED; Invalidate PP_BAT_Purge_LED;
+{ PP_BAT_Purge_LED = (PPstat >> 12) & 1; Validate PP_BAT_Purge_LED; }
+
+off_on_t PP_Land_LED; Invalidate PP_Land_LED;
+{ PP_Land_LED = (PPstat >> 13) & 1; Validate PP_Land_LED; }

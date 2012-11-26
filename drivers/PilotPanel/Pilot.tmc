@@ -1,0 +1,2 @@
+/* Pilot.tmc */
+TM 1 Hz CTstat PPstat; Address PPstat 0x1104;
