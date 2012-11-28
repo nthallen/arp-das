@@ -52,7 +52,8 @@ class Ser_Sel : public Selectee {
     void report_err( const char *msg, ... );
     void report_ok();
     int not_found(unsigned char c);
-    int not_int( int &val );
+    int not_hex(unsigned short &hexval);
+    int not_int(int &val );
     int not_str(const char *str, unsigned int len);
     int not_str(const std::string &s);
     int not_str(const char *str);

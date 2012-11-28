@@ -299,6 +299,30 @@ int Ser_Sel::not_found(unsigned char c) {
 }
 
 /**
+ * Parsing utility function to read in a hex integer starting
+ * at the current position. Integer may be proceeded by optional
+ * whitespace.
+ * @param[out] hexval The integer value
+ * @return zero if an integer was converted, non-zero if the current char is not a digit.
+ */
+int Ser_Sel::not_hex( unsigned short &hexval ) {
+  while (cp < nc && isspace(buf[cp]))
+    ++cp;
+  if (! isxdigit(buf[cp])) {
+    if (cp < nc)
+      report_err("No hex digits at col %d", cp);
+    return 1;
+  }
+  while ( isxdigit(buf[cp]) ) {
+    unsigned short digval = isdigit(buf[cp]) ? ( buf[cp] - '0' ) :
+           ( tolower(buf[cp]) - 'a' + 10 );
+    hexval = hexval * 16 + digval;
+    ++cp;
+  }
+  return 0;
+}
+
+/**
  * Parsing utility function to read in a decimal integer starting
  * at the current position. Integer may be proceeded by optional
  * whitespace and an optional sign.
