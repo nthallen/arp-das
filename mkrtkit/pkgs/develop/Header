@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.31
+Version: 2.5.32
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,8 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.32
+#   tmpplib: Updated SerSelector.h
 # 2.5.31 2012-11-13
 #   SerSelector.h: allow for delayed initialization
 # 2.5.30 2012-10-07
