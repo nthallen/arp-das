@@ -5,6 +5,8 @@ Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.30
+#   libtmpp.*: Added Ser_Sel::not_hex()
 # 2.5.29
 #   libnort.so.1: Latent bug in mlf_set_ixs causing path corruption
 #   libtmpp.so.3: SerSelector changes to allow delayed initializations
