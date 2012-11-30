@@ -1,7 +1,7 @@
 # Use appgen.mk to define AG_LDFLAGS, LINK.norm, OUI
 CFLAGS=-Wall -g
 include /usr/local/share/huarp/appgen.mk
-OBJ=sspdrv.o udp.o tcp.o sspdrvoui.o
+OBJ=sspdrv.o udp.o tcp.o sspdrvoui.o ringdown.o
 CLEANFILES=$(OBJ) sspdrvoui.c sspdrv FullBuild.*
 sspdrv : $(OBJ)
 	$(LINK.norm) -o sspdrv $(OBJ) -ltm -lnort -lsocket

@@ -36,6 +36,9 @@ typedef struct {
 	unsigned short NS, NA, NC;
 	unsigned short NE;
   unsigned short NF; /* Frequency Divisor */
+  unsigned short RD; /* True if fitting ringdowns */
+  unsigned short RD_n_skip;
+  unsigned short RD_n_off;
 	int NP; /* udp port number */
   int LE; /* logging enabled */
 } ssp_config_t;

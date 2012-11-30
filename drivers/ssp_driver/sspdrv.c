@@ -31,6 +31,7 @@
 #include "tm.h"
 #include "collect.h"
 #include "sspint.h"
+#include "ringdown.h"
 
 static char board_hostname[40] = "10.0.0.200";
 static char *mlf_config = NULL;
@@ -110,18 +111,33 @@ static void report_invalid( char *head ) {
  
   As before, we will accept triggering commands anytime and other command only when not acquiring.
  */
-static char *read_num( char *head, int *newval ) {
+static char *read_num(char *head, int *newval) {
+  unsigned char *tail = (unsigned char *)head;
+  int val = 0;
+  int neg = 0;
+  if (*tail == '-') {
+    neg = 1;
+    ++tail;
+  } else if (*tail == '+') {
+    ++tail;
+  }
+  if (isdigit(*tail)) {
+    while (isdigit(*tail)) {
+      val = val * 10 + *tail++ - '0';
+    }
+    if (neg) val = -val;
+    *newval = val;
+    return((char *)tail);
+  }
+  *newval = 0;
+  report_invalid(head);
+  return NULL;
+}
+
+static char *read_kw_num(char *head, int *newval) {
   char *tail = head;
   if ( !is_eocmd(*++tail) && *++tail == ':' ) {
-    char *num = ++tail;
-    if ( *tail == '-' ) ++tail;
-    if ( isdigit(*tail) ) {
-      while ( isdigit(*tail) ) ++tail;
-      if ( is_eocmd(*tail) ) {
-        *newval = atoi(num);
-        return tail;
-      }
-    }
+    return read_num(++tail, newval);
   }
   report_invalid(head);
   return NULL;
@@ -131,6 +147,7 @@ static char *read_num( char *head, int *newval ) {
 void read_cmd( int cmd_fd ) {
   char buf[CMDEE_BUFSIZE], *head, *tail;
   int nb, newval;
+  unsigned short RD = 0;
   nb = read( cmd_fd, buf, CMDEE_BUFSIZE-1 );
   if ( nb == -1 )
     nl_error(3, "Error reading from cmd/SSP: %s", strerror(errno) );
@@ -164,6 +181,8 @@ void read_cmd( int cmd_fd ) {
           head = tail;
           continue;
         }
+        ssp_config.RD = RD;
+        ringdown_setup(ssp_config.RD_n_skip, ssp_config.RD_n_off);
         { ssp_config.NP = udp_create();
           char udp_buf[20];
           snprintf(udp_buf, 20, "NP:%d", ssp_config.NP);
@@ -203,7 +222,7 @@ void read_cmd( int cmd_fd ) {
               return;
             }
           case 'D':
-            if ( is_eocmd(*++tail) ) {
+            if (is_eocmd(*++tail)) {
               ssp_config.LE = 0;
               head = tail;
               continue;
@@ -216,8 +235,30 @@ void read_cmd( int cmd_fd ) {
             return;
         }
         break;
+      case 'R':
+        if (head[1] == 'D') {
+          tail = read_kw_num(head, &newval);
+          if (tail)
+            if (*tail == ',') {
+              ssp_config.RD_n_skip = newval;
+              tail = read_num(++tail, &newval);
+              if (tail) {
+                ssp_config.RD_n_off = newval;
+              }
+            } else {
+              report_invalid(head);
+              return;
+            }
+          }
+          if (!tail) return;
+          RD = 1;
+        } else {
+          report_invalid(head);
+          return;
+        }
+        break;
       case 'X':
-              switch (*++tail) {
+        switch (*++tail) {
           case 'R':
             udp_close();
             tcp_reset(board_hostname);
@@ -231,10 +272,10 @@ void read_cmd( int cmd_fd ) {
           default:
             report_invalid(head);
             return;
-              }
-              break;
+        }
+        break;
       case 'N':
-        tail = read_num( head, &newval );
+        tail = read_kw_num( head, &newval );
         if ( tail == NULL ) return;
         if ( udp_state != FD_IDLE ) {
           *tail = '\0';
@@ -260,7 +301,7 @@ void read_cmd( int cmd_fd ) {
         }
         break;
       case 'T': // Trigger commands
-        tail = read_num( head, &newval );
+        tail = read_kw_num( head, &newval );
         if ( tail == NULL ) return;
         switch (head[1]) {
           case 'U':
