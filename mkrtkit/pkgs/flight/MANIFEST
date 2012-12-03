@@ -100,6 +100,7 @@ usr/local/lib/libtmpp.so.0
 usr/local/lib/libtmpp.so.1
 usr/local/lib/libtmpp.so.2
 usr/local/lib/libtmpp.so.3
+usr/local/lib/libtmpp.so.4
 usr/local/sbin/getcon
 usr/local/sbin/promote
 usr/local/sbin/flight.sh
