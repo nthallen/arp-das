@@ -50,9 +50,9 @@ int TM_Selectee::ProcessData(int flag) {
  * fatal error if the resulting path is not found.
  */
 Cmd_Selectee::Cmd_Selectee( const char *name ) :
-    Ser_Sel(tm_dev_name(name), O_RDONLY, 0) {}
+    Ser_Sel(tm_dev_name(name), O_RDONLY|O_NONBLOCK, 0) {}
 Cmd_Selectee::Cmd_Selectee( const char *name, int bufsz ) :
-    Ser_Sel(tm_dev_name(name), O_RDONLY, bufsz) {}
+    Ser_Sel(tm_dev_name(name), O_RDONLY|O_NONBLOCK, bufsz) {}
 
 int Cmd_Selectee::ProcessData(int flag) {
   return 1;
