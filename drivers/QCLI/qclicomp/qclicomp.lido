@@ -757,7 +757,8 @@ SYMBOL RingCmds COMPUTE
   /* IF ( NOT(HasTpre(THIS.Key)),                          */
   /*     message(ERROR, "Tpre is required", 0, COORDREF )  */
   /*   ) <- CONSTITUENTS TpreDef.SetTpre;                  */
-  SYNT.TpreSpec = usecs(GetTpre(THIS.Key,.000001));
+  SYNT.TpreSpec = usecs(GetTpre(THIS.Key,.000001))
+    <- CONSTITUENTS TpreDef.SetTpre;
   SYNT.Tpre = IF ( GT(THIS.TpreSpec,1),THIS.TpreSpec, 1 );
   SYNT.RawRate =
     IF( HasRateDef(THIS.Key),
