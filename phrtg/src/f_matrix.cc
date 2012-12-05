@@ -80,6 +80,18 @@ void f_matrix::read_icos( FILE *fp ) {
     fclose(fp);
     return;
   }
+  // Support for new SSP output format, discarding the header info.
+  // I will provide another version to extract the header
+  if (dims[0] == 0x10006 && dims[1] > 255) {
+    unsigned long data[4];
+    if (fread(data, sizeof(unsigned long), 4, fp) != 4) {
+      nl_error( 2, "Error reading header" );
+      fclose(fp);
+      return;
+    }
+    dims[0] = dims[1]>>16;
+    dims[1] &= 0xFF;
+  }
   setsize(dims[0], dims[1], false);
   for ( i = 0; i < dims[1]; i++ ) {
     int ne = fread( mdata[i], sizeof(scalar_t), dims[0], fp );
