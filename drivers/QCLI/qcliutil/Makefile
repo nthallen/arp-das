@@ -4,7 +4,7 @@ TOOL=Makefile todo
 TARGET=qclisd qclisprog qclistest qclidacsd qclidprog qclidtest
 INCLUDE_HEADERS=qclid.h
 DATA_HEADERS=qcli.cmd
-CFLAGS=-Wall -g
+CFLAGS=-Wall -g -DEXTRA_CHECKS
 LDFLAGS=-L/usr/local/lib
 
 include /usr/local/share/huarp/appgen.mk
@@ -49,8 +49,8 @@ qclisprog : qcliprog.o qcliutil.o qcliser.o qclisprogoui.o qcliver.o
 qclisprogoui.c : qcliprog.oui qcliser.oui
 	$(OUI) qcliprog.oui qcliser.oui
 
-qclidprog : qcliprog.o qcliutil.o qclidacs.o qclidprogoui.o
-	$(LINK.norm) qcliprog.o qcliutil.o qclidacs.o qclidprogoui.o $(LIBS) -lsubbus
+qclidprog : qcliprog.o qcliutil.o qclidacs.o qclidprogoui.o qcliver.o
+	$(LINK.norm) qcliprog.o qcliutil.o qclidacs.o qclidprogoui.o qcliver.o $(LIBS) -lsubbus
 	usemsg qclidprog qclidprogoui.c
 qclidprogoui.c : qcliprog.oui qclidacs.oui
 	$(OUI) qcliprog.oui qclidacs.oui

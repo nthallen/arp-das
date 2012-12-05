@@ -51,6 +51,7 @@ void wr_stop_qcli(  unsigned short value ) {
 
 static unsigned short vbuf[32];
 
+#ifdef OPTIMIZED_VERIFY
 /**
  @return zero on success
  */
@@ -127,6 +128,7 @@ int verify_block( unsigned short addr, unsigned short *prog, int blocklen ) {
   return rv;
 
 }
+#endif
 
 void qcli_addr_init( int bdnum ) {
   board_number = bdnum;

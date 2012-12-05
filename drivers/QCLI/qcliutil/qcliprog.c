@@ -161,12 +161,36 @@ int write_block( unsigned short addr, unsigned short *prog, int blocklen ) {
   unsigned short chksum = 0, qcli_status;
   unsigned short startaddr = addr;
   unsigned short last_word = prog[addr];
+  qcli_status = read_qcli(0);
+  if (qcli_status & QCLI_S_FWERR) {
+    unsigned short new_status;
+    new_status = wr_rd_qcli(QCLI_CLEAR_ERROR);
+    if (new_status & QCLI_S_FWERR) {
+      report_status( qcli_status );
+      nl_error(2, "0x%04X: Firmware error before write, did not clear",
+        startaddr);
+      return 1;
+    } else {
+      report_status( qcli_status );
+      nl_error(1, "0x%04X: Firmware error reported before write, cleared",
+        startaddr );
+    }
+  }
   write_qcli( QCLI_LOAD_MSB | ((addr>>8)&0xFF) );
   write_qcli( QCLI_WRITE_ADDRESS | (addr&0xFF) );
   while ( blocklen-- > 0 ) {
     unsigned short value = prog[addr++];
     write_qcli( QCLI_LOAD_MSB | ((value>>8)&0xFF) );
+#ifdef EXTRA_CHECKS
+    qcli_status = wr_rd_qcli( QCLI_WRITE_DATA | (value&0xFF) );
+    if (qcli_status & QCLI_S_FWERR) {
+      report_status(qcli_status);
+      nl_error(2, "0x%04X: Firmware error during write", addr);
+      return 1;
+    }
+#else
     write_qcli( QCLI_WRITE_DATA | (value&0xFF) );
+#endif
     chksum += value;
   }
   chksum = -chksum;
@@ -288,7 +312,6 @@ void write_verify_program(unsigned short *prog, long proglen) {
       nl_error(3, "Programming and/or verification of block 0x%04X failed",
                   addr);
     proglen -= blocklen;
-    prog += blocklen;
     addr += blocklen;
   }
   nl_error(0, "Program written and/or verfied completely");

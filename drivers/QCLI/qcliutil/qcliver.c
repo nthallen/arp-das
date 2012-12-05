@@ -5,6 +5,7 @@
 /* Returns zero if block verifies as OK */
 int verify_block( unsigned short addr, unsigned short *prog, int blocklen ) {
   int rv = 0;
+  unsigned short block_addr = addr;
   if ( (addr&0xFF) + blocklen > 256 )
     nl_error( 4, "Invalid addr/blocklen pair: %04X, %d",
           addr,	blocklen );
@@ -20,14 +21,16 @@ int verify_block( unsigned short addr, unsigned short *prog, int blocklen ) {
       if ( value == prog[addr] ) break;
     }
     if ( value != prog[addr] ) {
-      nl_error( 2, "  %04X: program=%04X read=%04X after %d attempts",
+      nl_error( -2, "  %04X: program=%04X read=%04X after %d attempts",
         addr, prog[addr], value, attempts );
-      rv = 1;
+      ++rv;
     } else if ( attempts > 1 ) {
       nl_error( 1, "  %04X: program=%04X required %d attempts",
         addr, prog[addr], attempts );
     }
   }
   wr_stop_qcli( QCLI_STOP );
+  if (rv) nl_error(2, "Block %04X: %d words failed on verify",
+              block_addr, rv);
   return rv;
 }
