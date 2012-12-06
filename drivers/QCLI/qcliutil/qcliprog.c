@@ -314,7 +314,7 @@ void write_verify_program(unsigned short *prog, long proglen) {
     proglen -= blocklen;
     addr += blocklen;
   }
-  nl_error(0, "Program written and/or verfied completely");
+  nl_error(0, "Program written and/or verified completely");
 }
 
 int main( int argc, char **argv ) {

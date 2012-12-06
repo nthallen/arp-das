@@ -49,8 +49,8 @@ qclisprog : qcliprog.o qcliutil.o qcliser.o qclisprogoui.o qcliver.o
 qclisprogoui.c : qcliprog.oui qcliser.oui
 	$(OUI) qcliprog.oui qcliser.oui
 
-qclidprog : qcliprog.o qcliutil.o qclidacs.o qclidprogoui.o qcliver.o
-	$(LINK.norm) qcliprog.o qcliutil.o qclidacs.o qclidprogoui.o qcliver.o $(LIBS) -lsubbus
+qclidprog : qcliprog.o qcliutil.o qclidacs.o qclidprogoui.o
+	$(LINK.norm) qcliprog.o qcliutil.o qclidacs.o qclidprogoui.o $(LIBS) -lsubbus
 	usemsg qclidprog qclidprogoui.c
 qclidprogoui.c : qcliprog.oui qclidacs.oui
 	$(OUI) qcliprog.oui qclidacs.oui

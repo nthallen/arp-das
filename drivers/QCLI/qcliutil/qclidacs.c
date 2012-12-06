@@ -51,7 +51,6 @@ void wr_stop_qcli(  unsigned short value ) {
 
 static unsigned short vbuf[32];
 
-#ifdef OPTIMIZED_VERIFY
 /**
  @return zero on success
  */
@@ -110,16 +109,20 @@ int verify_block( unsigned short addr, unsigned short *prog, int blocklen ) {
       mread_subbus(vreq, vbuf);
     }
     for ( i = 0; i < remaining && i < 32; ++i ) {
-      if ( i < blocklen && vbuf[i] != prog[i] ) {
+      if ( i < blocklen && vbuf[i] != prog[addr+i] ) {
         nl_error( -2, "  %04X: program=%04X read=%04X",
-          addr+i, prog[i], vbuf[i] );
+          addr+i, prog[addr+i], vbuf[i] );
         ++rv;
       }
     }
     addr += i;
-    prog += i;
+    // prog += i;
     remaining -= i;
     blocklen -= i;
+    ctrlr_status = sbw_chk(board_base);
+    if (remaining != (ctrlr_status & 0xFF))
+      nl_error(2, "  Remaining count incorrect: %04X expected %02X",
+        ctrlr_status, remaining);
   }
   if ( rv ) {
     nl_error(2, "Block 0x%04X: %d words failed on verify",
@@ -128,7 +131,6 @@ int verify_block( unsigned short addr, unsigned short *prog, int blocklen ) {
   return rv;
 
 }
-#endif
 
 void qcli_addr_init( int bdnum ) {
   board_number = bdnum;
