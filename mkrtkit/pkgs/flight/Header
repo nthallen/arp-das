@@ -1,10 +1,12 @@
 # Package flight
-Version: 2.5.31
+Version: 2.5.32
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.32
+#   qclidprog: Fixed verify bug
 # 2.5.31
 #   libtmpp.*: Cmd_Selectee must start with O_NONBLOCK
 # 2.5.30
