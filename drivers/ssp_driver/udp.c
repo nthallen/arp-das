@@ -86,7 +86,6 @@ void udp_close(void) {
 }
 
 static void output_scan( long int *scan, mlf_def_t *mlf ) {
-  int j;
   FILE *ofp;
   ssp_scan_header_t *hdr = (ssp_scan_header_t *)scan;
   long int *idata = scan+hdr->NWordsHdr;
@@ -124,7 +123,7 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
     fwrite(&scan[raw_length-1], sizeof(long int), 1, ofp);
     { int NCh = hdr->NChannels, j;
       for ( j = 0; j <= NCh; j++ ) {
-        fwrite( fdata[j], sizeof(float), hdr.NSamples, ofp);
+        fwrite( fdata[j], sizeof(float), hdr->NSamples, ofp);
       }
     }
     fclose(ofp);
