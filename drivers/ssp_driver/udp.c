@@ -2,7 +2,6 @@
 #include "nortlib.h"
 #include "nl_assert.h"
 #include "sspint.h"
-#include "ringdown.h"
 
 int udp_socket;
 enum fdstate udp_state = FD_IDLE;
@@ -63,8 +62,7 @@ int udp_create(void) {
 
 int udp_receive(long int *scan, size_t length ) {
   struct sockaddr_in cliAddr;
-  int n;
-  socklen_t cliLen;
+  int n, cliLen;
 
   cliLen = sizeof(cliAddr);
   n = recvfrom(udp_socket, scan, length, 0, 
@@ -87,13 +85,15 @@ void udp_close(void) {
 }
 
 static void output_scan( long int *scan, mlf_def_t *mlf ) {
+  int j;
   FILE *ofp;
   ssp_scan_header_t *hdr = (ssp_scan_header_t *)scan;
   long int *idata = scan+hdr->NWordsHdr;
-  float fdata[SSP_MAX_CHANNELS][SSP_MAX_SAMPLES];
+  float *fdata = (float *)idata;
+  // time_t now;
+  // static time_t last_rpt = 0;
   float divisor = 1/(hdr->NCoadd * (float)(hdr->NAvg+1));
   int my_scan_length = hdr->NSamples * hdr->NChannels;
-  Ringdown_t *rdf;
 
   // scan is guaranteed to be raw_length words long. Want to verify that NSamples*NChannels + NWordsHdr + 1 == raw_length
   if ( hdr->NWordsHdr != scan0 ) {
@@ -110,53 +110,38 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
     return;
   }
 
-  if (ssp_config.LE || ssp_config.RD) {
-    int i, j, nc = hdr->NChannels;
-    for ( j = 0; j < hdr->NChannels; ++j ) {
-      long int *id = &idata[j];
-      for ( i = 0; i < hdr->NSamples; ++i ) {
-        fdata[j][i] = (*id) * divisor;
-        id += nc;
-      }
-    }
-  }
-  if (ssp_config.LE) {
+  if ( ssp_config.LE ) {
     ofp = mlf_next_file(mlf);
     
-    { unsigned long n_l[2];
-      n_l[0] = hdr->NSamples;
-      n_l[1] = hdr->NChannels;
-      fwrite( &n_l[0], sizeof(unsigned long), 2, ofp );
+    { unsigned long n_l;
+      n_l = hdr->NSamples;
+      fwrite( &n_l, sizeof(unsigned long), 1, ofp );
+      n_l = hdr->NChannels;
+      fwrite( &n_l, sizeof(unsigned long), 1, ofp );
     }
 
-    { int NCh = hdr->NChannels, j;
+    for ( j = my_scan_length-1; j >= 0; j-- ) {
+      fdata[j] = idata[j]*divisor;
+    }
+    { int NCh = hdr->NChannels;
       for ( j = 0; j <= NCh; j++ ) {
-        fwrite( fdata[j], sizeof(float), hdr->NSamples, ofp);
+        int k;
+        for ( k = j; k <= my_scan_length; k += NCh ) {
+          fwrite( fdata+k, sizeof(float), 1, ofp );
+        }
       }
     }
     fclose(ofp);
   }
-    
-  if (ssp_config.RD) {
-    static FILE *hdr_fp = NULL;
-    if (ssp_config.LE && hdr_fp == NULL) {
-      char hdr_name[80];
-      int baselen = mlf->flvl[0].s - mlf->fpath;
-      snprintf(hdr_name, 80, "%*.*sringdown.dat", baselen, baselen, mlf->fpath);
-      hdr_fp = fopen(hdr_name, "w");
-      if (hdr_fp == NULL) {
-        nl_error(2, "Unable to open header file: '%s'", hdr_name);
-        ssp_config.RD = 0;
-      }
-    }
-    rdf = ringdown_fit(hdr, fdata[0]);
-    if (ssp_config.LE && hdr_fp) {
-      fprintf(hdr_fp, "%lu,%lu,%.3lf,%.3lf,%.3lf,%.4lf,%.4lf\n",
-        mlf->index, hdr->ScanNum, fdata[1][5],
-        rdf->tau, rdf->dtau, rdf->b, rdf->a );
-      fflush(hdr_fp);
-    }
-  }
+
+  // now = time(NULL);
+
+  // fprintf( hdr_fp, "%ld %lu %u %u %u %u %u %u %u %u %lu %lu %lu\n",
+    // now, mlf->index,
+    // hdr->NWordsHdr, hdr->FormatVersion, hdr->NChannels,
+    // hdr->NSamples, hdr->NCoadd, hdr->NAvg, hdr->NSkL, hdr->NSkP,
+    // hdr->ScanNum, hdr->Spare, (unsigned long)scan[raw_length-1] );
+  // fflush(hdr_fp);
 
   ssp_data.index = mlf->index;
   ssp_data.Flags |= (unsigned short)(scan[raw_length-1]);
