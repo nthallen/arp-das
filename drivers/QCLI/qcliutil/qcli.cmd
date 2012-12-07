@@ -56,14 +56,13 @@
         if (setup->NAvg > 0) {
 	  sspqcli_bd[$1].if_ssp->Turf(
 	   "DA NF:%ld NS:%d NA:%d NC:%d NE:%d "
-	   "T%c:0 TS:%d A%c %sEN\n",
+	   "T%c:0 TS:%d A%c EN\n",
 	   setup->FSample, setup->NSample/setup->NAvg,
 	   setup->NAvg, setup->NCoadd,
 	   setup->Options & 7,
 	   (setup->Options & HSAD_TRIG_RISING) ? 'U' : 'D',
 	   (setup->Options & HSAD_TRIG_3)/HSAD_TRIG_1,
-	   (setup->Options & HSAD_TRIG_AUTO) ? 'E' : 'D',
-	   (setup->Options & HSAD_RINGDOWN) ? "RD:110,5" : "");
+	   (setup->Options & HSAD_TRIG_AUTO) ? 'E' : 'D' );
         } else nl_error(2, "SSP %d NAvg out of range", $1+1);
       }
   : &SSP Stop * { sspqcli_bd[$1].if_ssp->Turf( "DA" ); }
