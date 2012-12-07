@@ -90,7 +90,7 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
   FILE *ofp;
   ssp_scan_header_t *hdr = (ssp_scan_header_t *)scan;
   long int *idata = scan+hdr->NWordsHdr;
-  float *fdata = (float *)idata;
+  float fdata[SSP_MAX_CHANNELS][SSP_MAX_SAMPLES];
   // time_t now;
   // static time_t last_rpt = 0;
   float divisor = 1/(hdr->NCoadd * (float)(hdr->NAvg+1));
@@ -110,39 +110,25 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
       hdr->NSamples, hdr->NChannels, raw_length );
     return;
   }
-
-  if ( ssp_config.LE ) {
+  if (ssp_config.LE) {
+    int i, j, nc = hdr->NChannels;
+    for ( j = 0; j < hdr->NChannels; ++j ) {
+      long int *id = &idata[j];
+      for ( i = 0; i < hdr->NSamples; ++i ) {
+        fdata[j][i] = (*id) * divisor;
+        id += nc;
+      }
+    }
     ofp = mlf_next_file(mlf);
-    
-    { unsigned long n_l;
-      n_l = hdr->NSamples;
-      fwrite( &n_l, sizeof(unsigned long), 1, ofp );
-      n_l = hdr->NChannels;
-      fwrite( &n_l, sizeof(unsigned long), 1, ofp );
-    }
-
-    for ( j = my_scan_length-1; j >= 0; j-- ) {
-      fdata[j] = idata[j]*divisor;
-    }
-    { int NCh = hdr->NChannels;
+    fwrite(hdr, sizeof(ssp_scan_header_t), 1, ofp);
+    fwrite(&scan[raw_length-1], sizeof(long int), 1, ofp);
+    { int NCh = hdr->NChannels, j;
       for ( j = 0; j <= NCh; j++ ) {
-        int k;
-        for ( k = j; k <= my_scan_length; k += NCh ) {
-          fwrite( fdata+k, sizeof(float), 1, ofp );
-        }
+        fwrite( fdata[j], sizeof(float), hdr.NSamples, ofp);
       }
     }
     fclose(ofp);
   }
-
-  // now = time(NULL);
-
-  // fprintf( hdr_fp, "%ld %lu %u %u %u %u %u %u %u %u %lu %lu %lu\n",
-    // now, mlf->index,
-    // hdr->NWordsHdr, hdr->FormatVersion, hdr->NChannels,
-    // hdr->NSamples, hdr->NCoadd, hdr->NAvg, hdr->NSkL, hdr->NSkP,
-    // hdr->ScanNum, hdr->Spare, (unsigned long)scan[raw_length-1] );
-  // fflush(hdr_fp);
 
   ssp_data.index = mlf->index;
   ssp_data.Flags |= (unsigned short)(scan[raw_length-1]);
