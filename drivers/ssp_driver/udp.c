@@ -62,7 +62,8 @@ int udp_create(void) {
 
 int udp_receive(long int *scan, size_t length ) {
   struct sockaddr_in cliAddr;
-  int n, cliLen;
+  int n;
+  socklen_t cliLen;
 
   cliLen = sizeof(cliAddr);
   n = recvfrom(udp_socket, scan, length, 0, 
