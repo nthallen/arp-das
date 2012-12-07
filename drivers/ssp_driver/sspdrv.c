@@ -238,7 +238,7 @@ void read_cmd( int cmd_fd ) {
       case 'R':
         if (head[1] == 'D') {
           tail = read_kw_num(head, &newval);
-          if (tail)
+          if (tail) {
             if (*tail == ',') {
               ssp_config.RD_n_skip = newval;
               tail = read_num(++tail, &newval);

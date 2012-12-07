@@ -63,7 +63,8 @@ int udp_create(void) {
 
 int udp_receive(long int *scan, size_t length ) {
   struct sockaddr_in cliAddr;
-  int n, cliLen;
+  int n;
+  socklen_t cliLen;
 
   cliLen = sizeof(cliAddr);
   n = recvfrom(udp_socket, scan, length, 0, 
@@ -130,7 +131,7 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
 
     { int NCh = hdr->NChannels, j;
       for ( j = 0; j <= NCh; j++ ) {
-        fwrite( fdata[j], sizeof(float), hdr.NSamples, ofp);
+        fwrite( fdata[j], sizeof(float), hdr->NSamples, ofp);
       }
     }
     fclose(ofp);
@@ -151,7 +152,7 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
     rdf = ringdown_fit(hdr, fdata[0]);
     if (ssp_config.LE && hdr_fp) {
       fprintf(hdr_fp, "%lu,%lu,%.3lf,%.3lf,%.3lf,%.4lf,%.4lf\n",
-        mlf->index, mlf->ScanNum, fdata[1][5],
+        mlf->index, hdr->ScanNum, fdata[1][5],
         rdf->tau, rdf->dtau, rdf->b, rdf->a );
       fflush(hdr_fp);
     }
