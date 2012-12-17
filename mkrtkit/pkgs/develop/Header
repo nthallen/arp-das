@@ -10,6 +10,7 @@ Files: MANIFEST_pkg @ /
 # 2.5.33
 #   qclicomp: Was not honoring Tpre definition
 #   phrtg: Support new SSP file format
+#   qclidprog: logic errors during programming
 # 2.5.32
 #   tmpplib: Updated SerSelector.h
 # 2.5.31 2012-11-13
