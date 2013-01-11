@@ -13,11 +13,13 @@ class cpu_usage {
   public:
     cpu_usage();
     ~cpu_usage();
-    void init();
+    void init(unsigned int n_cpus = 1);
     unsigned char report(double rate);
+    unsigned char *PCT;
   private:
     int fd;
-    _Uint64t last_sutime;
+    int n_cores;
+    _Uint64t *last_sutime;
 };
 
 #endif
