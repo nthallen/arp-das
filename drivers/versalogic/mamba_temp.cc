@@ -4,7 +4,49 @@
   read MSR during ISR and queue data to thread
 */
 #include <time.h>
+#include <stdint.h>
+#include <unistd.h> // for delay()
+#include <atomic.h>
 #include "nortlib.h"
+
+#define MSR_READ_REQ 1
+
+typedef struct {
+  volatile uint32_t MSR_id;
+  volatile uint64_t MSR_val;
+  volatile unsigned count;
+  volatile unsigned flags;
+} MSR_data;
+
+struct sigevent *RdMsrHandler(void *area, int id) {
+  MSR_data *MSR_p = (MSR_data *)area;
+  
+  atomic_add(&MSR_p->count,1);
+  if (MSR_p->flags | MSR_READ_REQ) {
+    atomic_clr(&MSR_p->flags,MSR_READ_REQ);
+  }
+  return NULL;
+}
+
+uint32_t ReadMsr(uint32_t MSR_id) {
+  MSR_data MSR_d;
+  int Int_id;
+  MSR_d.MSR_id = MSR_id;
+  MSR_d.count = 0;
+  MSR_d.flags = MSR_READ_REQ;
+  MSR_d.MSR_val = 0;
+  Int_id = InterruptAttach(0, &RdMsrHandler, &MSR_d, sizeof(MSR_d),
+      _NTO_INTR_FLAGS_END | _NTO_INTR_FLAGS_TRK_MSK);
+  if (Int_id == -1)
+    nl_error(3, "Error attaching clock interrupt");
+  delay(5);
+  if (InterruptDetach(Int_id) == -1)
+    nl_error(2, "Error calling InterruptDetach");
+  if (MSR_d.flag & MSR_READ_REQ)
+    nl_error(2, "ReadMsr failed");
+  nl_error(0, "ReadMsr: count = %u", MSR_d.count);
+  return (uint32_t)MSR_d.MSR_val;
+}
 
 int main(int argc, char **argv) {
   struct timespec res;
@@ -13,5 +55,6 @@ int main(int argc, char **argv) {
   if (res.tv_sec)
     nl_error(1, "Clock resolution is long!: %ld sec", res.tv_sec);
   nl_error(0, "Clock resolution is %ld ns", res.tv_nsec);
+  ThreadCtl( _NTO_TCTL_IO, 0 );
   return 0;
 }
