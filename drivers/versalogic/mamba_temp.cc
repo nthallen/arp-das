@@ -10,6 +10,14 @@
 #include <sys/neutrino.h>
 #include "nortlib.h"
 
+//CPU MSR definitions
+#define IA32_THERM_STS_MSR          0x19C
+#define EXT_CONFIG_MSR              0x0EE
+#define IA32_THERM_RD_VALID         0x80000000
+#define IA32_TJ90                   0x40000000
+#define IA32_THERM_STS_DIGRD        0x007F0000
+#define IA32_THERM_STS_FLAGS        0x00000140
+
 #define MSR_READ_REQ 1
 
 typedef struct {
@@ -58,5 +66,6 @@ int main(int argc, char **argv) {
   nl_error(0, "Clock resolution is %ld ns", res.tv_nsec);
   if (ThreadCtl( _NTO_TCTL_IO, 0 ) == -1)
     nl_error(3, "Error calling ThreadCtl()");
+  ReadMsr(EXT_CONFIG_MSR);
   return 0;
 }
