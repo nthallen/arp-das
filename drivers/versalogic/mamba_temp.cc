@@ -48,7 +48,7 @@ uint32_t ReadMsr(uint32_t MSR_id) {
       _NTO_INTR_FLAGS_END | _NTO_INTR_FLAGS_TRK_MSK);
   if (Int_id == -1)
     nl_error(3, "Error attaching clock interrupt");
-  delay(5);
+  delay(1);
   if (InterruptDetach(Int_id) == -1)
     nl_error(2, "Error calling InterruptDetach");
   if (MSR_d.flags & MSR_READ_REQ)
