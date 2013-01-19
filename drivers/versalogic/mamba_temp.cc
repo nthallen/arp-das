@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <unistd.h> // for delay()
 #include <atomic.h>
+#include <sys/neutrino.h>
 #include "nortlib.h"
 
 #define MSR_READ_REQ 1
@@ -18,7 +19,7 @@ typedef struct {
   volatile unsigned flags;
 } MSR_data;
 
-struct sigevent *RdMsrHandler(void *area, int id) {
+const struct sigevent *RdMsrHandler(void *area, int id) {
   MSR_data *MSR_p = (MSR_data *)area;
   
   atomic_add(&MSR_p->count,1);
@@ -42,7 +43,7 @@ uint32_t ReadMsr(uint32_t MSR_id) {
   delay(5);
   if (InterruptDetach(Int_id) == -1)
     nl_error(2, "Error calling InterruptDetach");
-  if (MSR_d.flag & MSR_READ_REQ)
+  if (MSR_d.flags & MSR_READ_REQ)
     nl_error(2, "ReadMsr failed");
   nl_error(0, "ReadMsr: count = %u", MSR_d.count);
   return (uint32_t)MSR_d.MSR_val;
@@ -55,6 +56,7 @@ int main(int argc, char **argv) {
   if (res.tv_sec)
     nl_error(1, "Clock resolution is long!: %ld sec", res.tv_sec);
   nl_error(0, "Clock resolution is %ld ns", res.tv_nsec);
-  ThreadCtl( _NTO_TCTL_IO, 0 );
+  if (ThreadCtl( _NTO_TCTL_IO, 0 ) == -1)
+    nl_error(3, "Error calling ThreadCtl()");
   return 0;
 }
