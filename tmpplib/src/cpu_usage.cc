@@ -32,8 +32,8 @@ void cpu_usage::init(unsigned int n_cpus) {
   fd = open( "/proc/1/as", O_RDONLY );
   if ( fd < 0 ) nl_error( 3, "Unable to open /proc/1/as" );
   n_cores = n_cpus;
-  PCT = new_memory(n_cpus);
-  last_sutime = new_memory(sizeof(_Uint64t)*n_cpus);
+  PCT = (unsigned char*)new_memory(n_cpus);
+  last_sutime = (_Uint64t*)new_memory(sizeof(_Uint64t)*n_cpus);
   for (i = 0; i < n_cpus; ++i) {
     PCT[i] = 0;
     last_sutime[i] = 0;
@@ -42,7 +42,8 @@ void cpu_usage::init(unsigned int n_cpus) {
   { procfs_sysinfo si;
     devctl(fd, DCMD_PROC_SYSINFO, &si, sizeof(procfs_sysinfo), NULL);
     if (si.num_cpu < n_cores) {
-      nl_error(2, "Processor reports only %d cores, not %d", si.num_cpu, n_cores);
+      nl_error(2, "Processor reports only %d cores, not %d",
+        si.num_cpu, n_cores);
       for (i = si.num_cpu; i < n_cores; ++i)
         PCT[i] = 255;
       n_cores = si.num_cpu;
@@ -64,7 +65,7 @@ unsigned char cpu_usage::report( double rate ) {
   for (i = 0; i < n_cores; ++i) {
     procfs_status my_status;
     _Uint64t this_sutime;
-    my_status.tid = i;
+    my_status.tid = i+1;
     devctl( fd, DCMD_PROC_TIDSTATUS, &my_status, sizeof(my_status), NULL );
     if (last_sutime[i]) {
       double pct;
