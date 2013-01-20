@@ -108,6 +108,8 @@ usr/local/share/huarp/colmain.skel
 usr/local/share/huarp/cpu_usage.tmc
 usr/local/share/huarp/cpu_usage_col.tmc
 usr/local/share/huarp/dev_copy.sed
+usr/local/share/huarp/ebx37f_temp.tmc
+usr/local/share/huarp/ebx37f_temp_col.tmc
 usr/local/share/huarp/edf2ext.awk
 usr/local/share/huarp/edf2oui.awk
 usr/local/share/huarp/extmain.skel
