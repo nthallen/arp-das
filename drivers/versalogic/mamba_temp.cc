@@ -1,6 +1,9 @@
 /*
   mamba_temp.cc
-  
+
+  Demonstration program illustrating how to read
+  CPU Die Temperature on the Versalogic EBX-37F Mamba board.
+
   read MSR during ISR and queue data to thread
 */
 #include <time.h>
@@ -28,10 +31,8 @@ typedef struct {
   volatile unsigned flags;
 } MSR_data;
 
-MSR_data MSR_d;
-
 const struct sigevent *RdMsrHandler(void *area, int id) {
-  MSR_data *MSR_p = &MSR_d;
+  MSR_data *MSR_p = (MSR_data*)area;
   
   atomic_add(&MSR_p->count,1);
   if (MSR_p->flags | MSR_READ_REQ) {
@@ -42,6 +43,7 @@ const struct sigevent *RdMsrHandler(void *area, int id) {
 }
 
 uint32_t ReadMsr(uint32_t MSR_id) {
+  MSR_data MSR_d;
   int Int_id;
   MSR_d.MSR_id = MSR_id;
   MSR_d.count = 0;
@@ -62,8 +64,9 @@ uint32_t ReadMsr(uint32_t MSR_id) {
 
 int main(int argc, char **argv) {
   struct timespec res;
-  uint32_t ExtCfgMSR;
   uint32_t ThermStsMSR;
+  // uint32_t ExtCfgMSR;
+
   if (clock_getres(CLOCK_REALTIME, &res))
     nl_error(3, "clock_getres() returned an error");
   if (res.tv_sec)
