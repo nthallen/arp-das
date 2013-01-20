@@ -28,19 +28,20 @@ typedef struct {
   volatile unsigned flags;
 } MSR_data;
 
+MSR_data MSR_d;
+
 const struct sigevent *RdMsrHandler(void *area, int id) {
-  MSR_data *MSR_p = (MSR_data *)area;
+  MSR_data *MSR_p = &MSR_d;
   
   atomic_add(&MSR_p->count,1);
   if (MSR_p->flags | MSR_READ_REQ) {
-    MSR_p->MSR_val = rdmsr(id);
+    MSR_p->MSR_val = rdmsr(MSR_p->MSR_id);
     atomic_clr(&MSR_p->flags,MSR_READ_REQ);
   }
   return NULL;
 }
 
 uint32_t ReadMsr(uint32_t MSR_id) {
-  MSR_data MSR_d;
   int Int_id;
   MSR_d.MSR_id = MSR_id;
   MSR_d.count = 0;
@@ -61,7 +62,8 @@ uint32_t ReadMsr(uint32_t MSR_id) {
 
 int main(int argc, char **argv) {
   struct timespec res;
-  uint32_t ExtCfgMsr;
+  uint32_t ExtCfgMSR;
+  uint32_t ThermStsMSR;
   if (clock_getres(CLOCK_REALTIME, &res))
     nl_error(3, "clock_getres() returned an error");
   if (res.tv_sec)
@@ -69,7 +71,12 @@ int main(int argc, char **argv) {
   nl_error(0, "Clock resolution is %ld ns", res.tv_nsec);
   if (ThreadCtl( _NTO_TCTL_IO, 0 ) == -1)
     nl_error(3, "Error calling ThreadCtl()");
-  ExtCfgMsr = ReadMsr(EXT_CONFIG_MSR);
-  nl_error(0, "ExtCfgMsr = %08X", ExtCfgMsr);
+  nl_error(0, "_NTO_TCTL_IO succeeded");
+  ThermStsMSR = ReadMsr(IA32_THERM_STS_MSR);
+  nl_error(0, "ThermStsMSR = %08X: %d C", ThermStsMSR,
+    105 - ((ThermStsMSR>>16) & 0x7F));
+  // sleep(1);
+  // ExtCfgMSR = ReadMsr(EXT_CONFIG_MSR);
+  // nl_error(0, "ExtCfgMSR = %08X", ExtCfgMSR);
   return 0;
 }
