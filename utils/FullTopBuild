@@ -105,6 +105,7 @@ process QNX6/hart FullBuild make install
 process QNX6/playback FullBuild make install
 process QNX6/oms FullBuild make install
 process QNX6/tmdf FullBuild make install
+process QNX6/versalogic FullBuild install
 
 # The eli build has been fixed, but it should probably be
 # built before FullTopBuild
