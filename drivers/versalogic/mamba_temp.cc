@@ -8,6 +8,7 @@
 #include <unistd.h> // for delay()
 #include <atomic.h>
 #include <sys/neutrino.h>
+#include <x86/priv.h>
 #include "nortlib.h"
 
 //CPU MSR definitions
@@ -32,6 +33,7 @@ const struct sigevent *RdMsrHandler(void *area, int id) {
   
   atomic_add(&MSR_p->count,1);
   if (MSR_p->flags | MSR_READ_REQ) {
+    MSR_p->MSR_val = rdmsr(id);
     atomic_clr(&MSR_p->flags,MSR_READ_REQ);
   }
   return NULL;
@@ -59,6 +61,7 @@ uint32_t ReadMsr(uint32_t MSR_id) {
 
 int main(int argc, char **argv) {
   struct timespec res;
+  uint32_t ExtCfgMsr;
   if (clock_getres(CLOCK_REALTIME, &res))
     nl_error(3, "clock_getres() returned an error");
   if (res.tv_sec)
@@ -66,6 +69,7 @@ int main(int argc, char **argv) {
   nl_error(0, "Clock resolution is %ld ns", res.tv_nsec);
   if (ThreadCtl( _NTO_TCTL_IO, 0 ) == -1)
     nl_error(3, "Error calling ThreadCtl()");
-  ReadMsr(EXT_CONFIG_MSR);
+  ExtCfgMsr = ReadMsr(EXT_CONFIG_MSR);
+  nl_error(0, "ExtCfgMsr = %08X", ExtCfgMsr);
   return 0;
 }
