@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.34
+Version: 2.5.35
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,9 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.35
+#   versalogic: make ebx11 and ebx37f easily interchangable
+#   cpu_usage tweaks for multicore
 # 2.5.34
 #   genui: Handle underscores in titles, identify obsolete plot files
 #   versalogic: ebx37f cpu temp collection
