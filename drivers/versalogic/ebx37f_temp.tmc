@@ -1,13 +1,10 @@
 %{
-  /* CPU Die Temperature for Versalogic EBX-37F Mamba */
+  /* CPU Die Temperature for Versalogic EBX-37F Mamba
+     Requires vl_temp.tmc for type definitions
+     This version includes dummy vl_bdT for interchangability
+     with EBX11.
+  */
 %}
-TM typedef signed char VL_STEMP { text "%4d"; }
-TM typedef unsigned char EBX37F_TEMP {
-  text "%4d";
-  convert EBX37F_STEMP;
-  collect x = read_ebx37f_temp();
-}
-  calibration (EBX37F_TEMP, EBX37F_STEMP) {
-    0, 0, 127, 127, 128, -128, 255, -1
-  }
-TM 1 Hz EBX37F_TEMP vl_cpuT;
+TM 1 Hz VL_TEMP vl_cpuT; Collect vl_cpuT = read_ebx37f_temp();
+TM 1 Hz VL_TEMP vl_bdT;  Collect vl_bdT  = 128;
+

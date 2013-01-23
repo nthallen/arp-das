@@ -1,0 +1,5 @@
+/* CPU Die Temperature reading for EBX11 processor
+   Requires vl_temp.tmc for type definitions
+*/
+TM 1 Hz VL_TEMP vl_cpuT; Collect vl_cpuT = read_vl_temp(0x25);
+TM 1 Hz VL_TEMP vl_bdT;  Collect vl_bdT  = read_vl_temp(0x26);

@@ -1,11 +1,17 @@
-TM typedef signed char VL_STEMP { text "%4d"; }
+/* The following is a hack to get our
+   text conversion to work with what is
+   essentially a signed char. The raw TM
+   var must be an unsigned char for the
+   table lookup to work correctly.
+
+   Shortened width to 3 chars so values less than
+   -99 will report stars.
+*/
+TM typedef signed char VL_STEMP { text "%3d"; }
 TM typedef unsigned char VL_TEMP {
-    text "%4d";
+    text "%3d";
     convert VL_STEMP;
-    collect x = read_vl_temp(x.address);
   }
   calibration (VL_TEMP, VL_STEMP) {
     0, 0, 127, 127, 128, -128, 255, -1
   }
-TM 1 Hz VL_TEMP vl_cpuT; address vl_cpuT 0x25;
-TM 1 Hz VL_TEMP vl_bdT;  address vl_bdT  0x26;
