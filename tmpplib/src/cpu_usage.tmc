@@ -1,2 +1,9 @@
-TM typedef unsigned char CPU_Pct_t { text "%3u"; }
+TM typedef unsigned short CPU_PCT_text;
+TM typedef unsigned char CPU_Pct_t {
+  Convert CPU_PCT_text;
+  text "%3u";
+}
+Calibration (CPU_Pct_t, CPU_PCT_text) {
+  0, 0, 254, 254, 255, 9999
+}
 TM 1 Hz CPU_Pct_t CPU_Pct;

@@ -42,7 +42,7 @@ void cpu_usage::init(unsigned int n_cpus) {
   { procfs_sysinfo si;
     devctl(fd, DCMD_PROC_SYSINFO, &si, sizeof(procfs_sysinfo), NULL);
     if (si.num_cpu < n_cores) {
-      nl_error(2, "Processor reports only %d cores, not %d",
+      nl_error(1, "Processor reports only %d cores, not %d",
         si.num_cpu, n_cores);
       for (i = si.num_cpu; i < n_cores; ++i)
         PCT[i] = 255;
