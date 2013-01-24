@@ -8,6 +8,13 @@ if [ "x$1" != "xteed" ]; then
   if [ -w flight.sh.log ]; then
     exec 5>&1
     $0 teed 4>&5 2>&1 | tee -a flight.sh.log
+    if [ -f OSUPDATEREQ ]; then
+      echo "flight.sh: suspending due to OSUPDATEREQ" |
+        tee -a flight.sh.log
+      while [ -f OSUPDATEREQ ]; do
+        sleep 1
+      done
+    fi
     exit 0
   fi
   echo "Cannot write to flight.sh.log"
@@ -23,6 +30,7 @@ if [ -f "$cfile" ]; then
   . $cfile
 else
   echo flight.sh: missing $cfile: stopping >&2
+  exec 1>&4 2>&4 # close pipe to flight.sh.log and reopen stdout/err
   exec parent
 fi
 
@@ -48,7 +56,8 @@ if [ -n "$LOOP_ON_FILE" -a -e "$LOOP_ON_FILE" ]; then
   exec 1>&4 2>&4 # close pipe to flight.sh.log and reopen stdout/err
   BEDTIME=yes reduce 2>&1 | tee -a $REDUCE_LOG_FILE
   if [ -e "$LOOP_ON_FILE" ]; then
-    echo "`date '+%F %T'`: reduce did not clear LOOP_ON_FILE '$LOOP_ON_FILE'"
+    echo "`date '+%F %T'`: reduce did not clear LOOP_ON_FILE '$LOOP_ON_FILE'" |
+      tee -a $REDUCE_LOG_FILE
     rm -f $LOOP_STOP_FILE $LOOP_START_FILE
     exec parent
   fi
