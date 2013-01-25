@@ -3,11 +3,46 @@
 # I will deem it okay to copy files if the user has write
 # permission in the target directory
 #__USAGE
+#%C
+#  Invoke make distribution for each node in EXP_NODES
 #%C	target_dir file [file ...]
 function nl_error {
   echo distribute: $* >&2
   exit 1
 }
+
+# This is the code for standalone 'distribute' command
+if [ -z "$1" ]; then
+  [ -f Makefile -a -f Experiment.config ] ||
+    nl_error Missing Makefile or Experiment.config
+  . ./Experiment.config
+  if [ -n "$EXP_NODES" ]; then
+    made=''
+    skipped=''
+    failed=''
+    for node in $EXP_NODES; do
+      if [ -d /net/$node$HomeDir ]; then
+        echo make distribution TGTNODE=/net/$node
+        if ! make distribution TGTNODE=/net/$node; then
+          failed=$node
+          break
+        fi
+        made="$made $node"
+      else
+        skipped="$skipped $node"
+      fi
+    done
+    [ -n "$made" ] && echo "Successfully distributed to node(s)$made"
+    [ -n "$skipped" ] && echo "Skipped node(s)$skipped"
+    [ -n "failed" ] && nl_error "Distribution to node $failed failed"
+  else
+    echo "make distribution"
+    make distribution || nl_error "Distribution failed"
+  fi
+  exit 0
+fi
+
+# This is the code for 'distribute tgt_dir file ...'
 typeset tgt ans opts
 if [ `id -u` != 0 ]; then
   exec /usr/pkg/bin/sudo /usr/local/bin/distribute $*

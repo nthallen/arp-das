@@ -115,11 +115,23 @@ else
 fi
 export TMBINDIR
 
-if [ -z "$script" ]; then
-  if [ -n "$SCRIPT_OVERRIDE" -a -r "$SCRIPT_OVERRIDE" ]; then
+if [ -z "$script" -a -n "$SCRIPT_OVERRIDE" ]; then
+  if [ "${SCRIPT_OVERRIDE#/}" = "$SCRIPT_OVERRIDE" -a -n "$HomeDir" ]; then
+    [ -n "$EXP_NODES" ] || EXP_NODES=`hostname`
+    for node in $EXP_NODES; do
+      sfile=/net/$node$HomeDir/$SCRIPT_OVERRIDE
+      if [ -r $sfile ]; then
+        script=`cat $sfile`
+        rm $sfile
+      fi
+    done
+  elif [ -n "$SCRIPT_OVERRIDE" -a -r "$SCRIPT_OVERRIDE" ]; then
     script=`cat $SCRIPT_OVERRIDE`
     rm $SCRIPT_OVERRIDE
-  elif [ -n "$PICKFILE" ]; then
+  fi
+fi
+if [ -z "$script" ]; then
+  if [ -n "$PICKFILE" ]; then
     script=`cd $TMBINDIR; $PICKFILE`
   else
     script=${RUNFILE:-runfile.dflt}
