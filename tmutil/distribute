@@ -34,7 +34,7 @@ if [ -z "$1" ]; then
     done
     [ -n "$made" ] && echo "Successfully distributed to node(s)$made"
     [ -n "$skipped" ] && echo "Skipped node(s)$skipped"
-    [ -n "failed" ] && nl_error "Distribution to node $failed failed"
+    [ -n "$failed" ] && nl_error "Distribution to node $failed failed"
   else
     echo "make distribution"
     make distribution || nl_error "Distribution failed"

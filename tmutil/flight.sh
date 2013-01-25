@@ -52,7 +52,7 @@ typeset script=''
 [ -n "$LOOP_START_FILE" ] || LOOP_START_FILE=loopstart.txt
 if [ -n "$LOOP_ON_FILE" -a -e "$LOOP_ON_FILE" ]; then
   echo "`date '+%F %T'`: Invoking reduce for LOOP_ON_FILE"
-  [ -n "$REDUCE_LOG_FILE" ] && REDUCE_LOG_FILE=reducelog.txt
+  [ -z "$REDUCE_LOG_FILE" ] && REDUCE_LOG_FILE=reducelog.txt
   exec 1>&4 2>&4 # close pipe to flight.sh.log and reopen stdout/err
   BEDTIME=yes reduce 2>&1 | tee -a $REDUCE_LOG_FILE
   if [ -e "$LOOP_ON_FILE" ]; then
@@ -118,11 +118,16 @@ export TMBINDIR
 if [ -z "$script" -a -n "$SCRIPT_OVERRIDE" ]; then
   if [ "${SCRIPT_OVERRIDE#/}" = "$SCRIPT_OVERRIDE" -a -n "$HomeDir" ]; then
     [ -n "$EXP_NODES" ] || EXP_NODES=`hostname`
+    echo sleep 3 to acquire network connections
+    sleep 3
     for node in $EXP_NODES; do
       sfile=/net/$node$HomeDir/$SCRIPT_OVERRIDE
       if [ -r $sfile ]; then
         script=`cat $sfile`
         rm $sfile
+        echo "Read script name '$script' from $sfile"
+      else
+        echo "Override $sfile not found"
       fi
     done
   elif [ -n "$SCRIPT_OVERRIDE" -a -r "$SCRIPT_OVERRIDE" ]; then
