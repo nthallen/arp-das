@@ -102,6 +102,8 @@ print $fh <<'EOF';
 #ifdef __USAGE
 #%C [options]
 #  Starts Instrument operation
+#%C [options] stop
+#  Send Quit command to running system
 #%C [options] not
 #  Shuts down any straggling processes after system has stopped
 #%C [options] wait
@@ -188,104 +190,70 @@ print $fh "batchfile=$batchfile\n" if defined $batchfile;
 
 print $fh <<'EOF';
 
-if [ $srcmode = realtime ]; then
-  # SCRIPT_OVERRIDE is the name of a file that will
-  # contain the name of the flight script and will
-  # be read by flight.sh. Setting it to /dev/null
-  # means we can write to it and it won't have any
-  # effect.
-  [ -z "$SCRIPT_OVERRIDE" ] && SCRIPT_OVERRIDE=/dev/null
-  cmdsrvr=$FltNd/dev/huarp/$Experiment/cmd/server 
-  if [ ! -e $cmdsrvr -a $option = not -a -d `dirname $SCRIPT_OVERRIDE` ]; then
-    echo /dev/null >$SCRIPT_OVERRIDE
-  fi
+check_path=no
+startup=no
+case $option in
+  start) startup=yes; check_path=yes;;
+  stop);;
+  not) startup=yes; batchfile=/dev/null;;
+  wait) check_path=yes;;
+  screen);;
+  *) nl_error "Invalid option: '$option'";;
+esac
 
-  if [ ! -d $FltNd/ ]; then
-    echo "Waiting for Flight Node $FlightNode"
-    while [ ! -d $FltNd/ ]; do
-      waitfor $FltNd/ 2>/dev/null
-    done
-  fi
-  echo "Node $FlightNode is on the network"
-
-  # np < 2 means parent is not running
-  np=`pidin -n $FlightNode -p parent -fa 2>/dev/null | wc -l`
-  if [ $np -lt 2 ]; then
-    if [ -n "$FltNd" ]; then
-      echo Waiting for parent on node $FlightNode
-      while [ $np -lt 2 ]; do
-	sleep 2
-	np=`pidin -n $FlightNode -p parent -fa 2>/dev/null | wc -l`
-      done
-      echo "I see Flight Node's parent"
-    fi
-  else
-    echo "I see Flight Node's parent"
-  fi
-  logfile=$FltNd$HomeDir/$logfileroot$logfilesuffix
-else  # not realtime
-  RemEx=$Experiment
-  Experiment=$RemEx.PB.$session
-  cmdsrvr=/dev/huarp/$Experiment/cmd/server
-  logfile=$logfileroot$logfilesuffix
-fi
+[ $startup = yes -a -n "$batchfile" -a -z "$SCRIPT_OVERRIDE" ] &&
+  nl_error Cannot inhibit or alter startup without SCRIPT_OVERRIDE
 
 # Determine the path. Strictly speaking, this does
 # not have to happen before start, but I'd like
 # to check that the required applications exist
-VERSION=1.0
-case $option in
-  not);;
-  stop);;
-  *)
-    case $srcmode in
-      playback)
-	# Need to find the data
-	ddir=$Run
-	if [ ! -d $ddir ]; then
-	  for base in . $FltNd$HomeDir; do
-	    ddir=$base/$Run
-	    [ -d $ddir ] && break;
-	    ddir=$base/raw/$Run
-	    [ -d $ddir ] && break;
-	    for runtype in flight cal data junk; do
-	      ddir=$base/raw/$runtype/$Run
-	      [ -d $ddir ] && break;
-	    done
-	    [ -d $ddir ] && break;
-	  done
-	fi
-	[ -d $ddir ] || nl_error "Unable to locate run $Run"
-	[ -f $ddir/VERSION ] && VERSION=`cat $ddir/VERSION`
-	TMBINDIR=$PWD/bin/$VERSION;;
-      *)
-	ddir=$FltNd$HomeDir
-	[ -f VERSION ] && VERSION=`cat VERSION`
-	TMBINDIR=$PWD/bin/$VERSION;;
-    esac
+if [ $check_path = yes ]; then
+  VERSION=1.0
+  case $srcmode in
+    playback)
+      # Need to find the data
+      ddir=$Run
+      if [ ! -d $ddir ]; then
+        for base in . $FltNd$HomeDir; do
+          ddir=$base/$Run
+          [ -d $ddir ] && break
+          ddir=$base/raw/$Run
+          [ -d $ddir ] && break
+          for runtype in flight cal data junk; do
+            ddir=$base/raw/$runtype/$Run
+            [ -d $ddir ] && break
+          done
+          [ -d $ddir ] && break
+        done
+      fi
+      [ -d $ddir ] || nl_error "Unable to locate run $Run"
+      [ -f $ddir/VERSION ] && VERSION=`cat $ddir/VERSION`;;
+    *)
+      [ -f VERSION ] && VERSION=`cat VERSION`;;
+  esac
 
-    [ -d $TMBINDIR ] ||
-      nl_error "Unable to locate bin dir for VERSION $VERSION"
-    export PATH=$TMBINDIR:$PATH
+  TMBINDIR=$PWD/bin/$VERSION
+  [ -d $TMBINDIR ] ||
+    nl_error "Unable to locate bin dir for VERSION $VERSION"
+  export PATH=$TMBINDIR:$PATH
 
-    missing=''
-    for app in $interacts; do
-      [ -x $TMBINDIR/$app$nc ] || missing="$missing $app$nc"
-    done
-    [ -n "$missing" ] &&
-      nl_error "Unable to locate required application(s):$missing"
-    ;;
-esac
+  missing=''
+  for app in $interacts; do
+    [ -x $TMBINDIR/$app$nc ] || missing="$missing $app$nc"
+  done
+  [ -n "$missing" ] &&
+    nl_error "Unable to locate required application(s):$missing"
+fi
 
 function Launch {
   name=$1
   shift
   [ -n "$launch_error" ] && return 1
-  [ -n "$VERBOSE" ] && echo "Launch: $*"
   if { $* & }; then
+    Launch_pid=$!
+    echo "Launch: $Launch_pid $*"
     if [ "$name" != "-" ]; then
       [ "${name#/}" = "$name" ] && name="/dev/huarp/$Experiment/$name"
-      [ -n "$VERBOSE" ] && echo "Launch: Waiting for $!:$name"
       waitfor $name 10 || {
         echo "Launch namewait failure: $*" >&2
         launch_error=yes
@@ -300,57 +268,144 @@ function Launch {
   return 0
 }
 
-case $option in
-  not)
-    [ -e $cmdsrvr ] && nl_error "Instrument is in operation: quit first"
-    echo /dev/null >$SCRIPT_OVERRIDE
-    echo signaling parent
-    sudo /usr/local/sbin/signal_parent $FlightNode
-    exit 0 ;;
-  stop)
-    if [ -e $cmdsrvr ]; then
-      echo "Quit" >$cmdsrvr
-    else
-      nl_error "Could not locate $Experiment's command server"
-    fi
-    exit 0;;
-  start)
-    if [ ! -e $cmdsrvr ]; then
-      if [ $srcmode = realtime ]; then
-	[ -n "$batchfile" ] && echo $batchfile > $SCRIPT_OVERRIDE
-	if [ -n "$FltNd" ]; then
-	  echo signaling parent
-	  sudo /usr/local/sbin/signal_parent $FlightNode
-	elif [ $dispmode = screen ]; then
-	  echo "Starting flight.sh on /dev/con1"
-	  on -t /dev/con1 /usr/local/sbin/flight.sh &
-	else
-	  tty=`tty`
-	  echo "Starting flight.sh in a pterm"
-	  on -t $tty pterm /usr/local/sbin/flight.sh &
-	fi
-      else
-	Launch memo memo -o $logfile 
-	Launch TM/DCo TMbfr
-	if [ $srcmode = playback ]; then
-	  Launch DG/cmd rdr -P $ddir -a
-	elif [ $srcmode = InetIn ]; then
-	  Launch DG/cmd InetIn
-	fi
-	Launch cmd/server playbacksrvr
-	if [ -n "$launch_error" ]; then
-	  echo "Launch failed: cleaning up"
-	  exec parent -qt1
-	fi
-      fi
-    fi;;
-  wait) ;;
-  screen) ;;
-  *) nl_error "Unrecognized option '$option'";;
-esac
+if [ $srcmode = realtime ]; then
+  # SCRIPT_OVERRIDE is the name of a file that will
+  # contain the name of the flight script and will
+  # be read by flight.sh. Setting it to /dev/null
+  # means we can write to it and it won't have any
+  # effect.
+  # [ -z "$SCRIPT_OVERRIDE" ] && SCRIPT_OVERRIDE=/dev/null
+  cmdsrvr=$FltNd/dev/huarp/$Experiment/cmd/server 
+  logfile=$FltNd$HomeDir/$logfileroot$logfilesuffix
+else  # not realtime
+  RemEx=$Experiment
+  Experiment=$RemEx.PB.$session
+  cmdsrvr=/dev/huarp/$Experiment/cmd/server
+  logfile=$logfileroot$logfilesuffix
+fi
 
-# Now we can assume that the DG stack has been
-# started one way or another.
+# override:
+#   no: We don't need to override
+#   req: Override is required
+#   done: Override has been requested
+typeset override=no
+[ $startup = yes -a $srcmode = realtime -a -n "$batchfile" ] &&
+  override=req
+if [ $override = req -a -d `dirname $SCRIPT_OVERRIDE` ]; then
+  echo $batchfile >$SCRIPT_OVERRIDE
+  override=done
+fi
+
+if [ ! -d $FltNd/ ]; then
+  echo "Waiting for Flight Node $FlightNode"
+  while [ ! -d $FltNd/ ]; do
+    waitfor $FltNd/ 2>/dev/null
+  done
+fi
+[ -n "$FltNd" ] && echo "Node $FlightNode is on the network"
+
+if [ $override = req ]; then
+  if [ -d `dirname $SCRIPT_OVERRIDE` ]; then
+    echo $batchfile >$SCRIPT_OVERRIDE
+    override=done
+  else
+    nl_error "SCRIPT_OVERRIDE path not found: '$SCRIPT_OVERRIDE'"
+  fi
+fi
+
+typeset waiting=no
+typeset signaled=no
+while true; do
+  typeset see_parent=no
+  # np < 2 means parent is not running
+  ppid=`pidin -n $FlightNode -p parent -fa 2>/dev/null | grep -v pid`
+  [ -n "$ppid" ] && see_parent=yes
+  if [ $see_parent = yes -o -z "$FltNd" ]; then
+    if [ ! -e $cmdsrvr ]; then
+      if [ $override = done -a ! -f $SCRIPT_OVERRIDE ]; then
+        if [ $option = not ]; then
+          exit 0
+        else
+          nl_error "Override observed but startup apparently failed"
+        fi
+      fi
+      [ $override = auto ] &&
+        nl_error "Default startup apparently failed"
+      if [ $signaled = yes ]; then
+        echo "ppid = '$ppid' cmdsrvr = '$cmdsrvr'"
+        nl_error "Parent w/o cmdsrvr after signaling"
+      fi
+      if [ $startup = yes ]; then
+        [ $override = no ] && override=auto
+        if [ $see_parent = yes ]; then
+          # echo signaling parent
+          sudo /usr/local/sbin/signal_parent $FlightNode
+          signaled=yes
+          oppid=$ppid
+          ppid=`pidin -n $FlightNode -p parent -fa 2>/dev/null | grep -v pid`
+          nw=1
+          while [ -n "$ppid" -a "$ppid" = "$oppid" ]; do
+            [ $nw -ge 3 ] &&
+              nl_error Signaling parent failed
+            sleep 1
+            ppid=`pidin -n $FlightNode -p parent -fa 2>/dev/null | grep -v pid`
+            let nw=nw+1
+          done
+          [ -z "$FltNd" -a $option = not ] && exit 0
+        elif [ $srcmode = realtime ]; then
+          if [ $dispmode = screen ]; then
+            echo "Starting flight.sh on /dev/con1"
+            on -t /dev/con1 /usr/local/sbin/flight.sh &
+          else
+            tty=`tty`
+            echo "Starting flight.sh in a pterm"
+            on -t $tty pterm /usr/local/sbin/flight.sh &
+          fi
+        else
+          Launch memo memo -o $logfile 
+          Launch TM/DCo TMbfr
+          if [ $srcmode = playback ]; then
+            Launch DG/cmd rdr -P $ddir -a
+          elif [ $srcmode = InetIn ]; then
+            Launch DG/cmd InetIn
+          fi
+          Launch cmd/server playbacksrvr
+          if [ -n "$launch_error" ]; then
+            echo "Launch failed: cleaning up"
+            exec parent -qt1
+          fi
+        fi
+      elif [ $option = stop ]; then
+        nl_error "Could not locate $Experiment's command server"
+      fi
+    fi
+  fi
+
+  if [ -e $cmdsrvr ]; then
+    case $option in
+      not)
+        nl_error "Instrument is in operation: quit first";;
+      stop)
+        echo "Quit" >$cmdsrvr
+        exit 0;;
+      start) break;;
+      wait) break;;
+      screen) break;;
+      *) nl_error "Unrecognized option '$option'";;
+    esac
+  fi
+
+  if [ $waiting = no ]; then
+    echo "Waiting for parent or command server on node $FlightNode"
+    waiting=yes
+  fi
+  sleep 1
+done
+
+if [ $override = done -a -f $SCRIPT_OVERRIDE ]; then
+  echo "Override script '$batchfile' not honored, removing"
+  rm -f $SCRIPT_OVERRIDE
+fi
 [ -f $logfile ] || touch $logfile
 EOF
 
