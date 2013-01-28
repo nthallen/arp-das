@@ -131,6 +131,20 @@ print $fh <<'EOF';
   exit 1
 }
 
+[ -n "$HomeDir" ] ||
+  nl_error "HomeDir undefined in Experiment.config"
+dir=$PWD
+nnd=${dir%$HomeDir}
+[ "$dir" = "$nnd" ] &&
+  nl_error "Not in HomeDir"
+if [ -n "$nnd" ]; then
+  nd=${nnd#/net/}
+  [ "$nd" = "$nnd" ] &&
+    nl_error "Not in HomeDir (2)"
+  [ "$nd" = "${nd#*/}" ] ||
+    nl_error "Not in HomeDir (3)"
+fi
+
 # Parse options to select
 #   srcmode as one of realtime, InetIn or playback
 #   dispmode as one of screen, pterm or photon
