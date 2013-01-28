@@ -25,14 +25,31 @@ export Experiment
 ver=1.0
 [ -r VERSION ] && ver=`cat VERSION`
 [ -x bin/$ver/$ext ] || nl_error "Extraction bin/$ver/$ext not found"
+FltNd=''
+if [ -n "$FlightNode" ]; then
+  FltNd=/net/$FlightNode
+fi
 
-PB=`ls -d /dev/huarp/$Experiment.PB.* 2>/dev/null`
-[ -n "$PB" -a ! -e /dev/huarp/$Experiment ] &&
-  Experiment=`basename $PB`
+FltNdOpt=''
+MemoOpt=''
+
+if [ -e "$FltNd/dev/huarp/$Experiment" ]; then
+  [ -n "$FltNd" ] && FltNdOpt="-t $FlightNode"
+else
+  PB=`ls -d /dev/huarp/$Experiment.PB.* 2>/dev/null`
+  NPB=`ls -d $FltNd/dev/huarp/$Experiment.PB.* 2>/dev/null`
+  if [ -n "$PB" ]; then
+    Experiment=`basename $PB`
+  elif [ -n "$NPB" ]; then
+    Experiment=`basename $NPB`
+    FltNdOpt="-t $FlightNode"
+  fi
+fi
 
 TM=/dev/huarp/$Experiment/TM/DCo
 while [ ! -e $TM ]; do
   waitfor $TM 2>/dev/null
 done
-bin/$ver/$ext
+[ ! -e /dev/huarp/$Experiment/memo ] && MemoOpt="-o /dev/null"
+bin/$ver/$ext $FltNdOpt $MemoOpt
 

@@ -409,16 +409,6 @@ fi
 [ -f $logfile ] || touch $logfile
 EOF
 
-print $fh
-  map "$_\n",
-    'if [ ! -e $cmdsrvr ]; then',
-    "  echo \"$opts{o}: Waiting for cmd/server\"",
-    '  while [ ! -e $cmdsrvr ]; do',
-    '    waitfor $cmdsrvr 2>/dev/null || sleep 2',
-    '  done',
-    "  echo \"$opts{o}: Continuing\"",
-    'fi';
-
 print $fh <<'EOF';
 
 # allocate consoles as necessary
