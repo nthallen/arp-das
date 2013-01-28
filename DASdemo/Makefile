@@ -1,8 +1,9 @@
-# Makefile Generated Sun Sep 23 21:11:20 EDT 2012
+# Makefile Generated Fri Jan 25 09:13:28 EST 2013
 MNC=demo
 SPECFILE=demo.spec
 SRC=types.tmc base.tmc SWData.tmc SWData.h demo.tbl demo.tma
-SRC+=demo.sws demojson.cdf demo.doit SWData.cmd SWData_col.tmc
+SRC+=demo.sws demojson.cdf demo.doit savelog.cmd SWData.cmd
+SRC+=SWData_col.tmc
 TOOL=demo.spec Makefile
 SCRIPT=interact
 OBJ=SWData.cmd SWData.h SWData.tmc SWData_col.tmc demotbl.tmc
@@ -30,7 +31,7 @@ TMCBASE+=/usr/local/share/huarp/freemem.tmc
 TMCBASE+=/usr/local/share/huarp/flttime.tmc base.tmc SWData.tmc
 TMCBASE+=SWData.h
 CMDBASE=/usr/local/share/huarp/root.cmd
-CMDBASE+=/usr/local/share/huarp/getcon.cmd SWData.cmd
+CMDBASE+=/usr/local/share/huarp/getcon.cmd savelog.cmd SWData.cmd
 COLBASE=/usr/local/share/huarp/tmdf_col.tmc
 COLBASE+=/usr/local/share/huarp/cpu_usage_col.tmc
 COLBASE+=/usr/local/share/huarp/freemem_col.tmc SWData_col.tmc
@@ -131,8 +132,8 @@ demojsonext.o : demojsonext.cc SWData.h
 doit.dep : demo.doit
 	mkdoit3 -M -o doit  demo.doit
 -include doit.dep
-democmd.cc : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd SWData.cmd
-	$(CMDGEN) -d democmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd SWData.cmd
+democmd.cc : /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd savelog.cmd SWData.cmd
+	$(CMDGEN) -d democmd.dat /usr/local/share/huarp/root.cmd /usr/local/share/huarp/getcon.cmd savelog.cmd SWData.cmd
 democlt.o : democmd.cc
 	$(COMPILE.clt) democmd.cc
 democltoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui

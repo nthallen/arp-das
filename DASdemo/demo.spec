@@ -7,6 +7,7 @@ tmcbase = base.tmc
 
 cmdbase = /usr/local/share/huarp/root.cmd
 cmdbase = /usr/local/share/huarp/getcon.cmd
+cmdbase = savelog.cmd
 
 colbase = /usr/local/share/huarp/tmdf_col.tmc
 colbase = /usr/local/share/huarp/cpu_usage_col.tmc
