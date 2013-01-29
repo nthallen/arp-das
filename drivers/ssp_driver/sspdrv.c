@@ -309,7 +309,7 @@ int main( int argc, char **argv ) {
   cmd_fd = ci_cmdee_init( ssp_name );
   tm_data = Col_send_init(ssp_name, &ssp_data, sizeof(ssp_data), 0);
   tcp_create(board_hostname);
-  signal(SIGPIPE, &sigpipehandler)
+  signal(SIGPIPE, &sigpipehandler);
   non_udp_width = cmd_fd + 1;
   if ( tm_data->fd >= non_udp_width )
     non_udp_width = tm_data->fd + 1;
@@ -350,6 +350,7 @@ int main( int argc, char **argv ) {
       if (errno == EINTR && saw_sigpipe) {
         saw_sigpipe = 0;
         tcp_reset(board_hostname);
+        nl_error(2, "Received SIGPIPE, resetting TCP");
       } else {
         nl_error( 3, "Error from select: %s", strerror(errno));
       }
@@ -372,13 +373,13 @@ int main( int argc, char **argv ) {
       if ( FD_ISSET(tcp_socket, &readfds ) )
         tcp_recv();
       if ( FD_ISSET(tcp_socket, &writefds ) ) {
-        if ( tcp_state == FD_CONNECT ) tcp_connected();
-        else tcp_send();
+        if ( tcp_state == FD_CONNECT ) {
+          tcp_connected();
+        } else tcp_send();
       }
     }
   }
   nl_error( 0, "Shutdown" );
-  // ### Add shutdown stuff
   ssp_data.Status = SSP_STATUS_GONE;
   Col_send(tm_data);
   return 0;

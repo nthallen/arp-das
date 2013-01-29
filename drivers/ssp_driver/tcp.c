@@ -13,6 +13,8 @@ static struct {
   char q[TCP_QSIZE][TCP_SEND_SIZE];
 } tcp_queue;
 
+static const char *save_hostname;
+
 /**
  * returns socket fd or dies
  */
@@ -22,6 +24,7 @@ int tcp_create( const char *hostname ) {
   struct sockaddr_in localAddr, servAddr;
   struct hostent *h;
 
+  save_hostname = hostname;
   h = gethostbyname(hostname);
   if(h==NULL)
     nl_error( 3, "Unknown host '%s'", hostname);
@@ -42,7 +45,8 @@ int tcp_create( const char *hostname ) {
   
   rc = bind(tcp_socket, (struct sockaddr *) &localAddr, sizeof(localAddr));
   if (rc<0)
-    nl_error( 3, "Cannot bind TCP port %u: %s", SSP_SERVER_PORT, strerror(errno));
+    nl_error( 3, "Cannot bind TCP port %u: %s", SSP_SERVER_PORT,
+      strerror(errno));
         
   /* connect to server */
   tcp_queue.front = tcp_queue.back = 0;
@@ -74,8 +78,17 @@ void tcp_reset(const char *hostname) {
 }
 
 void tcp_connected(void) {
-  tcp_state = tcp_empty() ? FD_IDLE : FD_WRITE;
-  ssp_data.Status = SSP_STATUS_READY;
+  socklen_t len = sizeof(errno);
+  getsockopt(tcp_socket, SOL_SOCKET, SO_ERROR, &errno, &len);
+  if (errno == 0) {
+    tcp_state = tcp_empty() ? FD_IDLE : FD_WRITE;
+    ssp_data.Status = SSP_STATUS_READY;
+    nl_error(0, "TCP connected");
+  } else {
+    nl_error((errno == ETIMEDOUT ? -2 : 2),
+      "Error %d during connect, resetting", errno);
+    tcp_reset(save_hostname);
+  }
 }
 
 void tcp_enqueue( char *cmd ) {
@@ -103,8 +116,15 @@ int tcp_send(void) {
   nl_error( -3, "tcp_send: '%s'", cmd );
   nl_assert( tcp_state == FD_WRITE );
   rv = send( tcp_socket, cmd, cmdlen, 0);
-  if ( rv != cmdlen )
-    nl_error(3, "Send failed: %d: errno = %d\n", rv, errno );
+  if ( rv != cmdlen ) {
+    if (errno == EPIPE) {
+      nl_error(2, "Saw EPIPE in tcp_send(): resetting TCP");
+      tcp_reset(save_hostname);
+      return 1;
+    } else {
+      nl_error(3, "Send failed: %d: errno = %d\n", rv, errno );
+    }
+  }
   tcp_state = FD_READ;
   return 0;
 }
