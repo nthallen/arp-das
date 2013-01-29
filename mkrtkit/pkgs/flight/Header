@@ -1,10 +1,15 @@
 # Package flight
-Version: 2.5.34
+Version: 2.5.35
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.35
+#   flight.sh:
+#     don't hold flight.sh.log open when idle
+#     support EXP_NODES for SCRIPT_OVERRIDE
+#   distribute: support EXP_NODES
 # 2.5.34
 #   tmpplib: cpu_usage error demoted to warning
 # 2.5.33

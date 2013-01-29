@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.35
+Version: 2.5.36
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,10 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.36
+#   mkdoit3:
+#     Better support for SCRIPT_OVERRIDE, including 'not'
+#     Check script is running in $HomeDir
 # 2.5.35
 #   versalogic: make ebx11 and ebx37f easily interchangable
 #   cpu_usage tweaks for multicore
