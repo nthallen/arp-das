@@ -101,8 +101,10 @@ function Launch {
   return 0
 }
 
+SUBBUS_PID=''
 if [ -n "$SUBBUSD" -a ! -e /dev/huarp/subbus ]; then
   Launch /dev/huarp/subbus subbusd_$SUBBUSD -V
+  [ -z "$launch_error" ] && SUBBUS_PID=$Launch_pid
 fi
 
 VERSION=1.0
@@ -151,7 +153,13 @@ else
   echo flight.sh: Specified script $script not found >&2
 fi
 
-if [ -n "$launch_error" ] || jobs -p | grep -q .; then
+if [ -n "$SUBBUS_PID" ]; then
+  pids=`jobs -p | grep -v $SUBBUS_PID`
+else
+  pids=`jobs -p`
+fi
+
+if [ -n "$launch_error" -o -n "$pids" ]; then
   echo $script >$LOOP_STOP_FILE
 else
   echo "flight.sh: No subprocesses, closing flight.sh.log"

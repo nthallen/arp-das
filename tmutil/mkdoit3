@@ -243,6 +243,7 @@ if [ $check_path = yes ]; then
       [ -d $ddir ] || nl_error "Unable to locate run $Run"
       [ -f $ddir/VERSION ] && VERSION=`cat $ddir/VERSION`;;
     *)
+      ddir=$FltNd$HomeDir
       [ -f VERSION ] && VERSION=`cat VERSION`;;
   esac
 
