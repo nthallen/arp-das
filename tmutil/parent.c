@@ -1,6 +1,7 @@
 #include <sys/neutrino.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <time.h>
 #include <signal.h>
 #include <string.h>
 #include <errno.h>
@@ -32,6 +33,15 @@ void INTHandler(int sig) {
 }
 
 #define MSGSIZE 64
+
+const char *gmt(void) {
+  static char buffer[20];
+  struct tm *gm;
+  time_t now = time(NULL);
+  gm = gmtime(&now);
+  strftime(buffer, 15, "%H:%M:%S", gm);
+  return buffer;
+}
 
 int main( int argc, char **argv ) {
   int have_children = 1;
@@ -83,7 +93,7 @@ int main( int argc, char **argv ) {
           }
           break;
         default:
-          nl_error( 0, "parent: Process %d terminated", pid );
+          nl_error( 0, "%s: parent: Process %d terminated: status: %04X", gmt(), pid, status );
           if (monitor_pid && pid == monitor_pid) {
             alarm(parent_timeout);
           }
