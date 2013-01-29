@@ -40,6 +40,7 @@ static int trigger_count = 0;
 static int latency = 1;
 ssp_config_t ssp_config;
 ssp_data_t ssp_data;
+static volatile int saw_sigpipe = 0;
 
 void sspdrv_init( const char *name, int argc, char * const *argv ) {
   int c, board_id;
@@ -217,7 +218,7 @@ void read_cmd( int cmd_fd ) {
         }
         break;
       case 'X':
-              switch (*++tail) {
+        switch (*++tail) {
           case 'R':
             udp_close();
             tcp_reset(board_hostname);
@@ -231,8 +232,8 @@ void read_cmd( int cmd_fd ) {
           default:
             report_invalid(head);
             return;
-              }
-              break;
+        }
+        break;
       case 'N':
         tail = read_num( head, &newval );
         if ( tail == NULL ) return;
@@ -285,6 +286,10 @@ void read_cmd( int cmd_fd ) {
   }
 }
 
+void sigpipehandler(int sig) {
+  ++saw_sigpipe;
+}
+
 int main( int argc, char **argv ) {
   mlf_def_t *mlf;
   int cmd_fd;
@@ -304,6 +309,7 @@ int main( int argc, char **argv ) {
   cmd_fd = ci_cmdee_init( ssp_name );
   tm_data = Col_send_init(ssp_name, &ssp_data, sizeof(ssp_data), 0);
   tcp_create(board_hostname);
+  signal(SIGPIPE, &sigpipehandler)
   non_udp_width = cmd_fd + 1;
   if ( tm_data->fd >= non_udp_width )
     non_udp_width = tm_data->fd + 1;
@@ -340,27 +346,35 @@ int main( int argc, char **argv ) {
     if ( tcp_socket >= udp_width )
       udp_width = tcp_socket+1;
     n_ready = select( udp_width, &readfds, &writefds, NULL, NULL );
-    if ( n_ready == -1 ) nl_error( 3, "Error from select: %s", strerror(errno));
-    if ( n_ready == 0 ) nl_error( 3, "select() returned zero" );
-    if ( udp_state == FD_READ && FD_ISSET( udp_socket, &readfds ) ) {
-      udp_read(mlf);
-      ssp_data.Status = SSP_STATUS_TRIG;
-      trigger_count = 0;
-    }
-    if ( FD_ISSET(cmd_fd, &readfds) )
-      read_cmd( cmd_fd );
-    if ( FD_ISSET(tm_data->fd, &writefds ) ) {
-      if ( ssp_data.Status == SSP_STATUS_TRIG &&
-           ++trigger_count > latency+1 )
-        ssp_data.Status = SSP_STATUS_ARMED;
-      Col_send(tm_data);
-      ssp_data.Flags &= ~SSP_OVF_MASK;
-    }
-    if ( FD_ISSET(tcp_socket, &readfds ) )
-      tcp_recv();
-    if ( FD_ISSET(tcp_socket, &writefds ) ) {
-      if ( tcp_state == FD_CONNECT ) tcp_connected();
-      else tcp_send();
+    if ( n_ready == -1 ) {
+      if (errno == EINTR && saw_sigpipe) {
+        saw_sigpipe = 0;
+        tcp_reset(board_hostname);
+      } else {
+        nl_error( 3, "Error from select: %s", strerror(errno));
+      }
+    } else {
+      if ( n_ready == 0 ) nl_error( 3, "select() returned zero" );
+      if ( udp_state == FD_READ && FD_ISSET( udp_socket, &readfds ) ) {
+        udp_read(mlf);
+        ssp_data.Status = SSP_STATUS_TRIG;
+        trigger_count = 0;
+      }
+      if ( FD_ISSET(cmd_fd, &readfds) )
+        read_cmd( cmd_fd );
+      if ( FD_ISSET(tm_data->fd, &writefds ) ) {
+        if ( ssp_data.Status == SSP_STATUS_TRIG &&
+             ++trigger_count > latency+1 )
+          ssp_data.Status = SSP_STATUS_ARMED;
+        Col_send(tm_data);
+        ssp_data.Flags &= ~SSP_OVF_MASK;
+      }
+      if ( FD_ISSET(tcp_socket, &readfds ) )
+        tcp_recv();
+      if ( FD_ISSET(tcp_socket, &writefds ) ) {
+        if ( tcp_state == FD_CONNECT ) tcp_connected();
+        else tcp_send();
+      }
     }
   }
   nl_error( 0, "Shutdown" );
