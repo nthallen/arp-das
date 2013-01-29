@@ -1,10 +1,13 @@
 # Package flight
-Version: 2.5.36
+Version: 2.5.37
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.37
+#   parent: Report time and status on terminations
+#   sspdrv: Deal with SIGPIPE and connect errors
 # 2.5.36
 #   flight.sh debugging
 # 2.5.35
