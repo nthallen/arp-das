@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.37
+Version: 2.5.38
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,8 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.38
+#   tmpplib: Change implementation of Selector child container
 # 2.5.37
 #   mkdoit3 debugging
 # 2.5.36
