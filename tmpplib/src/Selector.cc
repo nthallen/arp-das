@@ -50,12 +50,15 @@ SelecteeVec::iterator Selector::find_child_by_fd(int fd) {
  */
 void Selector::delete_child(int fd_in) {
   SelecteeVec::iterator pos;
+  Selectee *P;
+
   pos = find_child_by_fd(fd_in);
   if ( pos == S.end() )
-    nl_error( 4, "Selectee not found for fd %d in Selector::delete_child()", fd_in );
+    nl_error( 4,
+      "Selectee not found for fd %d in Selector::delete_child()", fd_in );
   P = *pos;
   nl_assert( fd_in == P->fd );
-  pos.erase();
+  S.erase(pos);
   children_changed = true;
   delete P;
 }
@@ -113,14 +116,14 @@ void Selector::event_loop() {
     to.Set_Min(GetTimeout());
     children_changed = false;
     for ( Sp = S.begin(); Sp != S.end(); ++Sp ) {
-      Selectee *P = Sp->second;
+      Selectee *P = *Sp;
       if (P->flags & gflags) {
         P->ProcessData(P->flags & gflags);
         gflags &= ~(P->flags & gflags);
       }
     }
     for ( Sp = S.begin(); Sp != S.end(); ++Sp ) {
-      Selectee *P = Sp->second;
+      Selectee *P = *Sp;
       if (P->flags & Sel_Read) FD_SET(P->fd, &readfds);
       if (P->flags & Sel_Write) FD_SET(P->fd, &writefds);
       if (P->flags & Sel_Except) FD_SET(P->fd, &exceptfds);
@@ -132,7 +135,7 @@ void Selector::event_loop() {
       if ( ProcessTimeout() )
         keep_going = 0;
       for ( Sp = S.begin(); Sp != S.end(); ++Sp ) {
-        Selectee *P = Sp->second;
+        Selectee *P = *Sp;
         if ((P->flags & Sel_Timeout) && P->ProcessData(Sel_Timeout))
           keep_going = 0;
       }
@@ -141,7 +144,7 @@ void Selector::event_loop() {
       else nl_error(3, "Unexpected error: %d", errno);
     } else {
       for ( Sp = S.begin(); Sp != S.end(); ++Sp ) {
-        Selectee *P = Sp->second;
+        Selectee *P = *Sp;
         int flags = 0;
         if ( (P->flags & Sel_Read) && FD_ISSET(P->fd, &readfds) )
           flags |= Sel_Read;
