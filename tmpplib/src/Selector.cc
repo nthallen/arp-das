@@ -21,13 +21,23 @@ Selector::~Selector() {
  * Selectee's flags.
  */
 void Selector::add_child(Selectee *P) {
-  if (S.find(P->fd) == S.end() ) {
-    S[P->fd] = P;
+  if (find_child_by_fd(P->fd) == S.end() ) {
+    S.push_back(P);
     P->Stor = this;
     children_changed = true;
   } else {
     nl_error( 4, "fd %d already inserted in Selector::add_child", P->fd );
   }
+}
+
+SelecteeVec::iterator Selector::find_child_by_fd(int fd) {
+  SelecteeVec::iterator pos;
+  for ( pos = S.begin(); pos != S.end(); ++pos ) {
+    Selectee *P;
+    P = *pos;
+    if (P->fd == fd) return pos;
+  }
+  return S.end();
 }
 
 /**
@@ -39,16 +49,13 @@ void Selector::add_child(Selectee *P) {
  * remove the Selectees as children of the Selector.
  */
 void Selector::delete_child(int fd_in) {
-  SelecteeMap::iterator pos;
-  Selectee *P;
-  pos = S.find(fd_in);
+  SelecteeVec::iterator pos;
+  pos = find_child_by_fd(fd_in);
   if ( pos == S.end() )
     nl_error( 4, "Selectee not found for fd %d in Selector::delete_child()", fd_in );
-  P = pos->second;
+  P = *pos;
   nl_assert( fd_in == P->fd );
-  if ( S.erase(fd_in) == 0 ) {
-    nl_error( 4, "fd %d not found in Selector::delete_child()", P->fd);
-  }
+  pos.erase();
   children_changed = true;
   delete P;
 }
@@ -58,10 +65,10 @@ void Selector::delete_child(int fd_in) {
  * \returns 0 on success, 1 if fd_in is not found.
  */
 int Selector::update_flags(int fd_in, int flag) {
-  SelecteeMap::const_iterator pos;
-  pos = S.find(fd_in);
+  SelecteeVec::const_iterator pos;
+  pos = find_child_by_fd(fd_in);
   if ( pos != S.end() ) {
-    Selectee *P = pos->second;
+    Selectee *P = *pos;
     P->flags = flag;
     children_changed = true;
     return 0;
@@ -98,7 +105,7 @@ void Selector::event_loop() {
   
   while (keep_going) {
     TimeoutAccumulator to;
-    SelecteeMap::const_iterator Sp;
+    SelecteeVec::const_iterator Sp;
 
     FD_ZERO(&readfds);
     FD_ZERO(&writefds);

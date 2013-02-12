@@ -26,7 +26,7 @@ class Selectee {
     Selector *Stor;
 };
 
-typedef std::map<int,Selectee *> SelecteeMap;
+typedef std::vector<Selectee *> SelecteeVec;
 
 class Selector {
   public:
@@ -51,7 +51,8 @@ class Selector {
     }
     void event_loop();
   private:
-    SelecteeMap S;
+    SelecteeVec S;
+    SelecteeVec::iterator find_child_by_fd(int fd);
     bool children_changed;
     int gflags;
     virtual int ProcessTimeout();
