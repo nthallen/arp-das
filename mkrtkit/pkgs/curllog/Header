@@ -1,10 +1,13 @@
 # curllog package
-Version: 1.0.2
+Version: 1.0.3
 Requires: flight curl libxml2 libidn libiconv zlib
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 1.0.3 2013-02-12
+#   Recompiled with automake conditional and reference
+#   to current libtmpp
 # 1.0.2 2012-10-04
 #   Updated Dependencies
 # 1.0.1 2012-07-20
