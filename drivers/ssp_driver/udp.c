@@ -154,7 +154,7 @@ void udp_read(mlf_def_t *mlf) {
     if ( n == scan_size ) output_scan(scan_buf, mlf);
     else nl_error( 2, "Expected %d bytes, received %d", scan_size, n );
   } else if ( !( scan_buf[cur_word] & SSP_FRAG_FLAG ) ) {
-    nl_error( 2, "Expected scan fragment" );
+    nl_error( -3, "Expected scan fragment" );
   } else {
     int frag_hdr = scan_buf[cur_word];
     int frag_offset = frag_hdr & 0xFFFFL;
@@ -162,11 +162,11 @@ void udp_read(mlf_def_t *mlf) {
     if ( frag_offset != cur_word ) {
       if ( frag_offset == 0 ) {
         memmove( scan_buf, scan_buf+cur_word, n );
-        if ( scan_OK ) nl_error( 2, "Lost end of scan." );
+        if ( scan_OK ) nl_error( -3, "Lost end of scan." );
         cur_word = 0;
         scan_OK = 1;
       } else if ( scan_OK ) {
-        nl_error( 2, "Lost fragment" );
+        nl_error( -3, "Lost fragment" );
         scan_OK = 0;
       }
     }
@@ -176,7 +176,7 @@ void udp_read(mlf_def_t *mlf) {
       scan_buf[cur_word] = frag_hold;
       if ( scan_OK && scan_serial_number != frag_sn ) {
         scan_OK = 0;
-        nl_error( 2, "Lost data: SN skip" );
+        nl_error( -3, "Lost data: SN skip" );
       }
     }
     cur_word = frag_offset + (n/sizeof(long)) - 1;
