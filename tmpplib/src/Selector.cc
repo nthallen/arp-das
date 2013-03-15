@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <sys/select.h>
+#include <atomic.h>
 #include "Selector.h"
 #include "nortlib.h"
 #include "nl_assert.h"
@@ -90,7 +91,8 @@ int Selector::update_flags(int fd_in, int flag) {
  */
 void Selector::set_gflag( unsigned gflag_index ) {
   nl_assert(gflag_index+4 < sizeof(int)*8 );
-  gflags |= gflag(gflag_index);
+  // gflags |= gflag(gflag_index);
+  atomic_set((unsigned *)&gflags, gflag(gflag_index));
 }
 
 /**
@@ -119,7 +121,8 @@ void Selector::event_loop() {
       Selectee *P = *Sp;
       if (P->flags & gflags) {
         P->ProcessData(P->flags & gflags);
-        gflags &= ~(P->flags & gflags);
+        // gflags &= ~(P->flags & gflags);
+        atomic_clr((unsigned *)&gflags, P->flags & gflags);
       }
     }
     for ( Sp = S.begin(); Sp != S.end(); ++Sp ) {
