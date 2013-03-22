@@ -1,10 +1,12 @@
 # Package flight
-Version: 2.5.38
+Version: 2.5.39
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.39
+#   tmpplib: Selector make gflags set/reset atomic
 # 2.5.38
 #   tmpplib: Selector deterministic priority
 # 2.5.37
