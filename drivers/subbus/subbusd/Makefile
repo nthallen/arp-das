@@ -1,14 +1,14 @@
 include_HEADERS = subbusd.h
-bin_PROGRAMS = subbusd_serusb subbusd_sc104
+bin_PROGRAMS = subbusd_serusb subbusd_sc104 subbusd_sim
 LDFLAGS = -L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
-CPPFLAGS = -I/usr/local/include -I. -Isyscon104
+CPPFLAGS = -I ../lib -I/usr/local/include -I .
 LDADD = -ltm -lnort
 CFLAGS=-Wall -g
 
 .PHONY : all install clean
 all : $(bin_PROGRAMS)
 clean :
-	rm -f *.o $(bin_PROGRAMS) sc104oui.c serusboui.c
+	rm -f *.o $(bin_PROGRAMS) sc104oui.c serusboui.c sbsimoui.c
 install :
 	@cp -vn $(bin_PROGRAMS) /usr/local/bin
 	@cp -vn $(include_HEADERS) /usr/local/include
@@ -54,3 +54,20 @@ sc104_sc104init.o : syscon104/sc104init.c
 	$(COMPILE.c) -o sc104_sc104init.o syscon104/sc104init.c
 sc104oui.c : syscon104/sc104.oui subbusd.oui
 	oui -o sc104oui.c syscon104/sc104.oui
+
+subbusd_sim_SOURCES = expint.c subbusd.c subbusd_int.h \
+  sim/sim.c sim/interrupt.c sim/sim.h \
+  subbusd.h simoui.c cache.c
+subbusd_sim_CPPFLAGS = -I sim
+
+subbusd_sim_OBJECTS = subbusd.o sim_sbsim.o simoui.o cache.o
+subbusd_sim : $(subbusd_sim_OBJECTS)
+	$(LINK.c) -o subbusd_sim $(LDADD) $(subbusd_sim_OBJECTS)
+	usemsg subbusd_sim simoui.c
+	/usr/local/sbin/promote subbusd_sim
+sim_sbsim.o : sim/sbsim.c
+	$(COMPILE.c) -o sim_sbsim.o sim/sbsim.c
+simoui.o : simoui.c
+simoui.c : sim/sbsim.oui subbusd.oui
+	oui -o simoui.c sim/sbsim.oui
+

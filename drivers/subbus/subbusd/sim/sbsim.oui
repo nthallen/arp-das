@@ -1,0 +1,6 @@
+<package> sbsim
+<include> subbusd
+
+<package> msghdr_default
+<vars>
+  const char *msg_hdr_default = "SB/SIM";
