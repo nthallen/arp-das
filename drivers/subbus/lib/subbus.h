@@ -22,6 +22,7 @@ extern "C" {
 #define SB_SYSCON 3
 #define SB_SYSCON104 4
 #define SB_SYSCONDACS 5
+#define SB_SIM 6
 
 /* subbus_features: */
 #define SBF_SIC 1		/* SIC Functions */
