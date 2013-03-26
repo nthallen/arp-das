@@ -1,6 +1,8 @@
 README.tmp
 subbusd_serusb
 subbusd_sc104
+subbusd_sim
 sc104oui.c
 serusboui.c
+simoui.c
 FullBuild.*
