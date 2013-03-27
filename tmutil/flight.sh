@@ -120,8 +120,10 @@ export TMBINDIR
 if [ -z "$script" -a -n "$SCRIPT_OVERRIDE" ]; then
   if [ "${SCRIPT_OVERRIDE#/}" = "$SCRIPT_OVERRIDE" -a -n "$HomeDir" ]; then
     [ -n "$EXP_NODES" ] || EXP_NODES=`hostname`
-    echo sleep 3 to acquire network connections
-    sleep 3
+    if [ -n "$FlightNode" ]; then
+      echo sleep 3 to acquire network connections
+      sleep 3
+    fi
     for node in $EXP_NODES; do
       sfile=/net/$node$HomeDir/$SCRIPT_OVERRIDE
       if [ -r $sfile ]; then
@@ -160,7 +162,7 @@ else
 fi
 
 if [ -n "$launch_error" -o -n "$pids" ]; then
-  echo $script >$LOOP_STOP_FILE
+  [ -n "$FlightNode" ] && echo $script >$LOOP_STOP_FILE
 else
   echo "flight.sh: No subprocesses, closing flight.sh.log"
   exec 1>&4 2>&4

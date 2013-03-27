@@ -133,16 +133,17 @@ print $fh <<'EOF';
 
 [ -n "$HomeDir" ] ||
   nl_error "HomeDir undefined in Experiment.config"
+[ -z "$CltHomeDir" ] && CltHomeDir=$HomeDir
 dir=$PWD
-nnd=${dir%$HomeDir}
+nnd=${dir%$CltHomeDir}
 [ "$dir" = "$nnd" ] &&
-  nl_error "Not in HomeDir"
+  nl_error "Not in CltHomeDir $CltHomeDir"
 if [ -n "$nnd" ]; then
   nd=${nnd#/net/}
   [ "$nd" = "$nnd" ] &&
-    nl_error "Not in HomeDir (2)"
+    nl_error "Not in CltHomeDir $CltHomeDir (2)"
   [ "$nd" = "${nd#*/}" ] ||
-    nl_error "Not in HomeDir (3)"
+    nl_error "Not in CltHomeDir $CltHomeDir (3)"
 fi
 
 # Parse options to select
@@ -330,6 +331,7 @@ fi
 
 typeset waiting=no
 typeset signaled=no
+typeset fltshstarted=no
 while true; do
   typeset see_parent=no
   # np < 2 means parent is not running
@@ -337,18 +339,20 @@ while true; do
   [ -n "$ppid" ] && see_parent=yes
   if [ $see_parent = yes -o -z "$FltNd" ]; then
     if [ ! -e $cmdsrvr ]; then
-      if [ $override = done -a ! -f $SCRIPT_OVERRIDE ]; then
-        if [ $option = not ]; then
-          exit 0
-        else
-          nl_error "Override observed but startup apparently failed"
+      if [ $see_parent = yes ]; then
+        if [ $override = done -a ! -f $SCRIPT_OVERRIDE ]; then
+          if [ $option = not ]; then
+            exit 0
+          else
+            nl_error "Override observed but startup apparently failed"
+          fi
         fi
-      fi
-      [ $override = auto ] &&
-        nl_error "Default startup apparently failed"
-      if [ $signaled = yes ]; then
-        echo "ppid = '$ppid' cmdsrvr = '$cmdsrvr'"
-        nl_error "Parent w/o cmdsrvr after signaling"
+        [ $override = auto ] &&
+          nl_error "Default startup apparently failed"
+        if [ $signaled = yes ]; then
+          echo "ppid = '$ppid' cmdsrvr = '$cmdsrvr'"
+          nl_error "Parent w/o cmdsrvr after signaling"
+        fi
       fi
       if [ $startup = yes ]; then
         [ $override = no ] && override=auto
@@ -368,13 +372,16 @@ while true; do
           done
           [ -z "$FltNd" -a $option = not ] && exit 0
         elif [ $srcmode = realtime ]; then
-          if [ $dispmode = screen ]; then
-            echo "Starting flight.sh on /dev/con1"
-            on -t /dev/con1 /usr/local/sbin/flight.sh &
-          else
-            tty=`tty`
-            echo "Starting flight.sh in a pterm"
-            on -t $tty pterm /usr/local/sbin/flight.sh &
+          if [ $fltshstarted = no ]; then
+            if [ $dispmode = screen ]; then
+              echo "Starting flight.sh on /dev/con1"
+              on -t /dev/con1 /usr/local/sbin/flight.sh &
+            else
+              tty=`tty`
+              echo "Starting flight.sh in a pterm"
+              on -t $tty pterm /usr/local/sbin/flight.sh &
+            fi
+            fltshstarted=yes
           fi
         else
           Launch memo memo -o $logfile 
