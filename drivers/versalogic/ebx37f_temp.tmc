@@ -6,5 +6,5 @@
   */
 %}
 TM 1 Hz VL_TEMP vl_cpuT; Collect vl_cpuT = read_ebx37f_temp();
-TM 1 Hz VL_TEMP vl_bdT;  Collect vl_bdT  = 128;
+/* TM 1 Hz VL_TEMP vl_bdT;  Collect vl_bdT  = 128; */
 
