@@ -1,6 +1,6 @@
 %{
   /* Routines to access onboard temperature readings
-     from Versalogic Python EBX-11 motherboard.
+     from Versalogic Mamba EBX-37F motherboard.
      CPU Die Temperature is reported in the Machine (Model) Specific Register
      0x19c.
    */
@@ -38,11 +38,10 @@
     return NULL;
   }
 
-  unsigned char read_exb37f_temp() {
+  unsigned char read_ebx37f_temp() {
     MSR_data MSR_d;
     int Int_id;
     MSR_d.MSR_id = IA32_THERM_STS_MSR;
-    MSR_d.count = 0;
     MSR_d.flags = MSR_READ_REQ;
     MSR_d.MSR_val = 0;
     Int_id = InterruptAttach(0, &RdMsrHandler, &MSR_d, sizeof(MSR_d),
