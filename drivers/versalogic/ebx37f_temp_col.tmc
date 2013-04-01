@@ -32,7 +32,7 @@
     MSR_data *MSR_p = (MSR_data *)area;
     
     if (MSR_p->flags | MSR_READ_REQ) {
-      MSR_p->MSR_val = rdmsr(id);
+      MSR_p->MSR_val = rdmsr(MSR_p->MSR_id);
       atomic_clr(&MSR_p->flags,MSR_READ_REQ);
     }
     return NULL;
