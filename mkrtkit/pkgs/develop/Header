@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.40
+Version: 2.5.41
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,11 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.41
+#   subbus.h: New type for simulation
+#   subbusd_sim: New subbus simulator
+#   mkdoit3: Debug startup when -z $FlightNode
+#   versalogic: Fixed ebx37f temp collection
 # 2.5.40
 #   qcliutil: qcli.cmd options to include/exclude specific channels
 # 2.5.39
