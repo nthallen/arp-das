@@ -82,7 +82,7 @@ int main( int argc, char **argv ) {
           switch (errno) {
             case ECHILD:
               have_children = 0;
-              nl_error( 0, "parent: No more children" );
+              nl_error( 0, "%s parent: No more children", gmt());
               break;
             case EINTR:
               nl_error( 0, "parent: SIGCHLD in waitpid()" );
@@ -93,7 +93,8 @@ int main( int argc, char **argv ) {
           }
           break;
         default:
-          nl_error( 0, "%s: parent: Process %d terminated: status: %04X", gmt(), pid, status );
+          nl_error( 0, "%s parent: Process %d terminated: status: %04X",
+            gmt(), pid, status );
           if (monitor_pid && pid == monitor_pid) {
             alarm(parent_timeout);
           }
@@ -104,10 +105,13 @@ int main( int argc, char **argv ) {
     if ( saw_timeout ) {
       saw_timeout = 0;
       if ( handled_INT )
-        nl_error( 3, "parent: Timed out waiting for children after INT" );
+        nl_error( 3, "%s parent: Timed out waiting for children after INT",
+          gmt());
       if ( handled_timeout )
-        nl_error( 3, "parent: Timed out waiting for children after timeout" );
-      nl_error( 0, "parent: Received timeout, calling killpg()" );
+        nl_error( 3,
+          "%s parent: Timed out waiting for children after timeout",
+          gmt());
+      nl_error( 0, "%s parent: Received timeout, calling killpg()", gmt());
       handled_timeout = 1;
       killpg(getpgid(getpid()), SIGHUP);
     }
@@ -120,16 +124,17 @@ int main( int argc, char **argv ) {
       handled_INT = 1;
       quit_when_childless = 1;
       if ( have_children ) {
-        nl_error( 0, "parent: Received SIGINT, signaling children" );
+        nl_error( 0, "%s parent: Received SIGINT, signaling children",
+          gmt());
         check_children = 1;
         killpg(getpgid(getpid()), SIGHUP);
         alarm(3);
       } else {
-        nl_error( 0, "parent: Received SIGINT" );
+        nl_error( 0, "%s parent: Received SIGINT", gmt());
       }
     }
   }
-  nl_error(0, "parent: Shutdown" );
+  nl_error(0, "%s parent: Shutdown", gmt());
   return 0;
 }
 
