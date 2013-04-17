@@ -1,10 +1,15 @@
 # Package flight
-Version: 2.5.40
+Version: 2.5.41
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.41
+#   parent: Add time to more outputs
+#   flight.sh: Add time to more outputs,
+#     SUBBUSD_DELAY, NETWORK_DELAY and OSUPDATEREQ
+#   sspdrv: Eliminate complaints about missing fragments
 # 2.5.40
 #   diagsuite: Recompiled to accept SB_SIM
 #   flight.sh: don't sleep3 or create loopstop.txt if

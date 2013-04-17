@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.41
+Version: 2.5.42
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,8 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.42
+#   genui: Support %- format to suppress extraction
 # 2.5.41
 #   subbus.h: New type for simulation
 #   subbusd_sim: New subbus simulator
