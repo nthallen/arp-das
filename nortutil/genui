@@ -143,7 +143,7 @@ if ( $opts{c} ) {
     die "Unable to write ${experiment}eng.cdf\n";
   my @rates = sort keys %rate;
   for my $rate ( @rates ) {
-    my @vars = sort keys %{$rate{$rate}};
+    my @vars = grep $format{$_} ne '%-', sort keys %{$rate{$rate}};
     my @formats = map $format{$_}, @vars;
     $rate =~ s|/|_|g;
     my $n_var = @vars + 1;
