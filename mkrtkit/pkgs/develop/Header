@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.42
+Version: 2.5.43
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,8 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.43
+#   genui: Support for Panels and Ad Hoc Groups
 # 2.5.42
 #   genui: Support %- format to suppress extraction
 # 2.5.41
