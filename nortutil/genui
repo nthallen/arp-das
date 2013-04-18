@@ -29,6 +29,8 @@ my $matdir = $opts{d} || '.';
 
 my %group; # for each grp, list of plots in definition order
 my @group; # list of grps in definition order
+my %panel; # for each panel, list of groups
+my @panel; # list of panel groups in definition order
 my %plot; # for each shortname, list of data to plot
 my %iscustom; # for each custom plot
 my %rate; # for each rate a hash of data to extract
@@ -41,6 +43,7 @@ my $homedir = 'C:/home/Exp';
 my $header = 'Engineering Data';
 my $ui_limit = 20;
 my %generated; # hash of generated output files
+my $usepanels;
 
 sub set_shortname {
   my ( $pre, $name, $func ) = @_;
@@ -55,18 +58,22 @@ sub set_shortname {
 
 sub shortname {
   my ( $pre, $name ) = @_;
-  return $shortname{"$pre$name"}
-    if defined $shortname{"$pre$name"};
-  my $try = join '', $pre,
+  my $prename =
+    $pre ne '' ? "$pre:$name" : $name;
+  return $shortname{"$prename"}
+    if defined $shortname{"$prename"};
+  my $try = join '',
     map lc,
       grep m/[A-Z]/,
         split( //, $name );
   my $lcname = lc $name;
-  for my $short ( $try, "$pre$lcname", "${pre}_$lcname" ) {
-    unless ( defined $longname{$short} ) {
-      $longname{$short} = "$pre$name";
-      $shortname{"$pre$name"} = $short;
-      return $short;
+  $lcname =~ s/:/_/; # For Panel Support
+  for my $short ( $try, "$lcname", "_$lcname" ) {
+    my $ps = "$pre$short";
+    unless ( defined $longname{$ps} ) {
+      $longname{$ps} = $prename;
+      $shortname{$prename} = $ps;
+      return $ps;
     }
   }
   die "Unable to find shortname for '$pre', '$name'\n";
@@ -85,7 +92,7 @@ while (<>) {
     $ui_limit = $1;
   } elsif ( m|^\s*(\d+(?:/\d+)?(?:\#\d+(?:/\d+)?)?) # rate
                \s+(\w+(?::\w+:\d+)?)(?::([-+*/]\S+))? # mnemonic
-               \s+(\w+) # group
+               \s+(\w+(?::\w+)) # group
                \s+(\w+) # plot
                (?:\s+(%\S+))? # format
                (?:\s+:(\w+))? # shortname
@@ -117,12 +124,35 @@ while (<>) {
       warn "Datum '$datum' extracted with multiple formats: '$format{$datum}' and '$format'\n";
     }
     $format{$datum} ||= $format;
+    my $usespanel = $group =~ m/:/ ? 1 : 0;
+    if (defined($usepanels)) {
+      if ($usepanels != $usespanel) {
+        die "Inconsistent use of Panels at datum '$datum'\n";
+      }
+    } else {
+      $usepanels = $usespanel;
+    }
     my $grp = shortname('', $group);
     set_shortname($grp, $plot, $custfunc) if $custfunc;
     my $plt = shortname($grp, $plot);
     unless ( defined $group{$grp} ) {
       $group{$grp} = [];
       push @group, $grp;
+    }
+    my $panel;
+    if ($usepanels) {
+      $group =~ m/^(\w+):(\w+)$/ || die;
+      $panel = $1;
+    } else {
+      $panel = 'dflt';
+    }
+    unless (defined $panel{$panel}) {
+      $panel{$panel} = { groups => [], grpdef => {} };
+      push @panel, $panel;
+    }
+    unless (defined $panel{$panel}->{grpdef}->{$grp}) {
+      $panel{$panel}->{grpdef}->{$grp} = 1;
+      push @{$panel{$panel}->{groups}}, $grp;
     }
     unless ( defined $plot{$plt} ) {
       $plot{$plt} = [];
@@ -172,100 +202,115 @@ open( UI, ">", "${matdir}/ui_$experiment.m" ) ||
   die "Unable to open ui_$experiment.m\n";
 $generated{"ui_$experiment.m"} = 1;
 print UI
-  "function ui_$experiment;\n",
-  "f = ne_dialg('$header');\n";
+  "function ui_$experiment\n",
+  "f = ne_dialg('$header',1);\n";
 my $ui_rows = 0;
 
-for my $grp ( @group ) {
-  my $group = $longname{$grp};
-  my @plots = @{$group{$grp}};
-  my $grouptext = $group;
-  $grouptext =~ s/_/ /g;
-  $grouptext =
-    join " ", grep /./, split( /([A-Z][a-z]+)/, $grouptext );
-  $grouptext =~ s/  +/ /g;
-  if ( $ui_rows > 0 && $ui_rows + @plots + 1 > $ui_limit ) {
-    print UI "f = ne_dialg(f, 'newcol');\n";
+for my $panel (@panel) {
+  if ($usepanels) {
+    my $paneltext = $panel;
+    $paneltext =~ s/_/ /g;
+    print UI
+      "f = ne_dialg(f, 'newcol');\n",
+      "f = ne_dialg(f, 'newtab', '$paneltext');\n";
     $ui_rows = 0;
   }
-  print UI
-    "f = ne_dialg(f, 'add', 0, 1, 'g$experiment$grp', '$grouptext' );\n";
-  $ui_rows += @plots + 1;
-  open( GRP, ">", "${matdir}/g$experiment$grp.m" ) ||
-    die "Unable to write g$experiment$grp.m\n";
-  $generated{"g$experiment$grp.m"} = 1;
-  print GRP
-    "function fig = g$experiment$grp(varargin);\n",
-    "% g$experiment$grp(...)\n",
-    "% $grouptext\n",
-    "ffig = ne_group(varargin,'$grouptext',",
-    join( ",", map "'" . ($iscustom{$_} ? "cust_" : "") . "p$experiment$_'", @plots ),
-    ");\n",
-    "if nargout > 0 fig = ffig; end\n";
-  close GRP || warn "Error closing g$experiment$grp.m\n";
-  for my $plt ( @plots ) {
-    my $plot = $longname{$plt};
-    $plot =~ s/^$grp//;
-    my $plottext = $plot;
-    $plottext =~ s/_/ /g;
-    $plottext =
-      join " ", grep /./, split( /([A-Z][a-z]+)/,
-        $plottext );
-    $plottext =~ s/  +/ /g;
-    my $qplt = "p$experiment$plt";
-    $qplt = "cust_$qplt" if $iscustom{$plt};
+  for my $grp (@{$panel{$panel}->{groups}}) {
+    my $group = $longname{$grp};
+    my @plots = @{$group{$grp}};
+    my $grouptext = $group;
+    $grouptext =~ s/^\w+://;
+    $grouptext =~ s/_/ /g;
+    $grouptext =
+      join " ", grep /./, split( /([A-Z][a-z]+)/, $grouptext );
+    $grouptext =~ s/  +/ /g;
+    if ( $ui_rows > 0 && $ui_rows + @plots + 1 > $ui_limit ) {
+      print UI "f = ne_dialg(f, 'newcol');\n";
+      $ui_rows = 0;
+    }
     print UI
-      "f = ne_dialg(f, 'add', 1, 0, '$qplt', '$plottext' );\n";
-    if ( ! $iscustom{$plt} ) {
-      open( PLT, ">", "${matdir}/$qplt.m" ) ||
-        die "Unable to write to $qplt.m\n";
-      $generated{"$qplt.m"} = 1;
-      $generated{"cust_$qplt.m"} = 1;
-      print PLT
-        "function $qplt(varargin);\n",
-        "% $qplt( [...] );\n",
-        "% $grouptext $plottext\n";
-      my @mnemonics =
-        map { ref($_) ? $_->{mnc} . $_->{scale} : $_ } @{$plot{$plt}};
-      my @legpos =
-        grep $_, map { $_->{legpos} } @{$plot{$plt}};
-      die "More than one legend position specified for group/plot $grp/$plt\n"
-        if @legpos > 1;
-      my $legpos = '';
-      if ( @legpos ) {
-        $legpos = $legpos[0] . ", ";
-      }
-      if ( grep /:/, @mnemonics ) {
-        die "Plot $plt mixes analog and digital data\n"
-          if grep !/:/, @mnemonics;
+      "f = ne_dialg(f, 'add', 0, 1, 'g$experiment$grp', '$grouptext' );\n";
+    $ui_rows += @plots + 1;
+    open( GRP, ">", "${matdir}/g$experiment$grp.m" ) ||
+      die "Unable to write g$experiment$grp.m\n";
+    $generated{"g$experiment$grp.m"} = 1;
+    print GRP
+      "function fig = g$experiment$grp(varargin);\n",
+      "% g$experiment$grp(...)\n",
+      "% $grouptext\n",
+      "ffig = ne_group(varargin,'$grouptext',",
+      join( ",", map "'" . ($iscustom{$_} ? "cust_" : "") . "p$experiment$_'", @plots ),
+      ");\n",
+      "if nargout > 0 fig = ffig; end\n";
+    close GRP || warn "Error closing g$experiment$grp.m\n";
+    for my $plt ( @plots ) {
+      my $plot = $longname{$plt};
+      $plot =~ s/^$grp://;
+      my $plottext = $plot;
+      $plottext =~ s/_/ /g;
+      $plottext =
+        join " ", grep /./, split( /([A-Z][a-z]+)/,
+          $plottext );
+      $plottext =~ s/  +/ /g;
+      my $qplt = "p$experiment$plt";
+      $qplt = "cust_$qplt" if $iscustom{$plt};
+      print UI
+        "f = ne_dialg(f, 'add', 1, 0, '$qplt', '$plottext' );\n";
+      if ( ! $iscustom{$plt} ) {
+        open( PLT, ">", "${matdir}/$qplt.m" ) ||
+          die "Unable to write to $qplt.m\n";
+        $generated{"$qplt.m"} = 1;
+        $generated{"cust_$qplt.m"} = 1;
         print PLT
-          "h = ne_dstat({\n  ",
-          join( "; ...\n	",
-            map { m/^(\w+):(\w+):(\d+)$/; "'$1', '$2', $3"; }
-              @mnemonics ),
-          " }, '$plottext', varargin{:} );\n";
-      } else {
-        my @legends =
-          map { s/_/\\_/g; "'$_'" }
-            map { ref($_) ? $_->{legend} : $_ }
-              @{$plot{$plt}};
-        print PLT
-          "h = timeplot({",
-          join( ",", map "'$_'", @mnemonics ), "}, ...\n",
-          "      '$grouptext $plottext', ...\n",
-          "      '$plottext', ...\n",
-          "      {$legpos",
-          join( ",", @legends ), "}, ...\n",
-          "      varargin{:} );\n";
+          "function $qplt(varargin);\n",
+          "% $qplt( [...] );\n",
+          "% $grouptext $plottext\n";
+        my @mnemonics =
+          map { ref($_) ? $_->{mnc} . $_->{scale} : $_ } @{$plot{$plt}};
+        my @legpos =
+          grep $_, map { $_->{legpos} } @{$plot{$plt}};
+        die "More than one legend position specified for group/plot $grp/$plt\n"
+          if @legpos > 1;
+        my $legpos = '';
+        if ( @legpos ) {
+          $legpos = $legpos[0] . ", ";
+        }
+        if ( grep /:/, @mnemonics ) {
+          die "Plot $plt mixes analog and digital data\n"
+            if grep !/:/, @mnemonics;
+          print PLT
+            "h = ne_dstat({\n  ",
+            join( "; ...\n	",
+              map { m/^(\w+):(\w+):(\d+)$/; "'$1', '$2', $3"; }
+                @mnemonics ),
+            " }, '$plottext', varargin{:} );\n";
+        } else {
+          my @legends =
+            map { s/_/\\_/g; "'$_'" }
+              map { ref($_) ? $_->{legend} : $_ }
+                @{$plot{$plt}};
+          print PLT
+            "h = timeplot({",
+            join( ",", map "'$_'", @mnemonics ), "}, ...\n",
+            "      '$grouptext $plottext', ...\n",
+            "      '$plottext', ...\n",
+            "      {$legpos",
+            join( ",", @legends ), "}, ...\n",
+            "      varargin{:} );\n";
+        }
+        close PLT || warn "Error closing $qplt.m\n";
       }
-      close PLT || warn "Error closing $qplt.m\n";
     }
   }
 }
 print UI
+  "f = ne_dialg(f, 'newcol');\n",
+  "f = ne_dialg(f, 'newtab', 'Runs');\n"
+  if $usepanels;
+print UI
   "f = ne_listdirs(f, '$homedir', ", int($ui_limit*.75), ");\n",
   "f = ne_dialg(f, 'newcol');\n",
-  "f = ne_dialg(f, 'resize');\n";
+  "ne_dialg(f, 'resize');\n";
 close UI || warn "Error closing ui_$experiment.m\n";
 
 my @mfiles = grep !$generated{$_}, sort map { s,^$matdir/,,; $_; }
