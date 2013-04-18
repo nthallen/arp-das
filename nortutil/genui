@@ -92,7 +92,7 @@ while (<>) {
     $ui_limit = $1;
   } elsif ( m|^\s*(\d+(?:/\d+)?(?:\#\d+(?:/\d+)?)?) # rate
                \s+(\w+(?::\w+:\d+)?)(?::([-+*/]\S+))? # mnemonic
-               \s+(\w+(?::\w+)) # group
+               \s+(\w+(?::\w+)?) # group
                \s+(\w+) # plot
                (?:\s+(%\S+))? # format
                (?:\s+:(\w+))? # shortname
