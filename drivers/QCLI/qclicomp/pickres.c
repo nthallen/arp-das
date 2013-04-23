@@ -330,13 +330,23 @@ unsigned short aps_to_bits( double aps, int qclicfg, CoordPtr pos ) {
 }
 
 PTGNode RingdownPTG( double Istart, double Istop, double Istep, int ProgLen,
-      int qclicfg, CoordPtr pos ) {
+      int Ncoadd, int qclicfg, CoordPtr pos ) {
   PTGNode PTG = PTGNULL;
   int StepCnt;
-  for ( StepCnt = 0; StepCnt < ProgLen-1; StepCnt++ ) {
-    double StepCrnt = Istart + StepCnt*Istep;
-    PTG = PTGSeq(PTG,PTGRingData(amps_to_bits(StepCrnt,qclicfg,pos),StepCrnt));
+  int coadd;
+  int Nsteps = ProgLen / Ncoadd;
+  if (ProgLen % Ncoadd != 0)
+    message( DEADLY, "ProgLen%Ncoadd non-zero in RingdownPTG", 0, pos );
+  for ( StepCnt = 0; StepCnt < Nsteps-1; StepCnt++ ) {
+    for (coadd = 0; coadd < Ncoadd; ++coadd) {
+      double StepCrnt = Istart + StepCnt*Istep;
+      PTG = PTGSeq(PTG,
+        PTGRingData(amps_to_bits(StepCrnt,qclicfg,pos),StepCrnt));
+    }
   }
-  PTG = PTGSeq(PTG,PTGRingData(amps_to_bits(Istop,qclicfg,pos),Istop));
+  for (coadd = 0; coadd < Ncoadd; ++coadd) {
+    PTG = PTGSeq(PTG,
+      PTGRingData(amps_to_bits(Istop,qclicfg,pos),Istop));
+  }
   return PTG;
 }

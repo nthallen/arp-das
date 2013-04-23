@@ -861,7 +861,7 @@ COMPUTE
   CurrentSteps.Istart = Current[1].Value;
   CurrentSteps.Istop = Current[2].Value;
   CurrentSteps.Iramp = SUB(CurrentSteps.Istop,CurrentSteps.Istart);
-  CurrentSteps.ProgLen = RingStep.ProgLen;
+  CurrentSteps.ProgLen = MUL(RingStep.ProgLen, INCLUDING Wave.Ncoadd);
   CurrentSteps.Istep = RingStep.Istep;
 END;
 SYMBOL RingStep COMPUTE
@@ -920,8 +920,8 @@ END;
 SYMBOL CurrentSteps COMPUTE
   SYNT.PTG =
     RingdownPTG( THIS.Istart, THIS.Istop, THIS.Istep,
-		THIS.ProgLen, INCLUDING SourceFile.QCLIConfig,
-		COORDREF );
+		THIS.ProgLen, INCLUDING Wave.Ncoadd,
+    INCLUDING SourceFile.QCLIConfig, COORDREF );
 END;
 
 /*-----------------------------------------------------------*/

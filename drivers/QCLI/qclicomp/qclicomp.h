@@ -96,7 +96,7 @@ unsigned short aps_to_bits( double aps, int qclicfg, CoordPtr pos );
 #define ICOS_WAVEFORM_CODE 0x3331
 #define RINGDOWN_WAVEFORM_CODE 0x3332
 PTGNode RingdownPTG( double Istart, double Istop, double Istep, int ProgLen,
-  int qclicfg, CoordPtr pos );
+  int Ncoadd, int qclicfg, CoordPtr pos );
 
 extern void InitCol(void);
 extern void OutputLine(FILE *f, char *s);
