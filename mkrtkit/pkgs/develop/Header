@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.43
+Version: 2.5.44
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,8 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.44
+#   qclicomp: Support NCoadd in Ringdown waveforms
 # 2.5.43
 #   genui: Support for Panels and Ad Hoc Groups
 # 2.5.42
