@@ -34,6 +34,28 @@ TMDF_Selectee::TMDF_Selectee( unsigned seconds, const char *name,
   if (fd < 0) {
     nl_error( 2, "Error opening %s: %s", df_path,
       strerror(errno) );
+  } else {
+    struct statvfs buf;
+    if (fstatvfs(fd, &buf) ) {
+      nl_error(2, "fstatvfs reported %s", strerror(errno));
+    } else {
+      double fdsize = buf.f_blocks * buf.f_frsize;
+      double used = buf.f_blocks - buf.f_bavail;
+      const char *units = "Bytes";
+      used = 100. * used / buf.f_blocks;
+      if (fdsize > 1024*1024*1024) {
+        fdsize /= 1024*1024*1024;
+        units = "GB";
+      } else if (fdsize > 1024*1024) {
+        fdsize /= 1024*1024;
+        units = "MB";
+      } else if (fdsize > 1024) {
+        fdsize /= 1024;
+        units = "KB";
+      }
+      nl_error(0, "Drive '%s' total size: %.1lf %s: In use: %.1lf %%",
+        df_path, fdsize, units, used);
+    }
   }
 }
 
