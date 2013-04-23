@@ -23,6 +23,7 @@ class TMDF_Selectee : public TM_Selectee {
     int fd;
     unsigned secs;
     time_t next;
+    void report_size();
 };
 
 TMDF_Selectee::TMDF_Selectee( unsigned seconds, const char *name,
@@ -35,6 +36,17 @@ TMDF_Selectee::TMDF_Selectee( unsigned seconds, const char *name,
     nl_error( 2, "Error opening %s: %s", df_path,
       strerror(errno) );
   } else {
+    report_size();
+  }
+}
+
+TMDF_Selectee::~TMDF_Selectee() {
+  report_size();
+  if (fd >= 0) close(fd);
+}
+
+void TMDF_Selectee::report_size() {
+  if (fd >= 0) {
     struct statvfs buf;
     if (fstatvfs(fd, &buf) ) {
       nl_error(2, "fstatvfs reported %s", strerror(errno));
@@ -57,10 +69,6 @@ TMDF_Selectee::TMDF_Selectee( unsigned seconds, const char *name,
         df_path, fdsize, units, used);
     }
   }
-}
-
-TMDF_Selectee::~TMDF_Selectee() {
-  if (fd >= 0) close(fd);
 }
 
 int TMDF_Selectee::ProcessData(int flag) {
