@@ -18,10 +18,12 @@ TzSpec : Time / SampleSpec / Percent .
 SampleSpec : Integer 'Raw' 'Samples' / Integer 'Samples' .
 Percent : FloatVal '%' .
 IzDef : 'Iz' '=' Current .
-NcoaddDef : 'Ncoadd' '=' Integer .
+NcoaddDef : Ncoadd '=' Integer .
+Ncoadd : 'Ncoadd' / 'NCoadd' .
 ICOSNsampleDef : NsampleDef .
 ICOSRateDef : RateDef .
-NsampleDef : 'Nsample' '=' Integer .
+NsampleDef : Nsample '=' Integer .
+Nsample : 'Nsample' / 'NSample' / 'Nsamples' / 'NSamples' .
 RateDef : 'SampleRate' '=' Integer RateUnit Naverage .
 Naverage : / '/' Integer .
 dIdt : 'dI' '/' 'dt' '=' Current '/' TimeUnit .

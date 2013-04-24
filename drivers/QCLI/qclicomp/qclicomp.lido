@@ -251,7 +251,7 @@ END;
 /* Figure out sampling */
 /*---------------------*/
 ATTR Ncoadd_specd, Ncoadd: int;
-RULE: NcoaddDef ::= 'Ncoadd' '=' Integer COMPUTE
+RULE: NcoaddDef ::= Ncoadd '=' Integer COMPUTE
   NcoaddDef.Ncoadd = Integer;
 END;
 SYMBOL Wave COMPUTE
@@ -275,7 +275,7 @@ ATTR RawRate, NetRate: double;
 ATTR Nsample: long;
 ATTR RateDef: RateDefP;
 
-RULE: NsampleDef ::= 'Nsample' '=' Integer COMPUTE
+RULE: NsampleDef ::= Nsample '=' Integer COMPUTE
   NsampleDef.Nsample = Integer;
 END;
 
