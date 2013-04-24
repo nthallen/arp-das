@@ -6,8 +6,8 @@ RULE: RingWave ::= 'Ringdown' 'Waveform' DefIdent '{' RingCmds '}' END;
 RULE: DefIdent ::= Ident COMPUTE DefIdent.Sym = Ident; END;
 SYMBOL DefIdent INHERITS IdDefScope, Unique COMPUTE
   IF (NOT (THIS.Unique),
-	  message (ERROR, CatStrInd ("Waveform is multiply defined: ", THIS.Sym),
-			   0, COORDREF));
+      message (ERROR, CatStrInd ("Waveform is multiply defined: ", THIS.Sym),
+               0, COORDREF));
 END;
 
 SYMBOL Wave COMPUTE
@@ -100,7 +100,7 @@ END;
 SYMBOL TzDef INHERITS TzUnique COMPUTE
   INH.Key = INCLUDING Wave.Key; 
   IF (NOT (THIS.TzUnique),
-	  message (ERROR, "Tz is multiply defined", 0, COORDREF));
+      message (ERROR, "Tz is multiply defined", 0, COORDREF));
 END;
 
 /*-----------------------------------------------*/
@@ -109,7 +109,7 @@ END;
 SYMBOL IzDef INHERITS IzUnique COMPUTE
   INH.Key = INCLUDING Wave.Key; 
   IF (NOT (THIS.IzUnique),
-	  message (ERROR, "Iz is multiply defined", 0, COORDREF));
+      message (ERROR, "Iz is multiply defined", 0, COORDREF));
 END;
 
 /*---------------------------------------------------*/
@@ -118,7 +118,7 @@ END;
 SYMBOL NcoaddDef INHERITS NcoaddUnique COMPUTE
   INH.Key = INCLUDING Wave.Key; 
   IF (NOT (THIS.NcoaddUnique),
-	  message (ERROR, "Ncoadd is multiply defined", 0, COORDREF));
+      message (ERROR, "Ncoadd is multiply defined", 0, COORDREF));
 END;
 
 /*---------------------------------------------------*/
@@ -129,9 +129,9 @@ SYMBOL ICOSRateDef INHERITS SampleUnique END;
 CLASS SYMBOL SampleUnique COMPUTE
   INH.Key = INCLUDING Wave.Key; 
   IF (NOT (THIS.SampleUnique),
-	  message (ERROR,
-	   "Only one definition of Nsample or SampleRate is allowed",
-	    0, COORDREF));
+      message (ERROR,
+       "Only one definition of Nsample or SampleRate is allowed",
+        0, COORDREF));
 END;
 
 /*--------------------------*/
@@ -175,11 +175,11 @@ END;
 SYMBOL dIdt COMPUTE
   INH.Key = INCLUDING Wave.Key; 
   SYNT.dIdtAssessed = ORDER(
-	SetdIdtDefined(THIS.Key,1,2),
-	ResetdIdt(THIS.Key, THIS.Value ));
+    SetdIdtDefined(THIS.Key,1,2),
+    ResetdIdt(THIS.Key, THIS.Value ));
   IF(EQ(GetdIdtDefined(THIS.Key,0),2),
-	  message (ERROR, "dI/dt is multiply defined", 0, COORDREF))
-	    <- INCLUDING ICOSCmds.dIdtAssessed;
+      message (ERROR, "dI/dt is multiply defined", 0, COORDREF))
+        <- INCLUDING ICOSCmds.dIdtAssessed;
 END;
 
 SYMBOL ICOSCmds COMPUTE
@@ -207,11 +207,11 @@ SYMBOL ICOSRamp COMPUTE
 END;
 RULE: ICOSRamp ::= 'Ramp' Istart Istop PrepTime COMPUTE
   ICOSRamp.dIdtAssessed = ORDER(
-	SetdIdtDefined(ICOSRamp.WaveKey,1,2),
-	ResetdIdt(ICOSRamp.WaveKey,DIV(SUB(Istop.Value,Istart.Value),PrepTime.Value)));
+    SetdIdtDefined(ICOSRamp.WaveKey,1,2),
+    ResetdIdt(ICOSRamp.WaveKey,DIV(SUB(Istop.Value,Istart.Value),PrepTime.Value)));
   IF(EQ(GetdIdtDefined(ICOSRamp.WaveKey,0),2),
-	  message (ERROR, "dI/dt is multiply defined", 0, COORDREF))
-	    <- INCLUDING ICOSCmds.dIdtAssessed;
+      message (ERROR, "dI/dt is multiply defined", 0, COORDREF))
+        <- INCLUDING ICOSCmds.dIdtAssessed;
   ICOSRamp.Istart = Istart.Value;
   ICOSRamp.Istop = Istop.Value;
   ICOSRamp.Tramp = PrepTime.Value;
@@ -262,7 +262,7 @@ END;
 ATTR Tramps: double;
 SYMBOL ICOSCmds COMPUTE
   SYNT.Tramps = CONSTITUENTS ICOSRamp.Tramp
-	WITH( double, ADD, IDENTICAL, ZERO );
+    WITH( double, ADD, IDENTICAL, ZERO );
 END;
 
 ATTR Naverage: int;
@@ -288,7 +288,7 @@ SYMBOL ICOSNsampleDef COMPUTE
   SYNT.RateDef =
     NewRateDefPtr( IF(GT(THIS.Tramps,0),
             DIV( THIS.Nsample, THIS.Tramps ),
-	    THIS.Nsample),
+        THIS.Nsample),
       1, 0, INCLUDING SourceFile.Digitizer, COORDREF );
 END;
 RULE: RateDef ::= 'SampleRate' '=' Integer RateUnit Naverage COMPUTE
@@ -296,13 +296,13 @@ RULE: RateDef ::= 'SampleRate' '=' Integer RateUnit Naverage COMPUTE
   RateDef.Naverage = Naverage.Naverage;
   RateDef.RateDef =
     NewRateDefPtr( RateDef.RawRate, Naverage.Naverage,
-	1, INCLUDING SourceFile.Digitizer, COORDREF );
+    1, INCLUDING SourceFile.Digitizer, COORDREF );
 END;
 
 SYMBOL ICOSCmds COMPUTE
   SYNT.RateDef =
     CONSTITUENTS ( ICOSNsampleDef.RateDef, RateDef.RateDef )
-	WITH ( RateDefP, PICKRATE, IDENTICAL, NULLRATE );
+    WITH ( RateDefP, PICKRATE, IDENTICAL, NULLRATE );
   SYNT.RawRate = PTRSELECT(THIS.RateDef,samples);
   SYNT.Naverage = PTRSELECT(THIS.RateDef, naverage);
   SYNT.NetRate = DIV(THIS.RawRate, THIS.Naverage );
@@ -321,11 +321,11 @@ END;
 RULE: TzTime ::= Time END;
 RULE: TzSpec ::= Percent COMPUTE
   IF( GE( Percent.Value, 1. ),
-	  message (ERROR, "Tz percent must be less than 100", 0, COORDREF));
+      message (ERROR, "Tz percent must be less than 100", 0, COORDREF));
   TzSpec.Tz = IF(GT(Percent.Value,0),
-		 MUL(INCLUDING ICOSCmds.Tramps,
-	          MUL(0.5,DIV(Percent.Value,SUB(1.,Percent.Value)))),
-		 0);
+         MUL(INCLUDING ICOSCmds.Tramps,
+              MUL(0.5,DIV(Percent.Value,SUB(1.,Percent.Value)))),
+         0);
 END;
 SYMBOL SampleSpec COMPUTE
   INH.Naverage = INCLUDING ICOSCmds.Naverage;
@@ -333,7 +333,7 @@ END;
 RULE: SampleSpec ::= Integer 'Raw' 'Samples' COMPUTE
   SampleSpec.Nsample =
     MUL( DIV_UP( Integer, SampleSpec.Naverage ),
-	  SampleSpec.Naverage );
+      SampleSpec.Naverage );
 END;
 RULE: SampleSpec ::= Integer 'Samples' COMPUTE
   SampleSpec.Nsample =
@@ -341,7 +341,7 @@ RULE: SampleSpec ::= Integer 'Samples' COMPUTE
 END;
 RULE: TzSpec ::= SampleSpec COMPUTE
   IF( EQ( TzSpec.RawRate, 0. ),
-	  message (ERROR, "Tz specified in samples, but rate is zero", 0, COORDREF));
+      message (ERROR, "Tz specified in samples, but rate is zero", 0, COORDREF));
   TzSpec.Tz = IF( GT(TzSpec.RawRate, 0. ),
     DIV( SampleSpec.Nsample, TzSpec.RawRate ), 0. );
 END;
@@ -365,8 +365,8 @@ SYMBOL TzSpec COMPUTE
   THIS.rcnt = ADD( THIS.rcnt, IF( GT( THIS.Tz, 0. ), 2, 0 ) );
   THIS.rvals = IF( GT(THIS.Tz, 0.),
     ORDER( Set_rval( THIS.rvals, THIS.rcnt, THIS.Tz ),
-		   Set_rval( THIS.rvals, ADD(THIS.rcnt,1), THIS.Tz )),
-	THIS.rvals );
+           Set_rval( THIS.rvals, ADD(THIS.rcnt,1), THIS.Tz )),
+    THIS.rvals );
 END;
 SYMBOL ICOSRamp COMPUTE
   THIS.rcnt = ADD( THIS.rcnt, 1 );
@@ -384,7 +384,7 @@ ATTR Szi, Srampi, Scyc0: int;
 ATTR Tz1, Tramp1, Tramps1: double;
 SYMBOL ICOSRamp COMPUTE
   SYNT.Srampi = DIV_UP( usecs(THIS.Tramp),
-						INCLUDING ICOSCmds.Stepsize );
+                        INCLUDING ICOSCmds.Stepsize );
   SYNT.Trampi = MUL( THIS.Srampi, INCLUDING ICOSCmds.Stepsize );
   SYNT.Tramp1 = DIV( THIS.Trampi, 1000000. );
   SYNT.Iramp = MUL( THIS.Tramp1, THIS.dIdt );
@@ -394,11 +394,11 @@ SYMBOL ICOSCmds COMPUTE
   SYNT.Tzi = MUL( THIS.Szi, THIS.Stepsize );
   SYNT.Scyc0 = ADD( MUL( 2, THIS.Szi ),
     CONSTITUENTS ICOSRamp.Srampi
-	WITH ( long, ADD, IDENTICAL, ZERO ) );
+    WITH ( long, ADD, IDENTICAL, ZERO ) );
   SYNT.Tcyc0 = MUL( THIS.Scyc0, THIS.Stepsize );
   SYNT.Tramps1 =
     CONSTITUENTS ICOSRamp.Tramp1
-	WITH ( double, ADD, IDENTICAL, ZERO );
+    WITH ( double, ADD, IDENTICAL, ZERO );
   SYNT.Tz1 = DIV( THIS.Tzi, 1000000. );
 END;
 
@@ -418,22 +418,22 @@ ATTR SplitCycle: int;
 ATTR Toff, Ton: long;
 SYMBOL ICOSCmds COMPUTE
   SYNT.EstSamples =
-	IF( GT( THIS.RawRate, 0. ),
-	  CAST(long, floor(
-		DIV( MUL( THIS.Tcyc0, THIS.RawRate ),
-			 1000000. ))),
-	  0 );
+    IF( GT( THIS.RawRate, 0. ),
+      CAST(long, floor(
+        DIV( MUL( THIS.Tcyc0, THIS.RawRate ),
+             1000000. ))),
+      0 );
   SYNT.Trcymin =
     IF ( GE(THIS.EstSamples, 16384), 200, 1 );
   SYNT.SplitCycle = LT( MUL(4,THIS.Trcymin), THIS.Stepsize );
   SYNT.Trcypre = IF( THIS.SplitCycle, THIS.Trcymin, 0 );
   SYNT.Srcy = IF( THIS.SplitCycle, 0,
-				  DIV_UP(THIS.Trcymin, THIS.Stepsize));
+                  DIV_UP(THIS.Trcymin, THIS.Stepsize));
   SYNT.Trcy = MUL( THIS.Stepsize, THIS.Srcy );
   SYNT.Ton  = IF( THIS.SplitCycle, THIS.Trcymin, THIS.Stepsize );
   SYNT.Toff = IF( THIS.SplitCycle,
-				  SUB(THIS.Stepsize, THIS.Ton),
-				  THIS.Ton );
+                  SUB(THIS.Stepsize, THIS.Ton),
+                  THIS.Ton );
   SYNT.Ttrigger = SUB( THIS.Tcyc0, THIS.Trcypre );
   SYNT.Scycle = ADD( THIS.Scyc0, THIS.Srcy );
   SYNT.Tcycle = ADD( THIS.Tcyc0, THIS.Trcy );
@@ -458,10 +458,10 @@ SYMBOL ICOSRamp COMPUTE
   INH.SplitFactor = INCLUDING ICOSCmds.SplitFactor;
   INH.SSzi = INCLUDING ICOSCmds.SSzi;
   SYNT.SSrampi = SUB( MUL( THIS.SplitFactor, THIS.Srampi ),
-	IF( AND( AND( THIS.SplitCycle, EQ(THIS.SSzi,0)),
-	          EQ(THIS.ICOSRampCount,
-				 INCLUDING ICOSCmds.ICOSRampCountResult)),
-		1, 0 ) );
+    IF( AND( AND( THIS.SplitCycle, EQ(THIS.SSzi,0)),
+              EQ(THIS.ICOSRampCount,
+                 INCLUDING ICOSCmds.ICOSRampCountResult)),
+        1, 0 ) );
 END;
 
 /*------------------------------------*/
@@ -472,25 +472,25 @@ ATTR RampSamples:long; /* Net samples over ramps */
 ATTR TzSamples, TzRawSamples: long; /* Net and raw samples in Tz */
 SYMBOL ICOSCmds COMPUTE
   SYNT.NetSamples =
-	IF( GT( THIS.NetRate, 0. ),
-	  CAST(long, floor(
-		DIV( MUL( THIS.Ttrigger, THIS.NetRate ),
-			 1000000. ))),
-	  0 );
+    IF( GT( THIS.NetRate, 0. ),
+      CAST(long, floor(
+        DIV( MUL( THIS.Ttrigger, THIS.NetRate ),
+             1000000. ))),
+      0 );
   SYNT.RawSamples = MUL( THIS.NetSamples, THIS.Naverage );
   SYNT.RampSamples =
-	IF( GT( THIS.NetRate, 0. ),
-	    CAST(long,
-	      SUB(
-		floor(MUL(ADD(THIS.Tz1,THIS.Tramps1), THIS.NetRate )),
-		THIS.TzSamples)
-	    ),
-	    0 );
+    IF( GT( THIS.NetRate, 0. ),
+        CAST(long,
+          SUB(
+            floor(MUL(ADD(THIS.Tz1,THIS.Tramps1), THIS.NetRate )),
+            THIS.TzSamples)
+        ),
+        0 );
   SYNT.TzSamples =
-	IF( GT( THIS.NetRate, 0. ),
-	  CAST(long, floor(
-		MUL( THIS.Tz1, THIS.NetRate ))),
-	  0 );
+    IF( GT( THIS.NetRate, 0. ),
+      CAST(long, floor(
+        MUL( THIS.Tz1, THIS.NetRate ))),
+      0 );
   SYNT.TzRawSamples = MUL( THIS.TzSamples, THIS.Naverage );
 END;
 
@@ -580,10 +580,10 @@ SYMBOL SourceFile COMPUTE
   SYNT.PTG = PTGFile(
     PTGHeader( PTGHex( THIS.ProgLen, 1 ), PTGHex( 0, 5 ) ),
     CONSTITUENTS Wave.WaveIndex
-	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
     PTGFill( 0, SUB(120,THIS.NWaves) ),
     CONSTITUENTS ( ICOSCmds.PTG, RingCmds.PTG )
-	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
     THIS.ProgLen
   );
   IF( NE(OutFile,NoKey),
@@ -594,48 +594,48 @@ SYMBOL Wave COMPUTE
   SYNT.WaveName = PTGId(THIS.Sym);
   SYNT.WaveIndex =
     PTGWaveIndex( THIS.WaveName,
-		  PTGHex(THIS.WaveAddr,1) );
+          PTGHex(THIS.WaveAddr,1) );
 END;
 SYMBOL ICOSCmds COMPUTE
   SYNT.PTG =
     PTGSeq(
       PTGICOSHdr(THIS.WaveNum,
-	    INCLUDING Wave.WaveName,
-	    PTGHex(ICOS_WAVEFORM_CODE,1),
-	    PTGHex(SUB( THIS.Ton, 1),1),
-	    PTGHex(SUB( THIS.Toff, 1),1),
-	    PTGHex(1,1),
-	    PTGHex(THIS.LoopAddr,1),
-	    PTGHex(THIS.ProgLen,1),
-	    PTGDACs(
-	      THIS.dIdt_bits, THIS.dIdt,
-	      dtoa_bits(THIS.DtoAs,1), dtoa_value(THIS.DtoAs,1),
-	      dtoa_bits(THIS.DtoAs,2), dtoa_value(THIS.DtoAs,2),
-	      dtoa_bits(THIS.DtoAs,3), dtoa_value(THIS.DtoAs,3)
-	    ) ),
+        INCLUDING Wave.WaveName,
+        PTGHex(ICOS_WAVEFORM_CODE,1),
+        PTGHex(SUB( THIS.Ton, 1),1),
+        PTGHex(SUB( THIS.Toff, 1),1),
+        PTGHex(1,1),
+        PTGHex(THIS.LoopAddr,1),
+        PTGHex(THIS.ProgLen,1),
+        PTGDACs(
+          THIS.dIdt_bits, THIS.dIdt,
+          dtoa_bits(THIS.DtoAs,1), dtoa_value(THIS.DtoAs,1),
+          dtoa_bits(THIS.DtoAs,2), dtoa_value(THIS.DtoAs,2),
+          dtoa_bits(THIS.DtoAs,3), dtoa_value(THIS.DtoAs,3)
+        ) ),
       PTGICOSProg(
-	    IF( THIS.SSzi,
-	      PTGICOSFill(
-		ADD(WV_RAMP_OFF, THIS.DtoA),
-		THIS.SSzi),
-	      PTGNULL ),
-	    CONSTITUENTS ICOSRamp.PTG
-	      WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
-	    IF( THIS.SSzif,
-	      PTGICOSFill(
-		ADD(WV_RAMP_RESET, THIS.DtoA),
-		THIS.SSzif),
-	      PTGNULL ),
-	    PTGICOSFill(
-	      ADD(WV_RAMP_OFF_T, THIS.DtoA ),
-	      THIS.SSrcy)
+        IF( THIS.SSzi,
+          PTGICOSFill(
+        ADD(WV_RAMP_OFF, THIS.DtoA),
+        THIS.SSzi),
+          PTGNULL ),
+        CONSTITUENTS ICOSRamp.PTG
+          WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+        IF( THIS.SSzif,
+          PTGICOSFill(
+        ADD(WV_RAMP_RESET, THIS.DtoA),
+        THIS.SSzif),
+          PTGNULL ),
+        PTGICOSFill(
+          ADD(WV_RAMP_OFF_T, THIS.DtoA ),
+          THIS.SSrcy)
       ) );
 END;
 SYMBOL ICOSRamp COMPUTE
   SYNT.PTG =
-  	PTGICOSFill(
-	  ADD(WV_RAMP_ON, THIS.DtoA),
-	  THIS.SSrampi);
+      PTGICOSFill(
+      ADD(WV_RAMP_ON, THIS.DtoA),
+      THIS.SSrampi);
 END;
 
 /*---------------------------*/
@@ -645,7 +645,7 @@ ATTR Summary: PTGNode;
 SYMBOL SourceFile COMPUTE
   SYNT.Summary = PTGFileSum(
     CONSTITUENTS ICOSCmds.Summary
-	  WITH ( PTGNode, PTGWaves, IDENTICAL, PTGNull ) );
+      WITH ( PTGNode, PTGWaves, IDENTICAL, PTGNull ) );
   IF( NE(VerbFile,NoKey),
       PTGOutFile( StringTable(GetClpValue(VerbFile,0)), THIS.Summary ));
 END;
@@ -654,31 +654,31 @@ SYMBOL ICOSCmds COMPUTE
   SYNT.TriggerSecs = DIV(THIS.Ttrigger,1000000.);
   SYNT.Summary =
     PTGICOSWave( INCLUDING Wave.WaveName,
-	  CONSTITUENTS RateDef.Summary
-		WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
-	  PTGSampleRate( THIS.RawRate, THIS.Naverage ),
-	  CONSTITUENTS NsampleDef.Summary
-		WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
-	  PTGLong( THIS.RampSamples ),
-	  PTGIz( PTGCurrent( MUL(THIS.Iz, 1000.))),
-	  PTGdIdt( THIS.dIdt ),
-	  PTGTcycle( DIV(THIS.Tcycle,1000.) ),
-	  PTGStepsize( THIS.Stepsize ),
-	  CONSTITUENTS ICOSRamp.Summary
-	    WITH( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
-	  CONSTITUENTS (TzTime.Summary, SampleSpec.Summary, Percent.Summary )
-	    WITH( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
-	  PTGFcycle( THIS.Ftrigger ),
-	  PTGTz( PTGTime(MUL(THIS.Tz1,1000.)), THIS.TzSamples,
-		MUL( DIV( SUB(THIS.TriggerSecs,THIS.Tramps1), THIS.TriggerSecs ), 100. ) ),
-	  PTGTonoff( THIS.Ton, THIS.Toff,
-		ADD(THIS.Trcy,THIS.Trcypre),
-		PTGTime(MUL(THIS.TriggerSecs,1000.))),
-	  THIS.Scycle,
-	  THIS.ProgLen, THIS.WaveAddr,
-	  PTGLong(THIS.RawSamples), PTGLong(THIS.NetSamples),
-	  PTGLong(THIS.TzSamples)
-	);
+      CONSTITUENTS RateDef.Summary
+        WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      PTGSampleRate( THIS.RawRate, THIS.Naverage ),
+      CONSTITUENTS NsampleDef.Summary
+        WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      PTGLong( THIS.RampSamples ),
+      PTGIz( PTGCurrent( MUL(THIS.Iz, 1000.))),
+      PTGdIdt( THIS.dIdt ),
+      PTGTcycle( DIV(THIS.Tcycle,1000.) ),
+      PTGStepsize( THIS.Stepsize ),
+      CONSTITUENTS ICOSRamp.Summary
+        WITH( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      CONSTITUENTS (TzTime.Summary, SampleSpec.Summary, Percent.Summary )
+        WITH( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      PTGFcycle( THIS.Ftrigger ),
+      PTGTz( PTGTime(MUL(THIS.Tz1,1000.)), THIS.TzSamples,
+        MUL( DIV( SUB(THIS.TriggerSecs,THIS.Tramps1), THIS.TriggerSecs ), 100. ) ),
+      PTGTonoff( THIS.Ton, THIS.Toff,
+        ADD(THIS.Trcy,THIS.Trcypre),
+        PTGTime(MUL(THIS.TriggerSecs,1000.))),
+      THIS.Scycle,
+      THIS.ProgLen, THIS.WaveAddr,
+      PTGLong(THIS.RawSamples), PTGLong(THIS.NetSamples),
+      PTGLong(THIS.TzSamples)
+    );
 END;
 
 SYMBOL RateDef COMPUTE
@@ -692,17 +692,17 @@ END;
 SYMBOL ICOSRamp COMPUTE
   SYNT.Summary =
     PTGRamp(
-	  CONSTITUENTS Istart.Summary
-	    WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      CONSTITUENTS Istart.Summary
+        WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
       PTGCurrent( MUL(THIS.Istart1,1000.) ),
-	  CONSTITUENTS Istop.Summary
-	    WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      CONSTITUENTS Istop.Summary
+        WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
       PTGCurrent( MUL(THIS.Istop1,1000.) ),
-	  CONSTITUENTS PrepTime.Summary
-	    WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
+      CONSTITUENTS PrepTime.Summary
+        WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull ),
       PTGTime( MUL(THIS.Tramp1,1000.) ),
-	  THIS.Srampi
-	);
+      THIS.Srampi
+    );
 END;
 
 SYMBOL Istart COMPUTE
@@ -738,7 +738,9 @@ ATTR SetTimeParams, SetTon, SetTpre: VOID;
 SYMBOL RingCmds COMPUTE
   INH.DtoAs = INCLUDING Wave.DtoAs;
   SYNT.ProgLen = CONSTITUENTS RingData.ProgLen
-	WITH( int, ADD, IDENTICAL, ZERO );
+    WITH( int, ADD, IDENTICAL, ZERO );
+  SYNT.NetSamples = CONSTITUENTS RingData.NetSamples
+    WITH( int, ADD, IDENTICAL, ZERO );
   SYNT.SetTimeParams = CONSTITUENTS(
     RingRateDef.SetTimeParams, ToffDef.SetTimeParams,
     RingNsampleDef.SetTimeParams );
@@ -761,14 +763,19 @@ SYMBOL RingCmds COMPUTE
     <- CONSTITUENTS TpreDef.SetTpre;
   SYNT.Tpre = IF ( GT(THIS.TpreSpec,1),THIS.TpreSpec, 1 );
   SYNT.RawRate =
-    IF( HasRateDef(THIS.Key),
-        PTRSELECT(GetRateDef(THIS.Key,0),samples),
-	10000000. );
+    IF(HasRateDef(THIS.Key),
+       PTRSELECT(GetRateDef(THIS.Key,0),samples),
+       10000000. );
+  SYNT.Naverage =
+    IF(HasRateDef(THIS.Key),
+       PTRSELECT(GetRateDef(THIS.Key,0),naverage),
+       1);
   SYNT.Nsample =
     GetNsample(THIS.Key,
       MUL(THIS.RawRate,
-	  ADD(DIV(THIS.Tpre,1000000.),
-	      GetToff(THIS.Key,0))));
+        ADD(DIV(THIS.Tpre,1000000.),
+            GetToff(THIS.Key,0))));
+  SYNT.RawSamples = MUL(THIS.Nsample, THIS.Naverage);
   SYNT.ToffD = GetToff(THIS.Key,DIV(THIS.Nsample,THIS.RawRate));
   SYNT.Toff = usecs(THIS.ToffD);
   SYNT.Ttrigger = ADD(THIS.Ton,THIS.Toff);
@@ -779,39 +786,39 @@ SYMBOL RingRateDef COMPUTE
   INH.Key = INCLUDING Wave.Key;
   SYNT.RateDef = CONSTITUENT RateDef.RateDef;
   SYNT.SetTimeParams = IF ( HasRateDef( THIS.Key ),
-	  message(ERROR,
-	   "Only one definition of SampleRate is allowed per waveform",
-	    0, COORDREF),
-	  ResetRateDef( THIS.Key, THIS.RateDef ));
-  IF ( NE(PTRSELECT(THIS.RateDef,naverage),1),
-	  message(WARNING,
-	   "Averaging in Ringdown sample rate is not supported",
-	    0, COORDREF));
+      message(ERROR,
+       "Only one definition of SampleRate is allowed per waveform",
+        0, COORDREF),
+      ResetRateDef( THIS.Key, THIS.RateDef ));
+/* IF ( NE(PTRSELECT(THIS.RateDef,naverage),1),
+      message(WARNING,
+       "Averaging in Ringdown sample rate is not supported",
+        0, COORDREF)); */
 END;
 SYMBOL RingNsampleDef COMPUTE
   INH.Key = INCLUDING Wave.Key;
   SYNT.SetTimeParams = IF ( HasNsample( THIS.Key ),
-	  message(ERROR,
-	   "Only one definition of Nsample is allowed per waveform",
-	    0, COORDREF),
-	  ResetNsample( THIS.Key, CONSTITUENT NsampleDef.Nsample ));
+      message(ERROR,
+       "Only one definition of Nsample is allowed per waveform",
+        0, COORDREF),
+      ResetNsample( THIS.Key, CONSTITUENT NsampleDef.Nsample ));
 END;
 SYMBOL ToffDef COMPUTE
   INH.Key = INCLUDING Wave.Key;
   SYNT.SetTimeParams = IF ( HasToff( THIS.Key ),
-	  message(ERROR,
-	   "Only one definition of Toff is allowed per waveform",
-	    0, COORDREF),
-	  ResetToff( THIS.Key, CONSTITUENT Time.Value ));
+      message(ERROR,
+       "Only one definition of Toff is allowed per waveform",
+        0, COORDREF),
+      ResetToff( THIS.Key, CONSTITUENT Time.Value ));
 END;
 
 SYMBOL TonDef COMPUTE
   INH.Key = INCLUDING Wave.Key;
   SYNT.SetTon = IF ( HasTon( THIS.Key ),
-	  message(ERROR,
-	   "Only one definition of Ton is allowed per waveform",
-	    0, COORDREF),
-	  ResetTon( THIS.Key, CONSTITUENT TonVal.Value ));
+      message(ERROR,
+       "Only one definition of Ton is allowed per waveform",
+        0, COORDREF),
+      ResetTon( THIS.Key, CONSTITUENT TonVal.Value ));
 END;
 SYMBOL TonVal COMPUTE
   INH.Key = INCLUDING Wave.Key;
@@ -824,20 +831,20 @@ RULE: TonVal ::= FloatVal '%' COMPUTE
      IF ( OR(LE(FloatVal.Value,0),GE(FloatVal.Value,100)),
          ORDER(
            message( ERROR, "Ton percentage out of range",
-	            0, COORDREF ),
+                0, COORDREF ),
            50 ),
          FloatVal.Value );
   TonVal.Value = MUL( TonVal.ToffD,
-	DIV(.TonPct, SUB(100,.TonPct)));
+    DIV(.TonPct, SUB(100,.TonPct)));
 END;
 
 SYMBOL TpreDef COMPUTE
   INH.Key = INCLUDING Wave.Key;
   SYNT.SetTpre = IF ( HasTpre( THIS.Key ),
-	  message(ERROR,
-	   "Only one definition of Tpre is allowed per waveform",
-	    0, COORDREF),
-	  ResetTpre( THIS.Key, CONSTITUENT TpreVal.Value ));
+      message(ERROR,
+       "Only one definition of Tpre is allowed per waveform",
+        0, COORDREF),
+      ResetTpre( THIS.Key, CONSTITUENT TpreVal.Value ));
 END;
 SYMBOL TpreVal COMPUTE
   INH.Key = INCLUDING Wave.Key;
@@ -849,10 +856,13 @@ RULE: TpreVal ::= Integer 'Samples' COMPUTE
 END;
 SYMBOL RingData COMPUTE
   SYNT.ProgLen = CONSTITUENT
-    ( RingCurrent.ProgLen, CurrentSteps.ProgLen );
+    (RingCurrent.ProgLen, CurrentSteps.ProgLen);
+  SYNT.NetSamples = CONSTITUENT
+    (RingCurrent.NetSamples, CurrentSteps.NetSamples);
 END;
 SYMBOL RingCurrent COMPUTE
-  SYNT.ProgLen = 1;
+  SYNT.ProgLen = INCLUDING Wave.Ncoadd;
+  SYNT.NetSamples = 1;
   SYNT.Value = CONSTITUENT Current.Value;
 END;
 ATTR Istep: double;
@@ -862,6 +872,7 @@ COMPUTE
   CurrentSteps.Istop = Current[2].Value;
   CurrentSteps.Iramp = SUB(CurrentSteps.Istop,CurrentSteps.Istart);
   CurrentSteps.ProgLen = MUL(RingStep.ProgLen, INCLUDING Wave.Ncoadd);
+  CurrentSteps.NetSamples = RingStep.ProgLen;
   CurrentSteps.Istep = RingStep.Istep;
 END;
 SYMBOL RingStep COMPUTE
@@ -891,37 +902,38 @@ SYMBOL RingCmds COMPUTE
   SYNT.PTG =
     PTGSeq(
       PTGRingHdr(INCLUDING Wave.WaveNum,
-	    INCLUDING Wave.WaveName,
-	    PTGHex(RINGDOWN_WAVEFORM_CODE,1),
-	    PTGHex(SUB( THIS.Ton, 1),1),
-	    PTGHex(SUB( THIS.Toff, 1),1),
-	    PTGHex(THIS.Tpre,1),
-	    PTGHex(INCLUDING Wave.LoopAddr,1),
-	    PTGHex(THIS.ProgLen,1),
-	    PTGDACs(
-	      0, 0.,
-	      0, 0.,
-	      amps_to_bits(THIS.Iz, INCLUDING
-		SourceFile.QCLIConfig, COORDREF),
-	      THIS.Iz,
-	      dtoa_bits(THIS.DtoAs,3), dtoa_value(THIS.DtoAs,3)
-	    ) ),
+        INCLUDING Wave.WaveName,
+        PTGHex(RINGDOWN_WAVEFORM_CODE,1),
+        PTGHex(SUB( THIS.Ton, 1),1),
+        PTGHex(SUB( THIS.Toff, 1),1),
+        PTGHex(THIS.Tpre,1),
+        PTGHex(INCLUDING Wave.LoopAddr,1),
+        PTGHex(THIS.ProgLen,1),
+        PTGDACs(
+          0, 0.,
+          0, 0.,
+          amps_to_bits(THIS.Iz, INCLUDING
+        SourceFile.QCLIConfig, COORDREF),
+          THIS.Iz,
+          dtoa_bits(THIS.DtoAs,3), dtoa_value(THIS.DtoAs,3)
+        ) ),
       CONSTITUENTS ( RingCurrent.PTG, CurrentSteps.PTG )
-	  WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull )
-	    );
+      WITH ( PTGNode, PTGSeq, IDENTICAL, PTGNull )
+        );
 END;
 SYMBOL RingCurrent COMPUTE
   SYNT.PTG =
-    PTGRingData(
-      amps_to_bits(THIS.Value, INCLUDING SourceFile.QCLIConfig,
-	COORDREF),
-      THIS.Value);
+    RingdownPTG( THIS.Value, THIS.Value,
+      0, 1, INCLUDING Wave.Ncoadd,
+      INCLUDING SourceFile.QCLIConfig, COORDREF
+    );
 END;
 SYMBOL CurrentSteps COMPUTE
   SYNT.PTG =
     RingdownPTG( THIS.Istart, THIS.Istop, THIS.Istep,
-		THIS.ProgLen, INCLUDING Wave.Ncoadd,
-    INCLUDING SourceFile.QCLIConfig, COORDREF );
+      THIS.ProgLen, INCLUDING Wave.Ncoadd,
+      INCLUDING SourceFile.QCLIConfig, COORDREF
+    );
 END;
 
 /*-----------------------------------------------------------*/
@@ -956,11 +968,10 @@ SYMBOL ICOSCmds COMPUTE
     StringTable(INCLUDING SourceFile.Prefix));
 END;
 SYMBOL RingCmds COMPUTE
-  SYNT.Naverage = 1;
   SYNT.ISICOS = 0;
   SYNT.CMDoutput = PTGCPCIdef(
-    THIS.RawRate, THIS.Nsample, THIS.ProgLen,
-    1, INCLUDING(Wave.Ncoadd), THIS.Ftrigger,
+    THIS.RawRate, THIS.RawSamples, THIS.NetSamples,
+    THIS.Naverage, INCLUDING(Wave.Ncoadd), THIS.Ftrigger,
     "RINGDOWN", THIS.TzSamples,
     StringTable(INCLUDING SourceFile.Prefix) );
 END;
@@ -984,9 +995,9 @@ SYMBOL SourceFile COMPUTE
       WITH( PTGNode, PTGMCommas, PTGMString, PTGNULL ),
     CONSTITUENTS ( ICOSCmds.RawRate, RingCmds.RawRate )
       WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
-    CONSTITUENTS ( ICOSCmds.RawSamples, RingCmds.Nsample )
+    CONSTITUENTS ( ICOSCmds.RawSamples, RingCmds.RawSamples)
       WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
-    CONSTITUENTS ( ICOSCmds.NetSamples, RingCmds.ProgLen )
+    CONSTITUENTS ( ICOSCmds.NetSamples, RingCmds.NetSamples )
       WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
     CONSTITUENTS ( ICOSCmds.Naverage, RingCmds.Naverage )
       WITH( PTGNode, PTGMCommas, PTGNumb, PTGNULL ),
