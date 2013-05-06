@@ -150,7 +150,9 @@ while [ -n "$pkgs" ]; do
   [ -z "$ppver" -o "$ppver" = "0" ] &&
     nl_error "Could not discern valid version from $pkgver"
   pver=`expr $ppver : "[a-zA-Z0-9_-]*-\\([0-9][0-9.]*\\)"`
-  [ -z "$pver" -o "$pver" = "0" ] &&
+  # expr can return "0" on no match, but since we already
+  # matched this pattern, we can assume a "0" means version 0
+  [ -z "$pver" ] &&
     nl_error "Could not discern valid version from $ppver"
 
   [ "/var/db/pkg/$ppver" = "$pkgver" ] ||
