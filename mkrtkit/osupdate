@@ -326,7 +326,7 @@ sub pkg_check {
   if ( $pkg =~ m/^([\w-]+)(?:-(\d+(?:\.\d+)*))(?:\.tar\.gz)?$/ ) {
     my $root = $1;
     my @ver;
-    @ver = split( /\./, $2 ) if $2;
+    @ver = split( /\./, $2 ) if defined($2) && $2 ne '';
     return { root => $root, ver => \@ver, src => $src };
   } else {
     die "Invalid package reference: '$pkg' from $src\n";
