@@ -101,7 +101,7 @@ static void process_request(void) {
  * This is where we serialize the request.
  */
 static void enqueue_sbreq( int type, int rcvid, char *req,
-	unsigned short n_reads ) {
+        unsigned short n_reads ) {
   sbd_request_t *sbr = &sbdrq[sbdrq_tail];
   int i;
   int new_tail = sbdrq_tail+1;
@@ -242,19 +242,19 @@ static void dequeue_request( signed short status, int n_args,
                 break;
               }
               continue;
-	    case 'E':
+            case 'E':
               ++p;
               if ( ! read_hex( &p, &errval ) ) {
-		nl_error(2,"Invalid error in mread response: '%s'",
+                nl_error(2,"Invalid error in mread response: '%s'",
                   ascii_escape(s));
-		rep.hdr.status = SBS_RESP_SYNTAX;
-	      } else {
-		nl_error(2, "DACS reported error %d on mread", errval );
-		rep.hdr.status = SBS_RESP_ERROR;
-	      }
-	      rsize = sizeof(subbusd_rep_hdr_t);
+                rep.hdr.status = SBS_RESP_SYNTAX;
+              } else {
+                nl_error(2, "DACS reported error %d on mread", errval );
+                rep.hdr.status = SBS_RESP_ERROR;
+              }
+              rsize = sizeof(subbusd_rep_hdr_t);
               rep.hdr.ret_type = SBRT_NONE;
-	      break;
+              break;
             default:
               break;
           }
@@ -262,7 +262,7 @@ static void dequeue_request( signed short status, int n_args,
         }
         if ( rsize == 0 ) {
           if ( i != n_reads || *p != '\0' ) {
-	    // Wrong number of read values returned
+            // Wrong number of read values returned
             nl_error(2, "Expected %d, read %d: '%s'",
               n_reads, i, ascii_escape(s));
             rep.hdr.status = SBS_RESP_SYNTAX;
@@ -271,7 +271,7 @@ static void dequeue_request( signed short status, int n_args,
           } else {
             rep.data.mread.n_reads = n_reads;
             rsize = sizeof(subbusd_rep_hdr_t) +
-		    (n_reads+1) * sizeof(unsigned short);
+                    (n_reads+1) * sizeof(unsigned short);
           }
         }
       }
@@ -665,7 +665,7 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
       break;
     case SBC_MREAD:
       enqueue_sbreq(SBDR_TYPE_CLIENT, rcvid, req->data.d4.multread_cmd,
-		    req->data.d4.n_reads);
+                    req->data.d4.n_reads);
       return;
     case SBC_WRITECACHE:
       rv = sb_cache_write(req->data.d0.address, req->data.d0.data);
