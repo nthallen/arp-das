@@ -174,6 +174,7 @@ fi
 if [ -n "$launch_error" -o -n "$pids" ]; then
   [ -n "$FlightNode" ] && echo $script >$LOOP_STOP_FILE
 else
+  [ -n "$SUBBUS_PID" ] && kill -SIGHUP $SUBBUS_PID
   echo "`date +%T` No subprocesses, closing flight.sh.log"
   exec 1>&4 2>&4
 fi
