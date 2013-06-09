@@ -7,6 +7,11 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.46
+#   qclicomp: Support alternate capitalizations
+#   pkg2pkg:  Allow zero versions
+#   osupdate: Allow zero versions
+#   appgen.mk: CYCLE definition
 # 2.5.45
 #   qclicomp: Support Naverage in Ringdown waveforms
 # 2.5.44
