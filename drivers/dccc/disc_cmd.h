@@ -7,8 +7,6 @@
         Modified by Nort Feb 18 2010 for QNX6 rearch.
 */
 
-#define N_DISC_CMDS   100
-
 /*
    The following are the command types:
    SPARE indicates that dccc does not take any action
@@ -28,8 +26,7 @@
          cleared if value == 0, else they are set.
    SELECT indicates that select bits (mask) of a port are set to given value.
          Selected bits are re-inverted.
-   NDCC  indicates that this command does not a discrete command card command,
-         but is rather some other type of one argument command.
+   UNSTRB Like a SET command, but the value is stored with the configuration.
 */
 
 #define SPARE 0
@@ -37,7 +34,7 @@
 #define STEP 2
 #define SET 3
 #define SELECT 4
-/* #define NDCC 4 */
+#define UNSTRB 5
 
 #define MAX_CMDS 100
 typedef struct {

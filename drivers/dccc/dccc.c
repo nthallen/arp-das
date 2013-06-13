@@ -1,6 +1,9 @@
 /*
  * Discrete command card controller program.
  * $Log$
+ * Revision 1.11  2012/03/23 01:01:33  ntallen
+ * Add verbosity
+ *
  * Revision 1.10  2012/03/21 16:08:06  ntallen
  * Detab
  *
@@ -80,6 +83,7 @@ struct cmd {
   int type;
   int port;
   int mask;
+  int value;
 } *cmds;
 
 int init_fail = 0;
@@ -109,7 +113,7 @@ void dccc_init_options( int argc, char **argv ) {
 /**
   * Syntax for commands will be:
   ^$ Quit
-  ^D\d+ Discrete command
+  ^D\d+ Discrete command (STRB or UNSTRB)
   ^S\d+=\d+ SET or SELECT
   ^M\d+[,\d+]*
   ^N\d+=\d+[,\d+=\d+]*
@@ -189,6 +193,7 @@ void parse_cmd(char *tbuf, int nb, cmd_t *pcmd ) {
         switch (cmd_variety) {
           case STEP:
           case STRB:
+          case UNSTRB:
             if ( need_vals ) {
               nl_error(2, "Command does not match header");
               return;
@@ -320,7 +325,7 @@ static void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
       break;
     case SET:
       nl_error(MSG_DEBUG,
-        "SET: PORT %d, mask %04X, value %04X, command index %d",
+        "SET: PORT %03X, mask %04X, value %04X, command index %d",
         ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask,
         value, cmd_idx);
       if (cmds[cmd_idx].mask)
@@ -329,8 +334,18 @@ static void execute_pcmd( cmd_t *pcmd, int clr_strobe ) {
       else set_line(cmds[cmd_idx].port, value);
       break;
     case SELECT:
+      // For historical reasons, SELECT uses negative logic
+      // in the value arg
       nl_error(MSG_DEBUG,
-        "SELECT: PORT %d, mask %04X, value %04X, command index %d",
+        "SELECT: PORT %03X, mask %04X, value %04X, command index %d",
+        ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask,
+        value, cmd_idx);
+      sel_line(cmds[cmd_idx].port, cmds[cmd_idx].mask, ~value);
+      break;
+    case UNSTRB:
+      value = cmds[cmd_idx].value;
+      nl_error(MSG_DEBUG,
+        "UNSTRB: PORT %03X, mask %04X, value %04X, command index %d",
         ports[cmds[cmd_idx].port].sub_addr, cmds[cmd_idx].mask,
         value, cmd_idx);
       sel_line(cmds[cmd_idx].port, cmds[cmd_idx].mask, value);
@@ -387,7 +402,7 @@ void old_line(int port) {
 
 void sel_line(int port, int mask, int value) {
   ports[port].value &= ~mask;
-  ports[port].value |= (mask & ~value);
+  ports[port].value |= (mask & value);
   write_subbus(ports[port].sub_addr, ports[port].value);
 }
 
@@ -442,11 +457,21 @@ void read_commands(void) {
 
   /* Commands */
   for (i = 0; i < n_cmds; i++) {
+    int n_args;
     if (get_line(fp,buf) || get_type(buf, &cmds[i].type))
       nl_error(MSG_EXIT_ABNORM, "error getting command %d type", i);
     for (p = &buf[0]; *p != ','; p++);
-    if (sscanf(p, ",%d,%x", &cmds[i].port, &cmds[i].mask) != 2)
+    n_args = sscanf(p, ",%d,%x,%x", &cmds[i].port, &cmds[i].mask,
+      &cmds[i].value);
+    if (n_args == 3) {
+      if (cmds[i].type != UNSTRB)
+        nl_error(MSG_EXIT_ABNORM, "Too many arguments for command %d");
+    } else if (n_args == 2) {
+      if (cmds[i].type == UNSTRB)
+        nl_error(MSG_EXIT_ABNORM, "Missing value for command %d");
+    } else {
       nl_error(MSG_EXIT_ABNORM, "error getting command %d info");
+    }
   }
 
   /* dont read special commands */
