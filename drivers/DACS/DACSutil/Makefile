@@ -20,6 +20,9 @@ install : ai_cfg.h ptrh.h DACStest
 bench_ptrh : bench_ptrh.o ptrh.o
 	$(CXX) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o bench_ptrh bench_ptrh.o ptrh.o $(LIBS)
 
+qclivtest : qclivtest.o
+	$(CXX) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o qclivtest qclivtest.o $(LIBS)
+
 .PHONY : clean
 clean :
 	rm -f DACStest *.o FullBuild.*
