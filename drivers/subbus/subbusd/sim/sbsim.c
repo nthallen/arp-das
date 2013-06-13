@@ -78,21 +78,21 @@ void incoming_sbreq( int rcvid, subbusd_req_t *req ) {
       rep.hdr.status = SBS_ACK;
       rsize = sizeof(subbusd_rep_hdr_t);
       rv = MsgReply( rcvid, rsize, &rep, rsize );
-      break;
+      return;
     case SBC_READSW:
       rep.hdr.ret_type = SBRT_US;
       rep.hdr.status = SBS_ACK;
       rep.data.value = 0;
       rsize = sizeof(subbusd_rep_hdr_t) + sizeof(unsigned short);
       rv = MsgReply( rcvid, rsize, &rep, rsize );
-      break;
+      return;
     case SBC_READFAIL:
       rep.hdr.ret_type = SBRT_US;
       rep.hdr.status = SBS_ACK;
       rep.data.value = fail_val;
       rsize = sizeof(subbusd_rep_hdr_t) + sizeof(unsigned short);
       rv = MsgReply( rcvid, rsize, &rep, rsize );
-      break;
+      return;
     case SBC_MREAD:
     case SBC_INTATT:
     case SBC_INTDET:
