@@ -76,7 +76,7 @@ int load_sublib(void) {
    diag_status(ATTR_FAIL,"No subbus library installed");
    return(0);
   }
-  else if (c < 0 || c > 5) {
+  else if (c < 0 || c > 6) {
    diag_status(ATTR_FAIL,"Unknown subbus library installed");
    return(0);
   }    
