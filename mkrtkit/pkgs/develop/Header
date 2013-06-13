@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.45
+Version: 2.5.46
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -12,6 +12,7 @@ Files: MANIFEST_pkg @ /
 #   pkg2pkg:  Allow zero versions
 #   osupdate: Allow zero versions
 #   appgen.mk: CYCLE definition
+#   PhRTG: Support for Rev 0 SSP File formats
 # 2.5.45
 #   qclicomp: Support Naverage in Ringdown waveforms
 # 2.5.44
