@@ -6,7 +6,7 @@ use strict;
 # terms of the GNU Public License.
 
 #__USAGE
-#%C	[ -w ] [ -o outputfile ] [-v] [-l] [-c] dir [ dir ... ]
+#%C	[ -w ] [ -o outputfile ] [-v] [-l] [-c] [-C dir] dir [ dir ... ]
 #	Generates a listing of CRCs of the contents of the directory
 #	and all its subdirectories. This file should be sensitive
 #	only to the file names and their contents, not to the dates
@@ -26,7 +26,9 @@ use strict;
 #	the hash. By default, and MD5 hash is used. -c is implicit
 #	when -w is not specified and a .CKSUM file exists.
 #
-# -l specifies that soft links should not be followed.
+#	-l specifies that soft links should not be followed.
+#
+#	-C dir cd to specified directory before all operations
 #
 #	-v indicates that the results should be written to STDOUT
 #	in addition to any file specified via -w or -o or the temp
@@ -147,10 +149,17 @@ use Getopt::Std;
 use Cwd;
 use File::Compare;
 
-use vars qw($opt_c $opt_o $opt_w $opt_v $opt_l);
-getopts('wvclo:');
+use vars qw($opt_c $opt_o $opt_w $opt_v $opt_l $opt_C);
+getopts('wvclo:C:');
 
-my $pwd = cwd;
+my $pwd;
+if ($opt_C) {
+  chdir($opt_C) || die "Unable to chdir to '$opt_C'\n";
+  $pwd = $opt_C;
+} else {
+  $pwd = cwd;
+  defined($pwd) || die "PWD is undefined\n";
+}
 
 # If we're doing .CKSUM, try to go to parent directory
 # If we're doing .MD5SUM, go to target directory always
