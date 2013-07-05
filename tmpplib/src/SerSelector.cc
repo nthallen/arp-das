@@ -79,6 +79,9 @@ Ser_Sel::Ser_Sel() : Selectee() {
  * the fd will not be opened.
  * @param open_flags Flags from <fcntl.h> passed to open()
  * @param bufsz The size buffer to be allocated.
+ * bufsz must be large enough to include a complete data record plus
+ * a terminating NUL character. fillbuf() guarantees that all input
+ * is terminated with a NUL.
  */
 void Ser_Sel::init(const char *path, int open_flags, int bufsz) {
   if (path == 0) {
@@ -188,8 +191,26 @@ void Ser_Sel::setup( int baud, int bits, char par, int stopbits,
  * @return non-zero on error.
  */
 int Ser_Sel::fillbuf() {
+  return fillbuf(bufsize);
+}
+
+/**
+ * @param N Limits the total number of characters in the buffer to N
+ * N must be less than or equal to bufsize and should include space
+ * for a trailing NUL.
+ * Reads characters from the device, reporting any errors.
+ * Guarantees that buf is NUL-terminated, and sets nc to the
+ * total number of characters. Each call to fillbuf() increments
+ * the n_fills counter, which is reported at termination
+ * @return non-zero on error.
+ */
+int Ser_Sel::fillbuf(int N) {
   int i;
   if (!buf) nl_error(4, "Ser_Sel::fillbuf with no buffer");
+  if (N > bufsize)
+    nl_error(4, "Ser_Sel::fillbuf(N) N > bufsize: %d > %d",
+      N, bufsize);
+  if (nc > N-1) return 0;
   ++n_fills;
   i = read( fd, &buf[nc], bufsize - 1 - nc );
   if ( i < 0 ) {

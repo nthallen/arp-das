@@ -47,6 +47,7 @@ class Ser_Sel : public Selectee {
 		int min, int time );
   protected:
     int fillbuf();
+    int fillbuf(int N);
     void consume(int nchars);
     void flush_input();
     void report_err( const char *msg, ... );
