@@ -9,6 +9,7 @@
 #  -f Copy runs even if already present on removable drive
 #  -n just display what would be copied
 #  -w Wait for transfer system to respond to ping before attempting operation
+#  -h host Specify transfer host. Default is read from Experiment.config
 #
 #%C [-acdfw] copy [runtype ...] [run ...]
 #  runtype is one of flight, preflt, cal, data or junk
@@ -33,25 +34,16 @@ if [ `id -un` != flight ]; then
   exec /usr/pkg/bin/sudo -u flight $0 $*
 fi
 
-if [ -z "$TRANSFER_HOST" ]; then
-  cfile=./Experiment.config
-  [ ! -f "$cfile" ] &&
-    nl_error "Unable to locate configuration file $cfile"
-  . $cfile
-fi
-[ -z "$TRANSFER_HOST" ] &&
-  nl_error "TRANSFER_HOST undefined"
-host=$TRANSFER_HOST
-
 opt_a='yes' # Until database is working
 opt_w='no'
 rtopts='a' # options to pass to remtransfer
-while getopts "acdfnw" opt; do
+while getopts "acdfnwh:" opt; do
   case $opt in
     a) opt_a=yes; rtopts="${rtopts}a";;
     c) rtopts="${rtopts}c";;
     d) rtopts="${rtopts}d";;
     f) rtopts="${rtopts}f";;
+    h) TRANSFER_HOST=$OPTARG;;
     n) rtopts="${rtopts}n";;
     w) opt_w=yes;;
     \?) exit 1;; # getopts reports the error
@@ -62,6 +54,16 @@ done
 let sval=$OPTIND-1
 shift $sval
 [ $# == 0 ] && nl_error "Must specify a subcommand (copy/shell/shutdown)"
+
+if [ -z "$TRANSFER_HOST" ]; then
+  cfile=./Experiment.config
+  [ ! -f "$cfile" ] &&
+    nl_error "Unable to locate configuration file $cfile"
+  . $cfile
+fi
+[ -z "$TRANSFER_HOST" ] &&
+  nl_error "TRANSFER_HOST undefined"
+host=$TRANSFER_HOST
 
 cmd=$1
 shift
@@ -75,8 +77,15 @@ esac
 if [ $opt_w = yes ]; then
   n=1
   echo "Waiting for $host:"
-  while ! ping -n -c1 $host >/dev/null; do echo -n "Waiting: $n\r"; let n=n+1; done
+  while ! ping -n -c1 $host >/dev/null; do
+    echo -n "Waiting: $n\r"
+    let n=n+1
+  done
   echo "\n$host responding to ping"
+  while ! ssh $host echo ssh responding; do
+    echo -n "Waiting for ssh: $n\r"
+    let n=n+1
+  done
 fi
 
 case $cmd in
