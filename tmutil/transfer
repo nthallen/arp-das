@@ -1,0 +1,87 @@
+#! /bin/sh
+#ifdef __USAGE
+#%C [-acdfnw] copy [runtype ...] [run ...]
+#%C [-w] shell
+#%C [-wn] shutdown
+#  -a Include runs not in the database (default)
+#  -c Confirm runs before transfer
+#  -d Perform dircksum after transfer
+#  -f Copy runs even if already present on removable drive
+#  -n just display what would be copied
+#  -w Wait for transfer system to respond to ping before attempting operation
+#
+#%C [-acdfw] copy [runtype ...] [run ...]
+#  runtype is one of flight, preflt, cal, data or junk
+#  More than one runtype may be listed
+#  Runs can be listed without runtype.
+#  If any runs are explicitly specified, runtypes are ignored
+#  If no runtypes are specified, runtypes flight, preflt and cal
+#  are assumed.
+#
+%%C shell
+#  Launches an interactive shell on the transfer system
+#%C shutdown
+#  Shuts down the transfer system for power cycle.
+#endif
+
+function nl_error {
+  echo "transfer: $*" >&2
+  exit 1
+}
+
+if [ `id -un` != flight ]; then
+  exec /usr/pkg/bin/sudo -u flight $0 $*
+fi
+
+if [ -z "$TRANSFER_HOST" ]; then
+  cfile=./Experiment.config
+  [ ! -f "$cfile" ] &&
+    nl_error "Unable to locate configuration file $cfile"
+  . $cfile
+fi
+[ -z "$TRANSFER_HOST" ] &&
+  nl_error "TRANSFER_HOST undefined"
+host=$TRANSFER_HOST
+
+opt_a='yes' # Until database is working
+opt_w='no'
+rtopts='a' # options to pass to remtransfer
+while getopts "acdfnw" opt; do
+  case $opt in
+    a) opt_a=yes; rtopts="${rtopts}a";;
+    c) rtopts="${rtopts}c";;
+    d) rtopts="${rtopts}d";;
+    f) rtopts="${rtopts}f";;
+    n) rtopts="${rtopts}n";;
+    w) opt_w=yes;;
+    \?) exit 1;; # getopts reports the error
+    :) exit 1;; # getopts reports the error
+  esac
+done
+[ -n "$rtopts" ] && rtopts=-$rtopts
+let sval=$OPTIND-1
+shift $sval
+[ $# == 0 ] && nl_error "Must specify a subcommand (copy/shell/shutdown)"
+
+cmd=$1
+shift
+case $cmd in
+  copy) :;;
+  shell) :;;
+  shutdown) :;;
+  *) nl_error "Unknown command: '$cmd'";;
+esac
+
+if [ $opt_w = yes ]; then
+  n=1
+  echo "Waiting for $host:"
+  while !ping -n -c1 $host >/dev/null; do echo -n "Waiting: $n\r"; let n=n+1; done
+  echo "\n$host responding to ping"
+fi
+
+case $cmd in
+  copy) ssh $host remtransfer $rtopts $*;;
+  shell) ssh $host;;
+  shutdown) ssh $host sudo shutdown -h now;;
+  *) nl_error "Unknown command: '$cmd'";;
+esac

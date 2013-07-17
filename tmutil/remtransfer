@@ -1,0 +1,147 @@
+#! /bin/bash
+#ifdef __USAGE
+#remtransfer [-acd] [runtype ...] [run ...]
+#  -a Include runs not in the database (default)
+#  -c Confirm runs before transfer
+#  -d Perform dircksum after transfer
+#  -f Copy runs even if already present on removable drive
+#  -n just display what would be copied
+#
+#  runtype is one of flight, preflt, cal, data or junk
+#  More than one runtype may be listed
+#  Runs can be listed without runtype.
+#  If any runs are explicitly specified, runtypes are ignored
+#  If no runtypes are specified, runtypes flight, preflt and cal
+#  are assumed.
+#endif
+
+# This script is to be deployed to /usr/local/bin on the Linux
+# partition of a removable disk used to transfer flight data.
+# The src and dest definitions here should be the only two
+# items that need to be edited.
+
+src=/qnx4/home/hci/raw
+dest=/data/home/hci/raw
+
+function nl_error {
+  echo "remtransfer: $*" >&2
+  exit 1
+}
+ 
+opt_a='no'
+opt_c='no'
+opt_d='no'
+opt_f='no'
+opt_n='no'
+opt_nt=''
+while getopts "acdnw" opt; do
+  case $opt in
+    a) opt_a=yes;;
+    c) opt_c=yes;;
+    d) opt_d=yes;;
+    f) opt_f=yes;;
+    n) opt_n=yes; opt_nt='# ';;
+    \?) exit 1;; # getopts reports the error
+    :) exit 1;; # getopts reports the error
+  esac
+done
+let sval=$OPTIND-1
+shift $sval
+
+runtypes=''
+runs=''
+while [ $# -gt 0 ]; do
+  arg=$1
+  shift
+  case $arg in
+    flight) runtypes="$runtypes flight";;
+    preflt) runtypes="$runtypes preflt";;
+    cal) runtypes="$runtypes cal";;
+    data) runtypes="$runtypes data";;
+    junk) runtypes="$runtypes junk";;
+    [0-9][0-9][0-9][0-9][0-9][0-9].[0-9]*) runs="$runs $arg";;
+    *) nl_error "Unrecognized argumnet: '$arg'";;
+  esac
+done
+
+qruns=''
+if [ -n "$runs" ]; then
+  for run in $runs; do
+    qrun=''
+    for runtype in flight preflt cal data junk; do
+      if [ -d $src/$runtype/$run ]; then
+        qrun=$runtype/$run
+        break
+      fi
+    done
+    if [ -z "$qrun" ]; then
+      echo "Run $run not found on source drive"
+    elif [ -d $dest/$qrun -a $opt_f = no ]; then
+      echo "Run $run already on destination drive, skipping"
+    else
+      qruns="$qruns $qrun"
+    fi
+  done
+else
+  [ -z "$runtypes" ] && runtypes="flight preflt cal"
+  for runtype in $runtypes; do
+    for fqrun in $src/$runtype/*; do
+      if [ -d $fqrun ]; then
+        qrun=${fqrun#$src/}
+        if [ ! -d $dest/$qrun -o $opt_f = yes ]; then
+          qruns="$qruns $qrun"
+        fi
+      fi
+    done
+  done
+fi
+
+while [ -n "$qruns" -a $opt_c = yes ]; do
+  echo "Planning to copy the following:"
+  for qrun in $qruns; do echo "  $qrun"; done
+  echo -n "OK to continue?: [Yes/No/Select] "
+  read resp
+  case $resp in
+    [Yy]*) break;;
+    [Nn]*) echo "Transfer aborted"; exit 0;;
+    [Ss]*)
+      oldqruns=$qruns
+      qruns=''
+      for qrun in $oldqruns; do
+        echo -n "OK to copy $qrun?: [Y/N] "
+        read resp
+        case $resp in
+          [Yy]*) qruns="$qruns $qrun";;
+          [Nn]*) :;;
+          *) echo "I'll take that as a yes"
+             qruns="$qruns $qrun";;
+        esac
+      done;;
+    *) echo "Unrecognized response";;
+  esac
+done
+
+if [ -n "$qruns" ]; then
+  echo "Proceding to copy the following:"
+  for qrun in $qruns; do echo "  $qrun"; done
+  for qrun in $qruns; do
+    echo "Now copying $qrun"
+    runtype=${qrun%%/*}
+    if [ $opt_n = yes ]; then
+      echo "# rsync -a $src/$qrun $dest/$runtype"
+    else
+      rsync -a $src/$qrun $dest/$runtype
+    fi
+  done
+  if [ $opt_d = yes ]; then
+    for qrun in $qruns; do
+      if [ -f $dest/$qrun/.MD5SUM ]; then
+        echo "${opt_nt}dircksum $dest/$qrun"
+        [ $opt_n = no ] && dircksum $dest/$qrun
+      else
+        echo "${opt_nt}dircksum -w $dest/$qrun"
+        [ $opt_n = no ] && dircksum -w $dest/$qrun
+      fi
+    done
+  fi
+fi
