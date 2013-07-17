@@ -75,7 +75,7 @@ esac
 if [ $opt_w = yes ]; then
   n=1
   echo "Waiting for $host:"
-  while !ping -n -c1 $host >/dev/null; do echo -n "Waiting: $n\r"; let n=n+1; done
+  while ! ping -n -c1 $host >/dev/null; do echo -n "Waiting: $n\r"; let n=n+1; done
   echo "\n$host responding to ping"
 fi
 
