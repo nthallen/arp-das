@@ -18,7 +18,7 @@
 #  If no runtypes are specified, runtypes flight, preflt and cal
 #  are assumed.
 #
-%%C shell
+#%C shell
 #  Launches an interactive shell on the transfer system
 #%C shutdown
 #  Shuts down the transfer system for power cycle.
