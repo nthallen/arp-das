@@ -28,6 +28,9 @@ class data_client {
     int bfr_fd;
     void read();
     bool dc_quit;
+    virtual const char *context();
+    void dc_init();
+    void seek_tmid();
     tm_msg_t *msg;
     int nbQrow; // may differ from nbrow if stripping MFCtr & Synch
     int nbDataHdr;

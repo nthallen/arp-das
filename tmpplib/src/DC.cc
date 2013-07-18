@@ -26,8 +26,7 @@ void data_client::init(int bufsize_in, int non_block, const char *srcfile) {
   next_minor_frame = 0;
   majf_row = 0;
   minf_row = 0;
-  dc_state = DC_STATE_HDR;
-  toread = sizeof(tm_hdr_t);
+  dc_init();
   buf = new char[bufsize];
   tm_info_ready = false;
   dc_quit = false;
@@ -80,14 +79,20 @@ void data_client::read() {
     }
     if (nb <= 0) {
       bytes_read = 0;
-      toread = sizeof(tm_hdr_t);
+      dc_init();
+      // toread = sizeof(tm_hdr_t);
       if ( process_eof() ) return;
     }
     if ( dc_quit ) return; // possible if set from an outside command
   } while (nb == 0 );
   bytes_read += nb;
-  if ( bytes_read >= toread )
-    process_message();
+  if ( bytes_read >= toread ) {
+    if (msg->hdr.tm_id != TMHDR_WORD) {
+      seek_tmid();
+    } else {
+      process_message();
+    }
+  }
 }
 
 /** This is the basic operate loop for a simple extraction
@@ -134,6 +139,36 @@ void data_client::process_tstamp() {
   tm_info.t_stmp = msg->body.ts;
 }
 
+const char *data_client::context() {
+  return "";
+}
+
+void data_client::dc_init() {
+  dc_state = DC_STATE_HDR;
+  toread = sizeof(tm_hdr_t);
+}
+
+void data_client::seek_tmid() {
+  tm_hdrw_t *tm_id;
+  unsigned char *ubuf = (unsigned char *)buf;
+  int i;
+  for (i = 1; i < bytes_read; ++i) {
+    if (ubuf[i] == (TMHDR_WORD & 0xFF)) {
+      if (i+1 == bytes_read || ubuf[i+1] == ((TMHDR_WORD>>8)&0xFF)) {
+        nl_error(1, "%sDiscarding %d bytes in seek_tmid()", context(), i);
+        memmove(buf, buf+i, bytes_read - i);
+        bytes_read -= i;
+        dc_init();
+        return;
+      }
+    }
+  }
+  nl_error(1, "%sDiscarding %d bytes (to EOB) in seek_tmid()",
+    context(), bytes_read);
+  bytes_read = 0;
+  dc_init();
+}
+  
 void data_client::process_message() {
   while ( bytes_read >= toread ) {
     switch ( dc_state ) {
@@ -141,12 +176,12 @@ void data_client::process_message() {
         switch ( msg->hdr.tm_type ) {
           case TMTYPE_INIT:
             if ( tm_info_ready )
-              nl_error( 3, "Received redundant TMTYPE_INIT" );
+              nl_error(3, "%sReceived redundant TMTYPE_INIT", context());
             toread += sizeof(tm_info);
             break;
           case TMTYPE_TSTAMP:
             if ( !tm_info_ready )
-              nl_error( 3, "Expected TMTYPE_INIT, received TMTYPE_TSTAMP" );
+              nl_error( 3, "%sExpected TMTYPE_INIT, received TMTYPE_TSTAMP", context());
             toread += sizeof(tstamp_t);
             break;
           case TMTYPE_DATA_T1:
@@ -154,17 +189,20 @@ void data_client::process_message() {
           case TMTYPE_DATA_T3:
           case TMTYPE_DATA_T4:
             if ( !tm_info_ready )
-              nl_error( 3, "Expected TMTYPE_INIT, received TMTYPE_DATA_Tn" );
+              nl_error(3, "%sExpected TMTYPE_INIT, received TMTYPE_DATA_Tn", context(); );
             if ( msg->hdr.tm_type != input_tm_type )
-              nl_error(3, "Invalid data type: %04X", msg->hdr.tm_type );
+              nl_error(3, "%sInvalid data type: %04X", context(), msg->hdr.tm_type );
             toread = nbDataHdr + nbQrow * msg->body.data1.n_rows;
             break;
-          default: nl_error( 3, "Invalid TMTYPE: %04X", msg->hdr.tm_type );
+          default:
+            nl_error(2, "%sInvalid TMTYPE: %04X", context(), msg->hdr.tm_type );
+            seek_tmid();
+            return;
         }
         dc_state = DC_STATE_DATA;
         if ( toread > bufsize )
-          nl_error( 3, "Record size %d exceeds allocated buffer size %d",
-            toread, bufsize );
+          nl_error( 3, "%sRecord size %d exceeds allocated buffer size %d",
+            context(), toread, bufsize );
         break;
       case DC_STATE_DATA:
         switch ( msg->hdr.tm_type ) {
@@ -187,10 +225,9 @@ void data_client::process_message() {
         } else if ( bytes_read == toread ) {
           bytes_read = 0;
         }
-        toread = sizeof(tm_hdr_t);
-        dc_state = DC_STATE_HDR;
+        dc_init();
         break;
-      default: nl_error( 4, "Invalid dc_state" );
+      default: nl_error(4, "%sInvalid dc_state %d", context(), dc_state);
     }
   }
 }
