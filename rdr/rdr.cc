@@ -383,4 +383,11 @@ int Reader::process_eof() {
   return 0;
 }
 
+const char *Reader::context() {
+  static char buf[80];
+  if (data_client::bfr_fd == -1) return "";
+  snprintf(buf, 80, "%s: ", mlf->fpath);
+  return &buf[0];
+}
+
 void tminitfunc() {}

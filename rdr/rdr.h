@@ -25,6 +25,7 @@ class Reader : public data_generator, public data_client {
     int  process_eof();
     void lock(const char *by = 0, int line = -1);
     void unlock();
+    const char *context();
     int it_blocked;
     sem_t it_sem;
     int ot_blocked;
