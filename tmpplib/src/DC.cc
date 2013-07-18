@@ -189,13 +189,16 @@ void data_client::process_message() {
           case TMTYPE_DATA_T3:
           case TMTYPE_DATA_T4:
             if ( !tm_info_ready )
-              nl_error(3, "%sExpected TMTYPE_INIT, received TMTYPE_DATA_Tn", context(); );
+              nl_error(3, "%sExpected TMTYPE_INIT, received TMTYPE_DATA_Tn",
+                context());
             if ( msg->hdr.tm_type != input_tm_type )
-              nl_error(3, "%sInvalid data type: %04X", context(), msg->hdr.tm_type );
+              nl_error(3, "%sInvalid data type: %04X", context(),
+                msg->hdr.tm_type );
             toread = nbDataHdr + nbQrow * msg->body.data1.n_rows;
             break;
           default:
-            nl_error(2, "%sInvalid TMTYPE: %04X", context(), msg->hdr.tm_type );
+            nl_error(2, "%sInvalid TMTYPE: %04X", context(),
+              msg->hdr.tm_type );
             seek_tmid();
             return;
         }
