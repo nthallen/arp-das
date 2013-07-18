@@ -55,6 +55,7 @@ Cmd_Selectee::Cmd_Selectee( const char *name, int bufsz ) :
     Ser_Sel(tm_dev_name(name), O_RDONLY|O_NONBLOCK, bufsz) {}
 
 int Cmd_Selectee::ProcessData(int flag) {
+  nl_error(-2, "Received NUL Quit Cmd");
   return 1;
 }
 
