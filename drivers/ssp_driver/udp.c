@@ -12,7 +12,8 @@ static int raw_length, n_channels, scan_size;
 static int cur_word, scan_serial_number, frag_hold, scan_OK;
 static int cfgerr_reported;
 
-int udp_create(void) {
+int udp_create(const char *interface, const char *portspec) {
+  struct addrinfo hints,*results, *p;
   struct sockaddr_in servAddr;
   int port, rc;
   socklen_t servAddr_len = sizeof(servAddr);
@@ -40,18 +41,31 @@ int udp_create(void) {
   scan_size = raw_length*sizeof(long);
   scan1 = (ssp_config.NS << 16) + n_channels;
 
-  /* socket creation */
-  udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
-  if (udp_socket<0)
-    nl_error( 3, "Cannot open UDP socket: %s", strerror(errno) );
-
   /* bind local server port */
-  servAddr.sin_family = AF_INET;
-  servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  servAddr.sin_port = htons(0);
-  rc = bind (udp_socket, (struct sockaddr *) &servAddr,sizeof(servAddr));
-  if(rc<0) nl_error( 3, "cannot bind port number %d \n",  0);
-  rc = getsockname( udp_socket, (struct sockaddr *)&servAddr,
+  memset(&hints, 0, sizeof(hints));	
+  hints.ai_family = PF_INET;		// Specify IPv4, not v6
+  hints.ai_socktype = SOCK_DGRAM;
+  hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
+    
+  rc = getaddrinfo(interface, 
+                    portspec,
+                    &hints,
+                    &results);
+
+  if (rc)
+    nl_error( 3, "getaddrinfo() error: %s",
+          gai_strerror(rc) );
+  for(p=results; p!= NULL; p=p->ai_next) {
+    udp_socket = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+    if (udp_socket < 0)
+      nl_error( 2, "socket() error: %s", strerror(errno) );
+    else if ( bind(udp_socket, p->ai_addr, p->ai_addrlen) < 0 )
+      nl_error( 2, "bind() error: %s", strerror(errno) );
+    else break;
+  }
+  freeaddrinfo(results);
+  
+  rc = getsockname(udp_socket, (struct sockaddr *)&servAddr,
     &servAddr_len);
   port = ntohs(servAddr.sin_port);
   udp_state = FD_READ;

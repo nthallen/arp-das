@@ -5,10 +5,11 @@
 
 <init> sspdrv_init(msg_hdr, argc, argv);
 
-<opts> "b:N:H:"
+<opts> "b:N:H:I:"
 <sort>
 	-b <board_id> (deprecated) Identify which SSP we are talking to
 	-H <ssp_hostname>
+  -I <ssp_interface> Listen for UDP on only the specified interface
 	-N <logging config>
 	-L <latency>
 

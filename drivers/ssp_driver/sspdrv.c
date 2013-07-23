@@ -34,7 +34,7 @@
 
 static char board_hostname[40] = "10.0.0.200";
 static char *mlf_config = NULL;
-static const char *ssp_name;
+static const char *ssp_name, *interface, *portspec = "0";
 static int quit_received = 0;
 static int trigger_count = 0;
 static int latency = 1;
@@ -58,6 +58,9 @@ void sspdrv_init( const char *name, int argc, char * const *argv ) {
         break;
       case 'H':
         snprintf( board_hostname, 40, "%s", optarg );
+        break;
+      case 'I':
+        interface = optarg;
         break;
       case 'N':
         mlf_config = optarg;
@@ -165,7 +168,7 @@ void read_cmd( int cmd_fd ) {
           head = tail;
           continue;
         }
-        { ssp_config.NP = udp_create();
+        { ssp_config.NP = udp_create(interface, portspec);
           char udp_buf[20];
           snprintf(udp_buf, 20, "NP:%d", ssp_config.NP);
           tcp_enqueue(udp_buf);
