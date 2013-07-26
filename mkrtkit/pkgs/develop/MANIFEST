@@ -37,6 +37,7 @@ usr/local/bin/swscomp
 usr/local/bin/tmc
 usr/local/bin/tmcalgo
 usr/local/bin/tomat
+usr/local/bin/transfer
 usr/local/bin/vmutil
 usr/local/include
 usr/local/include/Selector.h

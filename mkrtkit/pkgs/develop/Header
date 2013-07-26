@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.46
+Version: 2.5.51
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,16 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.51
+#   PhRTG: Fixed off-by-one bug reading SSP files
+# 2.5.50
+#   DC.h: Add virtual context() for better error reporting
+# 2.5.49
+#   transfer debug
+# 2.5.48
+#   transfer script
+# 2.5.47
+#   SerSelector.h: fillbuf(N)
 # 2.5.46
 #   qclicomp: Support alternate capitalizations
 #   pkg2pkg:  Allow zero versions
