@@ -9,7 +9,7 @@
 <sort>
 	-b <board_id> (deprecated) Identify which SSP we are talking to
 	-H <ssp_hostname>
-  -I <ssp_interface> Listen for UDP on only the specified interface
+	-I <ssp_interface> Listen for UDP on only the specified interface
 	-N <logging config>
 	-L <latency>
 
