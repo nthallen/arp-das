@@ -79,10 +79,19 @@ if [ $opt_w = yes ]; then
   echo "Waiting for $host:"
   while ! ping -n -c1 $host >/dev/null; do
     echo -n "Waiting: $n\r"
+    if [ -d /net/hwv ]; then
+      echo
+      while [ -d /net/hwv ]; do
+        echo  -n "System is up under QNX: Reboot: $n\r"
+        let n=n+1
+        sleep 1
+      done
+      echo -n "\nRebooting"
+    fi
     let n=n+1
   done
   echo "\n$host responding to ping"
-  while ! ssh $host echo ssh responding; do
+  while ! ssh $host echo ssh responding 2>/dev/null; do
     echo -n "Waiting for ssh: $n\r"
     let n=n+1
   done
