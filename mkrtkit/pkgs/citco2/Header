@@ -1,9 +1,11 @@
 # Package citco2
 #  Development base for CalTech CO2 Containers
-Version: 1.3
-Requires: develop p5-libwww f2c curllog p5-Mail-Sendmail netcat
+Version: 1.4
+Requires: develop p5-libwww f2c curllog p5-Mail-Sendmail netcat links
 Files: MANIFEST_pkg @ /
 
 # Changes
+# 1.4 9/19/13
+#   Added links
 # 1.3 10/4/12
 #   Added curllog, netcat
