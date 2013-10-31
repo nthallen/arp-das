@@ -3,6 +3,7 @@
 while (<>) {
   while ( s/^([^\t\n]*)\t/$1 . ' ' x (8 - (length($1) % 8))/e ) {}
   s/\s*$/\n/;
+  s/\r/\n/g; # Try for any stray carriage returns
   s/\x85/.../g; # …
   s/\x96/-/g; # –
   s/\x97/--/g; # —
@@ -23,3 +24,4 @@ while (<>) {
   print;
 }
 __END__
+
