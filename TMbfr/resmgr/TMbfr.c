@@ -646,12 +646,12 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
       opt_expire = Data_Queue.total_Qrows - dqd->starting_Qrow;
       if ( opt_expire < n_expire ) n_expire = opt_expire;
       if ( !nonblock ) {
-	int min_rdr = min_reader(dqd);
-	if (min_rdr > dqd->Qrows_expired) {
-	  opt_expire = min_rdr - dqd->Qrows_expired;
-	  if ( opt_expire >= 0 && opt_expire < n_expire )
-	    n_expire = opt_expire;
-	} else n_expire = 0;
+        int min_rdr = min_reader(dqd);
+        if (min_rdr > dqd->Qrows_expired) {
+          opt_expire = min_rdr - dqd->Qrows_expired;
+          if ( opt_expire >= 0 && opt_expire < n_expire )
+            n_expire = opt_expire;
+        } else n_expire = 0;
       }
       assert(n_expire >= 0);
       if ( n_expire ) {
@@ -693,7 +693,13 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
                 ocb->rw.write.off_queue );
         ocb->part.dptr += ocb->rw.write.off_queue;
         ocb->rw.write.nb_rec -= ocb->rw.write.off_queue;
-        ocb->state = TM_STATE_DATA;
+        if (ocb->rw.write.nb_msg > 0) {
+          ocb->state = TM_STATE_DATA;
+        } else {
+          // ocb->state = TM_STATE_HDR; // Already set
+          ocb->part.nbdata = sizeof( ocb->part.hdr );
+          ocb->part.dptr = (char *)&ocb->part.hdr;
+        }
         break;
       case TM_STATE_DATA:
         break;
