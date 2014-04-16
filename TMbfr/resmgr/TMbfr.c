@@ -548,7 +548,11 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock, int new_rows ) {
               new_rows += data_state_eval(ocb, nonblock);
               // ### Make sure data_state_eval returns the number
               // of rows that have been completely added to DQ
-              if ( ocb->part.nbdata ) {
+              if ( ocb->rw.write.nb_rec <= 0 ) {
+                ocb->state = TM_STATE_HDR;
+                ocb->part.nbdata = sizeof(ocb->part.hdr);
+                ocb->part.dptr = (char *)&ocb->part.hdr;
+              } else {
                 ocb->state = TM_STATE_DATA;
               } // else break out
               break;
@@ -693,13 +697,7 @@ static int allocate_qrows( IOFUNC_OCB_T *ocb, int nrows_req, int nonblock ) {
                 ocb->rw.write.off_queue );
         ocb->part.dptr += ocb->rw.write.off_queue;
         ocb->rw.write.nb_rec -= ocb->rw.write.off_queue;
-        if (ocb->rw.write.nb_msg > 0) {
-          ocb->state = TM_STATE_DATA;
-        } else {
-          // ocb->state = TM_STATE_HDR; // Already set
-          ocb->part.nbdata = sizeof( ocb->part.hdr );
-          ocb->part.dptr = (char *)&ocb->part.hdr;
-        }
+        ocb->state = TM_STATE_DATA;
         break;
       case TM_STATE_DATA:
         break;
