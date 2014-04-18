@@ -12,6 +12,7 @@
 	case 1: inst = "Harvard Water Vapor"; break;
 	case 2: inst = "Harvard Total Water"; break;
 	case 3: inst = "Harvard Carbon Isotopes"; break;
+	case 4: inst = "Harvard ES96 Ozone"; break;
 	default: inst = "Invalid Instrument ID"; break;
       }
       nl_error(0, "%s: DACS Build Number %u", inst, build );
