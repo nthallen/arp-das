@@ -552,8 +552,6 @@ static void do_write( IOFUNC_OCB_T *ocb, int nonblock, int new_rows ) {
                 ocb->state = TM_STATE_HDR;
                 ocb->part.nbdata = sizeof(ocb->part.hdr);
                 ocb->part.dptr = (char *)&ocb->part.hdr;
-              } else {
-                ocb->state = TM_STATE_DATA;
               } // else break out
               break;
             default:
