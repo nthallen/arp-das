@@ -3,6 +3,10 @@
 #%C
 #	Updates the time on an Experiment's flight computer to match
 #	the time on the GSE computer.
+#%C -n
+#	Do not set flight computer's system time, just program the
+#	realtime clock. Useful if flight computer is running ntpd.
+
 
 function nl_error {
   echo flttime: $* >&2
@@ -17,16 +21,27 @@ cfile=./Experiment.config
 [ -f "$cfile" ] || nl_error Unable to locate configuration file $cfile
 . $cfile
 [ -n "$FlightNode" ] || nl_error FlightNode undefined
+opt_n=no
+while getopts "n" opt; do
+  case $opt in
+    n) opt_n=yes;;
+    \?) exit 1;; # getopts reports error
+    :) exit 1;; # getopts reports error
+  esac
+done
 
 if [ `id -u` != 0 ]; then
   exec /usr/pkg/bin/sudo $0 $*
 fi
 
-[ -d /net/$FlightNode ] || nl_error Unable to locate Flight Node /net/$FlightNode
-rtime=`date -u +%Y%m%d%H%M.%S`
-[ -z "$rtime" ] && nl_error "Error getting time"
-on -f $FlightNode date -u $rtime >/dev/null ||
-  nl_error "Error setting time on $FlightNode to '$rtime'"
+[ -d /net/$FlightNode ] ||
+  nl_error Unable to locate Flight Node /net/$FlightNode
+if [ $opt_n = no ]; then
+  rtime=`date -u +%Y%m%d%H%M.%S`
+  [ -z "$rtime" ] && nl_error "Error getting time"
+  on -f $FlightNode date -u $rtime >/dev/null ||
+    nl_error "Error setting time on $FlightNode to '$rtime'"
+fi
 on -f $FlightNode /sbin/rtc -s hw ||
   nl_error "Error setting hardware clock"
 
