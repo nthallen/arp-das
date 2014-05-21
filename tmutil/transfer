@@ -64,6 +64,8 @@ fi
 [ -z "$TRANSFER_HOST" ] &&
   nl_error "TRANSFER_HOST undefined"
 host=$TRANSFER_HOST
+[ -z "$FlightNode" ] &&
+  nl_error "FlightNode undefined"
 
 cmd=$1
 shift
@@ -79,9 +81,9 @@ if [ $opt_w = yes ]; then
   echo "Waiting for $host:"
   while ! ping -n -c1 $host >/dev/null; do
     echo -n "Waiting: $n\r"
-    if [ -d /net/hwv ]; then
+    if [ -d /net/$FlightNode ]; then
       echo
-      while [ -d /net/hwv ]; do
+      while [ -d /net/$FlightNode ]; do
         echo  -n "System is up under QNX: Reboot: $n\r"
         let n=n+1
         sleep 1
