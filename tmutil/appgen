@@ -93,6 +93,11 @@ fi
 
 [ -z "$ifile" ] && nl_error No .spec file specified and none found
 
+if [ ! -f VERSION ]; then
+  echo "No VERSION file found: creating VERSION 1.0"
+  echo "1.0" >VERSION
+fi
+
 #----------------------------------------------------------------
 # Now redirect standard input and output to process the spec file
 #----------------------------------------------------------------
@@ -104,6 +109,7 @@ typeset SERVER
 typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC DISTRIB SRCDIST
 typeset TGTNODE TGTDIR
 typeset PHTGT
+typeset pcmfile
 
 # is_member setname member
 function is_member {
@@ -447,11 +453,12 @@ for i in $basetargets; do
   case $i in
     *col)
       if replace_all .tmc $i.cc "\n\t\$(TMC.col)" $deps; then
+        pcmfile=${i%col}.pcm
         add_member ouis collect
         add_member ouis seteuid
-        add_member DISTRIB ${i%col}.pcm
+        add_member DISTRIB $pcmfile
         add_member DISTRIB tm.dac
-        add_member OBJ ${i%col}.pcm
+        add_member OBJ $pcmfile
         add_member OBJ tm.dac
         ltmpp=' -ltmpp'
       fi;;
@@ -609,6 +616,7 @@ if [ -n "$SUBDIRS" ]; then
   output_macro SUBDIRS $SUBDIRS
 fi
 echo SPECFILE=$ifile
+[ -n "$pcmfile" ] && echo PCMFILE=$pcmfile
 output_macro SRC $SRC
 output_macro TOOL $TOOL
 output_macro SCRIPT $SCRIPT
@@ -648,7 +656,11 @@ echo "\tappgen $ifile"
   echo 'extdistribution : $(DSTRB) $(SRCDIST) VERSION'
   echo "\t@[ -d \$(TGTDIR)/bin ] || mkdir \$(TGTDIR)/bin"
   echo "\t@[ -d \$(TGTDIR)/bin/\$(VERSION) ] || mkdir \$(TGTDIR)/bin/\$(VERSION)"
-  echo "\t@[ -d  \$(TGTDIR)/bin/\$(VERSION)/Base ] || mkdir \$(TGTDIR)/bin/\$(VERSION)/Base"
+  echo "\t@[ -d \$(TGTDIR)/bin/\$(VERSION)/Base ] || mkdir \$(TGTDIR)/bin/\$(VERSION)/Base"
+  ### echo "\t@[ -f \$(TGTDIR)/bin/\$(VERSION)/\$(PCMFILE) ] && ! cmp -s
+  echo "\t@[ ! -f \$(TGTDIR)/bin/\$(VERSION)/\$(PCMFILE) ] || \\"
+  echo "\t  cmp -s \$(TGTDIR)/bin/\$(VERSION)/\$(PCMFILE) \$(PCMFILE) || \\"
+  echo "\t  ( echo \"\$(PCMFILE) changed without VERSION update\"; false )"
   echo "\t@distribute \$(FORCE) \$(TGTDIR)/bin/\$(VERSION) \$(DSTRB)"
   echo "\t@distribute \$(FORCE) \$(TGTDIR)/bin/\$(VERSION)/Base \$(SRCDIST)"
   echo 'distribution : extdistribution'
