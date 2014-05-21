@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.53
+Version: 2.5.54
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,10 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.54
+#   appgen: enforce .pcm file consistency
+#   flttime: update help
+#   transfer: check for QNX boot
 # 2.5.53
 #   DACS_ID.tmc: added ES96 Ozone
 # 2.5.52
