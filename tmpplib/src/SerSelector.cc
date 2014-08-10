@@ -392,7 +392,7 @@ int Ser_Sel::not_str( const char *str_in, unsigned int len ) {
     nl_error( 4, "Ser_Sel precondition failed: "
       "cp = %d, nc = %d, buf %s",
       cp, nc, buf ? "not NULL" : "is NULL" );
-  for (i = 0; i < len; ++i) {
+  for (i = 0; i < len && cp < nc; ++i) {
     if ( str[i] != buf[start_cp+i] ) {
       if ( cp < nc )
         report_err( "Expected string '%s' at column %d",
