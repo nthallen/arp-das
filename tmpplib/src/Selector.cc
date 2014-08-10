@@ -120,9 +120,9 @@ void Selector::event_loop() {
     for ( Sp = S.begin(); Sp != S.end(); ++Sp ) {
       Selectee *P = *Sp;
       if (P->flags & gflags) {
-        P->ProcessData(P->flags & gflags);
-        // gflags &= ~(P->flags & gflags);
-        atomic_clr((unsigned *)&gflags, P->flags & gflags);
+        int flag = P->flags & gflags;
+        atomic_clr((unsigned *)&gflags, flag);
+        P->ProcessData(flag);
       }
     }
     for ( Sp = S.begin(); Sp != S.end(); ++Sp ) {
