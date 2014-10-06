@@ -47,12 +47,14 @@ my $usepanels;
 
 sub set_shortname {
   my ( $pre, $name, $func ) = @_;
+  my $prename =
+    $pre ne '' ? "$pre:$name" : $name;
   die "Specified function name '$func' conflicts with earlier definition\n"
-  if defined $shortname{"$pre$name"} && $shortname{"$pre$name"} ne $func;
+  if defined $shortname{$prename} && $shortname{$prename} ne $func;
   die "Specified function name '$func' conflicts with earlier definition\n"
-  if defined $longname{$func} && $longname{$func} ne "$pre$name";
-  $shortname{"$pre$name"} = $func;
-  $longname{$func} = "$pre$name";
+  if defined $longname{$func} && $longname{$func} ne $prename;
+  $shortname{$prename} = $func;
+  $longname{$func} = $prename;
   $iscustom{$func} = 1;
 }
 
@@ -253,7 +255,10 @@ for my $panel (@panel) {
           $plottext );
       $plottext =~ s/  +/ /g;
       my $qplt = "p$experiment$plt";
-      $qplt = "cust_$qplt" if $iscustom{$plt};
+      if ($iscustom{$plt}) {
+        $qplt = "cust_$qplt";
+        $generated{"$qplt.m"} = 1;
+      }
       print UI
         "f = ne_dialg(f, 'add', 1, 0, '$qplt', '$plottext' );\n";
       if ( ! $iscustom{$plt} ) {
