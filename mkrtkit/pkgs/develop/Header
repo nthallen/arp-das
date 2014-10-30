@@ -7,6 +7,9 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.55 (upcoming)
+#   genui: fix custom function handling after panel support changes
+#   swscomp: Lines starting with # are ignored
 # 2.5.54
 #   appgen: enforce .pcm file consistency
 #   flttime: update help
