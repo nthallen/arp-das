@@ -1,13 +1,15 @@
 # develop package
-Version: 2.5.54
-Requires: flight gcc photon mozilla sudo perllink fftwf
+Version: 2.5.56
+Requires: flight gcc photon mozilla sudo perllink fftwf mozilla_certs
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
 Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
-# 2.5.55 (upcoming)
+# 2.5.56
+#   Add mozilla_certs to dependencies
+# 2.5.55
 #   genui: fix custom function handling after panel support changes
 #   swscomp: Lines starting with # are ignored
 # 2.5.54

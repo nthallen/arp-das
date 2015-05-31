@@ -1,5 +1,5 @@
 # Package flight
-Version: 2.5.48
+Version: 2.5.49
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
@@ -9,6 +9,9 @@ Files: MANIFEST_pkg @ /
 #   tmpplib: patch for Ser_Sel::not_str which would
 #     return true if partial string was found at end
 #     of input.
+#     Patch for Selector to clear gflags before calling
+#     Selector::ProcessData in order to avoid a race
+#     condition.
 # 2.5.48
 #   TMbfr: fixed problem exacerbated by 2.5.47
 # 2.5.47
