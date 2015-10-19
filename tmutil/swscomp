@@ -106,6 +106,8 @@ for my $file ( @ARGV ) {
     } elsif ( $line =~ s/^\s+:\s+/: / ) {
       chomp($line);
       push(@{$cmds{$curvar}}, "  $line");
+    } elsif ( $line =~ m/^\s*(?:#.*)?$/ ) {
+      # Comment or empty line
     } else {
       if ($line =~
             s/^\s*(SWS_[A-Z0-9_]+)\s*(\d+)\s*([^:]+):/      case $1:/ ) {
