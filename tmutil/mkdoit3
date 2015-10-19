@@ -476,7 +476,10 @@ print $fh <<'EOF';
         [ $srcmode = playback ] && pbarg=" -p $Run"
 EOF
 
-print $fh "        echo screen -t $opts{o} \$0 \$pbarg \$ncopt -sS \$session screen\n";
+print $fh
+  "        echo screen -t $opts{o} \$0 \$pbarg \$ncopt -sS \$session screen\n";
+print $fh
+  "        echo select $screen{$display[0]}->[0]->{screenname}\n";
 print $fh <<'EOF';
       } >$rc
       screen -c $rc

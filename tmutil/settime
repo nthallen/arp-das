@@ -5,6 +5,8 @@
 #	-u Specified time is UTC rather than local time
 #%C	[-l] -n node
 #	Sets time on the current node from the specified node
+#%C     [-l] -r node
+#       Sets time on node from the current node
 #In either case:
 #	-l Set hardware clock to local time
 #
