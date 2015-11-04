@@ -236,7 +236,8 @@ while read tgt mode deps; do
         add_member tmcbase $j.tmc
         add_member cmdbase $j.cmd
         add_member DISTRIB $j.out
-        add_member SRCDIST $j.m $j.qcli
+        add_member SRCDIST $j.m
+        add_member SRCDIST $j.qcli
         add_member OBJ $j.cmd
         add_member OBJ $j.out
         add_member OBJ $j.tmc
