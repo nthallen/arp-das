@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.57
+Version: 2.5.58
 Requires: flight gcc photon mozilla sudo perllink fftwf mozilla_certs
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,8 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.58
+#   appgen: correctly include *.qcli in SRCDIST
 # 2.5.57
 #   mkdoit3: select first data display in -sa mode
 # 2.5.56
