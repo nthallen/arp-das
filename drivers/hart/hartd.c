@@ -25,7 +25,14 @@ void hart_init(void) {
   else nl_error(1, "Hart: ver request returned %d bytes", nb);
   // Now program the scanning method, units
   // This string specifies scanning 2 channels and reading Ohms
-  gpib232_wrt( HART_ADDR, "scn=10 & scmo=1 & un=o & sact=r\n" );
+  // To read 10 channels, change scn=10
+  // Also possible to program a user-specified sequence:
+  //    scun[=n] set number of steps in user defined sequence (1-100)
+  //    scuc(i)=j set step i to j
+  //      j=0 for input 2
+  //      j=1-10 for scanner 1-10
+  //    scun=2 & scuc(1)=1 & scuc(2)=5
+  gpib232_wrt( HART_ADDR, "scn=2 & scmo=1 & un=o & sact=r\n" );
 }
 
 static void hart_shutdown(void) {
