@@ -1,6 +1,7 @@
-# Makefile Generated Fri Jan 25 09:13:28 EST 2013
+# Makefile Generated Wed May 21 10:30:15 EDT 2014
 MNC=demo
 SPECFILE=demo.spec
+PCMFILE=demo.pcm
 SRC=types.tmc base.tmc SWData.tmc SWData.h demo.tbl demo.tma
 SRC+=demo.sws demojson.cdf demo.doit savelog.cmd SWData.cmd
 SRC+=SWData_col.tmc
@@ -55,7 +56,10 @@ VERSION=`cat VERSION`
 extdistribution : $(DSTRB) $(SRCDIST) VERSION
 	@[ -d $(TGTDIR)/bin ] || mkdir $(TGTDIR)/bin
 	@[ -d $(TGTDIR)/bin/$(VERSION) ] || mkdir $(TGTDIR)/bin/$(VERSION)
-	@[ -d  $(TGTDIR)/bin/$(VERSION)/Base ] || mkdir $(TGTDIR)/bin/$(VERSION)/Base
+	@[ -d $(TGTDIR)/bin/$(VERSION)/Base ] || mkdir $(TGTDIR)/bin/$(VERSION)/Base
+	@[ ! -f $(TGTDIR)/bin/$(VERSION)/$(PCMFILE) ] || \
+	  cmp -s $(TGTDIR)/bin/$(VERSION)/$(PCMFILE) $(PCMFILE) || \
+	  ( echo "$(PCMFILE) changed without VERSION update"; false )
 	@distribute $(FORCE) $(TGTDIR)/bin/$(VERSION) $(DSTRB)
 	@distribute $(FORCE) $(TGTDIR)/bin/$(VERSION)/Base $(SRCDIST)
 distribution : extdistribution
