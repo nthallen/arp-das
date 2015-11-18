@@ -1,0 +1,24 @@
+# DACS_HCl.txt
+Experiment=DACS_HCl
+HomeDir=/home/DACS_HCl
+FlightNode=hci2
+
+# N_PTRH, N_AO_CHIPS, IDX_N_CHANNELS, N_QCLICTRL, CTR_UG_N_BDS
+# are all copied from the matching VHDL generics for the DACS
+N_PTRH=9
+N_AO_CHIPS=4
+IDX_N_CHANNELS=0
+N_QCLICTRL=1
+CTR_UG_N_BDS=0
+N_PWRMON=0
+
+# CP_NCMDS is the number of commands on the command processor
+CP_NCMDS=50
+
+# CP_DS is the starting digio bit number for the command processor
+# digital status lines
+CP_DS=104
+
+# PB_S is the starting digio bit number for the power board
+# status lines.
+PB_S=160
