@@ -28,10 +28,10 @@ echo "\nRunning flight.sh: \c"; date
 # This is where we will decide what experiment we are
 #----------------------------------------------------------------
 cfile=Experiment.config
-if [ -f "$cfile" ]; then
+if [ -f "$cfile" -a -r "$cfile" ]; then
   . $cfile
 else
-  echo flight.sh: missing $cfile: stopping >&2
+  echo flight.sh: missing or unreadable $cfile: stopping >&2
   exec 1>&4 2>&4 # close pipe to flight.sh.log and reopen stdout/err
   exec parent
 fi
@@ -66,9 +66,15 @@ if [ -n "$LOOP_ON_FILE" -a -e "$LOOP_ON_FILE" ]; then
   [ -f $LOOP_STOP_FILE ] && mv $LOOP_STOP_FILE $LOOP_START_FILE
   exit 0 # exit to reestablish tee log
 elif [ -e "$LOOP_STOP_FILE" ]; then
-  echo "`date '+%T'` Looping terminated"
-  rm -f $LOOP_STOP_FILE $LOOP_START_FILE
-  script=/dev/null
+  if [ -n "$RESTART_FILE" -a -e "$RESTART_FILE" ]; then
+    echo "`date '+%T'` Restarting"
+    rm -f "$RESTART_FILE"
+    script=`cat $LOOP_STOP_FILE`
+  else
+    echo "`date '+%T'` Looping terminated"
+    rm -f $LOOP_STOP_FILE $LOOP_START_FILE
+    script=/dev/null
+  fi
 elif [ -e "$LOOP_START_FILE" ]; then
   script=`cat $LOOP_START_FILE`
   rm -f $LOOP_START_FILE
