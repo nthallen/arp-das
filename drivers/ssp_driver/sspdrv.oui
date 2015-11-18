@@ -5,7 +5,7 @@
 
 <init> sspdrv_init(msg_hdr, argc, argv);
 
-<opts> "b:N:H:I:"
+<opts> "b:N:H:I:L:"
 <sort>
 	-b <board_id> (deprecated) Identify which SSP we are talking to
 	-H <ssp_hostname>
