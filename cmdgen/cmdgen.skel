@@ -1360,6 +1360,8 @@ int cmd_check(cmd_state *s) {
   #endif
 
   static void cmd_exit( void ) {
+    const char *name;
+
     #if ! PHOTON_INTERFACE
       CLEAR_DISPLAY_LINE;
       UPDATE_OUTPUT;
@@ -1367,7 +1369,9 @@ int cmd_check(cmd_state *s) {
     #ifdef FINAL_CLEANUP
       FINAL_CLEANUP
     #endif
-    nl_error(0, "Shutdown" );
+    name = getlogin();
+    if (name == NULL) name = "NULL";
+    nl_error(0, "Shutdown (%s)", name);
   }
 
   int main(int argc, char **argv) {
