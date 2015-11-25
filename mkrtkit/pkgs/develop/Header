@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.58
+Version: 2.5.59
 Requires: flight gcc photon mozilla sudo perllink fftwf mozilla_certs
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,9 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.59
+#   cmdgen: recompiled, no changes
+#   cmdgen.skel: report username on shutdown
 # 2.5.58
 #   appgen: correctly include *.qcli in SRCDIST
 # 2.5.57
