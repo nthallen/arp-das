@@ -210,7 +210,8 @@ sub check_header {
 	if ( ! -f $path && ! -d $path && ! -l $path ) {
 	  warn "$pkg: File $path missing\n";
 	  $RV = 1;
-	} elsif ( -f $path && $have_tgz && -M $path < $tgz_time ) {
+	} elsif ( -f $path && $have_tgz && -M $path < $tgz_time &&
+                  $_ !~ m|/\+REQUIRED_BY$| ) {
 	  warn "$pkg: File $path is newer\n";
 	  $RV = 1 if $err_if_newer;
 	}
