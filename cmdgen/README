@@ -14,16 +14,9 @@ separators as used in the definition of $as_tr_sh. I have tried
 using a ported version of GNU sed, but am running into another
 problem there that I haven't tracked down yet.
 
-An QNX6, you will want to modify LDFLAGS as:
+On QNX6, you will want to modify LDFLAGS as:
 
   LDFLAGS='=Wl,-rpath -Wl,/usr/local/lib -L/usr/local/lib'
 
 This can be done in config.site, which is maintained in
 QNX6/utils.
-
-An QNX6, you will want to modify LDFLAGS as:
-
-  LDFLAGS='=Wl,-rpath -Wl,/usr/local/lib -L/usr/local/lib'
-
-This can be done in config.site, which is maintained in
-../QNX6/utils.
