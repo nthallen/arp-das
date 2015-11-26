@@ -75,7 +75,6 @@ while ( @ARGV ) {
 
 my $cache;
 my $refpkg;
-my @recheck;
 
 if ( $repository ) {
   $cache = $repository;
@@ -196,41 +195,41 @@ while ( @depchk ) {
       $chkdep = $avail;
       if ( $pkgplan->{req_by} && @{$pkgplan->{req_by}} == 1 &&
            $req_by eq 'command line' ) {
-
         shift @{$pkgplan->{req_by}};
       }
     }
     # now install any dependent packages that aren't installed
+    my $archive = "$cache/" . ver_print($chkdep) . ".tar.gz";
     my $hdr = "$refpkg/" . ver_print($chkdep) . "/Header";
-    if ( open( my $hdrfh, "<", $hdr ) ) {
-      while (<$hdrfh>) {
-        if ( s/^\s*Requires:\s*// ) {
-          my @pkgs =
-            map {
-                s/-\[0-9\]\*$//;
-                s/^([\w-]+)(?:-(\d+(?:\.\d+)*))?$/$1/;
-                $_}
-              split(' ');
-          $pkgplan->{deps} ||= [];
-          for my $reqpkg (@pkgs) {
-            if ( ! defined $pkgplan{$reqpkg} ) {
-              $pkgplan{$reqpkg} = { };
-              push(@depchk, $reqpkg);
-            }
-            push(@{$pkgplan->{deps}}, $reqpkg);
-            $pkgplan{$reqpkg}->{req_by} ||= [];
-            push(@{$pkgplan{$reqpkg}->{req_by}}, $pkg);
+    if ( ! (-f $hdr && open(my $hdrfh, "<", $hdr))) {
+      if ( !( -f $archive &&
+              open(my $hdrfh, "-|",
+                    "tar -Oxzf $archive var/huarp/pkg/" .
+                    ver_print($chkdep) . "/Header"))) {
+        die "No Header for " . ver_print($chkdep) . "\n";
+      }
+    }
+    while (<$hdrfh>) {
+      if ( s/^\s*Requires:\s*// ) {
+        my @pkgs =
+          map {
+              s/-\[0-9\]\*$//;
+              s/^([\w-]+)(?:-(\d+(?:\.\d+)*))?$/$1/;
+              $_}
+            split(' ');
+        $pkgplan->{deps} ||= [];
+        for my $reqpkg (@pkgs) {
+          if ( ! defined $pkgplan{$reqpkg} ) {
+            $pkgplan{$reqpkg} = { };
+            push(@depchk, $reqpkg);
           }
+          push(@{$pkgplan->{deps}}, $reqpkg);
+          $pkgplan{$reqpkg}->{req_by} ||= [];
+          push(@{$pkgplan{$reqpkg}->{req_by}}, $pkg);
         }
       }
-      close($hdrfh) || warn "Error closing $hdr\n";
-    } elsif ( $repository ) {
-      warn "No Header for " . ver_print($avail) .
-        ": will rerun after installations\n";
-      push @recheck, ver_print($avail);
-    } else {
-      die "No Header for " . ver_print($avail) . "\n";
     }
+    close($hdrfh) || warn "Error closing $hdr\n";
   }
 }
 
@@ -296,15 +295,6 @@ while (@plan) {
   } else {
     print "$cmd: ", ver_print($pp), "\n";
   }
-}
-
-if ( @recheck ) {
-  print
-    "The following packages need to be checked\n" .
-    "for dependencies after their installation:\n",
-    map( "  $_\n", @recheck );
-  print
-    "You should re-run osupdate.\n";
 }
 
 sub install {
