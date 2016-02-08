@@ -4,6 +4,8 @@ ntable.gla
 nctable.lido
 mod.lido
 nctable.HEAD.phi
+table.INIT.phi
+table.FINL.phi
 ntable.map
 dim.c
 table_name.c

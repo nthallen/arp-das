@@ -11,6 +11,8 @@ phbox.c
 phparam.c
 phtable.pdl
 phtable.ptg
+table.INIT.phi
+table.FINL.phi
 $/Name/CScope.gnrc +instance=Col :inst
 $/Name/CScope.gnrc +instance=Table :inst
 $/Output/PtgCommon.fw
