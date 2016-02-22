@@ -1,0 +1,5 @@
+usr/local/sbin/gpsd
+usr/local/sbin/ntpd
+usr/local/sbin/pps
+usr/local/include/gps.h
+usr/local/lib/libgps.a

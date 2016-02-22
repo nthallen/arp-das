@@ -52,6 +52,8 @@ Run chkpkgs
 Run sudo make install-pkgs
   Install will not overwrite an installation
   Install will create the tar.gz file
+Run sudo ./clean_cache
+  Moves old archives out of /var/huarp/pkgcache to facilitate rsync
 
 An archive needs to be rebuilt if:
   a) The version number has changed (the archive does not exist)

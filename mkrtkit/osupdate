@@ -201,9 +201,10 @@ while ( @depchk ) {
     # now install any dependent packages that aren't installed
     my $archive = "$cache/" . ver_print($chkdep) . ".tar.gz";
     my $hdr = "$refpkg/" . ver_print($chkdep) . "/Header";
-    if ( ! (-f $hdr && open(my $hdrfh, "<", $hdr))) {
+    my $hdrfh;
+    if ( ! (-f $hdr && open($hdrfh, "<", $hdr))) {
       if ( !( -f $archive &&
-              open(my $hdrfh, "-|",
+              open($hdrfh, "-|",
                     "tar -Oxzf $archive var/huarp/pkg/" .
                     ver_print($chkdep) . "/Header"))) {
         die "No Header for " . ver_print($chkdep) . "\n";

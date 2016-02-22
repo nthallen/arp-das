@@ -1,0 +1,39 @@
+#! /usr/bin/perl -w
+my $pkgcache = '/var/huarp/pkgcache';
+my $pkghold = '/var/huarp/pkghold';
+my @files = map { m|/([^/]*)\.tar\.gz$|; $1; } glob("${pkgcache}/*.tar.gz");
+my %pkg;
+for my $file (@files) {
+  if ($file =~ m|^(.*)-((?:\d+\.)*\d+)$|) {
+    my $pkg = $1;
+    my $ver = $2;
+    $pkg{$pkg} ||= [];
+    push( @{$pkg{$pkg}}, $ver);
+  } else {
+    print "Bad pattern: $file\n";
+  }
+}
+for my $pkg (keys %pkg) {
+  my @vers = @{$pkg{$pkg}};
+  if (@vers > 1) {
+    my @svers = sort ver_sort @vers;
+    my $save = shift(@svers);
+    print "$pkg: keeping $save, moving ", join(", ", @svers), "\n";
+    for my $ver (@svers) {
+      my $fname = "$pkg-$ver.tar.gz";
+      rename "$pkgcache/$fname", "$pkghold/$fname";
+    }
+  }
+}
+print "Done\n";
+
+sub ver_sort {
+  @a = split /\./, $a;
+  @b = split /\./, $b;
+  while (@a && @b) {
+    my $rv = shift(@b) <=> shift(@a);
+    return $rv if $rv != 0;
+  }
+  return (@a <=> @b);
+}
+

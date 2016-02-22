@@ -1,0 +1,18 @@
+# Package gpsd
+#  The package version is currently not tied to the gpsd version
+#  The gpsd build is based off of the main gpsd repo at
+#    780c8a9c6bcdd1f8c904eaf28c11ceb317a0a2f7
+#   which appears to be V3.16-dev according to gpsd.h
+#  The ntpd build is from ntp-4.2.8p4.tar.gz retrieved from
+#   http://www.ntp.org/downloads.html
+#  The pps build was written by David Bacon and retrieved from
+#   http://cs.nyu.edu/~bacon/pps/pps.tgz
+#   The source code has been modified to explicitly look for PPS
+#   on /dev/ser1 and not on /dev/ser2.
+Version: 1.0
+Files: MANIFEST @ /
+Files: MANIFEST_pkg @ /
+
+# Changes:
+# 1.0 2016-02-21
+#   Initial packaging
