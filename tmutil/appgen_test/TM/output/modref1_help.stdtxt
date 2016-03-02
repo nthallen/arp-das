@@ -1,0 +1,13 @@
+# Processing module 'modref1' at './modref1.agm'
+# Command line var mode = 'default'
+# Command line var rlvl = '0'
+Module modref1
+  Defined Variables:
+    INST=
+    NAME=base
+    mode=default
+    rlvl=0
+
+  moddef1 exercises module references
+  It will test the proper accumulation of extra Makefile data
+  and variable substitutions on the Module reference line

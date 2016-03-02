@@ -1,0 +1,8 @@
+# Processing module 'moddef2' at './moddef2.agm'
+# Command line var NAME = 'cmdline'
+# Command line var mode = 'default'
+# Command line var rlvl = '0'
+tmcbase = source.tmc
+%%
+  Extra Makefile from moddef2
+  mode default INST= NAME=cmdline

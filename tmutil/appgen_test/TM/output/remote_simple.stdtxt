@@ -1,0 +1,4 @@
+# Processing module 'remote' at '../remote/TM/remote.agm'
+# Command line var mode = 'simple'
+# Command line var rlvl = '0'
+tmcbase = ../remote/TM/rmtsrc.tmc ../remote/TM/../rmtrelsrc.tmc /usr/local/share/huarp/flttime.tmc

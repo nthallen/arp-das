@@ -1,0 +1,8 @@
+ModuleDef modref1 [ INST= NAME=base ] {
+  moddef1 exercises module references
+  It will test the proper accumulation of extra Makefile data
+  and variable substitutions on the Module reference line
+}
+
+Module refmod1 mode=default A=@NAME@
+Module refmod1 mode=special INST=2

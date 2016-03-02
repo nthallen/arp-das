@@ -1,0 +1,5 @@
+# Processing module 'remote' at '../remote/TM/remote.agm'
+# Command line var mode = 'complex'
+# Command line var rlvl = '0'
+tmcbase = remote1.tmc
+tmcbase = remote2.tmc

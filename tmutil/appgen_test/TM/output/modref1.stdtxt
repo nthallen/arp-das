@@ -1,0 +1,16 @@
+# Processing module 'modref1' at './modref1.agm'
+# Command line var mode = 'default'
+# Command line var rlvl = '0'
+# Processing module 'refmod1' at './refmod1.agm'
+# Command line var A = 'base'
+# Command line var mode = 'default'
+# Command line var rlvl = '1'
+tmcbase = source.tmc
+# Processing module 'refmod1' at './refmod1.agm'
+# Command line var INST = '2'
+# Command line var mode = 'special'
+# Command line var rlvl = '1'
+tmcbase = special2.tmc
+%%
+  Extra Makefile from refmod1(default)
+  Extra Makefile from refmod2(special)

@@ -1,0 +1,9 @@
+ModuleDef moddef1
+# This verion has no documentation and no optional variables
+mode (default) {
+  tmcbase = source.tmc
+  %%
+  Extra Makefile from moddef1 mode default
+}
+mode (disable) {
+}

@@ -1,0 +1,5 @@
+# This is rmtsrc.tmc.in
+#   It requires variable substitution for
+#   INST and SUFFIX
+TM 1 Hz T30K RemoteTB;
+TM 1 Hz T30K LocalT;

@@ -1,0 +1,14 @@
+ModuleDef remote [ INST= SUFFIX=A ] {
+  Module remote will test module search and source file search operations.
+}
+
+mode (simple) {
+  tmcbase = rmtsrc.tmc ../rmtrelsrc.tmc /usr/local/share/huarp/flttime.tmc
+}
+
+mode (complex) [ SUFFIX=B] {
+  # Simple copy to a new local file
+  tmcbase = remote1.tmc:rmtsrc.tmc
+  # Copy with variable substitution
+  tmcbase = remote2.tmc:rmtsrc.tmc.in
+}

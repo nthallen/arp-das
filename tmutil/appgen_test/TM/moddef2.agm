@@ -1,0 +1,13 @@
+ModuleDef moddef2 [ INST= NAME=base ]
+# This verion has no documentation and no optional variables
+mode (default) {
+  tmcbase = source@INST@.tmc
+  %%
+  Extra Makefile from moddef2
+  mode default INST=@INST@ NAME=@NAME@
+}
+mode (disable) [ NAME=alt ] {
+  %%
+  Extra Makefile from moddef2
+  mode disable INST=@INST@ NAME=@NAME@
+}

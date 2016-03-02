@@ -1,0 +1,14 @@
+ModuleDef refmod1 [ A= INST=1 ] {
+  refmod1 works in conjunction with modref1 to
+  demonstrate makefile accumulation and variable substitution
+}
+mode (default) {
+  tmcbase = source.tmc
+  %%
+  Extra Makefile from refmod1(default)
+}
+mode (special) {
+  tmcbase = special@INST@.tmc
+  %%
+  Extra Makefile from refmod2(special)
+}
