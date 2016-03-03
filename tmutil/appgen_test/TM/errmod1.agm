@@ -1,0 +1,6 @@
+ModuleDef errmod1 [ NAME=base ] {
+  errmod1 will cause a syntax error
+}
+
+mode default {
+}

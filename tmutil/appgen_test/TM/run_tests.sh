@@ -99,3 +99,8 @@ harness 'remote X' OK remote.stdtxt
 harness 'remote X mode=simple' OK remote_simple.stdtxt
 harness 'remote X mode=complex' OK remote_complex.stdtxt '' \
   remote1.tmc ../../remote/TM/rmtsrc.tmc remote2.tmc remote2.src
+harness 'errmod1 X' FAIL errmod1.stdtxt errmod1.errtxt
+harness 'modref2' OK modref2_help.stdtxt
+harness 'modref2 X' FAIL modref2.stdtxt modref2.errtxt
+harness 'recurse' OK recurse_help.stdtxt
+harness 'recurse X' FAIL recurse.stdtxt recurse.errtxt

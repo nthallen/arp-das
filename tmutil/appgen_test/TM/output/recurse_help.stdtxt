@@ -1,0 +1,9 @@
+# Processing module 'recurse' at './recurse.agm'
+# Command line var mode = 'default'
+# Command line var rlvl = '0'
+Module recurse
+  Defined Variables:
+    mode=default
+    rlvl=0
+
+  This module will recursively invoke itself until it dies.

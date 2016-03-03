@@ -1,0 +1,5 @@
+ModuleDef recurse {
+  This module will recursively invoke itself until it dies.
+}
+
+Module recurse

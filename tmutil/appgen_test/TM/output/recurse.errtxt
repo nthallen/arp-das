@@ -1,0 +1,4 @@
+./recurse.agm: Recursion limit 3 reached
+./recurse.agm:5: Error closing pipe for module recurse
+./recurse.agm:5: Error closing pipe for module recurse
+./recurse.agm:5: Error closing pipe for module recurse

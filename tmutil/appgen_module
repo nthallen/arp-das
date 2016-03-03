@@ -20,6 +20,7 @@ my $linenum = 0;
 my $currently_active = $command eq 'X';
 my @active_stack;
 my @extra_makefile;
+my $rlvl_limit = 3;
 
 # search for the module. This could look just for a file of the same name,
 #   append '.agm', then if no path is specified, look in 'the usual places'.
@@ -51,6 +52,10 @@ for my $arg (@ARGV) {
   } else {
     die "Cannot parse command line argument '$arg'\n";
   }
+}
+
+if ($CLvars{rlvl} >= $rlvl_limit) {
+  die "$path: Recursion limit $rlvl_limit reached\n";
 }
 
 for my $var (sort keys %CLvars) {
@@ -125,17 +130,8 @@ while (1) {
     my $modname = $1; # $1 is the reported module name
     ($line, %Defvars) = (opt_vars($line),
       'rlvl', $CLvars{rlvl}, 'mode', $CLvars{mode});
-    # for my $var (qw(mode rlvl)) {
-    #   $Defvars{$var} = $CLvars{$var};
-    # }
     %Modevars = %Defvars;
-    # for my $var (keys %CLvars) {
-      # if (exists $Modevars{$var}) {
-        # $Modevars{$var} = $CLvars{$var};
-      # } else {
-        # die "$path:$linenum: Command line variable '$var' not specified in ModuleDef\n";
-      # }
-    # }
+    $Modevars{MODDIR} = $moddir;
     $line = skip_whitespace($line);
     if ($command eq 'help') {
       print "Module $modname\n  Defined Variables:\n",
@@ -179,11 +175,6 @@ while (1) {
         if !exists $Modevars{$var};
       $Modevars{$var} = $newModevars{$var};
     }
-    # for my $var (keys %CLvars) {
-      # die "$path:$linenum: ASSERT Command line variable '$var' not specified in ModuleDef\n"
-        # if !exists $Modevars{$var};
-      # $Modevars{$var} = $CLvars{$var};
-    # }
     $currently_active = 0 unless $modes{$CLvars{mode}};
     $line = skip_whitespace($line);
     die "$path:$linenum: Expected '{' after moderef\n"
@@ -200,45 +191,49 @@ while (1) {
       my $mkvar = $1;
       my @ofiles;
       $line = subvars($line, \%Modevars);
-      my @files = split(" ", $line);
-      for my $file (@files) {
-        my ($tgt, $src);
-        if ($file =~ m|^([^:/]+):([^:]+)$|) {
-          $tgt = $1;
-          $src = $2;
-        } else {
-          $src = $file;
-        }
-        if ($src =~ m|^/|) {
-          # absolute path, leave as is
-        } elsif ($src =~ m|/|) {
-          # relative path, append to module dir
-          $src = "$moddir$src";
-        } elsif (-f $src) {
-          # file in the source directory, leave as is
-        } elsif (-f "$moddir$src") {
-          $src = "$moddir$src";
-        }
-        -f $src ||
-          die "Source file not found: '$src'\n";
-        if ($tgt) {
-          my $dosubs = $src =~ m/\.in$/;
-          open(my $ifh, "<", $src) ||
-            die "$path:$linenum: unable to open source file '$src'\n";
-          open(my $ofh, ">", $tgt) ||
-            die "$path:$linenum: unable to open target file '$tgt'\n";
-          while (my $line = <$ifh>) {
-            $line = subvars($line, \%Modevars) if $dosubs;
-            print $ofh $line;
+      if ($mkvar =~ m/base$/) {
+        my @files = split(" ", $line);
+        for my $file (@files) {
+          my ($tgt, $src);
+          if ($file =~ m|^([^:/]+):([^:]+)$|) {
+            $tgt = $1;
+            $src = $2;
+          } else {
+            $src = $file;
           }
-          close($ifh);
-          close($ofh);
-          push(@ofiles, $tgt);
-        } else {
-          push(@ofiles, $src);
+          if ($src =~ m|^/|) {
+            # absolute path, leave as is
+          } elsif ($src =~ m|/|) {
+            # relative path, append to module dir
+            $src = "$moddir$src";
+          } elsif (-f $src) {
+            # file in the source directory, leave as is
+          } elsif (-f "$moddir$src") {
+            $src = "$moddir$src";
+          }
+          -f $src ||
+            die "Source file not found: '$src'\n";
+          if ($tgt) {
+            my $dosubs = $src =~ m/\.in$/;
+            open(my $ifh, "<", $src) ||
+              die "$path:$linenum: unable to open source file '$src'\n";
+            open(my $ofh, ">", $tgt) ||
+              die "$path:$linenum: unable to open target file '$tgt'\n";
+            while (my $line = <$ifh>) {
+              $line = subvars($line, \%Modevars) if $dosubs;
+              print $ofh $line;
+            }
+            close($ifh);
+            close($ofh);
+            push(@ofiles, $tgt);
+          } else {
+            push(@ofiles, $src);
+          }
         }
+        print "$mkvar = ", join(' ', @ofiles), "\n";
+      } else {
+        print "$mkvar = $line";
       }
-      print "$mkvar = ", join(' ', @ofiles), "\n";
     }
     $line = '';
   } elsif ($line =~ s/^Module\s*//) {
@@ -263,7 +258,7 @@ while (1) {
           print $line;
         }
       }
-      close($mfh) || warn "$path:$linenum: Error closing pipe\n";
+      close($mfh) || die "$path:$linenum: Error closing pipe for module $refmod\n";
     }
     $line = '';
   } elsif ($line =~ s/^%%.*$//) {
