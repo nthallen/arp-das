@@ -55,7 +55,8 @@ function harness {
   ok=$2
   compfile=$3
   errfile=$4
-  shift; shift; shift; shift;
+  shift; shift; shift;
+  [ -n "$1" ] && shift;
   status=OK
   okstat=OK
   cmpdir='output/'
