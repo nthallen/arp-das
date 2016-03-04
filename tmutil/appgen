@@ -20,6 +20,8 @@
 # colbase = <files>
 # qclibase = <files>
 # swsbase = <files>
+# extbase = <files>
+# genuibase = <files>
 # var = substitution (supported vars are SRC TOOL OBJ TGT DISTRIB
 #                     SCRIPT (source to be copied to $TGTDIR/bin/$VERSION)
 #                     SRCDIST (source to be copied to $TGTDIR/bin/$VERSION/Base)
@@ -28,6 +30,7 @@
 #                     TGTNODE TGTDIR
 #                     SERVER (defaults if server is generated)
 #                     SUBDIRS (passed on to Makefile)
+#                     CPPFLAGS (passed on to Makefile)
 # target : <files>
 # ...
 # %%
@@ -105,9 +108,11 @@ exec <$ifile >Makefile
 
 typeset targets prefix tmcbase cmdbase basetargets usage LINK usefiles
 typeset colbase swsbase qclibase ouis
+typeset extbase genuibase
 typeset SERVER
 typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC DISTRIB SRCDIST
 typeset TGTNODE TGTDIR
+typeset CPPFLAGS
 typeset PHTGT
 typeset pcmfile
 
@@ -229,6 +234,7 @@ while read tgt mode deps; do
         add_member tmcbase SWData.h
         add_member colbase SWData_col.tmc
         add_member cmdbase SWData.cmd
+        add_member cmdbase SWData.h
       done;;
     qclibase)
       for i in $deps; do
@@ -306,6 +312,13 @@ if [ -n "$colbase" ]; then
   is_member targets ${prefix}col || {
     def_target ${prefix}col $tmcbase $colbase
     for i in $colbase; do def_source $i; done
+  }
+fi
+
+if [ -n "$extbase" -o -n "$genuibase" ]; then
+  is_member targets ${prefix}engext || {
+    def_target ${prefix}engext $tmcbase $extbase $genuibase
+    for i in $extbase $genuibase; do def_source $i; done
   }
 fi
 
@@ -425,8 +438,9 @@ for i in $basetargets; do
   use_all .edf ${i}edf.oui "\n\t\$(EDF2OUI)" $deps
   replace_each .edf ext.tmc "\$(EDF2EXT)" $deps &&
     lssp=' -lssp -lmem -lm'
+  replace_all .genui ${i}.cdf "\n\t\$(GENUI2CDF)" $deps
   use_all .cdf ${i}cdf.oui "\n\t\$(EDF2OUI)" $deps
-  replace_each .cdf ext.tmc "\$(EDF2EXT)" $deps
+  replace_each .cdf cdf.tmc "\$(EDF2EXT)" $deps
   # replace_each .cfg attr.tmc "\$(DATAATTR)" $deps
   replace_each .cyc cyc.tmc  "\$(CYCLE)" $deps
   case $i in
@@ -477,9 +491,16 @@ for i in $basetargets; do
   then
     add_member OBJ ${prefix}cmd.dat
   fi
+  # Collect the h dependents, but don't consume them
+  unset hdeps
+  for dep in $deps; do
+    case "x$dep" in
+      *.h) hdeps="$hdeps $dep";;
+    esac
+  done
   case $i in
     *clt)
-      if replace_all cmd.cc $i.o "\n\t\$(COMPILE.clt)" $deps; then
+      if replace_each cmd.cc clt.o "\$(COMPILE.clt)" -h "$hdeps" $deps; then
         add_member ouis kbdclt
         ltmph=' -ltmph -lph'
         ltmpp=' -ltmpp'
@@ -487,7 +508,7 @@ for i in $basetargets; do
         nl_error Client $i with no cmd.cc files
       fi;;
     *cltnc)
-      if replace_all cmd.cc $i.o "\n\t\$(COMPILE.cltnc)" $deps; then
+      if replace_each cmd.cc cltnc.o "\$(COMPILE.cltnc)" -h "$hdeps" $deps; then
         add_member ouis kbdclt
         add_member ouis nctable
         ltmph=' -ltmnc -lncurses'
@@ -496,7 +517,7 @@ for i in $basetargets; do
         nl_error Client $i with no cmd.cc files
       fi;;
     *srvr)
-      if replace_all cmd.cc $i.o "\n\t\$(COMPILE.srvr)" $deps
+      if replace_each cmd.cc srvr.o "\$(COMPILE.srvr)" -h "$hdeps" $deps
       then
         add_member ouis cis
         add_member ouis seteuid
@@ -631,6 +652,7 @@ output_macro CMDBASE $cmdbase
 output_macro COLBASE $colbase
 output_macro SWSBASE $swsbase
 output_macro QCLIBASE $qclibase
+output_macro AG_CPPFLAGS $CPPFLAGS
 output_macro PHTGT $PHTGT
 echo 'RCS=$(SRC) $(TOOL) $(SCRIPT)'
 echo 'SOURCE=$(RCS) $(NONRCS)'
@@ -646,11 +668,19 @@ else
   nl_error "TGTDIR definition is required"
 fi
 
+if [ -f .cvsignore -a ! -f .gitignore ]; then
+  ignorefile=.cvsignore
+else
+  ignorefile=.gitignore
+fi
+
 echo 'include /usr/local/share/huarp/appgen.mk'
 echo
-echo '.PHONY : all extdistribution distribution clean check_photon'
+echo '.PHONY : all all-dist extdistribution distribution clean check_photon'
 echo
-echo 'all : Makefile check_photon $(TGT) .cvsignore'
+echo "IGNOREFILE=$ignorefile"
+echo 'all : Makefile check_photon $(TGT) $(IGNOREFILE)'
+echo 'all-dist : $(DSTRB) $(SRCDIST) VERSION'
 echo "Makefile : $ifile"
 echo "\tappgen $ifile"
   echo 'VERSION=`cat VERSION`'
@@ -696,8 +726,8 @@ fi
 
 echo "\ntidy :\n\trm -f \$(OBJECT)"
 echo "clean : tidy\n\trm -f \$(TARGET)"
-echo ".cvsignore : Makefile"
-echo "\t@for i in \$(OBJECT) \$(TARGET); do echo \"\$\$i\"; done >.cvsignore"
+echo '$(IGNOREFILE) : Makefile'
+echo "\t@for i in \$(OBJECT) \$(TARGET); do echo \"\$\$i\"; done >\$(IGNOREFILE)"
 
 # Output anything beyond the %% in the spec file
 cat
