@@ -64,8 +64,15 @@
 #   *.oui
 #   *.doit
 #   *.DR
+
+iu=0
+tmp=_appgen_modout.tmp
+tmpxm=_appgen_xm.tmp
+rm -f $tmpxm
+
 function nl_error {
   echo appgen: $* >&2
+  rm -f $tmp $tmpxm
   exit 1
 }
 
@@ -100,6 +107,17 @@ if [ ! -f VERSION ]; then
   echo "No VERSION file found: creating VERSION 1.0"
   echo "1.0" >VERSION
 fi
+
+# invoke_module <module> <args>
+function invoke_module {
+  module=$1
+  shift
+  echo "# Invoking: appgen_module $module X $*"
+  /usr/local/bin/appgen_module $module X $* >$tmp ||
+    nl_error "appgen_module $module invocation failed"
+  exec 3<$tmp
+  iu=3
+}
 
 #----------------------------------------------------------------
 # Now redirect standard input and output to process the spec file
@@ -225,61 +243,77 @@ add_member IDISTRIB VERSION
 #----------------------------------------------------------------
 # This is where we read in the definitions
 #----------------------------------------------------------------
-while read tgt mode deps; do
-  case "$tgt" in
-    \#*) mode=#;;
-    swsbase)
-      for i in $deps; do
-        add_member tmcbase SWData.tmc
-        add_member tmcbase SWData.h
-        add_member colbase SWData_col.tmc
-        add_member cmdbase SWData.cmd
-        add_member cmdbase SWData.h
-      done;;
-    qclibase)
-      for i in $deps; do
-        j=${i%.qcli}
-        add_member tmcbase $j.tmc
-        add_member cmdbase $j.cmd
-        add_member DISTRIB $j.out
-        add_member SRCDIST $j.m
-        add_member SRCDIST $j.qcli
-        add_member OBJ $j.cmd
-        add_member OBJ $j.out
-        add_member OBJ $j.tmc
-        add_member OBJ $j.m
-        add_member OBJ $j.log
-      done;;
-    %%) break;;
-  esac
-  if [ -n "$mode" ]; then
-    case "$mode" in
-      \#) : ;;
-      =) for i in $deps; do add_member $tgt $i; done;;
-      :) case $tgt in
-           *algo) deps="$tmcbase $deps";;
-           *col) deps="$tmcbase $colbase $deps";;
-           *ext) deps="$tmcbase $deps";;
-           *disp) deps="$tmcbase $deps";;
-           *dispnc) deps="$tmcbase $deps";;
-           *clt) deps="$cmdbase $deps";;
-           *cltnc) deps="$cmdbase $deps";;
-           *srvr) deps="$cmdbase $deps"; SERVER=$tgt;;
-           *doit) : ;;
-           *.dccc) : ;;
-           *.sft) : ;;
-           *) : ;;
-         esac
-         for i in $deps; do
-           def_source $i
-         done
-         def_target $tgt $deps
-         case $tgt in
-           *disp) def_target ${tgt}nc $deps;;
-           *clt) def_target ${tgt}nc $deps;;
-         esac;;
-      *) echo Unknown mode $mode >&2 ;;
+while true; do
+  while read -u$iu tgt mode deps; do
+    case "$tgt" in
+      \#*) mode=#;;
+      Module)
+        [ $iu = 0 ] ||
+          nl_error "Unexpected 'Module' in appgen_module output"
+        invoke_module $mode $deps
+        mode='#';;
+      swsbase)
+        for i in $deps; do
+          add_member tmcbase SWData.tmc
+          add_member tmcbase SWData.h
+          add_member colbase SWData_col.tmc
+          add_member cmdbase SWData.cmd
+          add_member cmdbase SWData.h
+        done;;
+      qclibase)
+        for i in $deps; do
+          j=${i%.qcli}
+          add_member tmcbase $j.tmc
+          add_member cmdbase $j.cmd
+          add_member DISTRIB $j.out
+          add_member SRCDIST $j.m
+          add_member SRCDIST $j.qcli
+          add_member OBJ $j.cmd
+          add_member OBJ $j.out
+          add_member OBJ $j.tmc
+          add_member OBJ $j.m
+          add_member OBJ $j.log
+        done;;
+      %%)
+        cat <&$iu >>$tmpxm
+        mode='#';;
     esac
+    if [ -n "$mode" ]; then
+      case "$mode" in
+        \#) : ;;
+        =) for i in $deps; do add_member $tgt $i; done;;
+        :) case $tgt in
+             *algo) deps="$tmcbase $deps";;
+             *col) deps="$tmcbase $colbase $deps";;
+             *ext) deps="$tmcbase $deps";;
+             *disp) deps="$tmcbase $deps";;
+             *dispnc) deps="$tmcbase $deps";;
+             *clt) deps="$cmdbase $deps";;
+             *cltnc) deps="$cmdbase $deps";;
+             *srvr) deps="$cmdbase $deps"; SERVER=$tgt;;
+             *doit) : ;;
+             *.dccc) : ;;
+             *.sft) : ;;
+             *) : ;;
+           esac
+           for i in $deps; do
+             def_source $i
+           done
+           def_target $tgt $deps
+           case $tgt in
+             *disp) def_target ${tgt}nc $deps;;
+             *clt) def_target ${tgt}nc $deps;;
+           esac;;
+        *) echo Unknown mode $mode >&2 ;;
+      esac
+    fi
+  done
+  if [ $iu = 3 ]; then
+    exec 3<&-
+    rm -f $tmp
+    iu=0
+  else
+    break;
   fi
 done
 
@@ -730,9 +764,9 @@ echo '$(IGNOREFILE) : Makefile'
 echo "\t@for i in \$(OBJECT) \$(TARGET); do echo \"\$\$i\"; done >\$(IGNOREFILE)"
 
 # Output anything beyond the %% in the spec file
-cat
-#while read i; do
-#  echo "$i"
-#done
+# Note that using 'read' does not work here because it strips
+# leading whitespace, which is clearly important in Makefiles
+cat $tmpxm
+rm -f $tmpxm
 exit 0
 

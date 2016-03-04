@@ -1,5 +1,5 @@
 # make include files for appgen QNX6 output.
-CPPFLAGS=-I/usr/local/include -I/usr/pkg/include
+CPPFLAGS=-I/usr/local/include -I/usr/pkg/include $(AG_CPPFLAGS)
 
 # CXX and CXXLINK are used for compiling and linking c++ apps
 # We need to use the same compiler that is used in building
@@ -48,6 +48,8 @@ TMAREV=tmcalgo
 TMCALGO=$(TMAREV) -o $@
 # SOLFMT=sft () { cat $$* >$@tmp; solfmt -o$@ $@tmp; rm $@tmp; }; sft
 SOLFMT=solfmt -o$@
+GENUI_ENG_DIR=../eng
+GENUI2CDF=genui -d $(GENUI_ENG_DIR) -o $@ -c
 
 # PHOTON Test:
 # If /dev/photon is not writable, phtable will fail, but we also

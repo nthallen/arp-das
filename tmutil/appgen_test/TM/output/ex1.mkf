@@ -1,0 +1,90 @@
+# Invoking: appgen_module refmod1 X mode=default
+# Invoking: appgen_module refmod1 X mode=disable INST=2
+MNC=ex1
+SPECFILE=ex1.spec
+SRC=local.cmd
+TOOL=ex1.spec Makefile
+SCRIPT=
+OBJ=ex1cmd.cc ex1cmd.dat ex1clt.o ex1cltoui.c ex1cltoui.o ex1cltnc.o
+OBJ+=ex1cltncoui.c ex1cltncoui.o ex1srvr.o ex1srvroui.c ex1srvroui.o
+TGT=ex1clt ex1cltnc ex1srvr
+DISTRIB=
+IDISTRIB=Experiment.config VERSION
+SRCDIST=local.tmc source.tmc
+TMCBASE=local.tmc source.tmc
+CMDBASE=local.cmd
+COLBASE=
+SWSBASE=
+QCLIBASE=
+AG_CPPFLAGS=
+PHTGT=
+RCS=$(SRC) $(TOOL) $(SCRIPT)
+SOURCE=$(RCS) $(NONRCS)
+OBJECT=$(OBJ) *.err
+TARGET=$(TGT)
+DSTRB=$(TGT) $(DISTRIB) $(SCRIPT)
+TGTDIR= /home/GCToF
+include /usr/local/share/huarp/appgen.mk
+
+.PHONY : all all-dist extdistribution distribution clean check_photon
+
+IGNOREFILE=.gitignore
+all : Makefile check_photon $(TGT) $(IGNOREFILE)
+all-dist : $(DSTRB) $(SRCDIST) VERSION
+Makefile : ex1.spec
+	appgen ex1.spec
+VERSION=`cat VERSION`
+extdistribution : $(DSTRB) $(SRCDIST) VERSION
+	@[ -d $(TGTDIR)/bin ] || mkdir $(TGTDIR)/bin
+	@[ -d $(TGTDIR)/bin/$(VERSION) ] || mkdir $(TGTDIR)/bin/$(VERSION)
+	@[ -d $(TGTDIR)/bin/$(VERSION)/Base ] || mkdir $(TGTDIR)/bin/$(VERSION)/Base
+	@[ ! -f $(TGTDIR)/bin/$(VERSION)/$(PCMFILE) ] || \
+	  cmp -s $(TGTDIR)/bin/$(VERSION)/$(PCMFILE) $(PCMFILE) || \
+	  ( echo "$(PCMFILE) changed without VERSION update"; false )
+	@distribute $(FORCE) $(TGTDIR)/bin/$(VERSION) $(DSTRB)
+	@distribute $(FORCE) $(TGTDIR)/bin/$(VERSION)/Base $(SRCDIST)
+distribution : extdistribution
+	@distribute $(FORCE) $(TGTDIR) $(IDISTRIB)
+check_photon :
+ifeq ($(WPHOTON),YES)
+	@for tgt in $(PHTGT); do \
+	  cmp -s $$tgt /usr/local/share/huarp/nulltbl.tmc && echo Remaking $$tgt && rm -f $$tgt; \
+	done; true
+endif
+ex1clt : ex1clt.o ex1cltoui.o
+	$(LINK.normCXX) ex1clt.o ex1cltoui.o -ltmph -lph -ltmpp -ltm -lnort
+	$(OUIUSE) ex1cltoui.c
+ex1cltnc : ex1cltnc.o ex1cltncoui.o
+	$(LINK.normCXX) ex1cltnc.o ex1cltncoui.o -ltmnc -lncurses -ltmpp -ltm -lnort
+	$(OUIUSE) ex1cltncoui.c
+ex1srvr : ex1srvr.o ex1srvroui.o
+	$(LINK.privCXX) ex1srvr.o ex1srvroui.o -ltmpp -ltm -lnort
+	$(OUIUSE) ex1srvroui.c
+	$(PROMOTE) ex1srvr
+ex1cmd.cc : local.cmd
+	$(CMDGEN) -d ex1cmd.dat local.cmd
+ex1clt.o : ex1cmd.cc
+	$(COMPILE.clt) ex1cmd.cc
+ex1cltoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui
+	$(OUI) $(OUIDIR)/kbdclt.oui $(OUIDIR)/msg.oui
+ex1cltoui.o : ex1cltoui.c
+ex1cltnc.o : ex1cmd.cc
+	$(COMPILE.cltnc) ex1cmd.cc
+ex1cltncoui.c : $(OUIDIR)/kbdclt.oui $(OUIDIR)/nctable.oui $(OUIDIR)/msg.oui
+	$(OUI) $(OUIDIR)/kbdclt.oui $(OUIDIR)/nctable.oui $(OUIDIR)/msg.oui
+ex1cltncoui.o : ex1cltncoui.c
+ex1srvr.o : ex1cmd.cc
+	$(COMPILE.srvr) ex1cmd.cc
+ex1srvroui.c : $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/msg.oui
+	$(OUI) $(OUIDIR)/cis.oui $(OUIDIR)/seteuid.oui $(OUIDIR)/msg.oui
+ex1srvroui.o : ex1srvroui.c
+
+tidy :
+	rm -f $(OBJECT)
+clean : tidy
+	rm -f $(TARGET)
+$(IGNOREFILE) : Makefile
+	@for i in $(OBJECT) $(TARGET); do echo "$$i"; done >$(IGNOREFILE)
+  Extra Makefile from refmod1(default)
+Extra from cop3.spec
+

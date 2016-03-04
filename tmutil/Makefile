@@ -1,7 +1,8 @@
 # QNX6/tmutil
 #  This directory holds general-purpose utilities for
 #  The Anderson Group Data Acquisition System/QNX6
-BIN=TM appgen distribute parent saverun fixdisk mkinp tomat extract
+BIN=TM appgen appgen_module distribute parent saverun fixdisk
+BIN+=mkinp tomat extract
 BIN+=mkcvsignore mkdoit3 mkexpdir reduce settime flttime chk_display
 BIN+=chk_extract CDimage prepCD swscomp json_ext
 BIN+=transfer setdomain
