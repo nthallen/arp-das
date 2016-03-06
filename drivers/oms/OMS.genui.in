@@ -1,0 +1,21 @@
+@G0@  @Hz@ @OMS0@_Step @Group@ Step
+@G1@  @Hz@ @OMS1@_Step @Group@ Step
+@G2@  @Hz@ @OMS2@_Step @Group@ Step
+@G3@  @Hz@ @OMS3@_Step @Group@ Step
+  @Hz@ OMS_Stale @Group@ Stale
+@G0@  @Hz@ @OMS0@_Out:@OMS0@_Stat:3   @Group@ Status %.0lf
+@G0@  @Hz@ @OMS0@_Stop:@OMS0@_Stat:2  @Group@ Status %.0lf
+@G0@  @Hz@ @OMS0@_Limit:@OMS0@_Stat:1 @Group@ Status %.0lf
+@G0@  @Hz@ @OMS0@_Home:@OMS0@_Stat:0  @Group@ Status %.0lf
+@G1@  @Hz@ @OMS1@_Out:@OMS1@_Stat:3   @Group@ Status %.0lf
+@G1@  @Hz@ @OMS1@_Stop:@OMS1@_Stat:2  @Group@ Status %.0lf
+@G1@  @Hz@ @OMS1@_Limit:@OMS1@_Stat:1 @Group@ Status %.0lf
+@G1@  @Hz@ @OMS1@_Home:@OMS1@_Stat:0  @Group@ Status %.0lf
+@G2@  @Hz@ @OMS2@_Out:@OMS2@_Stat:3   @Group@ Status %.0lf
+@G2@  @Hz@ @OMS2@_Stop:@OMS2@_Stat:2  @Group@ Status %.0lf
+@G2@  @Hz@ @OMS2@_Limit:@OMS2@_Stat:1 @Group@ Status %.0lf
+@G2@  @Hz@ @OMS2@_Home:@OMS2@_Stat:0  @Group@ Status %.0lf
+@G3@  @Hz@ @OMS3@_Out:@OMS3@_Stat:3   @Group@ Status %.0lf
+@G3@  @Hz@ @OMS3@_Stop:@OMS3@_Stat:2  @Group@ Status %.0lf
+@G3@  @Hz@ @OMS3@_Limit:@OMS3@_Stat:1 @Group@ Status %.0lf
+@G3@  @Hz@ @OMS3@_Home:@OMS3@_Stat:0  @Group@ Status %.0lf

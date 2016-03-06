@@ -1,0 +1,51 @@
+TM typedef signed long oms_step_t { text "%9ld"; }
+TM typedef unsigned char oms_stat_t { text "%@Hz@u" oms_stat_text(); }
+
+%{
+  static const char *oms_stat_graph[] = {
+    " <- ",
+    " <-H",
+    "|<- ",
+    "|<-H",
+    " <  ",
+    " < H",
+    "|<  ",
+    "|< H",
+    "->  ",
+    "-> H",
+    "->| ",
+    "->|H",
+    " >  ",
+    " > H",
+    " >| ",
+    " >|H"
+  };
+  static const char *oms_stat_text(oms_stat_t s) {
+    return oms_stat_graph[s & 0xF];
+  }
+%}
+
+@S0@ TM @Hz@ Hz oms_step_t @OMS0@_Step; @E0@
+@S1@ TM @Hz@ Hz oms_step_t @OMS1@_Step; @E1@
+@S2@ TM @Hz@ Hz oms_step_t @OMS2@_Step; @E2@
+@S3@ TM @Hz@ Hz oms_step_t @OMS3@_Step; @E3@
+@S0@ TM @Hz@ Hz oms_stat_t @OMS0@_Stat; @E0@
+@S1@ TM @Hz@ Hz oms_stat_t @OMS1@_Stat; @E1@
+@S2@ TM @Hz@ Hz oms_stat_t @OMS2@_Stat; @E2@
+@S3@ TM @Hz@ Hz oms_stat_t @OMD3@_Stat; @E3@
+TM @Hz@ Hz UCHAR OMS_Stale;
+
+TM "Receive" OMS_status 1;
+
+Group OMS_Stat (@OMS1@_Step, @OMS1@_Stat, OMS_Stale ) {
+  @S0@ @OMS0@_Step = OMS_status.step[0]; @E0@
+  @S1@ @OMS1@_Step = OMS_status.step[1]; @E1@
+  @S2@ @OMS2@_Step = OMS_status.step[2]; @E2@
+  @S3@ @OMS3@_Step = OMS_status.step[3]; @E3@
+  @S0@ @OMS0@_Stat = OMS_status.status[0]; @E0@
+  @S1@ @OMS1@_Stat = OMS_status.status[1]; @E1@
+  @S2@ @OMS2@_Stat = OMS_status.status[2]; @E2@
+  @S3@ @OMS3@_Stat = OMS_status.status[3]; @E3@
+  OMS_Stale = OMS_status_obj->stale(255);
+  OMS_status_obj->synch();
+}

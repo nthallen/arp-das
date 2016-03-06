@@ -4,6 +4,7 @@ SRC+=omsdrv.h omsint.h
 SRC+=testoms.c testdrv.c
 SRC+=OMS.cmd
 DRVOBJ=omsdrv.o omsirq.o omsqueue.o omsdrvoui.o
+MODSRC=OMS.agm OMS.cmd OMS.tmc.in OMS_col.tmc OMS.genui.in
 OBJ=testoms.o testdrv.o
 OBJ+=omsdrvoui.c
 OBJ+=$(DRVOBJ)
@@ -36,7 +37,7 @@ install : omsdrv omsdrv.h OMS.cmd
 	@if [ `id -u` != 0 ]; then echo Must be root to install; exit 1; fi
 	@cp -vn omsdrv /usr/local/bin
 	@cp -vn omsdrv.h /usr/local/include
-	@cp -vn OMS.cmd /usr/local/share/huarp
+	@cp -vn $(MODSRC) /usr/local/share/huarp
 
 clean :
 	rm -f omsdrv *.o omsdrvoui.c FullBuild.*

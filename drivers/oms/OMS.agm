@@ -1,0 +1,29 @@
+ModuleDef OMS [ Hz=4 OMS0=OMS_0 OMS1=OMS_1 OMS2=OMS_2 OMS3=OMS_3
+    S0=/* E0=*/ S1=/* E1=*/ S2=/* E2=*/ S3=/* E3=*/
+    Group=OMS G0=# G1=# G2=# G3=# ] {
+  OMS Module support the Oregon Motion Systems motor controller
+}
+
+mode (X) [ S0= E0= G0= ] {
+  tmcbase = OMS.tmc:OMS.tmc.in
+  genuibase = OMS.genui:OMS.genui.in
+}
+
+mode (Y) [ S1= E1= G1= ] {
+  tmcbase = OMS.tmc:OMS.tmc.in
+  genuibase = OMS.genui:OMS.genui.in
+}
+
+mode (XY) [ S0= E0= G0= S1= E1= G1= ] {
+  tmcbase = OMS.tmc:OMS.tmc.in
+  genuibase = OMS.genui:OMS.genui.in
+}
+
+mode (XYZW) [ S0= E0= G0= S1= E1= G1= S2= E2= G2= S3= E3= G3= ] {
+  tmcbase = OMS.tmc:OMS.tmc.in
+  genuibase = OMS.genui:OMS.genui.in
+}
+
+colbase = OMS_col.tmc
+cmdbase = OMS.cmd omsaxis.cmd
+
