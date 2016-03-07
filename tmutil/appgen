@@ -475,7 +475,14 @@ for i in $basetargets; do
   use_all .edf ${i}edf.oui "\n\t\$(EDF2OUI)" $deps
   replace_each .edf ext.tmc "\$(EDF2EXT)" $deps &&
     lssp=' -lssp -lmem -lm'
-  replace_all .genui ${i}.cdf "\n\t\$(GENUI2CDF)" $deps
+  case $i in
+    *engext)
+      replace_all .genui ${i}.cdf "\n\t\$(GENUI2ENG)" $deps;;
+    *jsonext)
+      replace_all .genui ${i}.cdf "\n\t\$(GENUI2JSON)" $deps;;
+    *)
+      replace_all .genui ${i}.cdf "\n\t\$(GENUI2CSV)" $deps;;
+  esac
   use_all .cdf ${i}cdf.oui "\n\t\$(EDF2OUI)" $deps
   replace_each .cdf cdf.tmc "\$(EDF2EXT)" $deps
   # replace_each .cfg attr.tmc "\$(DATAATTR)" $deps

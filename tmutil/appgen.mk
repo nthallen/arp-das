@@ -49,7 +49,9 @@ TMCALGO=$(TMAREV) -o $@
 # SOLFMT=sft () { cat $$* >$@tmp; solfmt -o$@ $@tmp; rm $@tmp; }; sft
 SOLFMT=solfmt -o$@
 GENUI_ENG_DIR=../eng
-GENUI2CDF=genui -d $(GENUI_ENG_DIR) -o $@ -c
+GENUI2ENG=genui -d $(GENUI_ENG_DIR) -o $@ -c
+GENUI2JSON=genui -o $@ -j
+GENUI2CSV=genui -o $@ -c
 
 # PHOTON Test:
 # If /dev/photon is not writable, phtable will fail, but we also
