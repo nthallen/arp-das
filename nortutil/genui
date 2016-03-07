@@ -8,6 +8,7 @@
 #	-d matdir directory to write .m files. Default is
 #	current directory.
 #	-c generate .cdf instead of .edf
+#       -o <filename> specify output .cdf or .edf explicitly
 #
 # Generates p$mnemonic, g$mnemonic, ui_$mnemonic and .edf outputs
 #
@@ -23,7 +24,7 @@
 use strict;
 use Getopt::Std;
 my %opts;
-getopts('cd:', \%opts);
+getopts('cd:o:', \%opts);
 my $matdir = $opts{d} || '.';
 -d $matdir || die "Specified matdir '$matdir' is not a directory\n";
 
@@ -171,11 +172,12 @@ while (<>) {
 }
 
 if ( $opts{c} ) {
-  open( CDF, ">${experiment}eng.cdf" ) ||
-    die "Unable to write ${experiment}eng.cdf\n";
+  my $ofile = $opts{o} // "${experiment}eng.cdf";
+  open( CDF, ">$ofile" ) ||
+    die "Unable to write $ofile\n";
   my @rates = sort keys %rate;
   for my $rate ( @rates ) {
-    my @vars = grep $format{$_} ne '%-', sort keys %{$rate{$rate}};
+    my @vars = grep $format{$_} !~ m/-$/, sort keys %{$rate{$rate}};
     my @formats = map $format{$_}, @vars;
     $rate =~ s|/|_|g;
     my $n_var = @vars + 1;
@@ -184,10 +186,11 @@ if ( $opts{c} ) {
       join( "\n", map "  $_ $vars[$_-1] $formats[$_-1]", ( 1 .. @vars ) ),
       "\n";
   }
-  close CDF || warn "Error closing ${experiment}eng.cdf\n";
+  close CDF || warn "Error closing $ofile\n";
 } else {
-  open( EDF, ">${experiment}eng.edf" ) ||
-    die "Unable to write ${experiment}eng.edf\n";
+  my $ofile = $opts{o} // "${experiment}eng.edf";
+  open( EDF, ">$ofile" ) ||
+    die "Unable to write $ofile\n";
   my @rates = sort keys %rate;
   for my $rate ( @rates ) {
     my @vars = sort keys %{$rate{$rate}};
@@ -197,7 +200,7 @@ if ( $opts{c} ) {
       join( "\n", map "  $_ $vars[$_-1] %5.1lf", ( 1 .. @vars ) ),
       "\n";
   }
-  close EDF || warn "Error closing ${experiment}eng.edf\n";
+  close EDF || warn "Error closing $ofile\n";
 }
 
 open( UI, ">", "${matdir}/ui_$experiment.m" ) ||
