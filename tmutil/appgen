@@ -274,6 +274,9 @@ while true; do
           add_member OBJ $j.m
           add_member OBJ $j.log
         done;;
+      CPPFLAGS)
+        CPPFLAGS="$CPPFLAGS $deps"
+        mode='#';;
       %%)
         cat <&$iu >>$tmpxm
         mode='#';;
@@ -710,7 +713,7 @@ fi
 
 echo 'include /usr/local/share/huarp/appgen.mk'
 echo
-echo '.PHONY : all all-dist extdistribution distribution clean check_photon'
+echo '.PHONY : all all-dist extdistribution distribution clean clean-dist check_photon'
 echo
 echo "IGNOREFILE=$ignorefile"
 echo 'all : Makefile check_photon $(TGT) $(IGNOREFILE)'
@@ -760,6 +763,7 @@ fi
 
 echo "\ntidy :\n\trm -f \$(OBJECT)"
 echo "clean : tidy\n\trm -f \$(TARGET)"
+echo "clean-dist : clean"
 echo '$(IGNOREFILE) : Makefile'
 echo "\t@for i in \$(OBJECT) \$(TARGET); do echo \"\$\$i\"; done >\$(IGNOREFILE)"
 

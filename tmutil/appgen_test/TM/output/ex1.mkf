@@ -26,7 +26,7 @@ DSTRB=$(TGT) $(DISTRIB) $(SCRIPT)
 TGTDIR= /home/GCToF
 include /usr/local/share/huarp/appgen.mk
 
-.PHONY : all all-dist extdistribution distribution clean check_photon
+.PHONY : all all-dist extdistribution distribution clean clean-dist check_photon
 
 IGNOREFILE=.gitignore
 all : Makefile check_photon $(TGT) $(IGNOREFILE)
@@ -83,6 +83,7 @@ tidy :
 	rm -f $(OBJECT)
 clean : tidy
 	rm -f $(TARGET)
+clean-dist : clean
 $(IGNOREFILE) : Makefile
 	@for i in $(OBJECT) $(TARGET); do echo "$$i"; done >$(IGNOREFILE)
   Extra Makefile from refmod1(default)

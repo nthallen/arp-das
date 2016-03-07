@@ -11,7 +11,7 @@ my $module = shift(@ARGV) ||
   die "No module specified\n";
 my $command = shift(@ARGV) // 'help';
 my $path; # The path to the module file
-my $moddir; # Directory containing the module file (w/ trailing /)
+my $moddir; # Directory containing the module file (w/o trailing /)
 my %CLvars = ( mode => 'default', rlvl => 0); # command line variables
 my %Defvars = %CLvars; # variable defaults from Moduledef
 my %Modevars; # variable defaults from Current Mode
@@ -27,7 +27,7 @@ my $rlvl_limit = 3;
 #   I'd be tempted to look in /usr/local/share/huarp/appgen/ as well as
 #   ../*/TM/ and ../*/*/TM/
 my @searchpath = $module =~ m|/| ? ('') :
-  map "$_/", ('.',<../*/TM>, <../Peripherals/*/TM>, '/usr/local/share/huarp/appgen');
+  map "$_/", ('.',<../*/TM>, <../Peripherals/*/TM>, '/usr/local/share/huarp');
 pathcheck: while (@searchpath) {
   my $dir = shift(@searchpath);
   for my $suffix ( '', '.agm' ) {
@@ -39,10 +39,10 @@ pathcheck: while (@searchpath) {
 
 $path || die "Unable to located module '$module'\n";
 print "# Processing module '$module' at '$path'\n";
-if ($path =~ m|^(.*/)[^/]+$|) {
+if ($path =~ m|^(.*)/[^/]+$|) {
   $moddir = $1;
 } else {
-  $moddir = '';
+  $moddir = '.';
 }
 
 # parse the rest of the command line
@@ -151,7 +151,7 @@ while (1) {
     $line = skip_whitespace($line);
     die "$path:$linenum: Unexpected EOF in mode reference\n"
       unless defined($line);
-    if ($line =~ s/^([a-z]\w+)//i) {
+    if ($line =~ s/^([a-z]\w*)//i) {
       $modes{$1} = 1;
       while (defined($line)) {
         $line = skip_whitespace($line);
@@ -159,7 +159,7 @@ while (1) {
           last;
         } elsif ($line =~ s/^,//) {
           $line = skip_whitespace($line);
-          if ($line =~ s/^([a-z]\w+)//i) {
+          if ($line =~ s/^([a-z]\w*)//i) {
             $modes{$1} = 1;
           } else {
             die "$path:$linenum: Syntax error in mode reference\n";
@@ -185,13 +185,14 @@ while (1) {
     my $prev = pop @active_stack;
     $currently_active = $prev->[0];
     %Modevars = %{$prev->[1]};
-  } elsif ($line =~ s/^([a-z]\w+)\s*=\s*//i) {
+  } elsif ($line =~ s/^([a-z]\w+)\s*([=:])\s*//i) {
     # variable = filelist: all on a single line
     if ($currently_active) {
       my $mkvar = $1;
+      my $verb = $2;
       my @ofiles;
       $line = subvars($line, \%Modevars);
-      if ($mkvar =~ m/base$/) {
+      if ($verb eq ':' || $mkvar =~ m/base$/) {
         my @files = split(" ", $line);
         for my $file (@files) {
           my ($tgt, $src);
@@ -205,11 +206,11 @@ while (1) {
             # absolute path, leave as is
           } elsif ($src =~ m|/|) {
             # relative path, append to module dir
-            $src = "$moddir$src";
+            $src = "$moddir/$src";
           } elsif (-f $src) {
             # file in the source directory, leave as is
-          } elsif (-f "$moddir$src") {
-            $src = "$moddir$src";
+          } elsif (-f "$moddir/$src") {
+            $src = "$moddir/$src";
           }
           -f $src ||
             die "Source file not found: '$src'\n";
@@ -230,9 +231,9 @@ while (1) {
             push(@ofiles, $src);
           }
         }
-        print "$mkvar = ", join(' ', @ofiles), "\n";
+        print "$mkvar $verb ", join(' ', @ofiles), "\n";
       } else {
-        print "$mkvar = $line";
+        print "$mkvar $verb $line";
       }
     }
     $line = '';
