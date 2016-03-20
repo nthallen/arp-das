@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.60
+Version: 2.5.62
 Requires: flight gcc photon mozilla sudo perllink fftwf mozilla_certs
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,25 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.62
+#   genui: suppress extraction for any format ending in '-', not just '%-'
+#   genui: fix bug in handling -o option
+#   appgen: added support for generating JSON extractions from .genui
+#     sources.
+# 2.5.61
+#   appgen:
+#     Improved address.h dependencies when added to cmdbase
+#     Added all-dist .PHONY target to make everything that will be distributed
+#     Added CPPFLAGS to the list of recognized Makefile variables to be
+#       propagated
+#     Added support for genuibase and exbase, both implicit sources for
+#       ${prefix}engext via .cdf. $(extbase) preceeds $(genuibase) in the
+#       list of dependents to ensure conversions are present.
+#       .m files are written to $(GENUI_ENG_DIR), which defaults to ../eng
+#     Added support for the Module syntax, which is implemented via the
+#       appgen_module command.
+#   appgen.mk:
+#     Definitions for GENUI2CDF and GENUI_ENG_DIR 
 # 2.5.60
 #   osupdate: Handle dependencies in a single pass
 # 2.5.59

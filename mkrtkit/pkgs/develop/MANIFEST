@@ -1,5 +1,6 @@
 usr/local/bin
 usr/local/bin/appgen
+usr/local/bin/appgen_module
 usr/local/bin/CDimage
 usr/local/bin/chk_display
 usr/local/bin/chk_extract
@@ -103,7 +104,11 @@ usr/local/sbin/pkg2pkg
 usr/local/share/huarp/DACS_AI.cmd
 usr/local/share/huarp/DACS_ID.tmc
 usr/local/share/huarp/Makefile.pm
+usr/local/share/huarp/OMS.agm
 usr/local/share/huarp/OMS.cmd
+usr/local/share/huarp/OMS.genui.in
+usr/local/share/huarp/OMS.tmc.in
+usr/local/share/huarp/OMS_col.tmc
 usr/local/share/huarp/appgen.mk
 usr/local/share/huarp/cmdgen.skel
 usr/local/share/huarp/colmain.skel
