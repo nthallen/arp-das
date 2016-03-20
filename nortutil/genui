@@ -176,8 +176,8 @@ while (<>) {
 
 if ( $opts{c} || $opts{j} ) {
   my $cdf_type = $opts{c} ? 'csv' : 'json';
-  my $ofile = $opts{o} // $opts{c} ? "${experiment}eng.cdf" :
-    "${experiment}json.cdf";
+  my $ofile = $opts{o} // ( $opts{c} ? "${experiment}eng.cdf" :
+    "${experiment}json.cdf");
   open( CDF, ">$ofile" ) ||
     die "Unable to write $ofile\n";
   my @rates = sort keys %rate;
