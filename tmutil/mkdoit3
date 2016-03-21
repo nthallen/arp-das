@@ -181,8 +181,10 @@ let sval=$OPTIND-1
 shift $sval
 option=${1:-start}
 
+gcopt=''
 if [ $srcmode = realtime -a -n "$FlightNode" ]; then
   FltNd=/net/$FlightNode
+  gcopt="-n $FlightNode"
 else
   FlightNode=`hostname`
   FltNd=""
@@ -457,7 +459,7 @@ for my $disp ( @display ) {
   for my $scr ( @{$screen{$disp}} ) {
     print $fh " "x8,
       "echo screen -t $scr->{screenname} /usr/local/sbin/getcon ",
-      "$scr->{varname} \$session\n",
+      "\$gcopt $scr->{varname} \$session\n",
       " "x8, "echo width -w $scr->{width}\n",
       " "x8, "#echo height -w $scr->{height}\n";
   }
@@ -465,7 +467,7 @@ for my $disp ( @display ) {
 
 print $fh <<'EOF';
 	echo focus
-	echo screen -t clt /usr/local/sbin/getcon clt $session
+	echo screen -t clt /usr/local/sbin/getcon $gcopt clt $session
 	echo height -w 2
 	echo width -w 80
 	echo focus
@@ -496,12 +498,12 @@ for my $disp ( @display ) {
     my $dim = "$scr->{height}x$scr->{width}";
     print $fh
       "    pterm -t $scr->{screenname} -m $dim -g $dim -U ",
-      "/usr/local/sbin/getcon $scr->{varname} \$session &\n";
+      "/usr/local/sbin/getcon \$gcopt $scr->{varname} \$session &\n";
   }
 }
 
 print $fh <<'EOF';
-    pterm -t clt -m 2x80 -g 2x80 -y 90% -x 0 -U /usr/local/sbin/getcon clt $session &
+    pterm -t clt -m 2x80 -g 2x80 -y 90% -x 0 -U /usr/local/sbin/getcon $gcopt clt $session &
     ;;
   *)
 esac
