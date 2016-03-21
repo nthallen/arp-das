@@ -5,6 +5,13 @@
 <synopsis>
 %C [options] <windowname> [<session_id>]
 
+<opts> "n:"
+
+<sort>
+	-n <cmd node>
+<switch>
+  case 'n': command_node = optarg; break;
+
 <args>
   getcon_args(optarg);
 

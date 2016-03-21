@@ -8,6 +8,6 @@
 	-M <pid> Do not invoke -t until <pid> has terminated
 
 <switch>
-  case 'M': monitor_pid = strtol(optarg, NULL, 10);
+  case 'M': monitor_pid = strtol(optarg, NULL, 10); break;
   case 'q': quit_when_childless = 1; break;
   case 't': parent_timeout = atoi(optarg); break;

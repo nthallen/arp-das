@@ -27,6 +27,7 @@
 
 static char *winname, *pid;
 static int has_pid = 0;
+const char *command_node = 0;
 
 void getcon_args( char *arg ) {
   nl_assert(arg != NULL);
@@ -41,7 +42,7 @@ void getcon_args( char *arg ) {
 static void wait_for_quit(void) {
   #define CGBUFSIZE 80
   char buf[CGBUFSIZE+1];
-  int fd = tm_open_name( tm_dev_name( "cmd/getcon" ), NULL, O_RDONLY );
+  int fd = tm_open_name( tm_dev_name( "cmd/getcon" ), command_node, O_RDONLY );
   if ( fd == -1 )
     nl_error( 3, "Unable to open cmd/getcon: errno %d", errno );
   for (;;) {
