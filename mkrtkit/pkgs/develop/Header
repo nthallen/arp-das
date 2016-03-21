@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.62
+Version: 2.5.64
 Requires: flight gcc photon mozilla sudo perllink fftwf mozilla_certs
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,8 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.64
+#   Oops: no actual updates
 # 2.5.62
 #   genui: suppress extraction for any format ending in '-', not just '%-'
 #   genui: fix bug in handling -o option
