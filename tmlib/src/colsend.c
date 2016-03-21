@@ -32,8 +32,12 @@ send_id Col_send_init(const char *name, void *data, unsigned short size, int blo
   int fd;
   
   nl_assert( name != 0 && data != 0 );
-  snprintf( data_path, PATH_MAX-1, "DG/data/%s", name );
-  dev_path = tm_dev_name( data_path );
+  if (name[0] == '/') {
+    dev_path = name;
+  } else {
+    snprintf( data_path, PATH_MAX-1, "DG/data/%s", name );
+    dev_path = tm_dev_name( data_path );
+  }
   fd = open(dev_path, O_WRONLY | (blocking ? 0 : O_NONBLOCK) );
   if ( fd < 0 ) {
     if (nl_response)
