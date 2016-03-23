@@ -31,11 +31,12 @@ if [ `id -u` != 0 ]; then
 fi
 
 typeset LOCAL UTIME NETTIME
-while getopts "uln:" option; do
+while getopts "uln:r:" option; do
   case $option in
     l) LOCAL="-l";;
     u) UTIME="-u";;
     n) NETTIME=$OPTARG;;
+    r) RMTTIME=$OPTARG;;
     \?) echo; exit 1;;
     *) nl_error Unsupported option: -$option;;
   esac
@@ -43,12 +44,28 @@ done
 let sval=$OPTIND-1
 shift $sval
 
+[ -n "$NETTIME" -a -n "$RMTTIME" ] &&
+  nl_error "Cannot specify both -n and -r"
+
 if [ -n "$NETTIME" ]; then
   if [ -d /net/$NETTIME ]; then
     rtime=`on -f $NETTIME date -u +%Y%m%d%H%M.%S`
     [ -z "$rtime" ] && nl_error "Error getting time from node $NETTIME"
     date -u $rtime || nl_error "Error setting time to '$rtime'"
-    /sbin/rtc -s hw || nl_error "Error setting hardware clock"
+    /sbin/rtc $LOCAL -s hw || nl_error "Error setting hardware clock"
+  else
+    nl_error "Unable to locate source node $NETTIME"
+  fi
+elif [ -n "$RMTTIME" ]; then
+  if [ -d /net/$RMTTIME ]; then
+    rtime=`date -u +%Y%m%d%H%M.%S`
+    [ -z "$rtime" ] && nl_error "Error getting time"
+    on -f $RMTTIME date -u $rtime >/dev/null ||
+      nl_error "Error setting time on $RMTTIME to '$rtime'"
+    on -f $RMTTIME /sbin/rtc $LOCAL -s hw ||
+      nl_error "Error setting hardware clock on $RMTTIME"
+  else
+    nl_error "Unable to locate target node $RMTTIME"
   fi
 else
   [ -z "$1" ] && nl_error No time specified
