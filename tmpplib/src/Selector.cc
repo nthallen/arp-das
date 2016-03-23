@@ -144,7 +144,25 @@ void Selector::event_loop() {
       }
     } else if ( rc < 0 ) {
       if ( errno == EINTR ) keep_going = 0;
-      else nl_error(3, "Unexpected error: %d", errno);
+      else if (errno == EBADF) {
+        bool handled = false;
+        for ( Sp = S.begin(); Sp != S.end(); ++Sp ) {
+          Selectee *P = *Sp;
+          int flags = 0;
+          if (P->flags & Sel_Except) {
+            if ( P->ProcessData(flags) )
+              keep_going = 0;
+            if (children_changed) break; // Changes can occur during ProcessData
+            handled = true;
+          }
+        }
+        if (!handled) {
+          nl_error(3, "Selector::select_loop: Unhandled EBADF");
+        }
+      } else {
+        nl_error(3,
+          "Selector::select_loop: Unexpected error from select: %d", errno);
+      }
     } else {
       for ( Sp = S.begin(); Sp != S.end(); ++Sp ) {
         Selectee *P = *Sp;
