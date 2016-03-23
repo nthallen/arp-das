@@ -106,13 +106,18 @@ int Col_send(send_id sender) {
   return 0;
 }
 
-/* returns zero on success, non-zero otherwise. Quiet */
+/**
+ * Quietly cleans up the send_id object. Always releases memory,
+ * even on error.
+ * @return zero on success, non-zero otherwise.
+ */
 int Col_send_reset(send_id sender) {
+  int rc = 0;
   if (sender != 0) {
-    if ( close(sender->fd) == -1 ) return 1;
+    if ( close(sender->fd) == -1 ) rc = 1;
     nl_free_memory(sender);
   }
-  return 0;
+  return rc;
 }
 
 /*
