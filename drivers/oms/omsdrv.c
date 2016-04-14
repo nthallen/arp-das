@@ -23,6 +23,7 @@
 #define EXPINT_PULSE_CODE (_PULSE_CODE_MINAVAIL + 2)
 #define TIMER_PULSE_CODE (_PULSE_CODE_MINAVAIL + 3)
 #define MAX_IRQ_104 12
+unsigned short oms_base_addr = 0x320;
 
 char omsdrv_c_id[] = "$UID: seteuid.oui,v $";
 reqqueue *free_queue;
@@ -148,7 +149,7 @@ void handle_recv_data( void ) {
     case OMSREQ_LOG:
       s = current_req->ibuf;
       while (*s != '\0' && !isprint(*s)) ++s;
-      nl_error( 0, "%s: %s", current_req->u.hdr, s );
+      nl_error( 0, "%s: %s", current_req->u.hdr, ascii_escape(s));
       break;
     default:
       nl_error( 4, "Invalid req_type in handle_recv_data: %d",
@@ -286,10 +287,12 @@ static int setup_interrupt( int irq, int coid, short code ) {
   intr_event.sigev_code = EXPINT_PULSE_CODE;
   intr_event.sigev_value.sival_int = 0;
   ThreadCtl(_NTO_TCTL_IO,0);
-  iid = InterruptAttachEvent(oms_irq, &intr_event,
+  iid = InterruptAttachEvent(irq, &intr_event,
       _NTO_INTR_FLAGS_PROCESS | _NTO_INTR_FLAGS_TRK_MSK );
   if (iid == -1)
     nl_error( 3, "Unable to attach IRQ %d: errno %d", irq, errno);
+  if (InterruptUnmask(irq, iid) < 0)
+    nl_error(1, "Error %d from InterruptUnmask during setup", errno);
   return iid;
 }
 
@@ -435,7 +438,7 @@ int main( int argc, char **argv ) {
 
   // Initialize speed for X and Y; No return
   new_request( "AXVL1000;AYVL480;", OMSREQ_NO_RESPONSE, NULL );
-  nl_error( 0, "Initialized" );
+  nl_error( 0, "Initialized V1.1 -i%d -p%X", oms_irq, oms_base_addr );
   
   operate(chid);
 
@@ -456,6 +459,11 @@ void oms_init_options( int argc, char **argv ) {
     switch (c) {
       case 'i':
         oms_irq = atoi(optarg);
+        if (oms_irq == 2)
+          oms_irq = 9;
+        break;
+      case 'p':
+        oms_base_addr = strtoul(optarg, NULL, 16);
         break;
       case '?':
         nl_error(3, "Unrecognized Option -%c", optopt);

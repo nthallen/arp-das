@@ -4,7 +4,9 @@
 #include <sys/types.h>
 #include "collect.h"
 
-#define PC68_BASE 0x320
+// #define PC68_BASE 0x320
+extern unsigned short oms_base_addr;
+#define PC68_BASE oms_base_addr
 #define PC68_DATA PC68_BASE
 #define PC68_DONE (PC68_BASE+1)
 #define PC68_CONTROL (PC68_BASE+2)
