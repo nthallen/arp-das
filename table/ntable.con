@@ -1,6 +1,7 @@
 Program : NamedTables UnnamedTable .
 
-NamedTables : / NamedTables NamedTable .
+NamedTables : / NamedTables NamedTable / NamedTables Input ';' .
+Input : 'Input' CString .
 NamedTable : BareWord Table .
 UnnamedTable : Table .
 

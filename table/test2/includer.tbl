@@ -1,0 +1,18 @@
+tbl1 {
+  HBox { +-; Title: tbl1; -+ };
+  V1: (V1,5) V;
+  V2: (V2,5) V;
+}
+
+Input "included.tbl";
+
+tbl2 Table {
+  HBox { +-; Title: tbl2; -+ };
+  T1: (T1,5) T;
+  T2: (T2,5) T;
+}
+
+Table { HBox { |+; [tbl1]; |+; [tbl2]; |+; [tbl3]; |+ };
+  -;
+}
+

@@ -1,0 +1,5 @@
+tbl3 {
+  HBox { +-; Title: tbl3; -+ };
+  Q1: (Q1,5) Q;
+  Q2: (Q2,5) Q;
+}

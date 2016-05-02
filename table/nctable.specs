@@ -8,6 +8,7 @@ table.INIT.phi
 table.FINL.phi
 ntable.map
 dim.c
+depfile.c
 table_name.c
 ncbox.c
 nparam.c
@@ -16,4 +17,5 @@ ntable.pdl
 nctable.ptg
 $/Name/CScope.gnrc +instance=Col :inst
 $/Name/CScope.gnrc +instance=Table :inst
+$/Input/Include.gnrc:inst
 $/Output/PtgCommon.fw

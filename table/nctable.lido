@@ -76,6 +76,18 @@ RULE: Rule ::= RuleString COMPUTE
 END;
 
 %----------------------------------------------------------------
+% Input file processing
+%----------------------------------------------------------------
+ATTR InpFileEx: int;
+RULE: Input ::= 'Input' CString COMPUTE
+  .InpFileEx = NewInput (StringTable(CString)) BOTTOMUP;
+  IF (NOT (.InpFileEx),
+  message (ERROR, CatStrInd("can not open file ", CString),
+    0, COORDREF));
+  WriteDepFile(StringTable(CString));
+END;
+
+%----------------------------------------------------------------
 % Attributes
 %----------------------------------------------------------------
 ATTR NewAttr, TableAttr : int;
@@ -376,18 +388,22 @@ SYMBOL Rule INHERITS TableLeaf END;
 % Alright: let's produce some output!
 %----------------------------------------------------------------
 CHAIN FieldPrint, StringPrint : PTGNode;
+ATTR FullOutput : PTGNode;
 
 SYMBOL Program COMPUTE
   CHAINSTART HEAD.FieldPrint = PTGNULL;
   CHAINSTART HEAD.StringPrint = PTGNULL;
-  PTGOut(PTGFile(
+  THIS.FullOutput = PTGFile(
     TAIL.StringPrint,
     THIS.RulePrint,
     TAIL.FieldPrint,
     StringTable(THIS.TableName),
     ADD(SPACE(THIS.Height),1),
     ADD(SPACE(THIS.Width),1),
-    THIS.RuleDef));
+    THIS.RuleDef);
+  IF(NE(OutputFile,NoKey),
+     PTGOutFile(StringTable(GetClpValue(OutputFile,0)),THIS.FullOutput),
+     PTGOut(THIS.FullOutput));
 END;
 
 SYMBOL Table COMPUTE
@@ -527,6 +543,10 @@ END;
 RULE: NamedTables ::= NamedTables NamedTable COMPUTE
   NamedTable.InstanceReady = NamedTables[1].InstanceReady;
   NamedTables[2].InstanceReady = NamedTable.InstanceRecorded;
+  NamedTables[1].InstanceRecorded = NamedTables[2].InstanceRecorded;
+END;
+RULE: NamedTables ::= NamedTables Input ';' COMPUTE
+  NamedTables[2].InstanceReady = NamedTables[1].InstanceReady;
   NamedTables[1].InstanceRecorded = NamedTables[2].InstanceRecorded;
 END;
 RULE: NamedTables ::= COMPUTE
