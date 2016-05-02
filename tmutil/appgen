@@ -285,24 +285,7 @@ while true; do
       case "$mode" in
         \#) : ;;
         =) for i in $deps; do add_member $tgt $i; done;;
-        :) case $tgt in
-             *algo) deps="$tmcbase $deps";;
-             *col) deps="$tmcbase $colbase $deps";;
-             *ext) deps="$tmcbase $deps";;
-             *disp) deps="$tmcbase $deps";;
-             *dispnc) deps="$tmcbase $deps";;
-             *clt) deps="$cmdbase $deps";;
-             *cltnc) deps="$cmdbase $deps";;
-             *srvr) deps="$cmdbase $deps"; SERVER=$tgt;;
-             *doit) : ;;
-             *.dccc) : ;;
-             *.sft) : ;;
-             *) : ;;
-           esac
-           for i in $deps; do
-             def_source $i
-           done
-           def_target $tgt $deps
+        :) def_target $tgt $deps
            case $tgt in
              *disp) def_target ${tgt}nc $deps;;
              *clt) def_target ${tgt}nc $deps;;
@@ -318,6 +301,34 @@ while true; do
   else
     break;
   fi
+done
+
+#----------------------------------------------------------------
+# Now all the base variables are defined, so it's safe to
+# reference them:
+#----------------------------------------------------------------
+for tgt in $targets; do
+  set_depname $tgt
+  eval deps=\"\$$depname\"
+  case $tgt in
+    *algo) deps="$tmcbase $deps";;
+    *col) deps="$tmcbase $colbase $deps";;
+    *ext) deps="$tmcbase $deps";;
+    *disp) deps="$tmcbase $deps";;
+    *dispnc) deps="$tmcbase $deps";;
+    *clt) deps="$cmdbase $deps";;
+    *cltnc) deps="$cmdbase $deps";;
+    *srvr) deps="$cmdbase $deps"; SERVER=$tgt;;
+    *doit) : ;;
+    *.dccc) : ;;
+    *.sft) : ;;
+    *) : ;;
+  esac
+  for i in $deps; do
+    def_source $i
+  done
+  set_depname $tgt
+  eval $depname=\"\$deps\"
 done
 
 #----------------------------------------------------------------
