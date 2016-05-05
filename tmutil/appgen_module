@@ -1,5 +1,6 @@
 #! /usr/bin/perl -w
 use strict;
+use File::Compare;
 
 # appgen_module <path> command substitutions
 # The command gives us the option to support an interactive documentation
@@ -39,6 +40,7 @@ pathcheck: while (@searchpath) {
 
 $path || die "Unable to located module '$module'\n";
 print "# Processing module '$module' at '$path'\n";
+print "specdepbase = $path\n";
 if ($path =~ m|^(.*)/[^/]+$|) {
   $moddir = $1;
 } else {
@@ -185,7 +187,7 @@ while (1) {
     my $prev = pop @active_stack;
     $currently_active = $prev->[0];
     %Modevars = %{$prev->[1]};
-  } elsif ($line =~ s/^([a-z]\w+)\s*([=:])\s*//i) {
+  } elsif ($line =~ s/^([a-z]\w+|-)\s*([=:])\s*//i) {
     # variable = filelist: all on a single line
     if ($currently_active) {
       my $mkvar = $1;
@@ -215,25 +217,36 @@ while (1) {
           -f $src ||
             die "Source file not found: '$src'\n";
           if ($tgt) {
+            print "specdepbase = $src\n";
             my $dosubs = $src =~ m/\.in$/;
+            my $tgttmp = "._$tgt";
             open(my $ifh, "<", $src) ||
               die "$path:$linenum: unable to open source file '$src'\n";
-            open(my $ofh, ">", $tgt) ||
-              die "$path:$linenum: unable to open target file '$tgt'\n";
+            open(my $ofh, ">", $tgttmp) ||
+              die "$path:$linenum: unable to open target temp file '$tgttmp'\n";
             while (my $line = <$ifh>) {
               $line = subvars($line, \%Modevars) if $dosubs;
               print $ofh $line;
             }
             close($ifh);
             close($ofh);
+            # Now compare $tgttmp to $tgt if it exists
+            if (-f $tgt && compare($tgt, $tgttmp) == 0) {
+              unlink($tgttmp);
+            } else {
+              unlink($tgt);
+              rename($tgttmp, $tgt);
+            }
             push(@ofiles, $tgt);
           } else {
             push(@ofiles, $src);
           }
         }
-        print "$mkvar $verb ", join(' ', @ofiles), "\n";
+        print "$mkvar $verb ", join(' ', @ofiles), "\n"
+          if $mkvar ne '-';
       } else {
-        print "$mkvar $verb $line";
+        print "$mkvar $verb $line"
+          if $mkvar ne '-';
       }
     }
     $line = '';

@@ -64,8 +64,10 @@ GENUI2CSV=genui -o $@ -c
 WPHOTON := $(shell [ -w /dev/photon ] && echo YES)
 %tbl.tmc : %.tbl
 ifeq ($(WPHOTON),YES)
-	$(COMPILE.tbl) $< > $@.tmp
+	$(COMPILE.tbl) -o $@.tmp -d $@.dep.tmp $<
 	mv $@.tmp $@
+	{ echo -n "$@ :"; cat $@.dep.tmp; } > $@.dep
+	rm $@.dep.tmp
 else
 	cat /usr/local/share/huarp/nulltbl.tmc > $@
 endif
