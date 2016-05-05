@@ -1,0 +1,15 @@
+Moduledef QCLI [ SUFFIX= ADDR=0x1000 ] {
+  QCLI definitions, takes SUFFIX and ADDR
+  arguments. Generates multiple files.
+}
+
+tmcbase = qcli_types.tmc
+tmcbase = QCLI@SUFFIX@.tmc:qcli.tmc.in
+colbase = QCLI@SUFFIX@_col.tmc:qcli_col.tmc.in
+cmdbase = qclia.cmd
+cmdbase = QCLI@SUFFIX@.cmd:qclis.cmd.in
+qclibase = waves@SUFFIX@.qcli
+extbase = QCLI@SUFFIX@_conv.tmc:qcli_conv.tmc.in
+genuibase = QCLI@SUFFIX@.genui:qcli.genui.in
+- : QCLI@SUFFIX@.tbl:qcli.tbl.in
+

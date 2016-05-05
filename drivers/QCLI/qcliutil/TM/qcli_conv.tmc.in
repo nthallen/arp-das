@@ -1,0 +1,59 @@
+no_yes_t QCLI@SUFFIX@_busy; invalidate QCLI@SUFFIX@_busy;
+  { QCLI@SUFFIX@_busy = (QCLI@SUFFIX@_s & 0x8000) ? 1 : 0;
+    validate QCLI@SUFFIX@_busy; }
+onebit_t QCLI@SUFFIX@_cksum; invalidate QCLI@SUFFIX@_cksum;
+  { QCLI@SUFFIX@_cksum = (QCLI@SUFFIX@_s & 0x4000) ? 1 : 0;
+    validate QCLI@SUFFIX@_cksum; }
+ok_fail_t QCLI@SUFFIX@_cmderr; invalidate QCLI@SUFFIX@_cmderr;
+  { QCLI@SUFFIX@_cmderr = (QCLI@SUFFIX@_s & 0x2000) ? 1 : 0;
+    validate QCLI@SUFFIX@_cmderr; }
+qcli_off_on_t QCLI@SUFFIX@_laser; invalidate QCLI@SUFFIX@_laser;
+  { QCLI@SUFFIX@_laser = (QCLI@SUFFIX@_s & 0x1000) ? 0 : 1;
+    validate QCLI@SUFFIX@_laser; }
+ok_fail_t QCLI@SUFFIX@_cordte; invalidate QCLI@SUFFIX@_cordte;
+  { QCLI@SUFFIX@_cordte = (QCLI@SUFFIX@_s & 0x0800) ? 1 : 0;
+    validate QCLI@SUFFIX@_cordte; }
+no_yes_t QCLI@SUFFIX@_ready; invalidate QCLI@SUFFIX@_ready;
+  { QCLI@SUFFIX@_ready = (QCLI@SUFFIX@_s & 0x0200) ? 1 : 0;
+    validate QCLI@SUFFIX@_ready; }
+ok_fail_t QCLI@SUFFIX@_waveerr; invalidate QCLI@SUFFIX@_waveerr;
+  { QCLI@SUFFIX@_waveerr = (QCLI@SUFFIX@_s & 0x0100) ? 1 : 0;
+    validate QCLI@SUFFIX@_waveerr; }
+twobits_t QCLI@SUFFIX@_flash; invalidate QCLI@SUFFIX@_flash;
+  { QCLI@SUFFIX@_flash = (QCLI@SUFFIX@_s & 0x00C0) >> 6;
+    validate QCLI@SUFFIX@_flash; }
+ok_fail_t QCLI@SUFFIX@_dot; invalidate QCLI@SUFFIX@_dot;
+  { QCLI@SUFFIX@_dot = (QCLI@SUFFIX@_s & 0x0020) ? 1 : 0;
+    validate QCLI@SUFFIX@_dot; }
+ok_fail_t QCLI@SUFFIX@_lot; invalidate QCLI@SUFFIX@_lot;
+  { QCLI@SUFFIX@_lot = (QCLI@SUFFIX@_s & 0x0010) ? 1 : 0;
+    validate QCLI@SUFFIX@_lot; }
+ok_fail_t QCLI@SUFFIX@_loc; invalidate QCLI@SUFFIX@_loc;
+  { QCLI@SUFFIX@_loc = (QCLI@SUFFIX@_s & 0x0008) ? 1 : 0;
+    validate QCLI@SUFFIX@_loc; }
+qclimode_t QCLI@SUFFIX@_mode; invalidate QCLI@SUFFIX@_mode;
+  { QCLI@SUFFIX@_mode = QCLI@SUFFIX@_s & 0x7; validate QCLI@SUFFIX@_mode; }
+rw_t QCLI@SUFFIX@_rw; invalidate QCLI@SUFFIX@_rw;
+  { QCLI@SUFFIX@_rw = ((QCLI@SUFFIX@_CS & 0x4000) ? 2 : 0) +
+                ((QCLI@SUFFIX@_CS & 0x400) ? 1 : 0);
+    validate QCLI@SUFFIX@_rw;
+  }
+ok_fail_t QCLI@SUFFIX@_present; invalidate QCLI@SUFFIX@_present;
+  { QCLI@SUFFIX@_present = (QCLI@SUFFIX@_CS & 0x800) ? 0 : 1;
+    validate QCLI@SUFFIX@_present;
+  }
+fifodep_t QCLI@SUFFIX@_fifodep; invalidate QCLI@SUFFIX@_fifodep;
+  { QCLI@SUFFIX@_fifodep = QCLI@SUFFIX@_CS & 0xFF;
+    validate QCLI@SUFFIX@_fifodep;
+  }
+qclierr_t QCLI@SUFFIX@_err; invalidate QCLI@SUFFIX@_err;
+  { QCLI@SUFFIX@_err = ((QCLI@SUFFIX@_CS >> 8) & 0xBB) ^ 0x8;
+    validate QCLI@SUFFIX@_err;
+  }
+
+SSP_OVF SSP@SUFFIX@_CA; Invalidate SSP@SUFFIX@_CA;
+SSP_OVF SSP@SUFFIX@_PA; Invalidate SSP@SUFFIX@_PA;
+SSP_OVF SSP@SUFFIX@_AD; Invalidate SSP@SUFFIX@_AD;
+{ SSP@SUFFIX@_CA = SSP_CAOVF(SSP@SUFFIX@_Flags); Validate SSP@SUFFIX@_CA; }
+{ SSP@SUFFIX@_PA = SSP_PAOVF(SSP@SUFFIX@_Flags); Validate SSP@SUFFIX@_PA; }
+{ SSP@SUFFIX@_AD = SSP_ADOOR(SSP@SUFFIX@_Flags); Validate SSP@SUFFIX@_AD; }

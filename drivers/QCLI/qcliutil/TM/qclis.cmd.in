@@ -1,0 +1,30 @@
+%INTERFACE <SSP@SUFFIX@>
+%INTERFACE <QCLI@SUFFIX@>
+
+%{
+
+#ifdef SERVER
+  #include "hsatod.h"
+  #include "qclisspcmd.h"
+  #define QCLI@SUFFIX@_ICOS \
+      (HSAD_OPT_A|HSAD_OPT_B|HSAD_OPT_C|HSAD_TRIG_3|HSAD_TRIG_RISING)
+  hsatod_setup_t SSP@SUFFIX@_setup;
+
+  qclissp_t SSP@SUFFIX@_cmd = { &SSP@SUFFIX@_setup, &if_SSP@SUFFIX@ };
+#endif
+
+%}
+# &SSP returns a pointer to a two-element structure
+&SSP <qclissp_t *>
+  : SSP@SUFFIX@ { $0 = &SSP@SUFFIX@_cmd; }
+  ;
+# &QCLI returns an inteface
+&QCLI <cmdif_rd *>
+  : QCLI@SUFFIX@ { $0 = &if_QCLI@SUFFIX@; }
+  ;
+&command
+  : Select QCLI@SUFFIX@ Waveform &QCLI@SUFFIX@_Wave * {
+      SSP@SUFFIX@_setup = QCLI@SUFFIX@_Waves[$4];
+      if_QCLI@SUFFIX@.Turf( "SW:%d\n", $4 );
+    }
+  ;

@@ -1,0 +1,70 @@
+%{
+  #include "qclid.h"
+  #include "sspdrv.h"
+  const char * SSP_Status_Text(const unsigned char stat) {
+    switch (stat) {
+      case SSP_STATUS_GONE:    return "   Gone";
+      case SSP_STATUS_CONNECT: return "Connect";
+      case SSP_STATUS_READY:   return "  Ready";
+      case SSP_STATUS_ARMED:   return "  Armed";
+      case SSP_STATUS_TRIG:    return "Trigger";
+      default:                 return "*******";
+    }
+  }
+%}
+
+TM typedef unsigned char SSP_Status_t { text "%7d" SSP_Status_Text(); }
+TM typedef unsigned short XLONG { text "%5d"; }
+TM typedef long QCLI_WORD { text "%8d"; }
+TM typedef unsigned short QCLI_CS_t {
+  text "%5d";
+  collect x = sbrwa(x.address);
+}
+
+/* T_FPGA_t: MAX6628 output, resolution 1/16 degree
+ *   reported as 128 bits per degree celcius */
+TM typedef double QCLI_CELCIUS;
+TM typedef signed short T_FPGA_t { convert QCLI_CELCIUS; text "%6.2lf"; }
+Calibration ( T_FPGA_t, QCLI_CELCIUS ) { 0, 0, 128, 1 }
+
+/* T_HtSink_t: MAX6661 output. resolution 1/8 degree
+  *  reported as 256 bits per degree */
+TM typedef signed short T_HtSink_t { convert QCLI_CELCIUS; text "%6.2lf"; }
+Calibration ( T_HtSink_t, QCLI_CELCIUS ) { 0, 0, 256, 1 }
+
+TM typedef unsigned short QCLI_Wave_t { text "%10d" QCLI_Wave_text(); }
+%{
+  const char *ok_fail_text[] = { "  ok", "FAIL" };
+  const char *no_yes_text[]  = { " no", "yes" };
+  const char *qcli_off_on_text[]  = { "off", " on" };
+  const char *rw_text[] = { "--", "-W", "R-", "RW" };
+  const char *qclimode_text[] = {
+	"   idle",
+	"program",
+	"psector",
+	"    run",
+	" select",
+	"-------",
+	"-------",
+	"======="
+  };
+  const char *ovf_text[] = {
+    " | | ",
+    "*| | ",
+    " |*| ",
+    "*|*| ",
+    " | |*",
+    "*| |*",
+    " |*|*",
+    "*|*|*" };
+%}
+TM typedef int ok_fail_t { text "%4d" ok_fail_text[]; }
+TM typedef int no_yes_t { text "%3d" no_yes_text[]; }
+TM typedef int qcli_off_on_t { text "%3d" qcli_off_on_text[]; }
+TM typedef int onebit_t { text "%1d"; }
+TM typedef int twobits_t { text "%02b"; }
+TM typedef int qclimode_t { text "%7d" qclimode_text[]; }
+TM typedef int SSP_OVF { text "%5d" ovf_text[]; }
+TM typedef int rw_t { text "%2d" rw_text[]; }
+TM typedef unsigned char fifodep_t { text "%3u"; }
+TM typedef unsigned char qclierr_t { text "%02x"; }

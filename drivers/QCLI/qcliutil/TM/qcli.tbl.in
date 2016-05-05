@@ -1,0 +1,63 @@
+QCLI@SUFFIX@ {
+  HBox { +-; Title: "QCLI@SUFFIX@"; -+ };
+  Wave: HBox { (QCLI@SUFFIX@_Wave,10); HGlue 0+1 };
+  Mode: { (QCLI@SUFFIX@_mode,7) (QCLI@SUFFIX@_laser,3)
+          Stale: (QCLI@SUFFIX@_Stale,5) };
+  SSP { (SSP@SUFFIX@_Num,8) (SSP@SUFFIX@_Status,7); }
+}
+
+SSP@SUFFIX@ {
+  HBox { +-; Title: "SSP@SUFFIX@"; -+ };
+  HBox {
+    { File: (SSP@SUFFIX@_Num,8);
+      Scan: (SSP@SUFFIX@_SN,8);
+      Skip: (SSP@SUFFIX@_TS,8);
+      Stale: (SSP@SUFFIX@_Stale,5);
+    }; +|; {
+      ""  >"1|2|3 ";
+      AD: (SSP@SUFFIX@_AD,5);
+      PA: (SSP@SUFFIX@_PA,5);
+      CA: (SSP@SUFFIX@_CA,5);
+    }
+  }
+}
+
+SSP@SUFFIX@_T {
+  { HBox { +-; Title: "SSP@SUFFIX@ Temps"; -+ };
+    { FPGA: (SSP@SUFFIX@_T_FPGA,6) C HtSink: (SSP@SUFFIX@_T_HtSink,6) C };
+    # BrdT: (ISSPT,7) C
+  }
+}
+
+QCLI@SUFFIX@_S {
+  HBox { +-; Title: "QCLI@SUFFIX@ Status"; -+ };
+  HBox {
+    {
+      Rdy:     (QCLI@SUFFIX@_ready,3);
+      Busy:    (QCLI@SUFFIX@_busy,3);
+      Sel:     (QCLI@SUFFIX@_waveerr,4);
+      Flsh:    (QCLI@SUFFIX@_flash,2);
+      Cksm:    (QCLI@SUFFIX@_cksum,1);
+    }; |; {
+      "DOT:"   (QCLI@SUFFIX@_dot,4);
+      "LOT:"   (QCLI@SUFFIX@_lot,4);
+      "LOC:"   (QCLI@SUFFIX@_loc,4);
+      "COR:"   (QCLI@SUFFIX@_cordte,4);
+      "CErr:"  (QCLI@SUFFIX@_cmderr,4);
+    }; |; {
+      Com:  (QCLI@SUFFIX@_present,4);
+      Act:  (QCLI@SUFFIX@_rw,2);
+      FIFO: (QCLI@SUFFIX@_fifodep,3);
+      Err:  (QCLI@SUFFIX@_err,2);
+#     Rst:  (QCLI@SUFFIX@_Reset,3);
+    }
+  }
+}
+
+QCLISSP@SUFFIX@ {
+  [QCLI@SUFFIX@];
+  [SSP@SUFFIX@];
+  [SSP@SUFFIX@_T];
+  [QCLI@SUFFIX@_S]
+}
+
