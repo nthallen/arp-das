@@ -1,0 +1,2 @@
+TM typedef float Drift_t { text "%7.3f"; }
+TM 1 Hz Drift_t SysTDrift; collect SysTDrift = get_drift();

@@ -1,0 +1,12 @@
+%{
+  #include <time.h>
+
+  float get_drift() {
+    struct timespec ts;
+    double tmtime, systime;
+    tmtime = dtime();
+    clock_gettime(CLOCK_REALTIME, &ts);
+    systime = ts.tv_sec + ts.tv_nsec*1e-9;
+    return((float)(tmtime - systime));
+  }
+%}

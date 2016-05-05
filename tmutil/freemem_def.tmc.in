@@ -1,0 +1,13 @@
+%{
+  /* Defines types for free memory reports.
+     Requires freemem_col.tmc to do the actual collection.
+  */
+%}
+TM typedef double MB;
+TM typedef unsigned short freemem_t {
+  convert MB; text "%7.2lf";
+  collect x = get_free_mem();
+}
+Calibration (freemem_t, MB) { 0, 0, 60000, 1200.00 }
+
+TM @FREEMEM_RATE@ Hz freemem_t freemem;

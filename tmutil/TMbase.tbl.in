@@ -1,0 +1,14 @@
+TMbase {
+  CPU:    (CPU_Pct,3)  %;
+  RAM:    (freemem,7) MB;
+  Disk:   (Disk,5)     %;
+  TDrift: (SysTDrift,7) sec;
+  (flttime,9);
+  MFCtr: (MFCtr,5);
+}
+
+TMbaseB {
+  HBox{ +-; Title: "System"; -+ };
+  [TMbase]
+}
+
