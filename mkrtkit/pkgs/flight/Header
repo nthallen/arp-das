@@ -1,10 +1,20 @@
 # Package flight
-Version: 2.5.51
+Version: 2.5.54
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.54
+#   oms: Use ascii_escape() on PC68 ID output
+#   tmpplib: Selector::event_loop(): Handle EHOSTDOWN also
+# 2.5.53
+#   tmlib: colsend(): always free memory even on error.
+#   tmpplib: Selector::event_loop()
+#     Treat EBADF as an exceptional condition
+# 2.5.52
+#   getcon: Support -n <command node> option
+#   parent: Fixed option-handling bug
 # 2.5.51
 #   tmlib: Col_send_init(): don't expand explicit path
 # 2.5.50

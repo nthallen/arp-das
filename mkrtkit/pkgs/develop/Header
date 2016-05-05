@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.64
+Version: 2.5.67
 Requires: flight gcc photon mozilla sudo perllink fftwf mozilla_certs
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,19 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.67 2016-05-05
+#   phtable: 'Input' syntax, -o and -d options
+#   nctable: 'Input' syntax, -o and -d options
+#   appgen: Delay processing build targets until base variables are defined
+#   appgen_module:
+#     Support '-' targets for simple file generation
+#     Do not update generated files unless they have changed
+#   TMbase module
+#   QCLI module
+# 2.5.66 2016-03-23
+#   settime: add -r option to set time on remote node
+# 2.5.65
+#   mkdoit3: Pass command node arg to getcon
 # 2.5.64
 #   Oops: no actual updates
 # 2.5.62

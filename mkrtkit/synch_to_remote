@@ -1,0 +1,10 @@
+#! /bin/sh
+function nl_error {
+  echo "synch_to_remote: $*" >&2
+  exit 1
+}
+
+tgt=$1
+[ -n "$tgt" ] || nl_error Must specify target hostname
+rsync -av --rsync-path=/usr/pkg/bin/rsync /var/huarp/pkgcache $tgt:/var/huarp
+
