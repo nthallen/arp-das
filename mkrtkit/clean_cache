@@ -1,4 +1,16 @@
 #! /usr/bin/perl -w
+use strict;
+
+# clean_cache moves old archives from
+#   /var/huarp/pkgcache to
+#   /var/huarp/pkghold
+# which makes it easier to update remote servers using
+# rsync (via synch_to_remote), since we generally only
+# want the latest archive.
+#
+# This could also be used on the remote servers to free up
+# space.
+
 my $pkgcache = '/var/huarp/pkgcache';
 my $pkghold = '/var/huarp/pkghold';
 my @files = map { m|/([^/]*)\.tar\.gz$|; $1; } glob("${pkgcache}/*.tar.gz");
