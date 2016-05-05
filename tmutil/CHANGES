@@ -1,0 +1,15 @@
+appgen:
+  2016-05-05:
+    Process Makefile dependencies for generated source
+    Avoid invoking 'cat' on non-existent $tmpxm
+appgen_module:
+  2016-05-05:
+    Produce specdepbase definitions for Makefile dependencies
+    Do not touch generated files unless they have changed
+    Add file generation syntax w/o a build target
+appgen.mk
+  2016-05-05:
+    Collect dependencies from *table invocations
+TMbase*
+  2016-05-05:
+    New Module for basic configuration
