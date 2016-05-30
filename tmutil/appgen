@@ -524,7 +524,7 @@ for i in $basetargets; do
   fi
   case $i in
     *col)
-      if replace_all .tmc $i.cc "\n\t\$(TMC.col)" $deps; then
+      if replace_all .tmc $i.cc " VERSION\n\t\$(TMC.col)" $deps; then
         pcmfile=${i%col}.pcm
         add_member ouis collect
         add_member ouis seteuid
@@ -535,7 +535,7 @@ for i in $basetargets; do
         ltmpp=' -ltmpp'
       fi;;
     *)
-      replace_all .tmc $i.cc "\n\t\$(TMC)" $deps &&
+      replace_all .tmc $i.cc " VERSION\n\t\$(TMC)" $deps &&
         add_member ouis dc && ltmpp=' -ltmpp';;
   esac
   case $i in
