@@ -198,7 +198,7 @@ while (1) {
         my @files = split(" ", $line);
         for my $file (@files) {
           my ($tgt, $src);
-          if ($file =~ m|^([^:/]+):([^:]+)$|) {
+          if ($file =~ m|^([^:/]+):([^:]*)$|) {
             $tgt = $1;
             $src = $2;
           } else {
@@ -214,9 +214,10 @@ while (1) {
           } elsif (-f "$moddir/$src") {
             $src = "$moddir/$src";
           }
-          -f $src ||
+          if ( $src ne '' && ! -f $src ) {
             die "Source file not found: '$src'\n";
-          if ($tgt) {
+          }
+          if ($tgt && $src) {
             print "specdepbase = $src\n";
             my $dosubs = $src =~ m/\.in$/;
             my $tgttmp = "._$tgt";
@@ -237,6 +238,8 @@ while (1) {
               unlink($tgt);
               rename($tgttmp, $tgt);
             }
+            push(@ofiles, $tgt);
+          } elsif ( $tgt ) {
             push(@ofiles, $tgt);
           } else {
             push(@ofiles, $src);

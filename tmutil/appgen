@@ -240,6 +240,7 @@ function def_source {
 
 add_member IDISTRIB Experiment.config
 add_member IDISTRIB VERSION
+add_member cmdbase /usr/local/share/huarp/root.cmd
 
 #----------------------------------------------------------------
 # This is where we read in the definitions
