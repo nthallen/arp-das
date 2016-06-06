@@ -531,7 +531,7 @@ for i in $basetargets; do
         add_member ouis seteuid
         add_member DISTRIB $pcmfile
         add_member DISTRIB tm.dac
-        add_member OBJ $pcmfile
+        add_member SRC $pcmfile
         add_member OBJ tm.dac
         ltmpp=' -ltmpp'
       fi;;

@@ -8,7 +8,9 @@
   sed -e '/bytes \(Datum\|Member\)/! d' \
       -e 's/^.*bytes \(Datum\|Member\) //' \
       -e 's/ (.*)//' *.pcm;
-  grep -i invalidate *.tmc |
+  sed -e 's/^#.*$//' -e 's/^.*=//' -e 's/[\t ]/\n/g' Makefile |
+    grep '\.tmc$' | sort -u |
+    xargs grep -i invalidate |
     sed -e 's/^.*[Ii]nvalidate //' \
 	-e 's/;.*$//'
 } | sort |
