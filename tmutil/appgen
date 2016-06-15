@@ -20,7 +20,7 @@
 # colbase = <files>
 # qclibase = <files>
 # swsbase = <files>
-# extbase = <files>
+# extbase = <files> (files to be included in genui extractions)
 # genuibase = <files>
 # var = substitution (supported vars are SRC TOOL OBJ TGT DISTRIB
 #                     SCRIPT (source to be copied to $TGTDIR/bin/$VERSION)
@@ -230,7 +230,8 @@ function def_target {
 function def_source {
   is_member targets $1 &&
     nl_error Source File $1 previously identified as target.
-  in_this_dir $1 && add_member SRC $1
+  # in_this_dir $1 &&
+  add_member SRC $1
   case $1 in
     *.tbl) add_member SRCDIST $1;;
     *.tma) add_member SRCDIST $1;;
@@ -719,11 +720,13 @@ output_macro CMDBASE $cmdbase
 output_macro COLBASE $colbase
 output_macro SWSBASE $swsbase
 output_macro QCLIBASE $qclibase
+output_macro GENUIBASE $genuibase
+output_macro EXTBASE $extbase
 output_macro SPECDEPBASE $specdepbase
 output_macro AG_CPPFLAGS $CPPFLAGS
 output_macro PHTGT $PHTGT
-echo 'RCS=$(SRC) $(TOOL) $(SCRIPT)'
-echo 'SOURCE=$(RCS) $(NONRCS)'
+echo 'SOURCE=$(SRC) $(TOOL) $(SCRIPT)'
+# echo 'SOURCE=$(RCS) $(NONRCS)'
 echo 'OBJECT=$(OBJ) *.err'
 echo 'TARGET=$(TGT)'
 echo 'DSTRB=$(TGT) $(DISTRIB) $(SCRIPT)'

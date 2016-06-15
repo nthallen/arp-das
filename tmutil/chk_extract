@@ -1,5 +1,7 @@
 #! /usr/bin/perl -w
 use strict;
+use lib "/usr/local/share/huarp";
+use Makefile;
 
 #ifdef __USAGE
 # %c
@@ -26,6 +28,13 @@ close($fh) || warn "Error closing $pcm[0]\n";
 
 # Now check all tmc files for derived channels
 # and bit-selection patterns
+my %macros;
+-f "Makefile" || die "No Makefile found\n";
+Makefile::read_makefile(\%macros, "Makefile");
+my @extbase = grep m/\.tmc$/,
+  split(/\s+/, Makefile::expand_macro(\%macros, "SRC"));
+my @genuibase =
+  split(/\s+/, Makefile::expand_macro(\%macros, "GENUIBASE"));
 
 my %derived;
 my @bits;
@@ -42,7 +51,7 @@ sub define_bit {
   $bitmask{"$word:$shift"} = $bit;
 }
 
-for my $file ( <*.tmc> ) {
+for my $file ( @extbase ) {
   open $fh, "<", $file ||
     die "Unable to read $file\n";
   while (<$fh>) {
@@ -88,42 +97,44 @@ for my $file ( <*.tmc> ) {
 # print map "0 $_ $derived{$_}\n",
 #   sort keys %derived;
 
-# Now read genui.txt if it exists and mark referenced channels as extracted
+# Now read GENUIBASE files and mark referenced channels as extracted
 # print "\n====> Checking Extractions\n";
 my %extracted;
 
-if ( open($fh, "<", "genui.txt") ) {
-  while (my $line = <$fh>) {
-    next unless $line =~ m,^\s*(\d+(?:/\d+)?)\s+(\w+)(?::(\w+):(\d+))?\s,;
-    my $rate = $1;
-    my $mnc = $2;
-    my $word = $3;
-    my $bit = $4;
-    my $chan = $word || $mnc;
-    if ( defined $rate{$chan} ) {
-      if ( $rate{$chan} ne $rate ) {
-        my $err = $rate{$chan} ? "Rate" : "Possible rate";
-        warn "$err mismatch for $chan: tmc: $rate{$chan} genui.txt: $rate\n";
-      }
-    } else {
-      warn "genui.txt: Unknown datum: $mnc\n";
-    }
-    if ( defined($word) ) {
-      my $tmc = $bitmask{"$word:$bit"};
-      if ( defined $tmc ) {
-        if ( $tmc ne $mnc ) {
-          warn "Bit name mismatch: tmc: $tmc genui.txt: $mnc\n";
+for my $file (@genuibase) {
+  if ( open($fh, "<", $file) ) {
+    while (my $line = <$fh>) {
+      next unless $line =~ m,^\s*(\d+(?:/\d+)?)\s+(\w+)(?::(\w+):(\d+))?\s,;
+      my $rate = $1;
+      my $mnc = $2;
+      my $word = $3;
+      my $bit = $4;
+      my $chan = $word || $mnc;
+      if ( defined $rate{$chan} ) {
+        if ( $rate{$chan} ne $rate ) {
+          my $err = $rate{$chan} ? "Rate" : "Possible rate";
+          warn "$err mismatch for $chan: tmc: $rate{$chan} $file: $rate\n";
         }
-        # $mnc = "$tmc:$word:$bit";
-        $mnc = "$word:$bit:$tmc";
       } else {
-        $mnc = "$word:$bit:$mnc";
+        warn "$file: Unknown datum: $mnc\n";
       }
+      if ( defined($word) ) {
+        my $tmc = $bitmask{"$word:$bit"};
+        if ( defined $tmc ) {
+          if ( $tmc ne $mnc ) {
+            warn "Bit name mismatch: tmc: $tmc $file: $mnc\n";
+          }
+          # $mnc = "$tmc:$word:$bit";
+          $mnc = "$word:$bit:$tmc";
+        } else {
+          $mnc = "$word:$bit:$mnc";
+        }
+      }
+      $extracted{$mnc} = 1;
+      $extracted{$word} = 1 if $word;
     }
-    $extracted{$mnc} = 1;
-    $extracted{$word} = 1 if $word;
+    close($fh) || warn "Error closing $file\n";
   }
-  close($fh) || warn "Error closing genui.txt\n";
 }
 
 # Now go through all the channels defined in %rate and report any
