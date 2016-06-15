@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.67
+Version: 2.5.70
 Requires: flight gcc photon mozilla sudo perllink fftwf mozilla_certs
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
@@ -7,6 +7,15 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.70
+#   appgen: pcmfile should be SRC, not OBJ
+#   chk_display: locate .tmc sources in other directories
+# 2.5.69 2016-05-30
+#   appgen: All TMC compilations depend on VERSION
+#   appgen_module: Add support for source code generation
+#     beyond simple macro substitution.
+# 2.5.68 2016-05-19
+#   appgen: Make sure root.cmd is first
 # 2.5.67 2016-05-05
 #   phtable: 'Input' syntax, -o and -d options
 #   nctable: 'Input' syntax, -o and -d options

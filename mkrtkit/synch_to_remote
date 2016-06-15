@@ -1,4 +1,8 @@
 #! /bin/sh
+#ifdef __USAGE__
+#%C <hostname>
+#endif
+
 function nl_error {
   echo "synch_to_remote: $*" >&2
   exit 1

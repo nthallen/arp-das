@@ -40,8 +40,8 @@ for my $pkg (keys %pkg) {
 print "Done\n";
 
 sub ver_sort {
-  @a = split /\./, $a;
-  @b = split /\./, $b;
+  my @a = split /\./, $a;
+  my @b = split /\./, $b;
   while (@a && @b) {
     my $rv = shift(@b) <=> shift(@a);
     return $rv if $rv != 0;
