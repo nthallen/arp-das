@@ -179,10 +179,13 @@ while [ -n "$pkgs" ]; do
   if [ ! -f ${archive}.gz ]; then
     # cd /
     for MAN in MANIFEST MANIFEST_pkg; do
-      tar -rf $archive --owner=0 --group=0 --no-recursion \
-        -C / -T $proot/$ppver/$MAN ||
+      /usr/local/sbin/pkg-preprocess-manifest $proot/$ppver/$MAN |
+        tar -rf $archive --owner=0 --group=0 --no-recursion \
+          -C / -T - ||
         nl_error "tar failed creating archive for $ppver from $MAN\n"
     done
     gzip $archive || nl_error "gzip $archive failed"
+  else
+    nl_warn "  ${archive}.gz already exists: skipping"
   fi
 done
