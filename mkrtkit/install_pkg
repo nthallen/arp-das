@@ -81,8 +81,9 @@ if ( -f $archive || -f "$archive.gz" ) {
   print "$pkgname: Creating archive $archive.gz\n";
   for my $mf ( @{$pkg->{Files}} ) {
     chdir($mf->{SrcRoot}) || die;
-    system( "tar -rf $archive --owner=0 --group=0 --no-recursion " .
-	    "-T $dest/$mf->{List}" ) &&
+    system( "$cwd/pkg-preprocess-manifest $dest/$mf->{List} | " .
+            "tar -rf $archive --owner=0 --group=0 --no-recursion " .
+	    "-T -" ) &&
       die "FATAL: $pkgname: tar failed creating archive for $pkg->{name}\n";
   }
   chdir($cwd);
@@ -93,7 +94,7 @@ exit(0);
 
 sub pkg_read_header {
   # Now read the header
-  #  ^Requires: Add packages to reqlist in reverse order
+  #  ^Requires: Add packages to reqlist
   #  ^Files: <file> @ <SrcRoot>
   my $pkg;
   $pkg->{name} = shift || die "No package arg to pkg_read_header\n";

@@ -156,7 +156,7 @@ sub vercmp {
 
 sub pkg_read_header {
   # Now read the header
-  #  ^Requires: Add packages to reqlist in reverse order
+  #  ^Requires: Add packages to reqlist
   #  ^Files: <file> @ <SrcRoot>
   my $pkg = shift;
   return if $pkg->{Files};
@@ -168,7 +168,7 @@ sub pkg_read_header {
     chomp $line;
     next if $line =~ m/^\s*(?:#.*)?$/;
     if ( $line =~ m/^\s*Requires:((?:\s+[-\w.]+(?:-\[0-9\]\*)?)*)$/ ) {
-      for my $rpkg ( reverse split ' ', $1 ) {
+      for my $rpkg ( split ' ', $1 ) {
         $rpkg =~ s/-\[0-9\]\*$//;
       	my $rpkgpkg = pkg_check( $rpkg, $pkg->{name} );
         push( @reqlist, $rpkgpkg );

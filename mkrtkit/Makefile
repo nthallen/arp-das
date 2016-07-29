@@ -8,7 +8,7 @@
 # make install
 #   Do both
 
-SBIN=mkrtkit mkrtkitarch osupdate
+SBIN=mkrtkit mkrtkitarch osupdate pkg-preprocess-manifest
 DATA=rtinstall
 OSDATA=
 INSTALL=cp -vn

@@ -1,0 +1,22 @@
+#! /usr/bin/perl -w
+use strict;
+
+# This script will read the contents of the listed files
+# and produce a list of directories referenced
+
+my %dir;
+
+while (my $file = <>) {
+  chomp $file;
+  my @nodes = split('/', $file);
+  my $dir = shift @nodes;
+  while (@nodes) {
+    unless ($dir{$dir}) {
+      print "$dir\n";
+      $dir{$dir} = 1;
+    }
+    $dir .= '/' . shift @nodes;
+  }
+  printf "$file\n";
+}
+

@@ -104,16 +104,29 @@ function install {
   fi
 
   echo Copying boot images
-  mkdir -p /install/boot/fs
+  mkdir -p -m 0755 /install/boot/fs
   cp $SRCPATH/boot/fs/*.ifs /install/boot/fs/
 
   echo "mount=/" >/install/.diskroot
 
-  [ -d /install/etc/system/config ] || mkdir -p /install/etc/system/config
+  [ -d /install/etc/system/config ] || mkdir -p -m 0755 /install/etc/system/config
   touch /install/etc/system/config/nophoton
 
   [ -d /install/usr/photon/config ] &&
     cp /install/usr/photon/config/crtc-settings /install/etc/system/config
+
+  getresp "Copy installation archives?:" N
+  case $resp in
+    [yY]*)
+      mkdir -p -m 0755 /install/var/huarp/pkgcache
+      if [ -d /install/var/huarp/pkgcache ]; then
+        echo "Copying installation archives"
+        cp $SRCPATH/repository/*.tar.gz /install/var/huarp/pkgcache/
+      else
+        echo "Unable to create archive directory /var/huarp/pkgcache"
+      fi;;
+    *) :;;
+  esac
 
   echo Installation complete
 }

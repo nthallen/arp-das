@@ -1,0 +1,51 @@
+#! /usr/bin/perl -w
+use strict;
+
+my $cache = "/var/huarp/pkgcache";
+my $pkgroot = "/var/huarp/pkg";
+my $netbsdroot = "/var/db/pkg";
+my %bsdpkg;
+
+chdir($cache);
+
+for my $archive (<*.tar.gz>) {
+  $archive =~ m/^(.*)\.tar\.gz$/ ||
+    die "archive pattern fail: '$archive'\n";
+  my $pkg = $1;
+  unless (-d "$pkgroot/$pkg") {
+    warn "archive $pkg no longer installed\n";
+  }
+}
+
+chdir($pkgroot);
+
+for my $pkg (<*>) {
+  next unless -d $pkg && -f "$pkg/MANIFEST";
+  open(my $manifest, "<", "$pkg/MANIFEST") ||
+    die "Cannot read $pkg/MANIFEST\n";
+  my $pkgtype = "ARP";
+  while (<$manifest>) {
+    if ( m,var/db/pkg/([^/]+)/\+CONTENTS, ) {
+      my $bsdpkg = $1;
+      $pkgtype = "BSD";
+      if ( -d "$netbsdroot/$bsdpkg" ) {
+        $bsdpkg{$bsdpkg} = 1;
+      } else {
+        warn "Netbsd package $bsdpkg is no longer installed\n";
+      }
+      last;
+    }
+  }
+  warn "No archive exists for $pkgtype pkg $pkg\n"
+    unless -f "$cache/$pkg.tar.gz";
+  close($manifest) || warn "Error closing $pkg/MANIFEST\n";
+}
+
+chdir($netbsdroot);
+
+for my $pkg (<*>) {
+  next unless -d $pkg && -f "$pkg/+CONTENTS";
+  warn "Netbsd package $pkg has not been converted\n"
+    unless $bsdpkg{$pkg};
+}
+

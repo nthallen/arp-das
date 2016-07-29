@@ -1,5 +1,5 @@
 #! /bin/sh
-echo "Creating pkg_indt_dep.dot"
+echo "Creating pkg_inst_dep.dot"
 {
   echo "digraph G {"
   echo '  size="10,7.5"; ratio=fill; concentrate=true;'
@@ -18,5 +18,5 @@ echo "Creating pkg_indt_dep.dot"
   echo '}'
 } >pkg_inst_dep.dot
 # echo "Running dot"
-# dot -Tpdf -opkg_dep.pdf pkg_dep.dot
-# echo "Result in pkg_dep.pdf"
+# dot -Tpdf -opkg_inst_dep.pdf pkg_inst_dep.dot
+# echo "Result in pkg_inst_dep.pdf"

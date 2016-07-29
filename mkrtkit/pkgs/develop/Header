@@ -1,12 +1,21 @@
 # develop package
-Version: 2.5.70
-Requires: flight gcc photon mozilla sudo perllink fftwf mozilla_certs
+Version: 2.5.71
+Requires: flight gcc photon mozilla sudo perllink fftwf
+Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
 Files: MANIFEST_eli @ /
 Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.71
+#   Add scmgit-base to dependencies
+#   pkg-preprocess-manifest
+#   mkrtkitarch: preprocess manifests
+#   install_pkg: preprocess manifests
+#   pkg2pkg: preprocess manifests
+#   mkrtkit: get install order right
+#   rtinstall: add option to copy install archives
 # 2.5.70
 #   appgen: pcmfile should be SRC, not OBJ
 #   chk_display: locate .tmc sources in other directories

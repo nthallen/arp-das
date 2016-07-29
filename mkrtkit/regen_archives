@@ -1,0 +1,50 @@
+#! /usr/bin/perl -w
+use strict;
+use Cwd;
+
+my $cache = "/var/huarp/pkgcache";
+my $pkgroot = "/var/huarp/pkg";
+my $netbsdroot = "/var/db/pkg";
+my %bsdpkg;
+
+my $cwd = cwd();
+chdir($pkgroot);
+my @pkgs = <*>;
+chdir($cwd);
+
+for my $pkg (@pkgs) {
+  next unless -d "$pkgroot/$pkg" && -f "$pkgroot/$pkg/MANIFEST_pkg";
+  my $pkgtype = "ARP";
+  if (-f "$pkgroot/$pkg/MANIFEST") {
+    open(my $manifest, "<", "$pkgroot/$pkg/MANIFEST") ||
+      die "Cannot read $pkgroot/$pkg/MANIFEST\n";
+    while (<$manifest>) {
+      if ( m,var/db/pkg/([^/]+)/\+CONTENTS, ) {
+        my $bsdpkg = $1;
+        $pkgtype = "BSD";
+        if ( -d "$netbsdroot/$bsdpkg" ) {
+          $bsdpkg{$bsdpkg} = 1;
+        } else {
+          warn "Netbsd package $bsdpkg is no longer installed\n";
+        }
+        last;
+      }
+    }
+    close($manifest) || warn "Error closing $pkg/MANIFEST\n";
+  }
+  unless ( -f "$cache/$pkg.tar.gz" ) {
+    warn "No archive exists for $pkgtype pkg $pkg\n";
+    $pkg =~ m/^(.*)-[^-]*$/ ||
+      die "Unable to discern pkgbasename from '$pkg'\n";
+    my $pkgbase = $1;
+    if ( $pkgtype ne "BSD" ) {
+      print "Running ./install_pkg $pkgbase\n";
+      system("./install_pkg $pkgbase") &&
+        die "'./install_pkg $pkgbase' returned an error";
+    } else {
+      print "Running pkg2pkg $pkgbase\n"; 
+      system("/usr/local/sbin/pkg2pkg $pkgbase") &&
+        die "'/usr/local/sbin/pkg2pkg $pkgbase' returned an error";
+    }
+  }
+}
