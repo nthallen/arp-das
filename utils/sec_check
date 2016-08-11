@@ -1,0 +1,51 @@
+#! /usr/bin/perl -w
+
+# read /etc/shadow and store hash and timestamp values
+# Then read /net/*/etc/shadow and report differences
+
+my %user;
+
+open(my $ifh, "<", "/etc/shadow") ||
+  die "Unable to read /etc/shadow\n";
+while (<$ifh>) {
+  my ($user,$hash,$timestamp,$etc) = split(/:/);
+  $user{$user} = { hash => $hash, timestamp => $timestamp, other => [] };
+  # print "user = $user, hash = $hash, timestampe = $timestamp\n";
+}
+close($ifh) || warn "Error closing /etc/shadow\n";
+
+chdir "/net";
+my @nodes = <*>;
+for my $node (@nodes) {
+  if (!thesame("/net/$node/etc/shadow", "/etc/shadow")) {
+    open(my $ifh, "<", "/net/$node/etc/shadow") ||
+      die "Unable to read /net/$node/etc/shadow\n";
+    while (<$ifh>) {
+      my ($user,$hash,$timestamp,$etc) = split(/:/);
+      if ($user{$user}) {
+        if ($user{$user}->{hash} ne $hash) {
+          push(@{$user{$user}->{other}},
+            { node => $node, hash => $hash, timestamp => $timestamp });
+        }
+      } else {
+        $user{$user} = { hash => '', timestamp => '',
+          other => [{ node => $node, hash => $hash, timestamp => $timestamp }]};
+      }
+    }
+    close($ifh) || warn "Error closing /etc/shadow\n";
+  }
+}
+
+for my $user (sort keys %user) {
+  if (@{$user{$user}->{other}}) {
+    print "Discrepancy with user $user\n";
+  }
+}
+
+sub thesame {
+  my ($f1,$f2) = @_;
+  my ($inode1, $dev1) = stat($f1);
+  my ($inode2, $dev2) = stat($f2);
+  return $inode1 == $inode2 && $dev1 == $dev2;
+}
+
