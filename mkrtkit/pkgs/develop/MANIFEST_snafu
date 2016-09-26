@@ -1,0 +1,6 @@
+usr/local/bin/snafucfg
+usr/local/bin/sps2mat
+usr/local/include/memlib.h
+usr/local/include/snafuerr.h
+usr/local/include/snfbatch.h
+usr/local/include/ssp.h

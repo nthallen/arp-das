@@ -1,4 +1,3 @@
-usr/local/bin
 usr/local/bin/appgen
 usr/local/bin/appgen_module
 usr/local/bin/CDimage
@@ -29,10 +28,8 @@ usr/local/bin/phtbl
 usr/local/bin/prepCD
 usr/local/bin/qclicomp
 usr/local/bin/settime
-usr/local/bin/snafucfg
 usr/local/bin/solfmt
 usr/local/bin/specq
-usr/local/bin/sps2mat
 usr/local/bin/subbusd_sim
 usr/local/bin/swscomp
 usr/local/bin/tmc
@@ -40,7 +37,6 @@ usr/local/bin/tmcalgo
 usr/local/bin/tomat
 usr/local/bin/transfer
 usr/local/bin/vmutil
-usr/local/include
 usr/local/include/Selector.h
 usr/local/include/SerSelector.h
 usr/local/include/Timeout.h
@@ -86,12 +82,8 @@ usr/local/include/collect.h
 usr/local/include/DCph.h
 usr/local/include/hsatod.h
 usr/local/include/cmdalgo.h
-usr/local/include/memlib.h
 usr/local/include/ptrhm.h
 usr/local/include/qclisspcmd.h
-usr/local/include/snafuerr.h
-usr/local/include/snfbatch.h
-usr/local/include/ssp.h
 usr/local/include/tmdf.h
 usr/local/include/oui.h
 usr/local/sbin/dev_copy

@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.71
+Version: 2.5.72
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,6 +8,11 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.72 2016-09-26
+#   appgen, appgen_module:
+#     add Makefile test to rerun appgen if appgen targets are missing
+#     fix bug with nested module name case sensitivity
+#   remove snafu
 # 2.5.71
 #   Add scmgit-base to dependencies
 #   pkg-preprocess-manifest
