@@ -127,7 +127,7 @@ exec <$ifile >Makefile
 typeset targets prefix tmcbase cmdbase basetargets usage LINK usefiles
 typeset colbase swsbase qclibase ouis
 typeset extbase genuibase
-typeset specdepbase
+typeset specdepbase spectgtbase
 typeset SERVER
 typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC DISTRIB SRCDIST
 typeset TGTNODE TGTDIR
@@ -723,6 +723,7 @@ output_macro QCLIBASE $qclibase
 output_macro GENUIBASE $genuibase
 output_macro EXTBASE $extbase
 output_macro SPECDEPBASE $specdepbase
+output_macro SPECTGTBASE $spectgtbase
 output_macro AG_CPPFLAGS $CPPFLAGS
 output_macro PHTGT $PHTGT
 echo 'SOURCE=$(SRC) $(TOOL) $(SCRIPT)'
@@ -752,7 +753,7 @@ echo
 echo "IGNOREFILE=$ignorefile"
 echo 'all : Makefile check_photon $(TGT) $(IGNOREFILE)'
 echo 'all-dist : $(DSTRB) $(SRCDIST) VERSION'
-echo "Makefile : $ifile \$(SPECDEPBASE)"
+echo "Makefile \$(SPECTGTBASE) : $ifile \$(SPECDEPBASE)"
 echo "\tappgen $ifile"
   echo 'VERSION=`cat VERSION`'
   echo 'extdistribution : $(DSTRB) $(SRCDIST) VERSION'

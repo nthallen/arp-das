@@ -39,12 +39,6 @@ parent : parent.o parentoui.o
 	usemsg parent parentoui.c
 parentoui.c : parent.oui
 	oui -o parentoui.c parent.oui
-DCtap : DCtap.o DCtapoui.o
-	$(LINK.c) -o DCtap DCtap.o DCtapoui.o -ltmpp -ltm -lnort -lang-c++
-	usemsg DCtap DCtapoui.c
-DCtap.o : DCtap.cc
-DCtapoui.c : DCtap.oui
-	oui -o DCtapoui.c DCtap.oui
 
 getcon : getcon.o getconoui.o
 	$(LINK.c) -o getcon getcon.o getconoui.o -lnort -ltm
@@ -57,4 +51,4 @@ getconoui.c : getcon.oui
 checksudo :
 	/usr/pkg/bin/sudo -V >/dev/null
 clean :
-	rm -f FullBuild.* *.o getcon DCtab parent
+	rm -f FullBuild.* *.o getcon getconoui.c parent parentoui.c

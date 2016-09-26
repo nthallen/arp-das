@@ -219,6 +219,7 @@ while (1) {
           }
           if ($tgt && $src) {
             print "specdepbase = $src\n";
+            print "spectgtbase = $tgt\n";
             my $dosubs = $src =~ m/\.in$/;
             my $tgttmp = "._$tgt";
             open(my $ifh, "<", $src) ||
@@ -259,7 +260,7 @@ while (1) {
     if ($currently_active) {
       $line = subvars($line, \%Modevars);
       my $rlvl = $Defvars{rlvl}+1;
-      $line =~ s|^([a-z][\w.]*)(?:\s+([\w.=\s]*))?$|| ||
+      $line =~ s|^([a-z][\w.]*)(?:\s+([\w.=\s]*))?$||i ||
         die "$path:$linenum: Invalid characters in Module Ref\n";
       my $refmod = $1;
       my $cmdtail = defined($2) ? $2 : '';
