@@ -9,6 +9,12 @@ function nl_error {
 }
 
 tgt=$1
+dryrun=''
+if [ "X$tgt" = "X-n" ]; then
+  dryrun='--dry-run'
+  tgt=$2
+fi
 [ -n "$tgt" ] || nl_error Must specify target hostname
-rsync -av --rsync-path=/usr/pkg/bin/rsync /var/huarp/pkgcache $tgt:/var/huarp
+rsync -av --rsync-path=/usr/pkg/bin/rsync $dryrun \
+  /var/huarp/pkgcache $tgt:/var/huarp
 
