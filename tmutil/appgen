@@ -15,6 +15,7 @@
 # Spec_file format:
 # # comment line
 # prefix = <prefix>  (optional: derived from spec file name)
+# extprefix = <extprefix> (optional: defaults to $prefix)
 # tmcbase = <files>
 # cmdbase = <files>
 # colbase = <files>
@@ -125,6 +126,7 @@ function invoke_module {
 exec <$ifile >Makefile
 
 typeset targets prefix tmcbase cmdbase basetargets usage LINK usefiles
+typeset extprefix
 typeset colbase swsbase qclibase ouis
 typeset extbase genuibase
 typeset specdepbase spectgtbase
@@ -343,6 +345,8 @@ done
 #----------------------------------------------------------------
 prefix=${prefix##* }
 if [ -z "$prefix" ]; then prefix=${ifile%%.*}; fi
+extprefix=${extprefix##* }
+[ -z "$extprefix" ] && extprefix=$prefix
 if [ -n "$tmcbase" ]; then
   for i in $tmcbase; do add_member SRCDIST $i; done
 fi
@@ -368,8 +372,8 @@ if [ -n "$colbase" ]; then
 fi
 
 if [ -n "$extbase" -o -n "$genuibase" ]; then
-  is_member targets ${prefix}engext || {
-    def_target ${prefix}engext $tmcbase $extbase $genuibase
+  is_member targets ${extprefix}engext || {
+    def_target ${extprefix}engext $tmcbase $extbase $genuibase
     for i in $extbase $genuibase; do def_source $i; done
   }
 fi
