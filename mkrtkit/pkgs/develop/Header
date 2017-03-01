@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.73
+Version: 2.5.74
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,6 +8,12 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.74 2016-11-07
+#   appgen: appgen-generated files will now have their timestamps
+#     updated even when the contents are unchanged. There is a
+#     tradeoff between running appgen unncessarily and recompiling
+#     unnecessarily. I decided to stick to one consistent model--
+#     the one make uses.
 # 2.5.73 2016-09-28
 #   appgen: add extprefix for tweaking name of default extraction target
 # 2.5.72 2016-09-26

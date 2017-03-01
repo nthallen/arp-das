@@ -221,11 +221,11 @@ while (1) {
             print "specdepbase = $src\n";
             print "spectgtbase = $tgt\n";
             my $dosubs = $src =~ m/\.in$/;
-            my $tgttmp = "._$tgt";
+            # my $tgttmp = "._$tgt";
             open(my $ifh, "<", $src) ||
               die "$path:$linenum: unable to open source file '$src'\n";
-            open(my $ofh, ">", $tgttmp) ||
-              die "$path:$linenum: unable to open target temp file '$tgttmp'\n";
+            open(my $ofh, ">", $tgt) ||
+              die "$path:$linenum: unable to open target file '$tgt'\n";
             while (my $line = <$ifh>) {
               $line = subvars($line, \%Modevars) if $dosubs;
               print $ofh $line;
@@ -233,12 +233,12 @@ while (1) {
             close($ifh);
             close($ofh);
             # Now compare $tgttmp to $tgt if it exists
-            if (-f $tgt && compare($tgt, $tgttmp) == 0) {
-              unlink($tgttmp);
-            } else {
-              unlink($tgt);
-              rename($tgttmp, $tgt);
-            }
+            # if (-f $tgt && compare($tgt, $tgttmp) == 0) {
+            #   unlink($tgttmp);
+            # } else {
+            #   unlink($tgt);
+            #   rename($tgttmp, $tgt);
+            # }
             push(@ofiles, $tgt);
           } elsif ( $tgt ) {
             push(@ofiles, $tgt);

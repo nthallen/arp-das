@@ -810,7 +810,7 @@ echo "\ntidy :\n\trm -f \$(OBJECT)"
 echo "clean : tidy\n\trm -f \$(TARGET)"
 echo "clean-dist : clean"
 echo '$(IGNOREFILE) : Makefile'
-echo "\t@for i in \$(OBJECT) \$(TARGET); do echo \"\$\$i\"; done >\$(IGNOREFILE)"
+echo "\t@for i in \$(OBJECT) \$(IGNORE) \$(TARGET); do echo \"\$\$i\"; done >\$(IGNOREFILE)"
 
 # Output anything beyond the %% in the spec file
 # Note that using 'read' does not work here because it strips
