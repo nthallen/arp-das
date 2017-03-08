@@ -32,6 +32,7 @@
 #                     SERVER (defaults if server is generated)
 #                     SUBDIRS (passed on to Makefile)
 #                     CPPFLAGS (passed on to Makefile)
+#                     IGNORE (copied into the IGNOREFILE)
 # target : <files>
 # ...
 # %%
@@ -131,7 +132,7 @@ typeset colbase swsbase qclibase ouis
 typeset extbase genuibase
 typeset specdepbase spectgtbase
 typeset SERVER
-typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC DISTRIB SRCDIST
+typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC DISTRIB SRCDIST IGNORE
 typeset TGTNODE TGTDIR
 typeset CPPFLAGS
 typeset PHTGT
@@ -716,6 +717,7 @@ output_macro TOOL $TOOL
 output_macro SCRIPT $SCRIPT
 output_macro OBJ $OBJ
 output_macro TGT $TGT
+output_macro IGNORE $IGNORE
 output_macro DISTRIB $DISTRIB
 output_macro IDISTRIB $IDISTRIB
 output_macro SRCDIST $SRCDIST

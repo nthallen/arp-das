@@ -1,0 +1,19 @@
+#! /bin/sh
+#ifdef __USAGE__
+#%C
+#endif
+
+if [ `id -u` != 0 ]; then
+  exec /usr/pkg/bin/sudo $0 $*
+fi
+
+function nl_error {
+  echo "synch_to_remote: $*" >&2
+  exit 1
+}
+
+cd /var/huarp/pkgcache
+mkdir times
+for i in *.tar.gz; do
+  touch -r $i times/$i
+done

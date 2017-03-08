@@ -1,6 +1,9 @@
-Moduledef QCLI [ SUFFIX= ADDR=0x1000 ] {
+Moduledef QCLI [ SUFFIX= ADDR=0x1000 ACQCFG=AB3R ] {
   QCLI definitions, takes SUFFIX and ADDR
   arguments. Generates multiple files.
+  Currently supported values for ACQCFG are:
+    AB3R: Collect channels A and B using external trigger rising edge
+    ABC3R: Collect channels A, B and C using external trigger rising edge
 }
 
 tmcbase = qcli_types.tmc

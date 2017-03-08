@@ -1,0 +1,18 @@
+#! /bin/sh
+#ifdef __USAGE__
+#%C <hostname>
+#endif
+
+function nl_error {
+  echo "synch_to_remote: $*" >&2
+  exit 1
+}
+
+tgt=$1
+[ -n "$tgt" ] || nl_error Must specify target hostname
+
+./record_cache_times
+
+rsync -av --rsync-path=/usr/pkg/bin/rsync \
+  /var/huarp/pkgcache/times $tgt:/var/huarp/pkgcache
+
