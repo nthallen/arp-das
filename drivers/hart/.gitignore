@@ -3,3 +3,4 @@ hartd
 hartdoui.c
 *.log
 FullBuild.*
+*.o

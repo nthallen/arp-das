@@ -4,7 +4,7 @@
 #endif
 
 function nl_error {
-  echo "synch_to_remote: $*" >&2
+  echo "synch_times: $*" >&2
   exit 1
 }
 

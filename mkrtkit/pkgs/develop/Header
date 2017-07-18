@@ -8,6 +8,21 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.76 2017-07-12
+#   appgen_module: Reverting change from 2.5.74. Decided there
+#   is a consistent ordering of dependencies:
+#     Build targets should depend on appgen-generated files
+#     Appgen-generated files should not depend on their source
+#     files. Instead, Makefile should depend on those source
+#     files. Appgen will run and conditionally replace the
+#     generated files and rewrite Makefile. Then make restarts
+#     and will recognize the changed files. This approach
+#     does mean that appgen will run whenever any of the
+#     appgen source files is updated, but if the dependencies
+#     are correctly curated, this should not result in running
+#     appgen on every make or multiple times per make.
+#     It is important to check that any custom code generators
+#     invoked by appgen follow this logic.
 # 2.5.75 2017-02-28
 #   appgen: Support IGNORE variable to add files to IGNOREFILE
 #   QCLI.agm, qclis.cmd.in: Allow specification of sampling configuration

@@ -12,8 +12,13 @@ function nl_error {
   exit 1
 }
 
+restore=$PWD/restore_cache_times
+[ -f $restore ] || nl_error "Cannot locate $restore"
+
 cd /var/huarp/pkgcache
 mkdir times
 for i in *.tar.gz; do
   touch -r $i times/$i
 done
+cp $restore times/
+
