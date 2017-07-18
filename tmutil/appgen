@@ -730,6 +730,7 @@ output_macro GENUIBASE $genuibase
 output_macro EXTBASE $extbase
 output_macro SPECDEPBASE $specdepbase
 output_macro SPECTGTBASE $spectgtbase
+echo 'SPECTGTMISS:=$(foreach file,$(SPECTGTBASE),$(if $(wildcard $(file)),,$(file)))'
 output_macro AG_CPPFLAGS $CPPFLAGS
 output_macro PHTGT $PHTGT
 echo 'SOURCE=$(SRC) $(TOOL) $(SCRIPT)'
@@ -757,12 +758,12 @@ echo
 echo '.PHONY : all all-dist extdistribution distribution clean clean-dist check_photon'
 echo
 echo "IGNOREFILE=$ignorefile"
-echo 'all : Makefile check_photon $(TGT) $(IGNOREFILE)'
-echo 'all-dist : $(DSTRB) $(SRCDIST) VERSION'
-echo "Makefile \$(SPECTGTBASE) : $ifile \$(SPECDEPBASE)"
+echo 'all : check_photon $(TGT) $(IGNOREFILE)'
+echo 'all-dist : all $(DSTRB) $(SRCDIST) VERSION'
+echo "Makefile \$(SPECTGTMISS) : $ifile \$(SPECDEPBASE)"
 echo "\tappgen $ifile"
   echo 'VERSION=`cat VERSION`'
-  echo 'extdistribution : $(DSTRB) $(SRCDIST) VERSION'
+  echo 'extdistribution : all-dist'
   echo "\t@[ -d \$(TGTDIR)/bin ] || mkdir \$(TGTDIR)/bin"
   echo "\t@[ -d \$(TGTDIR)/bin/\$(VERSION) ] || mkdir \$(TGTDIR)/bin/\$(VERSION)"
   echo "\t@[ -d \$(TGTDIR)/bin/\$(VERSION)/Base ] || mkdir \$(TGTDIR)/bin/\$(VERSION)/Base"
