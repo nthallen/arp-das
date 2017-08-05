@@ -1,5 +1,5 @@
 /** \file DC.h
- * Data Client Clases
+ * Data Client Classes
  */
 #ifndef DC_H_INCLUDED
 #define DC_H_INCLUDED

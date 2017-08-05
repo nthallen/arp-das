@@ -59,20 +59,30 @@ static char emrcsid[] =
 #ifndef EXTRACTION_TERM
   #define EXTRACTION_TERM
 #endif
+#ifndef EXTRACTION_ROW
+  #define EXTRACTION_ROW
+#endif
 %data_defs%
 
 /* Skeleton main_program section */
 #ifdef TABLELIB_H
   #include "DCph.h"
-  typedef ph_data_client DATA_CLIENT;
+  #ifndef DATA_CLIENT_CLASS
+    #define DATA_CLIENT_CLASS ph_data_client
+  #endif
 #else
   #ifdef NCTABLE_H_INCLUDED
     #include "DCnc.h"
-    typedef nc_data_client DATA_CLIENT;
+    #ifndef DATA_CLIENT_CLASS
+      #define DATA_CLIENT_CLASS nc_data_client
+    #endif
   #else
-    typedef ext_data_client DATA_CLIENT;
+    #ifndef DATA_CLIENT_CLASS
+      #define DATA_CLIENT_CLASS ext_data_client
+    #endif
   #endif
 #endif
+typedef DATA_CLIENT_CLASS DATA_CLIENT;
 
 int main(int argc, char **argv) {
   oui_init_options(argc, argv);
@@ -124,6 +134,7 @@ void DATA_CLIENT::process_data() {
 
   for ( raw = &data->data[0]; n_rows > 0; --n_rows, raw += nbQrow ) {
     home = (union home_row *) raw;
+    EXTRACTION_ROW
     efuncs[majf_row]();
     incmod(majf_row, NROWMAJF);
     ++MFCtr;
