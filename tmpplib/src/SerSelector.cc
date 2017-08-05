@@ -335,7 +335,7 @@ int Ser_Sel::not_hex( unsigned short &hexval ) {
       report_err("No hex digits at col %d", cp);
     return 1;
   }
-  while ( isxdigit(buf[cp]) ) {
+  while ( cp < nc && isxdigit(buf[cp]) ) {
     unsigned short digval = isdigit(buf[cp]) ? ( buf[cp] - '0' ) :
            ( tolower(buf[cp]) - 'a' + 10 );
     hexval = hexval * 16 + digval;
@@ -355,15 +355,15 @@ int Ser_Sel::not_int( int &val ) {
   bool negative = false;
   // fillbuf() guarantees the buffer will be NUL-terminated, so any check
   // that will fail on a NUL is OK without checking the cp < nc
-  while (isspace(buf[cp]))
+  while (cp < nc && isspace(buf[cp]))
     ++cp;
-  if (buf[cp] == '-') {
+  if (cp < nc && buf[cp] == '-') {
     negative = true;
     ++cp;
-  } else if (buf[cp] == '+') ++cp;
-  if ( isdigit(buf[cp]) ) {
+  } else if (cp < nc && buf[cp] == '+') ++cp;
+  if ( cp < nc && isdigit(buf[cp]) ) {
     val = buf[cp++] - '0';
-    while ( isdigit(buf[cp]) ) {
+    while ( cp < nc && isdigit(buf[cp]) ) {
       val = 10*val + buf[cp++] - '0';
     }
     if (negative) val = -val;

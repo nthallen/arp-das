@@ -1,0 +1,13 @@
+# Package openssl
+Version: 1.0.2
+Files: MANIFEST @ /
+Files: MANIFEST_pkg @ /
+
+# Built 4/8/2017:
+# git clone ssh://git@github.com/openssl/openssl.git
+# cd openssl
+# git checkout OpenSSL_1_0_2-stable
+# ./config
+# make
+# make test
+# make INSTALL_PREFIX=/tmp/package-root install

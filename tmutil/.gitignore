@@ -1,7 +1,6 @@
 parent
 parentoui.c
-DCtap
-DCtapoui.c
 getcon
 getconoui.c
 FullBuild.*
+*.o

@@ -1,10 +1,15 @@
 # Package flight
-Version: 2.5.55
+Version: 2.5.57
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.57 2016-09-26
+#   Fix bug in Ser_Sel::not_int()
+# 2.5.56 2016-09-26
+#   tmutil redistribution after SCM migration
+#   removed snafu
 # 2.5.55 2016-05-19
 #   omsdrv: added I/O port option
 # 2.5.54

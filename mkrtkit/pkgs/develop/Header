@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.71
+Version: 2.5.75
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,6 +8,38 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.76 2017-07-12
+#   appgen_module: Reverting change from 2.5.74. Decided there
+#   is a consistent ordering of dependencies:
+#     Build targets should depend on appgen-generated files
+#     Appgen-generated files should not depend on their source
+#     files. Instead, Makefile should depend on those source
+#     files. Appgen will run and conditionally replace the
+#     generated files and rewrite Makefile. Then make restarts
+#     and will recognize the changed files. This approach
+#     does mean that appgen will run whenever any of the
+#     appgen source files is updated, but if the dependencies
+#     are correctly curated, this should not result in running
+#     appgen on every make or multiple times per make.
+#     It is important to check that any custom code generators
+#     invoked by appgen follow this logic.
+# 2.5.75 2017-02-28
+#   appgen: Support IGNORE variable to add files to IGNOREFILE
+#   QCLI.agm, qclis.cmd.in: Allow specification of sampling configuration
+#   QCLI.genui.in: Suppress text conversion as necessary
+# 2.5.74 2016-11-07
+#   appgen: appgen-generated files will now have their timestamps
+#     updated even when the contents are unchanged. There is a
+#     tradeoff between running appgen unncessarily and recompiling
+#     unnecessarily. I decided to stick to one consistent model--
+#     the one make uses.
+# 2.5.73 2016-09-28
+#   appgen: add extprefix for tweaking name of default extraction target
+# 2.5.72 2016-09-26
+#   appgen, appgen_module:
+#     add Makefile test to rerun appgen if appgen targets are missing
+#     fix bug with nested module name case sensitivity
+#   remove snafu
 # 2.5.71
 #   Add scmgit-base to dependencies
 #   pkg-preprocess-manifest

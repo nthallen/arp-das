@@ -861,7 +861,7 @@ SYMBOL RingData COMPUTE
     (RingCurrent.NetSamples, CurrentSteps.NetSamples);
 END;
 SYMBOL RingCurrent COMPUTE
-  SYNT.ProgLen = INCLUDING Wave.Ncoadd;
+  SYNT.ProgLen = 1;
   SYNT.NetSamples = 1;
   SYNT.Value = CONSTITUENT Current.Value;
 END;

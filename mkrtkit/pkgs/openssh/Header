@@ -1,0 +1,7 @@
+# Package openssh
+Version: 7.5
+Files: MANIFEST @ /
+Files: MANIFEST_pkg @ /
+Requires: openssl
+
+# Built 4/9/2017

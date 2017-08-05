@@ -6,8 +6,16 @@
 #ifdef SERVER
   #include "hsatod.h"
   #include "qclisspcmd.h"
-  #define QCLI@SUFFIX@_ICOS \
-      (HSAD_OPT_A|HSAD_OPT_B|HSAD_OPT_C|HSAD_TRIG_3|HSAD_TRIG_RISING)
+  #define QCLI@SUFFIX@_@ACQCFG@ 1
+  #ifdef QCLI@SUFFIX@_ABC3R
+    #define QCLI@SUFFIX@_ICOS \
+        (HSAD_OPT_A|HSAD_OPT_B|HSAD_OPT_C|HSAD_TRIG_3|HSAD_TRIG_RISING)
+  #endif
+  #ifdef QCLI@SUFFIX@_AB3R
+    #define QCLI@SUFFIX@_ICOS \
+        (HSAD_OPT_A|HSAD_OPT_B|HSAD_TRIG_3|HSAD_TRIG_RISING)
+  #endif
+  #define QCLI@SUFFIX@_RINGDOWN QCLI@SUFFIX@_ICOS
   hsatod_setup_t SSP@SUFFIX@_setup;
 
   qclissp_t SSP@SUFFIX@_cmd = { &SSP@SUFFIX@_setup, &if_SSP@SUFFIX@ };

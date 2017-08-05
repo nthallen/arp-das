@@ -4,9 +4,9 @@ use File::Find;
 
 # mkrtkit_chkconfs
 # Must be run in mkrtkit directory, which is assumed to be
-# two levels deep in the QNX6Build hierarchy.
+# one level deep in the arp-das hierarchy.
 # Reads the MANIFESTS of the specified @pkgs, then
-# searches for mkrtkit.conf files throughout ../...
+# searches for mkrtkit.conf files throughout ../
 # Reads each mkrtkit.conf
 # Looks for lines of the format:
 #   pkgname: path
@@ -78,7 +78,7 @@ sub chk_man {
   }
 }
 
-find( \&chk_man, "../.." );
+find( \&chk_man, ".." );
 
 print map "$pathpkg{$_}:$_ not listed in any mkrtkit.conf file\n",
   grep ! defined $pathsrc{$_},

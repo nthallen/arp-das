@@ -15,6 +15,6 @@
 	-e 's/;.*$//'
 } | sort |
 while read j; do
-  grep -q "($j," *.tbl || echo $j
+  grep -q "text($j)" *nc.tmc || echo $j
 done
 

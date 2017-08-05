@@ -49,7 +49,7 @@ QCLI@SUFFIX@_S {
       Act:  (QCLI@SUFFIX@_rw,2);
       FIFO: (QCLI@SUFFIX@_fifodep,3);
       Err:  (QCLI@SUFFIX@_err,2);
-#     Rst:  (QCLI@SUFFIX@_Reset,3);
+@RESET@     Rst:  (QCLI@SUFFIX@_Reset,3);
     }
   }
 }

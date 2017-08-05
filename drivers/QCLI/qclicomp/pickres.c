@@ -335,16 +335,21 @@ PTGNode RingdownPTG( double Istart, double Istop, double Istep, int ProgLen,
   int StepCnt;
   int coadd;
   int Nsteps = ProgLen / Ncoadd;
-  if (ProgLen % Ncoadd != 0)
-    message( DEADLY, "ProgLen%Ncoadd non-zero in RingdownPTG", 0, pos );
-  for ( StepCnt = 0; StepCnt < Nsteps-1; StepCnt++ ) {
-    for (coadd = 0; coadd < Ncoadd; ++coadd) {
-      double StepCrnt = Istart + StepCnt*Istep;
-      PTG = PTGSeq(PTG,
-        PTGRingData(amps_to_bits(StepCrnt,qclicfg,pos),StepCrnt));
+  if (ProgLen > 1) {
+    if (ProgLen % Ncoadd != 0)
+      message( DEADLY, "(ProgLen % Ncoadd) is non-zero in RingdownPTG", 0, pos );
+    for ( StepCnt = 0; StepCnt < Nsteps-1; StepCnt++ ) {
+      for (coadd = 0; coadd < Ncoadd; ++coadd) {
+        double StepCrnt = Istart + StepCnt*Istep;
+        PTG = PTGSeq(PTG,
+          PTGRingData(amps_to_bits(StepCrnt,qclicfg,pos),StepCrnt));
+      }
     }
-  }
-  for (coadd = 0; coadd < Ncoadd; ++coadd) {
+    for (coadd = 0; coadd < Ncoadd; ++coadd) {
+      PTG = PTGSeq(PTG,
+        PTGRingData(amps_to_bits(Istop,qclicfg,pos),Istop));
+    }
+  } else {
     PTG = PTGSeq(PTG,
       PTGRingData(amps_to_bits(Istop,qclicfg,pos),Istop));
   }

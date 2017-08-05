@@ -15,6 +15,7 @@
 # Spec_file format:
 # # comment line
 # prefix = <prefix>  (optional: derived from spec file name)
+# extprefix = <extprefix> (optional: defaults to $prefix)
 # tmcbase = <files>
 # cmdbase = <files>
 # colbase = <files>
@@ -31,6 +32,7 @@
 #                     SERVER (defaults if server is generated)
 #                     SUBDIRS (passed on to Makefile)
 #                     CPPFLAGS (passed on to Makefile)
+#                     IGNORE (copied into the IGNOREFILE)
 # target : <files>
 # ...
 # %%
@@ -125,11 +127,12 @@ function invoke_module {
 exec <$ifile >Makefile
 
 typeset targets prefix tmcbase cmdbase basetargets usage LINK usefiles
+typeset extprefix
 typeset colbase swsbase qclibase ouis
 typeset extbase genuibase
-typeset specdepbase
+typeset specdepbase spectgtbase
 typeset SERVER
-typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC DISTRIB SRCDIST
+typeset SRC TOOL SCRIPT IDISTRIB OBJ TGT MNC DISTRIB SRCDIST IGNORE
 typeset TGTNODE TGTDIR
 typeset CPPFLAGS
 typeset PHTGT
@@ -343,6 +346,8 @@ done
 #----------------------------------------------------------------
 prefix=${prefix##* }
 if [ -z "$prefix" ]; then prefix=${ifile%%.*}; fi
+extprefix=${extprefix##* }
+[ -z "$extprefix" ] && extprefix=$prefix
 if [ -n "$tmcbase" ]; then
   for i in $tmcbase; do add_member SRCDIST $i; done
 fi
@@ -368,8 +373,8 @@ if [ -n "$colbase" ]; then
 fi
 
 if [ -n "$extbase" -o -n "$genuibase" ]; then
-  is_member targets ${prefix}engext || {
-    def_target ${prefix}engext $tmcbase $extbase $genuibase
+  is_member targets ${extprefix}engext || {
+    def_target ${extprefix}engext $tmcbase $extbase $genuibase
     for i in $extbase $genuibase; do def_source $i; done
   }
 fi
@@ -712,6 +717,7 @@ output_macro TOOL $TOOL
 output_macro SCRIPT $SCRIPT
 output_macro OBJ $OBJ
 output_macro TGT $TGT
+output_macro IGNORE $IGNORE
 output_macro DISTRIB $DISTRIB
 output_macro IDISTRIB $IDISTRIB
 output_macro SRCDIST $SRCDIST
@@ -723,6 +729,8 @@ output_macro QCLIBASE $qclibase
 output_macro GENUIBASE $genuibase
 output_macro EXTBASE $extbase
 output_macro SPECDEPBASE $specdepbase
+output_macro SPECTGTBASE $spectgtbase
+echo 'SPECTGTMISS:=$(foreach file,$(SPECTGTBASE),$(if $(wildcard $(file)),,$(file)))'
 output_macro AG_CPPFLAGS $CPPFLAGS
 output_macro PHTGT $PHTGT
 echo 'SOURCE=$(SRC) $(TOOL) $(SCRIPT)'
@@ -750,12 +758,12 @@ echo
 echo '.PHONY : all all-dist extdistribution distribution clean clean-dist check_photon'
 echo
 echo "IGNOREFILE=$ignorefile"
-echo 'all : Makefile check_photon $(TGT) $(IGNOREFILE)'
-echo 'all-dist : $(DSTRB) $(SRCDIST) VERSION'
-echo "Makefile : $ifile \$(SPECDEPBASE)"
+echo 'all : check_photon $(TGT) $(IGNOREFILE)'
+echo 'all-dist : all $(DSTRB) $(SRCDIST) VERSION'
+echo "Makefile \$(SPECTGTMISS) : $ifile \$(SPECDEPBASE)"
 echo "\tappgen $ifile"
   echo 'VERSION=`cat VERSION`'
-  echo 'extdistribution : $(DSTRB) $(SRCDIST) VERSION'
+  echo 'extdistribution : all-dist'
   echo "\t@[ -d \$(TGTDIR)/bin ] || mkdir \$(TGTDIR)/bin"
   echo "\t@[ -d \$(TGTDIR)/bin/\$(VERSION) ] || mkdir \$(TGTDIR)/bin/\$(VERSION)"
   echo "\t@[ -d \$(TGTDIR)/bin/\$(VERSION)/Base ] || mkdir \$(TGTDIR)/bin/\$(VERSION)/Base"
@@ -805,7 +813,7 @@ echo "\ntidy :\n\trm -f \$(OBJECT)"
 echo "clean : tidy\n\trm -f \$(TARGET)"
 echo "clean-dist : clean"
 echo '$(IGNOREFILE) : Makefile'
-echo "\t@for i in \$(OBJECT) \$(TARGET); do echo \"\$\$i\"; done >\$(IGNOREFILE)"
+echo "\t@for i in \$(OBJECT) \$(IGNORE) \$(TARGET); do echo \"\$\$i\"; done >\$(IGNOREFILE)"
 
 # Output anything beyond the %% in the spec file
 # Note that using 'read' does not work here because it strips
