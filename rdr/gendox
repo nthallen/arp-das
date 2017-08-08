@@ -1,5 +1,0 @@
-#! /bin/sh
-doxygen
-cd html
-./installdox -l QNX6_libs_tag@../../../doc/html
-

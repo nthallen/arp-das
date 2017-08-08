@@ -25,20 +25,20 @@ DOXYFILE_ENCODING      = UTF-8
 # The PROJECT_NAME tag is a single word (or a sequence of words surrounded
 # by quotes) that should identify the project.
 
-PROJECT_NAME           = ARPDAS_QNX6
+PROJECT_NAME           = ARP-DAS
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number.
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = 1.0
+PROJECT_NUMBER         = 2.0
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = ../doc/doxygen/QNX6libs
+OUTPUT_DIRECTORY       = ../generated/QNX6libs
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -568,10 +568,11 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT =  ../nortlib2/src tmlib/src tmpplib/src displib/src tmphlib/src
-INPUT += subbus_2010/lib subbus_2010/subbusd subbus_2010/subbusd/syscon104
-INPUT += subbus_2010/subbusd/serusb
-INPUT += TMbfr/resmgr ../cmdgen/cmdalgo.h
+INPUT =  nortlib2/src tmlib/src tmpplib/src displib/src tmphlib/src
+INPUT += drivers/subbus/lib drivers/subbus/subbusd
+INPUT += drivers/subbus/subbusd/syscon104
+INPUT += drivers/subbus/subbusd/serusb
+INPUT += TMbfr/resmgr cmdgen/cmdalgo.h
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -1303,7 +1304,7 @@ TAGFILES               =
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create
 # a tag file that is based on the input files it reads.
 
-GENERATE_TAGFILE       = ../doc/doxygen/QNX6libs/QNX6_libs_tag
+GENERATE_TAGFILE       = ../generated/ARP-DAS_tag
 
 # If the ALLEXTERNALS tag is set to YES all external classes will be listed
 # in the class index. If set to NO only the inherited external classes

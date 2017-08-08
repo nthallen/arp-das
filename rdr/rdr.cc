@@ -23,14 +23,16 @@ static unsigned long opt_end_file = ULONG_MAX;
 //  opt_basepath = "/home/tilde/raw/flight/080908.4";
 
 /** Options we need to support:
-  -A autostart without regulation
-  -a autostart with regulation
-  -F <index> Starting log file index
-  -L <index> Ending log file index 
-  -T <time> Starting time/Ending time
-  -P <path> path to log directories
-  -k invoke kluge to work around lgr bug
-  -q autoquit
+
+        -A : autostart without regulation
+        -a : autostart with regulation
+        -F index : Starting log file index
+        -L index : Ending log file index 
+        -T time : Starting time/Ending time
+        -P path : path to log directories
+        -k : invoke kluge to work around lgr bug
+        -q : autoquit
+
  */
 void rdr_init( int argc, char **argv ) {
   int c;
