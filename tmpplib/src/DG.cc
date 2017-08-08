@@ -119,59 +119,60 @@ void data_generator::operate() {
 }
 
 /**
- Interperet data generator commands: I need to abstract the "signal handlers" operation.
- It appears that the key notifications are:
-  Start
-  Stop
-  Quit
-  Change to unregulated output (fast forward)
+  Interperet data generator commands: I need to abstract the "signal handlers" operation.
+  It appears that the key notifications are:
  
- TM start: "TMc"
-    Set start condition
-    If regulated, program timer
-    else stop timer
-    if ext_stop, signal handlers
-TM end/stop "TMe"
-    Set stop condition
-    stop timer
-    if ext_time, signal handlers
-Quit: ""
-    Set stop and quit conditions
-    stop timer
-    if ext_stop or ext_time, signal handlers
-TM play "TM>"
-    set regulated
-    set row_rate to default
-    if stopped, do start
-    else reprogram timer
-TM fast forward "TM}"
-    if regulation_optional
-      stop timer
-      set unregulated
-      if stopped, do start
-      else if ext_time, signal handlers
-TM faster/slower "TM+" "TM-"
-    if regulation_optional
-      if stopped
-        do play
-      else if regulated
-        increase/decrease row_rate
-        program timer
-TM single step "TMs"
+      Start
+      Stop
+      Quit
+      Change to unregulated output (fast forward)
+     
+      TM start: "TMc"
+        Set start condition
+        If regulated, program timer
+        else stop timer
+        if ext_stop, signal handlers
+      TM end/stop "TMe"
+        Set stop condition
+        stop timer
+        if ext_time, signal handlers
+      Quit: ""
+        Set stop and quit conditions
+        stop timer
+        if ext_stop or ext_time, signal handlers
+      TM play "TM>"
+        set regulated
+        set row_rate to default
+        if stopped, do start
+        else reprogram timer
+      TM fast forward "TM}"
+        if regulation_optional
+          stop timer
+          set unregulated
+          if stopped, do start
+          else if ext_time, signal handlers
+      TM faster/slower "TM+" "TM-"
+        if regulation_optional
+          if stopped
+            do play
+          else if regulated
+            increase/decrease row_rate
+            program timer
+      TM single step "TMs"
 
-Command Summary:
-  "" Quit
-  "TMc" TM Start
-  "TMe" TM End/Stop/Pause
-  "TMs" Single Step
-  "TM>" Play
-  "TM+" Faster
-  "TM-" Slower
-  "TM}" Fast Forward
-  
-  Still need to add the search functions:
- TM Advance to MFCtr
- TM Advance to Time
+      Command Summary:
+        "" Quit
+        "TMc" TM Start
+        "TMe" TM End/Stop/Pause
+        "TMs" Single Step
+        "TM>" Play
+        "TM+" Faster
+        "TM-" Slower
+        "TM}" Fast Forward
+      
+      Still need to add the search functions:
+        TM Advance to MFCtr
+        TM Advance to Time
  */
 int data_generator::execute(const char *cmd) {
   if (cmd[0] == '\0') {
