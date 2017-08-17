@@ -1,5 +1,7 @@
 /* nortlib.h include file for nortlib
- * $Log$
+ *
+ * More recent history can be found in revision control
+ *
  * Revision 1.22  2012/02/27 01:03:50  ntallen
  * Added ascii_escape() function
  *
@@ -67,7 +69,8 @@ int nl_err(int level, const char *s, ...); /* nl_error.c */
 #define MSG 0
 #define MSG_PASS MSG
 #define MSG_WARN 1
-#define MSG_FAIL 2
+#define MSG_ERROR 2
+#define MSG_FAIL MSG_ERROR
 #define MSG_FATAL 3
 #define MSG_EXIT_ABNORM 4
 #define MSG_DBG(X) (MSG_DEBUG-(X))

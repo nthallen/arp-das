@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.75
+Version: 2.5.78
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,6 +8,13 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.78 2017-08-17
+#   nortlib2: Added MSG_ERROR descriptor to nortlib.h
+# 2.5.77 2017-08-17
+#   tmc/extmain.skel: Add hooks for telemetry
+#   tmc: Straight recompile, side effect of extmain.skel update
+#   tmpplib: typo in DC.h
+#   appgen.mk: nctable dependencies
 # 2.5.76 2017-07-12
 #   appgen_module: Reverting change from 2.5.74. Decided there
 #   is a consistent ordering of dependencies:
@@ -23,6 +30,7 @@ Files: MANIFEST_pkg @ /
 #     appgen on every make or multiple times per make.
 #     It is important to check that any custom code generators
 #     invoked by appgen follow this logic.
+#   QCLI.agm: Add RESET= parameter
 # 2.5.75 2017-02-28
 #   appgen: Support IGNORE variable to add files to IGNOREFILE
 #   QCLI.agm, qclis.cmd.in: Allow specification of sampling configuration

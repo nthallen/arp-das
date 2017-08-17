@@ -31,6 +31,7 @@ COMPILE.cltnc=$(COMPILE.cc) -o $@ -D CLIENT -D NCT_INTERFACE=1
 COMPILE.srvr=$(COMPILE.cc) -o $@ -D SERVER
 COMPILE.sws=swscomp -o $@ -p SWData -A
 COMPILE.tbl=phtable
+COMPILE.tblnc=nctable
 AWK=awk > $@ -f $(LIBSRC)
 FLD2DISP=$(AWK)/fld2disp.awk
 EDF2EXT=$(AWK)/edf2ext.awk
@@ -73,5 +74,7 @@ else
 endif
 
 %tblnc.tmc : %.tbl
-	nctable > $@.tmp $<
+	$(COMPILE.tblnc) -o $@.tmp -d $@.dep.tmp $<
 	mv $@.tmp $@
+	{ echo -n "$@ :"; cat $@.dep.tmp; } > $@.dep
+	rm $@.dep.tmp
