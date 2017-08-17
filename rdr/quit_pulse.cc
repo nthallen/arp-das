@@ -1,7 +1,12 @@
 #include <errno.h>
 #include <string.h>
 #include "rdr.h"
-/*
+/**
+ * @file   quit_pulse.cc
+ * @brief  Process shutdown at end-of-data
+ * @author Norton Allen (allen@huarp.harvard.edu)
+ *
+ *
  * All of this code is just to pass a single bit of information
  * from the input_thread to the control thread: namely we have
  * reached the end of the input data and it's time to quit.
@@ -14,6 +19,7 @@
  * quit code, but that apparently isn't allowed by the resmgr
  * library.
 */
+
 extern "C" {
   static int Rdr_quit_pulse_pulse_func( message_context_t *ctp, int code,
 	  unsigned flags, void *handle ) {
