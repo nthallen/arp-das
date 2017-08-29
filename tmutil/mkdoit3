@@ -26,6 +26,7 @@ my @client; # array of hashes
 my @extract; # array of hashes
 my @interact; # array of display and client programs to check in TMBINDIR
 my @extracts; # array of extractions in TMBINDIR
+my $serin;
 my $phrtg;
 my $batchfile;
 my $memo;
@@ -67,6 +68,11 @@ while (<$fh>) {
     my $pcond = $extcond ne '' ? parse_condition($extcond) : undef;
     push @extract, { prog => $extprog, cond => $pcond, opts => $opts };
     push @extracts, $extprog;
+  } elsif ( m/^\s* SerIn \s+ (\w+) (?:\s+ (.*))?$/xi ) {
+    $serin = $1;
+    my $opts = $2 ? " $2" : '';
+    $progopts{$serin} = $opts;
+    push @extracts, $serin;
   } elsif ( m/^\s*phrtg(?:\s+(.*))?$/ ) {
     my $opts = $1 ? " $1" : '';
     die "mkdoit3: phrtg specified more than once\n" if defined $phrtg;
@@ -132,7 +138,13 @@ print $fh <<'EOF';
 #	-a use ASCII chars for line-drawing
 #	-n use photon pterms for text-mode data display
 #	-p <run> play back <run>
+# -i <host> use InetIn to read data from <host>
+# -t use SerIn as specified in doit
 #	-S <session> specify the session (used internally)
+#
+# SerIn mode can also be indicated by setting environment
+# variable SRCMODE=SerIn, typically in Experiment.config.
+# InetIn can be specified by the same method.
 #endif
 
 umask 2
@@ -169,13 +181,14 @@ fi
 #   dispmode as one of screen, pterm or photon
 session=$$
 ncopts=''
-while getopts "ai:p:S:sn" opt; do
+while getopts "ai:p:S:snt" opt; do
   case $opt in
     a) ncopts='-a';;
     i) srcmode=InetIn; InetSrc=$OPTARG;;
     p) srcmode=playback; Run=$OPTARG;;
     s) dispmode=screen; dispmodescreen=1;;
     S) session=$OPTARG;;
+    t) srcmode=SerIn;;
     n) dispmode=pterm; dispmodepterm=1;;
     \?) exit 1;; # getopts reports the error
     :) exit 1;; # getopts reports the error
@@ -184,7 +197,13 @@ done
 if [ -n "$srcmode" ]; then
   [ -n "$InetSrc" -a -n "$Run" ] &&
     nl_error "Cannot specify both -i and -p"
+elif [ "$SRCMODE" = "SerIn" ]; then
+  srcmode=SerIn
 else
+  case "$SRCMODE" in
+    SerIn) srcmode=SerIn;;
+    InetIn) srcmode=InetIn;;
+    *) srcmode=realtime;;
   srcmode=realtime
 fi
 if [ -n "$dispmode" ]; then
@@ -194,6 +213,13 @@ else
   dispmode=photon
   dispmodephoton=1
 fi
+EOF
+
+if (!defined($serin)) {
+  print $fh '[ $srcmode = SerIn ] && nl_error "SerIn is not configured"', "\n";
+}
+
+print $fh <<'EOF';
 
 let sval=$OPTIND-1
 shift $sval
@@ -423,6 +449,15 @@ while true; do
             Launch DG/cmd rdr -P $ddir -a
           elif [ $srcmode = InetIn ]; then
             Launch DG/cmd InetIn
+EOF
+
+if ($serin) {
+  print $fh
+    '          elif [ $srcmode = SerIn ]; then', "\n",
+    "            Launch DG/cmd $serin", $progopts{$serin}, "\n";
+}
+
+print $fh <<'EOF';
           fi
           Launch cmd/server playbacksrvr
           if [ -n "$launch_error" ]; then
