@@ -30,7 +30,8 @@ my $phrtg;
 my $batchfile;
 my $memo;
 my $logfileroot = '$Experiment';
-push @client, { prog => 'playbackclt', cond => '!RT', opts => '' };
+push @client, { prog => 'playbackclt', cond => undef,
+      opts => '' };
 while (<$fh>) {
   next if m/^\s*(?:#.*)$/;
   s/\s*$//;
@@ -225,8 +226,9 @@ print $fh "batchfile=$batchfile\n" if defined $batchfile;
 
 for my $client ( @client ) {
   if ($client->{cond}) {
-    print $fh cond2sh($client->{cond}), ' && client=', $client->{prog}, ";\n";
+    print $fh '[ ', cond2sh($client->{cond}), ' ] && ';
   }
+  print $fh 'client=', $client->{prog}, "\n";
 }
 
 print $fh <<'EOF';
@@ -281,10 +283,12 @@ if [ $check_path = yes ]; then
 
   missing=''
   for app in $interacts; do
-    [ -x $TMBINDIR/$app$nc ] || missing="$missing $app$nc"
+    [ -x $TMBINDIR/$app$nc -o -x /usr/local/bin/$app$nc ] ||
+      missing="$missing $app$nc"
   done
   for app in $extracts; do
-    [ -x $TMBINDIR/$app ] || missing="$missing $app"
+    [ -x $TMBINDIR/$app -o -x /usr/local/bin/$app ] ||
+      missing="$missing $app"
   done
   [ -n "$missing" ] &&
     nl_error "Unable to locate required application(s):$missing"
@@ -596,7 +600,7 @@ for my $disp ( @display ) {
 
 for my $ext ( @extract ) {
   if ($ext->{cond}) {
-    print $fh cond2sh($ext->{cond}), ' &&', "\n  ";
+    print $fh '[ ', cond2sh($ext->{cond}), ' ] && ';
   }
   print $fh "Launch - ", $ext->{prog}, $ext->{opts}, "\n";
 }
