@@ -21,12 +21,16 @@ open( my $fh, "<", $srcfile ) ||
   die "mkdoit3: Unable to read input file '$srcfile'\n";
 
 my %progopts;
-my @display;
-my $client;
+my @display; # array of program names
+my @client; # array of hashes
+my @extract; # array of hashes
+my @interact; # array of display and client programs to check in TMBINDIR
+my @extracts; # array of extractions in TMBINDIR
 my $phrtg;
 my $batchfile;
 my $memo;
 my $logfileroot = '$Experiment';
+push @client, { prog => 'playbackclt', cond => '!RT', opts => '' };
 while (<$fh>) {
   next if m/^\s*(?:#.*)$/;
   s/\s*$//;
@@ -42,13 +46,26 @@ while (<$fh>) {
       die "mkdoit3: Invalid display name: '$dispprog'\n";
     push @display, $dispprog;
     $progopts{$dispprog} = $opts;
-  } elsif ( m/^\s*client\s+(\w+)(?:\s+(.*))?$/ ) {
-    my $cltprog = $1;
-    my $opts = $2 ? " $2" : '';
+    push @interact, $dispprog;
+  } elsif ( m/^\s* client \s+ (?:\[(\S+)\] \s+)? (\w+) (?:\s+ (.*))?$/x ) {
+    my $cltcond = $1 || "RT";
+    my $cltprog = $2;
+    my $opts = $3 ? " $3" : '';
     $cltprog =~ m/^\w+clt$/ || die "Invalid client name: '$cltprog'\n";
-    die "mkdoit3: Only one client allowed\n" if $client;
-    $client = $cltprog;
-    $progopts{$cltprog} = $opts;
+    $opts ne '' && warn "Options ignored on client program: '$cltprog'\n";
+    my $pcond = parse_condition($cltcond);
+    push @client, { prog => $cltprog, cond => $pcond, opts => $opts };
+    push @interact, $cltprog;
+    # die "mkdoit3: Only one client allowed\n" if $client;
+    # $client = $cltprog;
+    # $progopts{$cltprog} = $opts;
+  } elsif ( m/^\s* extraction \s+ (?:\[(\S+)\] \s+)? (\w+) (?:\s+ (.*))?$/x ) {
+    my $extcond = $1 || '';
+    my $extprog = $2;
+    my $opts = $3 ? " $3" : '';
+    my $pcond = $extcond ne '' ? parse_condition($extcond) : undef;
+    push @extract, { prog => $extprog, cond => $pcond, opts => $opts };
+    push @extracts, $extprog;
   } elsif ( m/^\s*phrtg(?:\s+(.*))?$/ ) {
     my $opts = $1 ? " $1" : '';
     die "mkdoit3: phrtg specified more than once\n" if defined $phrtg;
@@ -86,9 +103,9 @@ for my $disp ( @display ) {
   while (<$fh>) {
     if ( m/nct_init\("(\w+)",(\d+),(\d+)\);/ ) {
       push @$scr, { varname => "scr$scrnum",
-		    screenname => $1,
-		    height => $2,
-		    width => $3 };
+          screenname => $1,
+          height => $2,
+          width => $3 };
       ++$scrnum;
     }
   }
@@ -202,8 +219,15 @@ print $fh
   "logfileroot=$logfileroot\n",
   "logfilesuffix=.log\n",
   '[ $srcmode = realtime ] || logfilesuffix=.PB.$session.log', "\n",
-  "interacts='", join( ' ', @display, $client ), "';\n";
+  "interacts='", join( ' ', @interact ), "';\n",
+  "extracts='", join( ' ', @extracts ), "';\n";
 print $fh "batchfile=$batchfile\n" if defined $batchfile;
+
+for my $client ( @client ) {
+  if ($client->{cond}) {
+    print $fh cond2sh($client->{cond}), ' && client=', $client->{prog}, ";\n";
+  }
+}
 
 print $fh <<'EOF';
 
@@ -258,6 +282,9 @@ if [ $check_path = yes ]; then
   missing=''
   for app in $interacts; do
     [ -x $TMBINDIR/$app$nc ] || missing="$missing $app$nc"
+  done
+  for app in $extracts; do
+    [ -x $TMBINDIR/$app ] || missing="$missing $app"
   done
   [ -n "$missing" ] &&
     nl_error "Unable to locate required application(s):$missing"
@@ -442,9 +469,9 @@ case $dispmode in
       rc=screenrc.$session
       { echo startup_message off
         echo split
-	echo focus
-	echo resize 2
-	echo focus
+        echo focus
+        echo resize 2
+        echo focus
 EOF
 
 if ( $memo ) {
@@ -466,11 +493,11 @@ for my $disp ( @display ) {
 }
 
 print $fh <<'EOF';
-	echo focus
-	echo screen -t clt /usr/local/sbin/getcon $gcopt clt $session
-	echo height -w 2
-	echo width -w 80
-	echo focus
+  echo focus
+  echo screen -t clt /usr/local/sbin/getcon $gcopt clt $session
+  echo height -w 2
+  echo width -w 80
+  echo focus
 EOF
 
 print $fh <<'EOF';
@@ -541,8 +568,8 @@ EOF
 
 print $fh "for screen in ",
   join( ' ', map( "$_->{varname}",
-		  map( @{$screen{$_}}, @display ) ),
-	     'clt' ), "; do\n";
+        map( @{$screen{$_}}, @display ) ),
+        'clt' ), "; do\n";
 
 print $fh <<'EOF';
   term=''
@@ -567,6 +594,13 @@ for my $disp ( @display ) {
     map( " \$$_->{varname}_term", @$scr ), "\n";
 }
 
+for my $ext ( @extract ) {
+  if ($ext->{cond}) {
+    print $fh cond2sh($ext->{cond}), ' &&', "\n  ";
+  }
+  print $fh "Launch - ", $ext->{prog}, $ext->{opts}, "\n";
+}
+
 ## Algos probably won't be implemented quite like this:
 ## demoalgo &
 
@@ -575,11 +609,7 @@ my $termlist =
     map( " \$$_->{varname}_term",
       map( @{$screen{$_}}, @display ) ) );
 print $fh
-  'if [ $srcmode = realtime ]; then', "\n",
-  "  $client", '$nc -C $FlightNode $clt_term', "$termlist\n",
-  "else\n",
-  '  playbackclt$nc $clt_term', "$termlist\n",
-  "fi\n";
+  '$client$nc -C $FlightNode $clt_term', "$termlist\n";
 
 print $fh <<'EOF';
 
@@ -614,3 +644,129 @@ EOF
 my $perm = (stat $opts{o})[2] & 07777;
 my $umask = umask;
 chmod( $perm | (0111 & ~$umask), $opts{o} );
+
+sub parse_condition {
+  my $cond = shift;
+  my $lvl = 0;
+  my $toks = parse_tokens($cond);
+  my @stack;
+  my @states = qw(preterm postterm postop);
+  my $state = 'preterm';
+  while ( @$toks ) {
+    my $token = shift @$toks;
+    if ($state eq 'preterm') { # preterm, can accept monadic, lparen, keyword or term
+      $token->{prestate} = 'preterm';
+      if ($token->{type} eq 'monadic') {
+        push(@stack, $token);
+        $state = 'postop';
+      } elsif ($token->{type} eq 'keyword') {
+        push(@stack, $token);
+        $state = 'postterm';
+      } elsif ($token->{type} eq 'lparen') {
+        push(@stack, $token);
+        $state = 'preterm';
+      } elsif ($token->{type} eq 'term') {
+        push(@stack, $token);
+        $state = 'postterm';
+      } else {
+        die "Syntax error preterm\n";
+      }
+    } elsif ($state eq 'postterm') { # postterm: rparen, dyadic
+      if ($token->{type} eq 'rparen') {
+        my $expr = pop @stack || die "Stack underflow on rparen\n";
+        my $lparen = pop @stack || die "Stack underflow on rparen\n";
+        $lparen->{type} eq 'lparen' || die "rparen without matching lparen (2)\n";
+        $lparen->{arg} = $expr;
+        unshift @$toks, { type => 'term', op => $lparen };
+        $state = $lparen->{prestate};
+      } elsif ($token->{type} eq 'dyadic') {
+        push @stack, $token;
+        $state = 'postop';
+      } else {
+        die "Syntax error postterm\n";
+      }
+    } elsif ($state eq 'postop') { # postop: monadic, lparen, keyword, term
+      if ($token->{type} eq 'monadic') {
+        $token->{prestate} = 'postop';
+        push @stack, $token;
+      } elsif ($token->{type} eq 'lparen') {
+        $token->{prestate} = 'postop';
+        push @stack, $token;
+        $state = 'preterm';
+      } elsif ($token->{type} eq 'keyword' || $token->{type} eq 'term') {
+        my $op = pop(@stack) || die "Stack underflow postop kw|term,monadic\n";
+        if ($op->{type} eq 'monadic') {
+          $op->{arg} = $token;
+          $state = $op->{prestate};
+          unshift @$toks, { type => 'term', op => $op };
+        } elsif ($op->{type} eq 'dyadic') {
+          my $arg1 = pop(@stack) || die "Stack underflow postop kw|term,dyadic\n";
+          $state = $arg1->{prestate};
+          $op->{arg1} = $arg1;
+          $op->{arg2} = $token;
+          unshift @$toks, { type => 'term', op => $op };
+        } else {
+          die "Unexpected op type '" . $op->{type} . "' in postop\n";
+        }
+      } else {
+        die "Syntax error postop\n";
+      }
+    } else {
+      die "Bad state\n";
+    }
+  }
+  @stack == 1 || die "Incomplete expression\n";
+  return pop @stack;
+}
+my %kwabbr = (
+  RT => 'realtime',
+  PB => 'playback',
+  II => 'InetIn',
+  SI => 'SerIn'
+);
+
+sub parse_tokens {
+  my $str = shift;
+  my $istr = $str;
+  my $toks = [];
+  while ($str ne '') {
+    if ($str =~ s/^!//) {
+      push(@$toks, { type => 'monadic', op => '!' });
+    } elsif ( $str =~ s/^([|&])// ) {
+      push(@$toks, { type => 'dyadic', op => $1 });
+    } elsif ( $str =~ s/^([(])// ) {
+      push(@$toks, { type => 'lparen', op => $1 });
+    } elsif ( $str =~ s/^([)])// ) {
+      push(@$toks, { type => 'rparen', op => $1 });
+    } elsif ( $str =~ s/^(RT|realtime|PB|playback|II|InetIn|SI|SerIn|screen|pterm|photon)\b// ) {
+      my $kw = $kwabbr{$1} || $1;
+      push(@$toks, { type => 'keyword', op => $kw });
+    } else {
+      warn "Bad logic syntax in '$istr' before '$str'\n";
+      return $toks;
+    }
+  }
+  return $toks;
+}
+
+sub cond2sh {
+  my $expr = shift;
+  if ($expr->{type} eq 'monadic') {
+    return $expr->{op} . ' \( ' . cond2sh($expr->{arg}) . ' \)';
+  } elsif ($expr->{type} eq 'dyadic') {
+    my $op = ($expr->{op} eq '|') ? ' -o ' : ' -a ';
+    return cond2sh($expr->{arg1}) . $op . cond2sh($expr->{arg2});
+  } elsif ($expr->{type} eq 'keyword') {
+    my $varname = '$dispmode';
+    if ($expr->{op} =~ m/^realtime|playback|InetIn|SerIn$/ ) {
+      $varname = '$srcmode';
+    }
+    return "$varname = " . $expr->{op};
+  } elsif ($expr->{type} eq 'term') {
+    return cond2sh($expr->{op});
+  } elsif ($expr->{type} eq 'lparen') {
+    return '\( ' . cond2sh($expr->{arg}) . ' \)';
+  } else {
+    die "Invalid condition node type: " . $expr->{type};
+  }
+}
