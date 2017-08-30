@@ -20,6 +20,12 @@ die "mkdoit3: Must specify output file with -o option\n"
 open( my $fh, "<", $srcfile ) ||
   die "mkdoit3: Unable to read input file '$srcfile'\n";
 
+my %kwabbr = (
+  RT => 'realtime',
+  PB => 'playback',
+  II => 'InetIn',
+  SI => 'SerIn'
+);
 my %progopts;
 my @display; # array of program names
 my @client; # array of hashes
@@ -138,8 +144,8 @@ print $fh <<'EOF';
 #	-a use ASCII chars for line-drawing
 #	-n use photon pterms for text-mode data display
 #	-p <run> play back <run>
-# -i <host> use InetIn to read data from <host>
-# -t use SerIn as specified in doit
+#	-i <host> use InetIn to read data from <host>
+#	-t use SerIn as specified in doit
 #	-S <session> specify the session (used internally)
 #
 # SerIn mode can also be indicated by setting environment
@@ -204,7 +210,7 @@ else
     SerIn) srcmode=SerIn;;
     InetIn) srcmode=InetIn;;
     *) srcmode=realtime;;
-  srcmode=realtime
+  esac
 fi
 if [ -n "$dispmode" ]; then
   [ -n "$dispmodescreen" -a -n "$dispmodepterm" ] &&
@@ -757,12 +763,6 @@ sub parse_condition {
   @stack == 1 || die "Incomplete expression\n";
   return pop @stack;
 }
-my %kwabbr = (
-  RT => 'realtime',
-  PB => 'playback',
-  II => 'InetIn',
-  SI => 'SerIn'
-);
 
 sub parse_tokens {
   my $str = shift;

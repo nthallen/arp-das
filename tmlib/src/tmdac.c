@@ -39,7 +39,7 @@ void load_tmdac( const char *path ) {
       nl_error( 1, "VERSION not found: assuming 1.0" );
     }
     if ( version[0] == '\0' ) strcpy( version, "1.0" );
-    snprintf( dacpath, 80, "bin/%s/tm.dac" );
+    snprintf( dacpath, 80, "bin/%s/tm.dac", version );
     dacfile = open_path( path, dacpath );
   }
   if ( dacfile == NULL ) nl_error( 3, "Unable to locate tm.dac" );
