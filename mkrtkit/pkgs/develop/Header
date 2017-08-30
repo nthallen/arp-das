@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.78
+Version: 2.5.79
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,6 +8,9 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.79 2017-08-30
+#   mkdoit3: Support for extractions, SerIn and fine-grained
+#     conditions
 # 2.5.78 2017-08-17
 #   nortlib2: Added MSG_ERROR descriptor to nortlib.h
 # 2.5.77 2017-08-17
