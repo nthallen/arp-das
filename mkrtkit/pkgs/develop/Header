@@ -8,6 +8,8 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.80 2017-09-07
+#   mkdoit3: Ensure ddir is defined in doit
 # 2.5.79 2017-08-30
 #   mkdoit3: Support for extractions, SerIn and fine-grained
 #     conditions

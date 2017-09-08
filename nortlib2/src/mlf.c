@@ -330,7 +330,8 @@ FILE *mlf_next_file( mlf_def_t *mlf ) {
 int mlf_next_fd( mlf_def_t *mlf ) {
   int fd;
   next_file( mlf, mlf->n_levels );
-  fd = open( mlf->fpath, (mlf->flags & MLF_WRITING) ? O_WRONLY : O_RDONLY );
+  fd = open( mlf->fpath, (mlf->flags & MLF_WRITING) ?
+      O_WRONLY|O_CREAT : O_RDONLY, 0664 );
   if ( fd == -1 && nl_response > 0 )
     nl_error( 1, "Unable to open file '%s'", mlf->fpath );
   return fd;

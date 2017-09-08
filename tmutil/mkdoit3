@@ -282,37 +282,37 @@ esac
 # Determine the path. Strictly speaking, this does
 # not have to happen before start, but I'd like
 # to check that the required applications exist
-if [ $check_path = yes ]; then
-  VERSION=1.0
-  case $srcmode in
-    playback)
-      # Need to find the data
-      ddir=$Run
-      if [ ! -d $ddir ]; then
-        for base in . $FltNd$HomeDir; do
-          ddir=$base/$Run
-          [ -d $ddir ] && break
-          ddir=$base/raw/$Run
-          [ -d $ddir ] && break
-          for runtype in flight cal data junk; do
-            ddir=$base/raw/$runtype/$Run
-            [ -d $ddir ] && break
-          done
+VERSION=1.0
+case $srcmode in
+  playback)
+    # Need to find the data
+    ddir=$Run
+    if [ ! -d $ddir ]; then
+      for base in . $FltNd$HomeDir; do
+        ddir=$base/$Run
+        [ -d $ddir ] && break
+        ddir=$base/raw/$Run
+        [ -d $ddir ] && break
+        for runtype in flight cal data junk; do
+          ddir=$base/raw/$runtype/$Run
           [ -d $ddir ] && break
         done
-      fi
-      [ -d $ddir ] || nl_error "Unable to locate run $Run"
-      [ -f $ddir/VERSION ] && VERSION=`cat $ddir/VERSION`;;
-    *)
-      ddir=$FltNd$HomeDir
-      [ -f VERSION ] && VERSION=`cat VERSION`;;
-  esac
+        [ -d $ddir ] && break
+      done
+    fi
+    [ -d $ddir ] || nl_error "Unable to locate run $Run"
+    [ -f $ddir/VERSION ] && VERSION=`cat $ddir/VERSION`;;
+  *)
+    ddir=$FltNd$HomeDir
+    [ -f VERSION ] && VERSION=`cat VERSION`;;
+esac
 
-  TMBINDIR=$PWD/bin/$VERSION
-  [ -d $TMBINDIR ] ||
-    nl_error "Unable to locate bin dir for VERSION $VERSION"
-  export PATH=$TMBINDIR:$PATH
+TMBINDIR=$PWD/bin/$VERSION
+[ -d $TMBINDIR ] ||
+  nl_error "Unable to locate bin dir for VERSION $VERSION"
+export PATH=$TMBINDIR:$PATH
 
+if [ $check_path = yes ]; then
   missing=''
   for app in $interacts; do
     [ -x $TMBINDIR/$app$nc -o -x /usr/local/bin/$app$nc ] ||
