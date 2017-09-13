@@ -70,10 +70,18 @@ while (<$fh>) {
   } elsif ( m/^\s* extraction \s+ (?:\[(\S+)\] \s+)? (\w+) (?:\s+ (.*))?$/x ) {
     my $extcond = $1 || '';
     my $extprog = $2;
-    my $opts = $3 ? " $3" : '';
+    my $opts = ' -t $FlightNode' . ($3 ? " $3" : '');
     my $pcond = $extcond ne '' ? parse_condition($extcond) : undef;
-    push @extract, { prog => $extprog, cond => $pcond, opts => $opts };
+    push @extract, { prog => $extprog, name => '-', cond => $pcond, opts => $opts };
     push @extracts, $extprog;
+  } elsif ( m/^\s* server \s+ (?:\[(\S+)\] \s+)? (\S+) (\w+) (?:\s+ (.*))?$/x ) {
+    my $srvcond = $1 || '';
+    my $srvname = $2;
+    my $srvprog = $3;
+    my $opts = $4 ? " $4" : '';
+    my $pcond = $srvcond ne '' ? parse_condition($srvcond) : undef;
+    push @extract, { prog => $srvprog, name => $srvname, cond => $pcond, opts => $opts };
+    push @extracts, $srvprog;
   } elsif ( m/^\s* SerIn \s+ (\w+) (?:\s+ (.*))?$/xi ) {
     $serin = $1;
     my $opts = $2 ? " $2" : '';
@@ -628,11 +636,6 @@ done
 
 EOF
 
-if ( $phrtg ) {
-  print $fh '[ $dispmode = screen ] || Launch - phrtg -C $FlightNode -P $ddir',
-    $progopts{phrtg}, "\n";
-}
-
 for my $disp ( @display ) {
   my $scr = $screen{$disp};
   print $fh "Launch - $disp\$nc \$ncopt -t \$FlightNode$progopts{$disp}",
@@ -643,7 +646,12 @@ for my $ext ( @extract ) {
   if ($ext->{cond}) {
     print $fh '[ ', cond2sh($ext->{cond}), ' ] && ';
   }
-  print $fh "Launch - ", $ext->{prog}, $ext->{opts}, "\n";
+  print $fh "Launch ", $ext->{name}, " ", $ext->{prog}, $ext->{opts}, "\n";
+}
+
+if ( $phrtg ) {
+  print $fh '[ $dispmode = screen ] || Launch - phrtg -C $FlightNode -P $ddir',
+    $progopts{phrtg}, "\n";
 }
 
 ## Algos probably won't be implemented quite like this:
