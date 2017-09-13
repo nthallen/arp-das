@@ -271,6 +271,16 @@ for my $client ( @client ) {
   print $fh 'client=', $client->{prog}, "\n";
 }
 
+print $fh "lclsrvr=playbacksrvr\n";
+for my $server ( @extract ) {
+  if ($server->{name} eq 'cmd/server' ) {
+    if ($server->{cond}) {
+      print $fh '[ ', cond2sh($server->{cond}), ' ] && ';
+    }
+    print $fh 'lclsrvr=', $server->{prog}, "\n";
+  }
+}
+
 print $fh <<'EOF';
 
 check_path=no
@@ -473,7 +483,7 @@ if ($serin) {
 
 print $fh <<'EOF';
           fi
-          Launch cmd/server playbacksrvr
+          Launch cmd/server $lclsrvr
           if [ -n "$launch_error" ]; then
             echo "Launch failed: cleaning up"
             exec parent -qt1
@@ -643,6 +653,9 @@ for my $disp ( @display ) {
 }
 
 for my $ext ( @extract ) {
+  if ($ext->{name] ne '-') {
+    print $fh '[ ! -e ', $ext->{name}, " ] && \n  ";
+  }
   if ($ext->{cond}) {
     print $fh '[ ', cond2sh($ext->{cond}), ' ] && ';
   }
