@@ -40,7 +40,7 @@ my $logfileroot = '$Experiment';
 push @client, { prog => 'playbackclt', cond => undef,
       opts => '' };
 while (<$fh>) {
-  next if m/^\s*(?:#.*)$/;
+  next if m/^\s*(?:#.*)?$/;
   s/\s*$//;
   # display <name> [options]
   # client <name> [options]
@@ -74,7 +74,7 @@ while (<$fh>) {
     my $pcond = $extcond ne '' ? parse_condition($extcond) : undef;
     push @extract, { prog => $extprog, name => '-', cond => $pcond, opts => $opts };
     push @extracts, $extprog;
-  } elsif ( m/^\s* server \s+ (?:\[(\S+)\] \s+)? (\S+) (\w+) (?:\s+ (.*))?$/x ) {
+  } elsif ( m/^\s* server \s+ (?:\[(\S+)\] \s+)? (\S+) \s+ (\w+) (?:\s+ (.*))?$/x ) {
     my $srvcond = $1 || '';
     my $srvname = $2;
     my $srvprog = $3;
@@ -277,7 +277,7 @@ for my $server ( @extract ) {
     if ($server->{cond}) {
       print $fh '[ ', cond2sh($server->{cond}), ' ] && ';
     }
-    print $fh 'lclsrvr=', $server->{prog}, "\n";
+    print $fh "lclsrvr='", $server->{prog}, $server->{opts}, "'\n";
   }
 }
 
@@ -653,7 +653,7 @@ for my $disp ( @display ) {
 }
 
 for my $ext ( @extract ) {
-  if ($ext->{name] ne '-') {
+  if ($ext->{name} ne '-') {
     print $fh '[ ! -e ', $ext->{name}, " ] && \n  ";
   }
   if ($ext->{cond}) {

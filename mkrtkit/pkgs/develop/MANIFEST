@@ -124,6 +124,7 @@ usr/local/share/huarp/idx64.cmd
 usr/local/share/huarp/idx64cfg.awk
 usr/local/share/huarp/loop.cmd
 usr/local/share/huarp/nulltbl.tmc
+usr/local/share/huarp/playback.cmd
 usr/local/share/huarp/phrtg.cmd
 usr/local/share/huarp/ptrhm.cc
 usr/local/share/huarp/ptrhm_col.cc

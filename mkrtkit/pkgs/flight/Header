@@ -1,12 +1,14 @@
 # Package flight
-Version: 2.5.58
+Version: 2.5.59
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
-# 2.5.59 2017-09-07
+# 2.5.59 2017-09-14
 #   nortlib: mlf_next_fd() failed when writing
+#   tmlib: cic_init() complained even when nl_response is QUIET
+#   sspdrv: Off-by-one error was causing oversized scan files
 # 2.5.58 2017-08-30
 #   tmlib: Fixed segfault in load_tmdac()
 # 2.5.57 2016-09-26

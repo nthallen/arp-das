@@ -55,7 +55,8 @@ void cic_options(int argcc, char **argvv, const char *def_prefix) {
   opterr = 1;
 }
 
-/* cic_init() Locates the Command Interpreter Server (CIS) using
+/**
+   cic_init() Locates the Command Interpreter Server (CIS) using
    either the default node information or the information set
    by cic_options -C <node>. Once located, if ci_version is
    non-empty, the version is queried. cic_init() uses the
@@ -65,7 +66,8 @@ void cic_options(int argcc, char **argvv, const char *def_prefix) {
 int cic_init(void) {
   int nlrsave;
   if (cis_fd != -1) return 0;
-  nlrsave = set_response(playback ? NLRSP_QUIET : NLRSP_WARN);
+  nlrsave = set_response((playback || nl_response == NLRSP_QUIET) ?
+                          NLRSP_QUIET : NLRSP_WARN);
   cic_cmd_quit_fd = tm_open_name( tm_dev_name( "cmd/Quit" ),
     cis_node, O_RDONLY|O_NONBLOCK );
   set_response(nlrsave);

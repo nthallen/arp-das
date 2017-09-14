@@ -73,5 +73,10 @@ clean : tidy
 .cvsignore :
 	@for i in Makefile '.B4*' $(OBJECT) $(TARGET); do echo "$$i"; done >.cvsignore
 binPrograms = playbacksrvr playbackclt playbackcltnc
-install : $(binPrograms)
+shareFiles = playback.cmd
+.PHONY : install installBin installShare
+install : installBin installShare
+installBin : $(binPrograms)
 	cp -pnv $(binPrograms) $(TGTNODE)/usr/local/bin
+installShare : $(shareFiles)
+	cp -nv $(shareFiles) $(TGTNODE)/usr/local/share/huarp

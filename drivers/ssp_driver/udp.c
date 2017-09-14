@@ -109,7 +109,8 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
   float divisor = 1/(hdr->NCoadd * (float)(hdr->NAvg+1));
   int my_scan_length = hdr->NSamples * hdr->NChannels;
 
-  // scan is guaranteed to be raw_length words long. Want to verify that NSamples*NChannels + NWordsHdr + 1 == raw_length
+  // scan is guaranteed to be raw_length words long. Want to
+  // verify that NSamples*NChannels + NWordsHdr + 1 == raw_length
   if ( hdr->NWordsHdr != scan0 ) {
     nl_error( 2, "NWordsHdr(%u) != %u", hdr->NWordsHdr, scan0 );
     return;
@@ -136,7 +137,7 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
     fwrite(hdr, sizeof(ssp_scan_header_t), 1, ofp);
     fwrite(&scan[raw_length-1], sizeof(long int), 1, ofp);
     { int NCh = hdr->NChannels, j;
-      for ( j = 0; j <= NCh; j++ ) {
+      for ( j = 0; j < NCh; j++ ) {
         fwrite( fdata[j], sizeof(float), hdr->NSamples, ofp);
       }
     }
