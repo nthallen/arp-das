@@ -1,4 +1,4 @@
-Moduledef QCLI [ SUFFIX= ADDR=0x1000 ACQCFG=AB3R RESET=# SSPRATE=1 ] {
+Moduledef QCLI [ SUFFIX= ADDR=0x1000 ACQCFG=AB3R RESET=# SSPRATE=1 AMP3=# ] {
   QCLI definitions, takes SUFFIX, ADDR, ACQCFG, SSPRATE and RESET
   arguments. Generates multiple files.
   SUFFIX is applied to most variable names, allowing more than
@@ -11,7 +11,7 @@ Moduledef QCLI [ SUFFIX= ADDR=0x1000 ACQCFG=AB3R RESET=# SSPRATE=1 ] {
   RESET= will add QCLI@SUFFIX@_Reset to the .tbl file
 }
 
-mode (default) {
+mode (default,amp) {
   tmcbase = qcli_types.tmc
   tmcbase = QCLI@SUFFIX@.tmc:qcli.tmc.in
   colbase = QCLI@SUFFIX@_col.tmc:qcli_col.tmc.in
@@ -24,7 +24,7 @@ mode (default) {
 }
 
 mode (amp) [ AMP3=# ] {
-  tmcbase = SSP@SUFFIX@_amp.tmc:ssp_amp@ACQCFG@.tmc.in
-  colbase = SSP@SUFFIX@_amp_col.tmc:ssp_amp_col.@ACQCFG@.tmc.in
+  tmcbase = SSP@SUFFIX@_amp.tmc:ssp_amp.@ACQCFG@.tmc.in
+  colbase = SSP@SUFFIX@_amp_col.tmc:ssp_amp_col.tmc.in
   genuibase = SSP@SUFFIX@_amp.genui:ssp_amp.genui.in
 }

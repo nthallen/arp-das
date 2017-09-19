@@ -9,6 +9,7 @@ DATA+=qcli.tbl.in
 DATA+=qcli.genui.in
 DATA+=ssp_amp.AB3R.tmc.in
 DATA+=ssp_amp.genui.in
+DATA+=ssp_amp_col.tmc.in
 INC=qclisspcmd.h
 
 install :
