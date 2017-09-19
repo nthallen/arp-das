@@ -35,11 +35,14 @@
 static char board_hostname[40] = "10.0.0.200";
 static char *mlf_config = NULL;
 static const char *ssp_name, *interface, *portspec = "0";
+#define SSP_AMP_NAME_SIZE 20
+static char ssp_amp_name[SSP_AMP_NAME_SIZE];
 static int quit_received = 0;
 static int trigger_count = 0;
 static int latency = 1;
 ssp_config_t ssp_config;
 ssp_data_t ssp_data;
+ssp_amp_data_t ssp_amp_data;
 static volatile int saw_sigpipe = 0;
 
 void sspdrv_init( const char *name, int argc, char * const *argv ) {
@@ -297,7 +300,8 @@ int main( int argc, char **argv ) {
   mlf_def_t *mlf;
   int cmd_fd;
   int non_udp_width, udp_width;
-  send_id tm_data;
+  int do_amp = 0;
+  send_id tm_data, tm_amp_data;
   fd_set readfds, writefds;
   
   oui_init_options(argc, argv);
@@ -311,6 +315,14 @@ int main( int argc, char **argv ) {
   ssp_data.Total_Skip = 0;
   cmd_fd = ci_cmdee_init( ssp_name );
   tm_data = Col_send_init(ssp_name, &ssp_data, sizeof(ssp_data), 0);
+  if (snprintf(ssp_amp_name, SSP_AMP_NAME_SIZE, "%s_amp", ssp_name) >= SSP_AMP_NAME_SIZE) {
+    nl_error(MSG_ERROR, "ssp_amp_name exceeds size limit");
+  } else {
+    int old_response = set_response(NLRSP_QUIET);
+    tm_amp_data = Col_send_init(ssp_amp_name, &ssp_amp_data, sizeof(ssp_amp_data), 0);
+    set_response(old_response);
+    do_amp = tm_amp_data != 0;
+  }
   tcp_create(board_hostname);
   signal(SIGPIPE, &sigpipehandler);
   non_udp_width = cmd_fd + 1;
@@ -360,7 +372,7 @@ int main( int argc, char **argv ) {
     } else {
       if ( n_ready == 0 ) nl_error( 3, "select() returned zero" );
       if ( udp_state == FD_READ && FD_ISSET( udp_socket, &readfds ) ) {
-        udp_read(mlf);
+        udp_read(mlf, do_amp);
         ssp_data.Status = SSP_STATUS_TRIG;
         trigger_count = 0;
       }
@@ -372,6 +384,7 @@ int main( int argc, char **argv ) {
           ssp_data.Status = SSP_STATUS_ARMED;
         Col_send(tm_data);
         ssp_data.Flags &= ~SSP_OVF_MASK;
+        if (tm_amp_data) Col_send(tm_amp_data);
       }
       if ( FD_ISSET(tcp_socket, &readfds ) )
         tcp_recv();

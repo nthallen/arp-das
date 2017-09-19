@@ -28,7 +28,7 @@ extern int udp_create(const char *interface, const char *portspec);
 extern int udp_socket;
 extern int udp_receive(long int *scan, size_t length );
 extern void udp_close(void);
-extern void udp_read(mlf_def_t *mlf);
+extern void udp_read(mlf_def_t *mlf, int do_amp);
 
 #define RECV_BUF_SIZE SSP_MAX_CTRL_MSG
 
@@ -41,5 +41,6 @@ typedef struct {
 } ssp_config_t;
 extern ssp_config_t ssp_config;
 extern ssp_data_t ssp_data;
+extern ssp_amp_data_t ssp_amp_data;
 
 #endif
