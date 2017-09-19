@@ -146,7 +146,7 @@ static void output_scan(long int *scan, mlf_def_t *mlf, int do_amp) {
       ssp_amp_data.amplitude[j] = maxv - minv;
     }
     for (j = hdr->NChannels; j < SSP_MAX_CHANNELS; ++j) {
-      ssp_amp_data.ampltitude[j] = 0;
+      ssp_amp_data.amplitude[j] = 0;
     }
   }
   if (ssp_config.LE) {
