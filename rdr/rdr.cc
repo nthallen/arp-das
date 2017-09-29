@@ -228,7 +228,7 @@ void *Reader::output_thread() {
       sem_wait(&ot_sem);
     } else {
       if ( regulated ) {
-        // timed loop
+        // timed loop, till locked
         for (;;) {
           int nr;
           ot_blocked = OT_BLOCKED_TIME;
@@ -239,6 +239,7 @@ void *Reader::output_thread() {
           unlock();
           if (breakout) break;
           transmit_data(1); // only one row
+          lock(__FILE__,__LINE__);
           nr = allocate_rows(NULL);
           // if (allocate_rows(NULL) >= dq_low_water) {
           // The problem with this is that when the
@@ -246,14 +247,12 @@ void *Reader::output_thread() {
           // block does not change.
           if ( (nr >= dq_low_water) ||
                (nr > 0 && first <= last) ) {
-            lock(__FILE__,__LINE__);
             if ( it_blocked == IT_BLOCKED_DATA ) {
               it_blocked = 0;
               sem_post(&it_sem);
             }
-            unlock();
           }
-          lock(__FILE__,__LINE__); /* needed in the inner loop */
+          // still locked
         }
       } else {
         // untimed loop
@@ -270,6 +269,7 @@ void *Reader::output_thread() {
         }
       }
     }
+    // unlocked when we break out
   }
   // signal parent thread that we are quitting
   return NULL;
