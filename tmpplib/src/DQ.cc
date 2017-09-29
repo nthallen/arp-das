@@ -118,9 +118,13 @@ int data_queue::allocate_rows(unsigned char **rowp) {
 }
 
 /**
- *  MFCtr, mfrow are the MFCtr and minor frame row of the first row being committed.
- * Does not signal whoever is reading the queue
- * Assumes DQ is locked and unlocks before exit
+ * @param MFCtr Minor frame counter of the first row being committed
+ * @param mfrow Minor frame row of the first row being committed
+ * @param nrows The number of rows being committed.
+ * The row data must have already been written into the data_queue
+ * buffers previously allocated via data_queue::allocate_rows.
+ * This function does not signal whoever is reading the queue.
+ * Locks DQ and unlocks upon completion.
  */
 void data_queue::commit_rows( mfc_t MFCtr, int mfrow, int nrows ) {
   // we (the writer thread) own the last pointer, so we can read it without a lock,
