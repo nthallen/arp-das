@@ -380,9 +380,13 @@ int subbus_quit(void) {
 }
 
 /**
+ * @param req structure defining multi-read request
+ * @param data pointer to where read data should be stored
  * Passes the raw command directly to the subbus driver and parses
- * the return string for a multi-read. Up to n_read values will be
+ * the return string for a multi-read. Up to req->n_reads values will be
  * written into the array pointed to by the data argument.
+ * If the request returns less data than requested, a warning will
+ * be issued unless suppressed by set_response().
  * @return Zero on success. If return value is negative, it is the
  * error code returned by the subbusd driver and no values are reported.
  * If it is positive (SBS_NOACK), it indicates that although the
@@ -391,16 +395,48 @@ int subbus_quit(void) {
  */
 int mread_subbus( subbus_mread_req *req, unsigned short *data) {
   // rv should be the number of bytes retuned from subbusd into sb_reply.
+  int nw, rv;
+  if ( req == NULL ) return 200;
+  rv = mread_subbus_nw(req, data, &nw);
+  if (nw < req->n_reads && nl_response > 0)
+    nl_error(MSG_WARN, "mread returned %d/%d words", nw, req->n_reads);
+  return rv;
+}
+
+/**
+ * @param req structure defining multi-read request
+ * @param data pointer to where read data should be stored
+ * @param nwords pointer to where actual read length should be stored
+ * Passes the raw command directly to the subbus driver and parses
+ * the return string for a multi-read. Up to req->n_reads values will be
+ * written into the array pointed to by the data argument.
+ * If the request returns more data than requested, and error
+ * will be reported (MSG_ERROR).
+ * @return Zero on success. If return value is negative, it is the
+ * error code returned by the subbusd driver and no values are reported.
+ * If it is positive (SBS_NOACK), it indicates that although the
+ * requested number of values are reported, at least one of the
+ * values did not have an acknowledge, and a zero value was reported.
+ */
+int mread_subbus_nw(subbus_mread_req *req, unsigned short *data, unsigned short *nwords) {
   int rv;
+  int nw = 0;
   if ( req == NULL ) return 200;
   rv = send_to_subbusd( SBC_MREAD, req, req->req_len, SBRT_MREAD );
   if ( rv >= 0 ) {
     int i;
-    nl_assert( req->n_reads == sb_reply.data.mread.n_reads );
-    for ( i = 0; i < sb_reply.data.mread.n_reads; ++i ) {
+    nw = sb_reply.data.mread.n_reads;
+    if (nw > req->n_reads) {
+      nl_error(MSG_ERROR, "mread expected %d words, returned %d",
+        req->n_reads, nw);
+      nw = req->n_reads;
+    }
+    for ( i = 0; i < nw; ++i ) {
       data[i] = sb_reply.data.mread.rvals[i];
     }
   }
+  if (nwords != 0)
+    *nwords = nw;
   return rv;
 }
 
@@ -409,6 +445,7 @@ int mread_subbus( subbus_mread_req *req, unsigned short *data) {
  can be passed to mread_subbus(). Called by pack_mread_request()
  and pack_mread_requests(). The req_str syntax is:
 
+ \code{.unparsed}
     <req>
       : M <count> '#' <addr_list> '\n'
     <addr_list>
@@ -418,8 +455,28 @@ int mread_subbus( subbus_mread_req *req, unsigned short *data) {
       : <addr>
       : <addr> ':' <incr> ':' <addr>
       : <count> '@' <addr>
+      : <addr> '|' <count> '@' <addr>
 
     <count>, <addr>, <incr> are all 1-4 hex digits
+  \endcode
+  
+  The four current addr_list_elt syntaxes have the following
+  meaning:
+
+  \code{.unparsed}  
+  <addr>:
+    Read one word from the specified address
+  <addr1> ':' <incr> ':' <addr2>:
+    Read one word from each address, starting at <addr1>,
+    incremented the address by <incr> and ending
+    when the address exceeds <addr2>
+  <count> '@' <addr>:
+    Read <count> words from <addr>
+  <addr1> '|' <count> '@' <addr>:
+    Read count1 from <addr1> and read count1 or <count> words
+    from <addr>, whichever is less. Returns between 1 and
+    <count>+1 words.
+  \endcode
 
  @return the newly allocated request structure.
  */
