@@ -418,7 +418,8 @@ int mread_subbus( subbus_mread_req *req, unsigned short *data) {
  * requested number of values are reported, at least one of the
  * values did not have an acknowledge, and a zero value was reported.
  */
-int mread_subbus_nw(subbus_mread_req *req, unsigned short *data, unsigned short *nwords) {
+int mread_subbus_nw(subbus_mread_req *req, unsigned short *data,
+            unsigned short *nwords) {
   int rv;
   int nw = 0;
   if ( req == NULL ) return 200;

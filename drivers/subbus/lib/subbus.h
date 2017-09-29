@@ -53,7 +53,8 @@ extern int read_ack(unsigned short addr, unsigned short *data);
 extern subbus_mread_req *pack_mread_request( int n_reads, const char *req );
 extern subbus_mread_req *pack_mread_requests( unsigned int addr, ... );
 extern int mread_subbus( subbus_mread_req *req, unsigned short *data);
-extern int mread_subbus(subbus_mread_req *req, unsigned short *data, unsigned short *nwords);
+extern int mread_subbus_nw(subbus_mread_req *req, unsigned short *data,
+                        unsigned short *nwords);
 extern int set_cmdenbl(int value);
 extern int set_cmdstrobe(int value);
 extern unsigned short read_switches(void);

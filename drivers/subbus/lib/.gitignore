@@ -5,3 +5,4 @@ Makefile
 libsubbus.la
 subbus.lo
 FullBuild.*
+*.o
