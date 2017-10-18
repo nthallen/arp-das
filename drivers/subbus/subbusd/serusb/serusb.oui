@@ -1,6 +1,40 @@
 <package> sc104
 <include> subbusd
 
+<opts> "p:b:"
+<sort>
+	-p <port> Serial port (/dev/serusb2)
+	-b <baud> Baud rate (57600)
+
+<init>
+  serusb_init_options(argc, argv);
+
+<defs>
+<include> <stdlib.h>
+<include> "serusb/serusb.h"
+
+static void serusb_init_options(
+    int argc, char **argv ) {
+  int optltr;
+
+  optind = OPTIND_RESET;
+  opterr = 0;
+  while ((optltr = getopt(argc, argv, opt_string)) != -1) {
+    switch (optltr) {
+      case 'p':
+        serusb_port = optarg;
+        break;
+      case 'b':
+        serusb_baud_rate = atoi(optarg);
+        break;
+      case '?':
+        nl_error(3, "Unrecognized Option -%c", optopt);
+      default:
+        break;
+    }
+  }
+}
+
 <package> msghdr_default
 <vars>
   const char *msg_hdr_default = "SB/DACS";

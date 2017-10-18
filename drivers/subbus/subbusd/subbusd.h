@@ -83,7 +83,7 @@ typedef struct __attribute__((__packed__)) {
   char name[SUBBUS_NAME_MAX];
 } subbusd_cap_t;
 
-#define SB_MAX_MREAD 256
+#define SB_MAX_MREAD 500
 /**
  * We need one or two shorts per read, depending on
  * whether we want acknowledge info or not.

@@ -4,15 +4,17 @@
 
 /**
  SB_SERUSB_MAX_REQUEST is the maximum allowable string
- for a serialized command or response over the USB.
+ for a serialized command over the USB.
  The longest request will be for the multi-read
  command, and we may see fit to extend this size.
+
  The multi-read response may also be even longer, but
  we do not necessarily have to allocate buffer space for
  the entire response, since we can process it as it comes
  in.
  */
 #define SB_SERUSB_MAX_REQUEST 256
+#define SB_SERUSB_MAX_RESPONSE 2501
 
 typedef struct {
   int type;
@@ -38,5 +40,8 @@ typedef struct {
 
 extern int int_attach(int rcvid, subbusd_req_t *req, char *sreq);
 extern int int_detach(int rcvid, subbusd_req_t *req, char *sreq);
+
+extern const char *serusb_port;
+extern int serusb_baud_rate;
 
 #endif

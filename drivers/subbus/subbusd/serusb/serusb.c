@@ -8,10 +8,14 @@
 #include <sys/dispatch.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <termios.h>
 #include "serusb.h"
 #include "nl_assert.h"
 
-static char sb_ibuf[SB_SERUSB_MAX_REQUEST];
+const char *serusb_port = "/dev/serusb2";
+int serusb_baud_rate = 57600;
+
+static char sb_ibuf[SB_SERUSB_MAX_RESPONSE];
 static int sb_ibuf_idx = 0;
 static sbd_request_t sbdrq[SUBBUSD_MAX_REQUESTS];
 static sbd_request_t *cur_req;
@@ -216,24 +220,24 @@ static void dequeue_request( signed short status, int n_args,
       nl_assert(cur_req->request[0] == 'M' && cur_req->n_reads != 0);
       // Look at req n_reads, then parse responses. Don't parse more
       // than n_reads values. If we encounter 'm', switch status to
-      // SBS_NOACK. If we encounter 'E', switch status to
+      // SBS_NOACK. If we encounter 'U', switch status to
       // SBS_RESP_ERROR, report the error code, and return with no
       // data. If we get the wrong number of responses, report
       // SBS_RESP_SYNTAX, complain and return with no data
       { int n_reads = cur_req->n_reads;
-        int i = 0;
+        int n_parsed = 0;
         char *p = s;
         unsigned short errval;
 
-        nl_assert( n_reads > 0 && n_reads <= 50 );
-        while ( i < n_reads && rsize == 0 ) {
+        nl_assert( n_reads > 0 && n_reads <= 500 );
+        while (n_parsed  < n_reads && rsize == 0 ) {
           switch ( *p ) {
             case 'm':
               rep.hdr.status = SBS_NOACK; // No acknowledge on at least one read
               // fall through
             case 'M':
               ++p;
-              if ( ! read_hex( &p, &rep.data.mread.rvals[i++] ) ) {
+              if ( ! read_hex( &p, &rep.data.mread.rvals[n_parsed++] ) ) {
                 nl_error(2,"DACS response syntax error: '%s'",
                   ascii_escape(s));
                 rep.hdr.status = SBS_RESP_SYNTAX; // DACS reply syntax error
@@ -242,7 +246,7 @@ static void dequeue_request( signed short status, int n_args,
                 break;
               }
               continue;
-            case 'E':
+            case 'U':
               ++p;
               if ( ! read_hex( &p, &errval ) ) {
                 nl_error(2,"Invalid error in mread response: '%s'",
@@ -261,17 +265,17 @@ static void dequeue_request( signed short status, int n_args,
           break;
         }
         if ( rsize == 0 ) {
-          if ( i != n_reads || *p != '\0' ) {
+          if (n_parsed > n_reads || *p != '\0' ) {
             // Wrong number of read values returned
             nl_error(2, "Expected %d, read %d: '%s'",
-              n_reads, i, ascii_escape(s));
+              n_reads, n_parsed, ascii_escape(s));
             rep.hdr.status = SBS_RESP_SYNTAX;
             rsize = sizeof(subbusd_rep_hdr_t);
             rep.hdr.ret_type = SBRT_NONE;
           } else {
-            rep.data.mread.n_reads = n_reads;
+            rep.data.mread.n_reads = n_parsed;
             rsize = sizeof(subbusd_rep_hdr_t) +
-                    (n_reads+1) * sizeof(unsigned short);
+                    (n_parsed+1) * sizeof(unsigned short);
           }
         }
       }
@@ -449,7 +453,8 @@ static void process_response( char *buf ) {
         exp_req = resp_code;
         exp_args = 1;
         break;
-      case 'E':
+      case 'E': // The old code used on the DACS
+      case 'U': // New code, because E is ambiguous in multi-read
         status = RESP_ERR;
         exp_req = '\0';
         exp_args = 1;
@@ -517,8 +522,8 @@ static void sb_read_usb(void) {
   do {
     int nb, nbr;
 
-    nbr = SB_SERUSB_MAX_REQUEST - sb_ibuf_idx;
-    nl_assert(nbr > 0 && nbr <= SB_SERUSB_MAX_REQUEST);
+    nbr = SB_SERUSB_MAX_RESPONSE - sb_ibuf_idx;
+    nl_assert(nbr > 0 && nbr <= SB_SERUSB_MAX_RESPONSE);
     nb = read(sb_fd, &sb_ibuf[sb_ibuf_idx], nbr);
     if ( nb < 0 ) {
       if (errno == EAGAIN) nb = 0;
@@ -573,12 +578,70 @@ static int sb_timeout( message_context_t * ctp, int code,
   return 0;
 }
 
+/**
+ * Initializes the serial parameters for the device. The min
+ * and time parameters can be used to optimize reads. See
+ * tcsetattr VMIN and VTIME parameters for more information.
+ * @param baud The desired baud rate
+ * @param bits number of data bits (5-8)
+ * @param par 'n', 'e', 'o', 'm', 's' for none, even, odd, mark or space.
+ * @param stopbits The number of stop bits: 1 or 2
+ * @param min The minimum number of characters to respond to
+ * @param time The time gap value
+ */
+static void serial_setup(int fd, int baud, int bits, char par,
+                         int stopbits, int min, int time ) {
+  struct termios termios_p;
+  int bitsflag;
+
+  if ( fd < 0 ) return;
+  if ( tcgetattr( fd, &termios_p) ) {
+    nl_error( 2, "Error on tcgetattr: %s", strerror(errno) );
+    return;
+  }
+  termios_p.c_iflag = 0;
+  termios_p.c_lflag &= ~(ECHO|ICANON|ISIG|ECHOE|ECHOK|ECHONL);
+  termios_p.c_cflag = CLOCAL|CREAD;
+  termios_p.c_oflag &= ~(OPOST);
+  termios_p.c_ispeed = termios_p.c_ospeed = baud;
+  switch (bits) {
+    case 5: bitsflag = CS5; break;
+    case 6: bitsflag = CS6; break;
+    case 7: bitsflag = CS7; break;
+    case 8: bitsflag = CS8; break;
+    default:
+      nl_error( 3, "Invalid bits value: %d", bits );
+  }
+  termios_p.c_cflag |= bitsflag;
+  switch (par) {
+    case 'n': bitsflag = 0; break;
+    case 'e': bitsflag = PARENB; break;
+    case 'o': bitsflag = PARENB|PARODD; break;
+    case 'm': bitsflag = PARENB|PARODD|PARSTK; break;
+    case 's': bitsflag = PARENB|PARSTK; break;
+    default:
+      nl_error( 3, "Invalid parity selector: '%c'", par );
+  }
+  termios_p.c_cflag |= bitsflag;
+  switch (stopbits) {
+    case 1: break;
+    case 2: termios_p.c_cflag |= CSTOPB; break;
+    default:
+      nl_error(3, "Invalid number of stop bits: %d", stopbits );
+  }
+  termios_p.c_cc[VMIN] = min;
+  termios_p.c_cc[VTIME] = time;
+  if ( tcsetattr(fd, TCSANOW, &termios_p) )
+    nl_error( 2, "Error on tcsetattr: %s", strerror(errno) );
+}
+
 static void init_serusb(dispatch_t *dpp, int ionotify_pulse,
                           int timeout_pulse) {
   struct sigevent timeout_event;
-  sb_fd = open("/dev/serusb2", O_RDWR | O_NONBLOCK);
+  sb_fd = open(serusb_port, O_RDWR | O_NONBLOCK);
   if (sb_fd == -1)
     nl_error(3,"Error opening USB subbus: %s", strerror(errno));
+  serial_setup(sb_fd, serusb_baud_rate, 8, 'n', 1, 1, 0);
   /* flush anything in the input buffer */
   { int n;
     char tbuf[256];
