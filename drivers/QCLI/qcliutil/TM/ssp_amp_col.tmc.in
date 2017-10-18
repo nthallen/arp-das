@@ -1,0 +1,3 @@
+%{
+  ssp_amp_data_t SSP@SUFFIX@_amp;
+%}

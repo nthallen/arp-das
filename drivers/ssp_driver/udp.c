@@ -99,7 +99,7 @@ void udp_close(void) {
   cfgerr_reported = 0;
 }
 
-static void output_scan( long int *scan, mlf_def_t *mlf ) {
+static void output_scan(long int *scan, mlf_def_t *mlf, int do_amp) {
   FILE *ofp;
   ssp_scan_header_t *hdr = (ssp_scan_header_t *)scan;
   long int *idata = scan+hdr->NWordsHdr;
@@ -124,15 +124,32 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
       hdr->NSamples, hdr->NChannels, raw_length );
     return;
   }
-  if (ssp_config.LE) {
+  if (ssp_config.LE || do_amp) {
     int i, j, nc = hdr->NChannels;
     for ( j = 0; j < hdr->NChannels; ++j ) {
       long int *id = &idata[j];
+      float minv = 0, maxv = 0;
       for ( i = 0; i < hdr->NSamples; ++i ) {
-        fdata[j][i] = (*id) * divisor;
+        float sampleval = (*id) * divisor;
+        fdata[j][i] = sampleval;
         id += nc;
+        if (do_amp) {
+          if (i == 0) {
+            minv = maxv = sampleval;
+          } else if (sampleval < minv) {
+            minv = sampleval;
+          } else if (sampleval > maxv) {
+            maxv = sampleval;
+          }
+        }
       }
+      ssp_amp_data.amplitude[j] = maxv - minv;
     }
+    for (j = hdr->NChannels; j < SSP_MAX_CHANNELS; ++j) {
+      ssp_amp_data.amplitude[j] = 0;
+    }
+  }
+  if (ssp_config.LE) {
     ofp = mlf_next_file(mlf);
     fwrite(hdr, sizeof(ssp_scan_header_t), 1, ofp);
     fwrite(&scan[raw_length-1], sizeof(long int), 1, ofp);
@@ -144,7 +161,7 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
     fclose(ofp);
   }
 
-  ssp_data.index = mlf->index;
+  ssp_data.index = ssp_amp_data.index = mlf->index;
   ssp_data.Flags |= (unsigned short)(scan[raw_length-1]);
   ssp_data.Total_Skip += hdr->NSkL + hdr->NSkP;
   ssp_data.ScanNum = hdr->ScanNum;
@@ -160,13 +177,13 @@ static void output_scan( long int *scan, mlf_def_t *mlf ) {
     nl_error( 1, "%lu: scan[5] = %08lX (not %08lX)\n", mlf->index, scan[5], scan5 );
 }
 
-void udp_read(mlf_def_t *mlf) {
+void udp_read(mlf_def_t *mlf, int do_amp) {
   int n = udp_receive(scan_buf+cur_word,
     cur_word ? MAX_UDP_PAYLOAD : SSP_MAX_SCAN_SIZE);
   if ( n < 0 )
     nl_error( 2, "Error from udp_receive: %d", errno );
   else if ( cur_word == 0 && !(*scan_buf & SSP_FRAG_FLAG) ) {
-    if ( n == scan_size ) output_scan(scan_buf, mlf);
+    if ( n == scan_size ) output_scan(scan_buf, mlf, do_amp);
     else nl_error( 2, "Expected %d bytes, received %d", scan_size, n );
   } else if ( !( scan_buf[cur_word] & SSP_FRAG_FLAG ) ) {
     nl_error( -3, "Expected scan fragment" );
@@ -198,7 +215,7 @@ void udp_read(mlf_def_t *mlf) {
     if ( frag_hdr & SSP_LAST_FRAG_FLAG ) {
       if ( scan_OK ) {
         if ( cur_word == raw_length )
-          output_scan( scan_buf+1, mlf );
+          output_scan(scan_buf+1, mlf, do_amp);
         else nl_error( 2, "Scan length error: expected %d words, received %d",
           raw_length, cur_word );
       }

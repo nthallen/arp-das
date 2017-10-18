@@ -21,6 +21,8 @@ TM typedef unsigned short QCLI_CS_t {
   collect x = sbrwa(x.address);
 }
 
+TM typedef float SSP_Amp_t { text "7.1lf"; }
+
 /* T_FPGA_t: MAX6628 output, resolution 1/16 degree
  *   reported as 128 bits per degree celcius */
 TM typedef double QCLI_CELCIUS;

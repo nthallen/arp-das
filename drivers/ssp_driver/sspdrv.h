@@ -31,6 +31,11 @@ typedef struct {
 #define SSP_STATUS_ARMED 3
 #define SSP_STATUS_TRIG 4
 
+typedef struct {
+  unsigned long index;
+  float amplitude[3];
+} __attribute__((packed)) ssp_amp_data_t;
+
 /*
 It could be that Flags (or something derived from flags) and Total_Skip will be sufficient for telemetry.
 */

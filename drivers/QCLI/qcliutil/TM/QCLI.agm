@@ -1,19 +1,30 @@
-Moduledef QCLI [ SUFFIX= ADDR=0x1000 ACQCFG=AB3R RESET=# ] {
-  QCLI definitions, takes SUFFIX and ADDR
+Moduledef QCLI [ SUFFIX= ADDR=0x1000 ACQCFG=AB3R RESET=# SSPRATE=1 AMP3=# ] {
+  QCLI definitions, takes SUFFIX, ADDR, ACQCFG, SSPRATE and RESET
   arguments. Generates multiple files.
+  SUFFIX is applied to most variable names, allowing more than
+    one QCLI/SSP pair in the same instrument.
+  ADDR is the address for the QCLI communication status word
   Currently supported values for ACQCFG are:
     AB3R: Collect channels A and B using external trigger rising edge
     ABC3R: Collect channels A, B and C using external trigger rising edge
+  SSPRATE is the TM reporting rate for SSP data
   RESET= will add QCLI@SUFFIX@_Reset to the .tbl file
 }
 
-tmcbase = qcli_types.tmc
-tmcbase = QCLI@SUFFIX@.tmc:qcli.tmc.in
-colbase = QCLI@SUFFIX@_col.tmc:qcli_col.tmc.in
-cmdbase = qclia.cmd
-cmdbase = QCLI@SUFFIX@.cmd:qclis.cmd.in
-qclibase = waves@SUFFIX@.qcli
-extbase = QCLI@SUFFIX@_conv.tmc:qcli_conv.tmc.in
-genuibase = QCLI@SUFFIX@.genui:qcli.genui.in
-- : QCLI@SUFFIX@.tbl:qcli.tbl.in
+mode (default,amp) {
+  tmcbase = qcli_types.tmc
+  tmcbase = QCLI@SUFFIX@.tmc:qcli.tmc.in
+  colbase = QCLI@SUFFIX@_col.tmc:qcli_col.tmc.in
+  cmdbase = qclia.cmd
+  cmdbase = QCLI@SUFFIX@.cmd:qclis.cmd.in
+  qclibase = waves@SUFFIX@.qcli
+  extbase = QCLI@SUFFIX@_conv.tmc:qcli_conv.tmc.in
+  genuibase = QCLI@SUFFIX@.genui:qcli.genui.in
+  - : QCLI@SUFFIX@.tbl:qcli.tbl.in
+}
 
+mode (amp) [ AMP3=# ] {
+  tmcbase = SSP@SUFFIX@_amp.tmc:ssp_amp.@ACQCFG@.tmc.in
+  colbase = SSP@SUFFIX@_amp_col.tmc:ssp_amp_col.tmc.in
+  genuibase = SSP@SUFFIX@_amp.genui:ssp_amp.genui.in
+}
