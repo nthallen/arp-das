@@ -6,3 +6,4 @@ sc104oui.c
 serusboui.c
 simoui.c
 FullBuild.*
+*.o

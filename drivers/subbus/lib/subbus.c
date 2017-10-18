@@ -395,7 +395,8 @@ int subbus_quit(void) {
  */
 int mread_subbus( subbus_mread_req *req, unsigned short *data) {
   // rv should be the number of bytes retuned from subbusd into sb_reply.
-  int nw, rv;
+  int rv;
+  unsigned short nw;
   if ( req == NULL ) return 200;
   rv = mread_subbus_nw(req, data, &nw);
   if (nw < req->n_reads && nl_response > 0)
