@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.80
+Version: 2.5.82
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,6 +8,11 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.82 2017-10-18
+#   subbus.h Added mread_subbus_nw() function
+# 2.5.81 2017-09-19
+#   sspdrv.h: support for amplitude calculation
+#   QCLI.agm: support for SSP amplitude calculation
 # 2.5.80 2017-09-14
 #   mkdoit3: Ensure ddir is defined in doit. Support for server
 # 2.5.79 2017-08-30

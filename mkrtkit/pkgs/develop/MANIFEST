@@ -140,6 +140,9 @@ usr/local/share/huarp/qcli.genui.in
 usr/local/share/huarp/qcli.tbl.in
 usr/local/share/huarp/root.cmd
 usr/local/share/huarp/rtinstall
+usr/local/share/huarp/ssp_amp.AB3R.tmc.in
+usr/local/share/huarp/ssp_amp.genui.in
+usr/local/share/huarp/ssp_amp_col.tmc.in
 usr/local/share/huarp/tdrift.tmc
 usr/local/share/huarp/tdrift_col.tmc
 usr/local/share/huarp/tmdf.tmc
