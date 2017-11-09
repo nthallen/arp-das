@@ -1,0 +1,14 @@
+<package> subbus
+
+<comment>
+  subbus.oui defines the minimal implementation of subbus.
+  Until I learn how to handle shared objects, I won't support
+  optional subbus (although) I could create a null library...
+
+<include> "subbus.h"
+
+<var>
+  int subbus_id;
+
+<init>
+  subbus_id = load_subbus();
