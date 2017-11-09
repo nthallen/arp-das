@@ -8,84 +8,63 @@
 #define SUBBUSPP_H_INCLUDED
 #include <sys/siginfo.h>
 #include <stdint.h>
+#include "subbus.h"
+#include "subbusd.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define SUBBUS_VERSION 0x501 /* subbus version 5.01 QNX6 */
 
 class subbuspp {
 public:
-  subbuspp(const char *port, uint32_t baud);
+  subbuspp(const char *name);
   ~subbusp();
+  int load();
+  const char *get_subbus_name();
+  int write_ack(uint16_t addr, uint16_t data);
+  int read_ack(uint16_t addr, uint16_t *data);
+  uint16_t read_subbus(uint16_t addr);
+  uint16_t cache_read(uint16_t addr);
+  int cache_write(uint16_t addr, uint16_t data);
+  int inline write_subbus(uint16_t addr, uint16_t data) {
+      return write_ack(addr, data);
+    }
+  int inline sbwr(uint16_t addr, uint16_t data) {
+      return write_ack(addr, data);
+    }
+  uint16_t inline sbrd(uint16_t addr) { return read_subbus(addr); }
+  int mread_subbus( subbus_mread_req *req, uint16_t *data);
+  int mread_subbus_nw(subbus_mread_req *req, uint16_t *data,
+                        uint16_t *nwords);
+  subbus_mread_req *pack_mread_requests( unsigned int addr, ... );
+  subbus_mread_req *pack_mread_request( int n_reads, const char *req );
+  int set_cmdenbl(int value);
+  int set_cmdstrobe(int value);
+  uint16_t read_switches(void);
+  int set_failure(uint16_t value);
+  uint16_t read_failure(void);
+  int  tick_sic(void);
+  int disarm_sic(void);
+  int cache_write(uint16_t addr, uint16_t data);
+  int subbus_int_attach( char *cardID, uint16_t address,
+      uint16_t region, struct sigevent *event );
+  int subbus_int_detach( char *cardID );
+  int subbus_quit(void);
 
-/* Subbus subfunction codes: These define the hardware that talks
-   to the subbus. It does not talk about the interface between
-   the library and the system controller itself.
- */
-#define SB_PCICC 1
-#define SB_PCICCSIC 2
-#define SB_SYSCON 3
-#define SB_SYSCON104 4
-#define SB_SYSCONDACS 5
-#define SB_SIM 6
-
-/* subbus_features: */
-#define SBF_SIC 1		/* SIC Functions */
-#define SBF_LG_RAM 2	/* Large NVRAM */
-#define SBF_HW_CNTS 4	/* Hardware rst & pwr Counters */
-#define SBF_WD 8		/* Watchdog functions */
-#define SBF_SET_FAIL 0x10 /* Set failure lamp */
-#define SBF_READ_FAIL 0x20 /* Read failure lamps */
-#define SBF_READ_SW 0x40 /* Read Switches */
-#define SBF_NVRAM 0x80   /* Any NVRAM at all! */
-#define SBF_CMDSTROBE 0x100 /* CmdStrobe Function */
-
-typedef struct __attribute__((__packed__)) {
-  unsigned short req_len;
-  unsigned short n_reads;
-  char multread_cmd[256];
-} subbus_mread_req;
-
-extern int load_subbus(void);
-
-extern unsigned short subbus_version;
-extern unsigned short subbus_features;
-extern unsigned short subbus_subfunction;
-extern unsigned short read_subbus(unsigned short addr);
-extern int write_ack(unsigned short addr, unsigned short data);
-extern int read_ack(unsigned short addr, unsigned short *data);
-#define write_subbus(x,y) write_ack(x,y)
-extern subbus_mread_req *pack_mread_request( int n_reads, const char *req );
-extern subbus_mread_req *pack_mread_requests( unsigned int addr, ... );
-extern int mread_subbus( subbus_mread_req *req, unsigned short *data);
-extern int mread_subbus_nw(subbus_mread_req *req, unsigned short *data,
-                        unsigned short *nwords);
-extern int set_cmdenbl(int value);
-extern int set_cmdstrobe(int value);
-extern unsigned short read_switches(void);
-extern int set_failure(unsigned short value);
-extern unsigned short read_failure(void);
-extern int  tick_sic(void);
-extern int disarm_sic(void);
-extern char *get_subbus_name(void);
-#define subbus_name get_subbus_name()
-extern int cache_write(unsigned short addr, unsigned short data);
-extern unsigned short cache_read(unsigned short addr);
-
-extern unsigned short sbrb(unsigned short addr);
-extern unsigned short sbrba(unsigned short addr);
-#define sbrw(x) read_subbus(x)
-extern unsigned int sbrwa(unsigned short addr);
-#define sbwr(x,y) write_ack(x,y)
-#define sbwra(x,y) write_ack(x,y)
-
-extern int subbus_int_attach( char *cardID, unsigned short address,
-      unsigned short region, struct sigevent *event );
-extern int subbus_int_detach( char *cardID );
-extern int subbus_quit(void);
-
-#ifdef __cplusplus
+private:
+  int send_to_subbusd( uint16_t command, void *data,
+		int data_size, uint16_t exp_type );
+  int send_CSF( uint16_t command, uint16_t val );
+  uint16_t read_special( uint16_t command );
+  subbus_mread_req *pack_mread( int req_len, int n_reads, const char *req_str );
+  
+  const char *path;
+  int sb_fd;
+  const uint16_t subbus_version = SUBBUS_VERSION;
+  uint16_t subbus_subfunction; // undefined until initialization
+  uint16_t subbus_features; // ditto
+  char local_subbus_name[SUBBUS_NAME_MAX];
+  iov_t sb_iov[3];
+  subbusd_req_hdr_t sb_req_hdr;
+  subbusd_rep_t sb_reply;
 };
-#endif
 
 #endif

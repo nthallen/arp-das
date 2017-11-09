@@ -6,29 +6,16 @@
 #include <string.h>
 #include <errno.h>
 #include <stdarg.h>
-#include "subbus.h"
+#include "subbuspp.h"
 #include "nortlib.h"
 #include "nl_assert.h"
-#include "subbusd.h"
-
-#define SUBBUS_VERSION 0x501 /* subbus version 5.01 QNX6 */
-
-static int sb_fd = -1;
-static iov_t sb_iov[3];
-static subbusd_req_hdr_t sb_req_hdr;
-static subbusd_rep_t sb_reply;
-static char local_subbus_name[SUBBUS_NAME_MAX];
-
-unsigned short subbus_version = SUBBUS_VERSION;
-unsigned short subbus_subfunction; // undefined until initialization
-unsigned short subbus_features; // ditto
 
 /**
  @return Status reply from subbusd. Terminates if
  communication with subbusd fails.
  */
-static int send_to_subbusd( unsigned short command, void *data,
-		int data_size, unsigned short exp_type ) {
+int subbuspp::send_to_subbusd( uint16_t command, void *data,
+		int data_size, uint16_t exp_type ) {
   int rv;
   if ( sb_fd == -1 )
     nl_error( 4, "Attempt to access subbusd before initialization" );
@@ -54,7 +41,7 @@ static int send_to_subbusd( unsigned short command, void *data,
       nl_assert( rv == sizeof(subbusd_rep_hdr_t));
       break;
     case SBRT_US:
-      nl_assert( rv == sizeof(subbusd_rep_hdr_t) + sizeof(unsigned short));
+      nl_assert( rv == sizeof(subbusd_rep_hdr_t) + sizeof(uint16_t));
       break;
     case SBRT_CAP:
       nl_assert( rv == sizeof(subbusd_rep_hdr_t) + sizeof(subbusd_cap_t));
@@ -67,18 +54,22 @@ static int send_to_subbusd( unsigned short command, void *data,
   return sb_reply.hdr.status;
 }
 
+subbuspp::subbuspp(const char *path) {
+  this->path = path;
+  sb_fd = -1;
+}
 
 /** Initializes communications with subbusd driver.
     Returns library subfunction on success,
     zero on failure.
  */
-int load_subbus(void) {
+int subbuspp::load() {
   int rv;
   if ( sb_fd != -1 ) {
     nl_error( -2, "Attempt to reload subbus" );
     return subbus_subfunction;
   }
-  sb_fd = open("/dev/huarp/subbus", O_RDWR );
+  sb_fd = open(tm_dev_name(path), O_RDWR );
   if ( sb_fd == -1 ) {
     nl_error( -2, "Error opening subbusd: %s", strerror(errno));
     return 0;
@@ -104,7 +95,7 @@ int load_subbus(void) {
  * Returns the hardware name string as originally retrieved from
  * subbusd during load_subbus().
  */
-char *get_subbus_name(void) {
+const char *subbuspp::get_subbus_name() {
   if ( sb_fd == -1 )
     nl_error( 4, "Attempt to read subbus_name before initialization" );
   return( local_subbus_name );
@@ -113,7 +104,7 @@ char *get_subbus_name(void) {
 /**
  @return non-zero if hardware read acknowledge was observed.
  */
-int read_ack( unsigned short addr, unsigned short *data ) {
+int subbuspp::read_ack( uint16_t addr, uint16_t *data ) {
   int rv, rc;
   subbusd_req_data1 rdata;
 
@@ -125,8 +116,7 @@ int read_ack( unsigned short addr, unsigned short *data ) {
     case -ETIMEDOUT:
     case SBS_NOACK: rc = 0; break;
     default:
-      nl_error( 4, "Invalid status response to read_ack(): %d",
-	rv );
+      nl_error( 4, "Invalid status response to read_ack(): %d",	rv );
   }
   return rc;
 }
@@ -134,10 +124,10 @@ int read_ack( unsigned short addr, unsigned short *data ) {
 /**
  @return Cached read value or zero if address is invalid.
  */
-unsigned short cache_read( unsigned short addr ) {
+uint16_t subbuspp::cache_read( uint16_t addr ) {
   int rv;
   subbusd_req_data1 rdata;
-  unsigned short data;
+  uint16_t data;
 
   rdata.data = addr;
   rv = send_to_subbusd( SBC_READCACHE, &rdata, sizeof(rdata), SBRT_US );
@@ -153,33 +143,22 @@ unsigned short cache_read( unsigned short addr ) {
   return data;
 }
 
-unsigned short read_subbus(unsigned short addr) {
-  unsigned short data;
-  read_ack(addr, &data);
+/**
+ * Read subbus ignoring acknowledge.
+ * @param addr The subbus address
+ * @return The value read or zero if no acknowledge was received
+ */
+uint16_t subbuspp::read_subbus(uint16_t addr) {
+  uint16_t data;
+  if (!read_ack(addr, &data)) {
+    data = 0;
+  }
   return data;
 }
 
-unsigned short sbrb(unsigned short addr) {
-  unsigned int word;
-  
-  word = read_subbus(addr);
-  if (addr & 1) word >>= 8;
-  return(word & 0xFF);
-}
-
 /* returns zero if no acknowledge */
-unsigned short sbrba(unsigned short addr) {
-  unsigned short word;
-  
-  if ( read_ack( addr, &word ) ) {
-    if (addr & 1) word >>= 8;
-    return( word & 0xFF );
-  } else return 0;
-}
-
-/* returns zero if no acknowledge */
-unsigned int sbrwa(unsigned short addr) {
-  unsigned short word;
+unsigned int sbrwa(uint16_t addr) {
+  uint16_t word;
   
   if ( read_ack( addr, &word ) )
     return word;
@@ -192,7 +171,7 @@ unsigned int sbrwa(unsigned short addr) {
  of iterations in the software loop waiting for
  the microsecond timeout.
  */
-int write_ack(unsigned short addr, unsigned short data) {
+int write_ack(uint16_t addr, uint16_t data) {
   int rv, rc;
   subbusd_req_data0 wdata;
 
@@ -216,7 +195,7 @@ int write_ack(unsigned short addr, unsigned short data) {
  of iterations in the software loop waiting for
  the microsecond timeout.
  */
-int cache_write(unsigned short addr, unsigned short data) {
+int subbuspp::cache_write(uint16_t addr, uint16_t data) {
   int rv, rc;
   subbusd_req_data0 wdata;
 
@@ -228,18 +207,17 @@ int cache_write(unsigned short addr, unsigned short data) {
     case -ETIMEDOUT:
     case SBS_NOACK: rc = 0; break;
     default:
-      nl_error( 4, "Invalid status response to cache_write(): %d",
-	rv );
+      nl_error( 4, "Invalid status response to cache_write(): %d", rv );
   }
   return rc;
 }
 
 /** This is an internal function for sending messages
- * with a single unsigned short argument and a simple
+ * with a single uint16_t argument and a simple
  * status return.
  @return non-zero on success. Zero if unsupported.
  */
-static int send_CSF( unsigned short command, unsigned short val ) {
+int subbuspp::send_CSF( uint16_t command, uint16_t val ) {
   int rv;
   subbusd_req_data1 csf_data;
 
@@ -256,11 +234,10 @@ static int send_CSF( unsigned short command, unsigned short val ) {
   return( (rv == SBS_OK) ? 1 : 0 );
 }
 
-
 /** Set cmdenbl value.
  @return non-zero on success. Zero if not supported.
  */
-int set_cmdenbl(int val) {
+int subbuspp::set_cmdenbl(int val) {
   return send_CSF( SBC_SETCMDENBL, val ? 1 : 0);
 }
 
@@ -273,7 +250,7 @@ int set_cmdenbl(int val) {
  @param value 1 turns on cmdstrobe, 0 turns off cmdstrobe
  @return non-zero on success, zero if operation isn't supported.
  */
-int set_cmdstrobe(int val) {
+int subbuspp::set_cmdstrobe(int val) {
   return send_CSF(SBC_SETCMDSTRB, val ? 1 : 0);
 }
 
@@ -292,15 +269,15 @@ int set_cmdstrobe(int val) {
  @see read_failure()
  @param value Binary-encoded light settings.
  */
-int set_failure(unsigned short value) {
+int subbuspp::set_failure(uint16_t value) {
   return send_CSF( SBC_SETFAIL, value );
 }
 
 /** Internal function to handle read_switches() and read_failure(),
-  which take no arguments, return unsigned short or zero if
+  which take no arguments, return uint16_t or zero if
   the function is not supported.
   */
-static unsigned short read_special( unsigned short command ) {
+uint16_t subbuspp::read_special( uint16_t command ) {
   int rv;
   rv = send_to_subbusd( command, NULL, 0, SBRT_US );
   return (rv == SBS_OK) ? sb_reply.data.value : 0;
@@ -311,7 +288,7 @@ static unsigned short read_special( unsigned short command ) {
  usually located on a control panel on the instrument.
  @return The binary-encoded switch positions, or zero on error.
  */
-unsigned short read_switches(void) {
+uint16_t subbuspp::read_switches(void) {
   return read_special( SBC_READSW );
 }
 
@@ -324,7 +301,7 @@ unsigned short read_switches(void) {
  report the actual state of the light.
  @return The binary-encoded value of the indicator light settings.
  */
-unsigned short read_failure(void) {
+uint16_t subbuspp::read_failure(void) {
   return read_special( SBC_READFAIL );
 }
 
@@ -338,7 +315,7 @@ unsigned short read_failure(void) {
  reboot timer or rely on a motherboard-specific watchdog
  timer.
  */
-int tick_sic( void ) {
+int subbuspp::tick_sic( void ) {
   return send_to_subbusd( SBC_TICK, NULL, 0, SBRT_NONE );
 }
 
@@ -347,12 +324,12 @@ int tick_sic( void ) {
  that can reboot the system, this command disables that
  timer.
  */
-int disarm_sic(void) {
+int subbuspp::disarm_sic(void) {
   return send_to_subbusd( SBC_DISARM, NULL, 0, SBRT_NONE );
 }
 
-int subbus_int_attach( char *cardID, unsigned short address,
-      unsigned short region, struct sigevent *event ) {
+int subbuspp::subbus_int_attach( char *cardID, uint16_t address,
+      uint16_t region, struct sigevent *event ) {
   subbusd_req_data2 idata;
   nl_assert(cardID != NULL);
   strncpy( idata.cardID, cardID, 8);//possibly not nul-terminated
@@ -362,7 +339,7 @@ int subbus_int_attach( char *cardID, unsigned short address,
   return send_to_subbusd( SBC_INTATT, &idata, sizeof(idata), SBRT_US );
 }
 
-int subbus_int_detach( char *cardID ) {
+int subbuspp::subbus_int_detach( char *cardID ) {
   subbusd_req_data3 idata;
   nl_assert(cardID != NULL);
   strncpy( idata.cardID, cardID, 8);//possibly not non-terminated
@@ -374,7 +351,7 @@ int subbus_int_detach( char *cardID ) {
  * all connections are closed.
  * @return SBS_OK on success.
  */
-int subbus_quit(void) {
+int subbuspp::subbus_quit(void) {
   if ( sb_fd == -1 ) return 0;
   return send_to_subbusd( SBC_QUIT, NULL, 0, SBRT_NONE );
 }
@@ -393,10 +370,10 @@ int subbus_quit(void) {
  * requested number of values are reported, at least one of the
  * values did not have an acknowledge, and a zero value was reported.
  */
-int mread_subbus( subbus_mread_req *req, unsigned short *data) {
+int subbuspp::mread_subbus( subbus_mread_req *req, uint16_t *data) {
   // rv should be the number of bytes retuned from subbusd into sb_reply.
   int rv;
-  unsigned short nw;
+  uint16_t nw;
   if ( req == NULL ) return 200;
   rv = mread_subbus_nw(req, data, &nw);
   if (nw < req->n_reads && nl_response > 0)
@@ -419,8 +396,8 @@ int mread_subbus( subbus_mread_req *req, unsigned short *data) {
  * requested number of values are reported, at least one of the
  * values did not have an acknowledge, and a zero value was reported.
  */
-int mread_subbus_nw(subbus_mread_req *req, unsigned short *data,
-            unsigned short *nwords) {
+int subbuspp::mread_subbus_nw(subbus_mread_req *req, uint16_t *data,
+            uint16_t *nwords) {
   int rv;
   int nw = 0;
   if ( req == NULL ) return 200;
@@ -482,8 +459,9 @@ int mread_subbus_nw(subbus_mread_req *req, unsigned short *data,
 
  @return the newly allocated request structure.
  */
-static subbus_mread_req *pack_mread( int req_len, int n_reads, const char *req_str ) {
-  int req_size = 2*sizeof(unsigned short) + req_len + 1;
+subbus_mread_req *subbuspp::pack_mread( int req_len, int n_reads,
+        const char *req_str ) {
+  int req_size = 2*sizeof(uint16_t) + req_len + 1;
   subbus_mread_req *req = (subbus_mread_req *)new_memory(req_size);
   req->req_len = req_size;
   req->n_reads = n_reads;
@@ -496,8 +474,8 @@ static subbus_mread_req *pack_mread( int req_len, int n_reads, const char *req_s
  * text request string and invokes pack_mread().
  * @return the newly allocated request structure.
  */
-subbus_mread_req *pack_mread_requests( unsigned int addr, ... ) {
-  unsigned short addrs[50];
+subbus_mread_req *subbuspp::pack_mread_requests( unsigned int addr, ... ) {
+  uint16_t addrs[50];
   int n_reads = 0;
   
   { unsigned int val = addr;
@@ -505,7 +483,7 @@ subbus_mread_req *pack_mread_requests( unsigned int addr, ... ) {
     if ( addr == 0 ) return NULL;
     va_start( va, addr );
     while ( val != 0 && n_reads < 50 ) {
-      addrs[n_reads++] = (unsigned short) val;
+      addrs[n_reads++] = (uint16_t) val;
       val =  va_arg(va, unsigned int);
     }
     va_end(va);
@@ -565,7 +543,7 @@ subbus_mread_req *pack_mread_requests( unsigned int addr, ... ) {
  * Takes a multi-read <addr-list> string and invokes pack_mread().
  * @return the newly allocated request structure.
  */
-subbus_mread_req *pack_mread_request( int n_reads, const char *req ) {
+subbus_mread_req *subbuspp::pack_mread_request( int n_reads, const char *req ) {
   char buf[256];
   int space = 256;
   int nb;

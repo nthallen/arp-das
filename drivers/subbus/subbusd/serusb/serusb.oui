@@ -1,10 +1,11 @@
 <package> sc104
 <include> subbusd
 
-<opts> "p:b:"
+<opts> "p:b:N:"
 <sort>
 	-p <port> Serial port (/dev/serusb2)
 	-b <baud> Baud rate (57600)
+  -N <devname> Device name to create
 
 <init>
   serusb_init_options(argc, argv);
@@ -12,6 +13,7 @@
 <defs>
 <include> <stdlib.h>
 <include> "serusb/serusb.h"
+<include> "subbusd_int.h"
 
 static void serusb_init_options(
     int argc, char **argv ) {
@@ -26,6 +28,9 @@ static void serusb_init_options(
         break;
       case 'b':
         serusb_baud_rate = atoi(optarg);
+        break;
+      case 'N':
+        subbusd_devname = optarg;
         break;
       case '?':
         nl_error(3, "Unrecognized Option -%c", optopt);

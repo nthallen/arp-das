@@ -18,7 +18,8 @@
 static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         io_funcs;
 static iofunc_attr_t             attr;
-#define DEVNAME "/dev/" COMPANY "/subbus"
+#define DEVNAME_DEFAULT "/dev/" COMPANY "/subbus"
+char const *subbusd_devname = DEVNAME_DEFAULT;
 
 static int SB_Shutdown = 0;
 
@@ -118,14 +119,14 @@ int main(int argc, char **argv) {
 
   /* attach our device name */
   id = resmgr_attach(
-          dpp,            /* dispatch handle        */
-          &resmgr_attr,   /* resource manager attrs */
-          DEVNAME,        /* device name            */
-          _FTYPE_ANY,     /* open type              */
-          0,              /* flags                  */
-          &connect_funcs, /* connect routines       */
-          &io_funcs,      /* I/O routines           */
-          &attr);         /* handle                 */
+          dpp,             /* dispatch handle        */
+          &resmgr_attr,    /* resource manager attrs */
+          subbusd_devname, /* device name            */
+          _FTYPE_ANY,      /* open type              */
+          0,               /* flags                  */
+          &connect_funcs,  /* connect routines       */
+          &io_funcs,       /* I/O routines           */
+          &attr);          /* handle                 */
   if (id == -1)
       nl_error( 3, "%s: Unable to attach name.\n", argv[0]);
   init_subbus(dpp);

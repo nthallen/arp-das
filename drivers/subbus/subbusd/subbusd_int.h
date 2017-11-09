@@ -27,7 +27,7 @@ typedef struct {
 } region;
 #define MAX_REGIONS 4
 
-
+extern const char *subbusd_devname;
 extern card_def *carddefs;
 extern region regions[MAX_REGIONS];
 extern void incoming_sbreq( int rcvid, subbusd_req_t *req );
