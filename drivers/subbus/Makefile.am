@@ -1,1 +1,2 @@
-SUBDIRS = lib
+SUBDIRS = lib libpp
+ACLOCAL_AMFLAGS = -I m4

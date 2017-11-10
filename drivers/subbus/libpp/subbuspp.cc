@@ -9,6 +9,7 @@
 #include "subbuspp.h"
 #include "nortlib.h"
 #include "nl_assert.h"
+#include "tm.h"
 
 /**
  @return Status reply from subbusd. Terminates if
@@ -156,22 +157,13 @@ uint16_t subbuspp::read_subbus(uint16_t addr) {
   return data;
 }
 
-/* returns zero if no acknowledge */
-unsigned int sbrwa(uint16_t addr) {
-  uint16_t word;
-  
-  if ( read_ack( addr, &word ) )
-    return word;
-  else return 0;
-}
-
 /**
  @return non-zero value if the hardware acknowledge is
  observed. Historically, the value recorded the number
  of iterations in the software loop waiting for
  the microsecond timeout.
  */
-int write_ack(uint16_t addr, uint16_t data) {
+int subbuspp::write_ack(uint16_t addr, uint16_t data) {
   int rv, rc;
   subbusd_req_data0 wdata;
 

@@ -16,7 +16,7 @@
 class subbuspp {
 public:
   subbuspp(const char *name);
-  ~subbusp();
+  ~subbuspp();
   int load();
   const char *get_subbus_name();
   int write_ack(uint16_t addr, uint16_t data);
@@ -24,12 +24,6 @@ public:
   uint16_t read_subbus(uint16_t addr);
   uint16_t cache_read(uint16_t addr);
   int cache_write(uint16_t addr, uint16_t data);
-  int inline write_subbus(uint16_t addr, uint16_t data) {
-      return write_ack(addr, data);
-    }
-  int inline sbwr(uint16_t addr, uint16_t data) {
-      return write_ack(addr, data);
-    }
   uint16_t inline sbrd(uint16_t addr) { return read_subbus(addr); }
   int mread_subbus( subbus_mread_req *req, uint16_t *data);
   int mread_subbus_nw(subbus_mread_req *req, uint16_t *data,
@@ -43,7 +37,6 @@ public:
   uint16_t read_failure(void);
   int  tick_sic(void);
   int disarm_sic(void);
-  int cache_write(uint16_t addr, uint16_t data);
   int subbus_int_attach( char *cardID, uint16_t address,
       uint16_t region, struct sigevent *event );
   int subbus_int_detach( char *cardID );
@@ -58,7 +51,7 @@ private:
   
   const char *path;
   int sb_fd;
-  const uint16_t subbus_version = SUBBUS_VERSION;
+  static const uint16_t subbus_version = SUBBUS_VERSION;
   uint16_t subbus_subfunction; // undefined until initialization
   uint16_t subbus_features; // ditto
   char local_subbus_name[SUBBUS_NAME_MAX];
