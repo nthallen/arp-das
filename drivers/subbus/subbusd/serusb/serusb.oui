@@ -5,7 +5,7 @@
 <sort>
 	-p <port> Serial port (/dev/serusb2)
 	-b <baud> Baud rate (57600)
-  -N <devname> Device name to create
+	-N <devname> Device name to create (/dev/huarp/subbus)
 
 <init>
   serusb_init_options(argc, argv);

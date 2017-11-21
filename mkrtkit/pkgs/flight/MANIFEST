@@ -58,6 +58,10 @@ usr/local/lib/libsubbus.la
 usr/local/lib/libsubbus.so
 usr/local/lib/libsubbus.so.1
 usr/local/lib/libsubbus.so.2
+usr/local/lib/libsubbuspp.a
+usr/local/lib/libsubbuspp.la
+usr/local/lib/libsubbuspp.so
+usr/local/lib/libsubbuspp.so.0
 usr/local/lib/libtm.a
 usr/local/lib/libtm.la
 usr/local/lib/libtm.so
