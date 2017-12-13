@@ -190,6 +190,7 @@ struct declrtor {
 };
 /* DCLF_ADDRDEF means the address has been defined */
 #define DCLF_ADDRDEF 1
+#define DCLF_ARRAY   2
 
 struct dtm {
   char *name;

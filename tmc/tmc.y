@@ -802,14 +802,19 @@ declarator : TK_NAME array_decorations {
         $$->nameref = $$->decl.last->u.nameref;
         $$->size = $2.size;
         $$->tm_type = NULL;
-        $$->flag = 0;
+        $$->flag = $2.type ? DCLF_ARRAY : 0;
         catstat(&$$->decl, &$2.stat);
         link_declarator($$, decl_type);
       }
     ;
-array_decorations : { $$.size = 1; $$.stat.first = $$.stat.last = NULL; }
+array_decorations : {
+        $$.type = 0;
+        $$.size = 1;
+        $$.stat.first = $$.stat.last = NULL;
+      }
     | array_decorations '[' TK_INTEGER_CONST ']' {
         $$ = $1;
+        $$.type = 1; /* Indicates non-empty array decorations */
         $$.size *= $3;
         catstattext(&$$.stat, $<l.pretext>2);
         catstattext(&$$.stat, $<l.pretext>3);
