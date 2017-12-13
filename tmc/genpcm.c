@@ -577,6 +577,7 @@ static void copy_slots(struct tmalloc *tms) {
     cwl->datum = tms->nameref;
   if (name_test(tms->nameref, NMTEST_TMDATUM)) {
     if (tms->sltcw->dnext != NULL) {
+      tms->flags &= ~TMDF_HOMEROW;
       compile_error(1, "Datum %s is split over more than one slot",
                 tms->nameref->name);
     }

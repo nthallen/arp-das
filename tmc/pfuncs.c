@@ -49,16 +49,22 @@ static void moveslots(struct cw *cwl, unsigned int dir) {
     if (name_test(datum, NMTEST_TMDATUM)) {
       tma = nr_tmalloc(datum);
       if (!(tma->flags & TMDF_HOMEROW)) {
-        // assert(cwl->home_row_text != NULL);
         cwn = tma->sltcw;
-        if (cwn == cwl && cwl->dnext == NULL) {
+        /* Simple assignment is allowed if the datum
+         * is contiguous in the homerow (i.e. not split
+         * over more than one slot) and not an array
+         * type.
+         */
+        if (cwn == cwl && cwl->dnext == NULL &&
+            (datum->u.tmdecl->flag & DCLF_ARRAY) == 0) {
           /* Can move with simple assignment */
           if ( TM_Data_Type != 3 || ( cwl->col >= 2 && cwl->col < Ncols - 2) ) {
-              assert(cwl->home_row_text != NULL);
-              if (dir == MVSLOTS_IN)
-                fprintf(ofile, "\n  %s = %s;", cwl->home_row_text, datum->name);
-              else
-                fprintf(ofile, "\n  %s = %s;", datum->name, cwl->home_row_text);
+            /* Type 3 suppresses MFCtr and Synch columns, so no point copying them */
+            assert(cwl->home_row_text != NULL);
+            if (dir == MVSLOTS_IN)
+              fprintf(ofile, "\n  %s = %s;", cwl->home_row_text, datum->name);
+            else
+              fprintf(ofile, "\n  %s = %s;", datum->name, cwl->home_row_text);
           }
         } else {
           assert(cwl->home_row_text != NULL);
