@@ -22,12 +22,16 @@
    
    Calibration out of range...
 */
+%{
+  #include <math.h>
+  #include "subbus.h"
+%}
 TM typedef double VOLTS { text "%6.4lf"; }
 
 /* Chars converting to fixed float testing implicit rules, etc. */
 TM typedef unsigned char AD8 {
   text "%3u";
-  Collect x = sbb(x);
+  Collect x = sbrb(x);
 }
 TM typedef AD8 AD8_NC;
 TM typedef AD8 AD8_V { Convert VOLTS; text "%4.2lf"; }
@@ -54,7 +58,7 @@ TM 1 Hz AD8_FI v_ad8fi; iconvert(v_ad8fi); convert(v_ad8fi); text(v_ad8fi);
  */
 TM typedef unsigned short AD12 {
   text "%5u";
-  Collect x = sbw(x);
+  Collect x = sbrw(x);
 }
 TM typedef AD12 AD12_V { Convert VOLTS; text "%9.2le"; }
 Calibration ( AD12_V, VOLTS ) { 0, 0, 65536, 10 }

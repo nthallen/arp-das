@@ -2,7 +2,7 @@ SRC=depends.tmc caltest.tmc
 TOOL=Makefile debug setup.dbg
 DOC=todo
 
-OBJ=depends.c caltest.c
+OBJ=depends.cc caltest.cc array.cc
 TEMPORARY=*.err *.pcm
 
 # Maintenance definitions
@@ -11,16 +11,15 @@ MNC=tmcr
 SOURCE=$(SRC) $(TOOL) $(DOC)
 OBJECT=$(OBJ) $(INTERMED) $(TEMPORARY)
 
-SUFFIXES= .o .c .tmc
+SUFFIXES= .o .cc .tmc
 .SUFFIXES : $(SUFFIXES)
-MODEL=s
-CFLAGS=-Wall -g -I /usr/local/include
+CXXFLAGS=-Wall -g -I /usr/local/include
 LDFLAGS=-L/usr/local/lib
-LIBS=-ltm -lnort
+LIBS=-ltm -ltmpp -lnort
 TMCFLAGS=-s
 TMC=$(DBGR) ../tmc
 
-.tmc.c :
+.tmc.cc :
 	$(TMC) $(TMCFLAGS) -o $@ -p -V $*.pcm -c $<
 
 #-----------------------------------------------------------------
@@ -29,7 +28,8 @@ TMC=$(DBGR) ../tmc
 .PHONY : regress clean
 regress : $(OBJ)
 	@echo All tests passed successfully
-depends.c : depends.tmc
-caltest.c : caltest.tmc
+depends.cc : depends.tmc
+caltest.cc : caltest.tmc
+array.cc : array.tmc
 clean :
-	rm -f *.c *.o
+	rm -f *.c *.cc *.o

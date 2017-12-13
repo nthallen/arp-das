@@ -1,10 +1,13 @@
+%{
+  #include "subbus.h"
+%}
 typedef unsigned short UINT;
 TM typedef double VOLTS2 { text "%4.2lf"; }
 TM typedef double KELVIN { text "%5.1lf"; }
 
 /* Input types */
 TM typedef unsigned char AD8 {
-  collect x = sbb(x.address);
+  collect x = sbrb(x.address);
   convert VOLTS2;
   text "%02X";
 }

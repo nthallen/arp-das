@@ -1,0 +1,6 @@
+TM typedef unsigned short count_t { text "%5u"; }
+TM typedef unsigned short USHORT { text "%3u"; }
+
+TM 1 Hz count_t counts[20];
+TM 0 Hz USHORT Synch, MFCtr;
+

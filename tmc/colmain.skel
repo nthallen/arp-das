@@ -45,8 +45,8 @@
 #include "tm.h"
 #include "DGcol.h"
 
-static char cmrcsid[] =
-      "$Id$";
+// static char cmrcsid[] =
+//      "$Id$";
 
 %headers%
 
