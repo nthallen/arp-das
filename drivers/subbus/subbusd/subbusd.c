@@ -14,6 +14,7 @@
 #include "subbusd_int.h"
 #include "nl_assert.h"
 #include "oui.h"
+#include "tm.h"
 
 static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         io_funcs;
@@ -121,7 +122,7 @@ int main(int argc, char **argv) {
   id = resmgr_attach(
           dpp,             /* dispatch handle        */
           &resmgr_attr,    /* resource manager attrs */
-          subbusd_devname, /* device name            */
+          tm_dev_name(subbusd_devname), /* device name            */
           _FTYPE_ANY,      /* open type              */
           0,               /* flags                  */
           &connect_funcs,  /* connect routines       */

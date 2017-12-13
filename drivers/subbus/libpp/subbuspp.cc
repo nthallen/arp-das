@@ -60,6 +60,8 @@ subbuspp::subbuspp(const char *path) {
   sb_fd = -1;
 }
 
+subbuspp::~subbuspp() {}
+
 /** Initializes communications with subbusd driver.
     Returns library subfunction on success,
     zero on failure.
