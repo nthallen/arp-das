@@ -50,21 +50,21 @@ void add_state(struct stateset *set, char *name) {
   assert(set != NULL && name != NULL);
   nameref = find_ref(name, 1);
   if (nameref->type != NMTYPE_UNDEFINED)
-	compile_error(2, "Attempted redeclaration of name %s", name);
+    compile_error(2, "Attempted redeclaration of name %s", name);
   else {
-	/* Initialize the state */
-	stt = new_memory(sizeof(struct statevar));
-	stt->index = ++set->n_states;
-	stt->funcname = set->funcname;
-	nameref->type = NMTYPE_STATE;
-	nameref->u.stdecl = stt;
+    /* Initialize the state */
+    stt = new_memory(sizeof(struct statevar));
+    stt->index = ++set->n_states;
+    stt->funcname = set->funcname;
+    nameref->type = NMTYPE_STATE;
+    nameref->u.stdecl = stt;
 
-	/* Initialize its validator */
-	stt->vldtr = new_validator();
-	stt->vldtr->flag = DCLF_VALIDATE | DCLF_TLSET;
-	
-	/* Link it into the set's namelist */
-	set->states = newnamelist(set->states, nameref);
+    /* Initialize its validator */
+    stt->vldtr = new_validator();
+    stt->vldtr->flag = DCLF_VALIDATE | DCLF_TLSET;
+    
+    /* Link it into the set's namelist */
+    set->states = newnamelist(set->states, nameref);
   }
 }
 
@@ -76,17 +76,17 @@ static void print_cases(struct stateset *set, char *stname, int valid) {
   fprintf(ofile, "%s) {", stname);
   adjust_indent(2);
   for (nl = set->states; nl != NULL; nl = nl->prev) {
-	vldtr = nr_validator(nl->names);
-	if (vldtr->val != NULL
-		|| (valid && vldtr->valstat.first != NULL)) {
-	  print_indent(NULL);
-	  fprintf(ofile, "case %d: /* %s */", nl->names->u.stdecl->index,
-						nl->names->name);
-	  adjust_indent(2);
-	  print_vldtr(vldtr, valid);
-	  print_indent("break;");
-	  adjust_indent(-2);
-	}
+    vldtr = nr_validator(nl->names);
+    if (vldtr->val != NULL
+        || (valid && vldtr->valstat.first != NULL)) {
+      print_indent(NULL);
+      fprintf(ofile, "case %d: /* %s */", nl->names->u.stdecl->index,
+                        nl->names->name);
+      adjust_indent(2);
+      print_vldtr(vldtr, valid);
+      print_indent("break;");
+      adjust_indent(-2);
+    }
   }
   adjust_indent(-2);
   print_indent("}");
@@ -101,21 +101,21 @@ void print_states(void) {
   fprintf(ofile, "\n");
   for (set = statesets; set != NULL; set = set->next) {
     fprintf(ofile, "static void %s(unsigned short newstate);\n",
-		    set->funcname);
+            set->funcname);
   }
   for (set = statesets; set != NULL; set = set->next) {
-	print_indent(NULL);
-	fprintf(ofile, "static void %s(unsigned short newstate) {",
-			set->funcname);
-	adjust_indent(2);
-	print_indent("static unsigned short oldstate;\n\n");
-	print_cases(set, "oldstate", 0);
-	print_indent("oldstate = newstate;");
-	adjust_indent(0);
-	print_cases(set, "newstate", 1);
-	adjust_indent(-2);
-	print_indent("}");
-	adjust_indent(0);
+    print_indent(NULL);
+    fprintf(ofile, "static void %s(unsigned short newstate) {",
+            set->funcname);
+    adjust_indent(2);
+    print_indent("static unsigned short oldstate;\n\n");
+    print_cases(set, "oldstate", 0);
+    print_indent("oldstate = newstate;");
+    adjust_indent(0);
+    print_cases(set, "newstate", 1);
+    adjust_indent(-2);
+    print_indent("}");
+    adjust_indent(0);
   }
 }
 

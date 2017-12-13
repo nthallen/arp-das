@@ -27,6 +27,6 @@ struct calibration {
 void add_pair(struct pairlist *list, double v0, double v1); /* calibr.c */
 void add_calibration(struct nm *type0, struct nm *type1, struct pairlist *pl); /* calibr.c */
 struct cvtfunc *specify_conv( struct tmtype *ftype,
-	  struct cvtfunc *cfn, int cfntype ); /* calibr.c */
+        struct cvtfunc *cfn, int cfntype ); /* calibr.c */
 void classify_conv( struct tmtype *ftype );
 #endif

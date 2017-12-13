@@ -45,11 +45,11 @@ struct nm {
   char *name;
   unsigned int type;
   union {
-	struct dtm *ddecl; /* _DATUM */
-	struct tmdtm *tmdecl; /* _TMDATUM */
-	struct tmtype *tmtdecl; /* _TMTYPE */
-	struct grpdef *grpd; /* _GROUP */
-	struct statevar *stdecl; /* _STATE */
+    struct dtm *ddecl; /* _DATUM */
+    struct tmdtm *tmdecl; /* _TMDATUM */
+    struct tmtype *tmtdecl; /* _TMTYPE */
+    struct grpdef *grpd; /* _GROUP */
+    struct statevar *stdecl; /* _STATE */
   } u;
 };
 #define NMTYPE_UNDEFINED 0
@@ -87,28 +87,28 @@ struct statpc {
   struct statpc *next;
   unsigned int type;
   union {
-	char *text; /* STATPC_TEXT */
-	struct declrtor *decls; /* STATPC_DECLS */
-	struct nm *nameref; /* STATPC_REF, _VALID, _INVALID */
-	struct {
-	  struct deplst *vd;
-	  struct sltdep *sd;
-	  struct sttmnt stat;
-	  struct sttmnt else_stat;
-	  rational rate;
-	} dep; /* _DEPEND */
-	struct {
-	  struct nm *dummy; /* The dummy */
-	  struct nm *nameref; /* The dummy replacement */
-	  struct sttmnt stat; /* The statement */
-	} defrule; /* STATPC_DEFRUL instance */
-	struct sttmnt stat; /* _TLDECLS, _EXTRACT */
-	struct valrec *valchk; /* _VALCHK */
-	struct {
-	  struct cvtfunc *cfn;
-	  struct statpc *ref;
-	} cvt; /* _CONVERT */
-	struct statpc *cmn; /* _COMMON */
+    char *text; /* STATPC_TEXT */
+    struct declrtor *decls; /* STATPC_DECLS */
+    struct nm *nameref; /* STATPC_REF, _VALID, _INVALID */
+    struct {
+      struct deplst *vd;
+      struct sltdep *sd;
+      struct sttmnt stat;
+      struct sttmnt else_stat;
+      rational rate;
+    } dep; /* _DEPEND */
+    struct {
+      struct nm *dummy; /* The dummy */
+      struct nm *nameref; /* The dummy replacement */
+      struct sttmnt stat; /* The statement */
+    } defrule; /* STATPC_DEFRUL instance */
+    struct sttmnt stat; /* _TLDECLS, _EXTRACT */
+    struct valrec *valchk; /* _VALCHK */
+    struct {
+      struct cvtfunc *cfn;
+      struct statpc *ref;
+    } cvt; /* _CONVERT */
+    struct statpc *cmn; /* _COMMON */
   } u;
 };
 #define STATPC_TEXT 0

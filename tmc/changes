@@ -16,9 +16,9 @@ tmc.y
  restructuring declarations
  declarator: delay definition of nameref type
  validator code removed from declrtor. add to validator
-		$$->flag = DCLF_VALID;
-		$$->val = NULL;
-		initstat(&$$->valstat, NULL);
+        $$->flag = DCLF_VALID;
+        $$->val = NULL;
+        initstat(&$$->valstat, NULL);
  removed tmalloc code from make_tmd() for placement in new_tmalloc()
   new_tmalloc(rate);
   tmd->flags = Collecting ? 0 : TMDF_HOMEROW;
@@ -34,14 +34,14 @@ genpcm.c
   dsort->size = 2;
   dsort->nameref = find_name(name, 0);
   if (dsort->nameref == NULL)
-	tmc_error(3, "%s not defined", name);
+    tmc_error(3, "%s not defined", name);
   if (dsort->nameref->type == NMTYPE_TMDATUM)
-	tmc_error(3, "%s must not be defined as TM datum", name);
+    tmc_error(3, "%s must not be defined as TM datum", name);
   if (dsort->nameref->type != NMTYPE_DATUM)
-	tmc_error(3, "%s not defined as datum", name);
+    tmc_error(3, "%s not defined as datum", name);
   assert(dsort->nameref->u.decl != NULL);
   if (dsort->nameref->u.decl->size != 2)
-	tmc_error(3, "%s not of size 2", name);
+    tmc_error(3, "%s not of size 2", name);
   make_tmd(dsort->nameref->u.decl, rate);
   /* Leave this out: clear only for collection when everything else is */
   /* dsort->nameref->u.tmdecl->flags &= ~TMDF_HOMEROW; */

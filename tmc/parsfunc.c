@@ -55,7 +55,7 @@ struct statpc *common_stat(struct statpc *sp) {
 }
 void catstatpc(struct sttmnt *s, struct statpc *spc) {
   if (spc != NULL) {
-	if (s->last == NULL) s->first = s->last = spc;
+    if (s->last == NULL) s->first = s->last = spc;
     else s->last = (s->last->next = spc);
   }
 }
@@ -69,12 +69,12 @@ void initstat(struct sttmnt *s, struct statpc *spc) {
 /* catstat concatenates two statements */
 void catstat(struct sttmnt *s1, struct sttmnt *s2) {
   if (s1->last == NULL) {
-	assert(s1->first == NULL);
-	*s1 = *s2;
+    assert(s1->first == NULL);
+    *s1 = *s2;
   } else if (s2->last != NULL) {
-	assert(s2->first != NULL);
-	s1->last->next = s2->first;
-	s1->last = s2->last;
+    assert(s2->first != NULL);
+    s1->last->next = s2->first;
+    s1->last = s2->last;
   }
 }
 struct deplst *newdeplst(char *name, int once) {
@@ -129,8 +129,8 @@ struct nm *find_name(char *name, int declaring) {
 
   assert(current_scope != NULL);
   for (nl = current_scope; nl != NULL; nl = declaring ? NULL : nl->prev)
-	for (nment = nl->names; nment != NULL; nment = nment->next)
-	  if (stricmp(name, nment->name) == 0) return(nment);
+    for (nment = nl->names; nment != NULL; nment = nment->next)
+      if (stricmp(name, nment->name) == 0) return(nment);
   return(NULL);
 }
 
@@ -143,13 +143,13 @@ struct nm *find_ref(char *name, int declaring) {
   
   nment = find_name(name, declaring);
   if (nment == NULL) {
-	nment = new_memory(sizeof(struct nm));
-	nment->name = strdup(name);
-	nment->type = NMTYPE_UNDEFINED;
-	nment->next = current_scope->names;
-	current_scope->names = nment;
+    nment = new_memory(sizeof(struct nm));
+    nment->name = strdup(name);
+    nment->type = NMTYPE_UNDEFINED;
+    nment->next = current_scope->names;
+    current_scope->names = nment;
   } else if (declaring && nment->type != NMTYPE_UNDEFINED)
-	compile_error(2, "Redefinition of symbol %s", name);
+    compile_error(2, "Redefinition of symbol %s", name);
   return(nment);
 }
 
@@ -178,30 +178,30 @@ void link_declarator(struct declrtor *decl, unsigned int type) {
 
   decl->nameref->type = type;
   switch (type) {
-	case NMTYPE_DATUM:
-	  dd = new_memory(sizeof(struct dtm));
-	  decl->nameref->u.ddecl = dd;
-	  dd->name = decl->nameref->name;
-	  dd->decl = decl;
-	  dd->vldtr = new_validator();
-	  break;
-	case NMTYPE_TMDATUM:
-	  tmd = new_memory(sizeof(struct tmdtm));
-	  tmd->name = decl->nameref->name;
-	  tmd->decl = decl;
-	  tmd->tmdef = new_tmalloc(decl->nameref);
-	  initstat(&tmd->collect, NULL);
-	  decl->nameref->type = NMTYPE_TMDATUM;
-	  decl->nameref->u.tmdecl = tmd;
-	  break;
-	case NMTYPE_TMTYPE:
-	  tmt = new_memory(sizeof(struct tmtype));
-	  clr_tmtype(tmt);
-	  tmt->decl = decl;
-	  decl->nameref->u.tmtdecl = tmt; /* filled in after parse */
-	  break;
-	default:
-	  compile_error(4, "Unknown decl_type %d in tmc.y", type);
+    case NMTYPE_DATUM:
+      dd = new_memory(sizeof(struct dtm));
+      decl->nameref->u.ddecl = dd;
+      dd->name = decl->nameref->name;
+      dd->decl = decl;
+      dd->vldtr = new_validator();
+      break;
+    case NMTYPE_TMDATUM:
+      tmd = new_memory(sizeof(struct tmdtm));
+      tmd->name = decl->nameref->name;
+      tmd->decl = decl;
+      tmd->tmdef = new_tmalloc(decl->nameref);
+      initstat(&tmd->collect, NULL);
+      decl->nameref->type = NMTYPE_TMDATUM;
+      decl->nameref->u.tmdecl = tmd;
+      break;
+    case NMTYPE_TMTYPE:
+      tmt = new_memory(sizeof(struct tmtype));
+      clr_tmtype(tmt);
+      tmt->decl = decl;
+      decl->nameref->u.tmtdecl = tmt; /* filled in after parse */
+      break;
+    default:
+      compile_error(4, "Unknown decl_type %d in tmc.y", type);
   }
 }
 
@@ -225,14 +225,14 @@ void clr_tmtype(struct tmtype *tmt) {
 struct declrtor *nr_declarator(struct nm *nameref) {
   assert(name_test(nameref, NMTEST_DECLARATOR));
   switch (nameref->type) {
-	case NMTYPE_DATUM:
-	  return(nameref->u.ddecl->decl);
-	case NMTYPE_TMDATUM:
-	  return(nameref->u.tmdecl->decl);
-	case NMTYPE_TMTYPE:
-	  return(nameref->u.tmtdecl->decl);
-	default:
-	  compile_error(4, "Unsupported type %d in nr_declarator", nameref->type);
+    case NMTYPE_DATUM:
+      return(nameref->u.ddecl->decl);
+    case NMTYPE_TMDATUM:
+      return(nameref->u.tmdecl->decl);
+    case NMTYPE_TMTYPE:
+      return(nameref->u.tmtdecl->decl);
+    default:
+      compile_error(4, "Unsupported type %d in nr_declarator", nameref->type);
   }
   return 0;
 }
@@ -243,12 +243,12 @@ struct declrtor *nr_declarator(struct nm *nameref) {
 struct validator *nr_validator(struct nm *nameref) {
   assert(name_test(nameref, NMTEST_VALID));
   switch (nameref->type) {
-	case NMTYPE_DATUM:
-	  return(nameref->u.ddecl->vldtr);
-	case NMTYPE_STATE:
-	  return(nameref->u.stdecl->vldtr);
-	default:
-	  compile_error(4, "Unexpected type %d in nr_validator", nameref->type);
+    case NMTYPE_DATUM:
+      return(nameref->u.ddecl->vldtr);
+    case NMTYPE_STATE:
+      return(nameref->u.stdecl->vldtr);
+    default:
+      compile_error(4, "Unexpected type %d in nr_validator", nameref->type);
   }
   return 0;
 }
@@ -256,19 +256,19 @@ struct validator *nr_validator(struct nm *nameref) {
 struct tmalloc *nr_tmalloc(struct nm * nameref) {
   assert(name_test(nameref, NMTEST_TMALLOC));
   if (nameref->type == NMTYPE_TMDATUM)
-	return(nameref->u.tmdecl->tmdef);
+    return(nameref->u.tmdecl->tmdef);
   else return(nameref->u.grpd->tmdef);
 }
 
 /* name_test provides tests for groups of nameref types. The test
    codes are defined in tmc.h with the prefix NMTEST_.
-			NMTYPE_UNDEFINED 0
-			NMTYPE_TMTYPE 1
-			NMTYPE_DATUM 2
-			NMTYPE_TMDATUM 3
-			NMTYPE_GROUP 4
-			NMTYPE_DUMMY 5
-			NMTYPE_STATE 6
+            NMTYPE_UNDEFINED 0
+            NMTYPE_TMTYPE 1
+            NMTYPE_DATUM 2
+            NMTYPE_TMDATUM 3
+            NMTYPE_GROUP 4
+            NMTYPE_DUMMY 5
+            NMTYPE_STATE 6
 */
 #define MAX_NTESTS 8
 static int ntmask[MAX_NTESTS] = {
@@ -287,33 +287,33 @@ int name_test(struct nm *nameref, unsigned int testtype) {
   assert(nameref->name != NULL);
   assert(testtype < MAX_NTESTS);
   switch (nameref->type) {
-	case NMTYPE_UNDEFINED:
-	  break;
-	case NMTYPE_TMTYPE:
-	  assert(nameref->u.tmtdecl != NULL);
-	  assert(nameref->u.tmtdecl->decl != NULL);
-	  break;
-	case NMTYPE_DATUM:
-	  assert(nameref->u.ddecl != NULL);
-	  assert(nameref->u.ddecl->decl != NULL);
-	  assert(nameref->u.ddecl->name != NULL);
-	  assert(nameref->u.ddecl->vldtr != NULL);
-	  break;
-	case NMTYPE_TMDATUM:
-	  assert(nameref->u.tmdecl != NULL);
-	  assert(nameref->u.tmdecl->name != NULL);
-	  assert(nameref->u.tmdecl->decl != NULL);
-	  assert(nameref->u.tmdecl->tmdef != NULL);
-	  break;
-	case NMTYPE_GROUP:
-	  assert(nameref->u.grpd != NULL);
-	  assert(nameref->u.grpd->tmdef != NULL);
-	  break;
-	case NMTYPE_STATE:
-	  assert(nameref->u.stdecl != NULL);
-	  assert(nameref->u.stdecl->vldtr != NULL);
-	  assert(nameref->u.stdecl->funcname != NULL);
-	  break;
+    case NMTYPE_UNDEFINED:
+      break;
+    case NMTYPE_TMTYPE:
+      assert(nameref->u.tmtdecl != NULL);
+      assert(nameref->u.tmtdecl->decl != NULL);
+      break;
+    case NMTYPE_DATUM:
+      assert(nameref->u.ddecl != NULL);
+      assert(nameref->u.ddecl->decl != NULL);
+      assert(nameref->u.ddecl->name != NULL);
+      assert(nameref->u.ddecl->vldtr != NULL);
+      break;
+    case NMTYPE_TMDATUM:
+      assert(nameref->u.tmdecl != NULL);
+      assert(nameref->u.tmdecl->name != NULL);
+      assert(nameref->u.tmdecl->decl != NULL);
+      assert(nameref->u.tmdecl->tmdef != NULL);
+      break;
+    case NMTYPE_GROUP:
+      assert(nameref->u.grpd != NULL);
+      assert(nameref->u.grpd->tmdef != NULL);
+      break;
+    case NMTYPE_STATE:
+      assert(nameref->u.stdecl != NULL);
+      assert(nameref->u.stdecl->vldtr != NULL);
+      assert(nameref->u.stdecl->funcname != NULL);
+      break;
   }
   return((1 << nameref->type) & ntmask[testtype]);
 }

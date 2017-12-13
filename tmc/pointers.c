@@ -59,8 +59,8 @@ void add_ptr_proxy(char *type, char *name, int id) {
       compile_error(2, "TM 'Receive' ID (synch code) must be 0 or 1" );
   } else {
     for (npp = pps; npp != NULL; npp = npp->next)
-    	if (id == npp->id && type_code == npp->type)
-    	  compile_error(2, "Duplicate ID %d in %s definition", id, type);
+        if (id == npp->id && type_code == npp->type)
+          compile_error(2, "Duplicate ID %d in %s definition", id, type);
     if (id < 0 || id > 255)
       compile_error(2, "Illegal pointer or proxy ID %d", id);
   }
@@ -79,7 +79,7 @@ void print_recv_objs(void) {
     fprintf( ofile, "\n\n /* receive objects */\n" );
     for (npp = pps; npp != NULL; npp = npp->next)
       if (npp->type == PPP_RECV)
-	fprintf(ofile, " DG_data *%s_obj;\n", npp->name );
+    fprintf(ofile, " DG_data *%s_obj;\n", npp->name );
   }
 }
 
@@ -88,35 +88,35 @@ static void print_pp_cases(void) {
 
   if (ppp_has & PPP_PTR) {
     #ifdef PPP_PTR_IMPLEMENTED
-  	fprintf(ofile,
-  	  "\tcase COL_SET_POINTER:\n"
-  	  "\t  cmsg = (struct colmsg *)msg_ptr;\n"
-  	  "\t  switch (cmsg->id) {\n");
-  	for (npp = pps; npp != NULL; npp = npp->next)
-  	  if (npp->type == PPP_PTR) {
-  		fprintf(ofile,
-  		  "\t\tcase %d: "
-  		  "COL_get_pointer(sent_tid, &%s, cmsg->u.pointer); "
-  		  "break;\n", npp->id, npp->name);
-  	  }
-  	fprintf(ofile,
-  	  "\t\tdefault: return(reply_byte(sent_tid, DAS_UNKN));\n"
-  	  "\t  }\n"
-  	  "\t  return(0);\n"
-  	  "\tcase COL_RESET_POINTER:\n"
-  	  "\t  cmsg = (struct colmsg *)msg_ptr;\n"
-  	  "\t  switch (cmsg->id) {\n");
-  	for (npp = pps; npp != NULL; npp = npp->next)
-  	  if (npp->type == PPP_PTR) {
-  		fprintf(ofile,
-  		  "\t\tcase %d: "
-  		  "COL_free_pointer(sent_tid, &%s); "
-  		  "break;\n", npp->id, npp->name);
-  	  }
-  	fprintf(ofile,
-  	  "\t\tdefault: return(reply_byte(sent_tid, DAS_UNKN));\n"
-  	  "\t  }\n"
-  	  "\t  return(0);\n");
+      fprintf(ofile,
+        "\tcase COL_SET_POINTER:\n"
+        "\t  cmsg = (struct colmsg *)msg_ptr;\n"
+        "\t  switch (cmsg->id) {\n");
+      for (npp = pps; npp != NULL; npp = npp->next)
+        if (npp->type == PPP_PTR) {
+          fprintf(ofile,
+            "\t\tcase %d: "
+            "COL_get_pointer(sent_tid, &%s, cmsg->u.pointer); "
+            "break;\n", npp->id, npp->name);
+        }
+      fprintf(ofile,
+        "\t\tdefault: return(reply_byte(sent_tid, DAS_UNKN));\n"
+        "\t  }\n"
+        "\t  return(0);\n"
+        "\tcase COL_RESET_POINTER:\n"
+        "\t  cmsg = (struct colmsg *)msg_ptr;\n"
+        "\t  switch (cmsg->id) {\n");
+      for (npp = pps; npp != NULL; npp = npp->next)
+        if (npp->type == PPP_PTR) {
+          fprintf(ofile,
+            "\t\tcase %d: "
+            "COL_free_pointer(sent_tid, &%s); "
+            "break;\n", npp->id, npp->name);
+        }
+      fprintf(ofile,
+        "\t\tdefault: return(reply_byte(sent_tid, DAS_UNKN));\n"
+        "\t  }\n"
+        "\t  return(0);\n");
     #endif
   }
   if (ppp_has & PPP_PROXY) {
@@ -139,25 +139,25 @@ static void print_pp_cases(void) {
       "\tcase COL_RESET_PROXY:\n"
       "\t  cmsg = (struct colmsg *)msg_ptr;\n"
       "\t  switch (cmsg->id) {\n");
-  	for (npp = pps; npp != NULL; npp = npp->next)
-  	  if (npp->type == PPP_PROXY) {
-    		fprintf(ofile,
-    		  "\t\tcase %d: "
-    		  "COL_end_proxy(sent_tid, &%s, cmsg); "
-    		  "break;\n", npp->id, npp->name);
-    	  }
-  	fprintf(ofile,
-  	  "\t\tdefault: return(reply_byte(sent_tid,DAS_UNKN));\n"
-  	  "\t  }\n"
-  	  "\t  return(0);\n");
+      for (npp = pps; npp != NULL; npp = npp->next)
+        if (npp->type == PPP_PROXY) {
+            fprintf(ofile,
+              "\t\tcase %d: "
+              "COL_end_proxy(sent_tid, &%s, cmsg); "
+              "break;\n", npp->id, npp->name);
+          }
+      fprintf(ofile,
+        "\t\tdefault: return(reply_byte(sent_tid,DAS_UNKN));\n"
+        "\t  }\n"
+        "\t  return(0);\n");
     #endif
   }
   if (ppp_has & PPP_RECV) {
     for (npp = pps; npp != NULL; npp = npp->next)
       if (npp->type == PPP_RECV) {
-	fprintf(ofile,
-	  "  %s_obj = receive(\"%s\", &%s, sizeof(%s), %d);\n",
-	  npp->name, npp->name, npp->name, npp->name, npp->id );
+    fprintf(ofile,
+      "  %s_obj = receive(\"%s\", &%s, sizeof(%s), %d);\n",
+      npp->name, npp->name, npp->name, npp->name, npp->id );
       }
   }
 }
@@ -174,57 +174,57 @@ Before DG_other
 
 In DG_other
   case COL_SET_POINTER:
-	switch (cmsg->id) {
-	  case n: DG_get_pointer(sent_tid, &name, cmsg->u.ptr); break;
-	  default: return(reply_byte(DAS_UNKN));
-	}
-	return(0);
+    switch (cmsg->id) {
+      case n: DG_get_pointer(sent_tid, &name, cmsg->u.ptr); break;
+      default: return(reply_byte(DAS_UNKN));
+    }
+    return(0);
   case COL_RESET_POINTER:
-	switch (cmsg->id) {
-	  case n: DG_free_pointer(send_tid, &name); break;
-	  default: return(reply_byte(DAS_UNKN));
-	}
-	return(0);
+    switch (cmsg->id) {
+      case n: DG_free_pointer(send_tid, &name); break;
+      default: return(reply_byte(DAS_UNKN));
+    }
+    return(0);
   case COL_SET_PROXY:
-	switch (id) {
-	  case n: if (name != 0) return(DAS_UNKN); name = proxy; break;
-	  default: return DAS_UNKN;
-	}
-	break;
+    switch (id) {
+      case n: if (name != 0) return(DAS_UNKN); name = proxy; break;
+      default: return DAS_UNKN;
+    }
+    break;
   case COL_RESET_PROXY:
-	{
-	  pid_t proxy;
-	  
-	  switch (id) {
-		case n: proxy = name; name = 0; break;
-		default: return DAS_UNKN
-	  }
-	  return proxy;
-	}
-	break;
+    {
+      pid_t proxy;
+      
+      switch (id) {
+        case n: proxy = name; name = 0; break;
+        default: return DAS_UNKN
+      }
+      return proxy;
+    }
+    break;
   case COL_SEND:
-	cmsg = (struct colmsg *)msg_ptr;
-	switch (cmsg->id) {
-	  case COL_SEND_INIT:
-		if (stricmp(cmsg->u.name, "first") == 0) {
-		  cmsg->u.data.id = first.id;
-		  cmsg->u.data.size = first.size;
-		  cmsg->type = DAS_OK;
-		} else if (stricmp...) {
-		} else return reply_byte(sent_tid,DAS_UNKN);
-		Reply(sent_tid, cmsg, offsetof(struct colmsg, u.data.data));
-		return 0;
-	  case COL_SEND:
-		switch (cmsg->u.data.id) {
-		  case n:
-			memcpy(cmsg->u.data.data, structure, 
-					min(sizeof(structure), cmsg->u.data.size));
-			break;
-		  default: return reply_byte(sent_tid, DAS_UNKN);
-		}
-		break;
-	  case COL_SEND_RESET: break;
-	  default: return reply_byte(sent_tid,DAS_UNKN);
-	}
-	return reply_byte(sent_tid, DAS_OK);
+    cmsg = (struct colmsg *)msg_ptr;
+    switch (cmsg->id) {
+      case COL_SEND_INIT:
+        if (stricmp(cmsg->u.name, "first") == 0) {
+          cmsg->u.data.id = first.id;
+          cmsg->u.data.size = first.size;
+          cmsg->type = DAS_OK;
+        } else if (stricmp...) {
+        } else return reply_byte(sent_tid,DAS_UNKN);
+        Reply(sent_tid, cmsg, offsetof(struct colmsg, u.data.data));
+        return 0;
+      case COL_SEND:
+        switch (cmsg->u.data.id) {
+          case n:
+            memcpy(cmsg->u.data.data, structure, 
+                    min(sizeof(structure), cmsg->u.data.size));
+            break;
+          default: return reply_byte(sent_tid, DAS_UNKN);
+        }
+        break;
+      case COL_SEND_RESET: break;
+      default: return reply_byte(sent_tid,DAS_UNKN);
+    }
+    return reply_byte(sent_tid, DAS_OK);
 #endif

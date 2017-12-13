@@ -86,33 +86,33 @@ static void main_args(int argc, char **argv) {
   opterr = 0;
   optind = OPTIND_RESET;
   while ((c = getopt(argc, argv, opt_string)) != -1) {
-	switch (c) {
-	  case 'c':	compile_options |= CO_COLLECT;	break;
-	  case 'm': compile_options |= CO_NO_MAIN; break;
-	  case 'v':
-		setshow(TM_PDEFS);
-		setshow(TM_DEFS);
-		setshow(TM_STEPS);
-		setshow(TM_STATS);
-		setshow(CONVERSIONS);
-		break;
-	  case 'p': setshow(TM_DEFS); break;
-	  case 'd': setshow(TM_PDEFS); break;
-	  case 'i': setshow(TM_STEPS); break;
-	  case 's': setshow(TM_STATS); break;
-	  case 'C': setshow(CONVERSIONS); break;
-	  case 'V':
-		vfile = open_output_file(optarg);
-		break;
-	  case 'D':
-		dacfile = open_output_file(optarg);
-		break;
-	  case 'H':
-		addrfile = open_output_file(optarg);
-		break;
-	  case '?':
-		compile_error(3, "Unrecognized option -%c", optopt);
-	}
+    switch (c) {
+      case 'c':	compile_options |= CO_COLLECT;	break;
+      case 'm': compile_options |= CO_NO_MAIN; break;
+      case 'v':
+        setshow(TM_PDEFS);
+        setshow(TM_DEFS);
+        setshow(TM_STEPS);
+        setshow(TM_STATS);
+        setshow(CONVERSIONS);
+        break;
+      case 'p': setshow(TM_DEFS); break;
+      case 'd': setshow(TM_PDEFS); break;
+      case 'i': setshow(TM_STEPS); break;
+      case 's': setshow(TM_STATS); break;
+      case 'C': setshow(CONVERSIONS); break;
+      case 'V':
+        vfile = open_output_file(optarg);
+        break;
+      case 'D':
+        dacfile = open_output_file(optarg);
+        break;
+      case 'H':
+        addrfile = open_output_file(optarg);
+        break;
+      case '?':
+        compile_error(3, "Unrecognized option -%c", optopt);
+    }
   }
   if (vfile == NULL) vfile = stdout;
 }
@@ -127,41 +127,41 @@ int main(int argc, char **argv) {
   errlevel = yyparse();
   if (error_level < errlevel) error_level = errlevel;
   if (error_level == 0) {
-	if (Collecting) print_recv_objs();
+    if (Collecting) print_recv_objs();
 
-	/* Copy out console functions */
-	Skel_copy(ofile, "console_functions", 1);
+    /* Copy out console functions */
+    Skel_copy(ofile, "console_functions", 1);
   
-	generate_pcm(); /* operates on global_scope */
-	
-	/* copy statements from data in global_scope onto slotlist */
-	if (Collecting) place_col();
-	
-	/* Handle top-level validations in program */
-	place_valid();
-	
-	/* copy statements from program (_EXTRACT) to slotlist */
-	place_ext();
-	
-	print_decls(); /* but not home row! */
-	
-	/* Position TM data (global_scope) in the home row */
-	place_home();
-	
-	/* Document PCM format */
-	print_pcm();
-	
-	/* Generate calibration conversion functions */
-	declare_convs();
+    generate_pcm(); /* operates on global_scope */
+    
+    /* copy statements from data in global_scope onto slotlist */
+    if (Collecting) place_col();
+    
+    /* Handle top-level validations in program */
+    place_valid();
+    
+    /* copy statements from program (_EXTRACT) to slotlist */
+    place_ext();
+    
+    print_decls(); /* but not home row! */
+    
+    /* Position TM data (global_scope) in the home row */
+    place_home();
+    
+    /* Document PCM format */
+    print_pcm();
+    
+    /* Generate calibration conversion functions */
+    declare_convs();
 
-	/* Generate State Invalidation Functions */
-	print_states();
-	
-	/* Generate init function and TM functions */
-	print_funcs();
-	
-	/* Output #defines for skeleton, skeleton itself and dbr_info */
-	post_processing();
+    /* Generate State Invalidation Functions */
+    print_states();
+    
+    /* Generate init function and TM functions */
+    print_funcs();
+    
+    /* Output #defines for skeleton, skeleton itself and dbr_info */
+    post_processing();
   }
   if (error_level) fprintf(stderr, "Error level %d\n", error_level);
   exit(error_level);

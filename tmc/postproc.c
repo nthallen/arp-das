@@ -202,7 +202,7 @@ void post_processing(void) {
     { int i;
       for ( i = 0; i < 16; i += 8 ) {
         int j;
-	fprintf( ofile, "      %c", i ? ' ' : '{' );
+        fprintf( ofile, "      %c", i ? ' ' : '{' );
         for (j = 0; j < 8; j++ ) {
           fprintf( ofile, " 0x%02X%s", tmi.tmid.md5[i+j],
             i+j < 15 ? "," : " }" );
@@ -211,7 +211,7 @@ void post_processing(void) {
       }
     }
     fprintf(ofile, "    },\n"
-		   "    %d, /* nbminf */\n"
+                   "    %d, /* nbminf */\n"
                    "    %d, /* nbrow */\n"
                    "    %d, /* nrowsmajf */\n"
                    "    %d, /* nsecsper */\n"

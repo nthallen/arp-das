@@ -60,16 +60,16 @@ void print_indent(char *s) {
   int c;
 
   if (s == NULL) {
-	if (sw_indent) do_indent();
-	return;
+    if (sw_indent) do_indent();
+    return;
   }
   for (c = *s; c != '\0'; c = *(++s)) {
-	if (sw_indent) {
-	  if (isspace(c)) continue;
-	  else do_indent();
-	}
-	if (c == '\n') do_indent();
-	else fputc(c, ofile);
+    if (sw_indent) {
+      if (isspace(c)) continue;
+      else do_indent();
+    }
+    if (c == '\n') do_indent();
+    else fputc(c, ofile);
   }
 }
 
@@ -79,14 +79,14 @@ void print_decl(struct declrtor *decl) {
   
   assert(decl != NULL);
   for (; decl != NULL; decl = decl->next) {
-	if (!name_test(decl->nameref, NMTEST_TMDATUM)
-		|| !(nr_tmalloc(decl->nameref)->flags & TMDF_HOMEROW)) {
-	  if (typesout) {
-		print_stat(decl->typeparts.first);
-		typesout = 0;
-	  } else fputc(',', ofile);
-	  print_stat(decl->decl.first);
-	}
+    if (!name_test(decl->nameref, NMTEST_TMDATUM)
+        || !(nr_tmalloc(decl->nameref)->flags & TMDF_HOMEROW)) {
+      if (typesout) {
+        print_stat(decl->typeparts.first);
+        typesout = 0;
+      } else fputc(',', ofile);
+      print_stat(decl->decl.first);
+    }
   }
   if (!typesout) fputc(';', ofile);
 }
@@ -100,121 +100,121 @@ void print_stat(struct statpc *spc) {
   struct tmalloc *tma;
   
   for (; spc != NULL; spc = spc->next) {
-	switch (spc->type) {
-	  case STATPC_CONVERT:
-		assert(spc->u.cvt.cfn != NULL);
-		if (spc->u.cvt.cfn->fnpre != NULL)
-		  print_indent(spc->u.cvt.cfn->fnpre);
-		if (spc->u.cvt.ref != NULL) print_stat(spc->u.cvt.ref);
-		else putc('0', ofile);
-		if (spc->u.cvt.cfn->fnpost != NULL)
-		  print_indent(spc->u.cvt.cfn->fnpost);
-		break;
+    switch (spc->type) {
+      case STATPC_CONVERT:
+        assert(spc->u.cvt.cfn != NULL);
+        if (spc->u.cvt.cfn->fnpre != NULL)
+          print_indent(spc->u.cvt.cfn->fnpre);
+        if (spc->u.cvt.ref != NULL) print_stat(spc->u.cvt.ref);
+        else putc('0', ofile);
+        if (spc->u.cvt.cfn->fnpost != NULL)
+          print_indent(spc->u.cvt.cfn->fnpost);
+        break;
       case STATPC_TEXT:
-		if (spc->u.text == NULL) adjust_indent(0);
-		else print_indent(spc->u.text);
-		break;
+        if (spc->u.text == NULL) adjust_indent(0);
+        else print_indent(spc->u.text);
+        break;
       case STATPC_DECLS:
-		print_decl(spc->u.decls);
-		break;
+        print_decl(spc->u.decls);
+        break;
       case STATPC_REF:
-		nr = spc->u.nameref;
-		assert(nr != NULL);
-		assert(nr->name != NULL);
-		assert(nr->type != NMTYPE_DUMMY);
-		print_indent(NULL);
-		if (name_test(nr, NMTEST_TMDATUM)) {
-		  tma = nr_tmalloc(nr);
-		  assert(tma->sltcw != NULL);
-		  if ((tma->flags & TMDF_HOMEROW)
-			  && tma->sltcw->home_row_text != NULL) {
-			fprintf(ofile, "%s", tma->sltcw->home_row_text);
-			break;
-		  }
-		}
-		fprintf(ofile, "%s", nr->name);
-		break;
+        nr = spc->u.nameref;
+        assert(nr != NULL);
+        assert(nr->name != NULL);
+        assert(nr->type != NMTYPE_DUMMY);
+        print_indent(NULL);
+        if (name_test(nr, NMTEST_TMDATUM)) {
+          tma = nr_tmalloc(nr);
+          assert(tma->sltcw != NULL);
+          if ((tma->flags & TMDF_HOMEROW)
+              && tma->sltcw->home_row_text != NULL) {
+            fprintf(ofile, "%s", tma->sltcw->home_row_text);
+            break;
+          }
+        }
+        fprintf(ofile, "%s", nr->name);
+        break;
       case STATPC_ADDR:
-		nr = spc->u.nameref;
-		decl = nr_declarator(nr);
-		if (!(decl->flag & DCLF_ADDRDEF)) {
-		  compile_error(1, "Undefined address datum %s", nr->name);
-		  decl->flag |= DCLF_ADDRDEF;
-		  decl->address = 0;
-		}
-		print_indent(NULL);
-		fprintf(ofile, "0x%X", decl->address);
-		break;
+        nr = spc->u.nameref;
+        decl = nr_declarator(nr);
+        if (!(decl->flag & DCLF_ADDRDEF)) {
+          compile_error(1, "Undefined address datum %s", nr->name);
+          decl->flag |= DCLF_ADDRDEF;
+          decl->address = 0;
+        }
+        print_indent(NULL);
+        fprintf(ofile, "0x%X", decl->address);
+        break;
       case STATPC_DEFRUL:
-		dy = spc->u.defrule.dummy;
-		assert(dy->type == NMTYPE_DUMMY);
-		nr = spc->u.defrule.nameref;
-		assert(nr->type == NMTYPE_TMDATUM);
-		dnm = dy->name;
-		dy->type = NMTYPE_TMDATUM;
-		dy->name = nr->name;
-		dy->u.tmdecl = nr->u.tmdecl;
-		print_stat(spc->u.defrule.stat.first);
-		dy->type = NMTYPE_DUMMY;
-		dy->name = dnm;
-		break;
+        dy = spc->u.defrule.dummy;
+        assert(dy->type == NMTYPE_DUMMY);
+        nr = spc->u.defrule.nameref;
+        assert(nr->type == NMTYPE_TMDATUM);
+        dnm = dy->name;
+        dy->type = NMTYPE_TMDATUM;
+        dy->name = nr->name;
+        dy->u.tmdecl = nr->u.tmdecl;
+        print_stat(spc->u.defrule.stat.first);
+        dy->type = NMTYPE_DUMMY;
+        dy->name = dnm;
+        break;
       case STATPC_DEPEND:
-		vspc = spc->u.dep.stat.first;
-		if (vspc->type == STATPC_VALCHK && vspc->u.valchk != NULL) {
-		  print_indent("if (!(");
-		  val = vspc->u.valchk;
-		  assert(val->varname != NULL);
-		  fprintf(ofile, "%s", val->varname);
-		  for (val = val->next; val != NULL; val = val->next) {
-			assert(val->varname != NULL);
-			fprintf(ofile, "||%s", val->varname);
-		  }
-		  fprintf(ofile, ")) {");
-		  adjust_indent(2);
-		  for (val = vspc->u.valchk; val != NULL; val = val->next) {
-			if (val->bitval != 0) {
-			  print_indent(NULL);
-			  fprintf(ofile, "%s |= 0x%X;", val->varname, val->bitval);
-			  adjust_indent(0);
-			}
-		  }
-		  print_stat(vspc->next);
-		  adjust_indent(-2);
-		  print_indent("}");
-		  vspc = spc->u.dep.else_stat.first;
-		  if (vspc != NULL) {
-			adjust_indent(2);
-			print_stat(vspc);
-			adjust_indent(-2);
-		  }
-		} else {
-		  print_stat(vspc);
-		  if (spc->u.dep.else_stat.first != NULL) {
-			compile_error(1, "depending on: else is unreachable");
-			adjust_indent(0);
-			print_indent("/* else clause unreachable */");
-			adjust_indent(0);
-		  }
-		}
-		break;
+        vspc = spc->u.dep.stat.first;
+        if (vspc->type == STATPC_VALCHK && vspc->u.valchk != NULL) {
+          print_indent("if (!(");
+          val = vspc->u.valchk;
+          assert(val->varname != NULL);
+          fprintf(ofile, "%s", val->varname);
+          for (val = val->next; val != NULL; val = val->next) {
+            assert(val->varname != NULL);
+            fprintf(ofile, "||%s", val->varname);
+          }
+          fprintf(ofile, ")) {");
+          adjust_indent(2);
+          for (val = vspc->u.valchk; val != NULL; val = val->next) {
+            if (val->bitval != 0) {
+              print_indent(NULL);
+              fprintf(ofile, "%s |= 0x%X;", val->varname, val->bitval);
+              adjust_indent(0);
+            }
+          }
+          print_stat(vspc->next);
+          adjust_indent(-2);
+          print_indent("}");
+          vspc = spc->u.dep.else_stat.first;
+          if (vspc != NULL) {
+            adjust_indent(2);
+            print_stat(vspc);
+            adjust_indent(-2);
+          }
+        } else {
+          print_stat(vspc);
+          if (spc->u.dep.else_stat.first != NULL) {
+            compile_error(1, "depending on: else is unreachable");
+            adjust_indent(0);
+            print_indent("/* else clause unreachable */");
+            adjust_indent(0);
+          }
+        }
+        break;
       case STATPC_VALID:
       case STATPC_INVALID:
-		nr = spc->u.nameref;
-		if (nr->type == NMTYPE_STATE)
-		  print_st_valid(nr);
-		else
-		  print_vldtr(nr_validator(nr), spc->type == STATPC_VALID);
-		break;
-	  case STATPC_COMMON:
-		print_stat(spc->u.cmn);
-		break;
+        nr = spc->u.nameref;
+        if (nr->type == NMTYPE_STATE)
+          print_st_valid(nr);
+        else
+          print_vldtr(nr_validator(nr), spc->type == STATPC_VALID);
+        break;
+      case STATPC_COMMON:
+        print_stat(spc->u.cmn);
+        break;
       case STATPC_TLDECLS:
       case STATPC_EXTRACT:
-		compile_error(4, "Unexpected STATPC_ type %d in print_stat", spc->type);
-		break;
-	  default:
-		compile_error(4, "Unknown STATPC_ type %d in print_stat", spc->type);
-	}
+        compile_error(4, "Unexpected STATPC_ type %d in print_stat", spc->type);
+        break;
+      default:
+        compile_error(4, "Unknown STATPC_ type %d in print_stat", spc->type);
+    }
   }
 }
 
@@ -222,12 +222,12 @@ void print_decls(void) {
   struct statpc *spc;
 
   for (spc = program; spc != NULL; spc = spc->next) {
-	assert(spc->type == STATPC_TLDECLS || spc->type == STATPC_EXTRACT
-			|| spc->type == STATPC_VALID || spc->type == STATPC_INVALID);
-	if (spc->type == STATPC_TLDECLS) {
-	  adjust_indent(0);
-	  print_stat(spc->u.stat.first);
-	}
+    assert(spc->type == STATPC_TLDECLS || spc->type == STATPC_EXTRACT
+            || spc->type == STATPC_VALID || spc->type == STATPC_INVALID);
+    if (spc->type == STATPC_TLDECLS) {
+      adjust_indent(0);
+      print_stat(spc->u.stat.first);
+    }
   }
 }
 
@@ -241,29 +241,29 @@ static void md5_vpf( char *format, ... ) {
   if ( md5_buf == 0 ) md5_buf = new_memory( md5_bufsize );
   va_start(arg, format);
   for (;;) {
-	int rv;
-	rv = vsnprintf( md5_buf, md5_bufsize, format, arg );
-	if ( rv < 0 || rv >= md5_bufsize-1 ) {
-	  free_memory(md5_buf);
-	  md5_bufsize *= 2;
-	  md5_buf = new_memory(md5_bufsize);
-	} else {
-	  MD5Update( &md5ctx, md5_buf, rv );
-	  if (show(TM_DEFS))
-	    fprintf( vfile, "%s", md5_buf );
-	  break;
-	}
+    int rv;
+    rv = vsnprintf( md5_buf, md5_bufsize, format, arg );
+    if ( rv < 0 || rv >= md5_bufsize-1 ) {
+      free_memory(md5_buf);
+      md5_bufsize *= 2;
+      md5_buf = new_memory(md5_bufsize);
+    } else {
+      MD5Update( &md5ctx, md5_buf, rv );
+      if (show(TM_DEFS))
+        fprintf( vfile, "%s", md5_buf );
+      break;
+    }
   }
   va_end(arg);
 }
 
 static void print_ddef(rational *rate, unsigned int size, char *type,
-								  char *name, struct cw *cwl) {
+                                  char *name, struct cw *cwl) {
   md5_vpf( "%d/%d Hz %d bytes %s %s", rate->num,
-		  rate->den, size, type, name);
+          rate->den, size, type, name);
   for (; cwl != NULL; cwl = cwl->dnext) {
-	md5_vpf( " (%d,%d,%d,%d)", cwl->slot->per,
-		  cwl->slot->row, cwl->col, cwl->width);
+    md5_vpf( " (%d,%d,%d,%d)", cwl->slot->per,
+          cwl->slot->row, cwl->col, cwl->width);
     /* Don't print homerow text, since that's implementation
        dependent */
   }
@@ -286,7 +286,7 @@ static int sort_nrs( const void *a, const void *b ) {
   if ( rv == 0 ) rv = cwb->slot->row - cwa->slot->row;
   if ( rv == 0 ) rv = cwb->col - cwa->col;
   if ( rv == 0 ) rv = (tma_b->flags & TMDF_GRPMEM) -
-					  (tma_a->flags & TMDF_GRPMEM);
+                      (tma_a->flags & TMDF_GRPMEM);
   return -rv;
 }
 
@@ -302,47 +302,47 @@ void print_pcm(void) {
   
   /* Count the number of nr's that apply */
   for (nr = global_scope->names; nr != NULL; nr = nr->next) {
-	if (name_test(nr, NMTEST_TMDATUM) || nr->type == NMTYPE_GROUP)
-	  n_names++;
+    if (name_test(nr, NMTEST_TMDATUM) || nr->type == NMTYPE_GROUP)
+      n_names++;
   }
   nrs = new_memory( n_names * sizeof(struct nm *) );
   for (nr = global_scope->names; nr != NULL; nr = nr->next) {
-	if (name_test(nr, NMTEST_TMDATUM) || nr->type == NMTYPE_GROUP)
-	  nrs[nri++] = nr;
+    if (name_test(nr, NMTEST_TMDATUM) || nr->type == NMTYPE_GROUP)
+      nrs[nri++] = nr;
   }
   /* Now sort them by rate, row, column and group membership. */
   qsort( (void *)nrs, n_names, sizeof(struct nm *), sort_nrs );
 
   if (show(TM_DEFS))
-	fprintf(vfile, "\n--------PCM Definition-------------\n");
+    fprintf(vfile, "\n--------PCM Definition-------------\n");
   MD5Init( &md5ctx );
   for ( nri = 0; nri < n_names; nri++ ) {
-	nr = nrs[nri];
-	tma = nr_tmalloc(nr);
-	print_ddef( &tma->rate, tma->size,
-	  (nr->type == NMTYPE_GROUP) ? "Group" :
-		( (tma->flags & TMDF_GRPMEM) ? "Member" : "Datum" ),
-	  nr->name, tma->sltcw );
+    nr = nrs[nri];
+    tma = nr_tmalloc(nr);
+    print_ddef( &tma->rate, tma->size,
+      (nr->type == NMTYPE_GROUP) ? "Group" :
+        ( (tma->flags & TMDF_GRPMEM) ? "Member" : "Datum" ),
+      nr->name, tma->sltcw );
   }
   MD5Final( md5_sig, &md5ctx );
   #ifdef NONSORTEDOUTPUT
   for (nr = global_scope->names; nr != NULL; nr = nr->next) {
-	if (name_test(nr, NMTEST_TMDATUM)) {
-	  tma = nr_tmalloc(nr);
-	  if ((tma->flags & TMDF_GRPMEM) == 0)
-		print_ddef(&tma->rate, tma->size, "Datum",
-					nr->name, tma->sltcw);
-	} else if (nr->type == NMTYPE_GROUP) {
-	  tma = nr_tmalloc(nr);
-	  gd = nr->u.grpd;
-	  print_ddef(&tma->rate, tma->size, "Group", nr->name, tma->sltcw);
-	  for (gm = nr->u.grpd->grpmems; gm != NULL; gm = gm->prev) {
-		assert(name_test(gm->names, NMTEST_TMDATUM));
-		tma = nr_tmalloc(gm->names);
-		print_ddef(&tma->rate, tma->size, "Member",
-					gm->names->name, tma->sltcw);
-	  }
-	}
+    if (name_test(nr, NMTEST_TMDATUM)) {
+      tma = nr_tmalloc(nr);
+      if ((tma->flags & TMDF_GRPMEM) == 0)
+        print_ddef(&tma->rate, tma->size, "Datum",
+                    nr->name, tma->sltcw);
+    } else if (nr->type == NMTYPE_GROUP) {
+      tma = nr_tmalloc(nr);
+      gd = nr->u.grpd;
+      print_ddef(&tma->rate, tma->size, "Group", nr->name, tma->sltcw);
+      for (gm = nr->u.grpd->grpmems; gm != NULL; gm = gm->prev) {
+        assert(name_test(gm->names, NMTEST_TMDATUM));
+        tma = nr_tmalloc(gm->names);
+        print_ddef(&tma->rate, tma->size, "Member",
+                    gm->names->name, tma->sltcw);
+      }
+    }
   }
   #endif
   if (show(TM_DEFS))

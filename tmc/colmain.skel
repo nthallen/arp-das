@@ -109,7 +109,7 @@ void tmc_collector::event(enum dg_event evt) {
     ts_checks =  TSCHK_RTIME | TSCHK_REQUIRED;
   #ifdef SUBBUS_H_INCLUDED
     } else if ( evt == dg_event_stop ||
-		evt == dg_event_quit ) {
+                evt == dg_event_quit ) {
       disarm_sic();
   #endif
   }

@@ -10,18 +10,18 @@ Depending on TM variables {
   Explicit dependency on TM variables at a level other than the
   top level does not provide positional dependency:
     tm 8 Hz unsigned int count;
-	tm 1 Hz unsigned int temp;
-	unsigned int sum;
-	{
-	  sum += count;
-	  display(count,temp);
-	}
+    tm 1 Hz unsigned int temp;
+    unsigned int sum;
+    {
+      sum += count;
+      display(count,temp);
+    }
   As written, implicit dependency on two TM variables. Action is
   performed at 1 Hz.
-	{
-	  sum = count;
-	  depending on (temp) display(count,temp);
-	}
+    {
+      sum = count;
+      depending on (temp) display(count,temp);
+    }
   Implicit dependency on count, explicit internal dependency on temp.
   The entire action is performed at 8 Hz, but the depending on clause
   will only fire at 1 Hz.

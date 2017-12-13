@@ -30,12 +30,12 @@ Calibration (AD8_T10K, KELVIN) {
   255,  150.7300
 }
 
-TM 4   Hz	 AD8   DiffP;
-TM 1   Hz	 AD8_T10K  Amb0T;
-TM 1   Hz	 AD8_T10K  Amb1T;
-TM 1   Hz	 AD8_T10K  Amb2T;
-TM 1   Hz	 AD8_T10K  CInlT;
-TM 1   Hz	 AD8_T10K  OutlT;
+TM 4   Hz    AD8   DiffP;
+TM 1   Hz    AD8_T10K  Amb0T;
+TM 1   Hz    AD8_T10K  Amb1T;
+TM 1   Hz    AD8_T10K  Amb2T;
+TM 1   Hz    AD8_T10K  CInlT;
+TM 1   Hz    AD8_T10K  OutlT;
 TM 0   Hz    UINT  MFCtr;
 TM 0   Hz    UINT  Synch;
 
@@ -76,8 +76,8 @@ depending on (LampOff) {
 
 depending on (LampOn) {
   if (Amb0T > 20) {
-	send_cmd("Lamp Off");
-	validate LampOut;
+    send_cmd("Lamp Off");
+    validate LampOut;
   }
 }
 

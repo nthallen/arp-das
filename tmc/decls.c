@@ -34,7 +34,7 @@ void int_type(struct typparts *tp, char *text, unsigned int type) {
    always for defining decl_type.
 */
 unsigned int start_st_un(struct st_un *su, char *text,
-			unsigned int type, unsigned int dclt) {
+            unsigned int type, unsigned int dclt) {
   new_scope();
   initstat(&su->stat, newstpctext(text));
   su->type = type;
@@ -48,7 +48,7 @@ unsigned int start_st_un(struct st_un *su, char *text,
    Returns the previous value of decl_type.
 */
 unsigned int end_st_un(struct typparts *tp, struct st_un *su,
-		char *pre, struct sttmnt *decls, char *post) {
+        char *pre, struct sttmnt *decls, char *post) {
   struct statpc *spc;
 
   tp->stat = su->stat;
@@ -57,13 +57,13 @@ unsigned int end_st_un(struct typparts *tp, struct st_un *su,
   tp->type = su->type;
   tp->size = 0;
   for (spc = decls->first; spc != NULL; spc = spc->next) {
-	if (spc->type == STATPC_DECLS) {
-	  assert(spc->u.decls != NULL);
-	  if (su->type == INTTYPE_STRUCT)
-		tp->size += spc->u.decls->size;
-	  else if (spc->u.decls->size > tp->size)
-		tp->size = spc->u.decls->size;
-	} else assert(spc->type == STATPC_TEXT);
+    if (spc->type == STATPC_DECLS) {
+      assert(spc->u.decls != NULL);
+      if (su->type == INTTYPE_STRUCT)
+        tp->size += spc->u.decls->size;
+      else if (spc->u.decls->size > tp->size)
+        tp->size = spc->u.decls->size;
+    } else assert(spc->type == STATPC_TEXT);
   }
   catstat(&tp->stat, decls);
   catstattext(&tp->stat, post);
@@ -73,7 +73,7 @@ unsigned int end_st_un(struct typparts *tp, struct st_un *su,
 
 /* Fills in a typparts structure */
 void set_typpts(struct typparts *tp, unsigned int type, unsigned int size,
-	  char *text, struct tmtype *tmt) {
+      char *text, struct tmtype *tmt) {
   tp->type = type;
   tp->size = size;
   if (text != NULL) initstat(&tp->stat, newstpctext(text));

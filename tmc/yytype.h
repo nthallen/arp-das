@@ -30,9 +30,9 @@
   #error Must include calibr.h before yytype.h
 #endif
 
-struct lexval {			/* lexical products */
-  char *pretext;	/* text preceeding the token */
-  char *toktext;	/* beginning of token in pretext */
+struct lexval {   /* lexical products */
+  char *pretext;  /* text preceeding the token */
+  char *toktext;  /* beginning of token in pretext */
   long int intval;
 };
 
@@ -49,17 +49,17 @@ typedef union {
   struct st_un struct_union; /* data for struct_union */
   struct declrtor *declval; /* for declarator definitions */
   struct {
-	struct typparts typeparts;
-	struct declrtor *first;
-	struct declrtor *last;
+    struct typparts typeparts;
+    struct declrtor *first;
+    struct declrtor *last;
   } decllist; /* for declaration definitions */
   rational ratval;
   struct deplst *depval; /* for lists of names with flags */
   struct nmlst *nlval; /* for lists of names */
   struct nm *nmval; /* for a reference */
   struct {
-	struct tlstatpc *first;
-	struct tlstatpc *last;
+    struct tlstatpc *first;
+    struct tlstatpc *last;
   } tlstatval;
   struct tmtype tmtval; /* for tmtype definitions */
   double doubval;

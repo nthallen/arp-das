@@ -1,124 +1,124 @@
 starter : program
-	;
+    ;
 program :
-	| program progitem
-	;
+    | program progitem
+    ;
 progitem : KW_TM rate declaration ';'  tmdecl.tmc
-	| declaration ';' decls.tmc
-	| KW_TM KW_TYPEDEF declaration tmtyperules  tmtd.tmc
-	| KW_TYPEDEF declaration ';' decls.tmc
-	| tl_statement
-	| KW_COLLECT TK_NAME block
-	| KW_COLLECT TK_NAME '=' expression ';'
-	| KW_GROUP TK_NAME '(' grouplist ')' ';'
-	;
+    | declaration ';' decls.tmc
+    | KW_TM KW_TYPEDEF declaration tmtyperules  tmtd.tmc
+    | KW_TYPEDEF declaration ';' decls.tmc
+    | tl_statement
+    | KW_COLLECT TK_NAME block
+    | KW_COLLECT TK_NAME '=' expression ';'
+    | KW_GROUP TK_NAME '(' grouplist ')' ';'
+    ;
 grouplist : TK_NAME
-	| grouplist ',' TK_NAME
-	;
+    | grouplist ',' TK_NAME
+    ;
 tl_statement : opt_expr ';'
-	| block
-	| KW_DO statement KW_WHILE '(' expression ')' ';'
-	| KW_IF '(' expression ')' statement
-	| KW_IF '(' expression ')' statement KW_ELSE statement
-	| KW_SWITCH '(' expression ')' statement
-	| KW_WHILE '(' expression ')' statement
-	| KW_FOR '(' opt_expr ';' opt_expr ';' opt_expr ')' statement
-	| KW_RETURN opt_expr ';'
-	| KW_DEPENDING KW_ON '(' namelist ')' statement
-	;
+    | block
+    | KW_DO statement KW_WHILE '(' expression ')' ';'
+    | KW_IF '(' expression ')' statement
+    | KW_IF '(' expression ')' statement KW_ELSE statement
+    | KW_SWITCH '(' expression ')' statement
+    | KW_WHILE '(' expression ')' statement
+    | KW_FOR '(' opt_expr ';' opt_expr ';' opt_expr ')' statement
+    | KW_RETURN opt_expr ';'
+    | KW_DEPENDING KW_ON '(' namelist ')' statement
+    ;
 statement : tl_statement
-	| KW_VALIDATE TK_NAME ';'
-	| KW_INVALIDATE TK_NAME ';'
-	| TK_NAME ':' statement
-	| KW_CASE expression ':' statement
-	| KW_DEFAULT ':' statement
-	;
+    | KW_VALIDATE TK_NAME ';'
+    | KW_INVALIDATE TK_NAME ';'
+    | TK_NAME ':' statement
+    | KW_CASE expression ':' statement
+    | KW_DEFAULT ':' statement
+    ;
 block : '{'
-	;
+    ;
 statements : statement
-	| statements statement
-	;
+    | statements statement
+    ;
 namelist : depname
-	| namelist ',' depname
-	;
+    | namelist ',' depname
+    ;
 depname : TK_NAME
-	| TK_NAME KW_ONCE
-	;
+    | TK_NAME KW_ONCE
+    ;
 opt_expr :
-	| expression
-	;
+    | expression
+    ;
 expression : expr_piece
-	| expression expr_piece
-	| expression '?' expression ':' expression
-	| '(' expression ')'
-	;
+    | expression expr_piece
+    | expression '?' expression ':' expression
+    | '(' expression ')'
+    ;
 expr_piece : constant
-	| TK_NAME
-	| TK_DEREF TK_NAME
-	| oper_punc
-	;
+    | TK_NAME
+    | TK_DEREF TK_NAME
+    | oper_punc
+    ;
 oper_punc : TK_OPER_PUNC
-	| ']'
-	| '['
-	| ','
-	| '/'
-	;
+    | ']'
+    | '['
+    | ','
+    | '/'
+    ;
 constant : TK_INTEGER_CONST
-	| TK_REAL_CONST
-	| TK_CHAR_CONST
-	| TK_STRING_LITERAL
-	;
+    | TK_REAL_CONST
+    | TK_CHAR_CONST
+    | TK_STRING_LITERAL
+    ;
 tmtyperules : ';'
-	| '{' tmtyperulelist '}'
-	;
+    | '{' tmtyperulelist '}'
+    ;
 tmtyperulelist : tmtyperule
-	| tmtyperulelist tmtyperule
-	;
+    | tmtyperulelist tmtyperule
+    ;
 tmtyperule : collect_rule '{' declarations statements '}'
-	| collect_rule '=' expression ';'
-	| KW_CONVERT TK_TYPE_NAME ';'
-	;
+    | collect_rule '=' expression ';'
+    | KW_CONVERT TK_TYPE_NAME ';'
+    ;
 collect_rule : KW_COLLECT TK_NAME
-	;
+    ;
 rate : rational UN_SAMPLE '/' time_unit
-	| rational KW_HZ
-	| rational time_unit '/' UN_SAMPLE
+    | rational KW_HZ
+    | rational time_unit '/' UN_SAMPLE
 time_unit : UN_SECOND
-	| UN_MINUTE
-	| UN_HOUR
-	;
+    | UN_MINUTE
+    | UN_HOUR
+    ;
 rational : TK_INTEGER_CONST
-	| TK_INTEGER_CONST '/' TK_INTEGER_CONST
-	;
+    | TK_INTEGER_CONST '/' TK_INTEGER_CONST
+    ;
 declarations :
-	| declarations declaration ';'
-	;
+    | declarations declaration ';'
+    ;
 declaration : typeparts declarators
-	;
+    ;
 declarators : declarator
-	| declarators ',' declarator
-	;
+    | declarators ',' declarator
+    ;
 declarator : TK_NAME array_decorations
-	;
+    ;
 array_decorations :
-	| array_decorations '[' TK_INTEGER_CONST ']'
-	;
+    | array_decorations '[' TK_INTEGER_CONST ']'
+    ;
 typeparts : integertypes
-	| KW_FLOAT
-	| KW_DOUBLE
-	| TK_TYPE_NAME
-	| struct_union '{' declarations '}'
-	;
+    | KW_FLOAT
+    | KW_DOUBLE
+    | TK_TYPE_NAME
+    | struct_union '{' declarations '}'
+    ;
 struct_union : KW_STRUCT
-	| KW_UNION
-	;
+    | KW_UNION
+    ;
 integertypes : integertype
-	| integertypes integertype
-	;
+    | integertypes integertype
+    ;
 integertype : KW_CHAR
-	| KW_INT
-	| KW_LONG
-	| KW_SHORT
-	| KW_SIGNED
-	| KW_UNSIGNED
-	;
+    | KW_INT
+    | KW_LONG
+    | KW_SHORT
+    | KW_SIGNED
+    | KW_UNSIGNED
+    ;

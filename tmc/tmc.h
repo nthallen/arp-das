@@ -110,14 +110,14 @@ void print_st_valid(struct nm *nr); /* states.c */
   struct validator *nr_validator(struct nm *nameref); /* parsfunc.c */
   struct tmalloc *nr_tmalloc(struct nm * nameref); /* parsfunc.c */
   int name_test(struct nm *nameref, unsigned int testtype); /* parsfunc.c */
-	#define NMTEST_DATA 0
-	#define NMTEST_TYPE 1
-	#define NMTEST_TMDATUM 2
-	#define NMTEST_GROUP 3
-	#define NMTEST_VALID 4
-	#define NMTEST_DECLARATOR 5
-	#define NMTEST_TMALLOC 6
-	#define NMTEST_INVALID 7
+  #define NMTEST_DATA 0
+  #define NMTEST_TYPE 1
+  #define NMTEST_TMDATUM 2
+  #define NMTEST_GROUP 3
+  #define NMTEST_VALID 4
+  #define NMTEST_DECLARATOR 5
+  #define NMTEST_TMALLOC 6
+  #define NMTEST_INVALID 7
   struct tmalloc *new_tmalloc(struct nm *nr); /* parsfunc.c */
   void clr_tmtype(struct tmtype *tmt);
   void print_decl(struct declrtor *decl);
@@ -137,9 +137,9 @@ void print_st_valid(struct nm *nr); /* states.c */
   /* decls.c */
   void int_type(struct typparts *tp, char *text, unsigned int type);
   unsigned int start_st_un(struct st_un *su, char *text,
-			  unsigned int type, unsigned int dclt);
+        unsigned int type, unsigned int dclt);
   unsigned int end_st_un(struct typparts *tp, struct st_un *su,
-		  char *pre, struct sttmnt *decls, char *post);
+        char *pre, struct sttmnt *decls, char *post);
   void set_typpts(struct typparts *tp, unsigned int type, unsigned int size,
-		char *text, struct tmtype *tmt);
+        char *text, struct tmtype *tmt);
 #endif

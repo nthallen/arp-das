@@ -116,7 +116,7 @@ SECONDS? ret_notxt(UN_SECOND);
   yylval.l.toktext = strdup(yytext);
   ref = find_name(yytext, 0);
   if (ref != NULL && ref->type == NMTYPE_TMTYPE)
-	return(TK_TYPE_NAME);
+    return(TK_TYPE_NAME);
   else return(TK_NAME);
 }
 0x[A-F0-9]+ {
@@ -127,7 +127,7 @@ SECONDS? ret_notxt(UN_SECOND);
   yylval.l.intval = strtol(yytext,NULL,8);
   ret_tok(TK_INTEGER_CONST);
 }
-[1-9][0-9]*	{
+[1-9][0-9]* {
   yylval.l.intval = strtol(yytext,NULL,10);
   ret_tok(TK_INTEGER_CONST);
 }
@@ -165,17 +165,17 @@ SECONDS? ret_notxt(UN_SECOND);
   NOSTORE;
   c = input();
   for (;;) {
-	fputc(c, ofile);
-	if (c == '\n') {
-	  input_linenumber++;
-	  c = input();
-	  if (c == '%') {
-		d = input();
-		if (d == '}') break;
-		fputc(c, ofile);
-		c = d;
-	  }
-	} else c = input();
+    fputc(c, ofile);
+    if (c == '\n') {
+      input_linenumber++;
+      c = input();
+      if (c == '%') {
+        d = input();
+        if (d == '}') break;
+        fputc(c, ofile);
+        c = d;
+      }
+    } else c = input();
   }
 }
 . if (isgraph(yytext[0])) ret_tok(yytext[0]);
@@ -191,10 +191,10 @@ static void lex_space( int n ) {
     lexbuf = new_memory(lbsiz);
   }
   if (lbidx + n >= lbsiz) {
-	lbsiz *= 2;
-	lexbuf = realloc(lexbuf, lbsiz);
-	if ( lexbuf == 0 )
-	  compile_error(3, "Lexbuf overflow");
+    lbsiz *= 2;
+    lexbuf = realloc(lexbuf, lbsiz);
+    if ( lexbuf == 0 )
+      compile_error(3, "Lexbuf overflow");
   }
 }
 static void store_text(const char *s) {
@@ -208,15 +208,15 @@ static void store_text(const char *s) {
 }
 #if STORE_COMMENTS
   static void store_char(char c) {
-	lex_space( 1 );
-	lexbuf[lbidx++] = c;
+    lex_space( 1 );
+    lexbuf[lbidx++] = c;
   }
 #endif
 static void copy_text(void) {
   if (lbidx > 0) {
-	lexbuf[lbidx] = '\0';
-	yylval.l.pretext = strdup(lexbuf);
-	yylval.l.toktext = yylval.l.pretext + lbpidx;
+    lexbuf[lbidx] = '\0';
+    yylval.l.pretext = strdup(lexbuf);
+    yylval.l.toktext = yylval.l.pretext + lbpidx;
   } else yylval.l.pretext = yylval.l.toktext = NULL;
   lbidx = lbpidx = 0;
 }
@@ -241,8 +241,8 @@ static void swallow_comment(void) {
   c = input();
   STORE_CHAR(c);
   for (;;) {
-	if (c == '\n') input_linenumber++;
-	d = input();
+    if (c == '\n') input_linenumber++;
+    d = input();
     STORE_CHAR(d);
     if (c == '*' && d == '/') break;
     if (c == '/' && d == '*') compile_error(2, "Comments cannot be nested");

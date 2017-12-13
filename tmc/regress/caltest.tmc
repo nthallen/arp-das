@@ -5,14 +5,14 @@
    The basic classes of conversions:
      char  -> text
      int   -> int
-	 float -> fixed
-	 float -> float
+     float -> fixed
+     float -> float
 
    The basic conversion strategies:
-	 No conversion
-	 Explicit Function
-	 Calibration
-	 Inherited Calibrations/conversion
+     No conversion
+     Explicit Function
+     Calibration
+     Inherited Calibrations/conversion
 
    Implicit generation of functions based on references to 
    combinations of convert(), iconvert() and text().

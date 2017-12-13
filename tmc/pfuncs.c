@@ -46,37 +46,37 @@ static void moveslots(struct cw *cwl, unsigned int dir) {
   assert(TM_Data_Type > 0);
   for (; cwl != NULL; cwl = cwl->next) {
     datum = cwl->datum;
-	if (name_test(datum, NMTEST_TMDATUM)) {
-	  tma = nr_tmalloc(datum);
-	  if (!(tma->flags & TMDF_HOMEROW)) {
-		// assert(cwl->home_row_text != NULL);
-		cwn = tma->sltcw;
-		if (cwn == cwl && cwl->dnext == NULL) {
-		  /* Can move with simple assignment */
+    if (name_test(datum, NMTEST_TMDATUM)) {
+      tma = nr_tmalloc(datum);
+      if (!(tma->flags & TMDF_HOMEROW)) {
+        // assert(cwl->home_row_text != NULL);
+        cwn = tma->sltcw;
+        if (cwn == cwl && cwl->dnext == NULL) {
+          /* Can move with simple assignment */
           if ( TM_Data_Type != 3 || ( cwl->col >= 2 && cwl->col < Ncols - 2) ) {
-			  assert(cwl->home_row_text != NULL);
-    		  if (dir == MVSLOTS_IN)
-    			fprintf(ofile, "\n  %s = %s;", cwl->home_row_text, datum->name);
-    		  else
-    			fprintf(ofile, "\n  %s = %s;", datum->name, cwl->home_row_text);
+              assert(cwl->home_row_text != NULL);
+              if (dir == MVSLOTS_IN)
+                fprintf(ofile, "\n  %s = %s;", cwl->home_row_text, datum->name);
+              else
+                fprintf(ofile, "\n  %s = %s;", datum->name, cwl->home_row_text);
           }
-		} else {
-		  assert(cwl->home_row_text != NULL);
-		  for (offset = 0; cwn != cwl; cwn = cwn->dnext) {
-			assert(cwn != NULL);
-			offset += cwn->width;
-		  }
-		  /* must move via memcpy */
-		  fprintf(ofile, "\n  memcpy(");
-		  if (dir == MVSLOTS_IN) fprintf(ofile, "%s, ", cwl->home_row_text);
-		  if (offset)
-			fprintf(ofile, "((char*)(&%s))+%d, ", datum->name, offset);
-		  else fprintf(ofile, "&%s, ", datum->name);
-		  if (dir != MVSLOTS_IN) fprintf(ofile, "%s, ", cwl->home_row_text);
-		  fprintf(ofile, "%d);", cwl->width);
-		}
-	  }
-	}
+        } else {
+          assert(cwl->home_row_text != NULL);
+          for (offset = 0; cwn != cwl; cwn = cwn->dnext) {
+            assert(cwn != NULL);
+            offset += cwn->width;
+          }
+          /* must move via memcpy */
+          fprintf(ofile, "\n  memcpy(");
+          if (dir == MVSLOTS_IN) fprintf(ofile, "%s, ", cwl->home_row_text);
+          if (offset)
+            fprintf(ofile, "((char*)(&%s))+%d, ", datum->name, offset);
+          else fprintf(ofile, "&%s, ", datum->name);
+          if (dir != MVSLOTS_IN) fprintf(ofile, "%s, ", cwl->home_row_text);
+          fprintf(ofile, "%d);", cwl->width);
+        }
+      }
+    }
   }
 }
 
@@ -96,31 +96,31 @@ void print_vldtr(struct validator *vldtr, int valid) {
 
   if (vldtr == NULL) return;
   use_parens = (valid && vldtr->valstat.first != NULL)
-	|| (vldtr->val != NULL && vldtr->val->next != NULL);
+    || (vldtr->val != NULL && vldtr->val->next != NULL);
   if (use_parens) {
-	fprintf(ofile, " {");
-	adjust_indent(2);
+    fprintf(ofile, " {");
+    adjust_indent(2);
   }
   for (val = vldtr->val; val != NULL; val = val->next) {
-	if (val->varname != NULL) {
-	  print_indent(NULL);
-	  fprintf(ofile, "%s %s0x%X;", val->varname,
-			  valid ? "&= ~" : "|= ", val->bitval);
-	  adjust_indent(0);
-	} else {
-	  assert(val->funcname != NULL);
-	  if (valid) {
-		print_indent(NULL);
-		fprintf(ofile, "%s;", val->funcname);
-		adjust_indent(0);
-	  }
-	}
+    if (val->varname != NULL) {
+      print_indent(NULL);
+      fprintf(ofile, "%s %s0x%X;", val->varname,
+              valid ? "&= ~" : "|= ", val->bitval);
+      adjust_indent(0);
+    } else {
+      assert(val->funcname != NULL);
+      if (valid) {
+        print_indent(NULL);
+        fprintf(ofile, "%s;", val->funcname);
+        adjust_indent(0);
+      }
+    }
   }
   if (valid) print_stat(vldtr->valstat.first);
   if (use_parens) {
-	adjust_indent(-2);
-	print_indent("}");
-	adjust_indent(0);
+    adjust_indent(-2);
+    print_indent("}");
+    adjust_indent(0);
   }
 }
 
@@ -131,13 +131,13 @@ void print_vldtr(struct validator *vldtr, int valid) {
 
 /* gen_func generates the designated function for the designated slot
    if it has not already been generated.
-	Optimize: {
-	  A function which does nothing should not be generated
-	  A function which only calls one other function should not
-	  be generated, but simply reference the other function.
-	  A function which does nothing but call two other functions
-	  may be a candidate for combination with other functions
-	}
+    Optimize: {
+      A function which does nothing should not be generated
+      A function which only calls one other function should not
+      be generated, but simply reference the other function.
+      A function which does nothing but call two other functions
+      may be a candidate for combination with other functions
+    }
 */
 static void chk_func(struct slt *slot, unsigned int which) {
   struct cw *cwl;
@@ -146,70 +146,70 @@ static void chk_func(struct slt *slot, unsigned int which) {
 
   if (slot == NULL) return;
   if ((slot->flag & (SLT_CCHKD|SLT_ECHKD|SLT_BCHKD|SLT_PCHKD)) == 0) {
-	/* Check for NTHR */
-	/* Check for non-home-row cw's */ 
-	for (cwl = slot->cwl; cwl != NULL; cwl = cwl->next) {
-	  datum = cwl->datum;
-	  if (name_test(datum, NMTEST_TMDATUM)
-		  && !(nr_tmalloc(datum)->flags & TMDF_HOMEROW)) break;
-	}
-	if (cwl != NULL) slot->flag |= SLT_NTHR;
+    /* Check for NTHR */
+    /* Check for non-home-row cw's */ 
+    for (cwl = slot->cwl; cwl != NULL; cwl = cwl->next) {
+      datum = cwl->datum;
+      if (name_test(datum, NMTEST_TMDATUM)
+          && !(nr_tmalloc(datum)->flags & TMDF_HOMEROW)) break;
+    }
+    if (cwl != NULL) slot->flag |= SLT_NTHR;
   }
 
   /* Have we already checked? */
   switch (which) {
-	case GF_COLLECT:
-	  if (slot->flag & SLT_CCHKD) return;
-	  slot->flag |= SLT_CCHKD;
-	  if (Collecting && (slot->colacts.first != NULL
-			|| (slot->flag & SLT_NTHR)))
-		slot->flag |= SLT_CNDD;
-	  break;
-	case GF_EXTRACT:
-	  if (slot->flag & SLT_ECHKD) return;
-	  slot->flag |= SLT_ECHKD;
-	  if (slot->val != NULL || slot->extacts.first != NULL
-		  || (!Collecting && (slot->flag & SLT_NTHR)))
-		slot->flag |= SLT_ENDD;
-	  break;
-	case GF_BOTH:
-	  if (slot->flag & SLT_BCHKD) return;
-	  slot->flag |= SLT_BCHKD;
-	  if ((Collecting && slot->colacts.first != NULL)
-		  || (slot->flag & SLT_NTHR)
-	      || slot->val != NULL
-		  || slot->extacts.first != NULL
-		 ) {
-	    slot->flag |= SLT_BNDD;
-		bndd = 1;
-	  }
-	  break;
-	case GF_PBOTH:
-	  if (slot->flag & SLT_PCHKD) return;
-	  slot->flag |= SLT_PCHKD;
-	  if (Collecting && (slot->colacts.first != NULL
-						  || (slot->flag & SLT_NTHR)))
-		slot->flag |= SLT_CNDD;
-	  if ((!Collecting && (slot->flag & SLT_NTHR))
-	      || slot->val != NULL
-		  || slot->extacts.first != NULL
-		 ) {
-	    slot->flag |= SLT_ENDD;
-		bndd = 1;
-	  }
-	  break;
+    case GF_COLLECT:
+      if (slot->flag & SLT_CCHKD) return;
+      slot->flag |= SLT_CCHKD;
+      if (Collecting && (slot->colacts.first != NULL
+            || (slot->flag & SLT_NTHR)))
+        slot->flag |= SLT_CNDD;
+      break;
+    case GF_EXTRACT:
+      if (slot->flag & SLT_ECHKD) return;
+      slot->flag |= SLT_ECHKD;
+      if (slot->val != NULL || slot->extacts.first != NULL
+          || (!Collecting && (slot->flag & SLT_NTHR)))
+        slot->flag |= SLT_ENDD;
+      break;
+    case GF_BOTH:
+      if (slot->flag & SLT_BCHKD) return;
+      slot->flag |= SLT_BCHKD;
+      if ((Collecting && slot->colacts.first != NULL)
+          || (slot->flag & SLT_NTHR)
+          || slot->val != NULL
+          || slot->extacts.first != NULL
+         ) {
+        slot->flag |= SLT_BNDD;
+        bndd = 1;
+      }
+      break;
+    case GF_PBOTH:
+      if (slot->flag & SLT_PCHKD) return;
+      slot->flag |= SLT_PCHKD;
+      if (Collecting && (slot->colacts.first != NULL
+                          || (slot->flag & SLT_NTHR)))
+        slot->flag |= SLT_CNDD;
+      if ((!Collecting && (slot->flag & SLT_NTHR))
+          || slot->val != NULL
+          || slot->extacts.first != NULL
+         ) {
+        slot->flag |= SLT_ENDD;
+        bndd = 1;
+      }
+      break;
   }
   if (bndd) {
-	if ((Collecting && slot->colacts.first != NULL)
-		/* We have any collection actions to print */
-		|| (slot->val != NULL)
-		/* We have validations to print */
-		|| (slot->flag & SLT_NTHR)
-		/* We have non-trivial HR */
-		) {
-	  chk_func(slot->calls, GF_COLLECT);
-	  chk_func(slot->calls, GF_EXTRACT);
-	} else chk_func(slot->calls, GF_PBOTH);
+    if ((Collecting && slot->colacts.first != NULL)
+        /* We have any collection actions to print */
+        || (slot->val != NULL)
+        /* We have validations to print */
+        || (slot->flag & SLT_NTHR)
+        /* We have non-trivial HR */
+        ) {
+      chk_func(slot->calls, GF_COLLECT);
+      chk_func(slot->calls, GF_EXTRACT);
+    } else chk_func(slot->calls, GF_PBOTH);
   } else chk_func(slot->calls, which);
 }
 
@@ -223,87 +223,87 @@ static void gf(struct slt *slot, unsigned int which) {
 
   switch (which) {
     case GF_COLLECT:
-	  if (!(slot->flag & SLT_CNDD)) {
-		if (slot->calls != NULL && (slot->flag & SLT_CCHKD))
-		  slot->cfunc = slot->calls->cfunc;
-		return;
-	  }
-	  prefix = 'C';
-	  fname = &slot->cfunc;
-	  break;
-	case GF_EXTRACT:
-	  if (!(slot->flag & SLT_ENDD)) {
-		if (slot->calls != NULL && (slot->flag & SLT_ECHKD))
-		  slot->efunc = slot->calls->efunc;
-		return;
-	  }
-	  prefix = 'E';
-	  fname = &slot->efunc;
-	  break;
-	case GF_BOTH:
-	  if (!(slot->flag & SLT_BNDD)) {
-		if (slot->calls != NULL && (slot->flag & SLT_BCHKD))
-		  slot->bfunc = slot->calls->bfunc;
-		return;
-	  } else if (slot->flag & (SLT_CCHKD|SLT_ECHKD)) {
-		if (slot->cfunc == NULL) {
-		  slot->bfunc = slot->efunc;
-		  return;
-		} else if (slot->efunc == NULL) {
-		  slot->bfunc = slot->cfunc;
-		  return;
-		}
-	  }
-	  prefix = 'B';
-	  fname = &slot->bfunc;
-	  break;
+      if (!(slot->flag & SLT_CNDD)) {
+        if (slot->calls != NULL && (slot->flag & SLT_CCHKD))
+          slot->cfunc = slot->calls->cfunc;
+        return;
+      }
+      prefix = 'C';
+      fname = &slot->cfunc;
+      break;
+    case GF_EXTRACT:
+      if (!(slot->flag & SLT_ENDD)) {
+        if (slot->calls != NULL && (slot->flag & SLT_ECHKD))
+          slot->efunc = slot->calls->efunc;
+        return;
+      }
+      prefix = 'E';
+      fname = &slot->efunc;
+      break;
+    case GF_BOTH:
+      if (!(slot->flag & SLT_BNDD)) {
+        if (slot->calls != NULL && (slot->flag & SLT_BCHKD))
+          slot->bfunc = slot->calls->bfunc;
+        return;
+      } else if (slot->flag & (SLT_CCHKD|SLT_ECHKD)) {
+        if (slot->cfunc == NULL) {
+          slot->bfunc = slot->efunc;
+          return;
+        } else if (slot->efunc == NULL) {
+          slot->bfunc = slot->cfunc;
+          return;
+        }
+      }
+      prefix = 'B';
+      fname = &slot->bfunc;
+      break;
   }
   sprintf(buf, "%cF%d_%d", prefix, slot->per, slot->row);
   *fname = strdup(buf);
   fprintf(ofile, "\nstatic void %s(void) {", *fname);
   adjust_indent(2);
   if (which == GF_BOTH && (slot->flag & (SLT_CCHKD|SLT_ECHKD))) {
-	assert(slot->cfunc != NULL && slot->efunc != NULL);
-	print_indent(NULL);
-	fprintf(ofile, "%s();\n  %s();", slot->cfunc, slot->efunc);
+    assert(slot->cfunc != NULL && slot->efunc != NULL);
+    print_indent(NULL);
+    fprintf(ofile, "%s();\n  %s();", slot->cfunc, slot->efunc);
   } else {
-	if (which == GF_BOTH && slot->calls != NULL
-		&& (!(slot->calls->flag & (SLT_CCHKD|SLT_ECHKD)))
-		&& ((!Collecting) || slot->colacts.first == NULL)
-		  /* We have no collection actions to print */
-		&& (slot->val == NULL)
-		  /* We have no validations to print */
-		&& (!(slot->flag & SLT_NTHR))
-		  /* We don't have non-trivial HR */
-		) {
-	  if (slot->calls->bfunc != NULL) {
-		print_indent(NULL);
-		fprintf(ofile, "%s();", slot->calls->bfunc);
-	  }
-	} else {
-	  if (Collecting && (which & GF_COLLECT)) {
-		if (slot->calls) {
-		  if (slot->calls->cfunc != NULL) {
-			print_indent(NULL);
-			fprintf(ofile, "%s();", slot->calls->cfunc);
-			adjust_indent(0);
-		  }
-		}
-		print_stat(slot->colacts.first);
-		moveslots(slot->cwl, MVSLOTS_IN);
-	  }
-	  if (which & GF_EXTRACT) {
-		if (!Collecting) moveslots(slot->cwl, MVSLOTS_OUT);
-		print_valid(slot->val, 1);
-		if (slot->calls && slot->calls->efunc != NULL) {
-		  adjust_indent(0);
-		  print_indent(NULL);
-		  fprintf(ofile, "%s();", slot->calls->efunc);
-		  adjust_indent(0);
-		}
-	  }
-	}
-	if (which & GF_EXTRACT) print_stat(slot->extacts.first);
+    if (which == GF_BOTH && slot->calls != NULL
+        && (!(slot->calls->flag & (SLT_CCHKD|SLT_ECHKD)))
+        && ((!Collecting) || slot->colacts.first == NULL)
+          /* We have no collection actions to print */
+        && (slot->val == NULL)
+          /* We have no validations to print */
+        && (!(slot->flag & SLT_NTHR))
+          /* We don't have non-trivial HR */
+        ) {
+      if (slot->calls->bfunc != NULL) {
+        print_indent(NULL);
+        fprintf(ofile, "%s();", slot->calls->bfunc);
+      }
+    } else {
+      if (Collecting && (which & GF_COLLECT)) {
+        if (slot->calls) {
+          if (slot->calls->cfunc != NULL) {
+            print_indent(NULL);
+            fprintf(ofile, "%s();", slot->calls->cfunc);
+            adjust_indent(0);
+          }
+        }
+        print_stat(slot->colacts.first);
+        moveslots(slot->cwl, MVSLOTS_IN);
+      }
+      if (which & GF_EXTRACT) {
+        if (!Collecting) moveslots(slot->cwl, MVSLOTS_OUT);
+        print_valid(slot->val, 1);
+        if (slot->calls && slot->calls->efunc != NULL) {
+          adjust_indent(0);
+          print_indent(NULL);
+          fprintf(ofile, "%s();", slot->calls->efunc);
+          adjust_indent(0);
+        }
+      }
+    }
+    if (which & GF_EXTRACT) print_stat(slot->extacts.first);
   }
   adjust_indent(-2);
   print_indent("}\n");
@@ -314,16 +314,16 @@ static void gen_func(struct slt *slot) {
   slot->flag |= SLT_GEND;
   gen_func(slot->calls);
   if (slot->flag & SLT_PCHKD) {
-	slot->flag &= ~SLT_PCHKD;
-	if (slot->flag & (SLT_CCHKD|SLT_ECHKD))
-	  slot->flag |= SLT_CCHKD|SLT_ECHKD;
-	else {
-	  slot->flag |= SLT_BCHKD;
-	  if (slot->flag & (SLT_CNDD|SLT_ENDD)) {
-		slot->flag &= ~(SLT_CNDD|SLT_ENDD);
-		slot->flag |= SLT_BNDD;
-	  }
-	}
+    slot->flag &= ~SLT_PCHKD;
+    if (slot->flag & (SLT_CCHKD|SLT_ECHKD))
+      slot->flag |= SLT_CCHKD|SLT_ECHKD;
+    else {
+      slot->flag |= SLT_BCHKD;
+      if (slot->flag & (SLT_CNDD|SLT_ENDD)) {
+        slot->flag &= ~(SLT_CNDD|SLT_ENDD);
+        slot->flag |= SLT_BNDD;
+      }
+    }
   }
   gf(slot, GF_COLLECT);
   gf(slot, GF_EXTRACT);
@@ -342,22 +342,22 @@ int gen_ivfunc(struct slt *slot) {
   if (slot == NULL) return(0);
   has_calls = gen_ivfunc(slot->calls);
   if (slot->val == NULL) {
-	if (has_calls) slot->ivfunc = slot->calls->ivfunc;
-	else return(0);
+    if (has_calls) slot->ivfunc = slot->calls->ivfunc;
+    else return(0);
   } else if (slot->ivfunc == NULL) {
-	char buf[20];
-	
-	sprintf(buf, "IVF%d_%d", slot->per, slot->row);
-	slot->ivfunc = strdup(buf);
-	fprintf(ofile, "\nstatic void %s(void) {", buf);
-	adjust_indent(2);
-	if (has_calls) {
-	  print_indent("\n");
-	  fprintf(ofile, "%s();", slot->calls->ivfunc);
-	}
-	print_valid(slot->val, 0);
-	adjust_indent(-2);
-	print_indent("\n}");
+    char buf[20];
+    
+    sprintf(buf, "IVF%d_%d", slot->per, slot->row);
+    slot->ivfunc = strdup(buf);
+    fprintf(ofile, "\nstatic void %s(void) {", buf);
+    adjust_indent(2);
+    if (has_calls) {
+      print_indent("\n");
+      fprintf(ofile, "%s();", slot->calls->ivfunc);
+    }
+    print_valid(slot->val, 0);
+    adjust_indent(-2);
+    print_indent("\n}");
   }
   return(1);
 }
@@ -368,30 +368,30 @@ int gen_ivfunc(struct slt *slot) {
 */
 static int gen_ivfuncs(void) {
   if (!Collecting) {
-	unsigned int per, row;
-	struct slt *slot;
-	int has_ivfs = 0;
+    unsigned int per, row;
+    struct slt *slot;
+    int has_ivfs = 0;
 
-	per = sltlist->per;
-	for (row = 0; row < per; row++) {
-	  slot = get_slot(per, row);
-	  if (gen_ivfunc(slot)) has_ivfs = 1;
-	}
-	if (has_ivfs) {
-	  fprintf(ofile, "\n#define IVFUNCS");
-	  fprintf(ofile, "\nstatic void (*ivfuncs[%d])() = {\n  ", per);
-	  for (has_ivfs = 0, row = 0; row < per; row++) {
-		if (row != 0) fprintf(ofile, ",\n  ");
-		slot = get_slot(per, row);
-		if (slot->ivfunc != NULL) fprintf(ofile, "%s", slot->ivfunc);
-		else {
-		  fprintf(ofile, NULLFUNCNAME);
-		  has_ivfs = 1;
-		}
-	  }
-	  fprintf(ofile, "\n};\n");
-	  return(has_ivfs);
-	}
+    per = sltlist->per;
+    for (row = 0; row < per; row++) {
+      slot = get_slot(per, row);
+      if (gen_ivfunc(slot)) has_ivfs = 1;
+    }
+    if (has_ivfs) {
+      fprintf(ofile, "\n#define IVFUNCS");
+      fprintf(ofile, "\nstatic void (*ivfuncs[%d])() = {\n  ", per);
+      for (has_ivfs = 0, row = 0; row < per; row++) {
+        if (row != 0) fprintf(ofile, ",\n  ");
+        slot = get_slot(per, row);
+        if (slot->ivfunc != NULL) fprintf(ofile, "%s", slot->ivfunc);
+        else {
+          fprintf(ofile, NULLFUNCNAME);
+          has_ivfs = 1;
+        }
+      }
+      fprintf(ofile, "\n};\n");
+      return(has_ivfs);
+    }
   }
   return(0);
 }
@@ -404,9 +404,9 @@ void print_funcs(void) {
   /* output tminitfunc always */
   fprintf(ofile, "\nvoid tminitfunc(void) {");
   if (initprog.first != NULL) {
-	adjust_indent(2);
-	print_stat(initprog.first);
-	adjust_indent(-2);
+    adjust_indent(2);
+    print_stat(initprog.first);
+    adjust_indent(-2);
   }
   print_indent("}\n");
   
@@ -416,24 +416,24 @@ void print_funcs(void) {
   assert(sltlist != NULL);
   per = sltlist->per;
   for (row = 0; row < per; row++) {
-	slot = get_slot(per, row);
-	chk_func(slot, GF_BOTH);
+    slot = get_slot(per, row);
+    chk_func(slot, GF_BOTH);
   }
   for (row = 0; row < per; row++) {
-	slot = get_slot(per, row);
-	gen_func(slot);
+    slot = get_slot(per, row);
+    gen_func(slot);
   }
   fprintf(ofile, "\nstatic void (*efuncs[%d])() = {\n  ", per);
   for (need_nfunc = 0, row = 0; row < per; row++) {
-	if (row != 0) fprintf(ofile, ",\n  ");
-	slot = get_slot(per, row);
-	if (slot->bfunc != NULL) fprintf(ofile, "%s", slot->bfunc);
-	else {
-	  fprintf(ofile, NULLFUNCNAME);
-	  need_nfunc = 1;
-	}
+    if (row != 0) fprintf(ofile, ",\n  ");
+    slot = get_slot(per, row);
+    if (slot->bfunc != NULL) fprintf(ofile, "%s", slot->bfunc);
+    else {
+      fprintf(ofile, NULLFUNCNAME);
+      need_nfunc = 1;
+    }
   }
   fprintf(ofile, "\n};\n");
   if (gen_ivfuncs() || need_nfunc)
-	fprintf(ofile, NULLFUNCDECL "{}");
+    fprintf(ofile, NULLFUNCDECL "{}");
 }
