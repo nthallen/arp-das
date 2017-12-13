@@ -1,5 +1,4 @@
 /* calibr.c Handles calibration information.
- * $Log$
  * Revision 1.1  2012/06/29 17:15:52  nort
  * Initial revision
  *
@@ -92,9 +91,6 @@
 #include "tmcstr.h"
 #include "tmc.h"
 #include "calibr.h"
-
-static char rcsid[] =
-      "$Id$";
 
 #ifdef __DOCUMENTATION
 

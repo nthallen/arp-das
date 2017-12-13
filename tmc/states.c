@@ -1,5 +1,5 @@
 /* states.c functions for supporting state variables
- * $Log$
+ *
  * Revision 1.2  2008/07/03 18:18:48  ntallen
  * To compile under QNX6 with minor blind adaptations to changes between
  * dbr.h and tm.h
@@ -22,9 +22,6 @@
 #include "rational.h"
 #include "tmcstr.h"
 #include "tmc.h"
-
-static char rcsid[] =
-      "$Id$";
 
 static struct stateset *statesets = NULL;
 static unsigned short n_sets = 0;

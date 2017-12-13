@@ -1,5 +1,4 @@
 /* place.c
- * $Log$
  * Revision 1.6  2008/08/13 14:28:28  ntallen
  * Always define global DG_data objects for TM 'Receive'
  * Place __attribute__((packed)) appropriately in home_row definition
@@ -40,9 +39,6 @@
 #include "rational.h"
 #include "tmcstr.h"
 #include "tmc.h"
-
-static char rcsid[] =
-      "$Id$";
 
 /*
 How do we depend {

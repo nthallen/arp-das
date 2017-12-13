@@ -1,7 +1,7 @@
 %{
   /* yylex.l lexical analyzer for TMC
      -+/,()[\]{=}:;?  These characters left for individual interpretation
-     $Log$
+
      Revision 1.2  2008/07/03 18:18:48  ntallen
      To compile under QNX6 with minor blind adaptations to changes between
      dbr.h and tm.h
@@ -40,8 +40,6 @@
   #include "yytype.h"
   #include "y.tab.h"
   #include "tmc.h"
-  static char rcsid[] =
-    "$Id$";
 
   #define STORE store_text(yytext)
   #define NOSTORE store_text(NULL)

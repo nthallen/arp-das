@@ -1,5 +1,5 @@
 /* extmain.skel include file for extraction
- * $Log$
+ *
  * Revision 1.10  2011/01/05 21:06:21  ntallen
  * Support for nctable in addition to photon
  *
@@ -40,9 +40,6 @@
 #include "nortlib.h"
 #include "oui.h"
 #include "DC.h"
-
-static char emrcsid[] =
-      "$Id$";
 
 %headers%
 

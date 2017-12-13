@@ -1,5 +1,4 @@
 /* genpcm.c Generates PCM from TM data definitions
-   $Log$
    Revision 1.4  2008/07/16 19:13:40  ntallen
    Compiling support for TM_Data_Type 3
    Omit definitions for Synch and MFCtr from home row
@@ -42,9 +41,6 @@
 #include "rational.h"
 #include "tmcstr.h"
 #include "tmc.h"
-
-static char rcsid[] =
-      "$Id$";
 
 unsigned int show_tm = 0;
 

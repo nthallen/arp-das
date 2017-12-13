@@ -1,5 +1,4 @@
 /* decls.c Functionality removed from tmc.y for better understanding
- * $Log$
  * Revision 1.2  2008/07/03 18:18:48  ntallen
  * To compile under QNX6 with minor blind adaptations to changes between
  * dbr.h and tm.h
@@ -21,9 +20,6 @@
 #include "calibr.h"
 #include "yytype.h"
 #include "tmc.h"
-
-static char rcsid[] =
-      "$Id$";
 
 void int_type(struct typparts *tp, char *text, unsigned int type) {
   initstat(&tp->stat, newstpctext(text));

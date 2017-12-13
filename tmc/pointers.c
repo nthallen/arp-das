@@ -1,5 +1,4 @@
 /* pointers.c handles pointer sharing and proxy sharing.
- * $Log$
  * Revision 1.4  2008/07/29 20:20:24  ntallen
  * Remove unused var
  *
@@ -29,9 +28,6 @@
 #include <string.h>
 #include "tmc.h"
 #include "nortlib.h"
-
-static char rcsid[] =
-      "$Id$";
 
 static struct ppp {
   struct ppp *next;

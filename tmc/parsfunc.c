@@ -1,5 +1,4 @@
 /* parsfunc.c
- * $Log$
  * Revision 1.1  2008/07/03 15:11:07  ntallen
  * Copied from QNX4 version V1R9
  *
@@ -23,9 +22,6 @@
 #include "rational.h"
 #include "tmcstr.h"
 #include "tmc.h"
-
-static char rcsid[] =
-      "$Id$";
 
 struct statpc *program;
 struct sttmnt initprog = {NULL, NULL};

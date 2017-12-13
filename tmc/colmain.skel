@@ -45,9 +45,6 @@
 #include "tm.h"
 #include "DGcol.h"
 
-// static char cmrcsid[] =
-//      "$Id$";
-
 %headers%
 
 /* Skeleton console_functions section */

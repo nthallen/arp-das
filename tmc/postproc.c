@@ -1,6 +1,6 @@
 /* postproc.c Handles output processing after all the crucial code has
    been generated.
-   $Log$
+
    Revision 1.8  2008/07/29 20:11:22  ntallen
    Changes for Col_send
 
@@ -55,9 +55,6 @@
 #include "tmcstr.h"
 #include "tmc.h"
 #include "tm.h" /* defines tm_info_type */
-
-static char rcsid[] =
-      "$Id$";
 
 static void print_mfcopy(void) {
   struct nm *nameref;
