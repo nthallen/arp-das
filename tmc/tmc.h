@@ -50,7 +50,7 @@ extern long int SynchDrift; /* genpcm.c */
 extern unsigned int SynchValue, SynchInverted; /* genpcm.c */
 extern unsigned int SecondsDrift; /* genpcm.c */
 extern int TM_Data_Type; /* genpcm.c */
-extern char md5_sig[16]; /* pdecls.c */
+extern unsigned char md5_sig[16]; /* pdecls.c */
 #ifdef _RATIONAL_H
   extern rational Rsynch; /* genpcm.c */
 #endif

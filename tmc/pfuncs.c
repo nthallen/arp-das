@@ -1,6 +1,5 @@
 /* pfuncs.c
    Contains routines to output function definitions.
-   $Log$
    Revision 1.4  2008/07/16 19:13:40  ntallen
    Compiling support for TM_Data_Type 3
    Omit definitions for Synch and MFCtr from home row
@@ -22,8 +21,6 @@
  * Corrected bug when printing nested IV functions: printf w/o args
  * One for lint.
 */
-static char rcsid[] =
-      "$Id$";
 
 #include <stdio.h>
 #include <string.h>
@@ -56,7 +53,7 @@ static void moveslots(struct cw *cwl, unsigned int dir) {
          * type.
          */
         if (cwn == cwl && cwl->dnext == NULL &&
-            (datum->u.tmdecl->flag & DCLF_ARRAY) == 0) {
+            (datum->u.tmdecl->decl->flag & DCLF_ARRAY) == 0) {
           /* Can move with simple assignment */
           if ( TM_Data_Type != 3 || ( cwl->col >= 2 && cwl->col < Ncols - 2) ) {
             /* Type 3 suppresses MFCtr and Synch columns, so no point copying them */

@@ -1,5 +1,5 @@
 /* tmcmain.c
- * $Log$
+ *
  * Revision 1.5  2009/04/30 14:21:37  ntallen
  * Up the release number
  *
@@ -44,9 +44,6 @@
 #include "nl_assert.h"
 #include "tmc.h"
 
-static char rcsid[] =
-  "$Id$";
-
 int (*nl_error)(int level, const char *format, ...) = compile_error;
 
 FILE *vfile = NULL, *dacfile = NULL, *addrfile = NULL;
@@ -55,7 +52,7 @@ FILE *vfile = NULL, *dacfile = NULL, *addrfile = NULL;
 #define EXTRACT_SKELETON "extmain.skel"
 
 #ifdef __USAGE
-tmc Telemetry Compiler Version 1 Revision 10
+tmc Telemetry Compiler Version 1 Revision 11
 
 %C	[options] [files]
 	-c             Generate collection rules

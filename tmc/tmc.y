@@ -9,9 +9,6 @@
   #include "calibr.h"
   #include "tmc.h"
   #include "yytype.h"
-  char tmc_y_rcsid[] =
-    "$Id$"
-    "$Version: V1R4beta $";
   
   #define yyerror(x) compile_error(2, x)
   static unsigned int decl_type = NMTYPE_DATUM;

@@ -1,5 +1,4 @@
 /* pdecls.c
- * $Log$
  * Revision 1.1  2008/07/03 15:11:07  ntallen
  * Copied from QNX4 version V1R9
  *
@@ -26,9 +25,6 @@
 #include "tmc.h"
 #include "nortlib.h"
 #include "md5.h"
-
-static char rcsid[] =
-      "$Id$";
 
 static int cur_indent = 0, sw_indent = 0;
 
@@ -232,7 +228,7 @@ void print_decls(void) {
 }
 
 static MD5_CTX md5ctx;
-char md5_sig[16];
+unsigned char md5_sig[16];
 static void md5_vpf( char *format, ... ) {
   static char *md5_buf = NULL;
   static int md5_bufsize = 80;
@@ -248,7 +244,7 @@ static void md5_vpf( char *format, ... ) {
       md5_bufsize *= 2;
       md5_buf = new_memory(md5_bufsize);
     } else {
-      MD5Update( &md5ctx, md5_buf, rv );
+      MD5Update( &md5ctx, (unsigned char *)md5_buf, rv );
       if (show(TM_DEFS))
         fprintf( vfile, "%s", md5_buf );
       break;

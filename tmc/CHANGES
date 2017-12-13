@@ -1,0 +1,9 @@
+Verison 1 Revision 11 December 13, 2017
+  Fix array handling: Previously, when a TM datum was defined as an array:
+      TM 1 Hz foo_t foos[7];
+    if it fit in a single slot, the code to copy it into or out of the
+    home row used a simple assignment. This generated a syntax error
+    in the C++ compiler. This fix explicitly recognizes the array
+    declaration (instead of just augmenting the size) and generates
+    a memcpy() invocation instead.
+
