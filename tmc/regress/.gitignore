@@ -1,3 +1,9 @@
 *.o
-*.cc
+array.cc
+caltest.cc
+depends.cc
+array
+caltest
+depends
 *.pcm
+calverify

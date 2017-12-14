@@ -14,6 +14,9 @@ OBJECT=$(OBJ) $(INTERMED) $(TEMPORARY)
 SUFFIXES= .o .cc .tmc
 .SUFFIXES : $(SUFFIXES)
 CXXFLAGS=-Wall -g -I /usr/local/include
+CXXLINK=$(CXX)
+LINK.args=$(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $@
+LINK.normCXX=$(CXXLINK) $(LINK.args)
 LDFLAGS=-L/usr/local/lib
 LIBS=-ltm -ltmpp -lnort
 TMCFLAGS=-s
@@ -31,5 +34,7 @@ regress : $(OBJ)
 depends.cc : depends.tmc
 caltest.cc : caltest.tmc
 array.cc : array.tmc
+array : array.o
+	$(LINK.normCXX) array.o
 clean :
-	rm -f *.c *.cc *.o
+	rm -f $(OBJ) *.o
