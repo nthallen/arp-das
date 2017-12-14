@@ -86,6 +86,7 @@
 #include <math.h>
 #include <limits.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include "nortlib.h"
 #include "rational.h"
 #include "tmcstr.h"
@@ -1281,7 +1282,30 @@ static char *generate_tfunc( char *in_type, unsigned int in_tcode,
   { double fmt_min, fmt_max, input_min, input_max, yscale;
     char *ovtxt;
     int islong, i, p, radix, dot;
+    static bool uc_digit_array_defined = false;
+    static bool lc_digit_array_defined = false;
+    static bool digit_offset_defined = false;
 
+    /* generate the digit_array */
+    if (!digit_offset_defined) {
+      digit_offset_defined = true;
+      fprintf(ofile, "%s\n", "#define DIGIT_OFFSET 15" );
+    }
+    if (isupper(pformat->code) && !uc_digit_array_defined) {
+      uc_digit_array_defined = true;
+      fprintf(ofile, "%s\n",
+        "static const char uc_digit_array[] = "
+        "\"FEDCBA9876543210123456789ABCDEF\";"
+        );
+    }
+    if (!isupper(pformat->code) && !lc_digit_array_defined) {
+      lc_digit_array_defined = true;
+      fprintf(ofile, "%s\n",
+        "static const char lc_digit_array[] = "
+        "\"fedcba9876543210123456789abcdef\";"
+        );
+    }
+    
     /* generate the text function */
     print_indent(NULL);
     fprintf(ofile, "const char *%s( %s x) {", tfname, in_type );
@@ -1326,10 +1350,8 @@ static char *generate_tfunc( char *in_type, unsigned int in_tcode,
     }
     if (fmt_min < 0) {
       print_indent(NULL);
-      fprintf(ofile, "if (%s < 0) { neg = 1; %s = -%s; }\n  else neg = 0;",
-        ovtxt, ovtxt, ovtxt);
+      fprintf(ofile, "neg = (%s < 0) ? 1 : 0;", ovtxt);
       adjust_indent(0);
-      if (-fmt_min > fmt_max) fmt_max = -fmt_min;
     }
     dot = pformat->width; /* where to put a dot: default nowhere */
     i = pformat->width;
@@ -1371,11 +1393,9 @@ static char *generate_tfunc( char *in_type, unsigned int in_tcode,
           fprintf(ofile, "goto space%d;", i);
           if (fmt_min < 0) fprintf(ofile, "\n  }");
         }
-        fprintf(ofile, "\n  obuf[%d] = (%s %% %d) + '0';", i, ovtxt, radix);
-        if (radix > 10) {
-          fprintf(ofile, "\n  if (obuf[%d] > '9') obuf[%d] += %d;",
-              i, i, (isupper(pformat->code) ? 'A' : 'a') - '9' - 1);
-        }
+        fprintf(ofile,
+          "\n  obuf[%d] = %s_digit_array[(%s %% %d)+DIGIT_OFFSET];",
+          i, (isupper(pformat->code) ? "uc" : "lc"), ovtxt, radix);
         fmt_max /= radix;
         if ( i > 0 ) {
           if (islong && fmt_max <= SHRT_MAX) {
