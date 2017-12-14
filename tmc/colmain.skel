@@ -1,6 +1,6 @@
 /* Skeleton headers section */
 /* colmain.skel Skeleton for collection main program
- * $Log$
+ *
  * Revision 1.11  2011/03/08 14:05:30  ntallen
  * Check for dg_event_quit in addition to dg_event_stop
  *

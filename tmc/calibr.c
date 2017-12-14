@@ -1945,7 +1945,7 @@ void classify_conv( struct tmtype *ftype ) {
       parse_txtfmt( ftype->txtfmt, &pformat, NULL, NULL, NULL );
       switch ( pformat.code ) {
         case 'f': case 'u': case 'd': case 'b':
-        case 'o': case 'x': case 'c':
+        case 'o': case 'x': case 'X': case 'c':
           cdf->convclass |= CV_FIX; break;
         case '\0': case 'e': case 'g': default:
           break;

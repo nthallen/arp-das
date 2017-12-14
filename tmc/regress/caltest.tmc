@@ -50,6 +50,23 @@ TM 1 Hz AD8_VI v_ad8vi; iconvert(v_ad8vi); convert(v_ad8vi); text(v_ad8vi);
 TM 1 Hz AD8_F v_ad8f; iconvert(v_ad8f); convert(v_ad8f); text(v_ad8f);
 TM 1 Hz AD8_FI v_ad8fi; iconvert(v_ad8fi); convert(v_ad8fi); text(v_ad8fi);
 
+TM typedef signed char AD8BP {
+  text "%4d";
+  Collect x = sbrb(x);
+}
+TM 1 Hz AD8BP v_ad8bp; iconvert(v_ad8bp); convert(v_ad8bp); text(v_ad8bp);
+
+TM typedef signed short AD16BP {
+  text "%6d";
+  Collect x = sbrw(x);
+}
+TM 1 Hz AD16BP v_ad16bp; iconvert(v_ad16bp); convert(v_ad16bp); text(v_ad16bp);
+
+TM typedef unsigned short AD16UP_LC { text "%4x"; }
+TM 1 Hz AD16UP_LC v_ad16up_lc; text(v_ad16up_lc);
+TM typedef unsigned short AD16UP_UC { text "%4X"; }
+TM 1 Hz AD16UP_UC v_ad16up_uc; text(v_ad16up_uc);
+
 /* Test inheritance of parent convert function
    Strategy is to force AD12_V to be a CVT-type by specifying 
    floating-point output, then to implicitly reference it's cvt 
