@@ -1,19 +1,45 @@
 %{
   void DACS_ID(void) {
     unsigned short inst_id, build;
+    unsigned short build_addr = 0x80;
+    inst_id = subbus_subfunction;
+    switch (inst_id) {
+      case 0:
+      case 1:
+      case 2:
+      case 3:
+      case 4:
+      case 5:
+        build_addr = 0x80; break;
+      case 6:
+      case 7:
+      case 8:
+        build_addr = 0x02; break;
+      default:
+        break;
+    }
+    
     int rv;
-    rv = read_ack(0x80, &build);
+    rv = read_ack(build_addr, &build);
     if (!rv) nl_error(2,"No ACK reading build");
     else {
       const char *inst;
-      inst_id = sbrwa(0x81);
+      unsigned short chk_inst_id = sbrwa(build_addr+1);
+      if (chk_inst_id != inst_id)
+        nl_error(2, "subbus_subfunction (0x%02X) "
+          "does not match ID (0x%02X) from addr 0x%02X",
+          inst_id, chk_inst_id, build_addr+1);
       switch (inst_id) {
-	case 0: inst = "Unknown"; break;
-	case 1: inst = "Harvard Water Vapor"; break;
-	case 2: inst = "Harvard Total Water"; break;
-	case 3: inst = "Harvard Carbon Isotopes"; break;
-	case 4: inst = "Harvard ES96 Ozone"; break;
-	default: inst = "Invalid Instrument ID"; break;
+        case 0: inst = "Unknown"; break;
+        case 1: inst = "Harvard Water Vapor"; break;
+        case 2: inst = "Harvard Total Water"; break;
+        case 3: inst = "Harvard Carbon Isotopes"; break;
+        case 4: inst = "Harvard ES96 Ozone"; break;
+        case 5: inst = "Harvard ES96 HChlo"; break;
+        case 6: inst = "Simulator"; break;
+        case 7: inst = "Keutsch PTR3S"; break;
+        case 8: inst = "Keutsch HCHO"; break;
+        default: inst = "Unknown Instrument ID"; break;
       }
       nl_error(0, "%s: DACS Build Number %u", inst, build );
     }
