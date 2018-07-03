@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 #include "nortlib.h"
 #include "nl_assert.h"
 #include "sspint.h"
@@ -147,6 +148,34 @@ static void output_scan(long int *scan, mlf_def_t *mlf, int do_amp) {
     }
     for (j = hdr->NChannels; j < SSP_MAX_CHANNELS; ++j) {
       ssp_amp_data.amplitude[j] = 0;
+      ssp_amp_data.noise[j] = 0;
+      ssp_amp_data.noise_percent[j] = 0;
+    }
+  }
+  if (noise_config.TZ) {
+    int i, j;
+    float zero, amplitude, noise;
+    for (j = 0; j < hdr->NChannels; ++j) {
+      zero = 0;
+      for (i = 0; i < noise_config.TZ; ++i) {
+        zero += fdata[j][i];
+      }
+      zero /= noise_config.TZ;
+      amplitude = 0;
+      for (i = noise_config.NN; i <= noise_config.NM; ++i) {
+        amplitude += fdata[j][i];
+      }
+      amplitude = amplitude/(noise_config.NM-noise_config.NN+1);
+      noise = 0;
+      for (i = noise_config.NN; i <= noise_config.NM; ++i) {
+        float dev = fdata[j][i] - amplitude;
+        noise += dev*dev;
+      }
+      noise = sqrtf(noise/(noise_config.NM-noise_config.NN+1));
+      amplitude -= zero;
+      ssp_amp_data.amplitude[j] = amplitude;
+      ssp_amp_data.noise[j] = noise;
+      ssp_amp_data.noise_percent = 100 * noise / amplitude;
     }
   }
   if (ssp_config.LE) {

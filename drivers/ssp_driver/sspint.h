@@ -43,4 +43,11 @@ extern ssp_config_t ssp_config;
 extern ssp_data_t ssp_data;
 extern ssp_amp_data_t ssp_amp_data;
 
+typedef struct {
+  unsigned short NZ, NN, NM;
+  int modified;
+} noise_config_t;
+
+extern noise_config_t noise_config;
+
 #endif

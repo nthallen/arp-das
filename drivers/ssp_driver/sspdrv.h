@@ -34,6 +34,8 @@ typedef struct {
 typedef struct {
   unsigned long index;
   float amplitude[3];
+  float noise[3];
+  float noise_percent[3];
 } __attribute__((packed)) ssp_amp_data_t;
 
 /*

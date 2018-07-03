@@ -41,6 +41,7 @@ static int quit_received = 0;
 static int trigger_count = 0;
 static int latency = 1;
 ssp_config_t ssp_config;
+noise_config_t noise_config;
 ssp_data_t ssp_data;
 ssp_amp_data_t ssp_amp_data;
 static volatile int saw_sigpipe = 0;
@@ -108,6 +109,9 @@ static void report_invalid( char *head ) {
     AD Autotrig Disable
     LE Logging Enable
     LD Logging Disable
+    NZ Number of samples with laser off at the start of scan
+    NN Starting sample for noise calculations
+    NM Ending sample for noise calculations
     XR Reset TCP and UDP connections
     XX Terminate the driver
 
@@ -155,6 +159,12 @@ void read_cmd( int cmd_fd ) {
   while ( *head ) {
     while ( isspace(*head) ) ++head;
     tail = head;
+    /* In the following switch statement, if we break out, the command code will be directly
+       transmitted to the SSP. If instead we continue, the code will not be transmitted.
+       Hence any codes that are handled entirely in the driver must set head=tail and use continue.
+       This applies to LD, LE, XR, XX, NZ, NN and NM as well as any command that
+       is incorrectly formatted or inappropriate due to the current operating mode.
+     */
     switch (*head) {
       case '\0': continue;
       case 'E':
@@ -249,7 +259,7 @@ void read_cmd( int cmd_fd ) {
           return;
         }
         switch (head[1]) {
-          case 'S': ssp_config.NS = newval; break;
+          case 'S': ssp_config.NS = newval; noise_config.modified = 1; break;
           case 'A': ssp_config.NA = newval; break;
           case 'C': ssp_config.NC = newval; break;
           case 'F':
@@ -261,6 +271,21 @@ void read_cmd( int cmd_fd ) {
             head = tail;
             continue;
           case 'E': ssp_config.NE = newval; break;
+          case 'Z':
+            noise_config.NZ = newval;
+            noise_config.modified = 1;
+            head = tail;
+            continue;
+          case 'N':
+            noise_config.NN = newval;
+            noise_config.modified = 1;
+            head = tail;
+            continue;
+          case 'M':
+            noise_config.NM = newval;
+            noise_config.modified = 1;
+            head = tail;
+            continue;
           default:
             report_invalid(head);
             return;
@@ -288,6 +313,25 @@ void read_cmd( int cmd_fd ) {
       tcp_enqueue(head);
       *tail = save_char;
       head = tail;
+    }
+  }
+  if (noise_config.modified) {
+    if (noise_config.NN == 0 || noise_config.NM == 0) {
+      noise_config.NZ = 0;
+    }
+    if (noise_config.NN > noise_config.NM ||
+        noise_config.TZ >= noise_config.NN ||
+        noise_config.NM > ssp_config.NS) {
+      noise_config.NZ = 0;
+    }
+    if (noise_config.TZ == 0) {
+      int i;
+      noise_config.NN = 0;
+      noise_config.NM = 0;
+      for (i = 0; i < 3; ++i) {
+        ssp_amp_data.noise[i] = 0;
+        ssp_amp_data.noise_percent[i] = 0;
+      }
     }
   }
 }
