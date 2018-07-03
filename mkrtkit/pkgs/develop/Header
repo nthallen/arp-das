@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.83
+Version: 2.5.84
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,6 +8,13 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.85 2018-06-18
+#   DACS_ID.tmc updated for newer boards
+# 2.5.84 2017-12-14
+#   TMC V1 R11:
+#     improve support for arrays
+#     fix signed integer text conversion
+#     fix %X format assertion failure
 # 2.5.83 2017-11-21
 #   libsubbuspp New C++ version of libsubbus
 # 2.5.82 2017-10-18
