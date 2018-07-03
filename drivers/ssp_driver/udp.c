@@ -152,15 +152,15 @@ static void output_scan(long int *scan, mlf_def_t *mlf, int do_amp) {
       ssp_amp_data.noise_percent[j] = 0;
     }
   }
-  if (noise_config.TZ) {
+  if (noise_config.NZ) {
     int i, j;
     float zero, amplitude, noise;
     for (j = 0; j < hdr->NChannels; ++j) {
       zero = 0;
-      for (i = 0; i < noise_config.TZ; ++i) {
+      for (i = 0; i < noise_config.NZ; ++i) {
         zero += fdata[j][i];
       }
-      zero /= noise_config.TZ;
+      zero /= noise_config.NZ;
       amplitude = 0;
       for (i = noise_config.NN; i <= noise_config.NM; ++i) {
         amplitude += fdata[j][i];
@@ -175,7 +175,7 @@ static void output_scan(long int *scan, mlf_def_t *mlf, int do_amp) {
       amplitude -= zero;
       ssp_amp_data.amplitude[j] = amplitude;
       ssp_amp_data.noise[j] = noise;
-      ssp_amp_data.noise_percent = 100 * noise / amplitude;
+      ssp_amp_data.noise_percent[j] = 100 * noise / amplitude;
     }
   }
   if (ssp_config.LE) {

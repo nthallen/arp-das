@@ -89,6 +89,23 @@ static void report_invalid( char *head ) {
   nl_error( 2, "Invalid command received: '%s'", head );
 }
 
+static char *read_num( char *head, int *newval ) {
+  char *tail = head;
+  if ( !is_eocmd(*++tail) && *++tail == ':' ) {
+    char *num = ++tail;
+    if ( *tail == '-' ) ++tail;
+    if ( isdigit(*tail) ) {
+      while ( isdigit(*tail) ) ++tail;
+      if ( is_eocmd(*tail) ) {
+        *newval = atoi(num);
+        return tail;
+      }
+    }
+  }
+  report_invalid(head);
+  return NULL;
+}
+
 /** Read a command line from cmd_fd (cmd/SSPn)
  I will accept space-delimited combinations of the following:
  Commands:
@@ -109,9 +126,9 @@ static void report_invalid( char *head ) {
     AD Autotrig Disable
     LE Logging Enable
     LD Logging Disable
-    NZ Number of samples with laser off at the start of scan
-    NN Starting sample for noise calculations
-    NM Ending sample for noise calculations
+    nZ Number of samples with laser off at the start of scan
+    nN Starting sample for noise calculations
+    nM Ending sample for noise calculations
     XR Reset TCP and UDP connections
     XX Terminate the driver
 
@@ -121,23 +138,6 @@ static void report_invalid( char *head ) {
  
   As before, we will accept triggering commands anytime and other command only when not acquiring.
  */
-static char *read_num( char *head, int *newval ) {
-  char *tail = head;
-  if ( !is_eocmd(*++tail) && *++tail == ':' ) {
-    char *num = ++tail;
-    if ( *tail == '-' ) ++tail;
-    if ( isdigit(*tail) ) {
-      while ( isdigit(*tail) ) ++tail;
-      if ( is_eocmd(*tail) ) {
-        *newval = atoi(num);
-        return tail;
-      }
-    }
-  }
-  report_invalid(head);
-  return NULL;
-}
-
 #define CMDEE_BUFSIZE 160
 void read_cmd( int cmd_fd ) {
   char buf[CMDEE_BUFSIZE], *head, *tail;
@@ -159,11 +159,13 @@ void read_cmd( int cmd_fd ) {
   while ( *head ) {
     while ( isspace(*head) ) ++head;
     tail = head;
-    /* In the following switch statement, if we break out, the command code will be directly
-       transmitted to the SSP. If instead we continue, the code will not be transmitted.
-       Hence any codes that are handled entirely in the driver must set head=tail and use continue.
-       This applies to LD, LE, XR, XX, NZ, NN and NM as well as any command that
-       is incorrectly formatted or inappropriate due to the current operating mode.
+    /* In the following switch statement, if we break out, the command code
+       will be directly transmitted to the SSP. If instead we continue, the
+       code will not be transmitted.  Hence any codes that are handled
+       entirely in the driver must set head=tail and use continue.
+       This applies to LD, LE, XR, XX, nZ, nN and nM as well as any command
+       that is incorrectly formatted or inappropriate due to the current
+       operating mode.
      */
     switch (*head) {
       case '\0': continue;
@@ -271,6 +273,15 @@ void read_cmd( int cmd_fd ) {
             head = tail;
             continue;
           case 'E': ssp_config.NE = newval; break;
+          default:
+            report_invalid(head);
+            return;
+        }
+        break;
+      case 'n':
+        tail = read_num( head, &newval );
+        if ( tail == NULL ) return;
+        switch (head[1]) {
           case 'Z':
             noise_config.NZ = newval;
             noise_config.modified = 1;
@@ -320,11 +331,11 @@ void read_cmd( int cmd_fd ) {
       noise_config.NZ = 0;
     }
     if (noise_config.NN > noise_config.NM ||
-        noise_config.TZ >= noise_config.NN ||
+        noise_config.NZ >= noise_config.NN ||
         noise_config.NM > ssp_config.NS) {
       noise_config.NZ = 0;
     }
-    if (noise_config.TZ == 0) {
+    if (noise_config.NZ == 0) {
       int i;
       noise_config.NN = 0;
       noise_config.NM = 0;
@@ -350,7 +361,7 @@ int main( int argc, char **argv ) {
   
   oui_init_options(argc, argv);
   ssp_config.LE = 1; // Logging enabled by default
-  nl_error( 0, "Startup" );
+  nl_error( 0, "Startup: sspdrv V1.5 7/3/18" );
   udp_close(); // Initialize ssp_config and udp_state
   mlf = mlf_init( 3, 60, 1, ssp_name, "dat", mlf_config );
   ssp_data.index = mlf->index;

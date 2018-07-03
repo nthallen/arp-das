@@ -1,0 +1,19 @@
+TM "Receive" SSP@SUFFIX@_amp 1;
+
+TM @SSPRATE@ Hz SSP_Amp_t SSP@SUFFIX@_amp0;
+TM @SSPRATE@ Hz SSP_Amp_t SSP@SUFFIX@_amp1;
+TM @SSPRATE@ Hz SSP_Noise_t SSP@SUFFIX@_noise0;
+TM @SSPRATE@ Hz SSP_Noise_t SSP@SUFFIX@_noise1;
+TM @SSPRATE@ Hz SSP_NoisePct_t SSP@SUFFIX@_noise_pct0;
+TM @SSPRATE@ Hz SSP_NoisePct_t SSP@SUFFIX@_noise_pct1;
+
+Group SSP@SUFFIX@_amp_grp (SSP@SUFFIX@_amp0, SSP@SUFFIX@_amp1,
+      SSP@SUFFIX@_noise0, SSP@SUFFIX@_noise1,
+      SSP@SUFFIX@_noise_pct0, SSP@SUFFIX@_noise_pct1) {
+  SSP@SUFFIX@_amp0 = SSP@SUFFIX@_amp.amplitude[0];
+  SSP@SUFFIX@_amp1 = SSP@SUFFIX@_amp.amplitude[1];
+  SSP@SUFFIX@_noise0 = SSP@SUFFIX@_amp.noise[0];
+  SSP@SUFFIX@_noise1 = SSP@SUFFIX@_amp.noise[1];
+  SSP@SUFFIX@_noise_pct0 = SSP@SUFFIX@_amp.noise_percent[0];
+  SSP@SUFFIX@_noise_pct1 = SSP@SUFFIX@_amp.noise_percent[1];
+}

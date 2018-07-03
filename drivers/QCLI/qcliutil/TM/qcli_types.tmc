@@ -22,6 +22,8 @@ TM typedef unsigned short QCLI_CS_t {
 }
 
 TM typedef float SSP_Amp_t { text "7.1lf"; }
+TM typedef float SSP_Noise_t { text "7.1lf"; }
+TM typedef float SSP_NoisePct_t { text "8.5lf"; }
 
 /* T_FPGA_t: MAX6628 output, resolution 1/16 degree
  *   reported as 128 bits per degree celcius */

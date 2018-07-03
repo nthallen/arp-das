@@ -95,6 +95,11 @@
       $1->setup->Options &= ~($3);
     }
   : &SSP Logging &LogEnable * { $1->if_ssp->Turf( $3 ); }
+  : &SSP Noise Off * { $1->if_ssp->Turf( "nZ:0\n" ); }
+  : &SSP Noise From %d to %d * {
+      $1->if_ssp->Turf( "nZ:%ld nN:%d nM:%d\n", 
+          $1->setup->TzSamples, $4, $6);
+    }
   ;
 
 &Trigger <const char *>

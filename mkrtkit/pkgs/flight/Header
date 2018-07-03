@@ -1,10 +1,14 @@
 # Package flight
-Version: 2.5.66
+Version: 2.5.68
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.68 2018-07-03
+#   sspdrv V1.5 debugging update
+# 2.5.67 2018-07-03
+#   sspdrv V1.5 with noise percent calculation
 # 2.5.66 2017-11-22
 #   subbusd_serub: Fixed device name Option
 # 2.5.65 2017-11-22

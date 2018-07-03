@@ -144,6 +144,8 @@ usr/local/share/huarp/rtinstall
 usr/local/share/huarp/ssp_amp.AB3R.tmc.in
 usr/local/share/huarp/ssp_amp.genui.in
 usr/local/share/huarp/ssp_amp_col.tmc.in
+usr/local/share/huarp/ssp_noise.AB3R.tmc.in
+usr/local/share/huarp/ssp_noise.genui.in
 usr/local/share/huarp/tdrift.tmc
 usr/local/share/huarp/tdrift_col.tmc
 usr/local/share/huarp/tmdf.tmc

@@ -1,0 +1,9 @@
+7/3/18 V1.5
+  Version arbitrarily set to 1.5 and added to startup report
+  Added noise calculations using command NZ, NN and NM to set
+  number of zero points and the starting and ending sample
+  for the range over which to calculate amplitude and standard
+  deviation.
+    NZ is number of sample (0 to NZ-1)
+    NN and NM are sample numbers, inclusive, zero-based, specifying
+    the range.

@@ -1,17 +1,21 @@
 Moduledef QCLI [ SUFFIX= ADDR=0x1000 ACQCFG=AB3R RESET=# SSPRATE=1 AMP3=# ] {
-  QCLI definitions, takes SUFFIX, ADDR, ACQCFG, SSPRATE and RESET
-  arguments. Generates multiple files.
+  QCLI definitions, takes mode, SUFFIX, ADDR, ACQCFG, SSPRATE and RESET
+    arguments. Generates multiple files.
+  mode is one of default, amp or noise.
   SUFFIX is applied to most variable names, allowing more than
     one QCLI/SSP pair in the same instrument.
   ADDR is the address for the QCLI communication status word
-  Currently supported values for ACQCFG are:
+  ACQCFG currently accepts:
     AB3R: Collect channels A and B using external trigger rising edge
     ABC3R: Collect channels A, B and C using external trigger rising edge
+      Note: If using ABC3R along with modes amp or noise, you must also
+      set AMP3= in order to extract amplitude and noise numbers for
+      the third channel.
   SSPRATE is the TM reporting rate for SSP data
   RESET= will add QCLI@SUFFIX@_Reset to the .tbl file
 }
 
-mode (default,amp) {
+mode (default,amp,noise) {
   tmcbase = qcli_types.tmc
   tmcbase = QCLI@SUFFIX@.tmc:qcli.tmc.in
   colbase = QCLI@SUFFIX@_col.tmc:qcli_col.tmc.in
@@ -28,3 +32,10 @@ mode (amp) [ AMP3=# ] {
   colbase = SSP@SUFFIX@_amp_col.tmc:ssp_amp_col.tmc.in
   genuibase = SSP@SUFFIX@_amp.genui:ssp_amp.genui.in
 }
+
+mode (noise) [ AMP3=# ] {
+  tmcbase = SSP@SUFFIX@_amp.tmc:ssp_noise.@ACQCFG@.tmc.in
+  colbase = SSP@SUFFIX@_amp_col.tmc:ssp_amp_col.tmc.in
+  genuibase = SSP@SUFFIX@_amp.genui:ssp_noise.genui.in
+}
+
