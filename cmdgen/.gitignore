@@ -1,3 +1,4 @@
+*.o
 yyparse.c
 yylex.c
 trial.c
