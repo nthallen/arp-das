@@ -191,7 +191,7 @@ if [ -n "$nnd" ]; then
 fi
 
 # Parse options to select
-#   srcmode as one of realtime, InetIn or playback
+#   srcmode as one of realtime, InetIn, SerIn or playback
 #   dispmode as one of screen, pterm or photon
 session=$$
 ncopts=''
@@ -211,8 +211,6 @@ done
 if [ -n "$srcmode" ]; then
   [ -n "$InetSrc" -a -n "$Run" ] &&
     nl_error "Cannot specify both -i and -p"
-elif [ "$SRCMODE" = "SerIn" ]; then
-  srcmode=SerIn
 else
   case "$SRCMODE" in
     SerIn) srcmode=SerIn;;
@@ -258,8 +256,6 @@ EOF
 
 print $fh
   "logfileroot=$logfileroot\n",
-  "logfilesuffix=.log\n",
-  '[ $srcmode = realtime ] || logfilesuffix=.PB.$session.log', "\n",
   "interacts='", join( ' ', @interact ), "';\n",
   "extracts='", join( ' ', @extracts ), "';\n";
 print $fh "batchfile=$batchfile\n" if defined $batchfile;
@@ -375,12 +371,16 @@ if [ $srcmode = realtime ]; then
   # effect.
   # [ -z "$SCRIPT_OVERRIDE" ] && SCRIPT_OVERRIDE=/dev/null
   cmdsrvr=$FltNd/dev/huarp/$Experiment/cmd/server 
-  logfile=$FltNd$HomeDir/$logfileroot$logfilesuffix
+  logfile=$FltNd$HomeDir/$logfileroot.log
 else  # not realtime
   RemEx=$Experiment
   Experiment=$RemEx.PB.$session
   cmdsrvr=/dev/huarp/$Experiment/cmd/server
-  logfile=$logfileroot$logfilesuffix
+  case $srcmode in
+    InetIn) logfile=$logfileroot.II.log;;
+    SerIn) logfile=$logfileroot.SI.log;;
+    *) logfile=$logfileroot.PB.$session.log;;
+  esac
 fi
 
 # override:
@@ -540,7 +540,7 @@ EOF
 if ( $memo ) {
   print $fh <<'EOF';
         if [ -r $logfile ]; then
-          echo "screen -t $logfileroot$logfilesuffix /bin/sh -c \"echo \$\$ >less.pid.$session; exec less +F $logfile\""
+          echo "screen -t $logfile /bin/sh -c \"echo \$\$ >less.pid.$session; exec less +F $logfile\""
         fi
 EOF
 }
@@ -604,7 +604,7 @@ EOF
 if ( $memo ) {
   print $fh <<'EOF';
 if [ -r $logfile -a $dispmode != screen ]; then
-  pterm -t $logfileroot$logfilesuffix less +F $logfile &
+  pterm -t $logfile less +F $logfile &
   pterm_pid=$!
 fi
 if [ -r $logfile -a $dispmode = screen ]; then
@@ -654,7 +654,11 @@ for my $disp ( @display ) {
 
 for my $ext ( @extract ) {
   if ($ext->{name} ne '-') {
-    print $fh '[ ! -e ', $ext->{name}, " ] && \n  ";
+    my $name = $ext->{name};
+    if ($name !~ m,^/,) {
+      $name = "/dev/huarp/\$Experiment/$name";
+    }
+    print $fh '[ ! -e ', $name, " ] && \n  ";
   }
   if ($ext->{cond}) {
     print $fh '[ ', cond2sh($ext->{cond}), ' ] && ';

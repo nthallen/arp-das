@@ -328,6 +328,7 @@ int Ser_Sel::not_found(unsigned char c) {
  * @return zero if an integer was converted, non-zero if the current char is not a digit.
  */
 int Ser_Sel::not_hex( unsigned short &hexval ) {
+  hexval = 0;
   while (cp < nc && isspace(buf[cp]))
     ++cp;
   if (! isxdigit(buf[cp])) {
