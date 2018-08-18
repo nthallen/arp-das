@@ -3,8 +3,14 @@ TMbase {
   RAM:    (freemem,7) MB;
   Disk:   (Disk,5)     %;
   TDrift: (SysTDrift,7) sec;
-  (flttime,9);
-  MFCtr: (MFCtr,5);
+  VGlue 0+1;
+  HBox {
+    HGlue 0+1;
+    {
+      (flttime,9);
+      MFCtr: (MFCtr,5);
+    }
+  }
 }
 
 TMbaseB {

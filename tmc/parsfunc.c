@@ -219,7 +219,8 @@ void clr_tmtype(struct tmtype *tmt) {
 /* nr_declarator returns the declarator associated with the given
    nameref. */
 struct declrtor *nr_declarator(struct nm *nameref) {
-  assert(name_test(nameref, NMTEST_DECLARATOR));
+  if (!name_test(nameref, NMTEST_DECLARATOR))
+    compile_error(4, "Undefined name %s in nr_declarator", nameref->name);
   switch (nameref->type) {
     case NMTYPE_DATUM:
       return(nameref->u.ddecl->decl);
