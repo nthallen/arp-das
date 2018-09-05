@@ -8,7 +8,7 @@ ok_fail_t QCLI@SUFFIX@_cmderr; invalidate QCLI@SUFFIX@_cmderr;
   { QCLI@SUFFIX@_cmderr = (QCLI@SUFFIX@_s & 0x2000) ? 1 : 0;
     validate QCLI@SUFFIX@_cmderr; }
 qcli_off_on_t QCLI@SUFFIX@_laser; invalidate QCLI@SUFFIX@_laser;
-  { QCLI@SUFFIX@_laser = (QCLI@SUFFIX@_s & 0x1000) ? 0 : 1;
+  { QCLI@SUFFIX@_laser = (QCLI@SUFFIX@_s & 0x1000) ? 1 : 0;
     validate QCLI@SUFFIX@_laser; }
 ok_fail_t QCLI@SUFFIX@_cordte; invalidate QCLI@SUFFIX@_cordte;
   { QCLI@SUFFIX@_cordte = (QCLI@SUFFIX@_s & 0x0800) ? 1 : 0;

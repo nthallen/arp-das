@@ -6,7 +6,7 @@ TM 1 Hz UINT QCLI@SUFFIX@_Stale;
 
 Group QCLI@SUFFIX@_grp ( QCLI@SUFFIX@_Wave, QCLI@SUFFIX@_s ) {
   QCLI@SUFFIX@_Wave = QCLI@SUFFIX@.qcli_wave;
-  QCLI@SUFFIX@_s = QCLI@SUFFIX@.status;
+  QCLI@SUFFIX@_s = QCLI@SUFFIX@.status ^ 0x1000; /* flip the laser bit */
   QCLI@SUFFIX@_Stale = QCLI@SUFFIX@_obj->stale();
   QCLI@SUFFIX@_obj->synch();
 }

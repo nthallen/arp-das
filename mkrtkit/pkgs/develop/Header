@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.86
+Version: 2.5.87
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,8 +8,14 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
-# 2.5.87 2018-07-03 +
-#   Correct extraction type for noise percent
+# 2.5.87 2018-08-15 +
+#   sspdrv: Correct extraction type for noise percent
+#   mkdoit3: Cleanup generated code, cleanup logfile name
+#     for SerIn and InetIn
+#   TMbase.tbl.in: Cleanup for more aesthetic display
+#   tmc: converted assertion failure to useful error message
+#   QCLI.agm cleanup
+#   ssp_noise module fixes
 # 2.5.86 2018-07-03
 #   sspdrv update during debugging
 # 2.5.85 2018-07-03

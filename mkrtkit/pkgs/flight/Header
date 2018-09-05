@@ -1,10 +1,12 @@
 # Package flight
-Version: 2.5.68
+Version: 2.5.69
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.69 2018-08-14
+#   tmpplib: Fixed bug in Ser_Sel::not_hex
 # 2.5.68 2018-07-03
 #   sspdrv V1.5 debugging update
 # 2.5.67 2018-07-03
