@@ -973,13 +973,12 @@ static void gen_doub_cvt( struct tmtype *ftype ) {
     int in_uk;
     double v;
 
-    out_max = 0; out_min = -1;
+    out_max = -1; out_min = 0;
     p = cal->pl.pairs;
     in_uk = in_min > in_max;
 
     /* Define initial value. If in_uk, we'll check extrema later */
-    if ( in_uk ) out_min = out_max = p->v[1];
-    else {
+    if (! in_uk) {
       out_min = out_max = cal_convert( in_min, cal );
       v = cal_convert( in_max, cal );
       if ( v < out_min ) out_min = v;

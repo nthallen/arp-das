@@ -52,7 +52,7 @@ FILE *vfile = NULL, *dacfile = NULL, *addrfile = NULL;
 #define EXTRACT_SKELETON "extmain.skel"
 
 #ifdef __USAGE
-tmc Telemetry Compiler Version 1 Revision 11
+tmc Telemetry Compiler Version 1 Revision 12
 
 %C	[options] [files]
 	-c             Generate collection rules

@@ -1,4 +1,9 @@
-Verison 1 Revision 11 December 13, 2017
+Version 1 Revision 12 September 8, 2018
+  Fix double text conversion:
+    The output range of the double=>double conversion was
+    being miscalculated, resulting in an inappropriate type
+    choice for the text conversion.
+Version 1 Revision 11 December 13, 2017
   Fix array handling: Previously, when a TM datum was defined as an array:
       TM 1 Hz foo_t foos[7];
     if it fit in a single slot, the code to copy it into or out of the
