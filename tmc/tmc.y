@@ -33,6 +33,10 @@
 %token <l.pretext> KW_IF
 %token KW_INITFUNC
 %token <l.pretext> KW_INT
+%token <l.pretext> KW_INT8_T
+%token <l.pretext> KW_INT16_T
+%token <l.pretext> KW_INT32_T
+%token <l.pretext> KW_INT64_T
 %token KW_INVALIDATE
 %token <l.pretext> KW_LONG
 %token KW_MAXCOLS
@@ -50,6 +54,10 @@
 %token KW_TOLERANCE
 %token KW_TM
 %token <l.pretext> KW_TYPEDEF
+%token <l.pretext> KW_UINT8_T
+%token <l.pretext> KW_UINT16_T
+%token <l.pretext> KW_UINT32_T
+%token <l.pretext> KW_UINT64_T
 %token <l.pretext> KW_UNION
 %token <l.pretext> KW_UNSIGNED
 %token KW_VALIDATE
@@ -820,11 +828,22 @@ array_decorations : {
     ;
 typeparts : integertypes {
         static unsigned char intsizes[16] =
-          {2,1,2,0,4,0,4,0,2,0,2,0,0,0,0,0};
+          {sizeof(unsigned),sizeof(char),sizeof(int),0,
+           sizeof(long),0,sizeof(long int),0,
+           sizeof(short),0,sizeof(short int),0,
+           0,0,0,0};
         assert($1.type < 32);
         set_typpts(&$$, $1.type, intsizes[$1.type & 0xF], NULL, NULL);
         $$.stat = $1.stat;
       }
+    | KW_INT8_T { set_typpts(&$$, INTTYPE_INT8, 1, $1, NULL); }
+    | KW_UINT8_T { set_typpts(&$$, INTTYPE_UINT8, 1, $1, NULL); }
+    | KW_INT16_T { set_typpts(&$$, INTTYPE_INT16, 2, $1, NULL); }
+    | KW_UINT16_T { set_typpts(&$$, INTTYPE_UINT16, 2, $1, NULL); }
+    | KW_INT32_T { set_typpts(&$$, INTTYPE_INT32, 4, $1, NULL); }
+    | KW_UINT32_T { set_typpts(&$$, INTTYPE_UINT32, 4, $1, NULL); }
+    | KW_INT64_T { set_typpts(&$$, INTTYPE_INT64, 8, $1, NULL); }
+    | KW_UINT64_T { set_typpts(&$$, INTTYPE_UINT64, 8, $1, NULL); }
     | KW_FLOAT { set_typpts(&$$, INTTYPE_FLOAT, 4, $1, NULL); }
     | KW_DOUBLE { set_typpts(&$$, INTTYPE_DOUBLE, 8, $1, NULL); }
     | TK_TYPE_NAME {

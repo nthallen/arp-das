@@ -287,14 +287,24 @@ struct typparts {
 #define INTTYPE_LONG 4
 #define INTTYPE_SHORT 8
 #define INTTYPE_UNSIGNED 0x10
-#define INTTYPE_FLOAT 0x20
-#define INTTYPE_DOUBLE 0x40
-#define INTTYPE_STRUCT 0x80
-#define INTTYPE_UNION 0x100
-#define INTTYPE_OTHER 0x200
-#define TYPE_INTEGRAL(x) (!((x)&~0x1F))
-#define TYPE_FLOATING(x) (!((x)&~0x60))
-#define TYPE_NUMERIC(x)  (!((x)&~0x7F))
+#define INTTYPE_INT8 0x20
+#define INTTYPE_UINT8 0x40
+#define INTTYPE_INT16 0x80
+#define INTTYPE_UINT16 0x100
+#define INTTYPE_INT32 0x200
+#define INTTYPE_UINT32 0x400
+#define INTTYPE_INT64 0x800
+#define INTTYPE_UINT64 0x1000
+#define INTTYPE_FLOAT 0x2000
+#define INTTYPE_DOUBLE 0x4000
+#define INTTYPE_STRUCT 0x8000
+#define INTTYPE_UNION 0x100000
+#define INTTYPE_OTHER 0x200000
+#define TYPE_KR_INTEGRAL(x) (!((x)&~0x1F))
+#define TYPE_INTEGRAL(x) (!((x)&~0x1FFF))
+#define TYPE_STD_INTEGRAL(x) (!((x)&~0x1FC0))
+#define TYPE_FLOATING(x) (!((x)&~(INTTYPE_FLOAT|INTTYPE_DOUBLE)))
+#define TYPE_NUMERIC(x)  (!((x)&~0x7FFF))
 #define TYPE_ULONG(x) ((x)==0x14)
 
 /* structs cw and slt define the "slots" of the TM frame into which
