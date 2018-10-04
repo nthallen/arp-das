@@ -100,6 +100,7 @@ void Ser_Sel::init(const char *path, int open_flags, int bufsz) {
     buf = (unsigned char *)new_memory(bufsz);
     bufsize = bufsz;
   }
+  termios_init = false;
 }
 
 void Ser_Sel::sersel_init() {
@@ -414,7 +415,6 @@ int Ser_Sel::not_str(const std::string &s) {
   return not_str(s.c_str(), s.length());
 }
 
-
 /**
  * Parsing utility function to convert a string in the input
  * buffer to a float value. Updates cp to point just after the
@@ -424,21 +424,74 @@ int Ser_Sel::not_str(const std::string &s) {
  */
 int Ser_Sel::not_float( float &val ) {
   char *endptr;
+  int start_cp = cp;
   int ncf;
   if ( cp < 0 || cp > nc || nc < 0 || nc >= bufsize || buf == 0 )
     msg( 4, "Ser_Sel precondition failed: "
       "cp = %d, nc = %d, bufsize = %d, buf %s",
       cp, nc, bufsize, buf ? "not NULL" : "is NULL" );
-  val = strtof( (char*)&buf[cp], &endptr );
-  ncf = endptr - (char*)&buf[cp];
-  if ( ncf == 0 ) {
-    if ( cp < nc )
-      report_err( "Expected float at column %d", cp );
-    return 1;
+
+  if (cp >= nc) return 1;
+  if (buf[cp] == '-') {
+    if (++cp >= nc) return 1;
+  }
+  if (buf[cp] == '.') {
+    if (++cp >= nc) return 1;
+    if (isdigit(buf[cp])) {
+      do { ++cp; }
+        while (cp < nc && isdigit(buf[cp]));
+    } else {
+      return 1;
+    }
+  } else if (isdigit(buf[cp])) {
+    do { ++cp; }
+      while (cp < nc && isdigit(buf[cp]));
+    if (cp < nc && buf[cp] == '.') {
+      do { ++cp; }
+        while (cp < nc && isdigit(buf[cp]));
+    }
   } else {
-    nl_assert( ncf > 0 && cp + ncf <= nc );
-    cp += ncf;
+    report_err("not_float expected [0-9.] at col %d", cp);
+    return 1;
+  }
+  if (cp < nc && tolower(buf[cp]) == 'e') {
+    if (++cp >= nc) return 1;
+    if (buf[cp] == '+' || buf[cp] == '-') {
+      if (++cp >= nc) return 1;
+    }
+    if (isdigit(buf[cp])) {
+      do { ++cp; } while (cp < nc && isdigit(buf[cp]));
+    } else {
+      report_err("not_float expected digits at col %d", cp);
+      return 1;
+    }
+  }
+
+  val = strtof( (char *)&buf[start_cp], &endptr );
+  if (endptr == (char *)&buf[cp]) {
     return 0;
+  }
+  ncf = endptr - (char *)buf;
+  report_err("strtof at col %d ended at col %d, not %d",
+    start_cp, ncf, cp);
+  return 1;
+}
+
+void Ser_Sel::update_tc_vmin(int new_vmin) {
+  if (! termios_init) {
+    if (tcgetattr(fd, &ss_termios)) {
+      nl_error(2, "Error from tcgetattr: %s",
+        strerror(errno));
+    }
+    termios_init = true;
+  }
+  if (new_vmin < 1) new_vmin = 1;
+  if (new_vmin != ss_termios.c_cc[VMIN]) {
+    ss_termios.c_cc[VMIN] = new_vmin;
+    if (tcsetattr(fd, TCSANOW, &ss_termios)) {
+      nl_error(2, "Error from tcsetattr: %s",
+        strerror(errno));
+    }
   }
 }
 

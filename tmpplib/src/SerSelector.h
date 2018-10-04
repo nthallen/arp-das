@@ -3,6 +3,7 @@
 /* SerSelector.h */
 
 #include <string>
+#include <termios.h>
 #include "Selector.h"
 #include "collect.h"
 #include "tm.h"
@@ -59,11 +60,14 @@ class Ser_Sel : public Selectee {
     int not_str(const std::string &s);
     int not_str(const char *str);
     int not_float( float &val );
+    void update_tc_vmin(int vmin);
     unsigned int nc, cp;
     unsigned char *buf;
     int bufsize;
     int n_fills, n_empties;
     int n_eagain, n_eintr;
+    bool termios_init;
+    termios ss_termios;
   private:
     void sersel_init();
     /** Number of qualified errors. Decremented by report_ok() */
