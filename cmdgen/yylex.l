@@ -36,36 +36,36 @@
    #include "compiler.h"
    #include "nortlib.h"
    #pragma off (unreferenced)
-	 static char rcsid[] =
-	   "$Id$";
+     static char rcsid[] =
+       "$Id$";
    #pragma on (unreferenced)
 
    #ifdef yywrap
-	 #undef yywrap
+     #undef yywrap
    #endif
    int yywrap(void);
    #define ACTBUFSIZE 2048
    #define ret_full_str(x) { yylval.str_val = strdup(yytext);\
-							 return(x); }
+                             return(x); }
    #define ret_inner(x) { yytext[yyleng-1] = '\0';\
-						  yylval.str_val = strdup(yytext+1);\
-						  return(x); }
+                          yylval.str_val = strdup(yytext+1);\
+                          return(x); }
 
    /* This lexical analyzer is designed to accept most english as
-	  words, and hence keywords are kept to an absolute minimum.
-	  Most syntactic elements are provided with punctuation.
-	  The basic elements are:
-			&name		non-terminal
-			&&name		client-specific non-terminal
-			<type>		non-terminal type specification
-			%x			variable input specification
-			(prompt)	prompt text (with inner parens escaped)
-			{ C code }	C code with balanced braces
-			%{ C code %}C code copied directly to output
+      words, and hence keywords are kept to an absolute minimum.
+      Most syntactic elements are provided with punctuation.
+      The basic elements are:
+            &name		non-terminal
+            &&name		client-specific non-terminal
+            <type>		non-terminal type specification
+            %x			variable input specification
+            (prompt)	prompt text (with inner parens escaped)
+            { C code }	C code with balanced braces
+            %{ C code %}C code copied directly to output
 
-	  Client-specific non-terminals are denoted internally by
-	  the fact that their names begin with '&'. i.e. all
-	  non-terminals are stored without one leading '&'.
+      Client-specific non-terminals are denoted internally by
+      the fact that their names begin with '&'. i.e. all
+      non-terminals are stored without one leading '&'.
    */
 %}
 
@@ -76,18 +76,18 @@
 
   c = input();
   for (;;) {
-	if (c == EOF) compile_error(3, "Unexpected EOF in %{");
-	fputc(c, ofile);
-	if (c == '\n') {
-	  input_linenumber++;
-	  c = input();
-	  if (c == '%') {
-		d = input();
-		if (d == '}') break;
-		fputc(c, ofile);
-		c = d;
-	  }
-	} else c = input();
+    if (c == EOF) compile_error(3, "Unexpected EOF in %{");
+    fputc(c, ofile);
+    if (c == '\n') {
+      input_linenumber++;
+      c = input();
+      if (c == '%') {
+        d = input();
+        if (d == '}') break;
+        fputc(c, ofile);
+        c = d;
+      }
+    } else c = input();
   }
 }
 \{  {
@@ -96,22 +96,22 @@
 
   act[0] = '{';
   for (level = 1, i = 1; level > 0; ) {
-	if (i == ACTBUFSIZE)
-	  compile_error(4, "Action Buffer Arbitrary Limit Exceeded");
-	act[i++] = c = input();
-	if (c == '{') level++;
-	else if (c == '}') level--;
-	else if (c == '\n') input_linenumber++;
-	else if (c == EOF)
-	  compile_error(3, "Unexpected EOF reading C Code");
+    if (i == ACTBUFSIZE)
+      compile_error(4, "Action Buffer Arbitrary Limit Exceeded");
+    act[i++] = c = input();
+    if (c == '{') level++;
+    else if (c == '}') level--;
+    else if (c == '\n') input_linenumber++;
+    else if (c == EOF)
+      compile_error(3, "Unexpected EOF reading C Code");
   }
   act[i] = '\0';
   yylval.str_val = strdup(act);
   return(TK_C_CODE);
 }
 \&\&?[a-z][a-z_0-9]+ {
-	yylval.nt_val = non_terminal(yytext+1);
-	return(TK_NON_TERMINAL);
+    yylval.nt_val = non_terminal(yytext+1);
+    return(TK_NON_TERMINAL);
   }
 %INTERFACE {
     yylval.str_val = "";
