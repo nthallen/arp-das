@@ -187,7 +187,9 @@ static void output_action(unsigned short rnum) {
       indent(CONDINDENT);
       fprintf(ofile, "#else\n");
       indent(BASEINDENT);
-      fprintf(ofile, "saw_server_action = 1;\n");
+      fprintf(ofile, "saw_server_action = %s;\n",
+        rules[rnum]->kb_block ? "KB_BLOCK_VAL" : "1"
+      );
     }
     indent(CONDINDENT);
     fprintf(ofile, "#endif\n");

@@ -24,6 +24,7 @@
  *
  */
 #include <stdio.h>
+#include <stdbool.h>
 #include "config.h"
 
 #if HAVE_STRCASECMP
@@ -55,6 +56,7 @@ struct sub_t {
   struct nt_t *reduces;
   unsigned short rule_number;
   char *action;
+  bool kb_block;
   struct {
     struct sub_item_t *first;
     struct sub_item_t *last;
@@ -82,6 +84,7 @@ struct sub_item_t {
 
 typedef union {
   char *str_val;
+  bool bool_val;
   struct nt_t *nt_val;
   struct sub_t *sub_val;
   struct sub_item_t *subi_val;

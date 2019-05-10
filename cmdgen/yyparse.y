@@ -33,12 +33,14 @@
 %token <str_val> TK_C_CODE
 %token <str_val> TK_PROMPT
 %token <str_val> TK_INTERFACE
+%token <str_val> TK_BLOCK_KB
 %type <nt_val> Rule
 %type <nt_val> nt_spec
 %type <type_val> type_spec
 %type <sub_val> sub_items
 %type <subi_val> sub_item
 %type <str_val> var_prmpt
+%type <bool_val> opt_block
 %%
 Rules     :
           | Rules Rule ';' {
@@ -90,9 +92,10 @@ sub_items : { $$ = new_sub(); }
               else $1->items.last = $1->items.last->next = $2;
               $$ = $1;
             }
-          | sub_items TK_C_CODE {
+          | sub_items opt_block TK_C_CODE {
               if ($1->action != NULL) dmy_non_term($1);
-              $1->action = $2;
+              $1->action = $3;
+              $1->block_kb = $2;
               $$ = $1;
             }
           ;
@@ -120,4 +123,7 @@ sub_item  : TK_WORD {
           ;
 var_prmpt : { $$ = NULL; }
           | TK_PROMPT { $$ = $1; }
+          ;
+opt_block : { $$ = false; }
+          | TK_BLOCK_KB { $$ = true; }
           ;

@@ -38,6 +38,12 @@ static short iomode;
 #define IOF_INTERACTIVE 0x10
 static short ioflags;
 
+#ifdef BLOCK_KB_CMDS
+#define KB_BLOCK_VAL 0
+#else
+#define KB_BLOCK_VAL 1
+#endif
+
 %headers%
 
 #if defined SNAFU_CURSES && ! defined SELF_SERVE

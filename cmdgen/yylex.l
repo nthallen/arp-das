@@ -117,6 +117,10 @@
     yylval.str_val = "";
     return( TK_INTERFACE );
   }
+%BLOCK_KB {
+    yylval.str_val = "";
+    return( TK_BLOCK_KB );
+  }
 \%l?[dxofws] ret_full_str(TK_VAR_SPEC);
 \(([^\n\)]|\\.)*\) ret_inner(TK_PROMPT);
 \<([^\n\>]|\\.)*\> ret_inner(TK_TYPE_SPEC);
