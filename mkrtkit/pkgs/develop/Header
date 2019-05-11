@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.89
+Version: 2.5.90
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,6 +8,9 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.90 2019-05-11
+#   cmdgen: Add %BLOCK_KB to block 'Quit' from keyboard
+#   root.cmd: Add %BLOCK_KB
 # 2.5.89 2018-10-03
 #   SerSelector.h: add update_tc_vmin() method
 # 2.5.88 2018-09-22
