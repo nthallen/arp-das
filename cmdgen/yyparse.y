@@ -95,7 +95,7 @@ sub_items : { $$ = new_sub(); }
           | sub_items opt_block TK_C_CODE {
               if ($1->action != NULL) dmy_non_term($1);
               $1->action = $3;
-              $1->block_kb = $2;
+              $1->kb_block = $2;
               $$ = $1;
             }
           ;
