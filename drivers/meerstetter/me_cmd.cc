@@ -1,0 +1,133 @@
+#include "meerstetter_int.h"
+
+/*
+ * Cmd client: Me_Cmd -> Cmd_Selectee
+ * TM client: TM_Selectee
+ * Serial client: Me_Ser -> Ser_Selectee
+ */
+
+
+
+Me_Cmd::Me_Cmd(Me_ser *ser)
+    : Cmd_Selectee("cmd/Me"),
+      ser(ser) {
+}
+
+bool Me_Cmd::ProcessData(int flags) {
+  // Fill in with code from DAS_IO::Interface::ProcessData()
+  // I have commented out code we are not using, since we
+  // do not have the default functions referenced
+  // if ((flags & flag & gflag(0)) && tm_sync())
+    // return true;
+  if ((flags&Fl_Read) && (flags&flag&(Fl_Read|Fl_Timeout))) {
+    if (fillbuf(bufsize, flag)) return true;
+    if (fd < 0) return false;
+    if (protocol_input()) return true;
+  }
+  // if ((flags & flag & Fl_Write) && iwrite_check())
+    // return true;
+  // if ((flags & flag & Fl_Except) && protocol_except())
+    // return true;
+  // if ((flags & flag & Fl_Timeout) && TO.Expired() && protocol_timeout())
+    // return true;
+  // if (TO.Set()) {
+    // flags |= Fl_Timeout;
+  // } else {
+    // flags &= ~Fl_Timeout;
+  // }
+  return false;
+}
+
+/**
+ * Command formats:
+ *  W<address_decimal>:<MeParID_decimal>:<hex_encoded_32bit_value>
+ *  RI<address_decimal>:<MeParID_decimal>
+ *  RF<address_decimal>:<MeParID_decimal>
+ *  Q
+ */
+bool Me_Cmd::app_input() {
+  uint32_t hex32;
+  Me_Query *Q;
+  if (nc == 0) return true;
+  if (not_any("RWQ")) {
+    consume(nc);
+    return false;
+  }
+  cp = 1;
+  switch (buf[0]) {
+    case 'Q': return true;
+    case 'W':
+      if (not_uint8(address) || not_str(":") ||
+          not_uint16(MeParID) || not_str(":") ||
+          not_hex(hex32) || not_str("\n")) {
+        if (cp >= nc)
+          report_err("Invalid or incomplete write command");
+        consume(nc);
+        return false;
+      }
+      Q = new_query();
+      Q->setup_uint32_cmd(address, MeParID, &hex32);
+      ser->enqueue_request(Q, false);
+      break;
+    case 'R':
+      if (not_any("IF") ||
+          not_uint8(address) || not_str(":") ||
+          not_uint16(MeParID) || not_str("\n")) {
+        if (cp >= nc)
+          report_err("Invalid or incomplete read command");
+        consume(nc);
+        return false;
+      }
+      Q = new_query();
+      if (cp[1] == 'I') {
+        Q->setup_int32_query(address, MeParID, 0);
+      } else {
+        Q->setup_float32_query(address, MeParID, 0);
+      }
+      ser->enqueue_request(Q, false);
+      break;
+    default:
+      report_err("Invalid command");
+      consume(nc);
+      break;
+  }
+  return false;
+}
+
+/**
+ * Parsing utility function to read in a hex integer starting
+ * at the current position. Integer may be proceeded by optional
+ * whitespace.
+ * @param[out] hexval The integer value
+ * @return zero if an integer was converted, non-zero if the current char is not a digit.
+ */
+int Me_Cmd::not_hex(uint32_t &hexval) {
+  hexval = 0;
+  while (cp < nc && isspace(buf[cp]))
+    ++cp;
+  if (! isxdigit(buf[cp])) {
+    if (cp < nc)
+      report_err("No hex digits at col %d", cp);
+    return 1;
+  }
+  while ( cp < nc && isxdigit(buf[cp]) ) {
+    unsigned short digval = isdigit(buf[cp]) ? ( buf[cp] - '0' ) :
+           ( tolower(buf[cp]) - 'a' + 10 );
+    hexval = hexval * 16 + digval;
+    ++cp;
+  }
+  return 0;
+}
+
+bool Me_Cmd::not_any(const char *alternatives) {
+  if (cp < nc) {
+    for (const char *alt = alternatives; *alt; ++alt) {
+      if (buf[cp] == *alt) {
+        ++cp;
+        return false;
+      }
+    }
+    report_err("No match for alternatives '%s' at column %d", alternatives, cp);
+  }
+  return true;
+}
