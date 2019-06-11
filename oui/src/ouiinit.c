@@ -4,13 +4,13 @@
    compiler
    nl_error_init
 */
-const char *opt_string = "uqkwvo:";
 #include "oui.h"
 #include "ouidefs.h"
 #include <unistd.h>
 #include "nortlib.h"
 #include <stdio.h>
 #include "compiler.h"
+const char *opt_string = "uqkwvo:";
   int (*nl_error)(int level, const char *s, ...) = compile_error;
 
 void oui_init_options(int argc, char **argv) {

@@ -45,8 +45,8 @@ int main(int argc, char **argv) {
   if (error_level == 0) {
 	sort_packages();
 	output_comments();
-	output_opt_string();
 	output_includes();
+	output_opt_string();
 	output_defs();
 	output_inits();
 	output_usage();
