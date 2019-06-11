@@ -504,7 +504,7 @@ for i in $basetargets; do
       replace_all .genui ${i}.cdf "\n\t\$(GENUI2CSV)" $deps;;
   esac
   use_all .cdf ${i}cdf.oui "\n\t\$(EDF2OUI)" $deps
-  replace_each .cdf cdf.tmc "\$(EDF2EXT)" $deps
+  replace_all .cdf ${i}cdf.tmc "\n\t\$(EDF2EXT)" $deps
   # replace_each .cfg attr.tmc "\$(DATAATTR)" $deps
   replace_each .cyc cyc.tmc  "\$(CYCLE)" $deps
   case $i in
