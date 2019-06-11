@@ -9,8 +9,8 @@ Me_Ser::Me_Ser(const char *path) : Ser_Sel(path, O_RDWR|O_NONBLOCK, 400) {
   flags = Selector::Sel_Read | Selector::gflag(0);
 }
 
-void Me_Ser::enqueue_request(Me_Query *req, bool persistent) {
-  if (persistent)
+void Me_Ser::enqueue_request(Me_Query *req) {
+  if (req->persistent)
     TM_queue.push_back(req);
   else
     Transient_queue.push_back(req);
@@ -134,7 +134,9 @@ bool Me_Ser::protocol_input() {
         consume(nc);
       return false;
     } else if (crc != re_crc) {
-        report_err("Bad CRC: Calculated %lu, expected %u", crc, re_crc);
+      report_err("Bad CRC: Calculated %lu, expected %u", crc, re_crc);
+      consume(nc);
+      return false;
     } else if (pending->ret_type == Me_Query::Me_INT32) {
       int32_t *src_ptr = (int32_t *)(&value);
       if (pending->ret_ptr) {
@@ -143,6 +145,8 @@ bool Me_Ser::protocol_input() {
       } else {
         msg(0, "Read(%u,%u) = %ld", pending->address, pending->MeParID, *src_ptr);
       }
+      if (pending->callback)
+        (*pending->callback)(pending);
     } else if (pending->ret_type == Me_Query::Me_FLOAT32) {
       float *src_ptr = (float *)(&value);
       if (pending->ret_ptr) {
@@ -151,6 +155,8 @@ bool Me_Ser::protocol_input() {
       } else {
         msg(0, "Read(%u,%u) = %f", pending->address, pending->MeParID, *src_ptr);
       }
+      if (pending->callback)
+        (*pending->callback)(pending);
     }
     consume(nc);
   }

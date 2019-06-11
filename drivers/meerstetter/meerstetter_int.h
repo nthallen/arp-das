@@ -27,14 +27,16 @@ class Me_Query {
     void setup_float32_query(uint8_t address, uint16_t MeParID, float *ret_ptr);
     void setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t value);
     void set_persistent(bool persistent);
+    void set_callback(void (*callback)(Me_Query *));
   protected:
     /** true if query lives on the TM_queue, false if it is from
      * the Cmd_queue and should be removed and recycled onto the
-     * Free_queue.
+     * Free_queue. Defaults to false.
      */
     bool persistent;
     MeParType ret_type;
     void *ret_ptr;
+    void (*callback)(Me_Query*);
     /* Store these in case it's useful for debugging messages */
     uint8_t address;
     uint16_t req_crc;
@@ -58,7 +60,7 @@ class Me_Query {
 class Me_Ser : public Ser_Sel {
   public:
     Me_Ser(const char *path);
-    void enqueue_request(Me_Query *req, bool persistent);
+    void enqueue_request(Me_Query *req);
     Me_Query *new_query();
   protected:
     int ProcessData(int flags);

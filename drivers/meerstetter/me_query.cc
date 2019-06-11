@@ -19,6 +19,7 @@ void Me_Query::init() {
   cmdlen = 0;
   persistent = false;
   ret_type = Me_ACK;
+  callback = 0;
   ret_ptr = 0;
   address = 0;
   MeParID = 0;
@@ -46,13 +47,8 @@ void Me_Query::setup_int32_query(uint8_t address, uint16_t MeParID, int32_t *ret
   cmd[7] = '?'; cmd[8] = 'V'; cmd[9] = 'R';
   to_hex(MeParID, 4, 10);
   to_hex(1, 2, cmdlen); //instance == 1
-  if (ret_ptr) {
-    ret_type = Me_INT32;
-    this->ret_ptr = (void *)ret_ptr;
-    set_persistent(true);
-  } else {
-    set_persistent(false);
-  }
+  ret_type = Me_INT32;
+  this->ret_ptr = (void *)ret_ptr;
 }
 
 void Me_Query::setup_float32_query(uint8_t address, uint16_t MeParID, float *ret_ptr) {
@@ -60,13 +56,8 @@ void Me_Query::setup_float32_query(uint8_t address, uint16_t MeParID, float *ret
   cmd[7] = '?'; cmd[8] = 'V'; cmd[9] = 'R';
   to_hex(MeParID, 4, 10);
   to_hex(1, 2, cmdlen); //instance == 1
-  if (ret_ptr) {
-    ret_type = Me_FLOAT32;
-    this->ret_ptr = (void *)ret_ptr;
-    set_persistent(true);
-  } else {
-    set_persistent(false);
-  }
+  ret_type = Me_FLOAT32;
+  this->ret_ptr = (void *)ret_ptr;
 }
 
 void Me_Query::setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t value) {
@@ -81,6 +72,10 @@ void Me_Query::setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t valu
 
 void Me_Query::set_persistent(bool persistent) {
   this->persistent = persistent;
+}
+
+void Me_Query::set_callback(void (*CB)(Me_Query *)) {
+  callback = CB;
 }
 
 void Me_Query::setup_address(uint8_t address, uint16_t MeParID) {
