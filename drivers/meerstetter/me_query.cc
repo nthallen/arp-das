@@ -1,5 +1,7 @@
 #include "meerstetter_int.h"
 #include "crc16xmodem.h"
+#include "nl_assert.h"
+#include "msg.h"
 
 Me_Query::Me_Query()
   : cmdlen(0),

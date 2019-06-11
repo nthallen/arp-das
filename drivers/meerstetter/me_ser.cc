@@ -1,8 +1,12 @@
+#include <fcntl.h>
 #include "meerstetter_int.h"
+#include "crc16xmodem.h"
+#include "nortlib.h"
+#include "msg.h"
 
-Me_Ser::Me_Ser() : Ser_Selectee() {
+Me_Ser::Me_Ser(const char *path) : Ser_Sel(path, O_RDWR|O_NONBLOCK, 400) {
   pending = 0;
-  flags = Fl_Read | gflag(0);
+  flags = Selector::Sel_Read | Selector::gflag(0);
 }
 
 void Me_Ser::enqueue_request(Me_Query *req, bool persistent) {
@@ -24,11 +28,12 @@ Me_Query *Me_Ser::new_query() {
   return Q;
 }
 
-bool Me_Ser::ProcessData(int flags) {
-  if ((flags & flag & gflag(0)) && tm_sync())
+int Me_Ser::ProcessData(int flag) {
+  if ((flags & flag & Selector::gflag(0)) && tm_sync())
     return true;
-  if ((flags&Fl_Read) && (flags&flag&(Fl_Read|Fl_Timeout))) {
-    if (fillbuf(bufsize, flag)) return true;
+  if ((flags&Selector::Sel_Read) &&
+      (flags&flag&(Selector::Sel_Read|Selector::Sel_Timeout))) {
+    if (fillbuf()) return true;
     if (fd < 0) return false;
     if (protocol_input()) return true;
   }
@@ -36,12 +41,13 @@ bool Me_Ser::ProcessData(int flags) {
     // return true;
   // if ((flags & flag & Fl_Except) && protocol_except())
     // return true;
-  if ((flags & flag & Fl_Timeout) && TO.Expired() && protocol_timeout())
+  if ((flags & flag & Selector::Sel_Timeout) &&
+        TO.Expired() && protocol_timeout())
     return true;
   if (TO.Set()) {
-    flags |= Fl_Timeout;
+    flags |= Selector::Sel_Timeout;
   } else {
-    flags &= ~Fl_Timeout;
+    flags &= ~Selector::Sel_Timeout;
   }
   return false;
 }
@@ -56,7 +62,7 @@ bool Me_Ser::ProcessData(int flags) {
  */
 int Me_Ser::not_hex(uint32_t &hexval, int width) {
   hexval = 0;
-  for (i = 0; i < width; ++i) {
+  for (int i = 0; i < width; ++i) {
     if (cp >= nc) return 1;
     if (!isxdigit(buf[cp])) {
       report_err("Expected hex digit at col %d", cp);
@@ -79,7 +85,7 @@ bool Me_Ser::protocol_input() {
     consume(nc);
     return false;
   }
-  if (not_found('!')) return;
+  if (not_found('!')) return false;
   if (cp > 1) {
     consume(cp-1);
     cp = 1;
@@ -113,7 +119,7 @@ bool Me_Ser::protocol_input() {
       consume(nc);
       return false;
     }
-    if (pending->ret_type != Me_ACK) {
+    if (pending->ret_type != Me_Query::Me_ACK) {
       if (not_hex(value,8)) {
         if (cp < nc)
           consume(nc);
@@ -129,7 +135,7 @@ bool Me_Ser::protocol_input() {
       return false;
     } else if (crc != re_crc) {
         report_err("Bad CRC: Calculated %lu, expected %u", crc, re_crc);
-    } else if (pending->ret_type == Me_INT32) {
+    } else if (pending->ret_type == Me_Query::Me_INT32) {
       int32_t *src_ptr = (int32_t *)(&value);
       if (pending->ret_ptr) {
         int32_t *dest_ptr = (int32_t*)pending->ret_ptr;
@@ -137,7 +143,7 @@ bool Me_Ser::protocol_input() {
       } else {
         msg(0, "Read(%u,%u) = %ld", pending->address, pending->MeParID, *src_ptr);
       }
-    } else if (pending->ret_type == Me_FLOAT32) {
+    } else if (pending->ret_type == Me_Query::Me_FLOAT32) {
       float *src_ptr = (float *)(&value);
       if (pending->ret_ptr) {
         float *dest_ptr = (float*)pending->ret_ptr;
@@ -152,10 +158,10 @@ bool Me_Ser::protocol_input() {
 }
 
 bool Me_Ser::protocol_timeout() {
-  TO.clear();
+  TO.Clear();
   if (pending) {
     report_err("Timeout on %s address %u MeParID %u",
-      pending->MeParType == Me_ACK ? "command to" : "query from",
+      pending->ret_type == Me_Query::Me_ACK ? "command to" : "query from",
       pending->address, pending->MeParID);
     if (!pending->persistent) {
       Free_queue.push_back(pending);
@@ -168,14 +174,14 @@ bool Me_Ser::protocol_timeout() {
   return false;
 }
 
-bool tm_sync() {
+bool Me_Ser::tm_sync() {
   if (cur_poll == TM_queue.end()) {
     cur_poll = TM_queue.begin();
     process_requests();
   }
 }
 
-void process_requests() {
+void Me_Ser::process_requests() {
   if (pending) return;
   if (!Transient_queue.empty()) {
     pending = Transient_queue.front();

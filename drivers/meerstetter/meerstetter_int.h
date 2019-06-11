@@ -29,10 +29,6 @@ class Me_Query {
     void setup_float32_query(uint8_t address, uint16_t MeParID, float *ret_ptr);
     void setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t value);
     void set_persistent(bool persistent);
-    // inline bool get_persistent() { return persistent; }
-    // inline uint8_t get_address() { return address; }
-    // inline uint16_t get_MeParID() { return MeParID; }
-    // inline MeParType get_MeParType() { return MeParType; }
   protected:
     /** true if query lives on the TM_queue, false if it is from
      * the Cmd_queue and should be removed and recycled onto the
@@ -63,7 +59,7 @@ class Me_Query {
 
 class Me_Ser : public Ser_Sel {
   public:
-    Me_Ser();
+    Me_Ser(const char *path);
     void enqueue_request(Me_Query *req, bool persistent);
     Me_Query *new_query();
   protected:
@@ -72,6 +68,7 @@ class Me_Ser : public Ser_Sel {
     bool protocol_timeout();
     bool tm_sync();
     void process_requests();
+    int not_hex(uint32_t &hex32, int width);
     Timeout TO;
     Me_Query *pending;
     std::list<Me_Query*> Transient_queue;
