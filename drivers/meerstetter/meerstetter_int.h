@@ -1,6 +1,7 @@
 #ifndef MEERSTETTER_INT_H_INCLUDED
-#ifndef MEERSTETTER_INT_H_INCLUDED
+#define MEERSTETTER_INT_H_INCLUDED
 #include <list>
+#include <stdint.h>
 #include "SerSelector.h"
 /*
  * Cmd client
@@ -23,7 +24,7 @@ class Me_Query {
      */
     const char *get_cmd(int *cmdlen);
     const char *get_raw_cmd();
-    enum MeParType ( Me_ACK, Me_INT32, Me_FLOAT32 );
+    typedef enum { Me_ACK, Me_INT32, Me_FLOAT32 } MeParType;
     void setup_int32_query(uint8_t address, uint16_t MeParID, int32_t *ret_ptr);
     void setup_float32_query(uint8_t address, uint16_t MeParID, float *ret_ptr);
     void setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t value);

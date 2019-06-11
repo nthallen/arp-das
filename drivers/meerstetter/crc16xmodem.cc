@@ -270,7 +270,7 @@ static unsigned short const table_word[][256] = {
 #endif
 
 unsigned crc16xmodem_byte(unsigned crc, void const *mem, size_t len) {
-    unsigned char const *data = mem;
+    unsigned char const *data = (unsigned char const *)mem;
     if (data == NULL)
         return 0;
     while (len--)
