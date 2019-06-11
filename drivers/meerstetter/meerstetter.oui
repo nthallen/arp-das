@@ -1,0 +1,8 @@
+<package> meerstetter
+<include> "meerstetter_int.h"
+<opts> "p:"
+<sort>
+        -p <path> path to serial device
+
+<switch>
+  case 'p': Me_Ser_path = optarg; break;

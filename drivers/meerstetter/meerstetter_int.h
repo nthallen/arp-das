@@ -3,11 +3,9 @@
 #include <list>
 #include <stdint.h>
 #include "SerSelector.h"
-/*
- * Cmd client
- * TM client
- * Serial client
- */
+
+extern const char *Me_Ser_path;
+
 class Me_Ser;
 
 class Me_Query {

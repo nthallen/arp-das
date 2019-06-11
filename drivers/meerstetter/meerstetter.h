@@ -3,10 +3,12 @@
 #include <stdint.h>
 
 typedef struct __attribute__((packed)) {
-  sometype DeviceStatus;
-  sometype ObjectTemp;
-  sometype SinkTemp;
-  sometype TargetObjectTemp;
-};
+  int32_t DeviceStatus;
+  float   ObjectTemp;
+  float   SinkTemp;
+  float   TargetObjectTemp;
+} meerstetter_t;
+
+extern meerstetter_t meerstetter;
 
 #endif
