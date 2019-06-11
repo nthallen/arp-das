@@ -62,14 +62,14 @@ class Me_Query {
 };
 
 class Me_Ser : public Ser_Selectee {
-	public:
-		Me_Ser();
+  public:
+    Me_Ser();
     void enqueue_request(Me_Query *req, bool persistent);
     Me_Query *new_query();
-	protected:
-		bool ProcessData(int flags);
-		bool protocol_input();
-		bool protocol_timeout();
+  protected:
+    bool ProcessData(int flags);
+    bool protocol_input();
+    bool protocol_timeout();
     bool tm_sync();
     void process_requests();
     Timeout TO;
@@ -81,11 +81,11 @@ class Me_Ser : public Ser_Selectee {
 };
 
 class Me_Cmd : public Cmd_Selectee {
-	public:
-		Me_Cmd(Me_Ser *ser);
-	protected:
-		bool ProcessData(int flags);
-		bool app_input();
+  public:
+    Me_Cmd(Me_Ser *ser);
+  protected:
+    bool ProcessData(int flags);
+    bool app_input();
     int not_hex(uint32_t &hex32);
     bool not_any(const char *alternatives);
     Me_Ser *ser;

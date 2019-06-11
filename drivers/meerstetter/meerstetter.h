@@ -4,9 +4,9 @@
 
 typedef struct __attribute__((packed)) {
   sometype DeviceStatus;
-	sometype ObjectTemp;
-	sometype SinkTemp;
-	sometype TargetObjectTemp;
+  sometype ObjectTemp;
+  sometype SinkTemp;
+  sometype TargetObjectTemp;
 };
 
 #endif
