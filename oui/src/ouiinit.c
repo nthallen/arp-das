@@ -4,7 +4,7 @@
    compiler
    nl_error_init
 */
-char *opt_string = "uqkwvo:";
+const char *opt_string = "uqkwvo:";
 #include "oui.h"
 #include "ouidefs.h"
 #include <unistd.h>
