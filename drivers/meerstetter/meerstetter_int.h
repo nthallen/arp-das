@@ -61,13 +61,13 @@ class Me_Query {
     static uint16_t Sequence_Number;
 };
 
-class Me_Ser : public Ser_Selectee {
+class Me_Ser : public Ser_Sel {
   public:
     Me_Ser();
     void enqueue_request(Me_Query *req, bool persistent);
     Me_Query *new_query();
   protected:
-    bool ProcessData(int flags);
+    int ProcessData(int flags);
     bool protocol_input();
     bool protocol_timeout();
     bool tm_sync();
@@ -84,9 +84,10 @@ class Me_Cmd : public Cmd_Selectee {
   public:
     Me_Cmd(Me_Ser *ser);
   protected:
-    bool ProcessData(int flags);
+    int ProcessData(int flag);
     bool app_input();
     int not_hex(uint32_t &hex32);
+    bool not_uint16(uint16_t &output_val);
     bool not_any(const char *alternatives);
     Me_Ser *ser;
 };

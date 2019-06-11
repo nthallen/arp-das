@@ -8,32 +8,32 @@
 
 
 
-Me_Cmd::Me_Cmd(Me_ser *ser)
+Me_Cmd::Me_Cmd(Me_Ser *ser)
     : Cmd_Selectee("cmd/Me"),
       ser(ser) {
 }
 
-bool Me_Cmd::ProcessData(int flags) {
+int Me_Cmd::ProcessData(int flag) {
   // Fill in with code from DAS_IO::Interface::ProcessData()
   // I have commented out code we are not using, since we
   // do not have the default functions referenced
   // if ((flags & flag & gflag(0)) && tm_sync())
     // return true;
-  if ((flags&Fl_Read) && (flags&flag&(Fl_Read|Fl_Timeout))) {
-    if (fillbuf(bufsize, flag)) return true;
+  if ((flags&Selector::Sel_Read) && (flags&flag&(Selector::Sel_Read|Selector::Sel_Timeout))) {
+    if (fillbuf()) return true;
     if (fd < 0) return false;
-    if (protocol_input()) return true;
+    if (app_input()) return true;
   }
-  // if ((flags & flag & Fl_Write) && iwrite_check())
+  // if ((flags & flag & Sel_Write) && iwrite_check())
     // return true;
-  // if ((flags & flag & Fl_Except) && protocol_except())
+  // if ((flags & flag & Sel_Except) && protocol_except())
     // return true;
-  // if ((flags & flag & Fl_Timeout) && TO.Expired() && protocol_timeout())
+  // if ((flags & flag & Sel_Timeout) && TO.Expired() && protocol_timeout())
     // return true;
   // if (TO.Set()) {
-    // flags |= Fl_Timeout;
+    // flags |= Sel_Timeout;
   // } else {
-    // flags &= ~Fl_Timeout;
+    // flags &= ~Sel_Timeout;
   // }
   return false;
 }
@@ -47,6 +47,8 @@ bool Me_Cmd::ProcessData(int flags) {
  */
 bool Me_Cmd::app_input() {
   uint32_t hex32;
+  uint8_t address;
+  uint16_t MeParID;
   Me_Query *Q;
   if (nc == 0) return true;
   if (not_any("RWQ")) {
@@ -65,8 +67,8 @@ bool Me_Cmd::app_input() {
         consume(nc);
         return false;
       }
-      Q = new_query();
-      Q->setup_uint32_cmd(address, MeParID, &hex32);
+      Q = ser->new_query();
+      Q->setup_uint32_cmd(address, MeParID, hex32);
       ser->enqueue_request(Q, false);
       break;
     case 'R':
@@ -78,8 +80,8 @@ bool Me_Cmd::app_input() {
         consume(nc);
         return false;
       }
-      Q = new_query();
-      if (cp[1] == 'I') {
+      Q = ser->new_query();
+      if (buf[1] == 'I') {
         Q->setup_int32_query(address, MeParID, 0);
       } else {
         Q->setup_float32_query(address, MeParID, 0);
