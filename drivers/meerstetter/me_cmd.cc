@@ -133,3 +133,47 @@ bool Me_Cmd::not_any(const char *alternatives) {
   }
   return true;
 }
+
+bool Me_Cmd::not_uint16(uint16_t &output_val) {
+  uint32_t val = 0;
+  if (buf[cp] == '-') {
+    if (isdigit(buf[++cp])) {
+      while (isdigit(buf[cp])) {
+        ++cp;
+      }
+      if (cp < nc)
+        report_err("not_uint16: Negative int truncated at col %d",
+          cp);
+    } else {
+      if (cp < nc)
+        report_err("Found '-' and no digits at col %d", cp);
+      return true;
+    }
+  } else if (isdigit(buf[cp])) {
+    while (isdigit(buf[cp])) {
+      val = val*10 + buf[cp++] - '0';
+    }
+  } else {
+    if (cp < nc)
+      report_err("not_uint16: no digits at col %d", cp);
+    return true;
+  }
+  if (val > 65535) {
+    report_err("value exceeds uint16_t range at col %d", cp--);
+    return true;
+  }
+  output_val = val;
+  return false;
+}
+
+bool Me_Cmd::not_uint8(uint8_t &val) {
+  uint16_t sval;
+  if (not_uint16(sval)) return true;
+  if (sval > 255) {
+    report_err("uint8_t value out of range: %u at col %d",
+      sval, cp--);
+    return true;
+  }
+  val = sval;
+  return false;
+}

@@ -88,6 +88,7 @@ class Me_Cmd : public Cmd_Selectee {
     bool app_input();
     int not_hex(uint32_t &hex32);
     bool not_uint16(uint16_t &output_val);
+    bool not_uint8(uint8_t &val);
     bool not_any(const char *alternatives);
     Me_Ser *ser;
 };
