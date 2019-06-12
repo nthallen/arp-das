@@ -13,4 +13,4 @@
 
 <package> msghdr_default
 <var>
-  char *msg_hdr_default = "Me";
+  const char *msg_hdr_default = "Me";
