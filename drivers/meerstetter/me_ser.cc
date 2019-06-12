@@ -4,6 +4,8 @@
 #include "nortlib.h"
 #include "msg.h"
 
+bool rs485_echos = false;
+
 Me_Ser::Me_Ser(const char *path) : Ser_Sel(path, O_RDWR|O_NONBLOCK, 400) {
   pending = 0;
   flags = Selector::Sel_Read | Selector::gflag(0);
@@ -80,19 +82,29 @@ int Me_Ser::not_hex(uint32_t &hexval, int width) {
 bool Me_Ser::protocol_input() {
   uint32_t address, seq_num, value, crc, err_code;
   uint16_t re_crc;
+  cp = 0;
   if (!pending) {
     report_err("Unexpected input");
     consume(nc);
     return false;
   }
-  if (not_found('!')) return false;
+  if (rs485_echos && not_str(pending_cmd, pending_cmdlen)) {
+  }
+  if (not_found('!')) {
+    update_tc_vmin(pending_replen - nc);
+    return false;
+  }
   if (cp > 1) {
     consume(cp-1);
     cp = 1;
   }
   if (not_hex(address, 2) || not_hex(seq_num, 4)) {
-    if (cp >= nc) return false;
-    report_err("Invalid response");
+    if (cp >= nc) {
+      update_tc_vmin(pending_replen - nc);
+    } else {
+      consume(nc);
+      free_pending();
+    }
     return false;
   }
   if (address != pending->address || seq_num != pending->SeqNr)
@@ -117,12 +129,17 @@ bool Me_Ser::protocol_input() {
         }
       }
       consume(nc);
+      free_pending();
       return false;
     }
     if (pending->ret_type != Me_Query::Me_ACK) {
       if (not_hex(value,8)) {
-        if (cp < nc)
+        if (cp >= nc) {
+          update_tc_vmin(pending_replen-nc);
+        } else {
           consume(nc);
+          free_pending();
+        }
         return false;
       }
       re_crc = pending->req_crc;
@@ -130,12 +147,17 @@ bool Me_Ser::protocol_input() {
       re_crc = crc16xmodem_byte(0, &buf[0], cp);
     }
     if (not_hex(crc, 4) || not_str("\r")) {
-      if (cp < nc)
+      if (cp >= nc) {
+        update_tc_vmin(pending_replen-nc);
+      } else {
         consume(nc);
+        free_pending();
+      }
       return false;
     } else if (crc != re_crc) {
       report_err("Bad CRC: Calculated %lu, expected %u", crc, re_crc);
       consume(nc);
+      free_pending();
       return false;
     } else if (pending->ret_type == Me_Query::Me_INT32) {
       int32_t *src_ptr = (int32_t *)(&value);
@@ -159,6 +181,7 @@ bool Me_Ser::protocol_input() {
         (*pending->callback)(pending);
     }
     consume(nc);
+    free_pending();
   }
   return false;
 }
@@ -169,11 +192,7 @@ bool Me_Ser::protocol_timeout() {
     report_err("Timeout on %s address %u MeParID %u",
       pending->ret_type == Me_Query::Me_ACK ? "command to" : "query from",
       pending->address, pending->MeParID);
-    if (!pending->persistent) {
-      Free_queue.push_back(pending);
-    }
-    pending = 0;
-    process_requests();
+    free_pending();
   } else {
     report_err("Unexpected timeout while not pending");
   }
@@ -187,6 +206,17 @@ bool Me_Ser::tm_sync() {
   }
 }
 
+void Me_Ser::free_pending() {
+  TO.Clear();
+  if (pending) {
+    if (!pending->persistent) {
+      Free_queue.push_back(pending);
+    }
+    pending = 0;
+  }
+  process_requests();
+}
+
 void Me_Ser::process_requests() {
   if (pending) return;
   if (!Transient_queue.empty()) {
@@ -198,11 +228,12 @@ void Me_Ser::process_requests() {
   } else {
     return;
   }
-  int cmdlen;
-  const char *cmd = pending->get_cmd(&cmdlen);
-  int rc = write(fd, cmd, cmdlen);
-  if (rc != cmdlen) {
-    nl_error(3, "Incomplete write to Meerstetter: %d/%d", rc, cmdlen);
+  pending_cmd = pending->get_cmd(&pending_cmdlen);
+  int rc = write(fd, pending_cmd, pending_cmdlen);
+  if (rc != pending_cmdlen) {
+    nl_error(3, "Incomplete write to Meerstetter: %d/%d", rc, pending_cmdlen);
   }
+  pending_replen = pending->replen + (rs485_echos ? pending_cmdlen : 0);
+  update_tc_vmin(pending_replen - nc);
   TO.Set(0, 100);
 }

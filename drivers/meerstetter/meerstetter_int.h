@@ -5,6 +5,7 @@
 #include "SerSelector.h"
 
 extern const char *Me_Ser_path;
+extern bool rs485_echos;
 
 class Me_Ser;
 
@@ -43,6 +44,7 @@ class Me_Query {
     uint16_t req_crc;
     uint16_t MeParID;
     uint16_t SeqNr;
+    int replen;
   private:
     void setup_address(uint8_t address, uint16_t MeParID);
     /**
@@ -68,10 +70,14 @@ class Me_Ser : public Ser_Sel {
     bool protocol_input();
     bool protocol_timeout();
     bool tm_sync();
+    void free_pending();
     void process_requests();
     int not_hex(uint32_t &hex32, int width);
     Timeout TO;
     Me_Query *pending;
+    const char *pending_cmd;
+    int pending_cmdlen;
+    int pending_replen;
     std::list<Me_Query*> Transient_queue;
     std::list<Me_Query*> TM_queue;
     std::list<Me_Query*> Free_queue;

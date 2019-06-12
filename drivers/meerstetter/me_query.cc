@@ -10,7 +10,8 @@ Me_Query::Me_Query()
     ret_ptr(0),
     address(0),
     MeParID(0),
-    SeqNr(0)
+    SeqNr(0),
+    replen(0)
     {}
 
 Me_Query::~Me_Query() {}
@@ -24,6 +25,7 @@ void Me_Query::init() {
   address = 0;
   MeParID = 0;
   SeqNr = 0;
+  replen = 0;
 }
 
 const char *Me_Query::get_cmd(int *cmdlenptr) {
@@ -49,6 +51,7 @@ void Me_Query::setup_int32_query(uint8_t address, uint16_t MeParID, int32_t *ret
   to_hex(1, 2, cmdlen); //instance == 1
   ret_type = Me_INT32;
   this->ret_ptr = (void *)ret_ptr;
+  replen = 15; // Reply is 20 chars, but error reply is 15
 }
 
 void Me_Query::setup_float32_query(uint8_t address, uint16_t MeParID, float *ret_ptr) {
@@ -58,6 +61,7 @@ void Me_Query::setup_float32_query(uint8_t address, uint16_t MeParID, float *ret
   to_hex(1, 2, cmdlen); //instance == 1
   ret_type = Me_FLOAT32;
   this->ret_ptr = (void *)ret_ptr;
+  replen = 15; // Reply is 20 chars, but error reply is 15
 }
 
 void Me_Query::setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t value) {
@@ -68,6 +72,7 @@ void Me_Query::setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t valu
   to_hex(1, 2, cmdlen); //instance == 1
   to_hex(value, 8, cmdlen);
   ret_type = Me_ACK;
+  replen = 12; // Error requires 15
 }
 
 void Me_Query::set_persistent(bool persistent) {
