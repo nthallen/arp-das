@@ -69,7 +69,7 @@ bool Me_Cmd::app_input() {
       }
       Q = ser->new_query();
       Q->setup_uint32_cmd(address, MeParID, hex32);
-      ser->enqueue_request(Q, false);
+      ser->enqueue_request(Q);
       break;
     case 'R':
       if (not_any("IF") ||
@@ -86,7 +86,7 @@ bool Me_Cmd::app_input() {
       } else {
         Q->setup_float32_query(address, MeParID, 0);
       }
-      ser->enqueue_request(Q, false);
+      ser->enqueue_request(Q);
       break;
     default:
       report_err("Invalid command");

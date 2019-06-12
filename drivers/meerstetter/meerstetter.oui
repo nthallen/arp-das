@@ -1,8 +1,14 @@
 <package> meerstetter
 <include> "meerstetter_int.h"
+<include> msg
+<follow> msg
 <opts> "p:"
 <sort>
-        -p <path> path to serial device
+	-p <path> path to serial device
 
 <switch>
   case 'p': Me_Ser_path = optarg; break;
+
+<package> msghdr_default
+<var>
+  char *msg_hdr_default = "Me";

@@ -6,7 +6,7 @@
 const char *Me_Ser_path = "/dev/ser1";
 meerstetter_t meerstetter;
 
-struct {
+struct board_id_t {
   int32_t device_type; // 100
   int32_t hw_version; // 101, fixed point %.2lf
   int32_t serial_num; // 102
@@ -15,7 +15,7 @@ struct {
 } board_id;
 
 void report_board_id(Me_Query *Q) {
-  msg(MSG_INFO,
+  msg(0,
     "Addr:%d TEC%ld HW V%.2lf S/N %ld FW V%.2lf Build %d",
     Q->get_address(), board_id.hw_version * 0.01,
     board_id.serial_num, board_id.fw_version * 0.01,
@@ -49,15 +49,15 @@ void poll_board(Me_Ser *ser, uint8_t address) {
   Q->set_persistent(true);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_int32_query(address, 1000, &meerstetter.ObjectTemp);
+  Q->setup_float32_query(address, 1000, &meerstetter.ObjectTemp);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_int32_query(address, 1001, &meerstetter.SinkTemp);
+  Q->setup_float32_query(address, 1001, &meerstetter.SinkTemp);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_int32_query(address, 1010, &meerstetter.TargetObjectTemp);
+  Q->setup_float32_query(address, 1010, &meerstetter.TargetObjectTemp);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
 }
@@ -71,6 +71,7 @@ int main(int argc, char **argv) {
   oui_init_options(argc, argv);
   Selector S;
   Me_Ser Ser(Me_Ser_path);
+  Ser.setup(57600, 8, 'N', 1, 1, 1);
   Me_Cmd Cmd(&Ser);
   TM_Selectee TM("meerstetter", &meerstetter, sizeof(meerstetter));
   S.add_child(&Ser);

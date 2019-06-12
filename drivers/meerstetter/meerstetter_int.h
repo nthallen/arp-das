@@ -28,6 +28,7 @@ class Me_Query {
     void setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t value);
     void set_persistent(bool persistent);
     void set_callback(void (*callback)(Me_Query *));
+    inline uint8_t get_address() { return address; }
   protected:
     /** true if query lives on the TM_queue, false if it is from
      * the Cmd_queue and should be removed and recycled onto the

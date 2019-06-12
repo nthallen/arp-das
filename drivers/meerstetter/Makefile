@@ -6,6 +6,7 @@ LIBS = -ltmpp -ltm -lnort
 
 meerstetter : $(OBJ)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o meerstetter $(OBJ) $(LIBS)
+	usemsg -c meerstetter meerstetteroui.cc
 meerstetteroui.o : meerstetteroui.cc
 meerstetteroui.cc : meerstetter.oui
 	oui -o meerstetteroui.cc meerstetter.oui
