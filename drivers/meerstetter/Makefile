@@ -1,6 +1,6 @@
 OBJ = crc16xmodem.o me_cmd.o me_query.o me_ser.o main.o
 OBJ += meerstetteroui.o
-CXXFLAGS=-I/usr/local/include
+CXXFLAGS=-I/usr/local/include -g -Wall
 LDFLAGS = -Wl,-rpath -Wl,/usr/local/lib -L/usr/local/lib
 LIBS = -ltmpp -ltm -lnort
 

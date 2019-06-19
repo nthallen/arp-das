@@ -65,6 +65,7 @@ class Me_Ser : public Ser_Sel {
     Me_Ser(const char *path);
     void enqueue_request(Me_Query *req);
     Me_Query *new_query();
+    inline Timeout *GetTimeout() { return &TO; }
   protected:
     int ProcessData(int flags);
     bool protocol_input();

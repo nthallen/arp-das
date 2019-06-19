@@ -22,6 +22,7 @@ void Me_Ser::enqueue_request(Me_Query *req) {
 Me_Query *Me_Ser::new_query() {
   Me_Query *Q;
   if (Free_queue.empty()) {
+    Q = new Me_Query();
   } else {
     Q = Free_queue.front();
     Free_queue.pop_front();
@@ -31,6 +32,10 @@ Me_Query *Me_Ser::new_query() {
 }
 
 int Me_Ser::ProcessData(int flag) {
+  msg(MSG_DBG(1),
+    "ProcessData: flags 0x%2X flag: 0x%2X TO: %s",
+    flags, flag,
+    TO.Set() ? (TO.Expired() ? "Expired" : "Set") : "Clear");
   if ((flags & flag & Selector::gflag(0)) && tm_sync())
     return true;
   if ((flags&Selector::Sel_Read) &&
@@ -89,14 +94,22 @@ bool Me_Ser::protocol_input() {
     return false;
   }
   if (rs485_echos && not_str(pending_cmd, pending_cmdlen)) {
-  }
-  if (not_found('!')) {
-    update_tc_vmin(pending_replen - nc);
+    if (cp >= nc) {
+      update_tc_vmin(pending_replen - nc);
+    } else {
+      consume(nc);
+      free_pending();
+    }
     return false;
   }
-  if (cp > 1) {
-    consume(cp-1);
-    cp = 1;
+  if (not_str("!")) {
+    if (cp >= nc) {
+      update_tc_vmin(pending_replen - nc);
+    } else {
+      consume(nc);
+      free_pending();
+    }
+    return false;
   }
   if (not_hex(address, 2) || not_hex(seq_num, 4)) {
     if (cp >= nc) {
@@ -189,9 +202,9 @@ bool Me_Ser::protocol_input() {
 bool Me_Ser::protocol_timeout() {
   TO.Clear();
   if (pending) {
-    report_err("Timeout on %s address %u MeParID %u",
+    report_err("Timeout on %s address %u MeParID %u nc:%d",
       pending->ret_type == Me_Query::Me_ACK ? "command to" : "query from",
-      pending->address, pending->MeParID);
+      pending->address, pending->MeParID, nc);
     free_pending();
   } else {
     report_err("Unexpected timeout while not pending");
@@ -204,6 +217,7 @@ bool Me_Ser::tm_sync() {
     cur_poll = TM_queue.begin();
     process_requests();
   }
+  return false;
 }
 
 void Me_Ser::free_pending() {
@@ -229,6 +243,7 @@ void Me_Ser::process_requests() {
     return;
   }
   pending_cmd = pending->get_cmd(&pending_cmdlen);
+  msg(MSG_DBG(0), "Write Req: '%s'", pending_cmd);
   int rc = write(fd, pending_cmd, pending_cmdlen);
   if (rc != pending_cmdlen) {
     nl_error(3, "Incomplete write to Meerstetter: %d/%d", rc, pending_cmdlen);
@@ -236,4 +251,5 @@ void Me_Ser::process_requests() {
   pending_replen = pending->replen + (rs485_echos ? pending_cmdlen : 0);
   update_tc_vmin(pending_replen - nc);
   TO.Set(0, 100);
+  flags |= Selector::Sel_Timeout;
 }

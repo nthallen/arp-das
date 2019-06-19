@@ -4,14 +4,15 @@
 #include "msg.h"
 
 Me_Query::Me_Query()
-  : cmdlen(0),
+  :
     persistent(false),
     ret_type(Me_ACK),
     ret_ptr(0),
     address(0),
     MeParID(0),
     SeqNr(0),
-    replen(0)
+    replen(0),
+    cmdlen(0)
     {}
 
 Me_Query::~Me_Query() {}
