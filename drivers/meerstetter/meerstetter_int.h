@@ -23,7 +23,7 @@ class Me_Query {
      */
     const char *get_cmd(int *cmdlen);
     const char *get_raw_cmd();
-    typedef enum { Me_ACK, Me_INT32, Me_FLOAT32 } MeParType;
+    enum MeParType { Me_ACK, Me_INT32, Me_FLOAT32 };
     void setup_int32_query(uint8_t address, uint16_t MeParID, int32_t *ret_ptr);
     void setup_float32_query(uint8_t address, uint16_t MeParID, float *ret_ptr);
     void setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t value);

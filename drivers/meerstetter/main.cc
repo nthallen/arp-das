@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
   oui_init_options(argc, argv);
   Selector S;
   Me_Ser Ser(Me_Ser_path);
-  Ser.setup(57600, 8, 'N', 1, 1, 1);
+  Ser.setup(57600, 8, 'n', 1, 1, 1);
   Me_Cmd Cmd(&Ser);
   TM_Selectee TM("meerstetter", &meerstetter, sizeof(meerstetter));
   S.add_child(&Ser);
