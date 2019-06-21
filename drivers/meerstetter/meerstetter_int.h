@@ -58,6 +58,7 @@ class Me_Query {
     char cmd[max_command_length];
     int cmdlen;
     static uint16_t Sequence_Number;
+    bool crc_applied;
 };
 
 class Me_Ser : public Ser_Sel {

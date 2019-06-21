@@ -12,7 +12,8 @@ Me_Query::Me_Query()
     MeParID(0),
     SeqNr(0),
     replen(0),
-    cmdlen(0)
+    cmdlen(0),
+    crc_applied(false)
     {}
 
 Me_Query::~Me_Query() {}
@@ -27,15 +28,21 @@ void Me_Query::init() {
   MeParID = 0;
   SeqNr = 0;
   replen = 0;
+  crc_applied = false;
 }
 
 const char *Me_Query::get_cmd(int *cmdlenptr) {
   SeqNr = ++Sequence_Number;
   to_hex(SeqNr, 4, 3);
+  if (crc_applied) {
+    cmdlen -= 5;
+    crc_applied = false;
+  }
   req_crc = crc16xmodem_byte(0, &cmd[0], cmdlen);
   to_hex(req_crc, 4, cmdlen);
   cmd[cmdlen++] = '\r';
   cmd[cmdlen] = '\0';
+  crc_applied = true;
   if (cmdlenptr)
     *cmdlenptr = cmdlen;
   return &cmd[0];
