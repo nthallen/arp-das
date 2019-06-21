@@ -8,6 +8,7 @@ bool rs485_echos = false;
 
 Me_Ser::Me_Ser(const char *path) : Ser_Sel(path, O_RDWR|O_NONBLOCK, 400) {
   pending = 0;
+  cur_poll = TM_queue.end();
   flags = Selector::Sel_Read | Selector::gflag(0);
 }
 
@@ -205,9 +206,11 @@ bool Me_Ser::protocol_timeout() {
     report_err("Timeout on %s address %u MeParID %u nc:%d",
       pending->ret_type == Me_Query::Me_ACK ? "command to" : "query from",
       pending->address, pending->MeParID, nc);
+    consume(nc);
     free_pending();
   } else {
     report_err("Unexpected timeout while not pending");
+    consume(nc);
   }
   return false;
 }
@@ -243,7 +246,7 @@ void Me_Ser::process_requests() {
     return;
   }
   pending_cmd = pending->get_cmd(&pending_cmdlen);
-  msg(MSG_DBG(0), "Write Req: '%s'", pending_cmd);
+  msg(MSG_DBG(0), "Write Req: '%s'", ascii_escape(pending_cmd));
   int rc = write(fd, pending_cmd, pending_cmdlen);
   if (rc != pending_cmdlen) {
     nl_error(3, "Incomplete write to Meerstetter: %d/%d", rc, pending_cmdlen);

@@ -96,10 +96,10 @@ void Me_Query::to_hex(uint32_t val, int width, int cp) {
   uint32_t rval = val;
   nl_assert(cp+width < max_command_length);
   for (int i = width-1; i >= 0; --i) {
-    uint8_t byte = val & 0xFF;
-    byte += (byte <= 10) ? '0' : ('A'-10);
+    uint8_t byte = val & 0xF;
+    byte += (byte < 10) ? '0' : ('A'-10);
     cmd[cp+i] = byte;
-    val >>= 8;
+    val >>= 4;
   }
   if (val != 0)
     msg(MSG_WARN, "Me_Query::to_hex(%lu, %d, %d) has insufficient width", rval, width, cp);
