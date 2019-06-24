@@ -16,7 +16,7 @@ struct board_id_t {
 
 void report_board_id(Me_Query *Q) {
   msg(0,
-    "Addr:%d TEC%ld HW V%.2lf S/N %ld FW V%.2lf Build %ld",
+    "Addr:%d TEC-%ld HW V%.2lf S/N %ld FW V%.2lf Build %ld",
     Q->get_address(), board_id.device_type,
     board_id.hw_version * 0.01,
     board_id.serial_num,
