@@ -103,6 +103,7 @@ bool Me_Ser::protocol_input() {
     }
     return false;
   }
+  unsigned int rep_cp = cp;
   if (not_str("!")) {
     if (cp >= nc) {
       update_tc_vmin(pending_replen - nc);
@@ -135,7 +136,7 @@ bool Me_Ser::protocol_input() {
       if (not_hex(err_code, 2) || not_hex(crc, 4) || not_str("\r")) {
         if (cp >= nc) return false;
       } else {
-        re_crc = crc16xmodem_byte(0, &buf[0], cp-5);
+        re_crc = crc16xmodem_byte(0, &buf[rep_cp], cp-rep_cp-5);
         if (crc != re_crc) {
           report_err("Invalid CRC %u on error response, received %lu", re_crc, crc);
         } else {
@@ -156,9 +157,9 @@ bool Me_Ser::protocol_input() {
         }
         return false;
       }
-      re_crc = pending->req_crc;
+      re_crc = crc16xmodem_byte(0, &buf[rep_cp], cp-rep_cp);
     } else {
-      re_crc = crc16xmodem_byte(0, &buf[0], cp);
+      re_crc = pending->req_crc;
     }
     if (not_hex(crc, 4) || not_str("\r")) {
       if (cp >= nc) {
