@@ -6,6 +6,9 @@
 
 extern const char *Me_Ser_path;
 extern bool rs485_echos;
+extern const char *address_opts;
+#define ME_MIN_ADDRESS 1
+#define ME_MAX_ADDRESS 254
 
 class Me_Ser;
 
@@ -40,8 +43,10 @@ class Me_Query {
     void *ret_ptr;
     void (*callback)(Me_Query*);
     /* Store these in case it's useful for debugging messages */
+    /** The RS-485 device ID */
     uint8_t address;
     uint16_t req_crc;
+    /** The Meerstetter parameter ID (i.e. register address) */
     uint16_t MeParID;
     uint16_t SeqNr;
     int replen;

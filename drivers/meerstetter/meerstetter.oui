@@ -2,12 +2,17 @@
 <include> "meerstetter_int.h"
 <include> msg
 <follow> msg
-<opts> "ep:"
+<opts> "a:ep:"
 <sort>
 	-p <path> path to serial device
 	-e RS485 will echo outbound requests back
+	-a <addresses> comma-separated list of <RS485 device addresses>:<Mnemonic> pairs
+
+<comment>
+  e.g. -a 1:LTEC,2:CellTC
 
 <switch>
+  case 'a': address_opts = optarg; break;
   case 'e': rs485_echos = true; break;
   case 'p': Me_Ser_path = optarg; break;
 
