@@ -1,0 +1,6 @@
+# Meerstetter.txt
+Name ME
+Rate 1 Hz
+Port /dev/ser3
+Data LTE  1 "Laser TEC"
+Data Cell 2 "Cell Temp"

@@ -1,0 +1,17 @@
+Moduledef Meerstetter [ src= name=ME ] {
+  Meerstetter Module requires a src variable
+  Source file syntax:
+    source_file : source_line+ .
+    source_line :
+      comment /
+      'Name' word /
+      'Rate' \d+ 'Hz' /
+      'Port' path /
+      'Data' word address command .
+    word : \w+ .
+    address : \d+ .
+    command : '"' \w+ [\s\w+]* '"' .
+  
+  If the command string is non-empty, a command is defined to specify
+  a set point for the channel.
+}
