@@ -15,3 +15,14 @@ Moduledef Meerstetter [ src= name=ME ] {
   If the command string is non-empty, a command is defined to specify
   a set point for the channel.
 }
+
+mode (default,driver) {
+  tmcbase = @name@.tmc:
+  colbase = @name@_col.tmc:
+  cmdbase = @name@.cmd:
+  genuibase = @name@.genui:
+  SRC = @src@
+  %%
+@name@.tmc @name@_col.tmc @name@.cmd @name@.genui @name@.tbl : @src@ @MODDIR@/Meerstetter_gen
+	@MODDIR@/Meerstetter_gen @src@ name=@name@
+}
