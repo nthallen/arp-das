@@ -7,17 +7,17 @@
 #endif
 
 typedef struct __attribute__((packed)) {
-  int32_t DeviceStatus;
-  float   ObjectTemp;
-  float   SinkTemp;
-  float   TargetObjectTemp;
+  int32_t  DeviceStatus;
+  float    ObjectTemp;
+  float    SinkTemp;
+  float    TargetObjectTemp;
+  uint16_t Mask;
+  uint16_t Stale;
 } me_drive_t;
 
 typedef struct __attribute__((packed)) {
   uint32_t me_status;
   me_drive_t drive[ME_MAX_DRIVES];
 } meerstetter_t;
-
-extern meerstetter_t meerstetter;
 
 #endif

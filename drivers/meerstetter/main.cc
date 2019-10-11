@@ -21,6 +21,31 @@ struct board_id_t {
   char mnemonic[MNEM_LEN];
 } board_id[ME_MAX_DRIVES];
 
+int get_addr_index(uint8_t address) {
+  for (int i = 0; i < n_drives; ++i) {
+    if (board_id[i].device_address == address)
+      return(i);
+  }
+  return -1;
+}
+
+int Me_TM_Selectee::ProcessData(int flag) {
+  int i;
+  for (i = 0; i < n_drives; ++i) {
+    Meerstetter.drive[i].Stale =
+     (meerstetter.drive[i].Mask & 0x1) ?
+       ((meerstetter.drive[i].Stale < 255) ?
+        (meerstetter.drive[i].Stale+1) : 255)
+       : 0;
+  }
+  Col_send(TMid);
+  for (i = 0; i < n_drives; ++i) {
+    Meerstetter.drive[i].Mask = 0x1;
+  }
+  Stor->set_gflag(0);
+  return 0;
+}
+
 void report_board_id(Me_Query *Q) {
   uint8_t address = Q->get_address();
   uint16_t index;
@@ -68,19 +93,19 @@ void poll_board(Me_Ser *ser, int index, uint8_t address) {
   me_drive_t *medp = &meerstetter.drive[index];
   board_id *bdp = board_id[index];
   Me_Query *Q = ser->new_query();
-  Q->setup_int32_query(address, 104, &medp->DeviceStatus);
+  Q->setup_int32_query(address, 104, &medp->DeviceStatus, &medp->Mask, 0x2);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_float32_query(address, 1000, &medp->ObjectTemp);
+  Q->setup_float32_query(address, 1000, &medp->ObjectTemp, &medp->Mask, 0x4);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_float32_query(address, 1001, &medp->SinkTemp);
+  Q->setup_float32_query(address, 1001, &medp->SinkTemp, &medp->Mask, 0x8);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_float32_query(address, 1010, &medp->TargetObjectTemp);
+  Q->setup_float32_query(address, 1010, &medp->TargetObjectTemp, &medp->Mask, 0x10);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
 }
@@ -133,7 +158,7 @@ int main(int argc, char **argv) {
   Me_Ser Ser(Me_Ser_path);
   Ser.setup(57600, 8, 'n', 1, 1, 1);
   Me_Cmd Cmd(&Ser);
-  TM_Selectee TM("meerstetter", &meerstetter, sizeof(meerstetter));
+  Me_TM_Selectee TM("meerstetter");
   S.add_child(&Ser);
   S.add_child(&Cmd);
   S.add_child(&TM);

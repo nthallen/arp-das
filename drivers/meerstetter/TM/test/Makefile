@@ -1,4 +1,4 @@
-.PHONY test clean
+.PHONY : test clean
 test :
 	../Meerstetter_gen Meerstetter.txt name=ME
 clean :
