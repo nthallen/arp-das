@@ -123,13 +123,13 @@ void Me_Query::to_hex(uint32_t val, int width, int cp) {
     cmdlen = cp+width;
 }
 
-void set_bit() {
+void Me_Query::set_bit() {
   if (mask_ptr) {
     *mask_ptr |= mask_bit;
   }
 }
 
-void clear_bit() {
+void Me_Query::clear_bit() {
   if (mask_ptr) {
     *mask_ptr &= ~mask_bit;
     if ((*mask_ptr & ~1) == 0) {

@@ -11,6 +11,7 @@ int get_addr_index(uint8_t address);
 extern const char *Me_Ser_path;
 extern bool rs485_echos;
 extern const char *address_opts;
+extern const char *Me_Name;
 #define ME_MIN_ADDRESS 1
 #define ME_MAX_ADDRESS 254
 

@@ -1,5 +1,8 @@
+#include <stdio.h>
 #include "meerstetter_int.h"
 #include "meerstetter.h"
+#include "msg.h"
+#include "nortlib.h"
 
 /*
  * Cmd client: Me_Cmd -> Cmd_Selectee
@@ -7,10 +10,16 @@
  * Serial client: Me_Ser -> Ser_Selectee
  */
 
-
+static const char *cmd_name(const char *name) {
+  static char nbuf[80];
+  int nc = snprintf(nbuf,80,"cmd/%s", name);
+  if (nc >= 80)
+    msg(MSG_FATAL, "Name length exceeded in cmd_name()");
+  return nbuf;
+}
 
 Me_Cmd::Me_Cmd(Me_Ser *ser)
-    : Cmd_Selectee("cmd/Me", 80),
+    : Cmd_Selectee(cmd_name(Me_Name), 80),
       ser(ser) {
 }
 

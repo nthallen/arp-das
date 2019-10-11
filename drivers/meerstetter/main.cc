@@ -5,12 +5,14 @@
 #include "nl_assert.h"
 
 const char *Me_Ser_path = "/dev/ser1";
+const char *address_opts = "1";
+const char *Me_Name = "ME";
 static int n_drives;
 meerstetter_t meerstetter;
 
 #define MNEM_LEN 10
 
-struct board_id_t {
+typedef struct {
   uint16_t device_index;
   uint16_t device_address;
   int32_t device_type; // 100
@@ -19,7 +21,8 @@ struct board_id_t {
   int32_t fw_version; // 103
   int32_t fw_build;   // 1051
   char mnemonic[MNEM_LEN];
-} board_id[ME_MAX_DRIVES];
+} board_id_t;
+board_id_t board_id[ME_MAX_DRIVES];
 
 int get_addr_index(uint8_t address) {
   for (int i = 0; i < n_drives; ++i) {
@@ -32,7 +35,7 @@ int get_addr_index(uint8_t address) {
 int Me_TM_Selectee::ProcessData(int flag) {
   int i;
   for (i = 0; i < n_drives; ++i) {
-    Meerstetter.drive[i].Stale =
+    meerstetter.drive[i].Stale =
      (meerstetter.drive[i].Mask & 0x1) ?
        ((meerstetter.drive[i].Stale < 255) ?
         (meerstetter.drive[i].Stale+1) : 255)
@@ -40,7 +43,7 @@ int Me_TM_Selectee::ProcessData(int flag) {
   }
   Col_send(TMid);
   for (i = 0; i < n_drives; ++i) {
-    Meerstetter.drive[i].Mask = 0x1;
+    meerstetter.drive[i].Mask = 0x1;
   }
   Stor->set_gflag(0);
   return 0;
@@ -69,7 +72,7 @@ void report_board_id(Me_Query *Q) {
 
 void identify_board(Me_Ser *ser, int index, uint8_t address) {
   nl_assert(index < n_drives);
-  board_id *bdp = board_id[index];
+  board_id_t *bdp = &board_id[index];
   Me_Query *Q = ser->new_query();
   Q->setup_int32_query(address, 100, &bdp->device_type);
   ser->enqueue_request(Q);
@@ -91,7 +94,7 @@ void identify_board(Me_Ser *ser, int index, uint8_t address) {
 void poll_board(Me_Ser *ser, int index, uint8_t address) {
   nl_assert(index < n_drives);
   me_drive_t *medp = &meerstetter.drive[index];
-  board_id *bdp = board_id[index];
+  // board_id_t *bdp = &board_id[index];
   Me_Query *Q = ser->new_query();
   Q->setup_int32_query(address, 104, &medp->DeviceStatus, &medp->Mask, 0x2);
   Q->set_persistent(true);
@@ -110,10 +113,8 @@ void poll_board(Me_Ser *ser, int index, uint8_t address) {
   ser->enqueue_request(Q);
 }
 
-const char *address_opts = "1";
-
 void enqueue_requests(Me_Ser *ser) {
-  char *s = address_opts;
+  const char *s = address_opts;
   int index = 0;
   while (*s) {
     int address = 0;
@@ -158,7 +159,7 @@ int main(int argc, char **argv) {
   Me_Ser Ser(Me_Ser_path);
   Ser.setup(57600, 8, 'n', 1, 1, 1);
   Me_Cmd Cmd(&Ser);
-  Me_TM_Selectee TM("meerstetter");
+  Me_TM_Selectee TM(Me_Name);
   S.add_child(&Ser);
   S.add_child(&Cmd);
   S.add_child(&TM);
