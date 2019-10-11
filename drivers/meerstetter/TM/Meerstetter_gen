@@ -107,11 +107,13 @@ for (my $i = 0; $i < $n_channels; ++$i) {
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_Set_T;\n";
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_T;\n";
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_Sink_T;\n";
+  $datadef .= "TM $Rate Hz ${Name}_Stale_t ${datum}_Stale;\n";
 
   $coldef .= "  ${datum}_DevStatus = ${Name}_drive($i,DeviceStatus);\n";
   $coldef .= "  ${datum}_T = ${Name}_drive($i,ObjectTemp);\n";
   $coldef .= "  ${datum}_Sink_T = ${Name}_drive($i,SinkTemp);\n";
   $coldef .= "  ${datum}_Set_T = ${Name}_drive($i,TargetObjectTemp);\n";
+  $coldef .= "  ${datum}_Stale = ${Name}_drive($i,Stale);\n";
 
   push(@grpmem, map "${datum}_$_", qw(DevStatus T Sink_T Set_T));
 
@@ -122,13 +124,21 @@ for (my $i = 0; $i < $n_channels; ++$i) {
     "  $Rate ${datum}_Sink_T $Name ${datum}_Temp\n";
 
   my $datumtbl =
-    "  ${datum}: (${Name}_DevStatus,7) (${Name}_Sink_T,7) (${Name}_Set_T,7) (${Name}_T,7) C;\n";
+    "  ${datum}: (${datum}_DevStatus,7) (${datum}_Stale,3) (${datum}_Sink_T,7) (${datum}_Set_T,7) (${datum}_T,7) C;\n";
 
   $tbldef .= $datumtbl;
   
   print $tbl
-    "$datum {\n$datumtbl" . 
-    "}\n";
+    "$datum {\n$datumtbl",
+    "}\n\n",
+    "${datum}_v {\n",
+    "  HBox { +-; Title: ${datum}; -+ };\n",
+    "  Status: (${datum}_DevStatus,7);\n",
+    "  Stale:  (${datum}_Stale,3);\n",
+    "  Sink_T: (${datum}_Sink_T,7) C;\n",
+    "  Set_T:  (${datum}_Set_T,7) C;\n",
+    "  T:      (${datum}_T,7) C;\n",
+    "}\n\n";
 
   my $text = $D->{text};
   if (length($text) > 0) {
