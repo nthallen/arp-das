@@ -153,6 +153,7 @@ for (my $i = 0; $i < $n_channels; ++$i) {
 print $tmc <<EOF
 %{
   /* Meerstetter driver interface */
+  #define ME_MAX_DRIVES $n_channels
   #include "meerstetter.h"
   const char *${Name}_DevStatus_text(unsigned char stat) {
     switch (stat) {
@@ -165,7 +166,7 @@ print $tmc <<EOF
       default: return "*******";
     }
   }
-  #define ${Name}_drive(x,y) ${Name}.drive[x].y\n" ,
+  #define ${Name}_drive(x,y) ${Name}.drive[x].y
 %}
 TM typedef unsigned char ${Name}_DevStatus_t { text "%7u" ${Name}_DevStatus_text(); }
 TM typedef unsigned char ${Name}_Stale_t { text "%3u"; }
@@ -183,7 +184,6 @@ print $tmc
 
 print $col
   "%{\n" .
-  "  #include \"meerstetter.h\"\n" .
   "  meerstetter_t $Name;\n" .
   "%}\n";
 
@@ -205,15 +205,15 @@ print $cmd <<EOF
 %INTERFACE <$Name>
 
 &command
-  : &$Name Enable * { if_Me.Turf("W%d:50000:00000001\\n", \$1); }
-  : &$Name Disable * { if_Me.Turf("W%d:50000:00000000\\n", \$1); }
+  : &$Name Enable * { if_$Name.Turf("W%d:50000:00000001\\n", \$1); }
+  : &$Name Disable * { if_$Name.Turf("W%d:50000:00000000\\n", \$1); }
   : &$Name SetPoint %f (Celcius) C * {
       float setpoint = \$3;
       uint32_t *ui32p = (uint32_t *)&setpoint;
-      if_Me.Turf("W%d:50012:%08X\\n", \$1, *ui32p);
+      if_$Name.Turf("W%d:50012:%08X\\n", \$1, *ui32p);
     }
-  : &$Name Live SetPoints Enable * { if_Me.Turf("W%d:50011:00000001\\n", \$1); }
-  : &$Name Live SetPoints Disable * { if_Me.Turf("W%d:50011:00000000\\n", \$1); }
+  : &$Name Live SetPoints Enable * { if_$Name.Turf("W%d:50011:00000001\\n", \$1); }
+  : &$Name Live SetPoints Disable * { if_$Name.Turf("W%d:50011:00000000\\n", \$1); }
   ;
 
 &$Name <int>
