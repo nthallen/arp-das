@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #include "mksflow_int.h"
 #include "mksflow.h"
 #include "msg.h"
@@ -10,28 +12,7 @@ const char *MKS_Name = "MKS";
 static int n_drives;
 mksflow_t mksflow;
 
-#define MNEM_LEN 10
-
-typedef struct {
-  uint16_t device_index;
-  uint16_t device_address;
-  char     manufacturer[4]; // MF (always MKS) bit 0
-  char     model[40];      // MD bit 1
-  char     serial_number[20]; // SN bit 2
-  char     device_type[4]; // DT string query bit 3
-  char     gas_number[4];  // SGN integer query. Validated against GN output bit 4
-  char     gas_search[80]; // GN string query bit 5
-  char     gas_name[20];   // parsed from GN output
-  char     full_scale[10]; // parsed from GN output
-  char     gas_units[8];   // parsed from GN output
-  char     valve_type[20]; // VT (only if device_type is MFC) bit 6
-  char     valve_power_off_state[20]; // VPO (only if device_type is MFC) bit 7
-  char     mnemonic[MNEM_LEN];
-  uint8_t  ACK;
-  bool     is_mfc;
-  bool     is_polling;
-} board_id_t;
-board_id_t board_id[ME_MAX_DRIVES];
+board_id_t board_id[MKS_MAX_DRIVES];
 
 int get_addr_index(uint8_t address) {
   for (int i = 0; i < n_drives; ++i) {
@@ -45,14 +26,14 @@ int MKS_TM_Selectee::ProcessData(int flag) {
   int i;
   for (i = 0; i < n_drives; ++i) {
     mksflow.drive[i].Stale =
-     (mksflow.drive[i].Mask & 0x1) ?
+     (mksflow.drive[i].ACK & 0x1) ?
        ((mksflow.drive[i].Stale < 255) ?
         (mksflow.drive[i].Stale+1) : 255)
        : 0;
   }
   Col_send(TMid);
   for (i = 0; i < n_drives; ++i) {
-    mksflow.drive[i].Mask = 0x1;
+    mksflow.drive[i].ACK = 0x1;
   }
   Stor->set_gflag(0);
   return 0;
@@ -62,9 +43,9 @@ void report_board_id(MKS_Query *Q) {
   uint8_t address = Q->get_address();
   uint16_t index;
   
-  index = get_addr_index(address);
+  index = Q->get_index();
   if (index < 0) {
-    msg(MSG_ERROR, "Invalid address %d in report_board_id", address);
+    msg(MSG_ERROR, "report_board_id(): Invalid index from query");
     return;
   }
   board_id_t *bdp = &board_id[index];
@@ -75,126 +56,15 @@ void report_board_id(MKS_Query *Q) {
   msg(0,
     "Gas:%d:%s Full Scale:%.1f %s",
     bdp->gas_number, bdp->gas_name, bdp->full_scale, bdp->gas_units);
-  if (is_mfc) {
+  if (bdp->is_mfc) {
     msg(0, "Valve type: %s", bdp->valve_type);
     msg(0, "Valve power off state: %s", bdp->valve_power_off_state);
   }
 }
 
-void cb_valve_type(MKS_Query *Q, const char *rep) {
-  board_id_t *bdp = (board_id_t*)Q->ret_ptr;
-  Q->store_string(bdp->valve_type, rep);
-}
-
-/**
- * Callback for the DT query. The ret_ptr must point to the board_id_t
- * for the specific device, since we need to access other fields in that
- * structure.
- */
-void cb_device_type(MKS_Query *Q, const char *rep) {
-  board_id_t *bdp = (board_id_t*)Q->ret_ptr;
-  Q->store_string(bdp->device_type, rep);
-  // strncpy(bdp->device_type, rep, 4);
-  // if (bdp->device_type[3]) {
-    // msg(1, "DT response was longer than 3 chars: '%s'", rep);
-    // bdp->device_type[3] = '\0';
-  // }
-  msg(0,"%s: Addr:%d Mfg:%s Mdl:%s SN:%s Type:%s", bdp->mnemonic, bdp->device_address,
-    bdp->manufacturer, bdp->model,
-    bdp->serial_number, bdp->device_type);
-  if (strcmp(bdp->device_type,"MFC")) {
-    bdp->is_mfc = true;
-    MKS_Ser *ser = Q->get_ser();
-    MKS_Query *Q1 = ser->new_query();
-    Q1->setup_query(Q->address, "VT", bdp->valve_type, 20, &bdp->ACK, 0x40);
-    ser->enqueue_request(Q1);
-    Q1 = ser->new_query();
-    Q1->setup_query(Q->address, "VT", bdp, 20, &bdp->ACK, 0x80);
-    Q1->set_callback(cb_valve_type);
-    ser->enqueue_request(Q1);
-  }
-}
-
-void cb_report(MKS_Query *Q, const char *rep) {
-  int index = get_addr_index(address);
-  nl_assert(index >= 0);
-  msg(0, "%s: %s %s", board_id[index].mnemonic, rep, Q->get_caption());
-}
-
-void extract_csv(const char *src, int &si, int src_sz, char *dest, int dest_sz) {
-  if (src[si] == '\0') {
-    msg(MSG_ERROR, "Unexpected end of string in extract_csv: '%s'", ascii_escape(src));
-    dest[0] = '\0';
-    return;
-  }
-  for (int j = 0; j < dest_sz && si < src_sz; ++j, ++si) {
-    if (src[si] == ',' || src[si] == '\0') {
-      dest[j] = '\0';
-      if (src[si] != '\0')
-        ++j;
-      return;
-    }
-  }
-  if (j >= dest_sz) {
-    msg(MSG_ERROR, "Parsed string too long: '%s'", ascii_escape(src));
-    dest[dest_sz-1] = '\0';
-  } else {
-    dest[j] = '\0';
-  }
-  if (si >= src_sz) {
-    msg(MSG_ERROR), "Unterminated source string in extract_csv");
-  }
-}
-
-void cb_gas_search(MKS_Query *Q, const char *rep) {
-  board_id_t *bdp = (board_id_t*)Q->ret_ptr;
-  Q->store_string(bdp->gas_search, rep);
-  char *gs = bdp->gas_search;
-  char *dest = bdp->gas_name;
-  int si = 0;
-  extract_csv(gs, si, 80, bdp->gas_name, 20);
-  char gas_num[4];
-  extract_csv(gs, si, 80, gas_num, 4);
-  extract_csv(gs, si, 80, bdp->full_scale, 10);
-  extract_csv(gs, si, 80, bdp->gas_units, 8);
-  if (strcmp(gas_num, bdp->gas_number) != 0) {
-    msg(MSG_ERROR,"Search returned wrong gas number: expected '%s' recd '%s'",
-      bdp->gas_number, gas_num);
-  }
-  msg(0, "%s: %s %s %s", bdp->mnemonic, bdp->gas_name,
-    bdp->full_scale, bdp->gas_units);
-  poll_board(ser, bdp->device_index, bdp->device_address);
-}
-
-void cb_gas_number(MKS_Query *Q, const char *rep) {
-  board_id_t *bdp = (board_id_t*)Q->ret_ptr;
-  Q->store_string(bdp->gas_number, rep);
-  MKS_Ser *ser = Q->get_ser();
-  MKS_Query *Q1 = ser->new_query();
-  char req[10];
-  snprintf(req, 10, "GN?%s", bdp->gas_number);
-  Q1->setup_query(Q->address, req, bdp, 80, &bdp->ACK, 0x20);
-  Q->set_callback(cb_gas_search);
-  ser->enqueue_request(Q1);
-}
-
-void cb_float(MKS_Query *Q, const char *rep) {
-  float *fltval = (float*)Q->ret_ptr;
-  char *endptr = 0;
-  *fltval = strtof(rep, &endptr);
-  if (endptr && *endptr != '\0')
-    msg(MSG_ERROR, "%s: cb_float() input not float: '%s'", bdp->mnemonic, ascii_escape(rep));
-}
-
-void cp_caption(MKS_Query *Q, const char *rep) {
-  board_id_t *bdp = (board_id_t*)Q->ret_ptr;
-  msg(0, "%s: %s %s", bdp->mnemonic, rep, Q->get_caption());
-}
-
 void identify_board(MKS_Ser *ser, int index, uint8_t address) {
-  nl_assert(index < n_drives);
+  nl_assert(index >= 0 && index < n_drives);
   board_id_t *bdp = &board_id[index];
-  MKS_Ser *ser = Q->get_ser();
   MKS_Query *Q = ser->new_query();
   Q->setup_query(address, "MF?", bdp->manufacturer, 4, &bdp->ACK, 0x01);
   ser->enqueue_request(Q);
@@ -205,20 +75,20 @@ void identify_board(MKS_Ser *ser, int index, uint8_t address) {
   Q->setup_query(address, "SN?", bdp->serial_number, 20, &bdp->ACK, 0x04);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_query(address, "DT?", bdp, 4, &bdp->ACK, 0x08);
+  Q->setup_query(address, "DT?", 0, 4, &bdp->ACK, 0x08);
   Q->set_callback(cb_device_type);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_query(address, "SGN?", bdp, 4, &bdp->ACK, 0x10);
+  Q->setup_query(address, "SGN?", 0, 4, &bdp->ACK, 0x10);
   Q->set_callback(cb_gas_number);
   ser->enqueue_request(Q);
 }
 
 void poll_board(MKS_Ser *ser, int index, uint8_t address) {
-  nl_assert(index < n_drives);
+  nl_assert(index >= 0 && index < n_drives);
   mks_drive_t *mksdp = &mksflow.drive[index];
-  if (!mksdp->is_polling) {
-    board_id_t *bdp = &board_id[index];
+  board_id_t *bdp = &board_id[index];
+  if (!bdp->is_polling) {
     nl_assert(bdp->device_address == address);
     MKS_Query *Q = ser->new_query();
     Q->setup_query(address, "FX?", &mksdp->Flow, 0, &mksdp->ACK, 0x01);
@@ -239,8 +109,128 @@ void poll_board(MKS_Ser *ser, int index, uint8_t address) {
       Q->set_persistent(true);
       ser->enqueue_request(Q);
     }
-    mksdp->is_polling = true;
+    bdp->is_polling = true;
   }
+}
+
+void cb_valve_type(MKS_Query *Q, const char *rep) {
+  Q->store_string(0, rep);
+  board_id_t *bdp = &board_id[Q->get_index()];
+  msg(0, "%s: Valve Type:%s Power Off State:%s",
+    bdp->valve_type, bdp->valve_power_off_state);
+}
+
+/**
+ * Callback for the DT query. The ret_ptr must point to the board_id_t
+ * for the specific device, since we need to access other fields in that
+ * structure.
+ */
+void cb_device_type(MKS_Query *Q, const char *rep) {
+  board_id_t *bdp = &board_id[Q->get_index()];
+  Q->store_string(bdp->device_type, rep);
+  msg(0,"%s: Addr:%d Mfg:%s Mdl:%s SN:%s Type:%s", bdp->mnemonic, bdp->device_address,
+    bdp->manufacturer, bdp->model,
+    bdp->serial_number, bdp->device_type);
+  if (strcmp(bdp->device_type,"MFC")) {
+    bdp->is_mfc = true;
+    MKS_Ser *ser = Q->get_ser();
+    MKS_Query *Q1 = ser->new_query();
+    Q1->setup_query(Q->get_address(), "VT?", bdp->valve_type, 20,
+      &bdp->ACK, 0x40);
+    ser->enqueue_request(Q1);
+    Q1 = ser->new_query();
+    Q1->setup_query(Q->get_address(), "VPO?",
+      bdp->valve_power_off_state, 20, &bdp->ACK, 0x80);
+    Q1->set_callback(cb_valve_type);
+    ser->enqueue_request(Q1);
+  }
+}
+
+void cb_report(MKS_Query *Q, const char *rep) {
+  int index = Q->get_index();
+  nl_assert(index >= 0);
+  msg(0, "%s: %s %s", board_id[index].mnemonic, rep, Q->get_caption());
+}
+
+void extract_csv(const char *src, int &si, int src_sz,
+                 char *dest, int dest_sz) {
+  int j;
+  if (src[si] == '\0') {
+    msg(MSG_ERROR,
+      "Unexpected end of string in extract_csv: '%s'",
+      ascii_escape(src));
+    dest[0] = '\0';
+    return;
+  }
+  for (j = 0; j < dest_sz && si < src_sz; ++j, ++si) {
+    if (src[si] == ',' || src[si] == '\0') {
+      dest[j] = '\0';
+      if (src[si] != '\0')
+        ++j;
+      return;
+    }
+  }
+  if (j >= dest_sz) {
+    msg(MSG_ERROR, "Parsed string too long: '%s'",
+      ascii_escape(src));
+    dest[dest_sz-1] = '\0';
+  } else {
+    dest[j] = '\0';
+  }
+  if (si >= src_sz) {
+    msg(MSG_ERROR,
+      "Unterminated source string in extract_csv");
+  }
+}
+
+void cb_gas_search(MKS_Query *Q, const char *rep) {
+  board_id_t *bdp = &board_id[Q->get_index()];
+  Q->store_string(bdp->gas_search, rep);
+  char *gs = bdp->gas_search;
+  int si = 0;
+  extract_csv(gs, si, 80, bdp->gas_name, 20);
+  char gas_num[4];
+  extract_csv(gs, si, 80, gas_num, 4);
+  extract_csv(gs, si, 80, bdp->full_scale, 10);
+  extract_csv(gs, si, 80, bdp->gas_units, 8);
+  if (strcmp(gas_num, bdp->gas_number) != 0) {
+    msg(MSG_ERROR,
+      "Search returned wrong gas number: "
+      "expected '%s' recd '%s'",
+      bdp->gas_number, gas_num);
+  }
+  msg(0, "%s: %s %s %s", bdp->mnemonic, bdp->gas_name,
+    bdp->full_scale, bdp->gas_units);
+  poll_board(Q->get_ser(), bdp->device_index,
+    bdp->device_address);
+}
+
+void cb_gas_number(MKS_Query *Q, const char *rep) {
+  board_id_t *bdp = &board_id[Q->get_index()];
+  Q->store_string(bdp->gas_number, rep);
+  MKS_Ser *ser = Q->get_ser();
+  MKS_Query *Q1 = ser->new_query();
+  char req[10];
+  snprintf(req, 10, "GN?%s", bdp->gas_number);
+  Q1->setup_query(Q->get_address(), req, bdp, 80, &bdp->ACK, 0x20);
+  Q->set_callback(cb_gas_search);
+  ser->enqueue_request(Q1);
+}
+
+void cb_float(MKS_Query *Q, const char *rep) {
+  float *fltval = (float*)Q->get_ret_ptr();
+  char *endptr = 0;
+  *fltval = strtof(rep, &endptr);
+  if (endptr && *endptr != '\0') {
+    board_id_t *bdp = &board_id[Q->get_index()];
+    msg(MSG_ERROR, "%s: cb_float() input not float: '%s'",
+      bdp->mnemonic, ascii_escape(rep));
+  }
+}
+
+void cp_caption(MKS_Query *Q, const char *rep) {
+  board_id_t *bdp = &board_id[Q->get_index()];
+  msg(0, "%s: %s %s", bdp->mnemonic, rep, Q->get_caption());
 }
 
 void enqueue_requests(MKS_Ser *ser) {
@@ -251,13 +241,13 @@ void enqueue_requests(MKS_Ser *ser) {
     while (isdigit(*s)) {
       address = address*10 + (*s++) - '0';
     }
-    if (address < ME_MIN_ADDRESS || address > ME_MAX_ADDRESS) {
+    if (address < MKS_MIN_ADDRESS || address > MKS_MAX_ADDRESS) {
       msg(MSG_FATAL,"Invalid device address %d in option string '%s'",
         address, address_opts);
     }
-    if (++n_drives > ME_MAX_DRIVES) {
-      msg(MSG_FATAL, "Address string exceeds ME_MAX_DRIVES value of %d",
-        ME_MAX_DRIVES);
+    if (++n_drives > MKS_MAX_DRIVES) {
+      msg(MSG_FATAL, "Address string exceeds MKS_MAX_DRIVES value of %d",
+        MKS_MAX_DRIVES);
     }
     board_id[index].device_index = index;
     board_id[index].device_address = address;

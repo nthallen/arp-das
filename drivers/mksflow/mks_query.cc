@@ -1,3 +1,4 @@
+#include <string.h>
 #include "mksflow_int.h"
 #include "nl_assert.h"
 #include "msg.h"
@@ -7,54 +8,43 @@ MKS_Query::MKS_Query()
     persistent(false),
     ret_ptr(0),
     ret_len(0),
-    address(0),
-    cmdlen(0),
-    callback(0),
     mask_ptr(0),
     mask_bit(0),
-    caption(""),
-    rep_len(0)
+    callback(0),
+    index(-1),
+    address(0),
+    ser(0),
+    replen(0),
+    caption(0),
+    cmdlen(0)
     {}
 
 MKS_Query::~MKS_Query() {}
 
 void MKS_Query::init() {
-  cmdlen = 0;
-  cmd[0] = '\0';
   persistent = false;
-  callback = 0;
   ret_ptr = 0;
   ret_len = 0;
   mask_ptr = 0;
   mask_bit = 0;
-  ser = 0;
+  callback = 0;
+  index = -1;
   address = 0;
+  ser = 0;
+  replen = 0;
   caption = "";
-  rep_len = 0;
+  cmd[0] = '\0';
+  cmdlen = 0;
 }
 
 const char *MKS_Query::get_cmd(int *cmdlenptr) {
-  SeqNr = ++Sequence_Number;
-  to_hex(SeqNr, 4, 3);
-  if (crc_applied) {
-    cmdlen -= 5;
-    crc_applied = false;
-  }
-  req_crc = crc16xmodem_byte(0, &cmd[0], cmdlen);
-  to_hex(req_crc, 4, cmdlen);
-  cmd[cmdlen++] = '\r';
-  cmd[cmdlen] = '\0';
-  crc_applied = true;
   if (cmdlenptr)
     *cmdlenptr = cmdlen;
   return &cmd[0];
 }
 
-const char *MKS_Query::get_raw_cmd() {
-  return &cmd[0];
-}
-
-void MKS_Query::setup_query(uint8_t address, const char *req, char *dest, int dsize, uint8_t *ack, uint8_t bit) {
+void MKS_Query::setup_query(uint8_t address, const char *req, void *dest,
+                            int dsize, uint8_t *ack, uint8_t bit) {
   cmdlen = snprintf(cmd, max_command_length, "@%03d%s;", address, req);
   uint16_t csum = 0;
   for (int i = 0; i < cmdlen; ++i)
@@ -112,6 +102,21 @@ void MKS_Query::clear_bit() {
     if ((*mask_ptr & ~1) == 0) {
       *mask_ptr = 0; // clear 0 bit if all others are clear
     }
+  }
+}
+
+void MKS_Query::store_string(char *dest, const char *rep) {
+  if (dest == 0) {
+    dest = (char *)ret_ptr;
+  }
+  nl_assert(dest && (ret_len>0) && (index >= 0));
+  board_id_t *bdp = &board_id[index];
+  dest[ret_len-1] = '\0';
+  strncpy(dest, rep, ret_len);
+  if (dest[ret_len-1] != '\0') {
+    msg(1, "%s: cmd='%s' resp>%d chars: '%s'",
+      bdp->mnemonic, cmd, ret_len, rep);
+    dest[ret_len-1] = '\0';
   }
 }
 

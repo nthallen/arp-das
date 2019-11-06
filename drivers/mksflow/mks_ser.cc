@@ -2,6 +2,7 @@
 #include "mksflow_int.h"
 #include "nortlib.h"
 #include "msg.h"
+#include "nl_assert.h"
 
 bool rs485_echos = false;
 
@@ -30,6 +31,20 @@ MKS_Query *MKS_Ser::new_query() {
   }
   Q->init();
   return Q;
+}
+
+bool MKS_Ser::checksum_verify(int from, int to, int checksum) {
+  int recalc = 0;
+  for (int i = from; i < to; ++i) {
+    recalc += buf[i];
+  }
+  recalc &= 0xFF;
+  if (recalc != checksum) {
+    board_id_t *bdp = &board_id[pending->get_index()];
+    report_err("%s: checksum error", bdp->mnemonic);
+    return false;
+  }
+  return true;
 }
 
 int MKS_Ser::ProcessData(int flag) {
@@ -96,9 +111,8 @@ bool MKS_Ser::saw_error() {
 }
 
 bool MKS_Ser::protocol_input() {
-  uint32_t address, seq_num, value, crc, err_code;
-  uint16_t re_crc;
-  int err_code, checksum;
+  int err_code;
+  uint32_t checksum;
   cp = 0;
   if (!pending) {
     report_err("Unexpected input");
@@ -128,7 +142,9 @@ bool MKS_Ser::protocol_input() {
       return saw_error();
     }
     checksum_verify(rep_cp, cp-2, checksum);
-    report_err("%s: NAK code %d received", board_id[pending->get_index()].mnemonic, err_code);
+    report_err("%s: NAK code %d received",
+      board_id[pending->get_index()].mnemonic,
+      err_code);
     consume(nc);
     free_pending();
   }
@@ -145,8 +161,10 @@ bool MKS_Ser::protocol_input() {
   pending->clear_bit();
   buf[rep_end] = '\0';
   if (pending->callback)
-    (*pending->callback)(pending, &buf[rep_start]);
-  else pending->store_string(0, &buf[rep_start]);
+    (*pending->callback)(pending,
+      (const char *)&buf[rep_start]);
+  else pending->store_string(0,
+          (const char *)&buf[rep_start]);
   consume(nc);
   free_pending();
   return false;

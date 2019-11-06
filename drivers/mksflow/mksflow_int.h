@@ -14,6 +14,28 @@ extern const char *address_opts;
 extern const char *MKS_Name;
 #define MKS_MIN_ADDRESS 1
 #define MKS_MAX_ADDRESS 254
+#define MNEM_LEN 10
+
+typedef struct {
+  uint16_t device_index;
+  uint16_t device_address;
+  char     manufacturer[4]; // MF (always MKS) bit 0
+  char     model[40];      // MD bit 1
+  char     serial_number[20]; // SN bit 2
+  char     device_type[4]; // DT string query bit 3
+  char     gas_number[4];  // SGN integer query. Validated against GN output bit 4
+  char     gas_search[80]; // GN string query bit 5
+  char     gas_name[20];   // parsed from GN output
+  char     full_scale[10]; // parsed from GN output
+  char     gas_units[8];   // parsed from GN output
+  char     valve_type[20]; // VT (only if device_type is MFC) bit 6
+  char     valve_power_off_state[20]; // VPO (only if device_type is MFC) bit 7
+  char     mnemonic[10];
+  uint8_t  ACK;
+  bool     is_mfc;
+  bool     is_polling;
+} board_id_t;
+extern board_id_t board_id[MKS_MAX_DRIVES];
 
 class MKS_Ser;
 
@@ -30,9 +52,9 @@ class MKS_Query {
      * @return The command string to be written to the device
      */
     const char *get_cmd(int *cmdlen);
-    const char *get_raw_cmd();
+    // const char *get_raw_cmd();
     // enum MKSParType { MKS_ACK, MKS_INT32, MKS_FLOAT32 };
-    void setup_query(uint8_t address, const char *req, char *dest, int dsize, uint8_t *ack, uint8_t bit);
+    void setup_query(uint8_t address, const char *req, void *dest, int dsize, uint8_t *ack, uint8_t bit);
     void set_persistent(bool persistent);
     void set_callback(void (*callback)(MKS_Query *, const char *rep));
     inline void set_caption(const char *cap) { caption = cap; }
@@ -40,9 +62,10 @@ class MKS_Query {
     void clear_bit();
     void store_string(char *dest, const char *rep);
     inline const char *get_caption() { return caption ? caption : ""; }
-    inline const char *get_index() { return index; }
+    inline int get_index() { return index; }
     inline uint8_t get_address() { return address; }
     inline MKS_Ser * get_ser() { return ser; }
+    inline void *get_ret_ptr() { return ret_ptr; }
   protected:
     /** true if query lives on the TM_queue, false if it is from
      * the Cmd_queue and should be removed and recycled onto the
@@ -51,12 +74,13 @@ class MKS_Query {
     bool persistent;
     // MKSParType ret_type;
     /** Where the result string should be written */
-    char *ret_ptr;
+    void *ret_ptr;
     /** The size of the return string buffer */
     int ret_len;
     /**
      * mask_ptr points to a bit-mapped register for tracking queries and commands.
-     * The 0 bit will be set after each time data is sent to telemetry. Each query or command
+     * The 0 bit will be set after each time data is sent to telemetry. Each query
+     * or command
      * will be mapped to an individual bit in the register. That bit is set when the
      * query is issue and clear when the query is acknowledged. After acknowledgement,
      * if all bits but the 0 bit are zero, the 0 bit will be cleared.
@@ -65,10 +89,10 @@ class MKS_Query {
      */
     uint8_t *mask_ptr;
     uint8_t mask_bit;
-    void (*callback)(MKS_Query*);
+    void (*callback)(MKS_Query*, const char *rep);
     /* Store these in case it's useful for debugging messages */
     /** The device index */
-    uint8_t index;
+    int index;
     /** The RS-485 device ID */
     uint8_t address;
     // uint16_t req_crc;

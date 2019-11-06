@@ -59,7 +59,7 @@ bool MKS_Cmd::app_input() {
   uint16_t MKSParID;
   int index;
   float float_val;
-  int wfloat_cp, wfloat_len;
+  int wfloat_cp;
   bool has_float = false;
   MKS_Query *Q;
   if (nc == 0) return true;
@@ -68,7 +68,7 @@ bool MKS_Cmd::app_input() {
     return false;
   }
   cp = 1;
-  const char cmdtext[20];
+  char cmdtext[20];
   const char *cmdptr, *capptr;
 
   switch (buf[0]) {
@@ -134,7 +134,10 @@ bool MKS_Cmd::app_input() {
         break;
       }
       switch (MKSParID) {
-        case 2: cmdptr = "FT?"; capptr = mksflow.drive[index].units; break;
+        case 2:
+          cmdptr = "FT?";
+          capptr = board_id[index].gas_units;
+          break;
         case 3: cmdptr = "TA?"; capptr = "C"; break;
         case 4: cmdptr = "RH?"; capptr = "Run Hours"; break;
         default:
