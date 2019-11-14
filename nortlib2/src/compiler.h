@@ -20,7 +20,7 @@
 extern FILE *ofile, *yyin;
 extern char *input_filename, *output_filename;
 extern int input_linenumber, error_level;
-extern char *opt_string;
+extern const char *opt_string;
 extern ll_of_str input_files;
 
 #define OPT_COMPILER_INIT "qkwvo:"

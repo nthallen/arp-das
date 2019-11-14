@@ -24,6 +24,7 @@
  *
  */
 #include <stdio.h>
+#include <stdbool.h>
 #include "config.h"
 
 #if HAVE_STRCASECMP
@@ -45,8 +46,8 @@ struct nt_t {
   struct vtyp *type;
   unsigned short number;
   struct {
-	struct sub_t *first;
-	struct sub_t *last;
+    struct sub_t *first;
+    struct sub_t *last;
   } rules;
 };
 
@@ -55,9 +56,10 @@ struct sub_t {
   struct nt_t *reduces;
   unsigned short rule_number;
   char *action;
+  bool kb_block;
   struct {
-	struct sub_item_t *first;
-	struct sub_item_t *last;
+    struct sub_item_t *first;
+    struct sub_item_t *last;
   } items;
 };
 
@@ -65,14 +67,14 @@ struct sub_item_t {
   struct sub_item_t *next;
   unsigned char type;
   union {
-	char *text;
-	struct nt_t *nt;
-	struct {
-	  char *format;
-	  char *symbol;
-	  char *member;
-	  char *prompt;
-	} vspc;
+    char *text;
+    struct nt_t *nt;
+    struct {
+      char *format;
+      char *symbol;
+      char *member;
+      char *prompt;
+    } vspc;
   } u;
 };
 #define SI_WORD 1
@@ -82,6 +84,7 @@ struct sub_item_t {
 
 typedef union {
   char *str_val;
+  bool bool_val;
   struct nt_t *nt_val;
   struct sub_t *sub_val;
   struct sub_item_t *subi_val;

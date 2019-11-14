@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 void oui_init_options(int argc, char **argv);
-extern char *opt_string;
+extern const char *opt_string;
 
 #ifdef __cplusplus
 };

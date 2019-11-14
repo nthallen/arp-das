@@ -46,7 +46,7 @@ void output_opt_string(void) {
   llpkgleaf *p;
   char *s;
 
-  fprintf(ofile, "char *opt_string = \"");  
+  fprintf(ofile, "const char *opt_string = \"");  
   for (p = global_defs.packages.first; p != NULL; p = p->next) {
 	s = p->pkg->opt_string;
 	if (s != 0) {

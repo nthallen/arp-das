@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.87
+Version: 2.5.92
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,7 +8,18 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
-# 2.5.87 2018-08-15 +
+# 2.5.92 2019-06-30
+#   add_auth_key.sh: tool to setup keys
+# 2.5.91 2019-05-27
+#   appgen: Fix bug with multiple .cdf inputs
+# 2.5.90 2019-05-11
+#   cmdgen: Add %BLOCK_KB to block 'Quit' from keyboard
+#   root.cmd: Add %BLOCK_KB
+# 2.5.89 2018-10-03
+#   SerSelector.h: add update_tc_vmin() method
+# 2.5.88 2018-09-22
+#   tmc: V1_12 Fix for double->text conversion
+# 2.5.87 2018-08-18
 #   sspdrv: Correct extraction type for noise percent
 #   mkdoit3: Cleanup generated code, cleanup logfile name
 #     for SerIn and InetIn

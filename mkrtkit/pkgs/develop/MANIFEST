@@ -87,6 +87,7 @@ usr/local/include/ptrhm.h
 usr/local/include/qclisspcmd.h
 usr/local/include/tmdf.h
 usr/local/include/oui.h
+usr/local/sbin/add_auth_key.sh
 usr/local/sbin/dev_copy
 usr/local/sbin/lib_dist
 usr/local/sbin/pkg_copy

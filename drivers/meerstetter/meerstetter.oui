@@ -1,0 +1,16 @@
+<package> meerstetter
+<include> "meerstetter_int.h"
+<include> msg
+<follow> msg
+<opts> "ep:"
+<sort>
+	-p <path> path to serial device
+	-e RS485 will echo outbound requests back
+
+<switch>
+  case 'e': rs485_echos = true; break;
+  case 'p': Me_Ser_path = optarg; break;
+
+<package> msghdr_default
+<var>
+  const char *msg_hdr_default = "Me";

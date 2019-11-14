@@ -10,7 +10,7 @@
 %INTERFACE <Quit>
 
 &start
-	: &commands Quit * { msg(0,"Shutting down"); }
+	: &commands Quit * %BLOCK_KB { msg(0,"Shutting down"); }
 	: &commands &&Exit
 	;
 &&Exit
