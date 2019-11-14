@@ -147,13 +147,17 @@ progitem : nontm_decl {
         decl->typeparts = $$;
         
         inttype = decl->type;
-        if ( TYPE_INTEGRAL(inttype) &&
+        /*
+        // This check should be optional via command line option
+        // Also, it should be changed now to complain for anything
+        // except the stdint definitions        if ( TYPE_INTEGRAL(inttype) &&
               ! (inttype & (INTTYPE_CHAR|INTTYPE_SHORT|INTTYPE_LONG)
               ) )
           compile_error( 1,
             "TM frame definition not 32-bit safe"
             );
-        
+        */
+
         /* Move size and rate into the tmalloc for each declrtor */
         for (decl = $3.first->u.decls; decl != NULL; decl = decl->next) {
           tma = nr_tmalloc(decl->nameref);
