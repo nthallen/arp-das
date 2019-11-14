@@ -81,14 +81,14 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
 #include <limits.h>
 #include <ctype.h>
 #include <stdbool.h>
-#include <stdint.h>
-#include "nortlib.h"
+#include "nl.h"
 #include "rational.h"
 #include "tmcstr.h"
 #include "tmc.h"
@@ -139,7 +139,8 @@
         8-bit text conversions.
     }
 
-    struct intcnv *find_ndr(long int x0, long int x1, double m, double b) {
+    struct intcnv *find_ndr(struct calibration *cal,
+          int32_t x0, int32_t x1, double m, double b) {
        Given slope and intercept and input range, generates a chain
        of regions over which a simple linear integer expression will
        produce the predicted results.
@@ -349,12 +350,12 @@ static int txtfmt(char *buf, char *format, struct pfmt *pformat,
             double ov, unsigned int type) {
   double mn, mx;
   union {
-    signed char c;
-    unsigned char uc;
+    int8_t c;
+    uint8_t uc;
     int i;
-    unsigned int ui;
-    long int l;
-    unsigned long int ul;
+    uint16_t ui;
+    int32_t l;
+    uint32_t ul;
   } u;
   // char lbuf[80], c;
   
@@ -365,30 +366,16 @@ static int txtfmt(char *buf, char *format, struct pfmt *pformat,
     }
     sprintf(buf, format, ov);
   } else if (TYPE_INTEGRAL(type)) {
-    if (TYPE_KR_INTEGRAL(type)) {
-      switch (type & (INTTYPE_CHAR | INTTYPE_SHORT | INTTYPE_LONG | INTTYPE_UNSIGNED)) {
-        case 0: mn = INT_MIN; mx = INT_MAX; break;
-        case INTTYPE_UNSIGNED: mn = 0; mx = UINT_MAX; break;
-        case INTTYPE_CHAR: mn = SCHAR_MIN; mx = SCHAR_MAX; break;
-        case INTTYPE_UNSIGNED | INTTYPE_CHAR: mn = 0; mx = UCHAR_MAX; break;
-        case INTTYPE_LONG: mn = LONG_MIN; mx = LONG_MAX; break;
-        case INTTYPE_UNSIGNED | INTTYPE_LONG: mn = 0; mx = ULONG_MAX; break;
-        default:
-          compile_error(2, "Internal: Strange type %X in txtfmt", type);
-          return(1);
-      }
-    } else {
-      switch (type) {
-        case INTTYPE_INT8_T: mn = INT8_MIN; mx = INT8_MAX; break;
-        case INTTYPE_UINT8_T: mn = 0; mx = UINT8_MAX; break;
-        case INTTYPE_INT16_T: mn = INT16_MIN; mx = INT16_MAX; break;
-        case INTTYPE_UINT16_T: mn = 0; mx = UINT16_MAX; break;
-        case INTTYPE_INT32_T: mn = INT32_MIN; mx = INT32_MAX; break;
-        case INTTYPE_UINT32_T: mn = 0; mx = UINT32_MAX; break;
-        default:
-          compile_error(2, "Unsupported type %X in txtfmt", type);
-          return(1);
-      }
+    switch (type & (INTTYPE_CHAR | INTTYPE_LONG | INTTYPE_UNSIGNED)) {
+      case 0: mn = INT16_MIN; mx = INT16_MAX; break;
+      case INTTYPE_UNSIGNED: mn = 0; mx = UINT16_MAX; break;
+      case INTTYPE_CHAR: mn = INT8_MIN; mx = INT8_MAX; break;
+      case INTTYPE_UNSIGNED | INTTYPE_CHAR: mn = 0; mx = UINT8_MAX; break;
+      case INTTYPE_LONG: mn = INT32_MIN; mx = INT32_MAX; break;
+      case INTTYPE_UNSIGNED | INTTYPE_LONG: mn = 0; mx = UINT32_MAX; break;
+      default:
+        compile_error(2, "Internal: Strange type %X in txtfmt", type);
+        return(1);
     }
     if (ov < mn || ov > mx) {
       compile_error(2, "Conversion out of range");
@@ -422,7 +409,7 @@ static int txtfmt(char *buf, char *format, struct pfmt *pformat,
       // c = pformat->flags & PF_ZERO ? '0' : ' ';
       // while (u.i > 0) buf[--u.i] = c;
     } else switch (type & (INTTYPE_CHAR | INTTYPE_LONG | INTTYPE_UNSIGNED)) {
-      case 0: u.i = ov; sprintf(buf, format, u.i); break;
+      case 0: compile_error(2, "Invalid unqualified int"); u.i = ov; sprintf(buf, format, u.i); break;
       case INTTYPE_UNSIGNED: u.ui = ov; sprintf(buf, format, u.ui); break;
       case INTTYPE_CHAR: u.c = ov; sprintf(buf, format, u.c); break;
       case INTTYPE_UNSIGNED | INTTYPE_CHAR:
@@ -537,7 +524,7 @@ static void format_range(struct pfmt *pformat, double *fmt_min,
       *fmt_min = 0.;
       break;
     case 'c':
-      *fmt_max = USHRT_MAX;
+      *fmt_max = UINT16_MAX;
       *fmt_min = 0;
       break;
     case 'f':
@@ -574,20 +561,20 @@ static void format_range(struct pfmt *pformat, double *fmt_min,
 static void type_range( unsigned int type, double *min, double *max) {
   if(TYPE_INTEGRAL(type)) {
     if (type & INTTYPE_CHAR) {
-      if (type & INTTYPE_UNSIGNED) { *min = 0; *max = UCHAR_MAX; }
-      else { *min = SCHAR_MIN; *max = SCHAR_MAX; }
+      if (type & INTTYPE_UNSIGNED) { *min = 0; *max = UINT8_MAX; }
+      else { *min = INT8_MIN; *max = INT8_MAX; }
     } else if (type & INTTYPE_LONG) {
-      if (type & INTTYPE_UNSIGNED) { *min = 0; *max = ULONG_MAX; }
-      else { *min = LONG_MIN; *max = LONG_MAX; }
-    } else if (type & INTTYPE_UNSIGNED) { *min = 0; *max = USHRT_MAX; }
-    else { *min = SHRT_MIN; *max = SHRT_MAX; }
+      if (type & INTTYPE_UNSIGNED) { *min = 0; *max = UINT32_MAX; }
+      else { *min = INT32_MIN; *max = INT32_MAX; }
+    } else if (type & INTTYPE_UNSIGNED) { *min = 0; *max = UINT16_MAX; }
+    else { *min = INT16_MIN; *max = INT16_MAX; }
   } else { *min = 0; *max = -1; }
 }
 
 struct intcnv {
   struct intcnv *next;
-  long int x0, x1;
-  long int n, r, d, y0;
+  int32_t x0, x1;
+  int32_t n, r, d, y0;
   int flag;
 };
 #define ICNV_INT 1
@@ -602,18 +589,21 @@ struct intcnvl {
    produce the predicted results.
    New form: y = (nx+r)/d + y0
 */
-static struct intcnv *find_ndr(long int x0, long int x1, double m, double b) {
+static struct intcnv *find_ndr(struct calibration *cal,
+        int32_t x0, int32_t x1, double m, double b) {
   double drbest, dr, ddx;
   int sign_m;
-  long int dmax, nbest, n, dbest, d, r, rmin, rmax;
-  long int x, y, dx, dtx, dx1, ty;
-  long int y0, dy;
-  long int op_range, dlast;
+  int32_t dmax, nbest, n, dbest, d, r, rmin, rmax;
+  int32_t x, y, dx, dtx, dx1, ty;
+  int32_t y0, dy;
+  int32_t op_range, dlast;
   struct intcnv *result, *ic, *ica;
 
   if (show(CONVERSIONS))
-    fprintf(vfile, "Looking for rational expression for:\n"
-                   "  Y = %gX%+g  where %ld <= X <= %ld\n",
+    fprintf(vfile, "(%s => %s)\n"
+                   "Looking for rational expression for:\n"
+                   "  Y = %gX%+g  where %d <= X <= %d\n",
+                   cal->type[0]->name, cal->type[1]->name,
                    m, b, x0, x1);
 
   /* Make m positive */
@@ -625,7 +615,7 @@ static struct intcnv *find_ndr(long int x0, long int x1, double m, double b) {
   b += .5;
 
   assert(x1 >= x0);
-  op_range = SHRT_MAX;
+  op_range = INT16_MAX;
   dlast = 1;
   result = NULL;
   for (;;) {
@@ -646,35 +636,41 @@ static struct intcnv *find_ndr(long int x0, long int x1, double m, double b) {
         break;
       } else {
         dmax = op_range/dy;
-        if (dmax > USHRT_MAX) dmax = USHRT_MAX; /* arbitrary limit */
+        if (dmax > UINT16_MAX) dmax = UINT16_MAX; /* arbitrary limit */
       }
 
-      drbest = 2.0;
+      drbest = -1;
       for (dlast = 1; dlast <= dmax; dlast++) {
         n = floor(m*dlast + .5);
         dr = fabs((m - ((double)n)/dlast) * ddx);
-        if (dr < drbest) {
+        if (drbest < 0 || dr < drbest) {
           drbest = dr;
           nbest = n;
           dbest = dlast;
           if (dr == 0.) break;
         }
       }
-      if (op_range == SHRT_MAX && drbest > 1.0) op_range = LONG_MAX;
+      if (op_range == INT16_MAX && drbest > 1.0) op_range = INT32_MAX;
       else break;
     }
     if (drbest >= 2.0)
-      compile_error(3, "Unable to derive ratio: drbest = %.1lf", drbest);
+      /* compile_error(3, "Unable to derive ratio: drbest = %.1lf", drbest); */
+      compile_error(3, "(%s => %s)\n"
+                   "Unable to derive rational expression for:\n"
+                   "  Y = %gX%+g  where %d <= X <= %d\n"
+                   "  drbest = %.1lf",
+                   cal->type[0]->name, cal->type[1]->name,
+                   m, b, x0, x1, drbest);
     /* Now see how far this gets us */
     n = nbest; d = dbest;
     y = floor(m*x0+b);
     rmin = (y-y0)*d;
     rmax = rmin + d - 1;
     if (show(CONVERSIONS))
-      fprintf(vfile, "Checking values for %ld/%ld\n", n, d);
-    if (ddx > USHRT_MAX) dtx = ddx/USHRT_MAX;
+      fprintf(vfile, "Checking values for %d/%d\n", n, d);
+    if (ddx > UINT16_MAX) dtx = ddx/UINT16_MAX;
     else dtx = 1;
-    if (LONG_MAX-dtx < x1) dx1 = LONG_MAX-dtx;
+    if (INT32_MAX-dtx < x1) dx1 = INT32_MAX-dtx;
     else dx1 = x1;
     for (x = x0 + dtx; x <= dx1; x += dtx) {
       y = floor(m*x+b);
@@ -688,8 +684,8 @@ static struct intcnv *find_ndr(long int x0, long int x1, double m, double b) {
     }
     if (x > dx1) x = x1;
     else x -= dtx; /* Last value which worked, x1 if all worked */
-    if (x < x1 && op_range == SHRT_MAX) {
-      op_range = LONG_MAX;
+    if (x < x1 && op_range == INT16_MAX) {
+      op_range = INT32_MAX;
       continue;
     }
     /* 32-bit issue: Here we redefine r assuming n*x is OK */
@@ -704,7 +700,7 @@ static struct intcnv *find_ndr(long int x0, long int x1, double m, double b) {
     }
     y0 *= sign_m;
     d *= sign_m;
-    if (d < 0) { d *= -1; n *= -1; r *= -1; op_range = LONG_MAX; }
+    if (d < 0) { d *= -1; n *= -1; r *= -1; op_range = INT32_MAX; }
     /* This following test is to account for a bug where the
        source type is unsigned short but the result is signed
        and goes negative. Since signed ints are promoted to
@@ -713,7 +709,7 @@ static struct intcnv *find_ndr(long int x0, long int x1, double m, double b) {
        what the source type is, so we'll just punt and promote
        to long anyway.
     */
-    if ( op_range == SHRT_MAX && y0 < 0 ) op_range = LONG_MAX;
+    if ( op_range == INT16_MAX && y0 < 0 ) op_range = INT32_MAX;
     ic = new_memory(sizeof(struct intcnv));
     ic->next = NULL;
     ic->x0 = x0;
@@ -722,7 +718,7 @@ static struct intcnv *find_ndr(long int x0, long int x1, double m, double b) {
     ic->d  = d;
     ic->r  = r;
     ic->y0 = y0;
-    ic->flag = (op_range == SHRT_MAX) ? ICNV_INT : 0;
+    ic->flag = (op_range == INT16_MAX) ? ICNV_INT : 0;
     if (result == NULL) result = ica = ic;
     else {
       ica->next = ic;
@@ -730,8 +726,8 @@ static struct intcnv *find_ndr(long int x0, long int x1, double m, double b) {
     }
     if (show(CONVERSIONS))
       fprintf(vfile,
-        "%ld - %ld : (%ld*X + (%ld (+%ld))) / %ld + (%ld) [%s]\n",
-          x0, x, n, r, rmax-rmin, d, y0, op_range==SHRT_MAX ?
+        "%d - %d : (%d*X + (%d (+%d))) / %d + (%d) [%s]\n",
+          x0, x, n, r, rmax-rmin, d, y0, op_range==INT16_MAX ?
           "short" : "long");
     /* dtx was set for rmin/rmax determination */
     if (drbest < 2.0) { /* change this to != 0.0 */
@@ -739,13 +735,15 @@ static struct intcnv *find_ndr(long int x0, long int x1, double m, double b) {
         fprintf(vfile, "Double Checking: ");
         fflush(vfile);
       }
-      if (LONG_MAX-dtx < x) dx1 = LONG_MAX-dtx;
+      if (INT32_MAX-dtx < x) dx1 = INT32_MAX-dtx;
       else dx1 = x;
       for (dx = x0; dx <= dx1; dx += dtx) {
         y = sign_m * floor(m*dx+b);
         ty = (n*dx + r)/d + y0;
         if (ty != y)
-          compile_error(3, "Conversion: f(%ld) = %ld but I got %ld\n", dx, y, ty);
+          compile_error(3,
+            "Conversion(%s => %s): f(%d) = %d but I got %d\n",
+            cal->type[0]->name, cal->type[1]->name, dx, y, ty);
       }
       if (show(CONVERSIONS)) fprintf(vfile, "passed\n");
     }
@@ -764,17 +762,18 @@ static void int_conv(struct calibration *cal,
                      double yscale, struct intcnvl *cl) {
   struct pair *p;
   double m, b, fx, y, cvt_min, cvt_max;
-  long int x0, x1, x;
+  int32_t x0, x1, x;
   struct intcnv *cv;
   
   if ( show(CONVERSIONS) )
     fprintf( vfile, "int_conv( %s -> %s )\n",
       cal->type[0]->name, cal->type[1]->name );
-  if (*input_max > LONG_MAX)
-    compile_error(3, "Cannot convert unsigned long (%s -> %s)",
+  if (*input_max > INT32_MAX)
+    compile_error(3, "Cannot convert uint32_t (%s -> %s)",
       cal->type[0]->name, cal->type[1]->name );
-  else if (*input_max > USHRT_MAX)
-    compile_error(1, "Conversion of long cannot be fully validated");
+  else if (*input_max > UINT16_MAX)
+    compile_error(1, "Conversion (%s => %s) of int32_t cannot be fully validated",
+      cal->type[0]->name, cal->type[1]->name);
   x0 = *input_min;
   x1 = *input_max;
   cvt_min = cvt_max = 0.;
@@ -783,7 +782,7 @@ static void int_conv(struct calibration *cal,
   assert(p != NULL);
   if (p->next == NULL) {
     cvt_min = cvt_max = p->v[1];
-    cl->first = cl->last = find_ndr(x0, x1, 0., p->v[1]);
+    cl->first = cl->last = find_ndr(cal, x0, x1, 0., p->v[1]);
     cl->n_regions = 1;
     while (cl->last->next != NULL) {
       cl->last = cl->last->next;
@@ -805,7 +804,7 @@ static void int_conv(struct calibration *cal,
         if (y > cvt_max) cvt_max = y;
         if (fx == x) break;
       }
-      cv = find_ndr(x0, x, m, b);
+      cv = find_ndr(cal, x0, x, m, b);
       if (cl->last == NULL) cl->first = cl->last = cv;
       else { cl->last->next = cv; cl->last = cv; }
       cl->n_regions++;
@@ -836,7 +835,7 @@ static void gen_itc_code(int n, struct intcnv *p, char *ovtxt) {
     fprintf(ofile, "%s = ", ovtxt);
     if (p->n == 0) {
       p->y0 += p->r/p->d;
-      fprintf(ofile, "%ld", p->y0);
+      fprintf(ofile, "%d", p->y0);
     } else {
       if (p->d == 1) {
         p->r += p->y0;
@@ -845,8 +844,8 @@ static void gen_itc_code(int n, struct intcnv *p, char *ovtxt) {
       if (p->r != 0) print_indent("(");
       print_indent("x");
       if ((p->flag & ICNV_INT) == 0)
-        fprintf(ofile, "*(%ldL)", p->n);
-      else if (p->n != 1) fprintf(ofile, "*(%ld)", p->n);
+        fprintf(ofile, "*(%dL)", p->n);
+      else if (p->n != 1) fprintf(ofile, "*(%d)", p->n);
       if (p->r != 0) {
         /* This portion of code will generate invalid output in
            a 32-bit environment. The solution is to either add
@@ -860,14 +859,14 @@ static void gen_itc_code(int n, struct intcnv *p, char *ovtxt) {
            Mitigated 2012-06-29
         */
         #if UINT_MAX > 65536L
-          fprintf(ofile, "%+ld)", p->r);
+          fprintf(ofile, "%+d)", p->r);
         #else
-          if (p->flag & ICNV_INT) fprintf(ofile, "%+d)", (short int) p->r);
-          else fprintf(ofile, "%+ld)", p->r);
+          if (p->flag & ICNV_INT) fprintf(ofile, "%+d)", (int16_t) p->r);
+          else fprintf(ofile, "%+d)", p->r);
         #endif
       }
-      if (p->d != 1) fprintf(ofile, "/(%ld)", p->d);
-      if (p->y0 != 0) fprintf(ofile, "%+ld", p->y0);
+      if (p->d != 1) fprintf(ofile, "/(%d)", p->d);
+      if (p->y0 != 0) fprintf(ofile, "%+d", p->y0);
     }
     print_indent(";");
     adjust_indent(0);
@@ -878,7 +877,7 @@ static void gen_itc_code(int n, struct intcnv *p, char *ovtxt) {
       p1 = p1->next;
     }
     print_indent(NULL);
-    fprintf(ofile, "if (x < %ld) {", p1->x0);
+    fprintf(ofile, "if (x < %d) {", p1->x0);
     gen_itc_code(n1, p, ovtxt);
     print_indent("} else {");
     gen_itc_code(n-n1, p1, ovtxt);
@@ -912,7 +911,7 @@ static void gen_dtc_code(struct pair *p, int npts,
     for (i = apts-2, p1 = p->next; i > 0; i--, p1 = p1->next);
     print_indent(NULL);
     fprintf(ofile, "if (x <= ");
-    if (from_int) fprintf(ofile, "%ld", (long int)p1->v[0]);
+    if (from_int) fprintf(ofile, "%d", (int32_t)p1->v[0]);
     else fprintf(ofile, "%.8g", p1->v[0]);
     fprintf(ofile, ") {");
     gen_dtc_code(p, apts, from_int, to_int);
@@ -1045,19 +1044,19 @@ static char *pick_a_type( struct tmtype *ftype, struct tmtype *ttype,
         ftype->decl->nameref->name, ret_type );
   } else if ( cvt_min <= cvt_max ) {
     if ( cvt_min >= 0 ) {
-      if ( cvt_max <= USHRT_MAX ) {
-        ret_type = "unsigned short int";
+      if ( cvt_max <= UINT16_MAX ) {
+        ret_type = "uint16_t";
         tcode = 0x1A;
-      } else if ( cvt_max <= ULONG_MAX ) {
-        ret_type = "unsigned long int";
+      } else if ( cvt_max <= UINT32_MAX ) {
+        ret_type = "uint32_t";
         tcode = 0x16;
       }
-    } else if ( cvt_min >= LONG_MIN ) {
-      if ( cvt_min >= SHRT_MIN && cvt_max <= SHRT_MAX ) {
-        ret_type = "short int";
+    } else if ( cvt_min >= INT32_MIN ) {
+      if ( cvt_min >= INT16_MIN && cvt_max <= INT16_MAX ) {
+        ret_type = "int16_t";
         tcode = 0x0A;
-      } else if ( cvt_max <= LONG_MAX ) {
-        ret_type = "long int";
+      } else if ( cvt_max <= INT32_MAX ) {
+        ret_type = "int32_t";
         tcode = 0x06;
       }
     }
@@ -1249,10 +1248,10 @@ static struct {
   char *type;
   char *abbr;
 } OT_abbr[] = {
-  { "unsigned short int", "US" },
-  { "short int", "SS" },
-  { "unsigned long int", "UL" },
-  { "long int", "SL" },
+  { "uint16_t", "US" },
+  { "int16_t", "SS" },
+  { "uint32_t", "UL" },
+  { "int32_t", "SL" },
   { NULL, NULL }
 };
 
@@ -1338,7 +1337,7 @@ static char *generate_tfunc( char *in_type, unsigned int in_tcode,
     fprintf(ofile, "\n  static char obuf[%d];", pformat->width+1);
     adjust_indent(0);
     if (fmt_min < 0) print_indent("int neg;");
-    if (fmt_max > SHRT_MAX || fmt_min < SHRT_MIN) {
+    if (fmt_max > INT16_MAX || fmt_min < INT16_MIN) {
       print_indent("\nint iov;");
       islong = 1;
     } else islong = 0;
@@ -1352,11 +1351,11 @@ static char *generate_tfunc( char *in_type, unsigned int in_tcode,
       print_indent(NULL);
       fprintf(ofile, "if (");
       if (input_min < fmt_min) {
-        fprintf(ofile, "%s < %ld", ovtxt, (long int)floor(fmt_min+.5));
+        fprintf(ofile, "%s < %d", ovtxt, (int32_t)floor(fmt_min+.5));
         if (input_max > fmt_max) fprintf(ofile, " || ");
       }
       if (input_max > fmt_max)
-        fprintf(ofile, "%s > %ld", ovtxt, (long int)floor(fmt_max+.5));
+        fprintf(ofile, "%s > %d", ovtxt, (int32_t)floor(fmt_max+.5));
       fprintf(ofile, ") return(\"");
       for (i = pformat->width; i > 0; i--) fputc('*', ofile);
       fprintf(ofile, "\");");
@@ -1412,7 +1411,7 @@ static char *generate_tfunc( char *in_type, unsigned int in_tcode,
           i, (isupper(pformat->code) ? "uc" : "lc"), ovtxt, radix);
         fmt_max /= radix;
         if ( i > 0 ) {
-          if (islong && fmt_max <= SHRT_MAX) {
+          if (islong && fmt_max <= INT16_MAX) {
             fprintf(ofile, "\n  iov = %s/%d;", ovtxt, radix);
             ovtxt = "iov";
             islong = 0;
