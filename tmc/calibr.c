@@ -88,7 +88,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <stdbool.h>
-#include "nl.h"
+#include "nortlib.h"
 #include "rational.h"
 #include "tmcstr.h"
 #include "tmc.h"

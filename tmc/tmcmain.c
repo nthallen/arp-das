@@ -71,10 +71,10 @@ tmc Telemetry Compiler Version 1 Revision 12
 	-s             Print frame statistics
 	-w             Give error return on warnings
 	
-Copyright 2001 by the President and Fellows of Harvard College
+Copyright 2001-2019 by the President and Fellows of Harvard College
 #endif
 
-char *opt_string = OPT_COMPILER_INIT "cCdD:H:impsV:";
+const char *opt_string = OPT_COMPILER_INIT "cCdD:H:impsV:";
 
 static void main_args(int argc, char **argv) {
   int c;
