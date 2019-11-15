@@ -25,6 +25,7 @@
 
 struct statpc *program;
 struct sttmnt initprog = {NULL, NULL};
+struct sttmnt redrawprog = {NULL, NULL};
 struct statpc *newstpc(unsigned int type) {
   struct statpc *spc;
 

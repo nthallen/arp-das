@@ -88,6 +88,7 @@ MAXCOLS ret_notxt(KW_MAXCOLS);
 MINCOLS ret_notxt(KW_MINCOLS);
 ON ret_notxt(KW_ON);
 ONCE ret_notxt(KW_ONCE);
+REDRAWFUNC ret_tok(KW_REDRAWFUNC);
 RETURN ret_tok(KW_RETURN);
 SHORT ret_tok(KW_SHORT);
 SIGNED ret_tok(KW_SIGNED);

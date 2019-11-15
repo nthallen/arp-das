@@ -413,6 +413,15 @@ void print_funcs(void) {
   }
   print_indent("}\n");
   
+  /* output tmredrawfunc always */
+  fprintf(ofile, "\nvoid tmredrawfunc() {");
+  if (redrawprog.first != NULL) {
+    adjust_indent(2);
+    print_stat(redrawprog.first);
+    adjust_indent(-2);
+  }
+  print_indent("}\n");
+  
   /* output a null function declaration */
   fprintf(ofile, NULLFUNCDECL ";");
   
