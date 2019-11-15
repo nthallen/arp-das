@@ -1,8 +1,8 @@
-SRC=depends.tmc caltest.tmc
+SRC=depends.tmc caltest.tmc array.tmc stdint.tmc
 TOOL=Makefile debug setup.dbg
 DOC=todo
 
-OBJ=depends.cc caltest.cc array.cc
+OBJ=depends.cc caltest.cc array.cc stdint.cc
 TEMPORARY=*.err *.pcm
 
 # Maintenance definitions
