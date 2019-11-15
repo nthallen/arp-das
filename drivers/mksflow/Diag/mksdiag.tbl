@@ -1,0 +1,11 @@
+Input "mksflow.tbl";
+Input "TMbase.tbl";
+
+{ HBox { +|+;
+    { [mks_flows];
+      [mks_hk];
+    }; +|+;
+    [TMbase];
+    +|+ };
+  +-+;
+}

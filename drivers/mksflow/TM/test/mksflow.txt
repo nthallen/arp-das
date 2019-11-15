@@ -1,0 +1,7 @@
+# mksflow.txt
+Name mks
+Rate 1 Hz
+Port /dev/ser3
+Data MFC1 1 MFC 500 sccm "Mass Flow 1"
+Data MFC2 2 MFC 5 slm "Mass Flow 2"
+Data MFM1 3 MFM 5 slm

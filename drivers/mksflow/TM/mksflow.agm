@@ -1,0 +1,67 @@
+Moduledef mksflow [ src= name=mks ] {
+  mksflow Module requires a src variable
+  Source file syntax:
+    source_file : source_line+ .
+    source_line :
+      comment /
+      'Name' word /
+      'Rate' \d+ 'Hz' /
+      'Port' path /
+      'Data' word address type full_scale units [ command ] .
+    word : \w+ .
+    address : \d+ .
+    type : 'MFC' / 'MFM' .
+    full_scale : float .
+    units : 'sccm' / 'slm' .
+    command : '"' \w+ [\s\w+]* '"' .
+  
+  If the command string is non-empty, a command is defined to specify
+  a set point for the channel.
+  
+  Will generate the following TM channels
+    <channel>_Flow
+    <channel>_Set (for MFCs only)
+    <channel>_T
+    <channel>_Stat
+    <channel>_ACK
+    <channel>_Stale
+  Will generate the follow commands for MFCs
+    <command> Set %f <units>
+  Vertical table for each channel:
+    <channel>_vert {
+      HBox { Title: >"<channel>"< };
+      Flow:   (<channel>_Flow,6)  <units>;
+      Set:    (<channel>_Set,6)   <units>;
+      Temp:   (<channel>_T,6)     C;
+      Status: (<channel>_Stat,4);
+      ACK:    (<channel>_ACK,2);
+      Stale:  (<channel>_Stale,3) sec;
+    }
+
+  Combined flows table for all channels:
+
+    <Name>_flows {
+      HBox { Title: >"<Name> Flows"< };
+      ""         Set               Flow;
+      <channel> (<channel>_Set,6) (<channel>_Flow,6) <channel_units>;
+    }
+
+  Combined housekeeping table for all channels:
+    <Name>_hk {
+      HBox { Title: >"<Name> HK"< };
+      ""         Temp             ""   Status            ACK              Stale;
+      <channel> (<channel>_Temp,6) C (<channel>_Stat,4) (<channel>_ACK,2) (<channel>_Stale,3);
+      ...
+    }
+}
+
+mode (default,driver) {
+  tmcbase = @name@.tmc:
+  colbase = @name@_col.tmc:
+  cmdbase = @name@.cmd:
+  genuibase = @name@.genui:
+  SRC = @src@
+  %%
+@name@.tmc @name@_col.tmc @name@.cmd @name@.genui @name@.tbl : @src@ @MODDIR@/mksflow_gen
+	@MODDIR@/mksflow_gen @src@ name=@name@
+}
