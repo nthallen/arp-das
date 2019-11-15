@@ -237,7 +237,7 @@ void cb_float(MKS_Query *Q, const char *rep) {
 #define CB_STATUS_MAX_ERRORS 5
 
 void cb_status_error(MKS_Query *Q, const char *rep, const char *p) {
-  static cb_status_n_errors = 0;
+  static int cb_status_n_errors = 0;
   if (cb_status_n_errors < CB_STATUS_MAX_ERRORS) {
     if (++cb_status_n_errors == CB_STATUS_MAX_ERRORS) {
       msg(MSG_ERROR, "%s: status syntax error messages suppressed",
@@ -300,7 +300,7 @@ void cb_status(MKS_Query *Q, const char *rep) {
       case 'I':
         if (p[1] == 'P') {
           ++p;
-          *status |= 0xXXXX; // IP = Insufficient gas inlet pressure
+          *status |= MKS_STAT_IP; // IP = Insufficient gas inlet pressure
           break;
         } // else fall through for syntax complaint
       default:
@@ -311,7 +311,7 @@ void cb_status(MKS_Query *Q, const char *rep) {
     if (*p == ',') {
       ++p;
     } else if (*p != '\0') {
-      cp_status_error(Q, rep, p);
+      cb_status_error(Q, rep, p);
       return;
     }
   }
