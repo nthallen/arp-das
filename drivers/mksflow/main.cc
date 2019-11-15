@@ -102,9 +102,15 @@ void poll_board(MKS_Ser *ser, int index, uint8_t address) {
     Q->set_persistent(true);
     ser->enqueue_request(Q);
 
+    Q = ser->new_query();
+    Q->setup_query(address, "T?", &mksdp->DeviceStatus, 0, &mksdp->ACK, 0x04);
+    Q->set_callback(cb_status);
+    Q->set_persistent(true);
+    ser->enqueue_request(Q);
+
     if (bdp->is_mfc) {
       Q = ser->new_query();
-      Q->setup_query(address, "SX?", &mksdp->DeviceTemp, 0, &mksdp->ACK, 0x02);
+      Q->setup_query(address, "SX?", &mksdp->DeviceTemp, 0, &mksdp->ACK, 0x08);
       Q->set_callback(cb_float);
       Q->set_persistent(true);
       ser->enqueue_request(Q);
@@ -228,9 +234,87 @@ void cb_float(MKS_Query *Q, const char *rep) {
   }
 }
 
-void cp_caption(MKS_Query *Q, const char *rep) {
-  board_id_t *bdp = &board_id[Q->get_index()];
-  msg(0, "%s: %s %s", bdp->mnemonic, rep, Q->get_caption());
+#define CB_STATUS_MAX_ERRORS 5
+
+void cb_status_error(MKS_Query *Q, const char *rep, const char *p) {
+  static cb_status_n_errors = 0;
+  if (cb_status_n_errors < CB_STATUS_MAX_ERRORS) {
+    if (++cb_status_n_errors == CB_STATUS_MAX_ERRORS) {
+      msg(MSG_ERROR, "%s: status syntax error messages suppressed",
+        board_id[Q->get_index()].mnemonic);
+    } else {
+      msg(MSG_ERROR, "%s: status syntax in '%s' at '%s'",
+        board_id[Q->get_index()].mnemonic, rep, p);
+    }
+  }
+}
+
+void cb_status(MKS_Query *Q, const char *rep) {
+  uint16_t *status = (uint16_t*)Q->get_ret_ptr();
+  const char *p = rep;
+  *status = 0;
+  while (*p != '\0') {
+    switch (*p) {
+      case 'C':
+        if (p[1] == 'R') {
+          ++p; // advance for two-letter code
+          *status |= MKS_STAT_CR; // CR = Calibration recommended
+        } else {
+          *status |= MKS_STAT_C; // C = Valve closed
+        }
+        break;
+      case 'E':
+        *status |= MKS_STAT_E; break; // E = System error
+      case 'H':
+        if (p[1] == 'H') {
+          ++p;
+          *status |= MKS_STAT_HH; // HH = High-high alarm condition
+        } else {
+          *status |= MKS_STAT_H; // H = High alarm condition
+        }
+        break;
+      case 'L':
+        if (p[1] == 'L') {
+          ++p;
+          *status |= MKS_STAT_LL; // LL = Low-low alarm condition
+        } else {
+          *status |= MKS_STAT_L; // L = Low alarm condition
+        }
+        break;
+      case 'M':
+        *status |= MKS_STAT_M; break; // M = Memory (EEPROM) failure
+      case 'O':
+        if (p[1] == 'C') {
+          ++p;
+          *status |= MKS_STAT_OC; // OC = Unexpected change in operating
+        }
+        break; // O = OK, no errors to report
+      case 'P':
+        *status |= MKS_STAT_P; break; // P = Purge
+      case 'T':
+        *status |= MKS_STAT_T; break; // T = Over temperature
+      case 'U':
+        *status |= MKS_STAT_U; break; // U = Uncalibrated
+      case 'V':
+        *status |= MKS_STAT_V; break; // V = Valve drive level alarm condition 
+      case 'I':
+        if (p[1] == 'P') {
+          ++p;
+          *status |= 0xXXXX; // IP = Insufficient gas inlet pressure
+          break;
+        } // else fall through for syntax complaint
+      default:
+        cb_status_error(Q, rep, p);
+        return;
+    }
+    ++p;
+    if (*p == ',') {
+      ++p;
+    } else if (*p != '\0') {
+      cp_status_error(Q, rep, p);
+      return;
+    }
+  }
 }
 
 void enqueue_requests(MKS_Ser *ser) {

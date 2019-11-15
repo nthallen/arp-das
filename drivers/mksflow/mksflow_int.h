@@ -123,6 +123,7 @@ void cb_gas_search(MKS_Query *, const char *rep);
 void cb_gas_number(MKS_Query *, const char *rep);
 void cb_float(MKS_Query *, const char *rep);
 void cb_report(MKS_Query *, const char *rep);
+void cb_status(MKS_Query *, const char *rep);
 
 class MKS_Ser : public Ser_Sel {
   friend class MKS_Query;
