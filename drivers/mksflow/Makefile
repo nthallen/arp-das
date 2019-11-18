@@ -17,7 +17,7 @@ mksflowoui.cc : mksflow.oui
 
 clean :
 	rm -f *.o mksflowoui.cc mksflow
-	rm -rf eng
+	rm -f eng/*.m
 	cd TM/test && make clean
 	cd Diag && make clean
 install : mksflow
