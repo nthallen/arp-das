@@ -1,0 +1,12 @@
+# Startup script for MKS Diag
+  Launch memo memo -o $Experiment.log
+  Launch TM/DCo TMbfr
+
+  memo=/dev/huarp/$Experiment/memo
+  echo "Running script interact" >$memo
+
+  Launch DG/cmd MKScol
+  Launch cmd/server MKSsrvr
+  Launch - lgr -N `mlf_find LOG`
+  Launch - mksflow -p /dev/ser3 -e
+  Launch - MKSalgo -v
