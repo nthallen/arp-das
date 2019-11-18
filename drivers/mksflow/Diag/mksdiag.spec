@@ -1,7 +1,7 @@
 tmcbase = base.tmc
 
 Module TMbase
-Module mksflow src=mksflow.txt name=$(MKSname)
+Module mksflow src=mksflow.txt name=MKS
 
 SCRIPT = interact
 TGTDIR = $(TGTNODE)/home/mksdiag

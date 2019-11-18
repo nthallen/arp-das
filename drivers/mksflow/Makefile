@@ -17,6 +17,9 @@ mksflowoui.cc : mksflow.oui
 
 clean :
 	rm -f *.o mksflowoui.cc mksflow
+	rm -rf eng
+	cd TM/test && make clean
+	cd Diag && make clean
 install : mksflow
 	@cp -vn mksflow $(TGTNODE)/usr/local/bin
 	@cp -vn mksflow.h $(TGTNODE)/usr/local/include

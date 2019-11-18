@@ -1,3 +1,8 @@
+MKS.cmd
+MKS.genui
+MKS.tbl
+MKS.tmc
+MKS_col.tmc
 mksdiagtbl.tmc
 mksdiagdisp.cc
 mksdiagdispoui.c
