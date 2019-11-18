@@ -1,4 +1,4 @@
-Moduledef mksflow [ src= name=mks ] {
+Moduledef mksflow [ src= name=MKS ] {
   mksflow Module requires a src variable
   Source file syntax:
     source_file : source_line+ .

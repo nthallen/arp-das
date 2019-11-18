@@ -1,5 +1,5 @@
 .PHONY : test clean
 test :
-	../mksflow_gen mksflow.txt name=mks
+	../mksflow_gen mksflow.txt name=MKS
 clean :
-	rm -f mks.* mks_*
+	rm -f MKS.* MKS_*

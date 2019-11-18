@@ -1,6 +1,7 @@
 #! /usr/bin/perl -w
 use strict;
 use Text::Wrap;
+use POSIX;
 
 # mksflow_gen <srcfile> name=<name>
 # Generates the following:
@@ -10,7 +11,7 @@ use Text::Wrap;
 #   # <name>_conv.tmc
 #   <name>.genui
 
-my $MKS_MAX_DRIVES = 2;
+my $MKS_MAX_DRIVES = 3;
 my $MKS_MAX_ADDRESS = 254;
 
 my $srcfile = $ARGV[0] ||
@@ -49,12 +50,12 @@ while (my $line = <$ifh>) {
     $name_src = $1;
     die "$srcfile:$linenum: Name $name_src conflicts with commandline name=$name_cl\n"
       if $name_cl ne '' && $name_src ne $name_cl;
-  } elsif ( $line =~ m|^\s* Data \s+ ([A-Za-z]\w+) \s+ (\d+) \s+
+  } elsif ( $line =~ m,^\s* Data \s+ ([A-Za-z]\w+) \s+ (\d+) \s+
                         (MFC|MFM) \s+
                         ([0-9]+) \s+
                         (slm|sccm)
-                        (?: \s+ "([^"]*)" )
-                        \s* $|ix ) {
+                        (?: \s+ "([^"]*)" )?
+                        \s* $,ix ) {
     my ($datum,$channel,$chtype,$fullscale,$units,$text) =
       ($1,$2,lc($3),$4,lc($5),$6);
     die "$srcfile:$linenum: Datum $datum conflicts with earlier definition\n"
@@ -66,14 +67,16 @@ while (my $line = <$ifh>) {
     die "$srcfile:$linenum: Number of drives exceeds arbitrary limit of $MKS_MAX_DRIVES\n"
       if $n_channels >= $MKS_MAX_DRIVES;
     if ($chtype eq 'mfc') {
-      $text ||= $channel; // command defaults to channel mnemonic
+      $text ||= $channel; # command defaults to channel mnemonic
     }
+    my $prec = 4 - floor(log10($fullscale));
     $Data{$datum} = {
       index => $n_channels,
       channel => $channel,
-      chtype = $chtype,
-      fullscale = $fullscale,
-      units = $units,
+      chtype => $chtype,
+      fullscale => $fullscale,
+      units => $units,
+      prec => $prec,
       text => $text};
     $Channel{$channel} = $datum;
     push(@Index, $datum);
@@ -101,15 +104,12 @@ open(my $cmd, ">", "$Name.cmd") ||
   die "$srcfile: Unable to write output file $Name.cmd\n";
 # Open the rest here also
 
-my ($datadef, $coldef, @grpmem, $tbldef, $cmddef,
+my ($datadef, $coldef, @grpmem, $tbldef, $hktbldef, $cmddef,
     @status_genui);
 
 $datadef = "TM $Rate Hz ${Name}_Stale_t ${Name}_Stale;\n";
 $coldef .= "  ${Name}_Stale = ${Name}_obj->stale(255);\n";
 push(@grpmem, "${Name}_Stale");
-
-print $genui
-  "  $Rate ${Name}_Stale $Name Stale\n";
 
 print $tmc <<EOF
 %{
@@ -133,50 +133,67 @@ for (my $i = 0; $i < $n_channels; ++$i) {
   my $offset = $i;
   my $datum = $Index[$i];
   my $D = $Data{$datum};
-  my $prec = 4 - floor(log10($D->{fullscale}));
-
+  my $prec = $D->{prec};
+  my $units = $D->{units};
+  
   if ($D->{chtype} eq 'mfc') {
     $datadef .= "TM $Rate Hz ${Name}_Flow${prec}_t ${datum}_Set;\n";
+    $coldef .= "  ${datum}_Set = ${Name}_drive($i,FlowSetPoint);\n";
     push(@grpmem, "${datum}_Set");
   }
   $datadef .= "TM $Rate Hz ${Name}_Flow${prec}_t ${datum}_Flow;\n";
+  $coldef .=  "  ${datum}_Flow = ${Name}_drive($i,Flow);\n";
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_T;\n";
+  $coldef .=  "  ${datum}_T = ${Name}_drive($i,DeviceTemp);\n";
   $datadef .= "TM $Rate Hz ${Name}_Status_t ${datum}_Status;\n";
+  $coldef .=  "  ${datum}_Status = ${Name}_drive($i,DeviceStatus);\n";
   $datadef .= "TM $Rate Hz ${Name}_ACK_t ${datum}_ACK;\n";
+  $coldef .=  "  ${datum}_ACK = ${Name}_drive($i,ACK);\n";
   $datadef .= "TM $Rate Hz ${Name}_Stale_t ${datum}_Stale;\n";
+  $coldef .=  "  ${datum}_Stale = ${Name}_drive($i,Stale);\n";
 
   push(@grpmem, map "${datum}_$_", qw(Flow T Status ACK Stale));
 
   print $genui
-    "  $Rate ${datum}_Status $Name ${datum}_Status\n",
-    "  $Rate ${datum}_Stale $Name Stale\n",
-    "  $Rate ${datum}_T $Name ${datum}_Temp\n",
-    "  $Rate ${datum}_Set $Name ${datum}_Flow\n",
-    "  $Rate ${datum}_Flow $Name ${datum}_Flow\n";
+    "  $Rate ${datum}_Status ${Name}_HK Status\n",
+    "  $Rate ${datum}_Stale  ${Name}_HK Stale\n",
+    "  $Rate ${datum}_ACK    ${Name}_HK ACK\n",
+    "  $Rate ${datum}_T      ${Name}_HK Temp\n",
+    "  $Rate ${datum}_Set    $Name ${datum}_Flow\n",
+    "  $Rate ${datum}_Flow   $Name ${datum}_Flow\n";
 
+  my $setdisp = ($D->{chtype} eq 'mfc') ? "(${datum}_Set,7)" : '"          "';
   my $datumtbl =
-    "  ${datum}: (${datum}_DevStatus,7) (${datum}_Stale,3) (${datum}_Sink_T,7) (${datum}_Set_T,7) (${datum}_T,7) C;\n";
-
+    "  ${datum}: $setdisp (${datum}_Flow,7) $units\n";
   $tbldef .= $datumtbl;
   
+  $datumtbl =
+    "  ${datum}: (${datum}_T,7) C (${datum}_Status,4) (${datum}_ACK,2) (${datum}_Stale,3);\n";
+  $hktbldef .= $datumtbl;
+  
   print $tbl
-    "$datum {\n$datumtbl",
-    "}\n\n",
     "${datum}_v {\n",
     "  HBox { +-; Title: ${datum}; -+ };\n",
-    "  Status: (${datum}_DevStatus,7);\n",
+    "  Flow:   (${datum}_Flow,7) $units;\n",
+    (($D->{chtype} eq 'mfc') ?
+      "  Set_T:  (${datum}_Set,7)  $units;\n" : ''),
+    "  T:      (${datum}_T,7)    C;\n",
+    "  Status: (${datum}_Stat,4);\n",
+    "  ACK:    (${datum}_ACK,2);\n",
     "  Stale:  (${datum}_Stale,3);\n",
-    "  Sink_T: (${datum}_Sink_T,7) C;\n",
-    "  Set_T:  (${datum}_Set_T,7) C;\n",
-    "  T:      (${datum}_T,7) C;\n",
     "}\n\n";
 
-  my $text = $D->{text};
-  if (length($text) > 0) {
-    my @text = split(' ',$text);
+  if ($D->{chtype} eq 'mfc') {
+    my $text = $D->{text};
+    my $channel = $D->{channel};
+    if (!defined($text) || length($text) == 0) {
+      $text = $datum;
+    }
+    my @text = split(' ', "$text Flow SetPoint");
+    my $fword = scalar(@text)+1;
     $cmddef .=
-      "  : " . join(' ', @text) .
-      "    { \$0 = $D->{channel}; }\n";
+      "  : " . join(' ', @text, '%f', "($units)", $units, '*') .
+      " { if_mks.Turf(\"W$channel:1:%7.${prec}f\\n\", \$$fword); }\n";
   }
 }
 
@@ -189,46 +206,36 @@ print $tmc
   "  ${Name}_obj->synch();\n}\n";
 
 print $col
-  "%{\n" .
-  "  mksflow_t $Name;\n" .
+  "%{\n",
+  "  #include \"mksflow.h\"\n",
+  "  mksflow_t $Name;\n",
   "%}\n";
 
 print $genui
-  "  $Rate ${Name}_Stale $Name Stale\n";
+  "  $Rate ${Name}_Stale ${Name}_HK Stale\n";
 
 print $tbl
-  "$Name {\n" .
-  "  HBox { +-; Title: $Name; -+ };\n" .
-  '  "" >Status< >Sink< >Set< >T<;' . "\n" .
-  $tbldef .
-  "  { HGlue 0+1 Stale: (${Name}_Stale,3) }\n" .
+  "$Name {\n" ,
+  "  HBox { +-; Title: $Name; -+ };\n" ,
+  '  ""    >Set<        >Flow<;' . "\n",
+  $tbldef,
+  "  { HGlue 0+1 Stale: (${Name}_Stale,3) }\n",
+  "}\n\n",
+  "${Name}_hk {\n",
+  "  HBox { +-; Title: \"$Name HK\"; -+ };\n" ,
+  '  ""    >Temp<    "" >Status<        >ACK<        >Stale<;' . "\n",
+  $hktbldef,
   "}\n";
 
+if ( $cmddef ) {
 print $cmd <<EOF
-%{
-  #include <stdint.h>
-%}
 %INTERFACE <$Name>
 
 &command
-  : &$Name Enable * { if_$Name.Turf("W%d:50000:00000001\\n", \$1); }
-  : &$Name Disable * { if_$Name.Turf("W%d:50000:00000000\\n", \$1); }
-  : &$Name SetPoint %f (Celcius) C * {
-      float setpoint = \$3;
-      uint32_t *ui32p = (uint32_t *)&setpoint;
-      if_$Name.Turf("W%d:50012:%08X\\n", \$1, *ui32p);
-    }
-  : &$Name Live SetPoints Enable * { if_$Name.Turf("W%d:50011:00000001\\n", \$1); }
-  : &$Name Live SetPoints Disable * { if_$Name.Turf("W%d:50011:00000000\\n", \$1); }
-  ;
-
-&$Name <int>
+$cmddef  ;
 EOF
 ;
-
-print $cmd
-  $cmddef .
-  ";\n";
+}
 
 close($tmc) || warn "$srcfile: Error closing output file $Name.tmc\n";
 close($col) || warn "$srcfile: Error closing output file ${Name}_col.tmc\n";
