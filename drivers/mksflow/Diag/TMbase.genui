@@ -1,0 +1,4 @@
+  1 SysTDrift TMbase TDrift
+  1 CPU_Pct TMbase CPU
+  1 freemem TMbase RAM
+  1 Disk TMbase Disk

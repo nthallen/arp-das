@@ -17,7 +17,7 @@ mksflowoui.cc : mksflow.oui
 
 clean :
 	rm -f *.o mksflowoui.cc mksflow
-install :
+install : mksflow
 	@cp -vn mksflow $(TGTNODE)/usr/local/bin
 	@cp -vn mksflow.h $(TGTNODE)/usr/local/include
 	@cp -vn TM/mksflow.agm $(TGTNODE)/usr/local/share/huarp

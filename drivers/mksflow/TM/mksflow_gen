@@ -164,7 +164,7 @@ for (my $i = 0; $i < $n_channels; ++$i) {
 
   my $setdisp = ($D->{chtype} eq 'mfc') ? "(${datum}_Set,7)" : '"          "';
   my $datumtbl =
-    "  ${datum}: $setdisp (${datum}_Flow,7) $units\n";
+    "  ${datum}: $setdisp (${datum}_Flow,7) $units;\n";
   $tbldef .= $datumtbl;
   
   $datumtbl =
@@ -178,7 +178,7 @@ for (my $i = 0; $i < $n_channels; ++$i) {
     (($D->{chtype} eq 'mfc') ?
       "  Set_T:  (${datum}_Set,7)  $units;\n" : ''),
     "  T:      (${datum}_T,7)    C;\n",
-    "  Status: (${datum}_Stat,4);\n",
+    "  Status: (${datum}_Status,4);\n",
     "  ACK:    (${datum}_ACK,2);\n",
     "  Stale:  (${datum}_Stale,3);\n",
     "}\n\n";
@@ -193,7 +193,7 @@ for (my $i = 0; $i < $n_channels; ++$i) {
     my $fword = scalar(@text)+1;
     $cmddef .=
       "  : " . join(' ', @text, '%f', "($units)", $units, '*') .
-      " { if_mks.Turf(\"W$channel:1:%7.${prec}f\\n\", \$$fword); }\n";
+      " { if_${Name}.Turf(\"W$channel:1:%7.${prec}f\\n\", \$$fword); }\n";
   }
 }
 
@@ -215,7 +215,7 @@ print $genui
   "  $Rate ${Name}_Stale ${Name}_HK Stale\n";
 
 print $tbl
-  "$Name {\n" ,
+  "${Name}_flows {\n" ,
   "  HBox { +-; Title: $Name; -+ };\n" ,
   '  ""    >Set<        >Flow<;' . "\n",
   $tbldef,
