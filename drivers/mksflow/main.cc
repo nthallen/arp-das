@@ -347,7 +347,7 @@ void enqueue_requests(MKS_Ser *ser) {
     } else board_id[index].mnemonic[0] = '\0';
     ++index;
     if (*s == ',') ++s;
-    if (*s == '\0') break;
+    else if (*s == '\0') break;
     else msg(MSG_FATAL,
       "Invalid character in address option string after %d address(es): '%s'",
       index, address_opts);
@@ -363,7 +363,7 @@ int main(int argc, char **argv) {
   oui_init_options(argc, argv);
   Selector S;
   MKS_Ser Ser(MKS_Ser_path);
-  Ser.setup(57600, 8, 'n', 1, 1, 1);
+  Ser.setup(9600, 8, 'n', 1, 1, 1);
   MKS_Cmd Cmd(&Ser);
   MKS_TM_Selectee TM(MKS_Name);
   S.add_child(&Ser);

@@ -5,8 +5,8 @@
   memo=/dev/huarp/$Experiment/memo
   echo "Running script interact" >$memo
 
-  Launch DG/cmd MKScol
-  Launch cmd/server MKSsrvr
+  Launch DG/cmd mksdiagcol
+  Launch cmd/server mksdiagsrvr
   Launch - lgr -N `mlf_find LOG`
-  Launch - mksflow -p /dev/ser3 -e
-  Launch - MKSalgo -v
+  Launch - mksflow -p /dev/serusb1 -a 1:MFM1,2:MFM2,3:MFM3,4:MFM4
+  Launch - mksdiagalgo -v

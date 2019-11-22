@@ -5,7 +5,7 @@ Input "TMbase.tbl";
     { [MKS_flows];
       [MKS_hk];
     }; |+;
-    [MFC1_v]; |+;
+    [MFM1_v]; |+;
     [TMbaseB]; |+ };
   +-+;
 }

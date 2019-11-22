@@ -11,7 +11,7 @@ use POSIX;
 #   # <name>_conv.tmc
 #   <name>.genui
 
-my $MKS_MAX_DRIVES = 3;
+my $MKS_MAX_DRIVES = 5;
 my $MKS_MAX_ADDRESS = 254;
 
 my $srcfile = $ARGV[0] ||
@@ -229,10 +229,14 @@ print $tbl
   $hktbldef,
   "}\n";
 
-if ( $cmddef ) {
 print $cmd <<EOF
 %INTERFACE <$Name>
 
+EOF
+;
+
+if ( $cmddef ) {
+print $cmd <<EOF
 &command
 $cmddef  ;
 EOF

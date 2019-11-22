@@ -1,5 +1,5 @@
 display mksdiagdisp
-client MKSclt
+client mksdiagclt
 memo
 batchfile interact
 # phrtg

@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #ifndef MKS_MAX_DRIVES
-#define MKS_MAX_DRIVES 2
+#define MKS_MAX_DRIVES 5
 #endif
 
 typedef struct __attribute__((packed)) {

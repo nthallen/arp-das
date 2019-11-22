@@ -1,42 +1,45 @@
 
 --------Frame Statistics-----------
 Major Frame: 1 minor frames, 1 Hz
-Minor Frame: 58 bytes, 1 Hz
+Minor Frame: 62 bytes, 1 Hz
 Effective Frame Dimensions:
-  1 Rows 58 Columns
+  1 Rows 62 Columns
   1 rows/sec
-  464 bits/sec
-  Data:  432 bits/sec  93 %
-  Synch: 32 bits/sec  7 %
+  496 bits/sec
+  Data:  464 bits/sec  94 %
+  Synch: 32 bits/sec  6 %
   Empty: 0 bits/sec  0 %
 -------End of Frame Statistics-----
 
 
 --------PCM Definition-------------
 1/1 Hz 2 bytes Datum MFCtr (1,0,0,2)
-1/1 Hz 45 bytes Group MKS (1,0,2,45)
-1/1 Hz 1 bytes Member MFM1_Stale (1,0,2,1)
-1/1 Hz 1 bytes Member MFM1_ACK (1,0,3,1)
-1/1 Hz 2 bytes Member MFM1_Status (1,0,4,2)
-1/1 Hz 4 bytes Member MFM1_T (1,0,6,4)
-1/1 Hz 4 bytes Member MFM1_Flow (1,0,10,4)
-1/1 Hz 1 bytes Member MFC2_Stale (1,0,14,1)
-1/1 Hz 1 bytes Member MFC2_ACK (1,0,15,1)
-1/1 Hz 2 bytes Member MFC2_Status (1,0,16,2)
-1/1 Hz 4 bytes Member MFC2_T (1,0,18,4)
-1/1 Hz 4 bytes Member MFC2_Flow (1,0,22,4)
-1/1 Hz 4 bytes Member MFC2_Set (1,0,26,4)
-1/1 Hz 1 bytes Member MFC1_Stale (1,0,30,1)
-1/1 Hz 1 bytes Member MFC1_ACK (1,0,31,1)
-1/1 Hz 2 bytes Member MFC1_Status (1,0,32,2)
-1/1 Hz 4 bytes Member MFC1_T (1,0,34,4)
-1/1 Hz 4 bytes Member MFC1_Flow (1,0,38,4)
-1/1 Hz 4 bytes Member MFC1_Set (1,0,42,4)
-1/1 Hz 1 bytes Member MKS_Stale (1,0,46,1)
-1/1 Hz 4 bytes Datum SysTDrift (1,0,47,4)
-1/1 Hz 2 bytes Datum Disk (1,0,51,2)
-1/1 Hz 2 bytes Datum freemem (1,0,53,2)
-1/1 Hz 1 bytes Datum CPU_Pct (1,0,55,1)
-1/1 Hz 2 bytes Datum Synch (1,0,56,2)
+1/1 Hz 49 bytes Group MKS (1,0,2,49)
+1/1 Hz 1 bytes Member MFM4_Stale (1,0,2,1)
+1/1 Hz 1 bytes Member MFM4_ACK (1,0,3,1)
+1/1 Hz 2 bytes Member MFM4_Status (1,0,4,2)
+1/1 Hz 4 bytes Member MFM4_T (1,0,6,4)
+1/1 Hz 4 bytes Member MFM4_Flow (1,0,10,4)
+1/1 Hz 1 bytes Member MFM3_Stale (1,0,14,1)
+1/1 Hz 1 bytes Member MFM3_ACK (1,0,15,1)
+1/1 Hz 2 bytes Member MFM3_Status (1,0,16,2)
+1/1 Hz 4 bytes Member MFM3_T (1,0,18,4)
+1/1 Hz 4 bytes Member MFM3_Flow (1,0,22,4)
+1/1 Hz 1 bytes Member MFM2_Stale (1,0,26,1)
+1/1 Hz 1 bytes Member MFM2_ACK (1,0,27,1)
+1/1 Hz 2 bytes Member MFM2_Status (1,0,28,2)
+1/1 Hz 4 bytes Member MFM2_T (1,0,30,4)
+1/1 Hz 4 bytes Member MFM2_Flow (1,0,34,4)
+1/1 Hz 1 bytes Member MFM1_Stale (1,0,38,1)
+1/1 Hz 1 bytes Member MFM1_ACK (1,0,39,1)
+1/1 Hz 2 bytes Member MFM1_Status (1,0,40,2)
+1/1 Hz 4 bytes Member MFM1_T (1,0,42,4)
+1/1 Hz 4 bytes Member MFM1_Flow (1,0,46,4)
+1/1 Hz 1 bytes Member MKS_Stale (1,0,50,1)
+1/1 Hz 4 bytes Datum SysTDrift (1,0,51,4)
+1/1 Hz 2 bytes Datum Disk (1,0,55,2)
+1/1 Hz 2 bytes Datum freemem (1,0,57,2)
+1/1 Hz 1 bytes Datum CPU_Pct (1,0,59,1)
+1/1 Hz 2 bytes Datum Synch (1,0,60,2)
 -------End of PCM Definition-------
 
