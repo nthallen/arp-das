@@ -149,15 +149,18 @@ for (my $i = 0; $i < $n_channels; ++$i) {
   $coldef .=  "  ${datum}_Status = ${Name}_drive($i,DeviceStatus);\n";
   $datadef .= "TM $Rate Hz ${Name}_ACK_t ${datum}_ACK;\n";
   $coldef .=  "  ${datum}_ACK = ${Name}_drive($i,ACK);\n";
+  $datadef .= "TM $Rate Hz ${Name}_ACK_t ${datum}_ACK2;\n";
+  $coldef .=  "  ${datum}_ACK2 = ${Name}_drive($i,ACK2);\n";
   $datadef .= "TM $Rate Hz ${Name}_Stale_t ${datum}_Stale;\n";
   $coldef .=  "  ${datum}_Stale = ${Name}_drive($i,Stale);\n";
 
-  push(@grpmem, map "${datum}_$_", qw(Flow T Status ACK Stale));
+  push(@grpmem, map "${datum}_$_", qw(Flow T Status ACK ACK2 Stale));
 
   print $genui
     "  $Rate ${datum}_Status ${Name}_HK Status\n",
     "  $Rate ${datum}_Stale  ${Name}_HK Stale\n",
     "  $Rate ${datum}_ACK    ${Name}_HK ACK\n",
+    "  $Rate ${datum}_ACK2   ${Name}_HK ACK2\n",
     "  $Rate ${datum}_T      ${Name}_HK Temp\n",
     (($D->{chtype} eq 'mfc') ?
       "  $Rate ${datum}_Set    $Name ${datum}_Flow\n"
@@ -170,7 +173,7 @@ for (my $i = 0; $i < $n_channels; ++$i) {
   $tbldef .= $datumtbl;
   
   $datumtbl =
-    "  ${datum}: (${datum}_T,7) C (${datum}_Status,4) (${datum}_ACK,2) (${datum}_Stale,3);\n";
+    "  ${datum}: (${datum}_T,7) C (${datum}_Status,4) (${datum}_ACK,2) (${datum}_ACK2,2) (${datum}_Stale,3);\n";
   $hktbldef .= $datumtbl;
   
   print $tbl
@@ -182,6 +185,7 @@ for (my $i = 0; $i < $n_channels; ++$i) {
     "  T:      (${datum}_T,7)    C;\n",
     "  Status: (${datum}_Status,4);\n",
     "  ACK:    (${datum}_ACK,2);\n",
+    "  ACK2:   (${datum}_ACK2,2);\n",
     "  Stale:  (${datum}_Stale,3);\n",
     "}\n\n";
 
@@ -225,7 +229,7 @@ print $tbl
   "}\n\n",
   "${Name}_hk {\n",
   "  HBox { +-; Title: \"$Name HK\"; -+ };\n" ,
-  '  ""    >Temp<    "" >Status<        >ACK<        >Stale<;' . "\n",
+  '  ""    >Temp<    "" >Status<        >ACK<   ""     >Stale<;' . "\n",
   $hktbldef,
   "}\n";
 

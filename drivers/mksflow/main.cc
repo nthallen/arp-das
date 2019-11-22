@@ -65,21 +65,22 @@ void report_board_id(MKS_Query *Q) {
 void identify_board(MKS_Ser *ser, int index, uint8_t address) {
   nl_assert(index >= 0 && index < n_drives);
   board_id_t *bdp = &board_id[index];
+  uint8_t *ACK2 = &mksflow.drive[index].ACK2;
   MKS_Query *Q = ser->new_query();
-  Q->setup_query(address, "MF?", bdp->manufacturer, 4, &bdp->ACK, 0x01);
+  Q->setup_query(address, "MF?", bdp->manufacturer, 4, ACK2, 0x01);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_query(address, "MD?", bdp->model, 40, &bdp->ACK, 0x02);
+  Q->setup_query(address, "MD?", bdp->model, 40, ACK2, 0x02);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_query(address, "SN?", bdp->serial_number, 20, &bdp->ACK, 0x04);
+  Q->setup_query(address, "SN?", bdp->serial_number, 20, ACK2, 0x04);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_query(address, "DT?", 0, 4, &bdp->ACK, 0x08);
+  Q->setup_query(address, "DT?", 0, 4, ACK2, 0x08);
   Q->set_callback(cb_device_type);
   ser->enqueue_request(Q);
   Q = ser->new_query();
-  Q->setup_query(address, "SGN?", 0, 4, &bdp->ACK, 0x10);
+  Q->setup_query(address, "SGN?", 0, 4, ACK2, 0x10);
   Q->set_callback(cb_gas_number);
   ser->enqueue_request(Q);
 }
@@ -110,7 +111,7 @@ void poll_board(MKS_Ser *ser, int index, uint8_t address) {
 
     if (bdp->is_mfc) {
       Q = ser->new_query();
-      Q->setup_query(address, "SX?", &mksdp->DeviceTemp, 0, &mksdp->ACK, 0x08);
+      Q->setup_query(address, "SX?", &mksdp->FlowSetPoint, 0, &mksdp->ACK, 0x08);
       Q->set_callback(cb_float);
       Q->set_persistent(true);
       ser->enqueue_request(Q);
@@ -133,6 +134,7 @@ void cb_valve_type(MKS_Query *Q, const char *rep) {
  */
 void cb_device_type(MKS_Query *Q, const char *rep) {
   board_id_t *bdp = &board_id[Q->get_index()];
+  uint8_t *ACK2 = &mksflow.drive[index].ACK2;
   Q->store_string(bdp->device_type, rep);
   msg(0,"%s: Addr:%d Mfg:%s Mdl:%s SN:%s Type:%s", bdp->mnemonic, bdp->device_address,
     bdp->manufacturer, bdp->model,
@@ -142,11 +144,11 @@ void cb_device_type(MKS_Query *Q, const char *rep) {
     MKS_Ser *ser = Q->get_ser();
     MKS_Query *Q1 = ser->new_query();
     Q1->setup_query(Q->get_address(), "VT?", bdp->valve_type, 20,
-      &bdp->ACK, 0x40);
+      ACK2, 0x40);
     ser->enqueue_request(Q1);
     Q1 = ser->new_query();
     Q1->setup_query(Q->get_address(), "VPO?",
-      bdp->valve_power_off_state, 20, &bdp->ACK, 0x80);
+      bdp->valve_power_off_state, 20, ACK2, 0x80);
     Q1->set_callback(cb_valve_type);
     ser->enqueue_request(Q1);
   }
@@ -213,12 +215,13 @@ void cb_gas_search(MKS_Query *Q, const char *rep) {
 
 void cb_gas_number(MKS_Query *Q, const char *rep) {
   board_id_t *bdp = &board_id[Q->get_index()];
+  uint8_t *ACK2 = &mksflow.drive[index].ACK2;
   Q->store_string(bdp->gas_number, rep);
   MKS_Ser *ser = Q->get_ser();
   MKS_Query *Q1 = ser->new_query();
   char req[10];
   snprintf(req, 10, "GN?%s", bdp->gas_number);
-  Q1->setup_query(Q->get_address(), req, bdp, 80, &bdp->ACK, 0x20);
+  Q1->setup_query(Q->get_address(), req, bdp, 80, ACK2, 0x20);
   Q->set_callback(cb_gas_search);
   ser->enqueue_request(Q1);
 }

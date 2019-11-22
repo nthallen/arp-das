@@ -31,7 +31,7 @@ typedef struct {
   char     valve_type[20]; // VT (only if device_type is MFC) bit 6
   char     valve_power_off_state[20]; // VPO (only if device_type is MFC) bit 7
   char     mnemonic[10];
-  uint8_t  ACK;
+  // uint8_t  ACK;
   bool     is_mfc;
   bool     is_polling;
 } board_id_t;

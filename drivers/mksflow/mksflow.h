@@ -12,7 +12,10 @@ typedef struct __attribute__((packed)) {
   float    DeviceTemp;   // TA
   uint16_t DeviceStatus; // T
   uint8_t  ACK;
+  uint8_t  ACK2;
   uint8_t  Stale;
+  uint8_t  Padding;
+  uint16_t Padding2;
 } mks_drive_t;
 
 #define MKS_STAT_C   0x0001 // C = Valve closed
