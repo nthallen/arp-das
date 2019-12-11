@@ -1,0 +1,23 @@
+<package> subbusd_slcan
+<include> CAN/subbusd_CAN
+<follow> subbusd msg oui
+
+<opts> "p:b:"
+<sort>
+	-p <port> Serial port (/dev/serusb2)
+	-b <baud> Baud rate (57600)
+
+<switch>
+  case 'p':
+    CAN_serial::port = optarg;
+    break;
+  case 'b':
+    CAN_serial::baud_rate = atoi(optarg);
+    break;
+
+<package> appid_default
+<include> "dasio/appid.h"
+<include> msg
+<preceed> msg
+<defs>
+  DAS_IO::AppID_t DAS_IO::AppID("CAN", "Subbus SLCAN Driver", "V1.1");

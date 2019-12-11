@@ -55,6 +55,19 @@ sc104_sc104init.o : syscon104/sc104init.c
 sc104oui.c : syscon104/sc104.oui subbusd.oui
 	oui -o sc104oui.c syscon104/sc104.oui
 
+subbusd_can_OBJECTS = subbusd.o subbusd_CAN.o \
+  subbusd_CAN_interface.o subbusd_CANoui.o
+subbusd_can : $(subbusd_can_OBJECTS)
+	$(LINK.c) -o subbusd_CAN $(LDADD) $(subbusd_CAN_OBJECTS)
+	usemsg subbusd_CAN subbusd_CANoui.c
+	/usr/local/sbin/promote subbusd_CAN
+subbusd_CAN.o : CAN/subbusd_CAN.c
+	$(COMPILE.c) -o subbusd_CAN.o CAN/subbusd_CAN.c
+subbusd_CAN_interface.o : CAN/subbusd_CAN_interface.c
+	$(COMPILE.c) -o subbusd_CAN_interface.o CAN/subbusd_CAN_interface.c
+subbusd_CANoui.c : CAN/subbusd_CAN.oui subbusd.oui
+	oui -o subbusd_CANoui.c CAN/subbusd_CAN.oui
+
 subbusd_sim_SOURCES = expint.c subbusd.c subbusd_int.h \
   sim/sim.c sim/interrupt.c sim/sim.h \
   subbusd.h simoui.c cache.c

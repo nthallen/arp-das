@@ -1,0 +1,19 @@
+<package> subbusd_CAN
+<include> subbusd
+<follow> subbusd msg oui
+<include> "subbusd_int.h"
+<include> "subbusd_CAN.h"
+
+<init>
+  subbusd_CAN_init_options(argc, argv);
+
+<comment>
+subbusd_CAN_init_options() is responsible for:
+  subbusd_core::subbusd->register_flavor(my_instance);
+
+<package> appid_default
+<include> "dasio/appid.h"
+<include> msg
+<preceed> msg
+<defs>
+  DAS_IO::AppID_t DAS_IO::AppID("CAN", "Subbus CAN Driver", "V1.1");
