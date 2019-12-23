@@ -384,14 +384,18 @@ void subbusd_CAN_client::format_mread_rd() {
     can_msg.sb_nb*2, this);
 }
 
-subbusd_CAN::subbusd_CAN() : subbusd_flavor("CAN", new_subbusd_CAN_client) {}
+subbusd_CAN::subbusd_CAN() /* : subbusd_flavor("CAN", new_subbusd_CAN_client) */ {
+  nl_assert(CAN_flavor == 0);
+  CAN_flavor = this;
+  CAN = 0;
+}
 subbusd_CAN::~subbusd_CAN() {}
 
 void subbusd_CAN::init_subbus() {
   // setup socket
   CAN = new CAN_interface();
-  CAN->reference();
-  subbusd_core::subbusd->srvr.ELoop.add_child(CAN->iface_ptr());
+  // CAN->reference();
+  // subbusd_core::subbusd->srvr.ELoop.add_child(CAN->iface_ptr());
   CAN->setup();
 }
 
@@ -402,12 +406,4 @@ void subbusd_CAN::shutdown_subbus() {
     CAN->dereference();
     CAN = 0;
   }
-}
-
-void subbusd_CAN_init_options(int argc, char **argv) {
-  argc = argc;
-  argv = argv;
-  subbusd_CAN *CAN = new subbusd_CAN();
-  nl_assert(subbusd_core::subbusd);
-  subbusd_core::subbusd->register_flavor(CAN);
 }

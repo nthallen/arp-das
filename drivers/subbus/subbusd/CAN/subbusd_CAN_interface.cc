@@ -410,12 +410,16 @@ CAN_serial::CAN_serial(CAN_interface *parent)
     {}
 
 void CAN_serial::setup() {
+#if 0
   init(port, O_RDWR | O_NONBLOCK);
   DAS_IO::Serial::setup(baud_rate, 8, 'n', 1, 6, 0);
   flush_input();
   issue_init();
   update_tc_vmin(30);
   flags |= DAS_IO::Interface::Fl_Timeout;
+#endif
+  issue_init();
+  update_tc_vmin(30);
 }
 
 void CAN_serial::cleanup() {

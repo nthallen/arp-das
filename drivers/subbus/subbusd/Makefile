@@ -17,9 +17,9 @@ subbusd_serusb_SOURCES = expint.c subbusd.c subbusd_int.h \
   serusb/serusb.c serusb/interrupt.c serusb/serusb.h \
   subbusd.h serusboui.c cache.c client_buf_default.c
 subbusd_serusb_CPPFLAGS = -I serusb
-
 subbusd_serusb_OBJECTS = expint.o subbusd.o serusb_serusb.o \
   serusb_interrupt.o serusboui.o cache.o client_buf_default.o
+
 subbusd_serusb : $(subbusd_serusb_OBJECTS)
 	$(LINK.c) -o subbusd_serusb $(LDADD) $(subbusd_serusb_OBJECTS)
 	usemsg subbusd_serusb serusboui.c
@@ -71,4 +71,24 @@ sim_sbsim.o : sim/sbsim.c
 simoui.o : simoui.c
 simoui.c : sim/sbsim.oui subbusd.oui
 	oui -o simoui.c sim/sbsim.oui
+
+subbsd_CAN_SOURCES = subbusd.c subbusd_int.h \
+  CAN/subbusd_CAN.cc CAN/subbusd_CAN_interface.cc \
+  CAN/subbusd_CAN.h CAN/subbusd_CAN_interface.h \
+  subbusd.h CANoui.c cache.c
+subbsd_CAN_CPPFLAGS = -I CAN
+subbsd_CAN_OBJECTS = subbusd.o cache.o \
+  CAN_CAN.o CAN_CAN_interface.o CANoui.o
+
+subbsd_CAN : $(subbsd_CAN_OBJECTS)
+	$(LINK.c) -o subbsd_CAN $(LDADD) $(subbsd_CAN_OBJECTS)
+	usemsg subbsd_CAN CANoui.c
+	/usr/local/sbin/promote subbsd_CAN
+CAN_CAN.o : CAN/subbusd_CAN.cc
+	$(COMPILE.cc) -o CAN_CAN.o CAN/subbusd_CAN.cc
+CAN_CAN_interface.o : CAN/subbusd_CAN_interface.cc
+	$(COMPILE.cc) -o CAN_CAN_interface.o CAN/subbusd_CAN_interface.cc
+CANoui.o : CANoui.c
+CANoui.c : CAN/subbusd_slcan.oui subbusd.oui
+	oui -o CANoui.c CAN/subbusd_slcan.oui
 

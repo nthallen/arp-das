@@ -90,6 +90,7 @@ class subbusd_CAN : public subbusd_flavor {
       }
   private:
     // CAN sockets, states, etc.
+    static subbusd_CAN *CAN_flavor;
     CAN_interface *CAN;
 };
 
