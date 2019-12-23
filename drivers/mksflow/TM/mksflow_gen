@@ -118,6 +118,7 @@ print $tmc <<EOF
   #include "mksflow.h"
   #define ${Name}_drive(x,y) ${Name}.drive[x].y
 %}
+TM typedef float ${Name}_Flow0_t { text "%7.0f"; }
 TM typedef float ${Name}_Flow1_t { text "%7.1f"; }
 TM typedef float ${Name}_Flow2_t { text "%7.2f"; }
 TM typedef float ${Name}_Flow3_t { text "%7.3f"; }
@@ -199,7 +200,7 @@ for (my $i = 0; $i < $n_channels; ++$i) {
     my $fword = scalar(@text)+1;
     $cmddef .=
       "  : " . join(' ', @text, '%f', "($units)", $units, '*') .
-      " { if_${Name}.Turf(\"W$channel:1:%7.${prec}f\\n\", \$$fword); }\n";
+      " { if_${Name}.Turf(\"W$channel:1:%.${prec}f\\n\", \$$fword); }\n";
   }
 }
 

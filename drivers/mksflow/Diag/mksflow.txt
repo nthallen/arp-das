@@ -2,7 +2,8 @@
 Name MKS
 Rate 1 Hz
 Port /dev/serusb1
-Data MFM1 1 MFM 50  sccm "Cal 1"
-Data MFM2 2 MFM 500 sccm "Cal 2"
-Data MFM3 3 MFM 5   slm  "Cal 3"
-Data MFM4 4 MFM 50  slm  "Cal 4"
+Data MFM1 1 MFM 50    sccm "Cal 1"
+Data MFM2 2 MFM 500   sccm "Cal 2"
+Data MFM3 3 MFM 5000  sccm "Cal 3"
+Data MFM4 4 MFM 50000 sccm "Cal 4"
+Data MFC1 5 MFC 50000 sccm "MFC"

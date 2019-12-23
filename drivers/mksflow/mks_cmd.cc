@@ -118,6 +118,7 @@ bool MKS_Cmd::app_input() {
       }
       Q = ser->new_query();
       Q->setup_query(address, cmdptr, 0, 0, 0, 0);
+      // Q->set_callback(cb_cmd_v);
       ser->enqueue_request(Q);
       report_ok();
       break;

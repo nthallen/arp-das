@@ -101,6 +101,7 @@ int MKS_Ser::not_hex(uint32_t &hexval, int width) {
 }
 
 bool MKS_Ser::saw_error() {
+  // msg(MSG_DBG(0), "saw_error(): input is '%s'", ascii_escape((const char *)buf));
   if (cp >= nc) {
     update_tc_vmin(pending_replen - nc);
   } else {
@@ -123,17 +124,18 @@ bool MKS_Ser::protocol_input() {
     return saw_error();
   unsigned int rep_cp = cp;
   if (not_found('@')) {
-    free_pending();
+    // free_pending();
+    msg(MSG_DBG(0),"No @ in protocol_input");
     return false;
   }
   nl_assert(cp > 0);
   rep_cp = cp - 1;
-  if (not_str("@@000"))
+  if (not_str("@@000") || cp >= nc)
     return saw_error();
-  if (cp >= nc) {
-    update_tc_vmin(pending_replen - nc);
-    return false;
-  }
+  // if (cp >= nc) {
+  //   update_tc_vmin(pending_replen - nc);
+  //   return false;
+  // }
   if (buf[cp] != 'A') {
     if (not_str("NAK") ||
         not_int(err_code) ||
@@ -153,7 +155,8 @@ bool MKS_Ser::protocol_input() {
   int rep_start = cp;
   while (cp < nc && buf[cp] != ';') ++cp;
   int rep_end = cp;
-  if (buf[cp-1] != ';' || not_hex(checksum,2))
+  if (cp < nc) ++cp;
+  if (cp >= nc || not_hex(checksum,2))
     return saw_error();
   checksum_verify(rep_cp, cp-2, checksum);
   
@@ -172,6 +175,7 @@ bool MKS_Ser::protocol_input() {
 
 bool MKS_Ser::protocol_timeout() {
   TO.Clear();
+  // msg(0, "protocol_timeout()");
   if (pending) {
     report_err("%s: Timeout on address %u nc:%d",
       board_id[pending->get_index()].mnemonic,
@@ -227,3 +231,4 @@ void MKS_Ser::process_requests() {
   TO.Set(0, 100);
   flags |= Selector::Sel_Timeout;
 }
+

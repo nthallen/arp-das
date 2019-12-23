@@ -8,5 +8,5 @@
   Launch DG/cmd mksdiagcol
   Launch cmd/server mksdiagsrvr
   Launch - lgr -N `mlf_find LOG`
-  Launch - mksflow -p /dev/serusb1 -a 1:MFM1,2:MFM2,3:MFM3,4:MFM4
+  Launch - mksflow -p /dev/serusb1 -a 1:MFM1,2:MFM2,3:MFM3,4:MFM4,5:MFC
   Launch - mksdiagalgo -v

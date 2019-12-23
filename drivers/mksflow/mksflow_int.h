@@ -66,6 +66,7 @@ class MKS_Query {
     inline uint8_t get_address() { return address; }
     inline MKS_Ser * get_ser() { return ser; }
     inline void *get_ret_ptr() { return ret_ptr; }
+    inline const char *get_cmd() { return cmd; }
   protected:
     /** true if query lives on the TM_queue, false if it is from
      * the Cmd_queue and should be removed and recycled onto the
@@ -124,6 +125,8 @@ void cb_gas_number(MKS_Query *, const char *rep);
 void cb_float(MKS_Query *, const char *rep);
 void cb_report(MKS_Query *, const char *rep);
 void cb_status(MKS_Query *, const char *rep);
+void cb_cmd_v(MKS_Query *, const char *rep);
+void cb_float_v(MKS_Query *, const char *rep);
 
 class MKS_Ser : public Ser_Sel {
   friend class MKS_Query;

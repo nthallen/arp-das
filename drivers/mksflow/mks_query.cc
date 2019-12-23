@@ -106,6 +106,7 @@ void MKS_Query::clear_bit() {
 }
 
 void MKS_Query::store_string(char *dest, const char *rep) {
+  if (ret_len >0) {
   if (dest == 0) {
     dest = (char *)ret_ptr;
   }
@@ -117,6 +118,7 @@ void MKS_Query::store_string(char *dest, const char *rep) {
     msg(1, "%s: cmd='%s' resp>%d chars: '%s'",
       bdp->mnemonic, cmd, ret_len, rep);
     dest[ret_len-1] = '\0';
+  }
   }
 }
 

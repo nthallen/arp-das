@@ -104,14 +104,16 @@ void poll_board(MKS_Ser *ser, int index, uint8_t address) {
     ser->enqueue_request(Q);
 
     Q = ser->new_query();
-    Q->setup_query(address, "T?", &mksdp->DeviceStatus, 0, &mksdp->ACK, 0x04);
+    Q->setup_query(address, "T?", &mksdp->DeviceStatus,
+      0, &mksdp->ACK, 0x04);
     Q->set_callback(cb_status);
     Q->set_persistent(true);
     ser->enqueue_request(Q);
 
     if (bdp->is_mfc) {
       Q = ser->new_query();
-      Q->setup_query(address, "SX?", &mksdp->FlowSetPoint, 0, &mksdp->ACK, 0x08);
+      Q->setup_query(address, "SX?", &mksdp->FlowSetPoint,
+        0, &mksdp->ACK, 0x08);
       Q->set_callback(cb_float);
       Q->set_persistent(true);
       ser->enqueue_request(Q);
@@ -124,7 +126,8 @@ void cb_valve_type(MKS_Query *Q, const char *rep) {
   Q->store_string(0, rep);
   board_id_t *bdp = &board_id[Q->get_index()];
   msg(0, "%s: Valve Type:%s Power Off State:%s",
-    bdp->valve_type, bdp->valve_power_off_state);
+    bdp->mnemonic, bdp->valve_type,
+    bdp->valve_power_off_state);
 }
 
 /**
@@ -134,12 +137,12 @@ void cb_valve_type(MKS_Query *Q, const char *rep) {
  */
 void cb_device_type(MKS_Query *Q, const char *rep) {
   board_id_t *bdp = &board_id[Q->get_index()];
-  uint8_t *ACK2 = &mksflow.drive[index].ACK2;
+  uint8_t *ACK2 = &mksflow.drive[Q->get_index()].ACK2;
   Q->store_string(bdp->device_type, rep);
   msg(0,"%s: Addr:%d Mfg:%s Mdl:%s SN:%s Type:%s", bdp->mnemonic, bdp->device_address,
     bdp->manufacturer, bdp->model,
     bdp->serial_number, bdp->device_type);
-  if (strcmp(bdp->device_type,"MFC")) {
+  if (strcmp(bdp->device_type,"MFC") == 0) {
     bdp->is_mfc = true;
     MKS_Ser *ser = Q->get_ser();
     MKS_Query *Q1 = ser->new_query();
@@ -174,9 +177,10 @@ void extract_csv(const char *src, int &si, int src_sz,
     if (src[si] == ',' || src[si] == '\0') {
       dest[j] = '\0';
       if (src[si] != '\0')
-        ++j;
+        ++si;
       return;
     }
+    dest[j] = src[si];
   }
   if (j >= dest_sz) {
     msg(MSG_ERROR, "Parsed string too long: '%s'",
@@ -195,16 +199,19 @@ void cb_gas_search(MKS_Query *Q, const char *rep) {
   board_id_t *bdp = &board_id[Q->get_index()];
   Q->store_string(bdp->gas_search, rep);
   char *gs = bdp->gas_search;
+  msg(MSG_DBG(0),"%s: cb_gas_search(%s)", bdp->mnemonic, rep);
   int si = 0;
-  extract_csv(gs, si, 80, bdp->gas_name, 20);
+  extract_csv(gs, si, 80, &bdp->gas_name[0], 20);
+  msg(MSG_DBG(0),"%s: si=%d after gas_name", bdp->mnemonic, si);
   char gas_num[4];
-  extract_csv(gs, si, 80, gas_num, 4);
+  extract_csv(gs, si, 80, &gas_num[0], 4);
   extract_csv(gs, si, 80, bdp->full_scale, 10);
   extract_csv(gs, si, 80, bdp->gas_units, 8);
   if (strcmp(gas_num, bdp->gas_number) != 0) {
     msg(MSG_ERROR,
-      "Search returned wrong gas number: "
+      "%s: Search returned wrong gas number: "
       "expected '%s' recd '%s'",
+      bdp->mnemonic,
       bdp->gas_number, gas_num);
   }
   msg(0, "%s: %s %s %s", bdp->mnemonic, bdp->gas_name,
@@ -215,14 +222,14 @@ void cb_gas_search(MKS_Query *Q, const char *rep) {
 
 void cb_gas_number(MKS_Query *Q, const char *rep) {
   board_id_t *bdp = &board_id[Q->get_index()];
-  uint8_t *ACK2 = &mksflow.drive[index].ACK2;
+  uint8_t *ACK2 = &mksflow.drive[Q->get_index()].ACK2;
   Q->store_string(bdp->gas_number, rep);
   MKS_Ser *ser = Q->get_ser();
   MKS_Query *Q1 = ser->new_query();
   char req[10];
   snprintf(req, 10, "GN?%s", bdp->gas_number);
   Q1->setup_query(Q->get_address(), req, bdp, 80, ACK2, 0x20);
-  Q->set_callback(cb_gas_search);
+  Q1->set_callback(cb_gas_search);
   ser->enqueue_request(Q1);
 }
 
@@ -236,6 +243,17 @@ void cb_float(MKS_Query *Q, const char *rep) {
       bdp->mnemonic, ascii_escape(rep));
   }
 }
+
+#ifdef CMD_FLOAT_DEBUG
+void cb_float_v(MKS_Query *Q, const char *rep) {
+  cb_float(Q, rep);
+  msg(0, "cb_float_v: cmd:'%s' rep:'%s'", Q->get_cmd(), rep); 
+}
+
+void cb_cmd_v(MKS_Query *Q, const char *rep) {
+  msg(0, "cb_cmd_v: cmd:'%s' rep:'%s'", Q->get_cmd(), rep); 
+}
+#endif
 
 #define CB_STATUS_MAX_ERRORS 5
 
