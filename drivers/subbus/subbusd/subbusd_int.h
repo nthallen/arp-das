@@ -3,6 +3,10 @@
 #include <sys/dispatch.h>
 #include "subbusd.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** \file
   * \brief Defines interface between QNX6 resource manager and subbus hardware
   *
@@ -43,5 +47,9 @@ extern void sb_cache_init(void);
 extern int sb_cache_write( unsigned short addr, unsigned short data );
 extern int sb_cache_read( unsigned short addr, unsigned short *data );
 extern subbusd_req_t *get_client_buffer(int rcvid);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

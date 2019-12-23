@@ -45,7 +45,7 @@ class can_request;
 class subbusd_CAN_client;
 class CAN_interface;
 
-class CAN_serial : public DAS_IO::Serial {
+class CAN_serial /* : public DAS_IO::Serial */ {
   friend class CAN_interface;
   public:
     CAN_serial(CAN_interface *parent);
@@ -53,7 +53,7 @@ class CAN_serial : public DAS_IO::Serial {
     void cleanup();
     void issue_init();
     bool send_packet();
-    inline bool obuf_clear() { return obuf_empty(); }
+    // inline bool obuf_clear() { return obuf_empty(); }
     bool request_pending;
     static const char *port;
     static uint32_t baud_rate;
@@ -84,9 +84,9 @@ class CAN_interface {
         subbusd_CAN_client *clt);
     can_request curreq();
     inline void pop_req() { reqs.pop_front(); }
-    inline void reference() { iface->reference(); }
-    inline void dereference() { DAS_IO::Interface::dereference(iface); }
-    inline DAS_IO::Interface *iface_ptr() { return iface; }
+    // inline void reference() { iface->reference(); }
+    // inline void dereference() { DAS_IO::Interface::dereference(iface); }
+    inline CAN_serial *iface_ptr() { return iface; }
   protected:
   private:
     void process_requests();

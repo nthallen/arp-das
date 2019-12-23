@@ -1,6 +1,7 @@
 // #undef HAVE_CAN_H
 #include <string.h>
 #include <fcntl.h>
+#include <map>
 // #include "subbusd_CAN_config.h"
 #include "nl_assert.h"
 // #include "subbusd_int.h"
@@ -10,11 +11,11 @@
 // using namespace DAS_IO;
 
 
-std::map<int,subbusd_SCAN_client*> client_map;
+std::map<int,subbusd_CAN_client*> client_map;
 
 subbusd_CAN_client *get_CAN_client(int rcvid) {
   subbusd_CAN_client *client = 0;
-  std::map<int,subbusd_SCAN_client*>::iterator pos;
+  std::map<int,subbusd_CAN_client*>::iterator pos;
   pos = client_map.find(rcvid);
   if (pos == client_map.end()) {
     client = new subbusd_CAN_client();
@@ -38,7 +39,7 @@ subbusd_CAN_client *get_CAN_client(int rcvid) {
  */
 subbusd_req_t *get_client_buffer(int rcvid) {
   subbusd_CAN_client *clt = get_CAN_client(rcvid);
-  return clt->req;
+  return clt->get_request();
 }
 
 
@@ -54,8 +55,6 @@ void incoming_sbreq(int rcvid, subbusd_req_t *req) {
   nl_assert(req == clt->get_request());
   clt->incoming_sbreq();
 }
-
-subbusd_CAN_client *subbusd_CAN_client::CAN_client;
 
 subbusd_CAN_client::subbusd_CAN_client() :
     mread_word_space_remaining (0),

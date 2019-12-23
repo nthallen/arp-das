@@ -1,5 +1,5 @@
 include_HEADERS = subbusd.h
-bin_PROGRAMS = subbusd_serusb subbusd_sc104 subbusd_sim
+bin_PROGRAMS = subbusd_serusb subbusd_sc104 subbusd_sim subbusd_CAN
 LDFLAGS = -L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 CPPFLAGS = -I ../lib -I/usr/local/include -I .
 LDADD = -ltm -lnort
@@ -16,7 +16,7 @@ install :
 subbusd_serusb_SOURCES = expint.c subbusd.c subbusd_int.h \
   serusb/serusb.c serusb/interrupt.c serusb/serusb.h \
   subbusd.h serusboui.c cache.c client_buf_default.c
-subbusd_serusb_CPPFLAGS = -I serusb
+CPPFLAGS += -I serusb
 subbusd_serusb_OBJECTS = expint.o subbusd.o serusb_serusb.o \
   serusb_interrupt.o serusboui.o cache.o client_buf_default.o
 
@@ -38,7 +38,7 @@ subbusd_sc104_SOURCES = expint.c subbusd.c syscon104/sc104.c \
 subbusd_sc104_OBJECTS = expint.o subbusd.o sc104_sc104.o \
   sc104_interrupt.o sc104_hint.o sc104_sc104init.o sc104oui.o \
   cache.o client_buf_default.o
-subbusd_sc104_CPPPFLAGS = -I sc104
+CPPFLAGS += -I syscon104
 
 subbusd_sc104 : $(subbusd_sc104_OBJECTS)
 	$(LINK.c) -o subbusd_sc104 $(LDADD) $(subbusd_sc104_OBJECTS)
@@ -58,7 +58,7 @@ sc104oui.c : syscon104/sc104.oui subbusd.oui
 subbusd_sim_SOURCES = expint.c subbusd.c subbusd_int.h \
   sim/sim.c sim/interrupt.c sim/sim.h \
   subbusd.h simoui.c cache.c client_buf_default.c
-subbusd_sim_CPPFLAGS = -I sim
+CPPFLAGS += -I sim
 
 subbusd_sim_OBJECTS = subbusd.o sim_sbsim.o simoui.o cache.o \
   client_buf_default.o
@@ -72,18 +72,18 @@ simoui.o : simoui.c
 simoui.c : sim/sbsim.oui subbusd.oui
 	oui -o simoui.c sim/sbsim.oui
 
-subbsd_CAN_SOURCES = subbusd.c subbusd_int.h \
+subbusd_CAN_SOURCES = subbusd.c subbusd_int.h \
   CAN/subbusd_CAN.cc CAN/subbusd_CAN_interface.cc \
   CAN/subbusd_CAN.h CAN/subbusd_CAN_interface.h \
   subbusd.h CANoui.c cache.c
-subbsd_CAN_CPPFLAGS = -I CAN
-subbsd_CAN_OBJECTS = subbusd.o cache.o \
+CPPFLAGS += -I CAN
+subbusd_CAN_OBJECTS = subbusd.o cache.o \
   CAN_CAN.o CAN_CAN_interface.o CANoui.o
 
-subbsd_CAN : $(subbsd_CAN_OBJECTS)
-	$(LINK.c) -o subbsd_CAN $(LDADD) $(subbsd_CAN_OBJECTS)
-	usemsg subbsd_CAN CANoui.c
-	/usr/local/sbin/promote subbsd_CAN
+subbusd_CAN : $(subbusd_CAN_OBJECTS)
+	$(LINK.c) -o subbusd_CAN $(LDADD) $(subbusd_CAN_OBJECTS)
+	usemsg subbusd_CAN CANoui.c
+	/usr/local/sbin/promote subbusd_CAN
 CAN_CAN.o : CAN/subbusd_CAN.cc
 	$(COMPILE.cc) -o CAN_CAN.o CAN/subbusd_CAN.cc
 CAN_CAN_interface.o : CAN/subbusd_CAN_interface.cc

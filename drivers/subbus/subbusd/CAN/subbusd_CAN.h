@@ -78,7 +78,7 @@ class can_request {
 
 class CAN_interface;
 
-class subbusd_CAN : public subbusd_flavor {
+class subbusd_CAN /* : public subbusd_flavor */ {
   public:
     subbusd_CAN();
     ~subbusd_CAN();
