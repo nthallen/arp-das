@@ -1,29 +1,84 @@
 // #undef HAVE_CAN_H
 #include <string.h>
 #include <fcntl.h>
-#include "subbusd_CAN_config.h"
+// #include "subbusd_CAN_config.h"
 #include "nl_assert.h"
-#include "subbusd_int.h"
+// #include "subbusd_int.h"
 #include "subbusd_CAN.h"
-#include "dasio/ascii_escape.h"
+// #include "dasio/ascii_escape.h"
 
-using namespace DAS_IO;
+// using namespace DAS_IO;
 
-subbusd_CAN_client::subbusd_CAN_client(DAS_IO::Authenticator *auth, subbusd_CAN *fl)
-    : subbusd_client(auth), flavor(fl) {}
-subbusd_CAN_client::~subbusd_CAN_client() {}
 
-Serverside_client *new_subbusd_CAN_client(Authenticator *auth, SubService *ss) {
-  ss = ss; // not interested
-  subbusd_CAN_client *clt =
-    new subbusd_CAN_client(auth, (subbusd_CAN*)ss->svc_data);
-  return clt;
+std::map<int,subbusd_SCAN_client*> client_map;
+
+subbusd_CAN_client *get_CAN_client(int rcvid) {
+  subbusd_CAN_client *client = 0;
+  std::map<int,subbusd_SCAN_client*>::iterator pos;
+  pos = client_map.find(rcvid);
+  if (pos == client_map.end()) {
+    client = new subbusd_CAN_client();
+    client_map.insert(std::make_pair(rcvid, client));
+  } else {
+    client = pos->second;
+  }
+  return client;
 }
+
+
+/**
+ * The default implementation allows using the same buffer for all
+ * clients. This is fine in most cases because the library requests
+ * map 1:1 onto device requests. The assumption fails with CAN, where
+ * multiread library requests may need to be mapped onto more than
+ * one subbus_CAN protocol request, and subbus_CAN requests themselves
+ * can map to more than one CAN request. Hence the subbusd_CAN
+ * driver needs to override this function to provide client-specific
+ * buffers.
+ */
+subbusd_req_t *get_client_buffer(int rcvid) {
+  subbusd_CAN_client *clt = get_CAN_client(rcvid);
+  return clt->req;
+}
+
+
+/**
+ * The request has been vetted for syntax and sufficient length
+ * by subbus_io_msg(). The length is not passed
+ * along, but the only request length we need to worry
+ * about (i.e. that requires saving) is the mread, and
+ * that includes the request length.
+ */
+void incoming_sbreq(int rcvid, subbusd_req_t *req) {
+  subbusd_CAN_client *clt = get_CAN_client(rcvid);
+  nl_assert(req == clt->get_request());
+  clt->incoming_sbreq();
+}
+
+subbusd_CAN_client *subbusd_CAN_client::CAN_client;
+
+subbusd_CAN_client::subbusd_CAN_client() :
+    mread_word_space_remaining (0),
+    mread_words_requested(0),
+    request_pending(false) {
+  bufsize = sizeof(subbusd_req_t);
+  buf = (uint8_t*)nl_new_memory(bufsize);
+  req = (subbusd_req_t*)buf;
+  flavor = new subbusd_CAN();
+  request_pending = false;
+}
+
+subbusd_CAN_client::~subbusd_CAN_client() {}
 
 /*
  * setup reply structure, along with maximum reply size,
  * bytes read. The reply size obviously depends on the command,
  * as does where returned data is reported in the reply.
+ *
+ * Originally called from subbusd_client::protocol_input(),
+ * which setup req to point to buf. Because we now share this
+ * object with other clients, we will need to move the request
+ * (at least for the mread cases) into the queued request.
  */
 bool subbusd_CAN_client::incoming_sbreq() {
   int rv, rsize;

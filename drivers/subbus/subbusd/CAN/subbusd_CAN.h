@@ -1,18 +1,32 @@
 #ifndef SUBBUSD_CAN_H_INCLUDED
 #define SUBBUSD_CAN_H_INCLUDED
-#include "dasio/server.h"
+// #include "dasio/server.h"
 #include "subbusd_int.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern void incoming_sbreq(int rcvid, subbusd_req_t *req);
+
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
 #include "subbusd_CAN_interface.h"
 
-extern void subbusd_CAN_init_options(int argc, char **argv);
+// extern void subbusd_CAN_init_options(int argc, char **argv);
 class subbusd_CAN;
 
-class subbusd_CAN_client : public subbusd_client {
+class subbusd_CAN_client /* : public subbusd_client */ {
   public:
-    subbusd_CAN_client(DAS_IO::Authenticator *auth, subbusd_CAN *fl);
+    subbusd_CAN_client();
     ~subbusd_CAN_client();
     bool incoming_sbreq();
     void request_complete(int16_t status, uint16_t n_bytes);
+    // inline void set_request(subbusd_req_t *req) { this->req = req; }
+    inline subbusd_req_t *get_request() { return req; }
   private:
     /**
      * Sets up the framework for processing an mread request, then calls process_mread().
@@ -27,7 +41,29 @@ class subbusd_CAN_client : public subbusd_client {
     uint16_t mread_word_space_remaining;
     uint16_t mread_words_requested;
     can_msg_t can_msg;
+    
+    // Below here are attributes that would have been inherited
+    // from subbusd_client
+    /**
+     * True if a request from this client is not complete.
+     */
+    bool request_pending;
+    /**
+     * Pointer to the client's request, contained in buf.
+     */
+    subbusd_req_t *req;
+    /**
+     * The reply data structure.
+     */
+    subbusd_rep_t rep;
+    /**
+     * The input buffer
+     */
+    uint8_t *buf;
+    int bufsize;
 };
+
+subbusd_CAN_client *get_CAN_client(int rcvid);
 
 class can_request {
   public:
@@ -94,5 +130,7 @@ class subbusd_CAN : public subbusd_flavor {
 #define CAN_ERR_BAD_ADDRESS 5
 #define CAN_ERR_OVERFLOW 6
 #define CAN_ERR_INVALID_SEQ 7
+
+#endif // __cplusplus
 
 #endif

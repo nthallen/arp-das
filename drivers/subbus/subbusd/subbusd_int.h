@@ -42,5 +42,6 @@ extern char *cache_hw_range, *cache_sw_range;
 extern void sb_cache_init(void);
 extern int sb_cache_write( unsigned short addr, unsigned short data );
 extern int sb_cache_read( unsigned short addr, unsigned short *data );
+extern subbusd_req_t *get_client_buffer(int rcvid);
 
 #endif
