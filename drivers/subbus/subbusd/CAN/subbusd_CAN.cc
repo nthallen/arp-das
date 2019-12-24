@@ -18,7 +18,7 @@ subbusd_CAN_client *get_CAN_client(int rcvid) {
   std::map<int,subbusd_CAN_client*>::iterator pos;
   pos = client_map.find(rcvid);
   if (pos == client_map.end()) {
-    client = new subbusd_CAN_client();
+    client = new subbusd_CAN_client(rcvid);
     client_map.insert(std::make_pair(rcvid, client));
   } else {
     client = pos->second;
@@ -56,14 +56,17 @@ void incoming_sbreq(int rcvid, subbusd_req_t *req) {
   clt->incoming_sbreq();
 }
 
-subbusd_CAN_client::subbusd_CAN_client() :
+subbusd_CAN_client::subbusd_CAN_client(int rcvid) :
     mread_word_space_remaining (0),
     mread_words_requested(0),
-    request_pending(false) {
+    request_pending(false),
+    rcvid(rcvid),
+    iname("client") {
   bufsize = sizeof(subbusd_req_t);
   buf = (uint8_t*)nl_new_memory(bufsize);
   req = (subbusd_req_t*)buf;
-  flavor = new subbusd_CAN();
+  flavor = subbusd_CAN::CAN_flavor;
+  nl_assert(flavor);
   request_pending = false;
 }
 
@@ -176,6 +179,14 @@ void subbusd_CAN_client::request_complete(int16_t status, uint16_t n_bytes) {
       status_return(SBS_REQ_SYNTAX);
       break;
   }
+}
+
+bool subbusd_CAN_client::iwrite(const char *str, unsigned int nc) {
+  int rv = MsgReply(rcvid, nc, str, nc);
+  if (rv < 0) {
+    msg(2, "%s: Error %d from MsgReply: %s", iname, errno, strerror(errno));
+  }
+  return(rv < 0);
 }
 
 void subbusd_CAN_client::setup_mread() {

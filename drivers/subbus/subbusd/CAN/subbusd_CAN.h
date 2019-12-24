@@ -21,13 +21,17 @@ class subbusd_CAN;
 
 class subbusd_CAN_client /* : public subbusd_client */ {
   public:
-    subbusd_CAN_client();
+    subbusd_CAN_client(int rcvid);
     ~subbusd_CAN_client();
     bool incoming_sbreq();
     void request_complete(int16_t status, uint16_t n_bytes);
     // inline void set_request(subbusd_req_t *req) { this->req = req; }
     inline subbusd_req_t *get_request() { return req; }
   private:
+    /**
+     * Wrapper around MsgReply
+     */
+    bool iwrite(const char *str, unsigned int nc);
     /**
      * Sets up the framework for processing an mread request, then calls process_mread().
      */
@@ -61,6 +65,8 @@ class subbusd_CAN_client /* : public subbusd_client */ {
      */
     uint8_t *buf;
     int bufsize;
+    int rcvid;
+    const char *iname;
 };
 
 subbusd_CAN_client *get_CAN_client(int rcvid);
@@ -88,9 +94,9 @@ class subbusd_CAN /* : public subbusd_flavor */ {
         int buflen, subbusd_CAN_client *clt) {
           CAN->enqueue_request(can_msg, rep_buf, buflen, clt);
       }
+    static subbusd_CAN *CAN_flavor;
   private:
     // CAN sockets, states, etc.
-    static subbusd_CAN *CAN_flavor;
     CAN_interface *CAN;
 };
 
