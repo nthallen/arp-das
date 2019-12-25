@@ -1,6 +1,7 @@
 #ifndef SUBBUSD_CAN_H_INCLUDED
 #define SUBBUSD_CAN_H_INCLUDED
 // #include "dasio/server.h"
+#include "sb_interface.h"
 #include "subbusd_int.h"
 
 #ifdef __cplusplus
@@ -19,7 +20,7 @@ extern void incoming_sbreq(int rcvid, subbusd_req_t *req);
 // extern void subbusd_CAN_init_options(int argc, char **argv);
 class subbusd_CAN;
 
-class subbusd_CAN_client /* : public subbusd_client */ {
+class subbusd_CAN_client : public sb_interface /* : public subbusd_client */ {
   public:
     subbusd_CAN_client(int rcvid);
     ~subbusd_CAN_client();
@@ -64,10 +65,10 @@ class subbusd_CAN_client /* : public subbusd_client */ {
     /**
      * The input buffer
      */
-    uint8_t *buf;
-    int bufsize;
+    // uint8_t *buf;
+    // int bufsize;
     int rcvid;
-    const char *iname;
+    // const char *iname;
 };
 
 subbusd_CAN_client *get_CAN_client(int rcvid);
