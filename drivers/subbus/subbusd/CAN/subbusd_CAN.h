@@ -32,6 +32,7 @@ class subbusd_CAN_client /* : public subbusd_client */ {
      * Wrapper around MsgReply
      */
     bool iwrite(const char *str, unsigned int nc);
+    bool status_return(int16_t err_code);
     /**
      * Sets up the framework for processing an mread request, then calls process_mread().
      */

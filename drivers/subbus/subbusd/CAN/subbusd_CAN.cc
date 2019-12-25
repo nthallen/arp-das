@@ -2,11 +2,14 @@
 #include <string.h>
 #include <fcntl.h>
 #include <map>
+#include <errno.h>
+#include "subbusd.h"
 // #include "subbusd_CAN_config.h"
 #include "nl_assert.h"
 // #include "subbusd_int.h"
 #include "subbusd_CAN.h"
 // #include "dasio/ascii_escape.h"
+#include "msg.h"
 
 // using namespace DAS_IO;
 
@@ -187,6 +190,13 @@ bool subbusd_CAN_client::iwrite(const char *str, unsigned int nc) {
     msg(2, "%s: Error %d from MsgReply: %s", iname, errno, strerror(errno));
   }
   return(rv < 0);
+}
+
+bool subbusd_CAN_client::status_return(int16_t err_code) {
+  rep.hdr.status = err_code;
+  rep.hdr.ret_type = SBRT_NONE;
+  iwrite((const char *)(&rep), sizeof(subbusd_rep_hdr_t));
+  return false;
 }
 
 void subbusd_CAN_client::setup_mread() {

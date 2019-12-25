@@ -1,7 +1,7 @@
 include_HEADERS = subbusd.h
 bin_PROGRAMS = subbusd_serusb subbusd_sc104 subbusd_sim subbusd_CAN
 LDFLAGS = -L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
-CPPFLAGS = -I ../lib -I/usr/local/include -I .
+CPPFLAGS = -I ../lib -I .
 LDADD = -ltm -lnort
 CFLAGS=-Wall -g
 
@@ -92,3 +92,4 @@ CANoui.o : CANoui.c
 CANoui.c : CAN/subbusd_slcan.oui subbusd.oui
 	oui -o CANoui.c CAN/subbusd_slcan.oui
 
+CPPFLAGS += -I/usr/local/include 
