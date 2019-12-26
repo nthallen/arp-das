@@ -1,6 +1,8 @@
 #ifndef SUBBUSD_CAN_INTERFACE_H_INCLUDED
 #define SUBBUSD_CAN_INTERFACE_H_INCLUDED
 
+#ifdef __cplusplus
+
 #include <stdint.h>
 #include <list>
 #include "msg.h"
@@ -100,5 +102,14 @@ class CAN_interface {
     uint8_t req_no;
     CAN_serial *iface;
 };
+
+extern "C" {
+#endif
+
+extern void subbus_timeout();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

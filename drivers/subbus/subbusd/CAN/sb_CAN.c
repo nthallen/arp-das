@@ -9,8 +9,10 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <termios.h>
+#include <stdint.h>
 #include "sb_CAN.h"
 #include "nl_assert.h"
+#include "subbusd_CAN_interface.h"
 
 const char *CAN_port = "/dev/serusb2";
 int CAN_baud_rate = 57600;
@@ -24,6 +26,7 @@ static int sb_fd;
 static struct sigevent ionotify_event;
 static timer_t timeout_timer;
 static struct itimerspec timeout_enable, timeout_disable;
+bool timeout_set;
 static int n_timeouts = 0;
 
 static int n_writes = 0;
@@ -35,12 +38,25 @@ static void dequeue_request( signed short status, int n_args,
   unsigned short arg0, unsigned short arg1, char *s );
 
 static void set_timeout( int enable ) {
+  timeout_set = enable;
   if ( timer_settime( timeout_timer, 0,
           enable ? &timeout_enable : &timeout_disable,
           NULL ) == -1 ) {
     nl_error( 4, "Error setting timer: %s",
       strerror(errno) );
   }
+}
+
+void timeout_set(time_t secs, long msecs) {
+  timeout_enable.it_value.tv_sec = secs;
+  timeout_enable.it_value.tv_nsec = msecs*1000000L; // 100 msecs
+  timeout_enable.it_interval.tv_sec = 0;
+  timeout_enable.it_interval.tv_nsec = msecs*1000000L;
+  set_timeout(1);
+}
+
+void timeout_clear(void) {
+  set_timeout(0);
 }
 
 // Transmits a request if the currently queued
@@ -572,15 +588,16 @@ static int sb_data_ready( message_context_t * ctp, int code,
 
 static int sb_timeout( message_context_t * ctp, int code,
         unsigned flags, void * handle ) {
-  if ( ++n_timeouts > 1 ) {
-    n_timeouts = 0;
-    if ( cur_req != NULL ) {
-      nl_error( 1, "%sUSB request '%c' timed out",
-        (cur_req->type == SBDR_TYPE_INTERNAL) ? "Internal " : "",
-        cur_req->request[0] );
-      dequeue_request( -ETIMEDOUT, 0, 0, 0, "" );
-    }
-  }
+  subbus_timeout();
+  // if ( ++n_timeouts > 1 ) {
+    // n_timeouts = 0;
+    // if ( cur_req != NULL ) {
+      // nl_error( 1, "%sUSB request '%c' timed out",
+        // (cur_req->type == SBDR_TYPE_INTERNAL) ? "Internal " : "",
+        // cur_req->request[0] );
+      // dequeue_request( -ETIMEDOUT, 0, 0, 0, "" );
+    // }
+  // }
   return 0;
 }
 

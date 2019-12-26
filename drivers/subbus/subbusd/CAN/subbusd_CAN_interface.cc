@@ -641,6 +641,11 @@ bool CAN_serial::protocol_timeout() {
   return false;
 }
 
+void subbus_timeout() {
+  CAN_serial *ser = subbusd_CAN::CAN_flavor->CAN->iface_ptr;
+  ser->protocol_timeout();
+}
+
 bool CAN_serial::closed() {
   msg(0, "%s: serial port closed!!", iname);
   return true;

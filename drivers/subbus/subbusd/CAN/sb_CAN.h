@@ -48,4 +48,18 @@ typedef struct {
 extern const char *CAN_port;
 extern int CAN_baud_rate;
 
+#ifdef __cplusplus
+extern "C" {
+#else
+#include <stdbool.h>
+#endif
+
+extern void timeout_set(time_t secs, long msecs);
+extern void timeout_clear();
+extern bool timeout_set;
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
