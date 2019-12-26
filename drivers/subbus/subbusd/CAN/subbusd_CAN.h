@@ -91,12 +91,13 @@ class subbusd_CAN /* : public subbusd_flavor */ {
   public:
     subbusd_CAN();
     ~subbusd_CAN();
-    void init_subbus();
+    void init_subbus(int fd);
     void shutdown_subbus();
     inline void enqueue_request(can_msg_t *can_msg, uint8_t *rep_buf,
         int buflen, subbusd_CAN_client *clt) {
           CAN->enqueue_request(can_msg, rep_buf, buflen, clt);
       }
+    inline bool CAN_timeout() { return CAN->protocol_timeout(); }
     static subbusd_CAN *CAN_flavor;
   private:
     // CAN sockets, states, etc.

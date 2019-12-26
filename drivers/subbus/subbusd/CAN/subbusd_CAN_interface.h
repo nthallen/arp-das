@@ -59,12 +59,14 @@ class CAN_serial : public sb_interface /* : public DAS_IO::Serial */ {
     void cleanup();
     void issue_init();
     bool send_packet();
-    inline bool obuf_clear() { return true; }
-    // inline bool obuf_clear() { return obuf_empty(); }
+    inline bool obuf_empty() { return true; }
+    inline bool obuf_clear() { return obuf_empty(); }
     bool request_pending;
     static const char *port;
     static uint32_t baud_rate;
   protected:
+    bool iwrite(const char *str, int nc);
+    bool iwrite(const char *str);
     bool iwritten(int nb);
     bool protocol_input();
     bool protocol_timeout();
@@ -98,6 +100,7 @@ class CAN_interface {
     // inline void reference() { iface->reference(); }
     // inline void dereference() { DAS_IO::Interface::dereference(iface); }
     inline CAN_serial *iface_ptr() { return iface; }
+    inline bool protocol_timeout() { return iface->protocol_timeout(); }
   protected:
   private:
     void process_requests();

@@ -3,6 +3,7 @@
  */
 #include <string.h>
 #include <fcntl.h>
+#include <errno.h>
 // #include "subbusd_CAN_config.h"
 #include "subbusd_CAN.h"
 // #include "nl.h"
@@ -167,9 +168,20 @@ bool CAN_serial::send_packet() {
     ocp += snprintf(&obuf[ocp], obufsize-ocp, "%02X", reqfrm.data[i]);
   nl_assert(ocp < obufsize);
   obuf[ocp++] = '\r';
-  msg(MSG_DBG(1), "SLCANout: %s", ::ascii_escape(obuf, ocp));
+  // msg(MSG_DBG(1), "SLCANout: %s", ::ascii_escape(obuf, ocp));
+  msg(MSG_DBG(1), "SLCANout: %s", ::ascii_escape(obuf));
   update_tc_vmin(5); // tAAAL
   return iwrite(&obuf[0], ocp);
+}
+
+bool CAN_serial::iwrite(const char *str, int nc) {
+  int rv = write(fd, str, nc);
+  return rv < 0;
+}
+
+bool CAN_serial::iwrite(const char *str) {
+  int nc = strlen(str);
+  return iwrite(str, nc);
 }
 
 bool CAN_serial::iwritten(int nb) {
@@ -347,7 +359,8 @@ bool CAN_serial::protocol_timeout() {
     parent->process_requests();
   } else if (slcan_state == st_init) {
     msg(1, "%s: Init Timeout: nc=%d '%s'", iname, nc,
-      ::ascii_escape((const char *)buf, nc));
+      // ::ascii_escape((const char *)buf, nc));
+      ::ascii_escape((const char *)buf));
     TO.Set(4,0);
     slcan_state = st_init_retry;
     consume(nc);
@@ -361,8 +374,7 @@ bool CAN_serial::protocol_timeout() {
 }
 
 void subbus_timeout() {
-  CAN_serial *ser = subbusd_CAN::CAN_flavor->CAN->iface_ptr;
-  ser->protocol_timeout();
+  subbusd_CAN::CAN_flavor->CAN_timeout();
 }
 
 void CAN_serial::update_tc_vmin(int new_vmin) {

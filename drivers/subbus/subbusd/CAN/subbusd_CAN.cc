@@ -411,9 +411,12 @@ subbusd_CAN::subbusd_CAN() /* : subbusd_flavor("CAN", new_subbusd_CAN_client) */
 }
 subbusd_CAN::~subbusd_CAN() {}
 
-void subbusd_CAN::init_subbus() {
+void subbusd_CAN::init_subbus(int fd) {
   // setup socket
   CAN = new CAN_interface();
+  CAN_serial *ser = CAN->iface_ptr();
+  nl_assert(ser);
+  ser->fd = fd;
   // CAN->reference();
   // subbusd_core::subbusd->srvr.ELoop.add_child(CAN->iface_ptr());
   CAN->setup();
@@ -421,8 +424,7 @@ void subbusd_CAN::init_subbus() {
 
 void setup_CAN_subbus(int fd) {
   nl_assert(subbusd_CAN::CAN_flavor);
-  subbusd_CAN::CAN_flavor->init_subbus();
-  subbusd_CAN::CAN_flavor->CAN->iface->fd = fd;
+  subbusd_CAN::CAN_flavor->init_subbus(fd);
 }
 
 void subbusd_CAN::shutdown_subbus() {
