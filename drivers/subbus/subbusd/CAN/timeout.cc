@@ -11,7 +11,7 @@ void Timeout::Set(time_t secs, long msecs) {
 }
 
 bool Timeout::Set() {
-  return timeout_set;
+  return timeout_is_set;
 }
 
 void Timeout::Clear() {

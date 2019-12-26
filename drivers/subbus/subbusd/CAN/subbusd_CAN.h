@@ -8,6 +8,7 @@
 extern "C" {
 #endif
 
+extern void setup_CAN_subbus(int fd);
 extern void incoming_sbreq(int rcvid, subbusd_req_t *req);
 
 #ifdef __cplusplus

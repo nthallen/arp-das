@@ -19,14 +19,14 @@ int CAN_baud_rate = 57600;
 
 static char sb_ibuf[SB_CAN_MAX_RESPONSE];
 static int sb_ibuf_idx = 0;
-static sbd_request_t sbdrq[SUBBUSD_MAX_REQUESTS];
-static sbd_request_t *cur_req;
+//static sbd_request_t sbdrq[SUBBUSD_MAX_REQUESTS];
+//static sbd_request_t *cur_req;
 static unsigned int sbdrq_head = 0, sbdrq_tail = 0;
 static int sb_fd;
 static struct sigevent ionotify_event;
 static timer_t timeout_timer;
 static struct itimerspec timeout_enable, timeout_disable;
-bool timeout_set;
+bool timeout_is_set;
 static int n_timeouts = 0;
 
 static int n_writes = 0;
@@ -38,7 +38,7 @@ static void dequeue_request( signed short status, int n_args,
   unsigned short arg0, unsigned short arg1, char *s );
 
 static void set_timeout( int enable ) {
-  timeout_set = enable;
+  timeout_is_set = enable;
   if ( timer_settime( timeout_timer, 0,
           enable ? &timeout_enable : &timeout_disable,
           NULL ) == -1 ) {
@@ -59,6 +59,7 @@ void timeout_clear(void) {
   set_timeout(0);
 }
 
+#if 0
 // Transmits a request if the currently queued
 // request has not been transmitted.
 static void process_request(void) {
@@ -173,7 +174,7 @@ static int read_hex( char **sp, unsigned short *arg ) {
   *sp = s;
   return 1;
 }
-
+#endif // 0
 #if 0 // Most or all handled in C++
 /**
  * Sends the response to the client (if any) and
@@ -710,7 +711,7 @@ static void init_CAN(dispatch_t *dpp, int ionotify_pulse,
   timeout_disable.it_interval.tv_sec = 0;
   timeout_disable.it_interval.tv_nsec = 0;
 
-  init_CAN_client();
+  setup_CAN_subbus(sb_fd);
   
   /* now arm for input */
   sb_read_usb();

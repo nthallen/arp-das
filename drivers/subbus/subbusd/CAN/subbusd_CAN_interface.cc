@@ -125,7 +125,7 @@ const char *CAN_serial::port = "/dev/ttyS1";
 uint32_t CAN_serial::baud_rate = 57600;
 
 CAN_serial::CAN_serial(CAN_interface *parent)
-    sb_interface("slcan", 80),
+  : sb_interface("slcan", 80),
     request_pending(false),
     parent(parent),
     slcan_state(st_init)
