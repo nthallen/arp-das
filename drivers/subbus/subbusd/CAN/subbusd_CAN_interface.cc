@@ -3,11 +3,12 @@
  */
 #include <string.h>
 #include <fcntl.h>
-#include "subbusd_CAN_config.h"
+// #include "subbusd_CAN_config.h"
 #include "subbusd_CAN.h"
-#include "nl.h"
+// #include "nl.h"
 #include "nl_assert.h"
-#include "dasio/ascii_escape.h"
+// #include "dasio/ascii_escape.h"
+#include "msg.h"
 #ifdef HAVE_LINUX_CAN_H
   #include <sys/ioctl.h>
   #include <sys/socket.h>
@@ -105,6 +106,7 @@ void CAN_interface::process_requests() {
       msg(MSG_DBG(1), "%s", msgbuf);
     }
     if (iface->send_packet()) return;
+#if 0
     if (!iface->obuf_clear()) {
       iface->report_err("%s: process_requests() !obuf_empty() after iwrite",
         iface->get_iname());
@@ -117,10 +119,11 @@ void CAN_interface::process_requests() {
       request_processing = false;
       return;
     }
+#endif
     if (iface->request_pending) {
       msg(MSG_DBG(1), "%s: Setting timeout", iface->get_iname());
       iface->TO.Set(0,50);
-      iface->flags |= DAS_IO::Interface::Fl_Timeout;
+      // iface->flags |= DAS_IO::Interface::Fl_Timeout;
     } else {
       msg(MSG_DBG(1), "%s: Request resolved immediately", iface->get_iname());
     }

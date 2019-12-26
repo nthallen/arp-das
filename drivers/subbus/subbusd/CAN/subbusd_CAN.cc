@@ -60,13 +60,13 @@ void incoming_sbreq(int rcvid, subbusd_req_t *req) {
 }
 
 subbusd_CAN_client::subbusd_CAN_client(int rcvid) :
+    sb_interface("client", sizeof(subbusd_req_t)),
     mread_word_space_remaining (0),
     mread_words_requested(0),
     request_pending(false),
-    rcvid(rcvid),
-    iname("client") {
-  bufsize = sizeof(subbusd_req_t);
-  buf = (uint8_t*)nl_new_memory(bufsize);
+    rcvid(rcvid) {
+  // bufsize = sizeof(subbusd_req_t);
+  // buf = (uint8_t*)nl_new_memory(bufsize);
   req = (subbusd_req_t*)buf;
   flavor = subbusd_CAN::CAN_flavor;
   nl_assert(flavor);
@@ -423,7 +423,7 @@ void subbusd_CAN::shutdown_subbus() {
   // teardown socket
   if (CAN) {
     CAN->cleanup();
-    CAN->dereference();
+    // CAN->dereference();
     CAN = 0;
   }
 }

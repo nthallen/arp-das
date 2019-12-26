@@ -1,7 +1,10 @@
 #ifndef SUBBUSD_CAN_INTERFACE_H_INCLUDED
 #define SUBBUSD_CAN_INTERFACE_H_INCLUDED
 
+#include <stdint.h>
 #include <list>
+#include "msg.h"
+#include "timeout.h"
 // #include "dasio/interface.h"
 
 struct can_frame {
@@ -45,7 +48,7 @@ class can_request;
 class subbusd_CAN_client;
 class CAN_interface;
 
-class CAN_serial /* : public DAS_IO::Serial */ {
+class CAN_serial : public sb_interface /* : public DAS_IO::Serial */ {
   friend class CAN_interface;
   public:
     CAN_serial(CAN_interface *parent);
@@ -53,6 +56,7 @@ class CAN_serial /* : public DAS_IO::Serial */ {
     void cleanup();
     void issue_init();
     bool send_packet();
+    inline bool obuf_clear() { return true; }
     // inline bool obuf_clear() { return obuf_empty(); }
     bool request_pending;
     static const char *port;
@@ -68,6 +72,7 @@ class CAN_serial /* : public DAS_IO::Serial */ {
     uint16_t rep_len;
     uint16_t rep_recd;
     can_frame reqfrm;
+    Timeout TO;
     CAN_interface *parent;
     enum { st_init, st_init_retry, st_operate } slcan_state;
 };

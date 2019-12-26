@@ -4,6 +4,7 @@
  */
 #ifndef SB_INTERFACE_H_INCLUDED
 #define SB_INTERFACE_H_INCLUDED
+#include <stdint.h>
 #include <string>
 #include <sys/uio.h>
 // #include "timeout.h"
@@ -649,7 +650,7 @@ class sb_interface {
     // /** The current character offset in obuf */
     // unsigned int ocp;
     /** Timeout object */
-    Timeout TO;
+    // Timeout TO;
     /** Used to determine read size. Set to -1 for ASCII mode, 0 for binary */
     int binary_offset;
     /** true if we are in binary mode */
