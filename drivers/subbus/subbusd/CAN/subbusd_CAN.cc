@@ -419,6 +419,12 @@ void subbusd_CAN::init_subbus() {
   CAN->setup();
 }
 
+void setup_CAN_subbus(int fd) {
+  nl_assert(subbusd_CAN::CAN_flavor);
+  subbusd_CAN::CAN_flavor->init_subbus();
+  subbusd_CAN::CAN_flavor->CAN->iface->fd = fd;
+}
+
 void subbusd_CAN::shutdown_subbus() {
   // teardown socket
   if (CAN) {

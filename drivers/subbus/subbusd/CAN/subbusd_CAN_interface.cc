@@ -365,6 +365,24 @@ void subbus_timeout() {
   ser->protocol_timeout();
 }
 
+void CAN_serial::update_tc_vmin(int new_vmin) {
+  if (! termios_init) {
+    if (tcgetattr(fd, &ss_termios)) {
+      nl_error(2, "Error from tcgetattr: %s",
+        strerror(errno));
+    }
+    termios_init = true;
+  }
+  if (new_vmin < 1) new_vmin = 1;
+  if (new_vmin != ss_termios.c_cc[VMIN]) {
+    ss_termios.c_cc[VMIN] = new_vmin;
+    if (tcsetattr(fd, TCSANOW, &ss_termios)) {
+      nl_error(2, "Error from tcsetattr: %s",
+        strerror(errno));
+    }
+  }
+}
+
 bool CAN_serial::closed() {
   msg(0, "%s: serial port closed!!", iname);
   return true;

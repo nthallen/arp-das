@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include <list>
+#include <termios.h>
 #include "msg.h"
 #include "timeout.h"
 // #include "dasio/interface.h"
@@ -68,6 +69,7 @@ class CAN_serial : public sb_interface /* : public DAS_IO::Serial */ {
     bool protocol_input();
     bool protocol_timeout();
     bool closed();
+    void update_tc_vmin(int vmin);
     static const int obufsize = 24;
     char obuf[obufsize];
     uint8_t rep_seq_no;
@@ -77,6 +79,8 @@ class CAN_serial : public sb_interface /* : public DAS_IO::Serial */ {
     Timeout TO;
     CAN_interface *parent;
     enum { st_init, st_init_retry, st_operate } slcan_state;
+    bool termios_init;
+    termios ss_termios;
 };
 
 class CAN_interface {
