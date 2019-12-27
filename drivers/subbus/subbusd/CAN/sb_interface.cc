@@ -417,7 +417,7 @@ bool sb_interface::not_str( const char *str_in, unsigned int len ) {
       return true; // full string is not present
     } else if ( str[i] != buf[cp] ) {
       report_err("%s: Expected string '%s' at column %d", iname,
-        ::ascii_escape(str_in, len), start_cp );
+        ::ascii_escape(str_in /* , len */), start_cp );
       return true;
     }
     ++cp;
