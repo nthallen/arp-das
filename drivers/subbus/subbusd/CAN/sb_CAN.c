@@ -35,8 +35,8 @@ static int n_reads = 0;
 static int n_part_reads = 0;
 static int n_compound_reads = 0;
 
-static void dequeue_request( signed short status, int n_args,
-  unsigned short arg0, unsigned short arg1, char *s );
+// static void dequeue_request( signed short status, int n_args,
+//   unsigned short arg0, unsigned short arg1, char *s );
 
 static void set_timeout( int enable ) {
   timeout_is_set = enable;
