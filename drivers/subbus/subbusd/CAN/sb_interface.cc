@@ -368,3 +368,67 @@ void sb_interface::report_ok(int nchars) {
     consume(nchars);
   }
 }
+
+bool sb_interface::not_hex( uint16_t &hexval ) {
+  hexval = 0;
+  while (cp < nc && isspace(buf[cp]))
+    ++cp;
+  if (! isxdigit(buf[cp])) {
+    if (cp < nc)
+      report_err("%s: No hex digits at col %d", iname, cp);
+    return true;
+  }
+  while ( cp < nc && isxdigit(buf[cp]) ) {
+    uint16_t digval = isdigit(buf[cp]) ? ( buf[cp] - '0' ) :
+           ( tolower(buf[cp]) - 'a' + 10 );
+    hexval = hexval * 16 + digval;
+    ++cp;
+  }
+  return false;
+}
+
+bool sb_interface::not_nhexdigits(int n, uint16_t &value) {
+  int i = n;
+  value = 0;
+  while ( i > 0 && cp < nc && isxdigit(buf[cp])) {
+    uint16_t digval = isdigit(buf[cp]) ? ( buf[cp] - '0' ) :
+           ( tolower(buf[cp]) - 'a' + 10 );
+    value = value*16 + digval;
+    --i; ++cp;
+  }
+  if (i > 0) {
+    if (cp < nc)
+      report_err("%s: Expected %d hex digits at column %d", iname, n, cp+i-n);
+    return true;
+  }
+  return false;
+}
+
+bool sb_interface::not_str( const char *str_in, unsigned int len ) {
+  unsigned int start_cp = cp;
+  unsigned int i;
+  const unsigned char *str = (const unsigned char *)str_in;
+  if ( cp < 0 || cp > nc || nc < 0 || buf == 0 )
+    msg( MSG_EXIT_ABNORM, "sb_interface precondition failed: "
+      "cp = %d, nc = %d, buf %s",
+      cp, nc, buf ? "not NULL" : "is NULL" );
+  for (i = 0; i < len; ++i) {
+    if ( cp >= nc ) {
+      return true; // full string is not present
+    } else if ( str[i] != buf[cp] ) {
+      report_err("%s: Expected string '%s' at column %d", iname,
+        ::ascii_escape(str_in, len), start_cp );
+      return true;
+    }
+    ++cp;
+  }
+  return false;
+}
+
+bool sb_interface::not_str( const char *str ) {
+  return not_str(str, strlen(str));
+}
+
+bool sb_interface::not_str(const std::string &s) {
+  return not_str(s.c_str(), s.length());
+}
