@@ -14,7 +14,7 @@
  in.
  */
 #define SB_CAN_MAX_REQUEST 256
-#define SB_CAN_MAX_RESPONSE 2501
+#define SB_CAN_MAX_RESPONSE 80
 
 #if 0
 // I believe I will replace all of this

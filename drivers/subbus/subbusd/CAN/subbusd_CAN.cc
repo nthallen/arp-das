@@ -404,6 +404,8 @@ void subbusd_CAN_client::format_mread_rd() {
     can_msg.sb_nb*2, this);
 }
 
+subbusd_CAN *subbusd_CAN::CAN_flavor;
+
 subbusd_CAN::subbusd_CAN() /* : subbusd_flavor("CAN", new_subbusd_CAN_client) */ {
   nl_assert(CAN_flavor == 0);
   CAN_flavor = this;
@@ -425,6 +427,14 @@ void subbusd_CAN::init_subbus(int fd) {
 void setup_CAN_subbus(int fd) {
   nl_assert(subbusd_CAN::CAN_flavor);
   subbusd_CAN::CAN_flavor->init_subbus(fd);
+}
+
+unsigned char *get_CAN_buf() {
+  return subbusd_CAN::CAN_flavor->get_CAN_buf();
+}
+
+void CAN_serial_protocol_input() {
+  subbusd_CAN::CAN_flavor->CAN_serial_protocol_input();
 }
 
 void subbusd_CAN::shutdown_subbus() {

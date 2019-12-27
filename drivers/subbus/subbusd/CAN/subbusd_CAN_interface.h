@@ -61,6 +61,7 @@ class CAN_serial : public sb_interface /* : public DAS_IO::Serial */ {
     bool send_packet();
     inline bool obuf_empty() { return true; }
     inline bool obuf_clear() { return obuf_empty(); }
+    unsigned char *get_buf() { return buf; }
     bool request_pending;
     static const char *port;
     static uint32_t baud_rate;
@@ -97,9 +98,11 @@ class CAN_interface {
         subbusd_CAN_client *clt);
     can_request curreq();
     inline void pop_req() { reqs.pop_front(); }
+    inline unsigned char *get_buf() { return iface->get_buf(); }
     // inline void reference() { iface->reference(); }
     // inline void dereference() { DAS_IO::Interface::dereference(iface); }
     inline CAN_serial *iface_ptr() { return iface; }
+    inline bool protocol_input() { return iface->protocol_input(); }
     inline bool protocol_timeout() { return iface->protocol_timeout(); }
   protected:
   private:

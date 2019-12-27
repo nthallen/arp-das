@@ -75,16 +75,16 @@ simoui.c : sim/sbsim.oui subbusd.oui
 subbusd_CAN_SOURCES = subbusd.c subbusd_int.h \
   CAN/subbusd_CAN.cc CAN/subbusd_CAN_interface.cc \
   CAN/subbusd_CAN.h CAN/subbusd_CAN_interface.h \
-  CAN/timeout.h CAN/timeout.cc \
+  CAN/timeout.h CAN/timeout.cc CAN/sb_interface.cc \
   CAN/sb_CAN.h CAN/sb_CAN.c \
-  subbusd.h CANoui.c cache.c
+  subbusd.h CANoui.cc cache.c
 CPPFLAGS += -I CAN
-subbusd_CAN_OBJECTS = subbusd.o cache.o \
+subbusd_CAN_OBJECTS = subbusd.o cache.o CAN_sb_interface.o \
   CAN_CAN.o CAN_CAN_interface.o CAN_timeout.o CAN_sb_CAN.o CANoui.o
 
 subbusd_CAN : $(subbusd_CAN_OBJECTS)
-	$(LINK.c) -o subbusd_CAN $(LDADD) $(subbusd_CAN_OBJECTS)
-	usemsg subbusd_CAN CANoui.c
+	$(LINK.cc) -o subbusd_CAN $(LDADD) $(subbusd_CAN_OBJECTS)
+	usemsg subbusd_CAN CANoui.cc
 	/usr/local/sbin/promote subbusd_CAN
 CAN_CAN.o : CAN/subbusd_CAN.cc
 	$(COMPILE.cc) -o CAN_CAN.o CAN/subbusd_CAN.cc
@@ -92,10 +92,12 @@ CAN_CAN_interface.o : CAN/subbusd_CAN_interface.cc
 	$(COMPILE.cc) -o CAN_CAN_interface.o CAN/subbusd_CAN_interface.cc
 CAN_timeout.o : CAN/timeout.cc
 	$(COMPILE.cc) -o CAN_timeout.o CAN/timeout.cc
+CAN_sb_interface.o : CAN/sb_interface.cc
+	$(COMPILE.cc) -o CAN_sb_interface.o CAN/sb_interface.cc
 CAN_sb_CAN.o : CAN/sb_CAN.c
 	$(COMPILE.c) -o CAN_sb_CAN.o CAN/sb_CAN.c
-CANoui.o : CANoui.c
-CANoui.c : CAN/subbusd_slcan.oui subbusd.oui
-	oui -o CANoui.c CAN/subbusd_slcan.oui
+CANoui.o : CANoui.cc
+CANoui.cc : CAN/subbusd_slcan.oui subbusd.oui
+	oui -o CANoui.cc CAN/subbusd_slcan.oui
 
 CPPFLAGS += -I/usr/local/include 

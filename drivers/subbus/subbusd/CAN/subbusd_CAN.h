@@ -1,15 +1,18 @@
 #ifndef SUBBUSD_CAN_H_INCLUDED
 #define SUBBUSD_CAN_H_INCLUDED
 // #include "dasio/server.h"
-#include "sb_interface.h"
 #include "subbusd_int.h"
 
 #ifdef __cplusplus
+#include "sb_interface.h"
+
 extern "C" {
 #endif
 
 extern void setup_CAN_subbus(int fd);
+extern unsigned char *get_CAN_buf();
 extern void incoming_sbreq(int rcvid, subbusd_req_t *req);
+extern void CAN_serial_protocol_input();
 
 #ifdef __cplusplus
 }
@@ -98,6 +101,10 @@ class subbusd_CAN /* : public subbusd_flavor */ {
           CAN->enqueue_request(can_msg, rep_buf, buflen, clt);
       }
     inline bool CAN_timeout() { return CAN->protocol_timeout(); }
+    inline unsigned char *get_CAN_buf() { return CAN->get_buf(); }
+    inline void CAN_serial_protocol_input() {
+      CAN->protocol_input();
+    }
     static subbusd_CAN *CAN_flavor;
   private:
     // CAN sockets, states, etc.

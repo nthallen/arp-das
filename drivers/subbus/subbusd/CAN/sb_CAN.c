@@ -12,22 +12,23 @@
 #include <stdint.h>
 #include "sb_CAN.h"
 #include "nl_assert.h"
+#include "subbusd_CAN.h"
 #include "subbusd_CAN_interface.h"
 
 const char *CAN_port = "/dev/serusb2";
 int CAN_baud_rate = 57600;
 
-static char sb_ibuf[SB_CAN_MAX_RESPONSE];
+static unsigned char *sb_ibuf; // sb_ibuf[SB_CAN_MAX_RESPONSE];
 static int sb_ibuf_idx = 0;
 //static sbd_request_t sbdrq[SUBBUSD_MAX_REQUESTS];
 //static sbd_request_t *cur_req;
-static unsigned int sbdrq_head = 0, sbdrq_tail = 0;
+// static unsigned int sbdrq_head = 0, sbdrq_tail = 0;
 static int sb_fd;
 static struct sigevent ionotify_event;
 static timer_t timeout_timer;
 static struct itimerspec timeout_enable, timeout_disable;
 bool timeout_is_set;
-static int n_timeouts = 0;
+// static int n_timeouts = 0;
 
 static int n_writes = 0;
 static int n_reads = 0;
@@ -559,7 +560,8 @@ static void sb_read_usb(void) {
     while ( nb > 0 ) {
       if ( sb_ibuf[sb_ibuf_idx] == '\n' ) {
         sb_ibuf[sb_ibuf_idx] = '\0';
-        process_response(sb_ibuf);
+        CAN_serial_protocol_input();
+        // process_response(sb_ibuf);
         if (--nb > 0) {
           memmove( sb_ibuf, &sb_ibuf[sb_ibuf_idx+1], nb );
           sb_ibuf_idx = 0;
@@ -712,11 +714,13 @@ static void init_CAN(dispatch_t *dpp, int ionotify_pulse,
   timeout_disable.it_interval.tv_nsec = 0;
 
   setup_CAN_subbus(sb_fd);
+  sb_ibuf = get_CAN_buf();
   
   /* now arm for input */
   sb_read_usb();
 }
 
+#if 0 // Implemented in subbusd_CAN.cc
 static void ErrorReply( int rcvid, int rv ) {
   subbusd_rep_hdr_t rep;
   nl_assert( rv > 0 );
@@ -725,7 +729,6 @@ static void ErrorReply( int rcvid, int rv ) {
   rv = MsgReply( rcvid, sizeof(rep), &rep, sizeof(rep) );
 }
 
-#if 0 // Implemented in subbusd_CAN.cc
 /**
  This is where we serialize the request
  The basic sanity of the incoming message has been
@@ -829,8 +832,8 @@ void init_subbus(dispatch_t *dpp ) {
   init_CAN(dpp, ionotify_pulse, timer_pulse);
 
   /* Enqueue initialization requests */
-  enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "\n", 0 );
-  enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "V\n", 0 );
+  // enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "\n", 0 );
+  // enqueue_sbreq( SBDR_TYPE_INTERNAL, 0, "V\n", 0 );
 }
 
 void shutdown_subbus(void) {
