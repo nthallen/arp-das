@@ -1,0 +1,232 @@
+#! /usr/bin/perl -w
+use strict;
+use Text::Wrap;
+
+# Meerstetter_gen <srcfile> name=<name>
+# Generates the following:
+#   <name>.tmc
+#   <name>_col.tmc
+#   <name>.cmd
+#   # <name>_conv.tmc
+#   <name>.genui
+
+my $ME_MAX_DRIVES = 2;
+my $ME_MAX_ADDRESS = 254;
+
+my $srcfile = $ARGV[0] ||
+  die "Must specify a source file\n";
+my $name_cl = '';
+my $Rate = '1';
+my $Port = '/dev/ser1';
+my $name_src = '';
+my %Data;
+my %Channel;
+my @Index;
+my $n_channels = 0;
+my $linenum = 0;
+if (@ARGV > 1) {
+  if ($ARGV[1] =~ m/^name=([a-z][a-z0-9_]*)$/i ) {
+    $name_cl = $1;
+  } else {
+    die "Invalid name specification: '$ARGV[1]'\n";
+  }
+}
+
+open(my $ifh, "<", $srcfile)
+  or die "Cannot open < $srcfile\n";
+
+while (my $line = <$ifh>) {
+  ++$linenum;
+  chomp $line;
+  next if $line =~ m/^\s*(?:#.*)?$/; # comment
+  if ( $line =~ m|^\s*Rate\s+(\d+(?:/\d+)?)\s+Hz\s*|i ) {
+    $Rate = $1;
+  } elsif ( $line =~ m/^\s*Port\s+(\S+)\s*$/i ) {
+    $Port = $1;
+  } elsif ( $line =~ m/^\s*Name\s+([a-z]\w*)\s*$/i ) {
+    die "$srcfile:$linenum: Name redefined\n"
+      if $name_src ne '';
+    $name_src = $1;
+    die "$srcfile:$linenum: Name $name_src conflicts with commandline name=$name_cl\n"
+      if $name_cl ne '' && $name_src ne $name_cl;
+  } elsif ( $line =~ m|^\s* Data \s+ ([A-Za-z]\w+) \s+ (\d+) \s+
+                        "([^"]*)"
+                        \s* $|x ) {
+    my ($datum,$channel,$text) = ($1,$2,$3);
+    die "$srcfile:$linenum: Datum $datum conflicts with earlier definition\n"
+      if $Data{$datum};
+    die "$srcfile:$linenum: Channel $channel already assigned\n"
+      if $Channel{$channel};
+    die "$srcfile:$linenum: Channel $channel out of range\n"
+      if $channel > $ME_MAX_ADDRESS || $channel < 1;
+    die "$srcfile:$linenum: Number of drives exceeds arbitrary limit of $ME_MAX_DRIVES\n"
+      if $n_channels >= $ME_MAX_DRIVES;
+    $Data{$datum} = { index => $n_channels, channel => $channel, text => $text};
+    $Channel{$channel} = $datum;
+    push(@Index, $datum);
+    ++$n_channels;
+  } else {
+    die "$srcfile:$linenum: Syntax error: '$line'\n";
+  }
+}
+
+close($ifh) or warn "Error closing srcfile '$srcfile'\n";
+
+my $Name = $name_src || $name_cl || "ME";
+
+open(my $tmc, ">", "$Name.tmc") ||
+  die "$srcfile: Unable to write output file $Name.tmc\n";
+open(my $col, ">", "${Name}_col.tmc") ||
+  die "$srcfile: Unable to write output file ${Name}_col.tmc\n";
+open(my $genui, ">", "${Name}.genui") ||
+  die "$srcfile: Unable to write output file ${Name}.genui\n";
+open(my $tbl, ">", "$Name.tbl") ||
+  die "$srcfile: Unable to write output file $Name.tbl\n";
+# open(my $conv, ">", "${Name}_conv.tmc") ||
+  # die "$srcfile: Unable to write output file ${Name}_conv.tmc\n";
+open(my $cmd, ">", "$Name.cmd") ||
+  die "$srcfile: Unable to write output file $Name.cmd\n";
+# Open the rest here also
+
+my ($datadef, $coldef, @grpmem, $tbldef, $cmddef,
+    @status_genui);
+
+$datadef = "TM $Rate Hz ${Name}_Stale_t ${Name}_Stale;\n";
+$coldef .= "  ${Name}_Stale = ${Name}_obj->stale(255);\n";
+push(@grpmem, "${Name}_Stale");
+
+print $genui
+  "  $Rate ${Name}_Stale $Name Stale\n";
+
+for (my $i = 0; $i < $n_channels; ++$i) {
+  my $offset = $i;
+  my $datum = $Index[$i];
+  my $D = $Data{$datum};
+
+  $datadef .= "TM $Rate Hz ${Name}_DevStatus_t ${datum}_DevStatus;\n";
+  $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_Set_T;\n";
+  $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_T;\n";
+  $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_Sink_T;\n";
+  $datadef .= "TM $Rate Hz ${Name}_Stale_t ${datum}_Stale;\n";
+
+  $coldef .= "  ${datum}_DevStatus = ${Name}_drive($i,DeviceStatus);\n";
+  $coldef .= "  ${datum}_T = ${Name}_drive($i,ObjectTemp);\n";
+  $coldef .= "  ${datum}_Sink_T = ${Name}_drive($i,SinkTemp);\n";
+  $coldef .= "  ${datum}_Set_T = ${Name}_drive($i,TargetObjectTemp);\n";
+  $coldef .= "  ${datum}_Stale = ${Name}_drive($i,Stale);\n";
+
+  push(@grpmem, map "${datum}_$_", qw(DevStatus T Sink_T Set_T));
+
+  print $genui
+    "  $Rate ${datum}_DevStatus $Name ${datum}_Status\n",
+    "  $Rate ${datum}_Stale $Name Stale\n",
+    "  $Rate ${datum}_T $Name ${datum}_Temp\n",
+    "  $Rate ${datum}_Set_T $Name ${datum}_Temp\n",
+    "  $Rate ${datum}_Sink_T $Name ${datum}_Temp\n";
+
+  my $datumtbl =
+    "  ${datum}: (${datum}_DevStatus,7) (${datum}_Stale,3) (${datum}_Sink_T,7) (${datum}_Set_T,7) (${datum}_T,7) C;\n";
+
+  $tbldef .= $datumtbl;
+  
+  print $tbl
+    "$datum {\n$datumtbl",
+    "}\n\n",
+    "${datum}_v {\n",
+    "  HBox { +-; Title: ${datum}; -+ };\n",
+    "  Status: (${datum}_DevStatus,7);\n",
+    "  Stale:  (${datum}_Stale,3);\n",
+    "  Sink_T: (${datum}_Sink_T,7) C;\n",
+    "  Set_T:  (${datum}_Set_T,7) C;\n",
+    "  T:      (${datum}_T,7) C;\n",
+    "}\n\n";
+
+  my $text = $D->{text};
+  if (length($text) > 0) {
+    my @text = split(' ',$text);
+    $cmddef .=
+      "  : " . join(' ', @text) .
+      "    { \$0 = $D->{channel}; }\n";
+  }
+}
+
+print $tmc <<EOF
+%{
+  /* Meerstetter driver interface */
+  #define ME_MAX_DRIVES $n_channels
+  #include "meerstetter.h"
+  const char *${Name}_DevStatus_text(unsigned char stat) {
+    switch (stat) {
+      case 0:  return "Init   ";
+      case 1:  return "Ready  ";
+      case 2:  return "Run    ";
+      case 3:  return "Error  ";
+      case 4:  return "BootLdr";
+      case 5:  return "Reset  ";
+      default: return "*******";
+    }
+  }
+  #define ${Name}_drive(x,y) ${Name}.drive[x].y
+%}
+TM typedef unsigned char ${Name}_DevStatus_t { text "%7u" ${Name}_DevStatus_text(); }
+TM typedef unsigned char ${Name}_Stale_t { text "%3u"; }
+TM typedef float ${Name}_Temp_t { text "%7.2f"; }
+EOF
+;
+
+print $tmc
+  "\n$datadef" ,
+  'TM "Receive" ' . "$Name 1;\n\n" ,
+
+  wrap("","    ", "Group $Name (" . join(', ', @grpmem) . ") {\n") ,
+  $coldef ,
+  "  ${Name}_obj->synch();\n}\n";
+
+print $col
+  "%{\n" .
+  "  meerstetter_t $Name;\n" .
+  "%}\n";
+
+print $genui
+  "  $Rate ${Name}_Stale $Name Stale\n";
+
+print $tbl
+  "$Name {\n" .
+  "  HBox { +-; Title: $Name; -+ };\n" .
+  '  "" >Status< >Sink< >Set< >T<;' . "\n" .
+  $tbldef .
+  "  { HGlue 0+1 Stale: (${Name}_Stale,3) }\n" .
+  "}\n";
+
+print $cmd <<EOF
+%{
+  #include <stdint.h>
+%}
+%INTERFACE <$Name>
+
+&command
+  : &$Name Enable * { if_$Name.Turf("W%d:50000:00000001\\n", \$1); }
+  : &$Name Disable * { if_$Name.Turf("W%d:50000:00000000\\n", \$1); }
+  : &$Name SetPoint %f (Celcius) C * {
+      float setpoint = \$3;
+      uint32_t *ui32p = (uint32_t *)&setpoint;
+      if_$Name.Turf("W%d:50012:%08X\\n", \$1, *ui32p);
+    }
+  : &$Name Live SetPoints Enable * { if_$Name.Turf("W%d:50011:00000001\\n", \$1); }
+  : &$Name Live SetPoints Disable * { if_$Name.Turf("W%d:50011:00000000\\n", \$1); }
+  ;
+
+&$Name <int>
+EOF
+;
+
+print $cmd
+  $cmddef .
+  ";\n";
+
+close($tmc) || warn "$srcfile: Error closing output file $Name.tmc\n";
+close($col) || warn "$srcfile: Error closing output file ${Name}_col.tmc\n";
+close($genui) || warn "$srcfile: Error closing output file ${Name}.genui\n";
+close($tbl) || warn "$srcfile: Error closing output file $Name.tbl\n";
+# close($conv) || warn "$srcfile: Error closing output file ${Name}_conv.tmc\n";
+close($cmd) || warn "$srcfile: Error closing output file $Name.cmd\n";
