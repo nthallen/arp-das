@@ -1,0 +1,28 @@
+%{
+  void mks_analog_set_point(uint16_t addr, double Fset, double F_FS,
+              double V_max, double V_zero, double G_DACS) {
+    Fset = Fset > F_FS ? F_FS : Fset < 0 ? 0 : Fset;
+    double Vset = Fset * (V_max-V_zero) / F_FS + V_zero;
+    double Dset = Vset * 65536. / (2.5 * G_DACS);
+    Dset = Dset > 65535. ? 65535. : Dset < 0 ? 0 : Dset;
+    uint16_t bits = (uint16_t) Dset;
+    sbwr(addr, bits);
+  }
+%}
+TM typedef double ${Name}_${units};
+TM typedef uint16_t ${datum}_Set_t {
+  text "%7.${prec}lf";
+  convert ${Name}_${units};
+  collect x = sbwra(x.address);
+}
+Calibration (${datum}_Set_t,${Name}_${units}_t) { d0, d1, v0, v1 }
+TM $Rate Hz ${datum}_Set_t ${Name}_Set; Address ${Name}_Set 0x$D->{SP_addr};
+
+TM typedef uint16_t ${datum}_Flow_t {
+  text "%7.${prec}lf";
+  convert ${Name}_${units};
+  collect x = sbwra(x.address);
+}
+Calibration (${datum}_Flow_t,
+
+TM INITFUNC sbwr(GasLP.address, AI_CFG_XP768);

@@ -2,6 +2,7 @@
 Name MKS
 Rate 1 Hz
 Port /dev/ser3
-Data MFC1 1 MFC 500 sccm "Cal 1"
-Data MFC2 2 MFC 5 slm "Cal 2"
-Data MFM1 3 MFM 5 slm
+Digital MFC1 1 MFC 500 sccm "Cal 1"
+Digital MFC2 2 MFC 5 slm "Cal 2"
+Digital MFM1 3 MFM 5 slm
+Analog  MFC3 50 sccm 5V SP:2E0:3 RB:4A2:XP768 "Cal 3"
