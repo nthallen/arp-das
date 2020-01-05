@@ -128,6 +128,7 @@ while (my $line = <$ifh>) {
       };
     $Channel{$datum} = $datum;
     push(@Index, $datum);
+    $have_analog = 1;
     ++$n_channels;
   } else {
     die "$srcfile:$linenum: Syntax error: '$line'\n";
@@ -181,6 +182,10 @@ TM typedef uint8_t ${Name}_Stale_t { text "%3u"; }
 TM typedef float ${Name}_Temp_t { text "%7.2f"; }
 EOF
 ;
+}
+
+if ($have_analog) {
+  print $tmc "%{\n  #include \"subbus.h\"\n%}\n\n";
 }
 
 if ($have_digital || $have_non_unity_ai) {
@@ -241,7 +246,6 @@ for (my $i = 0; $i < $n_channels; ++$i) {
     # All analog channels are mfc for now
     # Need to create types for setpoint and readback
     # <Name>_<units>
-    $have_analog = 1;
     my $flow_type = "${Name}_${units}_t";
     unless ($analog_units{$flow_type}) {
       $datadef .= "TM typedef double $flow_type;\n";
@@ -254,12 +258,12 @@ for (my $i = 0; $i < $n_channels; ++$i) {
     $datadef .= "TM typedef uint16_t ${datum}_Set_t {\n";
     $datadef .= "  text \"%7.${prec}lf\";\n";
     $datadef .= "  convert $flow_type;\n";
-    $datadef .= "  collect x = sbwra(x.address);\n";
+    $datadef .= "  collect x = sbrwa(x.address);\n";
     $datadef .= "}\n";
     $datadef .= join(" ",
       "Calibration (${datum}_Set_t,$flow_type) { ",
-      sprintf("%.1f, %.1f", $d0, $d1),
-      ", 0, $D->{fullscale} }\n");
+      sprintf("%.1f, 0, %.1f", $d0, $d1),
+      ", $D->{fullscale} }\n");
     $datadef .=
       "TM $Rate Hz ${datum}_Set_t ${datum}_Set; " .
       "Address ${datum}_Set 0x$D->{SP_addr};\n";
@@ -273,12 +277,12 @@ for (my $i = 0; $i < $n_channels; ++$i) {
     $datadef .= "TM typedef uint16_t ${datum}_Flow_t {\n";
     $datadef .= "  text \"%7.${prec}lf\";\n";
     $datadef .= "  convert $flow_type;\n";
-    $datadef .= "  collect x = sbwra(x.address);\n";
+    $datadef .= "  collect x = sbrwa(x.address);\n";
     $datadef .= "}\n";
     $datadef .= join(" ",
       "Calibration (${datum}_Flow_t,$flow_type) { ",
-      sprintf("%.1f, %.1f", $d0, $d1),
-      ", 0, $D->{fullscale} }\n");
+      sprintf("%.1f, 0, %.1f", $d0, $d1),
+      ", $D->{fullscale} }\n");
     $datadef .=
       "TM $Rate Hz ${datum}_Flow_t ${datum}_Flow; " .
       "Address ${datum}_Flow 0x$D->{RB_addr};\n";
@@ -336,10 +340,14 @@ for (my $i = 0; $i < $n_channels; ++$i) {
         " { if_${Name}.Turf(\"W$channel:1:%.${prec}f\\n\", \$$fword); }\n";
     } else {
       $cmddef .=
-        "  : " . join(' ', @text, '%f', "($units or V)", $units, '*') .
-        " { mks_analog_set_point(0x$D->{SP_addr}, \$$fword, $D->{fullscale}, $D->{V_max}, $D->{V_zero}, $D->{SP_G_DAC}); }\n" .
-        "  : " . join(' ', @text, '%f', "($units or V)", 'Volts', '*') .
-        " { mks_analog_set_point(0x$D->{SP_addr}, \$$fword, $D->{V_max}, $D->{V_max}, 0, $D->{SP_G_DAC}); }\n";
+        "  : " . join(' ', @text, '%f', "($units)", $units, '*') .
+        " { mks_analog_set_point(0x$D->{SP_addr}, \$$fword, $D->{fullscale}," .
+        " $D->{V_max}, $D->{V_zero}, $D->{SP_G_DAC}); }\n";
+      @text = split(' ', "$text Voltage SetPoint");
+      $fword = scalar(@text)+1;
+        "  : " . join(' ', @text, '%f', "(Volts)", 'Volts', '*') .
+        " { mks_analog_set_point(0x$D->{SP_addr}, \$$fword, $D->{V_max}," .
+        " $D->{V_max}, 0, $D->{SP_G_DAC}); }\n";
     }
   }
 }
@@ -380,7 +388,9 @@ if ($have_analog) {
 print $cmd <<EOF;
 %{
   #include <stdint.h>
+  #include "subbus.h"
 
+  #ifdef SERVER
   void mks_analog_set_point(uint16_t addr, double Fset, double F_FS,
               double V_max, double V_zero, double G_DACS) {
     Fset = Fset > F_FS ? F_FS : Fset < 0 ? 0 : Fset;
@@ -390,6 +400,7 @@ print $cmd <<EOF;
     uint16_t bits = (uint16_t) Dset;
     sbwr(addr, bits);
   }
+  #endif
 %}
 EOF
 }

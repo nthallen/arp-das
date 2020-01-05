@@ -9,6 +9,8 @@ IGNORE = Makefile
 IGNORE = $(MKSgen)
 OBJ = $(MKSgen)
 
+mksdiagsrvr : -lsubbus
+mksdiagcol : -lsubbus
 mksdiagdisp : mksdiag.tbl
 mksdiagalgo : mksdiag.tma
 doit : mksdiag.doit
