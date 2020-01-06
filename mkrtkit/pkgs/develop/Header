@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.92
+Version: 2.5.93
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,6 +8,8 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.93 2020-01-06
+#   mksflow header and module
 # 2.5.92 2019-06-30
 #   add_auth_key.sh: tool to setup keys
 # 2.5.91 2019-05-27

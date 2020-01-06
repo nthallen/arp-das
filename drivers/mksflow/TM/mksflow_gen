@@ -288,8 +288,8 @@ for (my $i = 0; $i < $n_channels; ++$i) {
       "Address ${datum}_Flow 0x$D->{RB_addr};\n";
 
     if ($D->{RB_PGA} ne 'X1') {
-      $coldef .=
-        "TM INITFUNC sbwr($datum.address, AI_CFG_$D->{RB_PGA});\n";
+      print $col
+        "TM INITFUNC sbwr(${datum}_Flow.address, AI_CFG_$D->{RB_PGA});\n";
     }
 
 
