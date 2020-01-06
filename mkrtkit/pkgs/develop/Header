@@ -10,6 +10,7 @@ Files: MANIFEST_pkg @ /
 # Changes:
 # 2.5.93 2020-01-06
 #   mksflow header and module
+#   TMC support for stdint.h types
 # 2.5.92 2019-06-30
 #   add_auth_key.sh: tool to setup keys
 # 2.5.91 2019-05-27
