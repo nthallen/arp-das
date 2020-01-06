@@ -2,13 +2,22 @@
 #define MEERSTETTER_H_INCLUDED
 #include <stdint.h>
 
-typedef struct __attribute__((packed)) {
-  int32_t DeviceStatus;
-  float   ObjectTemp;
-  float   SinkTemp;
-  float   TargetObjectTemp;
-} meerstetter_t;
+#ifndef ME_MAX_DRIVES
+#define ME_MAX_DRIVES 2
+#endif
 
-extern meerstetter_t meerstetter;
+typedef struct __attribute__((packed)) {
+  int32_t  DeviceStatus;
+  float    ObjectTemp;
+  float    SinkTemp;
+  float    TargetObjectTemp;
+  uint16_t Mask;
+  uint16_t Stale;
+} me_drive_t;
+
+typedef struct __attribute__((packed)) {
+  // uint32_t me_status;
+  me_drive_t drive[ME_MAX_DRIVES];
+} meerstetter_t;
 
 #endif

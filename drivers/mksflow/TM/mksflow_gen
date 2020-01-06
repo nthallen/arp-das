@@ -1,0 +1,427 @@
+#! /usr/bin/perl -w
+use strict;
+use Text::Wrap;
+use POSIX;
+
+# mksflow_gen <srcfile> name=<name>
+# Generates the following:
+#   <name>.tmc
+#   <name>_col.tmc
+#   <name>.cmd
+#   # <name>_conv.tmc
+#   <name>.genui
+
+my $MKS_MAX_DRIVES = 5;
+my $MKS_MAX_ADDRESS = 254;
+
+my $srcfile = $ARGV[0] ||
+  die "Must specify a source file\n";
+my $name_cl = '';
+my $Rate = '1';
+my $Port = '/dev/ser1';
+my $name_src = '';
+my %Data;
+my %Channel;
+my @Index;
+my $n_channels = 0;
+my $have_digital = 0;
+my $have_analog = 0;
+my $have_non_unity_ai = 0;
+my %analog_units;
+my $linenum = 0;
+if (@ARGV > 1) {
+  if ($ARGV[1] =~ m/^name=([a-z][a-z0-9_]*)$/i ) {
+    $name_cl = $1;
+  } else {
+    die "Invalid name specification: '$ARGV[1]'\n";
+  }
+}
+
+open(my $ifh, "<", $srcfile)
+  or die "Cannot open < $srcfile\n";
+
+while (my $line = <$ifh>) {
+  ++$linenum;
+  chomp $line;
+  next if $line =~ m/^\s*(?:#.*)?$/; # comment
+  if ( $line =~ m|^\s*Rate\s+(\d+(?:/\d+)?)\s+Hz\s*|i ) {
+    $Rate = $1;
+  } elsif ( $line =~ m/^\s*Port\s+(\S+)\s*$/i ) {
+    $Port = $1;
+  } elsif ( $line =~ m/^\s*Name\s+([a-z]\w*)\s*$/i ) {
+    die "$srcfile:$linenum: Name redefined\n"
+      if $name_src ne '';
+    $name_src = $1;
+    die "$srcfile:$linenum: Name $name_src conflicts with commandline name=$name_cl\n"
+      if $name_cl ne '' && $name_src ne $name_cl;
+  } elsif ( $line =~ m,^\s* Digital \s+ ([A-Za-z]\w+) \s+ (\d+) \s+
+                        (MFC|MFM) \s+
+                        ([0-9]+) \s+
+                        (slm|sccm)
+                        (?: \s+ "([^"]*)" )?
+                        \s* $,ix ) {
+    my ($datum,$channel,$chtype,$fullscale,$units,$text) =
+      ($1,$2,lc($3),$4,lc($5),$6);
+    die "$srcfile:$linenum: Datum $datum conflicts with earlier definition\n"
+      if $Data{$datum};
+    die "$srcfile:$linenum: Channel $channel already assigned\n"
+      if $Channel{$channel};
+    die "$srcfile:$linenum: Channel $channel out of range\n"
+      if $channel > $MKS_MAX_ADDRESS || $channel < 1;
+    die "$srcfile:$linenum: Number of drives exceeds arbitrary limit of $MKS_MAX_DRIVES\n"
+      if $n_channels >= $MKS_MAX_DRIVES;
+    if ($chtype eq 'mfc') {
+      $text ||= $channel; # command defaults to channel mnemonic
+    }
+    my $prec = 4 - floor(log10($fullscale));
+    $Data{$datum} = {
+      type => 'digital',
+      index => $n_channels,
+      channel => $channel,
+      chtype => $chtype,
+      fullscale => $fullscale,
+      units => $units,
+      prec => $prec,
+      text => $text};
+    $Channel{$channel} = $datum;
+    push(@Index, $datum);
+    $have_digital = 1;
+    ++$n_channels;
+  } elsif ( $line =~ m,^\s* Analog \s+ ([A-Z]\w+) \s+
+                        ([0-9]+) \s+
+                        (slm|sccm)
+                        \s+ ([0-9]+) (?: \s* - ([0-9]+))? \s* V
+                        \s+ SP: \s* (?:0x)?([A-F0-9]+) (?: : ([0-9]+(?:\.[0-9]*)?) )?
+                        \s+ RB: \s* (?:0x)?([A-F0-9]+) (?: : ([A-Z0-9]+))?
+                        (?: \s+ "([^"]*)" )?
+                        \s* $,ix ) {
+    my ($datum,$fullscale,$units,$V_zero,$V_max,$SP_addr,$SP_G_DAC,$RB_addr,$RB_PGA,$text) =
+      ($1,$2,lc($3),$4,$5,$6,$7,$8,$9,$10);
+    die "$srcfile:$linenum: Datum $datum conflicts with earlier definition\n"
+      if $Data{$datum};
+    if (!defined($V_max)) {
+      $V_max = $V_zero;
+      $V_zero = 0;
+    }
+    $SP_G_DAC ||= 2; # Default G_DAC gain is 2
+    $RB_PGA ||= 'AI_CFG_X1';
+    unless ($RB_PGA =~ s/^(?:AI_CFG_)?(XP?[0-9]+)$/$1/) {
+      die "$srcfile:$linenum: Datum $datum Readback PGA value '$RB_PGA' must begin with 'AI_CFG_X' or 'X'\n";
+    }
+    if ($RB_PGA ne 'X1') {
+      $have_non_unity_ai = 1;
+    }
+    $text ||= $datum; # command defaults to channel mnemonic
+    my $prec = 4 - floor(log10($fullscale));
+    $Data{$datum} = {
+      type => 'analog',
+      index => $n_channels,
+      channel => $datum,
+      chtype => 'mfc',
+      fullscale => $fullscale,
+      units => $units,
+      prec => $prec,
+      text => $text,
+      V_zero => $V_zero, V_max => $V_max,
+      SP_addr => $SP_addr, SP_G_DAC => $SP_G_DAC,
+      RB_addr => $RB_addr, RB_PGA => $RB_PGA
+      };
+    $Channel{$datum} = $datum;
+    push(@Index, $datum);
+    $have_analog = 1;
+    ++$n_channels;
+  } else {
+    die "$srcfile:$linenum: Syntax error: '$line'\n";
+  }
+}
+
+close($ifh) or warn "Error closing srcfile '$srcfile'\n";
+
+my $Name = $name_src || $name_cl || "MKS";
+
+open(my $tmc, ">", "$Name.tmc") ||
+  die "$srcfile: Unable to write output file $Name.tmc\n";
+my $col;
+if ($have_digital || $have_non_unity_ai) {
+  open($col, ">", "${Name}_col.tmc") ||
+    die "$srcfile: Unable to write output file ${Name}_col.tmc\n";
+}
+open(my $genui, ">", "${Name}.genui") ||
+  die "$srcfile: Unable to write output file ${Name}.genui\n";
+open(my $tbl, ">", "$Name.tbl") ||
+  die "$srcfile: Unable to write output file $Name.tbl\n";
+# open(my $conv, ">", "${Name}_conv.tmc") ||
+  # die "$srcfile: Unable to write output file ${Name}_conv.tmc\n";
+open(my $cmd, ">", "$Name.cmd") ||
+  die "$srcfile: Unable to write output file $Name.cmd\n";
+# Open the rest here also
+
+my ($datadef, $coldef, @grpmem, $tbldef, $hktbldef, $cmddef,
+    @status_genui);
+
+if ($have_digital) {
+  $datadef = "TM $Rate Hz ${Name}_Stale_t ${Name}_Stale;\n";
+  $coldef .= "  ${Name}_Stale = ${Name}_obj->stale(255);\n";
+  push(@grpmem, "${Name}_Stale");
+
+print $tmc <<EOF
+%{
+  /* mksflow driver interface */
+  #define MKS_MAX_DRIVES $n_channels
+  #include "mksflow.h"
+  #define ${Name}_drive(x,y) ${Name}.drive[x].y
+%}
+TM typedef float ${Name}_Flow0_t { text "%7.0f"; }
+TM typedef float ${Name}_Flow1_t { text "%7.1f"; }
+TM typedef float ${Name}_Flow2_t { text "%7.2f"; }
+TM typedef float ${Name}_Flow3_t { text "%7.3f"; }
+TM typedef float ${Name}_Flow4_t { text "%7.4f"; }
+TM typedef uint16_t ${Name}_Status_t { text "%04X"; }
+TM typedef uint8_t ${Name}_ACK_t { text "%02X"; }
+TM typedef uint8_t ${Name}_Stale_t { text "%3u"; }
+TM typedef float ${Name}_Temp_t { text "%7.2f"; }
+EOF
+;
+}
+
+if ($have_analog) {
+  print $tmc "%{\n  #include \"subbus.h\"\n%}\n\n";
+}
+
+if ($have_digital || $have_non_unity_ai) {
+  print $col
+    "%{\n";
+  if ($have_non_unity_ai) {
+    print $col
+      "  #include \"ai_cfg.h\"\n";
+  }
+  if ($have_digital) {
+    print $col
+      "  #include \"mksflow.h\"\n",
+      "  mksflow_t $Name;\n";
+  }
+  print $col
+    "%}\n";
+}
+
+for (my $i = 0; $i < $n_channels; ++$i) {
+  my $offset = $i;
+  my $datum = $Index[$i];
+  my $D = $Data{$datum};
+  my $prec = $D->{prec};
+  my $units = $D->{units};
+  
+  if ($D->{type} eq 'digital') {
+    if ($D->{chtype} eq 'mfc') {
+      $datadef .= "TM $Rate Hz ${Name}_Flow${prec}_t ${datum}_Set;\n";
+      $coldef .= "  ${datum}_Set = ${Name}_drive($i,FlowSetPoint);\n";
+      push(@grpmem, "${datum}_Set");
+    }
+    $datadef .= "TM $Rate Hz ${Name}_Flow${prec}_t ${datum}_Flow;\n";
+    $coldef .=  "  ${datum}_Flow = ${Name}_drive($i,Flow);\n";
+    $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_T;\n";
+    $coldef .=  "  ${datum}_T = ${Name}_drive($i,DeviceTemp);\n";
+    $datadef .= "TM $Rate Hz ${Name}_Status_t ${datum}_Status;\n";
+    $coldef .=  "  ${datum}_Status = ${Name}_drive($i,DeviceStatus);\n";
+    $datadef .= "TM $Rate Hz ${Name}_ACK_t ${datum}_ACK;\n";
+    $coldef .=  "  ${datum}_ACK = ${Name}_drive($i,ACK);\n";
+    $datadef .= "TM $Rate Hz ${Name}_ACK_t ${datum}_ACK2;\n";
+    $coldef .=  "  ${datum}_ACK2 = ${Name}_drive($i,ACK2);\n";
+    $datadef .= "TM $Rate Hz ${Name}_Stale_t ${datum}_Stale;\n";
+    $coldef .=  "  ${datum}_Stale = ${Name}_drive($i,Stale);\n";
+
+    push(@grpmem, map "${datum}_$_", qw(Flow T Status ACK ACK2 Stale));
+
+    print $genui
+      "  $Rate ${datum}_Status ${Name}_HK Status\n",
+      "  $Rate ${datum}_Stale  ${Name}_HK Stale\n",
+      "  $Rate ${datum}_ACK    ${Name}_HK ACK\n",
+      "  $Rate ${datum}_ACK2   ${Name}_HK ACK2\n",
+      "  $Rate ${datum}_T      ${Name}_HK Temp\n",
+      (($D->{chtype} eq 'mfc') ?
+        "  $Rate ${datum}_Set    $Name ${datum}_Flow\n"
+        : ''),
+      "  $Rate ${datum}_Flow   $Name ${datum}_Flow\n";
+  } else {
+    # All analog channels are mfc for now
+    # Need to create types for setpoint and readback
+    # <Name>_<units>
+    my $flow_type = "${Name}_${units}_t";
+    unless ($analog_units{$flow_type}) {
+      $datadef .= "TM typedef double $flow_type;\n";
+      $analog_units{$flow_type} = 1;
+    }
+    
+    # <datum>_Set_t
+    my $d0 = $D->{V_zero}*65536/(2.5*$D->{SP_G_DAC});
+    my $d1 = $D->{V_max}*65536/(2.5*$D->{SP_G_DAC});
+    $datadef .= "TM typedef uint16_t ${datum}_Set_t {\n";
+    $datadef .= "  text \"%7.${prec}lf\";\n";
+    $datadef .= "  convert $flow_type;\n";
+    $datadef .= "  collect x = sbrwa(x.address);\n";
+    $datadef .= "}\n";
+    $datadef .= join(" ",
+      "Calibration (${datum}_Set_t,$flow_type) { ",
+      sprintf("%.1f, 0, %.1f", $d0, $d1),
+      ", $D->{fullscale} }\n");
+    $datadef .=
+      "TM $Rate Hz ${datum}_Set_t ${datum}_Set; " .
+      "Address ${datum}_Set 0x$D->{SP_addr};\n";
+
+    # <channel>_Flow_t
+    $D->{RB_PGA} =~ m/^X(P?)([0-9]+)$/ ||
+      die "Unexpected mismatch on RB_PGA '$D->{RB_PGA}'\n";
+    my $RB_PGA = $1 ? ".$2" : $2;
+    $d0 = $D->{V_zero}*65536*$RB_PGA/4.096;
+    $d1 = $D->{V_max}*65536*$RB_PGA/4.096;
+    $datadef .= "TM typedef uint16_t ${datum}_Flow_t {\n";
+    $datadef .= "  text \"%7.${prec}lf\";\n";
+    $datadef .= "  convert $flow_type;\n";
+    $datadef .= "  collect x = sbrwa(x.address);\n";
+    $datadef .= "}\n";
+    $datadef .= join(" ",
+      "Calibration (${datum}_Flow_t,$flow_type) { ",
+      sprintf("%.1f, 0, %.1f", $d0, $d1),
+      ", $D->{fullscale} }\n");
+    $datadef .=
+      "TM $Rate Hz ${datum}_Flow_t ${datum}_Flow; " .
+      "Address ${datum}_Flow 0x$D->{RB_addr};\n";
+
+    if ($D->{RB_PGA} ne 'X1') {
+      print $col
+        "TM INITFUNC sbwr(${datum}_Flow.address, AI_CFG_$D->{RB_PGA});\n";
+    }
+
+
+    print $genui
+      "  $Rate ${datum}_Set    $Name ${datum}_Flow\n",
+      "  $Rate ${datum}_Flow   $Name ${datum}_Flow\n";
+  }
+  
+  my $setdisp = ($D->{chtype} eq 'mfc') ? "(${datum}_Set,7)" : '"          "';
+  my $datumtbl =
+    "  ${datum}: $setdisp (${datum}_Flow,7) $units;\n";
+  $tbldef .= $datumtbl;
+
+  if ($D->{type} eq 'digital') {
+    $datumtbl =
+      "  ${datum}: (${datum}_T,7) C (${datum}_Status,4) (${datum}_ACK,2) (${datum}_ACK2,2) (${datum}_Stale,3);\n";
+    $hktbldef .= $datumtbl;
+  }
+
+  print $tbl
+    "${datum}_v {\n",
+    "  HBox { +-; Title: ${datum}; -+ };\n",
+    "  Flow:   (${datum}_Flow,7) $units;\n",
+    (($D->{chtype} eq 'mfc') ?
+      "  Set_T:  (${datum}_Set,7)  $units;\n" : '');
+  if ($D->{type} eq 'digital') {
+    print $tbl
+    "  T:      (${datum}_T,7)    C;\n",
+    "  Status: (${datum}_Status,4);\n",
+    "  ACK:    (${datum}_ACK,2);\n",
+    "  ACK2:   (${datum}_ACK2,2);\n",
+    "  Stale:  (${datum}_Stale,3);\n";
+  }
+  print $tbl
+    "}\n\n";
+
+  if ($D->{chtype} eq 'mfc') {
+    my $text = $D->{text};
+    my $channel = $D->{channel};
+    if (!defined($text) || length($text) == 0) {
+      $text = $datum;
+    }
+    my @text = split(' ', "$text Flow SetPoint");
+    my $fword = scalar(@text)+1;
+    if ($D->{type} eq 'digital') {
+      $cmddef .=
+        "  : " . join(' ', @text, '%f', "($units)", $units, '*') .
+        " { if_${Name}.Turf(\"W$channel:1:%.${prec}f\\n\", \$$fword); }\n";
+    } else {
+      $cmddef .=
+        "  : " . join(' ', @text, '%f', "($units)", $units, '*') .
+        " { mks_analog_set_point(0x$D->{SP_addr}, \$$fword, $D->{fullscale}," .
+        " $D->{V_max}, $D->{V_zero}, $D->{SP_G_DAC}); }\n";
+      @text = split(' ', "$text Voltage SetPoint");
+      $fword = scalar(@text)+1;
+        "  : " . join(' ', @text, '%f', "(Volts)", 'Volts', '*') .
+        " { mks_analog_set_point(0x$D->{SP_addr}, \$$fword, $D->{V_max}," .
+        " $D->{V_max}, 0, $D->{SP_G_DAC}); }\n";
+    }
+  }
+}
+
+if ($have_digital) {
+  print $tmc
+    "\n$datadef" ,
+    'TM "Receive" ' . "$Name 1;\n\n" ,
+
+    wrap("","    ", "Group $Name (" . join(', ', @grpmem) . ") {\n") ,
+    $coldef ,
+    "  ${Name}_obj->synch();\n}\n";
+
+  print $genui
+    "  $Rate ${Name}_Stale ${Name}_HK Stale\n";
+}
+
+print $tbl
+  "${Name}_flows {\n" ,
+  "  HBox { +-; Title: $Name; -+ };\n" ,
+  '  ""    >Set<        >Flow<;' . "\n",
+  $tbldef;
+
+if ($have_digital) {
+  print $tbl
+    "  { HGlue 0+1 Stale: (${Name}_Stale,3) }\n",
+    "}\n\n",
+    "${Name}_hk {\n",
+    "  HBox { +-; Title: \"$Name HK\"; -+ };\n" ,
+    '  ""    >Temp<    "" >Status<        >ACK<   ""     >Stale<;' . "\n",
+    $hktbldef,
+    "}\n";
+} else {
+  print $tbl "}\n\n";
+}
+
+if ($have_analog) {
+print $cmd <<EOF;
+%{
+  #include <stdint.h>
+  #include "subbus.h"
+
+  #ifdef SERVER
+  void mks_analog_set_point(uint16_t addr, double Fset, double F_FS,
+              double V_max, double V_zero, double G_DACS) {
+    Fset = Fset > F_FS ? F_FS : Fset < 0 ? 0 : Fset;
+    double Vset = Fset * (V_max-V_zero) / F_FS + V_zero;
+    double Dset = Vset * 65536. / (2.5 * G_DACS);
+    Dset = Dset > 65535. ? 65535. : Dset < 0 ? 0 : Dset;
+    uint16_t bits = (uint16_t) Dset;
+    sbwr(addr, bits);
+  }
+  #endif
+%}
+EOF
+}
+
+print $cmd <<EOF
+%INTERFACE <$Name>
+
+EOF
+;
+
+if ( $cmddef ) {
+print $cmd <<EOF
+&command
+$cmddef  ;
+EOF
+;
+}
+
+close($tmc) || warn "$srcfile: Error closing output file $Name.tmc\n";
+close($col) || warn "$srcfile: Error closing output file ${Name}_col.tmc\n";
+close($genui) || warn "$srcfile: Error closing output file ${Name}.genui\n";
+close($tbl) || warn "$srcfile: Error closing output file $Name.tbl\n";
+# close($conv) || warn "$srcfile: Error closing output file ${Name}_conv.tmc\n";
+close($cmd) || warn "$srcfile: Error closing output file $Name.cmd\n";

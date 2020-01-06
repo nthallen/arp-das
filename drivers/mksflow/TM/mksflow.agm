@@ -1,0 +1,95 @@
+Moduledef mksflow [ src= name=MKS ] {
+  mksflow Module requires a src variable
+  Source file syntax:
+    source_file : source_line+ .
+    source_line :
+      comment /
+      'Name' word /
+      'Rate' \d+ 'Hz' /
+      'Port' path /
+      'Digital' mnemonic address type F_FS units [ command ] .
+      'Analog' mnemonic F_FS units [V_zero '-'] V_max 'V' 'SP:' hex_address [:G_DAC] 'RB:' hex_address [:G_PGA] [ command ] .
+    mnemonic : word .
+    word : \w+ .
+    address : \d+ .
+    hex_address : 0x[a-fA-F0-9]+ .
+    type : 'MFC' / 'MFM' .
+    F_FS : float .
+    G_DAC : float .
+    G_PGA :
+      AI_CFG_XP096 /
+      AI_CFG_XP192 /
+      AI_CFG_XP384 /
+      AI_CFG_XP768 /
+      AI_CFG_X1    /
+      AI_CFG_X2   .
+    units : 'sccm' / 'slm' .
+    V_zero : \d+ .
+    V_max : \d+ .
+    command : '"' \w+ [\s\w+]* '"' .
+
+  F_FS is the full scale flow of the MKS device
+  units are the units for F_FS
+  mnemonic is the base used for all telemetry channels relating to this device
+  command is the command string to use to identify this device. Defaults to the mnemonic
+  Digital lines define an MKS device with an RS-485 digital interface
+    address is the device address
+    type specified either a flow controller (MFC) or a flow meter (MFM)
+    command is the text 
+  V_zero is the voltage that represents zero flow. Defaults to 0
+  V_max is the voltage that represents F_FS flow.
+  'SP:' refers to the setpoint analog output
+  G_DAC is the hardware gain following the DAC 0-2.5V output. Defaults to 2.
+  'RB:' refers to the analog readback
+  G_PGA is the configuration code for the channel's programmable gain amplifier
+  
+  If the device is an MFC, a command is defined to specify the set point for the
+  channel.
+  
+  'Digital' channels will generate the following TM channels:
+    <channel>_Flow
+    <channel>_Set (for MFCs only)
+    <channel>_T
+    <channel>_Stat
+    <channel>_ACK
+    <channel>_Stale
+  and the following commands for MFCs:
+    <command> Set %f <units>
+  Vertical table for each channel:
+    <channel>_vert {
+      HBox { Title: >"<channel>"< };
+      Flow:   (<channel>_Flow,6)  <units>;
+      Set:    (<channel>_Set,6)   <units>;
+      Temp:   (<channel>_T,6)     C;
+      Status: (<channel>_Stat,4);
+      ACK:    (<channel>_ACK,2);
+      Stale:  (<channel>_Stale,3) sec;
+    }
+
+  Combined flows table for all channels:
+
+    <Name>_flows {
+      HBox { Title: >"<Name> Flows"< };
+      ""         Set               Flow;
+      <channel> (<channel>_Set,6) (<channel>_Flow,6) <channel_units>;
+    }
+
+  Combined housekeeping table for all channels:
+    <Name>_hk {
+      HBox { Title: >"<Name> HK"< };
+      ""         Temp             ""   Status            ACK              Stale;
+      <channel> (<channel>_Temp,6) C (<channel>_Stat,4) (<channel>_ACK,2) (<channel>_Stale,3);
+      ...
+    }
+}
+
+mode (default,driver) {
+  tmcbase = @name@.tmc:
+  colbase = @name@_col.tmc:
+  cmdbase = @name@.cmd:
+  genuibase = @name@.genui:
+  SRC = @src@
+  %%
+@name@.tmc @name@_col.tmc @name@.cmd @name@.genui @name@.tbl : @src@ @MODDIR@/mksflow_gen
+	@MODDIR@/mksflow_gen @src@ name=@name@
+}

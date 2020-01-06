@@ -18,6 +18,7 @@ usr/local/bin/idx64
 usr/local/bin/json_ext
 usr/local/bin/lgr
 usr/local/bin/memo
+usr/local/bin/mksflow
 usr/local/bin/mlf_find
 usr/local/bin/omsdrv
 usr/local/bin/parent

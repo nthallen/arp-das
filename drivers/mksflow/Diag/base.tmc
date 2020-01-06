@@ -1,0 +1,2 @@
+TM typedef uint16_t TMWord_t { text "%5u"; }
+TM 0 Hz TMWord_t Synch, MFCtr;
