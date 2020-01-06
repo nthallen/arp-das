@@ -182,6 +182,7 @@ bool Me_Ser::protocol_input() {
       } else {
         msg(0, "Read(%u,%u) = %ld", pending->address, pending->MeParID, *src_ptr);
       }
+      pending->clear_bit();
       if (pending->callback)
         (*pending->callback)(pending);
     } else if (pending->ret_type == Me_Query::Me_FLOAT32) {
@@ -192,6 +193,7 @@ bool Me_Ser::protocol_input() {
       } else {
         msg(0, "Read(%u,%u) = %f", pending->address, pending->MeParID, *src_ptr);
       }
+      pending->clear_bit();
       if (pending->callback)
         (*pending->callback)(pending);
     }
@@ -248,6 +250,7 @@ void Me_Ser::process_requests() {
   }
   pending_cmd = pending->get_cmd(&pending_cmdlen);
   msg(MSG_DBG(0), "Write Req: '%s'", ascii_escape(pending_cmd));
+  pending->set_bit();
   int rc = write(fd, pending_cmd, pending_cmdlen);
   if (rc != pending_cmdlen) {
     nl_error(3, "Incomplete write to Meerstetter: %d/%d", rc, pending_cmdlen);

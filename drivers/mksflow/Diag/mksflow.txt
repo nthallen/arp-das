@@ -1,0 +1,10 @@
+# mksflow.txt
+Name MKS
+Rate 1 Hz
+Port /dev/serusb1
+Digital MFM1 1 MFM 50    sccm "Cal 1"
+Digital MFM2 2 MFM 500   sccm "Cal 2"
+Digital MFM3 3 MFM 5000  sccm "Cal 3"
+Digital MFM4 4 MFM 50000 sccm "Cal 4"
+Digital MFC1 5 MFC 50000 sccm "MFC 1"
+# Analog  MFC2 50 sccm 5V SP:2E0 RB:4A2 "MFC 2"

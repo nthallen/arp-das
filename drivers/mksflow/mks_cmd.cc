@@ -1,13 +1,13 @@
 #include <stdio.h>
-#include "meerstetter_int.h"
-#include "meerstetter.h"
+#include "mksflow_int.h"
+#include "mksflow.h"
 #include "msg.h"
 #include "nortlib.h"
 
 /*
- * Cmd client: Me_Cmd -> Cmd_Selectee
+ * Cmd client: MKS_Cmd -> Cmd_Selectee
  * TM client: TM_Selectee
- * Serial client: Me_Ser -> Ser_Selectee
+ * Serial client: MKS_Ser -> Ser_Selectee
  */
 
 static const char *cmd_name(const char *name) {
@@ -18,12 +18,12 @@ static const char *cmd_name(const char *name) {
   return nbuf;
 }
 
-Me_Cmd::Me_Cmd(Me_Ser *ser)
-    : Cmd_Selectee(cmd_name(Me_Name), 80),
+MKS_Cmd::MKS_Cmd(MKS_Ser *ser)
+    : Cmd_Selectee(cmd_name(MKS_Name), 80),
       ser(ser) {
 }
 
-int Me_Cmd::ProcessData(int flag) {
+int MKS_Cmd::ProcessData(int flag) {
   // Fill in with code from DAS_IO::Interface::ProcessData()
   // I have commented out code we are not using, since we
   // do not have the default functions referenced
@@ -50,79 +50,114 @@ int Me_Cmd::ProcessData(int flag) {
 
 /**
  * Command formats:
- *  W<address_decimal>:<MeParID_decimal>:<hex_encoded_32bit_value>
- *  RI<address_decimal>:<MeParID_decimal>
- *  RF<address_decimal>:<MeParID_decimal>
+ *  W<address_decimal>:<MKSParID_decimal>[:<float>]
+ *  R<address_decimal>:<MKSParID_decimal>
  *  Q
  */
-bool Me_Cmd::app_input() {
-  uint32_t hex32;
+bool MKS_Cmd::app_input() {
   uint8_t address;
-  uint16_t MeParID;
+  uint16_t MKSParID;
   int index;
-  Me_Query *Q;
+  float float_val;
+  int wfloat_cp;
+  bool has_float = false;
+  MKS_Query *Q;
   if (nc == 0) return true;
   if (not_any("RWQ")) {
     consume(nc);
     return false;
   }
   cp = 1;
+  char cmdtext[20];
+  const char *cmdptr, *capptr;
+
   switch (buf[0]) {
-    case 'Q': return true;
+    case 'Q':
+      report_ok();
+      consume(nc);
+      return true;
     case 'W':
       if (not_uint8(address) || not_str(":") ||
-          not_uint16(MeParID) || not_str(":") ||
-          not_hex(hex32) || not_str("\n")) {
-        if (cp >= nc)
-          report_err("Invalid or incomplete write command");
-        consume(nc);
-        return false;
+          not_uint16(MKSParID)) {
+        report_err("Invalid or incomplete write command");
+        break;
+      }
+      if (cp < nc && buf[cp] == ':') {
+        wfloat_cp = ++cp;
+        if (not_float(float_val)) {
+          report_err("Missing or invalid float in write");
+          break;
+        }
+        if (cp >= nc || buf[cp] != '\n') {
+          report_err("Expected newline after float in write");
+          break;
+        }
+        buf[cp] = '\0';
+        has_float = true;
       }
       index = get_addr_index(address);
       if (index < 0) {
         report_err("Invalid address");
-        consume(nc);
-        return false;
+        break;
+      }
+      switch (MKSParID) {
+        case 1:
+          snprintf(cmdtext,20,"SX!%s",&buf[wfloat_cp]);
+          cmdptr = cmdtext;
+          break;
+        case 2:
+          snprintf(cmdtext,20,"FT!%s",&buf[wfloat_cp]);
+          cmdptr = cmdtext;
+          break;
+        case 5:
+          cmdptr = "SR";
+          break;
+        default:
+          report_err("Unsupported MKSParID: %d", MKSParID);
+          break;
       }
       Q = ser->new_query();
-      Q->setup_uint32_cmd(address, MeParID, hex32,
-        &meerstetter.drive[index].Mask, 0x20);
+      Q->setup_query(address, cmdptr, 0, 0, 0, 0);
+      // Q->set_callback(cb_cmd_v);
       ser->enqueue_request(Q);
-      consume(nc);
       report_ok();
       break;
     case 'R':
-      if (not_any("IF") ||
-          not_uint8(address) || not_str(":") ||
-          not_uint16(MeParID) || not_str("\n")) {
+      if (not_uint8(address) || not_str(":") ||
+          not_uint16(MKSParID) || not_str("\n")) {
         if (cp >= nc)
           report_err("Invalid or incomplete read command");
-        consume(nc);
-        return false;
+        break;
       }
       index = get_addr_index(address);
       if (index < 0) {
         report_err("Invalid address");
-        consume(nc);
-        return false;
+        break;
+      }
+      switch (MKSParID) {
+        case 2:
+          cmdptr = "FT?";
+          capptr = board_id[index].gas_units;
+          break;
+        case 3: cmdptr = "TA?"; capptr = "C"; break;
+        case 4: cmdptr = "RH?"; capptr = "Run Hours"; break;
+        default:
+          report_err("Unsupported MKSParID: %d", MKSParID);
+          consume(nc);
+          return false;
       }
       Q = ser->new_query();
-      if (buf[1] == 'I') {
-        Q->setup_int32_query(address, MeParID, 0,
-        &meerstetter.drive[index].Mask, 0x20);
-      } else {
-        Q->setup_float32_query(address, MeParID, 0,
-        &meerstetter.drive[index].Mask, 0x20);
-      }
+      Q->setup_query(address, cmdptr, 0, 0, 0, 0);
+      Q->set_caption(capptr);
+      Q->set_callback(cb_report);
       ser->enqueue_request(Q);
-      consume(nc);
       report_ok();
       break;
     default:
       report_err("Invalid command");
-      consume(nc);
       break;
   }
+  consume(nc);
   return false;
 }
 
@@ -133,7 +168,7 @@ bool Me_Cmd::app_input() {
  * @param[out] hexval The integer value
  * @return zero if an integer was converted, non-zero if the current char is not a digit.
  */
-int Me_Cmd::not_hex(uint32_t &hexval) {
+int MKS_Cmd::not_hex(uint32_t &hexval) {
   hexval = 0;
   while (cp < nc && isspace(buf[cp]))
     ++cp;
@@ -151,7 +186,7 @@ int Me_Cmd::not_hex(uint32_t &hexval) {
   return 0;
 }
 
-bool Me_Cmd::not_any(const char *alternatives) {
+bool MKS_Cmd::not_any(const char *alternatives) {
   if (cp < nc) {
     for (const char *alt = alternatives; *alt; ++alt) {
       if (buf[cp] == *alt) {
@@ -164,7 +199,7 @@ bool Me_Cmd::not_any(const char *alternatives) {
   return true;
 }
 
-bool Me_Cmd::not_uint16(uint16_t &output_val) {
+bool MKS_Cmd::not_uint16(uint16_t &output_val) {
   uint32_t val = 0;
   if (buf[cp] == '-') {
     if (isdigit(buf[++cp])) {
@@ -196,7 +231,7 @@ bool Me_Cmd::not_uint16(uint16_t &output_val) {
   return false;
 }
 
-bool Me_Cmd::not_uint8(uint8_t &val) {
+bool MKS_Cmd::not_uint8(uint8_t &val) {
   uint16_t sval;
   if (not_uint16(sval)) return true;
   if (sval > 255) {

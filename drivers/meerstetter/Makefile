@@ -20,3 +20,5 @@ clean :
 install :
 	@cp -vn meerstetter $(TGTNODE)/usr/local/bin
 	@cp -vn meerstetter.h $(TGTNODE)/usr/local/include
+	@cp -vn TM/Meerstetter.agm $(TGTNODE)/usr/local/share/huarp
+	@cp -vn TM/Meerstetter_gen $(TGTNODE)/usr/local/share/huarp

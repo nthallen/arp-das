@@ -1,0 +1,29 @@
+<package> mksflow
+<include> "mksflow_int.h"
+<include> msg
+<follow> msg
+<opts> "a:ep:"
+<sort>
+	-p <path> path to serial device
+	-e indicates that RS485 will echo outbound requests back
+	-a <addresses>
+
+<unsort>
+<blank>
+For the -a option, <addresses> is a comma-separated list
+of <RS485 device addresses>:<Mnemonic> pairs.
+<blank>
+The driver will use the message header -h option value to also specify the
+name of the TM "Receive" name and the command channel name. The default
+name is "MKS", which is also the default used by mksflow_gen when generating
+code for Module mksflow.
+
+<switch>
+  case 'a': address_opts = optarg; break;
+  case 'e': rs485_echos = true; break;
+  case 'p': MKS_Ser_path = optarg; break;
+  case 'h': MKS_Name = optarg; break;
+
+<package> msghdr_default
+<var>
+  const char *msg_hdr_default = "MKS";

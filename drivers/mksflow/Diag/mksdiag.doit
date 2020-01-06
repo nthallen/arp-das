@@ -1,0 +1,5 @@
+display mksdiagdisp
+client mksdiagclt
+memo
+batchfile interact
+# phrtg

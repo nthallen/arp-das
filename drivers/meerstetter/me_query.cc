@@ -52,27 +52,34 @@ const char *Me_Query::get_raw_cmd() {
   return &cmd[0];
 }
 
-void Me_Query::setup_int32_query(uint8_t address, uint16_t MeParID, int32_t *ret_ptr) {
+void Me_Query::setup_int32_query(uint8_t address, uint16_t MeParID, int32_t *ret_ptr,
+      uint16_t *mask_ptr, uint16_t mask_bit) {
   setup_address(address, MeParID);
   cmd[7] = '?'; cmd[8] = 'V'; cmd[9] = 'R';
   to_hex(MeParID, 4, 10);
   to_hex(1, 2, cmdlen); //instance == 1
   ret_type = Me_INT32;
   this->ret_ptr = (void *)ret_ptr;
+  this->mask_ptr = mask_ptr;
+  this->mask_bit = mask_bit;
   replen = 15; // Reply is 20 chars, but error reply is 15
 }
 
-void Me_Query::setup_float32_query(uint8_t address, uint16_t MeParID, float *ret_ptr) {
+void Me_Query::setup_float32_query(uint8_t address, uint16_t MeParID, float *ret_ptr,
+      uint16_t *mask_ptr, uint16_t mask_bit) {
   setup_address(address, MeParID);
   cmd[7] = '?'; cmd[8] = 'V'; cmd[9] = 'R';
   to_hex(MeParID, 4, 10);
   to_hex(1, 2, cmdlen); //instance == 1
   ret_type = Me_FLOAT32;
   this->ret_ptr = (void *)ret_ptr;
+  this->mask_ptr = mask_ptr;
+  this->mask_bit = mask_bit;
   replen = 15; // Reply is 20 chars, but error reply is 15
 }
 
-void Me_Query::setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t value) {
+void Me_Query::setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t value,
+      uint16_t *mask_ptr, uint16_t mask_bit) {
   setup_address(address, MeParID);
   cmd[7] = 'V';
   cmd[8] = 'S';
@@ -80,6 +87,8 @@ void Me_Query::setup_uint32_cmd(uint8_t address, uint16_t MeParID, uint32_t valu
   to_hex(1, 2, cmdlen); //instance == 1
   to_hex(value, 8, cmdlen);
   ret_type = Me_ACK;
+  this->mask_ptr = mask_ptr;
+  this->mask_bit = mask_bit;
   replen = 12; // Error requires 15
 }
 
@@ -112,6 +121,21 @@ void Me_Query::to_hex(uint32_t val, int width, int cp) {
     msg(MSG_WARN, "Me_Query::to_hex(%lu, %d, %d) has insufficient width", rval, width, cp);
   if (cp+width > cmdlen)
     cmdlen = cp+width;
+}
+
+void Me_Query::set_bit() {
+  if (mask_ptr) {
+    *mask_ptr |= mask_bit;
+  }
+}
+
+void Me_Query::clear_bit() {
+  if (mask_ptr) {
+    *mask_ptr &= ~mask_bit;
+    if ((*mask_ptr & ~1) == 0) {
+      *mask_ptr = 0; // clear 0 bit if all others are clear
+    }
+  }
 }
 
 uint16_t Me_Query::Sequence_Number = 0;
