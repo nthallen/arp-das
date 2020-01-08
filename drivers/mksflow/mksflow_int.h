@@ -158,7 +158,11 @@ class MKS_Ser : public Ser_Sel {
     std::list<MKS_Query*> TM_queue;
     std::list<MKS_Query*> Free_queue;
     std::list<MKS_Query*>::const_iterator cur_poll;
+    bool all_polling;
+    int retry_delay;
 };
+
+void identify_board(MKS_Ser *ser, int index, uint8_t address);
 
 class MKS_Cmd : public Cmd_Selectee {
   public:

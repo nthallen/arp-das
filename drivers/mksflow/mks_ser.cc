@@ -8,6 +8,8 @@ bool rs485_echos = false;
 
 MKS_Ser::MKS_Ser(const char *path) : Ser_Sel(path, O_RDWR|O_NONBLOCK, 400) {
   pending = 0;
+  all_polling = false;
+  retry_delay = 0;
   cur_poll = TM_queue.end();
   flags = Selector::Sel_Read | Selector::gflag(0);
 }
@@ -190,10 +192,20 @@ bool MKS_Ser::protocol_timeout() {
 }
 
 bool MKS_Ser::tm_sync() {
+  if (!all_polling && --retry_delay <= 0) {
+    all_polling = true;
+    for (index = 0; index < n_drives; ++index) {
+      if (!board_id[index].is_polling) {
+        all_polling = false;
+        identify_board(ser, index, board_id[index].device_address);
+      }
+    }
+    if (!all_polling) retry_delay = 4;
+  }
   if (cur_poll == TM_queue.end()) {
     cur_poll = TM_queue.begin();
-    process_requests();
   }
+  process_requests();
   return false;
 }
 

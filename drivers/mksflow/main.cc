@@ -376,8 +376,6 @@ void enqueue_requests(MKS_Ser *ser) {
   msg(0, "Addressing %d drives", n_drives);
   for (index = 0; index < n_drives; ++index)
     identify_board(ser, index, board_id[index].device_address);
-  // for (index = 0; index < n_drives; ++index)
-    // poll_board(ser, index, board_id[index].device_address);
 }
 
 int main(int argc, char **argv) {
