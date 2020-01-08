@@ -2,6 +2,7 @@
 array.cc
 caltest.cc
 depends.cc
+stdint.cc
 array
 caltest
 depends

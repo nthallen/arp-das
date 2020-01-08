@@ -1,39 +1,4 @@
-/* tmcmain.c
- *
- * Revision 1.5  2009/04/30 14:21:37  ntallen
- * Up the release number
- *
- * Revision 1.4  2008/08/13 14:28:28  ntallen
- * Always define global DG_data objects for TM 'Receive'
- * Place __attribute__((packed)) appropriately in home_row definition
- *
- * Revision 1.3  2008/07/15 16:54:32  ntallen
- * Handle optargs reset portably
- *
- * Revision 1.2  2008/07/03 18:18:48  ntallen
- * To compile under QNX6 with minor blind adaptations to changes between
- * dbr.h and tm.h
- *
- * Revision 1.1  2008/07/03 15:11:07  ntallen
- * Copied from QNX4 version V1R9
- *
- * Revision 1.14  2001/03/14 15:29:22  nort
- * Added processing for #define _Address generation
- *
- * Revision 1.13  2001/01/24 15:44:10  nort
- * Updated Copyright notice
- *
- * Revision 1.12  1995/10/18  02:01:48  nort
- * *** empty log message ***
- *
- * Revision 1.11  1993/09/27  19:34:46  nort
- * Changes to use common compiler functions
- *
- * Revision 1.10  1993/07/09  19:39:58  nort
- * *** empty log message ***
- *
- * Revision 1.9  1993/05/21  19:44:13  nort
- * Added State Variable Support
+/** @file tmcmain.c
  */
 #include <stdio.h>
 #include <stdarg.h>
@@ -52,13 +17,14 @@ FILE *vfile = NULL, *dacfile = NULL, *addrfile = NULL;
 #define EXTRACT_SKELETON "extmain.skel"
 
 #ifdef __USAGE
-tmc Telemetry Compiler Version 1 Revision 12
+tmc Telemetry Compiler Version 1 Revision 13
 
 %C	[options] [files]
 	-c             Generate collection rules
 	-C             Print information on Conversions
 	-d             Print Data Definitions
 	-D filename    Create dac file
+	-h             Show this help message
 	-H filename    Create .h file for addresses
 	-i             Print Steps in compilation progress
 	-k             Keep output file (.c) even on error
@@ -67,18 +33,51 @@ tmc Telemetry Compiler Version 1 Revision 12
 	-p             Print PCM (TM Format) Definition
 	-v             Produce very verbose output (-Cdps)
 	-V filename    Redirect verbose output to file
-	-q             Show this help message
 	-s             Print frame statistics
 	-w             Give error return on warnings
 	
-Copyright 2001 by the President and Fellows of Harvard College
+Copyright 2001-2019 by the President and Fellows of Harvard College
 #endif
 
-char *opt_string = OPT_COMPILER_INIT "cCdD:H:impsV:";
+static void print_usage(int argc, char **argv) {
+  printf("tmc Telemetry Compiler Version 1 Revision 13\n\n");
+
+  printf("%s [options] [files]\n",argv[0]);
+  printf("%s\n", "  -c             Generate collection rules");
+  printf("%s\n", "  -C             Print information on Conversions");
+  printf("%s\n", "  -d             Print Data Definitions");
+  printf("%s\n", "  -D filename    Create dac file");
+  printf("%s\n", "  -h             Show this help message");
+  printf("%s\n", "  -H filename    Create .h file for addresses");
+  printf("%s\n", "  -i             Print Steps in compilation progress");
+  printf("%s\n", "  -k             Keep output file (.c) even on error");
+  printf("%s\n", "  -m             Do not generate main() function");
+  printf("%s\n", "  -o filename    Send C output to file");
+  printf("%s\n", "  -p             Print PCM (TM Format) Definition");
+  printf("%s\n", "  -v             Produce very verbose output (-Cdps)");
+  printf("%s\n", "  -V filename    Redirect verbose output to file");
+  printf("%s\n", "  -s             Print frame statistics");
+  printf("%s\n", "  -w             Give error return on warnings");
+
+  printf("\n%s\n", "Copyright 2001-2019 by the President and Fellows of Harvard College");
+}
+
+const char *opt_string = OPT_COMPILER_INIT "cCdD:hH:impsV:";
 
 static void main_args(int argc, char **argv) {
   int c;
   
+  opterr = 0;
+  optind = OPTIND_RESET;
+  while ((c = getopt(argc, argv, opt_string)) != -1) {
+    switch (c) {
+      case 'h':
+        print_usage(argc, argv);
+        exit(0);
+      default:
+        break;
+    }
+  }
   compile_init_options(argc, argv, ".c");
   opterr = 0;
   optind = OPTIND_RESET;

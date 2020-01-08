@@ -1,38 +1,4 @@
 /* tmc.h General include file for TM Compiler
-   $Log$
-   Revision 1.3  2008/07/16 18:55:14  ntallen
-   Changes to support TM_Output_Type 3
-
-   Revision 1.2  2008/07/03 18:18:48  ntallen
-   To compile under QNX6 with minor blind adaptations to changes between
-   dbr.h and tm.h
-
-   Revision 1.1  2008/07/03 15:11:07  ntallen
-   Copied from QNX4 version V1R9
-
-   Revision 1.18  2001/10/26 18:11:20  nort
-   Added md5_sig
-
-   Revision 1.17  2001/03/14 15:28:30  nort
-   Added addrfile for #define _Address generation
-
-   Revision 1.16  1999/08/30 17:18:33  nort
-   Tweaked prototypes
-
- * Revision 1.15  1996/04/18  19:08:05  nort
- * Changes to better control frame dimensions:
- * TM MINCOLS=<n>; and explicit specification of Synch rate.
- *
- * Revision 1.14  1995/11/15  04:19:22  nort
- * Moved decls.h in here
- *
- * Revision 1.13  1995/10/18  02:02:06  nort
- * Replaced custom new_memory with nortlib routine
- *
- * Revision 1.12  1993/09/27  19:35:13  nort
- * Changes for common compiler functions
- *
- * Revision 1.11  1993/07/09  19:40:11  nort
 */
 #include "compiler.h"
 #define CO_COLLECT CO_CUSTOM
@@ -89,6 +55,7 @@ void print_st_valid(struct nm *nr); /* states.c */
 #ifdef _TMCSTR_H
   extern struct statpc *program; /* parsfunc.c */
   extern struct sttmnt initprog; /* parsfunc.c */
+  extern struct sttmnt redrawprog; /* parsfunc.c */
   struct statpc *newstpc(unsigned int type); /* parsfunc.c */
   struct statpc *newstpctext(char *text); /* parsfunc.c */
   struct statpc *common_stat(struct statpc *sp); /* parsfunc.c */

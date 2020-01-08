@@ -1,0 +1,36 @@
+/* K&R types */
+TM typedef char kr_i8_t { text "%3d"; }
+TM typedef unsigned char kr_ui8_t { text "%3u"; }
+TM typedef short int kr_i16_t { text "%5d"; }
+TM typedef unsigned short int kr_ui16_t { text "%5u"; }
+TM typedef long int kr_i32_t { text "%9d"; }
+TM typedef unsigned long int kr_ui32_t { text "%9u"; }
+
+/* stdint types */
+TM typedef int8_t i8_t { text "%3d"; }
+TM typedef uint8_t ui8_t { text "%3u"; }
+TM typedef int16_t i16_t { text "%5d"; }
+TM typedef uint16_t ui16_t { text "%5u"; }
+TM typedef int32_t i32_t { text "%9d"; }
+TM typedef uint32_t ui32_t { text "%9u"; }
+TM typedef int64_t i64_t { text "%15ld"; }
+TM typedef uint64_t ui64_t { text "%15lu"; }
+
+/* K&R vars */
+TM 1 Hz kr_i8_t v_kr_i8;
+TM 1 Hz kr_ui8_t v_kr_ui8;
+TM 1 Hz kr_i16_t v_kr_i16;
+TM 1 Hz kr_ui16_t v_kr_ui16;
+TM 1 Hz kr_i32_t v_kr_i32;
+TM 1 Hz kr_ui32_t v_kr_ui32;
+
+/* stdint types */
+TM 1 Hz i8_t vi8;
+TM 1 Hz ui8_t vu8;
+TM 1 Hz i16_t vi16;
+TM 1 Hz ui16_t vu16;
+TM 1 Hz i32_t vi32;
+TM 1 Hz ui32_t vu32;
+TM 1 Hz i64_t vi64;
+TM 1 Hz ui64_t vu64;
+TM 0 Hz ui16_t Synch, MFCtr;

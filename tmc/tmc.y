@@ -33,12 +33,17 @@
 %token <l.pretext> KW_IF
 %token KW_INITFUNC
 %token <l.pretext> KW_INT
+%token <l.pretext> KW_INT8_T
+%token <l.pretext> KW_INT16_T
+%token <l.pretext> KW_INT32_T
+%token <l.pretext> KW_INT64_T
 %token KW_INVALIDATE
 %token <l.pretext> KW_LONG
 %token KW_MAXCOLS
 %token KW_MINCOLS
 %token KW_ON
 %token KW_ONCE
+%token KW_REDRAWFUNC
 %token <l.pretext> KW_RETURN
 %token <l.pretext> KW_SHORT
 %token <l.pretext> KW_SIGNED
@@ -50,6 +55,10 @@
 %token KW_TOLERANCE
 %token KW_TM
 %token <l.pretext> KW_TYPEDEF
+%token <l.pretext> KW_UINT8_T
+%token <l.pretext> KW_UINT16_T
+%token <l.pretext> KW_UINT32_T
+%token <l.pretext> KW_UINT64_T
 %token <l.pretext> KW_UNION
 %token <l.pretext> KW_UNSIGNED
 %token KW_VALIDATE
@@ -139,13 +148,17 @@ progitem : nontm_decl {
         decl->typeparts = $$;
         
         inttype = decl->type;
-        if ( TYPE_INTEGRAL(inttype) &&
+        /*
+        // This check should be optional via command line option
+        // Also, it should be changed now to complain for anything
+        // except the stdint definitions        if ( TYPE_INTEGRAL(inttype) &&
               ! (inttype & (INTTYPE_CHAR|INTTYPE_SHORT|INTTYPE_LONG)
               ) )
           compile_error( 1,
             "TM frame definition not 32-bit safe"
             );
-        
+        */
+
         /* Move size and rate into the tmalloc for each declrtor */
         for (decl = $3.first->u.decls; decl != NULL; decl = decl->next) {
           tma = nr_tmalloc(decl->nameref);
@@ -181,6 +194,11 @@ progitem : nontm_decl {
       }
     | KW_TM TK_STRING_LITERAL TK_NAME TK_INTEGER_CONST ';' {
         add_ptr_proxy($<l.toktext>2, $<l.toktext>3, $4);
+        initstat(&$$, NULL);
+      }
+    | KW_TM KW_REDRAWFUNC tl_statement {
+        catstat(&redrawprog, &$3);
+        catstattext(&redrawprog, "\n");
         initstat(&$$, NULL);
       }
     | KW_TM KW_INITFUNC tl_statement {
@@ -820,11 +838,22 @@ array_decorations : {
     ;
 typeparts : integertypes {
         static unsigned char intsizes[16] =
-          {2,1,2,0,4,0,4,0,2,0,2,0,0,0,0,0};
+          {sizeof(unsigned),sizeof(char),sizeof(int),0,
+           sizeof(long),0,sizeof(long int),0,
+           sizeof(short),0,sizeof(short int),0,
+           0,0,0,0};
         assert($1.type < 32);
         set_typpts(&$$, $1.type, intsizes[$1.type & 0xF], NULL, NULL);
         $$.stat = $1.stat;
       }
+    | KW_INT8_T { set_typpts(&$$, INTTYPE_INT8, 1, $1, NULL); }
+    | KW_UINT8_T { set_typpts(&$$, INTTYPE_UINT8, 1, $1, NULL); }
+    | KW_INT16_T { set_typpts(&$$, INTTYPE_INT16, 2, $1, NULL); }
+    | KW_UINT16_T { set_typpts(&$$, INTTYPE_UINT16, 2, $1, NULL); }
+    | KW_INT32_T { set_typpts(&$$, INTTYPE_INT32, 4, $1, NULL); }
+    | KW_UINT32_T { set_typpts(&$$, INTTYPE_UINT32, 4, $1, NULL); }
+    | KW_INT64_T { set_typpts(&$$, INTTYPE_INT64, 8, $1, NULL); }
+    | KW_UINT64_T { set_typpts(&$$, INTTYPE_UINT64, 8, $1, NULL); }
     | KW_FLOAT { set_typpts(&$$, INTTYPE_FLOAT, 4, $1, NULL); }
     | KW_DOUBLE { set_typpts(&$$, INTTYPE_DOUBLE, 8, $1, NULL); }
     | TK_TYPE_NAME {
