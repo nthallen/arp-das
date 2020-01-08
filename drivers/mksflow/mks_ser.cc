@@ -194,10 +194,10 @@ bool MKS_Ser::protocol_timeout() {
 bool MKS_Ser::tm_sync() {
   if (!all_polling && --retry_delay <= 0) {
     all_polling = true;
-    for (index = 0; index < n_drives; ++index) {
+    for (int index = 0; index < n_drives; ++index) {
       if (!board_id[index].is_polling) {
         all_polling = false;
-        identify_board(ser, index, board_id[index].device_address);
+        identify_board(this, index, board_id[index].device_address);
       }
     }
     if (!all_polling) retry_delay = 4;

@@ -9,7 +9,7 @@
 const char *MKS_Ser_path = "/dev/ser1";
 const char *address_opts = "1";
 const char *MKS_Name = "MKS";
-static int n_drives;
+int n_drives;
 mksflow_t mksflow;
 
 board_id_t board_id[MKS_MAX_DRIVES];

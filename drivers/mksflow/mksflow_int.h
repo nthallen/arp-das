@@ -12,6 +12,7 @@ extern const char *MKS_Ser_path;
 extern bool rs485_echos;
 extern const char *address_opts;
 extern const char *MKS_Name;
+extern int n_drives;
 #define MKS_MIN_ADDRESS 1
 #define MKS_MAX_ADDRESS 254
 #define MNEM_LEN 10
