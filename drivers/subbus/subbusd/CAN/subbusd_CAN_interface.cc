@@ -130,8 +130,10 @@ CAN_serial::CAN_serial(CAN_interface *parent)
   : sb_interface("slcan", SB_CAN_MAX_RESPONSE),
     request_pending(false),
     parent(parent),
-    slcan_state(st_init)
-    {}
+    slcan_state(st_init) {
+  flags = sb_interface::Fl_Read;
+}
+
 
 void CAN_serial::setup() {
 #if 0

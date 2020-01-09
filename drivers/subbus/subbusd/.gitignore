@@ -2,7 +2,7 @@ README.tmp
 subbusd_serusb
 subbusd_sc104
 subbusd_sim
-subbusd_CAN
+subbusd_slcan
 CANoui.cc
 sc104oui.c
 serusboui.c

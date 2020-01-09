@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <string>
 #include <sys/uio.h>
-// #include "timeout.h"
+#include "timeout.h"
   
 class Loop;
 class Authenticator;
@@ -250,19 +250,19 @@ class sb_interface {
      */
     void set_ibufsize(int bufsz);
     
-    // /**
-     // * Calls fillbuf(bufsize); If an error is encountered,
-     // * will return the response from read_error(errno)
-     // * @return true on an error requiring termination of the driver 
-     // */
-    // inline bool fillbuf() { return fillbuf(bufsize); }
-    // /**
-     // * @param N The maximum number of characters desired
-     // * Reads up to N-nc characters into buf. If an error is encountered,
-     // * will return the response from read_error(errno)
-     // * @return true on an error requiring termination of the driver 
-     // */
-    // bool fillbuf(int N, int flag = Fl_Read);
+    /**
+     * Calls fillbuf(bufsize); If an error is encountered,
+     * will return the response from read_error(errno)
+     * @return true on an error requiring termination of the driver 
+     */
+    inline bool fillbuf() { return fillbuf(bufsize); }
+    /**
+     * @param N The maximum number of characters desired
+     * Reads up to N-nc characters into buf. If an error is encountered,
+     * will return the response from read_error(errno)
+     * @return true on an error requiring termination of the driver 
+     */
+    bool fillbuf(int N, int flag = Fl_Read);
     /**
      * Remove nchars from the front of buf, and shift the remain
      * characters, if any, to the beginning of the buffer, adjusting
@@ -650,7 +650,7 @@ class sb_interface {
     // /** The current character offset in obuf */
     // unsigned int ocp;
     /** Timeout object */
-    // Timeout TO;
+    Timeout TO;
     /** Used to determine read size. Set to -1 for ASCII mode, 0 for binary */
     int binary_offset;
     /** true if we are in binary mode */

@@ -1,9 +1,10 @@
 include_HEADERS = subbusd.h
-bin_PROGRAMS = subbusd_serusb subbusd_sc104 subbusd_sim subbusd_CAN
+bin_PROGRAMS = subbusd_serusb subbusd_sc104 subbusd_sim subbusd_slcan
 LDFLAGS = -L/usr/local/lib -Wl,-rpath -Wl,/usr/local/lib
 CPPFLAGS = -I ../lib -I .
 LDADD = -ltm -lnort
 CFLAGS=-Wall -g
+CXXFLAGS=-Wall -g
 
 .PHONY : all install clean
 all : $(bin_PROGRAMS)
@@ -82,10 +83,10 @@ CPPFLAGS += -I CAN
 subbusd_CAN_OBJECTS = subbusd.o cache.o CAN_sb_interface.o \
   CAN_CAN.o CAN_CAN_interface.o CAN_timeout.o CAN_sb_CAN.o CANoui.o
 
-subbusd_CAN : $(subbusd_CAN_OBJECTS)
-	$(LINK.cc) -o subbusd_CAN $(LDADD) $(subbusd_CAN_OBJECTS)
-	usemsg subbusd_CAN CANoui.cc
-	/usr/local/sbin/promote subbusd_CAN
+subbusd_slcan : $(subbusd_CAN_OBJECTS)
+	$(LINK.cc) -o subbusd_slcan $(LDADD) $(subbusd_CAN_OBJECTS)
+	usemsg subbusd_slcan CANoui.cc
+	/usr/local/sbin/promote subbusd_slcan
 CAN_CAN.o : CAN/subbusd_CAN.cc
 	$(COMPILE.cc) -o CAN_CAN.o CAN/subbusd_CAN.cc
 CAN_CAN_interface.o : CAN/subbusd_CAN_interface.cc

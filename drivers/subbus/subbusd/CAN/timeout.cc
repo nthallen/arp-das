@@ -14,6 +14,10 @@ bool Timeout::Set() {
   return timeout_is_set;
 }
 
+bool Timeout::Expired() {
+  return timeout_is_expired;
+}
+
 void Timeout::Clear() {
   timeout_clear();
 }

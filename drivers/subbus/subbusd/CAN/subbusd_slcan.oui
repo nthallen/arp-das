@@ -1,5 +1,6 @@
 <package> subbusd_slcan
-<follow> subbusd msg oui
+<include> msg
+<follow> subbusd msg
 
 <opts> "p:b:N:"
 <sort>

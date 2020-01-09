@@ -7,7 +7,6 @@
 #include <list>
 #include <termios.h>
 #include "msg.h"
-#include "timeout.h"
 // #include "dasio/interface.h"
 
 struct can_frame {
@@ -79,7 +78,6 @@ class CAN_serial : public sb_interface /* : public DAS_IO::Serial */ {
     uint16_t rep_len;
     uint16_t rep_recd;
     can_frame reqfrm;
-    Timeout TO;
     CAN_interface *parent;
     enum { st_init, st_init_retry, st_operate } slcan_state;
     bool termios_init;
