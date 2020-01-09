@@ -57,6 +57,7 @@ extern "C" {
 extern void timeout_set(time_t secs, long msecs);
 extern void timeout_clear();
 extern bool timeout_is_set;
+extern bool timeout_is_expired;
 
 #ifdef __cplusplus
 }

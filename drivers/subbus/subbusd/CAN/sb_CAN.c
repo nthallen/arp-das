@@ -28,6 +28,7 @@ static struct sigevent ionotify_event;
 static timer_t timeout_timer;
 static struct itimerspec timeout_enable, timeout_disable;
 bool timeout_is_set;
+bool timeout_is_expired;
 // static int n_timeouts = 0;
 
 static int n_writes = 0;
@@ -40,6 +41,7 @@ static int n_compound_reads = 0;
 
 static void set_timeout( int enable ) {
   timeout_is_set = enable;
+  timeout_is_expired = false;
   if ( timer_settime( timeout_timer, 0,
           enable ? &timeout_enable : &timeout_disable,
           NULL ) == -1 ) {
@@ -591,7 +593,10 @@ static int sb_data_ready( message_context_t * ctp, int code,
 
 static int sb_timeout( message_context_t * ctp, int code,
         unsigned flags, void * handle ) {
-  subbus_timeout();
+  timeout_is_expired = true;
+  sb_read_usb();
+  if (timeout_is_expired)
+    subbus_timeout();
   // if ( ++n_timeouts > 1 ) {
     // n_timeouts = 0;
     // if ( cur_req != NULL ) {
