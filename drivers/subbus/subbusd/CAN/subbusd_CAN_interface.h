@@ -72,7 +72,7 @@ class CAN_serial : public sb_interface /* : public DAS_IO::Serial */ {
     bool protocol_input();
     bool protocol_timeout();
     bool closed();
-    void update_tc_vmin(int vmin);
+    // void update_tc_vmin(int vmin);
     static const int obufsize = 24;
     char obuf[obufsize];
     uint8_t rep_seq_no;

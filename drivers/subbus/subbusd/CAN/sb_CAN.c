@@ -594,6 +594,7 @@ static int sb_data_ready( message_context_t * ctp, int code,
 static int sb_timeout( message_context_t * ctp, int code,
         unsigned flags, void * handle ) {
   timeout_is_expired = true;
+  update_tc_vmin(1);
   sb_read_usb();
   if (timeout_is_expired)
     subbus_timeout();
@@ -607,6 +608,27 @@ static int sb_timeout( message_context_t * ctp, int code,
     // }
   // }
   return 0;
+}
+
+void update_tc_vmin(int new_vmin) {
+  static struct termios ss_termios;
+  static bool termios_init = false;
+  
+  if (! termios_init) {
+    if (tcgetattr(sb_fd, &ss_termios)) {
+      nl_error(2, "Error from tcgetattr: %s",
+        strerror(errno));
+    }
+    termios_init = true;
+  }
+  if (new_vmin < 1) new_vmin = 1;
+  if (new_vmin != ss_termios.c_cc[VMIN]) {
+    ss_termios.c_cc[VMIN] = new_vmin;
+    if (tcsetattr(sb_fd, TCSANOW, &ss_termios)) {
+      nl_error(2, "Error from tcsetattr: %s",
+        strerror(errno));
+    }
+  }
 }
 
 /**

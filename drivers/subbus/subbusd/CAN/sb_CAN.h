@@ -58,6 +58,7 @@ extern void timeout_set(time_t secs, long msecs);
 extern void timeout_clear();
 extern bool timeout_is_set;
 extern bool timeout_is_expired;
+extern void update_tc_vmin(int new_vmin);
 
 #ifdef __cplusplus
 }
