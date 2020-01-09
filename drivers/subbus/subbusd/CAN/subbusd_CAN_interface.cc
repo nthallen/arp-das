@@ -378,6 +378,10 @@ void subbus_timeout() {
   subbusd_CAN::CAN_flavor->CAN_timeout();
 }
 
+void process_data(bool timedout) {
+  subbusd_CAN::CAN_flavor->CAN_process_data(timedout);
+}
+
 // void CAN_serial::update_tc_vmin(int new_vmin) {
   // if (! termios_init) {
     // if (tcgetattr(fd, &ss_termios)) {

@@ -546,39 +546,40 @@ static int sb_data_arm(void) {
  */
 static void sb_read_usb(void) {
   do {
-    int nb, nbr;
+    process_data(timeout_is_expired);
+    // int nb, nbr;
 
-    nbr = SB_CAN_MAX_RESPONSE - sb_ibuf_idx;
-    nl_assert(nbr > 0 && nbr <= SB_CAN_MAX_RESPONSE);
-    nb = read(sb_fd, &sb_ibuf[sb_ibuf_idx], nbr);
-    if ( nb < 0 ) {
-      if (errno == EAGAIN) nb = 0;
-      else
-        nl_error( 3, "Error on read: %s", strerror(errno));
-    }
-    if ( nb > 0 ) ++n_reads;
-    nl_assert(nb >= 0 && nb <= nbr);
-    // Check to see if we have a complete response
-    while ( nb > 0 ) {
-      if ( sb_ibuf[sb_ibuf_idx] == '\n' ) {
-        sb_ibuf[sb_ibuf_idx] = '\0';
-        CAN_serial_protocol_input();
-        // process_response(sb_ibuf);
-        if (--nb > 0) {
-          memmove( sb_ibuf, &sb_ibuf[sb_ibuf_idx+1], nb );
-          sb_ibuf_idx = 0;
-          ++n_compound_reads;
-          // do not issue any pending request
-          // in order to preserve causality
-        } else {
-          sb_ibuf_idx = 0;
-        }
-      } else {
-        ++sb_ibuf_idx;
-        --nb;
-      }
-    }
-    if ( sb_ibuf_idx > 0 ) ++n_part_reads;
+    // nbr = SB_CAN_MAX_RESPONSE - sb_ibuf_idx;
+    // nl_assert(nbr > 0 && nbr <= SB_CAN_MAX_RESPONSE);
+    // nb = read(sb_fd, &sb_ibuf[sb_ibuf_idx], nbr);
+    // if ( nb < 0 ) {
+      // if (errno == EAGAIN) nb = 0;
+      // else
+        // nl_error( 3, "Error on read: %s", strerror(errno));
+    // }
+    // if ( nb > 0 ) ++n_reads;
+    // nl_assert(nb >= 0 && nb <= nbr);
+    // // Check to see if we have a complete response
+    // while ( nb > 0 ) {
+      // if ( sb_ibuf[sb_ibuf_idx] == '\n' ) {
+        // sb_ibuf[sb_ibuf_idx] = '\0';
+        // CAN_serial_protocol_input();
+        // // process_response(sb_ibuf);
+        // if (--nb > 0) {
+          // memmove( sb_ibuf, &sb_ibuf[sb_ibuf_idx+1], nb );
+          // sb_ibuf_idx = 0;
+          // ++n_compound_reads;
+          // // do not issue any pending request
+          // // in order to preserve causality
+        // } else {
+          // sb_ibuf_idx = 0;
+        // }
+      // } else {
+        // ++sb_ibuf_idx;
+        // --nb;
+      // }
+    // }
+    // if ( sb_ibuf_idx > 0 ) ++n_part_reads;
   } while ( sb_data_arm() & _NOTIFY_COND_INPUT );
 }
 

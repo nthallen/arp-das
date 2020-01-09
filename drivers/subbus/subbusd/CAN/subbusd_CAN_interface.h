@@ -104,6 +104,10 @@ class CAN_interface {
     inline CAN_serial *iface_ptr() { return iface; }
     inline bool protocol_input() { return iface->protocol_input(); }
     inline bool protocol_timeout() { return iface->protocol_timeout(); }
+    inline bool ProcessData(bool timedout) {
+      return iface->ProcessData(sb_interface::Fl_Read |
+                (timedout?sb_interface::Fl_Timeout:0));
+    }
   protected:
   private:
     void process_requests();
@@ -114,9 +118,12 @@ class CAN_interface {
 };
 
 extern "C" {
+#else // __cplusplus
+  #include <stdbool.h>
 #endif
 
 extern void subbus_timeout();
+extern void process_data(bool timedout);
 
 #ifdef __cplusplus
 }

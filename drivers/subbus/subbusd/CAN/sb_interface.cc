@@ -29,7 +29,7 @@ sb_interface::sb_interface(const char *name, int bufsz) {
   bufsize = 0;
   buf = 0;
   fd = -1;
-  // flags = 0;
+  flags = 0;
   // signals = 0;
   // ELoop = 0;
   // n_fills = n_empties = n_eagain = n_eintr = 0;
@@ -68,21 +68,22 @@ bool sb_interface::serialized_signal_handler(uint32_t signals_seen) {
 Timeout *sb_interface::GetTimeout() {
   return &TO;
 }
+#endif
 
 bool sb_interface::ProcessData(int flag) {
   // msg(0, "%s: sb_interface::ProcessData(%d)", iname, flag);
-  if ((flags & flag & gflag(0)) && tm_sync())
-    return true;
+  // if ((flags & flag & gflag(0)) && tm_sync())
+    // return true;
   if ((flags&Fl_Read) && (flags&flag&(Fl_Read|Fl_Timeout))) {
     if (fillbuf(bufsize, flag)) return true;
     if (fd < 0) return false;
     cp = 0;
     if (protocol_input()) return true;
   }
-  if ((flags & flag & Fl_Write) && iwrite_check())
-    return true;
-  if ((flags & flag & Fl_Except) && protocol_except())
-    return true;
+  // if ((flags & flag & Fl_Write) && iwrite_check())
+    // return true;
+  // if ((flags & flag & Fl_Except) && protocol_except())
+    // return true;
   if ((flags & flag & Fl_Timeout) && TO.Expired() && protocol_timeout())
     return true;
   if (TO.Set()) {
@@ -93,6 +94,7 @@ bool sb_interface::ProcessData(int flag) {
   return false;
 }
 
+#if 0
 void sb_interface::adopted() {}
 
 void sb_interface::dereference(sb_interface *P) {
@@ -188,6 +190,7 @@ bool sb_interface::iwrite_error(int my_errno) {
   msg(MSG_ERROR, "%s: write error %d: %s", iname, my_errno, strerror(my_errno));
   return true;
 }
+#endif
 
 /**
  * The default function returns true.
@@ -196,7 +199,6 @@ bool sb_interface::read_error(int my_errno) {
   msg(MSG_ERROR, "%s: read error %d: %s", iname, my_errno, strerror(my_errno));
   return true;
 }
-#endif
 
 /**
  * The default reports unexpected input and returns false;
@@ -228,11 +230,11 @@ bool sb_interface::protocol_except() {
 bool sb_interface::tm_sync() {
   return false;
 }
+#endif
 
 bool sb_interface::process_eof() {
   return true;
 }
-#endif
 
 void sb_interface::close() {
   if (fd >= 0) {
@@ -251,7 +253,6 @@ void sb_interface::set_ibufsize(int bufsz) {
   }
 }
 
-#if 0
 bool sb_interface::fillbuf(int N, int flag) {
   int nb_read;
   if (!buf) msg(MSG_EXIT_ABNORM, "Ser_Sel::fillbuf with no buffer");
@@ -278,7 +279,6 @@ bool sb_interface::fillbuf(int N, int flag) {
   if (!binary_mode) buf[nc] = '\0';
   return false;
 }
-#endif
 
 void sb_interface::consume(int nchars) {
   if ( nchars > 0 ) {

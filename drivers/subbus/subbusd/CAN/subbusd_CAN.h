@@ -105,6 +105,9 @@ class subbusd_CAN /* : public subbusd_flavor */ {
     inline void CAN_serial_protocol_input() {
       CAN->protocol_input();
     }
+    inline void CAN_process_data(bool timedout) {
+      CAN->ProcessData(timedout);
+    }
     static subbusd_CAN *CAN_flavor;
   private:
     // CAN sockets, states, etc.

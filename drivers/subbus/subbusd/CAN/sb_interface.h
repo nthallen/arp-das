@@ -20,11 +20,11 @@ class sb_interface {
   friend class tm_rcvr;
   public:
     sb_interface(const char *name, int bufsz);
-    // /**
-     // * @param flag bit-mapped value indicating which event(s) triggered this call.
-     // * @return true if we should quit
-     // */
-    // virtual bool ProcessData(int flag);
+    /**
+     * @param flag bit-mapped value indicating which event(s) triggered this call.
+     * @return true if we should quit
+     */
+    virtual bool ProcessData(int flag);
     // /** 
      // * Called after interface is added as a child to the Loop.
      // */
@@ -38,8 +38,8 @@ class sb_interface {
     /** The file descriptor for this interface */
     int fd;
     
-    // /** Bit-mapped register to indicate which events this interface is sensitive to. */
-    // int flags;
+    /** Bit-mapped register to indicate which events this interface is sensitive to. */
+    int flags;
     // /** Bit-mapped register to indicate which signals this interface is sensitive to. */
     // uint32_t signals;
     
@@ -49,10 +49,10 @@ class sb_interface {
      // */
     // virtual bool serialized_signal_handler(uint32_t signals_seen);
     
-    // static const int Fl_Read = 1;
-    // static const int Fl_Write = 2;
-    // static const int Fl_Except = 4;
-    // static const int Fl_Timeout = 8;
+    static const int Fl_Read = 1;
+    static const int Fl_Write = 2;
+    static const int Fl_Except = 4;
+    static const int Fl_Timeout = 8;
     // /**
      // * Set the threshold to a negative value to report all errors.
      // * The default threshold value is 5.
@@ -168,14 +168,14 @@ class sb_interface {
      // * @return true if there is no pending data in obuf
      // */
     // inline bool obuf_empty() { return n_wiov == 0; }
-    // /**
-     // * Called from fillbuf() when read() returns an error. If read() returns zero,
-     // * read_error() is called with EOK, which higher-level processors can use
-     // * to investigate.
-     // * @param my_errno The errno value or EOK
-     // * @return true if the error is fatal, false if it has been handled
-     // */
-    // virtual bool read_error(int my_errno);
+    /**
+     * Called from fillbuf() when read() returns an error. If read() returns zero,
+     * read_error() is called with EOK, which higher-level processors can use
+     * to investigate.
+     * @param my_errno The errno value or EOK
+     * @return true if the error is fatal, false if it has been handled
+     */
+    virtual bool read_error(int my_errno);
     /**
      * Convert the entire input buffer to printable ASCII, providing
      * appropriate escapes for non-printing characters. Subclasses where
@@ -225,17 +225,17 @@ class sb_interface {
      // * @return true on a condition requiring termination of the driver
      // */
     // virtual bool tm_sync();
-    // /**
-     // * Callback function called when 0 bytes are read from the interface.
-     // * The default returns true, but this is not appropriate in all
-     // * situations. Note that process_eof() is not called by close(). It
-     // * is specifically for addressing the case where the remote 
-     // * process closes the connection. However, close() is always called
-     // * before process_eof() is called.
-     // * 
-     // * @return true if the event loop should terminate.
-     // */
-    // virtual bool process_eof();
+    /**
+     * Callback function called when 0 bytes are read from the interface.
+     * The default returns true, but this is not appropriate in all
+     * situations. Note that process_eof() is not called by close(). It
+     * is specifically for addressing the case where the remote 
+     * process closes the connection. However, close() is always called
+     * before process_eof() is called.
+     * 
+     * @return true if the event loop should terminate.
+     */
+    virtual bool process_eof();
     
     /**
      * Shuts down the connection. Note that this function does not
