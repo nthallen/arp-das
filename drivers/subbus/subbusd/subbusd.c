@@ -32,16 +32,16 @@ static int subbus_write(resmgr_context_t *ctp, io_write_t *msg,
 
 static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
                RESMGR_OCB_T *ocb) {
-  subbusd_req_t sbdmsg;
+  subbusd_req_t *sbdmsg = get_client_buffer(ctp->rcvid);
   int nb, nb_exp;
   
-  nb = MsgRead(ctp->rcvid, &sbdmsg, sizeof(sbdmsg), 0);
+  nb = MsgRead(ctp->rcvid, sbdmsg, sizeof(subbusd_req_t), 0);
   if ( nb < sizeof(subbusd_req_hdr_t) ||
-       sbdmsg.sbhdr.iohdr.mgrid != SUBBUSD_MGRID ||
-       sbdmsg.sbhdr.sb_kw != SB_KW)
+       sbdmsg->sbhdr.iohdr.mgrid != SUBBUSD_MGRID ||
+       sbdmsg->sbhdr.sb_kw != SB_KW)
     return ENOSYS;
   /* check the size of the incoming message */
-  switch ( sbdmsg.sbhdr.command ) {
+  switch ( sbdmsg->sbhdr.command ) {
     case SBC_WRITEACK:
     case SBC_WRITECACHE:
       nb_exp = sizeof(subbusd_req_data0); break;
@@ -67,8 +67,8 @@ static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
     case SBC_MREAD:
       nb_exp = 3*sizeof(unsigned short);
       if ( nb >= nb_exp ) {
-        nl_assert( sbdmsg.data.d4.req_len >= nb_exp );
-        nb_exp = sbdmsg.data.d4.req_len;
+        nl_assert( sbdmsg->data.d4.req_len >= nb_exp );
+        nb_exp = sbdmsg->data.d4.req_len;
       }
       break;
     default:
@@ -77,8 +77,8 @@ static int subbus_io_msg(resmgr_context_t *ctp, io_msg_t *msg,
   nb_exp += sizeof(subbusd_req_hdr_t);
   if ( nb < nb_exp )
     nl_error( 4, "Received short message for command %d: Expected %d received %d",
-      sbdmsg.sbhdr.command, nb_exp, nb );
-  incoming_sbreq( ctp->rcvid, &sbdmsg );
+      sbdmsg->sbhdr.command, nb_exp, nb );
+  incoming_sbreq( ctp->rcvid, sbdmsg );
   return (_RESMGR_NOREPLY);
 }
 

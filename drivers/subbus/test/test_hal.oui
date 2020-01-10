@@ -1,0 +1,13 @@
+<package> test_hal
+<include> test_sb
+<include> "test_hal_bmm.h"
+
+<opts> "pP"
+
+<sort>
+	-P turn power ON
+	-p turn power OFF
+
+<switch>
+  case 'p': power_cmd = 5; break;
+  case 'P': power_cmd = 4; break;

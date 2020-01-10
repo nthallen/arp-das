@@ -1,0 +1,55 @@
+<package> subbusd_slcan
+<include> msg
+<follow> subbusd msg
+
+<opts> "p:b:N:"
+<sort>
+	-p <port> Serial port (/dev/serusb2)
+	-b <baud> Baud rate (57600)
+	-N <devname> Device name to create (/dev/huarp/subbus)
+
+<init>
+  subbusd_CAN_init_options(argc, argv);
+
+<defs>
+#include <stdlib.h>
+#include "CAN/subbusd_CAN.h"
+#include "subbusd_int.h"
+#include "sb_CAN.h"
+#include "nortlib.h"
+
+void subbusd_CAN_init_options(int argc, char **argv) {
+  argc = argc;
+  argv = argv;
+  // Initializes the static CAN_flavor:
+  subbusd_CAN *CAN = new subbusd_CAN();
+  CAN = CAN;
+  // nl_assert(subbusd_core::subbusd);
+  // subbusd_core::subbusd->register_flavor(CAN);
+  
+  int optltr;
+
+  optind = OPTIND_RESET;
+  opterr = 0;
+  while ((optltr = getopt(argc, argv, opt_string)) != -1) {
+    switch (optltr) {
+      case 'p':
+        CAN_port = optarg;
+        break;
+      case 'b':
+        CAN_baud_rate = atoi(optarg);
+        break;
+      case 'N':
+        subbusd_devname = optarg;
+        break;
+      case '?':
+        nl_error(3, "Unrecognized Option -%c", optopt);
+      default:
+        break;
+    }
+  }
+}
+
+<package> msghdr_default
+<vars>
+  const char *msg_hdr_default = "SB/SLCAN";

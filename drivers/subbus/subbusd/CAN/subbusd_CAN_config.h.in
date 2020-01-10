@@ -1,0 +1,7 @@
+/** @file subbusd_CAN_config.h.in */
+#ifndef SUBBUSD_CAN_CONFIG_H_INCLUDED
+#define SUBBUSD_CAN_CONFIG_H_INCLUDED
+
+#cmakedefine HAVE_LINUX_CAN_H
+
+#endif
