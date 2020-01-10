@@ -126,7 +126,8 @@ bool subbusd_CAN_client::incoming_sbreq() {
       rep.data.capabilities.subfunc = 11; // CAN Driver, defined in Evernote
       rep.data.capabilities.features = 0; // Really none!
       strncpy(rep.data.capabilities.name, SUBBUSD_CAN_NAME, SUBBUS_NAME_MAX);
-      return iwrite((const char *)&rep, sizeof(rep));
+      return iwrite((const char *)&rep,
+        sizeof(subbusd_rep_hdr_t) + sizeof(subbusd_cap_t));
     case SBC_QUIT:
       status_return(SBS_OK);
       return true; // Is this sufficient?

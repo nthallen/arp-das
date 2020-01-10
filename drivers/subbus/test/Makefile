@@ -19,4 +19,4 @@ test_sboui.cc : test_sb.oui
 	oui -o test_sboui.cc test_sb.oui
 
 clean :
-	@rm -f *.o test_sboui.c test_bmm FullBuild*
+	@rm -f *.o test_sboui.cc test_bmm FullBuild*
