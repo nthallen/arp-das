@@ -13,7 +13,7 @@ OBJ = test_bmm.o test_sboui.o
 all : test_bmm
 
 test_bmm : $(OBJ)
-	$(LINK.cc) -o test_bmm $(OBJ) $(LIBS)
+	$(LINK.cc) -o test_bmm -static $(OBJ) $(LIBS)
 	usemsg test_bmm test_sboui.cc
 test_sboui.cc : test_sb.oui
 	oui -o test_sboui.cc test_sb.oui

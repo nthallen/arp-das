@@ -72,8 +72,9 @@ void test_nack(subbuspp *P, uint16_t addr) {
 
 int main(int argc, char **argv) {
   oui_init_options(argc, argv);
-  subbuspp PS("/dev/huarp/subbus");
-  subbuspp *P = &PS; // new subbuspp("/dev/huarp/subbus");
+  // subbuspp PS("/dev/huarp/subbus");
+  // subbuspp *P = &PS; // new subbuspp("/dev/huarp/subbus");
+  subbuspp *P = new subbuspp("/dev/huarp/subbus");
   int subfunc = P->load();
   if (subfunc) {
     msg(0, "Subbus subfunction %d, name %s", subfunc, P->get_subbus_name());

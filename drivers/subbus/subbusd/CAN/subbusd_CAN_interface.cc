@@ -188,9 +188,11 @@ bool CAN_serial::iwrite(const char *str) {
 }
 
 bool CAN_serial::iwritten(int nb) {
-  if (obuf_empty() && !request_pending && slcan_state == st_operate) {
+  if (obuf_empty() &&
+      !request_pending && slcan_state == st_operate) {
     parent->process_requests();
   }
+  return false;
 }
 
 bool CAN_serial::protocol_input() {

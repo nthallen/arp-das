@@ -19,10 +19,10 @@ const char *CAN_port = "/dev/serusb2";
 int CAN_baud_rate = 57600;
 
 static unsigned char *sb_ibuf; // sb_ibuf[SB_CAN_MAX_RESPONSE];
-static int sb_ibuf_idx = 0;
+//static int sb_ibuf_idx = 0;
 //static sbd_request_t sbdrq[SUBBUSD_MAX_REQUESTS];
 //static sbd_request_t *cur_req;
-// static unsigned int sbdrq_head = 0, sbdrq_tail = 0;
+//static unsigned int sbdrq_head = 0, sbdrq_tail = 0;
 static int sb_fd;
 static struct sigevent ionotify_event;
 static timer_t timeout_timer;

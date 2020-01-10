@@ -86,9 +86,7 @@ subbusd_CAN_client::~subbusd_CAN_client() {}
  * (at least for the mread cases) into the queued request.
  */
 bool subbusd_CAN_client::incoming_sbreq() {
-  int rv, rsize;
-  //uint8_t device_id, addr;
-  // req = (subbusd_req_t *)&buf[0];
+  nc = sizeof(subbusd_req_t);
   
   switch ( req->sbhdr.command ) {
     case SBC_READACK:

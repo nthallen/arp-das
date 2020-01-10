@@ -21,7 +21,9 @@
 void subbusd_CAN_init_options(int argc, char **argv) {
   argc = argc;
   argv = argv;
+  // Initializes the static CAN_flavor:
   subbusd_CAN *CAN = new subbusd_CAN();
+  CAN = CAN;
   // nl_assert(subbusd_core::subbusd);
   // subbusd_core::subbusd->register_flavor(CAN);
   

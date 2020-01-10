@@ -259,7 +259,7 @@ bool sb_interface::fillbuf(int N, int flag) {
   if (N > bufsize)
     msg(MSG_EXIT_ABNORM, "Ser_Sel::fillbuf(N) N > bufsize: %d > %d",
       N, bufsize);
-  if (nc >= N+binary_offset) return false;
+  if ((signed)nc >= N+binary_offset) return false;
   ++n_fills;
   nb_read = read( fd, &buf[nc], N + binary_offset - nc );
   if ( nb_read < 0 ) {
@@ -283,7 +283,7 @@ bool sb_interface::fillbuf(int N, int flag) {
 void sb_interface::consume(int nchars) {
   if ( nchars > 0 ) {
     ++n_empties;
-    if ( nchars < nc ) {
+    if ( nchars < (signed)nc ) {
       int nb = nc - nchars;
       memmove(&buf[0], &buf[nchars], nb+1);
       nc = nb;
@@ -347,7 +347,7 @@ void sb_interface::signal(int signum, bool handle) {
  */
 const char *sb_interface::ascii_escape() {
   // return ::ascii_escape((char*)buf, nc);
-  nl_assert(nc < bufsize);
+  nl_assert((signed)nc < bufsize);
   buf[nc] = '\0';
   return ::ascii_escape((char*)buf);
 }
