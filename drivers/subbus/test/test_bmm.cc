@@ -38,7 +38,7 @@ void identify_board(subbuspp *P, uint8_t bdid) {
   msg(0, "  Inst ID:  %u", value);
   
   char mreqstr[30];
-  snprintf(mreqstr, 30, "%X|28@%X", bdid_hi|6, bdid_hi|7);
+  snprintf(mreqstr, 30, "%X|28@%X", bdid_hi|8, bdid_hi|9);
   subbus_mread_req *mreq = P->pack_mread_request(0x29, mreqstr);
   device_name_t devname;
   uint16_t nread;
