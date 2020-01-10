@@ -24,4 +24,4 @@
   A default message header. We can usually do better!
 <package> msghdr_default
 <var>
-  char *msg_hdr_default = "hdr";
+  const char *msg_hdr_default = "hdr";
