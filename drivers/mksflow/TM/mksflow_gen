@@ -345,6 +345,7 @@ for (my $i = 0; $i < $n_channels; ++$i) {
         " $D->{V_max}, $D->{V_zero}, $D->{SP_G_DAC}); }\n";
       @text = split(' ', "$text Voltage SetPoint");
       $fword = scalar(@text)+1;
+      $cmddef .=
         "  : " . join(' ', @text, '%f', "(Volts)", 'Volts', '*') .
         " { mks_analog_set_point(0x$D->{SP_addr}, \$$fword, $D->{V_max}," .
         " $D->{V_max}, 0, $D->{SP_G_DAC}); }\n";
