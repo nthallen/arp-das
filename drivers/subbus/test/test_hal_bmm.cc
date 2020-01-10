@@ -1,13 +1,17 @@
-/** @file test_bmm.cc
+/** @file test_hal_bmm.cc
  * @brief Test interfaces to subbus modules
  */
 #include <stdio.h>
+#include <strings.h>
 #include "oui.h"
 #include "subbuspp.h"
 #include "nortlib.h"
 #include "msg.h"
+#include "test_hal_bmm.h"
 
 // DAS_IO::AppID_t DAS_IO::AppID("test_bmm", "BMM Test Program", "V1.0");
+
+uint16_t power_cmd = 0;
 
 typedef struct {
   uint16_t n_words;
@@ -29,7 +33,7 @@ void identify_board(subbuspp *P, uint8_t bdid) {
     msg(2, "No acknowledge from board %d", bdid);
     return;
   }
-  msg(0, "  Board Class: %u", value);
+  msg(0, "  Board ID: %u", value);
   value = P->read_subbus(bdid_hi | 0x04);
   msg(0, "  Board S/N:  %u", value);
   value = P->read_subbus(bdid_hi | 0x03);
@@ -72,33 +76,45 @@ void test_nack(subbuspp *P, uint16_t addr) {
 
 int main(int argc, char **argv) {
   oui_init_options(argc, argv);
-  // subbuspp PS("/dev/huarp/subbus");
-  // subbuspp *P = &PS; // new subbuspp("/dev/huarp/subbus");
   subbuspp *P = new subbuspp("/dev/huarp/subbus");
   int subfunc = P->load();
   if (subfunc) {
-    msg(0, "Subbus subfunction %d, name %s", subfunc, P->get_subbus_name());
+    msg(0, "Subbus subfunction %d, name %s",
+        subfunc, P->get_subbus_name());
   } else {
     msg(3, "Failed to connect with subbus");
   }
 
   identify_board(P, 1);
-  
+  uint16_t cmdstat = P->read_subbus(0x0130);
+  msg(0, "TRU Power originally %s",
+    (cmdstat & 4) ? "OFF" : "ON");
+
   uint16_t PM0I1 = P->read_subbus(0x0121);
   uint16_t PM0V1 = P->read_subbus(0x0122);
   uint16_t PM0V2 = P->read_subbus(0x0123);
   msg(0, "  V1: %5.2lf V", PM0V1*VCONV);
   msg(0, "  V2: %5.2lf V", PM0V2*ADINCONV28);
   msg(0, "   I: %6.3lf A", PM0I1*ICONV50);
-  
-  msg(0, "Test read from non-existant board");
-  identify_board(P, 2);
+
+  if (power_cmd) {
+    msg(0, "Issuing command %d", power_cmd);
+    if (!P->write_ack(0x0130, power_cmd)) {
+      msg(2, "No ACK writing to 0x0130");
+    }
+    cmdstat = P->read_subbus(0x0130);
+    msg(0, "TRU Power now %s",
+      (cmdstat & 4) ? "OFF" : "ON");
+  }
+
+  // msg(0, "Test read from non-existant board");
+  // identify_board(P, 2);
   
   // test_ack(P, 0x0121);
   // test_nack(P, 0x0140);
   // test_ack(P, 0x0121);
   // test_nack(P, 0x0140);
 
-  P->subbus_quit();
+  // P->subbus_quit();
   return 0;
 }
