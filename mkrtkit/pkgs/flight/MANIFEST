@@ -38,6 +38,7 @@ usr/local/bin/soldrv
 usr/local/bin/sspdrv
 usr/local/bin/subbusd_sc104
 usr/local/bin/subbusd_serusb
+usr/local/bin/subbusd_slcan
 usr/local/bin/syscon
 usr/local/bin/tmdf
 usr/local/bin/unsu

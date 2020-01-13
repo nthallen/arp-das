@@ -5,7 +5,9 @@ Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
-# 2.5.71 2019-01-06
+# 2.5.72 2020-01-13
+#   subbusd_slcan
+# 2.5.71 2020-01-06
 #   mksflow driver and module
 # 2.5.70 2018-10-03
 #   tmpplib: Fixed bug in Ser_Sel::not_float
