@@ -9,3 +9,4 @@ serusboui.c
 simoui.c
 FullBuild.*
 *.o
+*.gdb
