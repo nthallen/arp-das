@@ -133,7 +133,7 @@
         input. Produces warnings if extrapolation is necessary.
     }
 
-    static void txtfmt(char *buf, char *format, struct pfmt *pformat,
+    static int txtfmt(char *buf, char *format, struct pfmt *pformat,
                 double ov, unsigned int type) {
         Given format and value, produces output text. Used for
         8-bit text conversions.
@@ -352,7 +352,8 @@ static int txtfmt(char *buf, char *format, struct pfmt *pformat,
   union {
     int8_t c;
     uint8_t uc;
-    int i;
+    // int i;
+    int16_t i;
     uint16_t ui;
     int32_t l;
     uint32_t ul;
@@ -408,13 +409,23 @@ static int txtfmt(char *buf, char *format, struct pfmt *pformat,
       // strcpy(buf+u.i, lbuf);
       // c = pformat->flags & PF_ZERO ? '0' : ' ';
       // while (u.i > 0) buf[--u.i] = c;
-    } else switch (type & (INTTYPE_CHAR | INTTYPE_LONG | INTTYPE_UNSIGNED)) {
-      case 0: compile_error(2, "Invalid unqualified int"); u.i = ov; sprintf(buf, format, u.i); break;
-      case INTTYPE_UNSIGNED: u.ui = ov; sprintf(buf, format, u.ui); break;
-      case INTTYPE_CHAR: u.c = ov; sprintf(buf, format, u.c); break;
+    } else switch (type & (INTTYPE_CHAR | INTTYPE_LONG
+          | INTTYPE_SHORT | INTTYPE_UNSIGNED)) {
+      case 0:
+      case INTTYPE_UNSIGNED:
+        compile_error(2, "Invalid unqualified int");
+        u.i = ov;
+        sprintf(buf, format, u.i);
+        return(1);
+        break;
+      case INTTYPE_UNSIGNED | INTTYPE_SHORT:
+        u.ui = ov; sprintf(buf, format, u.ui); break;
+      case INTTYPE_CHAR:
+        u.c = ov; sprintf(buf, format, u.c); break;
       case INTTYPE_UNSIGNED | INTTYPE_CHAR:
         u.uc = ov; sprintf(buf, format, u.uc); break;
-      case INTTYPE_LONG: u.l = ov; sprintf(buf, format, u.l); break;
+      case INTTYPE_LONG:
+        u.l = ov; sprintf(buf, format, u.l); break;
       case INTTYPE_UNSIGNED | INTTYPE_LONG:
         u.ul = ov; sprintf(buf, format, u.ul); break;
     }
