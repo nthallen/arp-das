@@ -232,6 +232,7 @@ void subbusd_CAN_client::process_mread() {
   }
   switch (buf[cp]) {
     case ',':
+    case '\n':
       can_msg.sb_can_cmd = CAN_CMD_CODE_RD;
       can_msg.sb_can_seq = 0;
       can_msg.device_id = (arg1>>8) & 0xFF;
@@ -336,8 +337,6 @@ void subbusd_CAN_client::process_mread() {
           (uint8_t*)&rep.data.mread.rvals[rep.data.mread.n_reads],
           2+arg2*2, this);
       break;
-    case '\n':
-      msg(4, "%s: '\\n' should have been handled", iname);
   }
 }
 

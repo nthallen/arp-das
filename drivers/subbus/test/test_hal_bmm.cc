@@ -54,6 +54,30 @@ void identify_board(subbuspp *P, uint8_t bdid) {
   }
 }
 
+void test_mread(subbuspp *P, uint8_t bdid) {
+  uint16_t bdid_hi = bdid<<8;
+  char mreqstr[30];
+  snprintf(mreqstr, 30, "%X:1:%X,%X",
+    bdid_hi|0x21, bdid_hi|0x28, bdid_hi|0x30);
+  subbus_mread_req *mreq = P->pack_mread_request(9, mreqstr);
+  uint16_t rval[9];
+  uint16_t nread;
+  int rv = P->mread_subbus_nw(mreq, rval, &nread);
+  if (rv < 0) {
+    msg(2, "Error %d from mread", rv);
+  } else {
+    msg(0, "mr:%u", nread);
+    msg(0, "  V1: %5.2lf V", rval[1]*VCONV);
+    msg(0, "  V2: %5.2lf V", rval[2]*ADINCONV28);
+    msg(0, "   I: %6.3lf A", rval[0]*ICONV50);
+    msg(0, "  NR: %u, %u", rval[3], rval[7]);
+    msg(0, "PMSt: %04X", rval[4]);
+    msg(0, "Cmds: %04X", rval[8]);
+    msg(0, "TRU Power reportedly %s via mread",
+      (rval[8] & 4) ? "OFF" : "ON");
+  }
+}
+
 void test_ack(subbuspp *P, uint16_t addr) {
   // msg(0, "Test read from non-existant address on existing board");
   uint16_t value;
@@ -96,6 +120,8 @@ int main(int argc, char **argv) {
   msg(0, "  V1: %5.2lf V", PM0V1*VCONV);
   msg(0, "  V2: %5.2lf V", PM0V2*ADINCONV28);
   msg(0, "   I: %6.3lf A", PM0I1*ICONV50);
+
+  test_mread(P, 1);
 
   if (power_cmd) {
     msg(0, "Issuing command %d", power_cmd);
