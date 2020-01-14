@@ -13,6 +13,8 @@ use strict;
 
 my $pkgcache = '/var/huarp/pkgcache';
 my $pkghold = '/var/huarp/pkghold';
+-d $pkghold || mkdir($pkghold);
+-d $pkghold || die "Unable to create $pkghold directory\n";
 my @files = map { m|/([^/]*)\.tar\.gz$|; $1; } glob("${pkgcache}/*.tar.gz");
 my %pkg;
 for my $file (@files) {
