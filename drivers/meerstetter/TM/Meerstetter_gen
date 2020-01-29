@@ -10,7 +10,7 @@ use Text::Wrap;
 #   # <name>_conv.tmc
 #   <name>.genui
 
-my $ME_MAX_DRIVES = 2;
+my $ME_MAX_DRIVES = 10;
 my $ME_MAX_ADDRESS = 254;
 
 my $srcfile = $ARGV[0] ||
@@ -193,9 +193,8 @@ print $genui
 print $tbl
   "$Name {\n" .
   "  HBox { +-; Title: $Name; -+ };\n" .
-  '  "" >Status< >Sink< >Set< >T<;' . "\n" .
+  "  (${Name}_Stale,3) >Status< >Stl< >Sink< >Set< >T<;\n" .
   $tbldef .
-  "  { HGlue 0+1 Stale: (${Name}_Stale,3) }\n" .
   "}\n";
 
 print $cmd <<EOF
