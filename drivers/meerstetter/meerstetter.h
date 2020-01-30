@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #ifndef ME_MAX_DRIVES
-#define ME_MAX_DRIVES 2
+#define ME_MAX_DRIVES 8
 #endif
 
 typedef struct __attribute__((packed)) {

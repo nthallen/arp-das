@@ -6,13 +6,17 @@
 <sort>
 	-p <path> path to serial device
 	-e RS485 will echo outbound requests back
-	-a <addresses> comma-separated list of <RS485 device addresses>:<Mnemonic> pairs
+	-a <addresses> list of device addresses
 
 <unsort>
-The driver will use the message header -h option value to also specify the name
-of the TM "Receive" name and the command channel name. The default name
-is "ME", which is also the default used by Meerstetter_gen when generating code
-for Module Meerstetter.
+<blank>
+The -a option takes a comma-separated list of address:mnemonic pairs,
+where address is the RS485 device address and mnemonic of the device.
+<blank>
+The driver will use the message header -h option value to also specify
+the name of the TM "Receive" name and the command channel name. The
+default name is "ME", which is also the default used by
+Meerstetter_gen when generating code for Module Meerstetter.
 
 <comment>
   e.g. -a 1:LTEC,2:CellTC

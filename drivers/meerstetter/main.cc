@@ -118,6 +118,11 @@ void enqueue_requests(Me_Ser *ser) {
   int index = 0;
   while (*s) {
     int address = 0;
+    if (!isdigit(*s)) {
+      msg(MSG_FATAL,
+        "Invalid character in address option string after %d address(es): '%s'",
+        index, address_opts);
+    }
     while (isdigit(*s)) {
       address = address*10 + (*s++) - '0';
     }
@@ -141,10 +146,6 @@ void enqueue_requests(Me_Ser *ser) {
     } else board_id[index].mnemonic[0] = '\0';
     ++index;
     if (*s == ',') ++s;
-    if (*s == '\0') break;
-    else msg(MSG_FATAL,
-      "Invalid character in address option string after %d address(es): '%s'",
-      index, address_opts);
   }
   msg(0, "Addressing %d drives", n_drives);
   for (index = 0; index < n_drives; ++index)
