@@ -118,9 +118,9 @@ for (my $i = 0; $i < $n_channels; ++$i) {
   push(@grpmem, map "${datum}_$_", qw(DevStatus T Sink_T Set_T));
 
   print $genui
-    "  $Rate ${datum}_DevStatus $Name ${datum}_Status\n",
+    "  $Rate ${datum}_DevStatus $Name ${datum}_Status %.0lf\n",
     "  $Rate ${datum}_Stale $Name Stale\n",
-    "  $Rate ${datum}_T $Name ${datum}_Temp\n",
+    "  $Rate ${datum}_T $Name ${datum}_Temp %.2lf\n",
     "  $Rate ${datum}_Set_T $Name ${datum}_Temp\n",
     "  $Rate ${datum}_Sink_T $Name ${datum}_Temp\n";
 
