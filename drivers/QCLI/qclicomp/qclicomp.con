@@ -3,7 +3,8 @@ ConfigCmds : ConfigCmd* .
 ConfigCmd : QCLIConfig / Digitizer / Prefix .
 QCLIConfig : 'QCLIConfig' QCLIConfigType ';' .
 QCLIConfigType : 'Standard' / 'StandardxP33' /
-                 'FastRamp' / 'FastRampx10' / 'FastRampx25' .
+                 'FastRamp' / 'FastRampx10' /
+                 'FastRampx25' / 'Standardx2P7' .
 Digitizer : 'Digitizer' DigitizerType ';' .
 DigitizerType : 'CPCI14' / 'CS210' / 'SSP' .
 Prefix : 'Prefix' Ident ';' .
