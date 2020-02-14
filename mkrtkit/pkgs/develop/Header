@@ -1,5 +1,5 @@
 # develop package
-Version: 2.5.96
+Version: 2.5.99
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,6 +8,12 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.99 2020-02-14
+#   qclicomp: Fixed typo
+# 2.5.98 2020-02-14
+#   qclicomp: Change WI-ICOS gain to Standardx2P41
+# 2.5.97 2020-02-12
+#   qclicomp: new configuration for WI-ICOS: Standardx2P7
 # 2.5.96 2020-01-30
 #   Meerstetter: driver debugging
 # 2.5.95 2020-01-29

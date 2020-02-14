@@ -277,7 +277,7 @@ void ptg_output_name( PTG_OUTPUT_FILE file, const char *name ) {
 static double amps_per_bit[QCLI_CFG_MAX+1] =
   { AMPS_PER_BIT, AMPS_PER_BIT/.33,
     AMPS_PER_BIT/10, AMPS_PER_BIT, AMPS_PER_BIT/25,
-    AMPS_PER_BIT/2.7 };
+    AMPS_PER_BIT/2.41 };
 
 #define MFBUFSIZE 80
 void messagef( int severity, CoordPtr pos, char *fmt, ... ) {
@@ -310,7 +310,7 @@ unsigned short amps_to_bits( double amps, int qclicfg, CoordPtr pos ) {
 static double aps_per_bit[QCLI_CFG_MAX+1] =
   { APS_PER_BIT, APS_PER_BIT/.33,
    .4*APS_PER_BIT, 4*APS_PER_BIT, 4*APS_PER_BIT/25.,
-   APS_PER_BIT/2.7 };
+   APS_PER_BIT/2.41 };
 unsigned short aps_to_bits( double aps, int qclicfg, CoordPtr pos ) {
   double bits;
   unsigned short sbits;

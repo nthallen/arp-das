@@ -47,8 +47,8 @@ END;
 RULE: QCLIConfigType ::= 'FastRampx25' COMPUTE
   QCLIConfigType.QCLIConfig = QCLI_CFG_FASTRAMPx25;
 END;
-RULE: QCLIConfigType ::= 'Standardx2P7' COMPUTE
-  QCLIConfigType.QCLIConfig = QCLI_CFG_STANDARDx2P7;
+RULE: QCLIConfigType ::= 'Standardx2P41' COMPUTE
+  QCLIConfigType.QCLIConfig = QCLI_CFG_STANDARDx2P41;
 END;
 
 /*-----------------------------------------------*/
