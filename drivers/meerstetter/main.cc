@@ -159,11 +159,12 @@ int main(int argc, char **argv) {
   Selector S;
   Me_Ser Ser(Me_Ser_path);
   Ser.setup(57600, 8, 'n', 1, 1, 1);
-  Me_Cmd Cmd(&Ser);
-  Me_TM_Selectee TM(Me_Name);
+  Ser.set_ohflow(false);
+//Me_Cmd Cmd(&Ser);
+//Me_TM_Selectee TM(Me_Name);
   S.add_child(&Ser);
-  S.add_child(&Cmd);
-  S.add_child(&TM);
+//S.add_child(&Cmd);
+// S.add_child(&TM);
   msg(0, "Starting: V1.1");
   enqueue_requests(&Ser);
   S.event_loop();

@@ -2,6 +2,7 @@
 #include <sys/dcmd_chr.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <string.h>
 #include "meerstetter_int.h"
 #include "crc16xmodem.h"
 #include "nortlib.h"
@@ -272,8 +273,8 @@ void Me_Ser::set_RTS(bool RTS) {
     int error;
     int data = _CTL_RTS_CHG | (RTS ? _CTL_RTS : 0);
 
-    if (error = devctl (fd, DCMD_CHR_SERCTL, &data,
-                   sizeof(data), NULL)) {
+    if ((error = devctl (fd, DCMD_CHR_SERCTL, &data,
+                   sizeof(data), NULL))) {
       report_err("Error setting RTS: %s", strerror(error));
     }
 }

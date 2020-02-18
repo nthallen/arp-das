@@ -499,9 +499,9 @@ void Ser_Sel::set_ohflow(bool ohflow_on) {
   init_termios();
   if (ohflow_on) {
     // Note that this code is QNX-specific
-    ss_termios.c_flag |= OHFLOW;
+    ss_termios.c_cflag |= OHFLOW;
   } else {
-    ss_termios.c_flag &= ~OHFLOW;
+    ss_termios.c_cflag &= ~OHFLOW;
   }
   if (tcsetattr(fd, TCSANOW, &ss_termios)) {
     nl_error(2, "Error from tcsetattr: %s",

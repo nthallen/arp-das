@@ -46,6 +46,7 @@ class Ser_Sel : public Selectee {
     void init(const char *path, int open_flags, int bufsz);
     void setup( int baud, int bits, char par, int stopbits,
 		int min, int time );
+    void set_ohflow(bool on);
   protected:
     int fillbuf();
     int fillbuf(int N);
@@ -62,7 +63,6 @@ class Ser_Sel : public Selectee {
     int not_float( float &val );
     void init_termios();
     void update_tc_vmin(int vmin);
-    void set_ohflow(bool on);
     unsigned int nc, cp;
     unsigned char *buf;
     int bufsize;
