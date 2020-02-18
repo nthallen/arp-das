@@ -141,19 +141,15 @@ Ser_Sel::~Ser_Sel() {
  */
 void Ser_Sel::setup( int baud, int bits, char par, int stopbits,
                 int min, int time ) {
-  struct termios termios_p;
   int bitsflag;
 
   if ( fd < 0 ) return;
-  if ( tcgetattr( fd, &termios_p) ) {
-    nl_error( 2, "Error on tcgetattr: %s", strerror(errno) );
-    return;
-  }
-  termios_p.c_iflag = 0;
-  termios_p.c_lflag &= ~(ECHO|ICANON|ISIG|ECHOE|ECHOK|ECHONL);
-  termios_p.c_cflag = CLOCAL|CREAD;
-  termios_p.c_oflag &= ~(OPOST);
-  termios_p.c_ispeed = termios_p.c_ospeed = baud;
+  init_termios();
+  ss_termios.c_iflag = 0;
+  ss_termios.c_lflag &= ~(ECHO|ICANON|ISIG|ECHOE|ECHOK|ECHONL);
+  ss_termios.c_cflag = CLOCAL|CREAD;
+  ss_termios.c_oflag &= ~(OPOST);
+  ss_termios.c_ispeed = ss_termios.c_ospeed = baud;
   switch (bits) {
     case 5: bitsflag = CS5; break;
     case 6: bitsflag = CS6; break;
@@ -162,7 +158,7 @@ void Ser_Sel::setup( int baud, int bits, char par, int stopbits,
     default:
       nl_error( 3, "Invalid bits value: %d", bits );
   }
-  termios_p.c_cflag |= bitsflag;
+  ss_termios.c_cflag |= bitsflag;
   switch (par) {
     case 'n': bitsflag = 0; break;
     case 'e': bitsflag = PARENB; break;
@@ -172,16 +168,16 @@ void Ser_Sel::setup( int baud, int bits, char par, int stopbits,
     default:
       nl_error( 3, "Invalid parity selector: '%c'", par );
   }
-  termios_p.c_cflag |= bitsflag;
+  ss_termios.c_cflag |= bitsflag;
   switch (stopbits) {
     case 1: break;
-    case 2: termios_p.c_cflag |= CSTOPB; break;
+    case 2: ss_termios.c_cflag |= CSTOPB; break;
     default:
       nl_error(3, "Invalid number of stop bits: %d", stopbits );
   }
-  termios_p.c_cc[VMIN] = min;
-  termios_p.c_cc[VTIME] = time;
-  if ( tcsetattr(fd, TCSANOW, &termios_p) )
+  ss_termios.c_cc[VMIN] = min;
+  ss_termios.c_cc[VTIME] = time;
+  if ( tcsetattr(fd, TCSANOW, &ss_termios) )
     nl_error( 2, "Error on tcsetattr: %s", strerror(errno) );
 }
 
@@ -477,7 +473,7 @@ int Ser_Sel::not_float( float &val ) {
   return 1;
 }
 
-void Ser_Sel::update_tc_vmin(int new_vmin) {
+void Ser_Sel::init_termios() {
   if (! termios_init) {
     if (tcgetattr(fd, &ss_termios)) {
       nl_error(2, "Error from tcgetattr: %s",
@@ -485,6 +481,10 @@ void Ser_Sel::update_tc_vmin(int new_vmin) {
     }
     termios_init = true;
   }
+}
+
+void Ser_Sel::update_tc_vmin(int new_vmin) {
+  init_termios();
   if (new_vmin < 1) new_vmin = 1;
   if (new_vmin != ss_termios.c_cc[VMIN]) {
     ss_termios.c_cc[VMIN] = new_vmin;
@@ -492,6 +492,20 @@ void Ser_Sel::update_tc_vmin(int new_vmin) {
       nl_error(2, "Error from tcsetattr: %s",
         strerror(errno));
     }
+  }
+}
+
+void Ser_Sel::set_ohflow(bool ohflow_on) {
+  init_termios();
+  if (ohflow_on) {
+    // Note that this code is QNX-specific
+    ss_termios.c_flag |= OHFLOW;
+  } else {
+    ss_termios.c_flag &= ~OHFLOW;
+  }
+  if (tcsetattr(fd, TCSANOW, &ss_termios)) {
+    nl_error(2, "Error from tcsetattr: %s",
+      strerror(errno));
   }
 }
 

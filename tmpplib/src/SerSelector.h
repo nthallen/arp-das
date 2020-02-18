@@ -60,7 +60,9 @@ class Ser_Sel : public Selectee {
     int not_str(const std::string &s);
     int not_str(const char *str);
     int not_float( float &val );
+    void init_termios();
     void update_tc_vmin(int vmin);
+    void set_ohflow(bool on);
     unsigned int nc, cp;
     unsigned char *buf;
     int bufsize;
