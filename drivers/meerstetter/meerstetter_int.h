@@ -101,6 +101,7 @@ class Me_Ser : public Ser_Sel {
     void free_pending();
     void process_requests();
     int not_hex(uint32_t &hex32, int width);
+    void set_RTS(bool RTS);
     Timeout TO;
     Me_Query *pending;
     const char *pending_cmd;

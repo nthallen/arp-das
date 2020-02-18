@@ -1,4 +1,7 @@
+#include <devctl.h>
+#include <sys/dcmd_chr.h>
 #include <fcntl.h>
+#include <errno.h>
 #include "meerstetter_int.h"
 #include "crc16xmodem.h"
 #include "nortlib.h"
@@ -251,12 +254,26 @@ void Me_Ser::process_requests() {
   pending_cmd = pending->get_cmd(&pending_cmdlen);
   msg(MSG_DBG(0), "Write Req: '%s'", ascii_escape(pending_cmd));
   pending->set_bit();
+  set_RTS(true);
   int rc = write(fd, pending_cmd, pending_cmdlen);
   if (rc != pending_cmdlen) {
     nl_error(3, "Incomplete write to Meerstetter: %d/%d", rc, pending_cmdlen);
   }
+  if (tcdrain(fd) < 0)
+    report_err("tcdrain() returned error %d", errno);
+  set_RTS(false);
   pending_replen = pending->replen + (rs485_echos ? pending_cmdlen : 0);
   update_tc_vmin(pending_replen - nc);
   TO.Set(0, 100);
   flags |= Selector::Sel_Timeout;
+}
+
+void Me_Ser::set_RTS(bool RTS) {
+    int error;
+    int data = _CTL_RTS_CHG | (RTS ? _CTL_RTS : 0);
+
+    if (error = devctl (fd, DCMD_CHR_SERCTL, &data,
+                   sizeof(data), NULL)) {
+      report_err("Error setting RTS: %s", strerror(error));
+    }
 }
