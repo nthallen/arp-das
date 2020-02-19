@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
   S.add_child(&Ser);
 //S.add_child(&Cmd);
 // S.add_child(&TM);
-  msg(0, "Starting: V1.1");
+  msg(0, "Starting: V1.1 standalone");
   enqueue_requests(&Ser);
   S.event_loop();
   msg(0, "Terminating");

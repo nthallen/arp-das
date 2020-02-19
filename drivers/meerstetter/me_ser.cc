@@ -255,14 +255,14 @@ void Me_Ser::process_requests() {
   pending_cmd = pending->get_cmd(&pending_cmdlen);
   msg(MSG_DBG(0), "Write Req: '%s'", ascii_escape(pending_cmd));
   pending->set_bit();
-  set_RTS(true);
+  // set_RTS(true);
   int rc = write(fd, pending_cmd, pending_cmdlen);
   if (rc != pending_cmdlen) {
     nl_error(3, "Incomplete write to Meerstetter: %d/%d", rc, pending_cmdlen);
   }
-  if (tcdrain(fd) < 0)
-    report_err("tcdrain() returned error %d", errno);
-  set_RTS(false);
+  // if (tcdrain(fd) < 0)
+  //   report_err("tcdrain() returned error %d", errno);
+  // set_RTS(false);
   pending_replen = pending->replen + (rs485_echos ? pending_cmdlen : 0);
   update_tc_vmin(pending_replen - nc);
   TO.Set(0, 100);
