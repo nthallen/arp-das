@@ -1,8 +1,6 @@
+*.o
 test_bmm
-test_bmm.o
 test_sboui.cc
-test_sboui.o
 test_hal_bmm
-test_hal_bmm.o
 test_haloui.cc
-test_haloui.o
+test_can

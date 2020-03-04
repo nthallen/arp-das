@@ -233,6 +233,11 @@ bool CAN_serial::protocol_input() {
         return false; // wait for more chars
       }
       update_tc_vmin(1); // we've received everything we need
+      if (not_str("\r")) {
+        if (cp >= nc) return false;
+        consume(nc);
+        return false;
+      }
       
       // reassemble longer response as necessary
       if (!request_pending) {

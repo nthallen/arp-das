@@ -9,9 +9,10 @@ INCDIR=/usr/local/include
 
 OBJ = test_bmm.o test_sboui.o
 HALOBJ = test_hal_bmm.o test_haloui.o
+TCOBJ = test_can.o test_sboui.o
 .PHONY : clean all install
 
-all : test_bmm test_hal_bmm
+all : test_bmm test_hal_bmm test_can
 
 test_bmm : $(OBJ)
 	$(LINK.cc) -o test_bmm $(OBJ) $(LIBS)
@@ -23,6 +24,9 @@ test_hal_bmm : $(HALOBJ)
 	usemsg test_hal_bmm test_haloui.cc
 test_haloui.cc : test_hal.oui test_sb.oui
 	oui -o test_haloui.cc test_hal.oui
+test_can : $(TCOBJ)
+	$(LINK.cc) -o test_can $(TCOBJ) $(LIBS)
+	usemsg test_can test_sboui.cc
 
 clean :
 	@rm -f *.o test_sboui.cc test_bmm test_haloui.cc test_hal_bmm FullBuild*
