@@ -202,150 +202,152 @@ bool CAN_serial::protocol_input() {
   
   // parse text into rep_frame, then process identically to CAN_socket
   // start processing only 't' responses
-  if (nc == 0) return false;
-  if (slcan_state == st_operate) {
-    if (buf[0] != 't') {
-      report_err("%s: Unexpected input type", iname);
-      consume(nc);
-      return false;
-    }
-    ++cp;
-    if (not_nhexdigits(3, can_id) ||
-        not_nhexdigits(1, can_len)) {
-      if (cp < nc) {
+  while (nc > 0) {
+    if (slcan_state == st_operate) {
+      if (buf[0] != 't') {
+        report_err("%s: Unexpected input type", iname);
         consume(nc);
+        return false;
       }
-      update_tc_vmin(5-nc);
-      return false;
-    }
-    rep_frame.can_id = can_id;
-    rep_frame.can_dlc = can_len;
-    int expected_total_chars = 5 + 2+can_len + 1;
-    int i;
-    for (i = 0; i < can_len && !not_nhexdigits(2, can_data); ++i) {
-      rep_frame.data[i] = can_data;
-    }
-    if (i < can_len) {
-      if (cp < nc) {
-        consume(nc);
-      }
-      update_tc_vmin(expected_total_chars - nc);
-      return false; // wait for more chars
-    }
-    update_tc_vmin(1); // we've received everything we need
-    
-    // reassemble longer response as necessary
-    if (!request_pending) {
-      report_err("%s: Unexpected input", iname);
-      consume(nc);
-      return false;
-    }
-    can_request request = parent->curreq();
-    // check for CAN error frame
-    if (repfrm->can_id & (CAN_EFF_FLAG|CAN_RTR_FLAG)) {
-      report_err("%s: Unexpected packet type: ID:%08X", iname, repfrm->can_id);
-      consume(nc);
-      return false;
-    }
-    if (repfrm->can_id & CAN_ERR_FLAG) {
-      report_err("%s: CAN error frame ID:0x%X", iname, repfrm->can_id & CAN_ERR_MASK);
-      consume(nc);
-      return false;
-    }
-    // check incoming ID with request
-    if ((repfrm->can_id & CAN_SFF_MASK) !=
-        ((reqfrm.can_id & CAN_SFF_MASK) | CAN_ID_REPLY_BIT)) {
-      report_err("%s: Invalid ID: %X, expected %X", iname,
-        repfrm->can_id, reqfrm.can_id | CAN_ID_REPLY_BIT);
-      consume(nc);
-      return false;
-    }
-    // check incoming cmd with request
-    // check incoming seq with req_seq_no
-    if (repfrm->can_dlc < 2) {
-      report_err("%s: DLC:%d (<2)", iname, repfrm->can_dlc);
-      consume(nc);
-      return false;
-    }
-    if (repfrm->data[0] != CAN_CMD(reqfrm.data[0],rep_seq_no)) {
-      if (CAN_CMD_CODE(repfrm->data[0]) == CAN_CMD_CODE_ERROR) {
-        if (repfrm->data[2] == CAN_ERR_NACK) {
-          memset(request.msg->buf, 0, request.msg->bufsz - rep_recd);
-          request.clt->request_complete(SBS_NOACK, request.msg->bufsz);
-        } else {
-          report_err("%s: CAN_ERR %d", iname, repfrm->data[1]);
-          request.clt->request_complete(SBS_RESP_ERROR, 0);
+      ++cp;
+      if (not_nhexdigits(3, can_id) ||
+          not_nhexdigits(1, can_len)) {
+        if (cp < nc) {
+          consume(nc);
         }
+        update_tc_vmin(5-nc);
+        return false;
+      }
+      rep_frame.can_id = can_id;
+      rep_frame.can_dlc = can_len;
+      int expected_total_chars = 5 + 2+can_len + 1;
+      int i;
+      for (i = 0; i < can_len && !not_nhexdigits(2, can_data); ++i) {
+        rep_frame.data[i] = can_data;
+      }
+      if (i < can_len) {
+        if (cp < nc) {
+          consume(nc);
+        }
+        update_tc_vmin(expected_total_chars - nc);
+        return false; // wait for more chars
+      }
+      update_tc_vmin(1); // we've received everything we need
+      
+      // reassemble longer response as necessary
+      if (!request_pending) {
+        report_err("%s: Unexpected input", iname);
+        consume(nc);
+        return false;
+      }
+      can_request request = parent->curreq();
+      // check for CAN error frame
+      if (repfrm->can_id & (CAN_EFF_FLAG|CAN_RTR_FLAG)) {
+        report_err("%s: Unexpected packet type: ID:%08X", iname, repfrm->can_id);
+        consume(cp);
+        continue;
+      }
+      if (repfrm->can_id & CAN_ERR_FLAG) {
+        report_err("%s: CAN error frame ID:0x%X", iname, repfrm->can_id & CAN_ERR_MASK);
+        consume(cp);
+        continue;
+      }
+      // check incoming ID with request
+      if ((repfrm->can_id & CAN_SFF_MASK) !=
+          ((reqfrm.can_id & CAN_SFF_MASK) | CAN_ID_REPLY_BIT)) {
+        report_err("%s: Invalid ID: %X, expected %X", iname,
+          repfrm->can_id, reqfrm.can_id | CAN_ID_REPLY_BIT);
+        consume(nc);
+        continue;
+      }
+      // check incoming cmd with request
+      // check incoming seq with req_seq_no
+      if (repfrm->can_dlc < 2) {
+        report_err("%s: DLC:%d (<2)", iname, repfrm->can_dlc);
+        consume(cp);
+        continue;
+      }
+      if (repfrm->data[0] != CAN_CMD(reqfrm.data[0],rep_seq_no)) {
+        if (CAN_CMD_CODE(repfrm->data[0]) == CAN_CMD_CODE_ERROR) {
+          if (repfrm->data[2] == CAN_ERR_NACK) {
+            memset(request.msg->buf, 0, request.msg->bufsz - rep_recd);
+            request.clt->request_complete(SBS_NOACK, request.msg->bufsz);
+          } else {
+            report_err("%s: CAN_ERR %d", iname, repfrm->data[1]);
+            request.clt->request_complete(SBS_RESP_ERROR, 0);
+          }
+        } else {
+          report_err("%s: req/rep cmd,seq mismatch: %02X/%02X",
+            iname, repfrm->data[0], reqfrm.data[0]);
+          consume(cp);
+          continue;
+        }
+        parent->pop_req();
+        request_pending = false;
+        report_ok(cp);
+        TO.Clear();
+        parent->process_requests();
+        continue;
+      }
+      // if seq == 0, check len with request and update
+      int nbdat = repfrm->can_dlc - 1; // not counting cmd byte
+      uint8_t *data = &repfrm->data[1];
+      if (CAN_CMD_SEQ(repfrm->data[0]) == 0) {
+        rep_len = repfrm->data[1];
+        if (rep_len > request.msg->bufsz) {
+          report_err("%s: reply length %d exceeds request len %d",
+            iname, rep_len, request.msg->bufsz);
+          consume(cp);
+          continue;
+        }
+        --nbdat;
+        ++data;
+        msg(MSG_DBG(2), "rep_recd: %d", rep_recd);
+      }
+      // check dlc_len against remaining request len
+      if (rep_recd + nbdat > rep_len) {
+        report_err("%s: msg overflow. cmdseq=%02X dlc=%d rep_len=%d",
+          iname, repfrm->data[0], repfrm->can_dlc, rep_len);
+        consume(cp);
+        continue;
+      }
+      if (nl_debug_level <= MSG_DBG(1)) {
+        msg(MSG_DBG(1), "CANin %s", ascii_escape());
+      }
+      
+      // copy data into reply
+      memcpy(request.msg->buf, data, nbdat);
+      request.msg->buf += nbdat;
+      rep_recd += nbdat;
+      msg(MSG_DBG(2), "Seq:%d nbdat:%d recd:%d rep_len:%d",
+        rep_seq_no, nbdat, rep_recd, rep_len);
+      // update rep_seq_no
+      ++rep_seq_no;
+      report_ok(cp);
+      // If request is complete, call clt->request_complete
+      if (rep_recd == rep_len) {
+        msg(MSG_DBG(1), "%s: Clearing timeout", iname);
+        TO.Clear();
+        //reqs.pop_front();
+        parent->pop_req();
+        // clearing request_pending after request_complete()
+        // simply limits the depth of recursion
+        request.clt->request_complete(SBS_ACK, rep_len);
+        request_pending = false;
+        parent->process_requests();
       } else {
-        report_err("%s: req/rep cmd,seq mismatch: %02X/%02X",
-          iname, repfrm->data[0], reqfrm.data[0]);
-        consume(nc);
-        return false;
+        TO.Set(0,50); // Extend timeout
       }
-      parent->pop_req();
-      // reqs.pop_front();
-      request_pending = false;
-      report_ok(nc);
-      TO.Clear();
-      parent->process_requests();
-      return false;
-    }
-    // if seq == 0, check len with request and update
-    int nbdat = repfrm->can_dlc - 1; // not counting cmd byte
-    uint8_t *data = &repfrm->data[1];
-    if (CAN_CMD_SEQ(repfrm->data[0]) == 0) {
-      rep_len = repfrm->data[1];
-      if (rep_len > request.msg->bufsz) {
-        report_err("%s: reply length %d exceeds request len %d",
-          iname, rep_len, request.msg->bufsz);
+    } else if (slcan_state == st_init || slcan_state == st_init_retry) {
+      if (buf[nc-1] == '\r' || buf[nc-1] == '\n') {
+        msg(0, "ID: %s", ascii_escape());
+        TO.Clear();
+        slcan_state = st_operate;
         consume(nc);
-        return false;
       }
-      --nbdat;
-      ++data;
-      msg(MSG_DBG(2), "rep_recd: %d", rep_recd);
+    } else {
+      report_err("%s: Unexpected input in state %d", iname, slcan_state);
     }
-    // check dlc_len against remaining request len
-    if (rep_recd + nbdat > rep_len) {
-      report_err("%s: msg overflow. cmdseq=%02X dlc=%d rep_len=%d",
-        iname, repfrm->data[0], repfrm->can_dlc, rep_len);
-      consume(nc);
-      return false;
-    }
-    if (nl_debug_level <= MSG_DBG(1)) {
-      msg(MSG_DBG(1), "CANin %s", ascii_escape());
-    }
-    
-    // copy data into reply
-    memcpy(request.msg->buf, data, nbdat);
-    request.msg->buf += nbdat;
-    rep_recd += nbdat;
-    msg(MSG_DBG(2), "Seq:%d nbdat:%d recd:%d rep_len:%d",
-      rep_seq_no, nbdat, rep_recd, rep_len);
-    // update rep_seq_no
-    ++rep_seq_no;
-    report_ok(nc);
-    msg(MSG_DBG(1), "%s: Clearing timeout", iname);
-    TO.Clear();
-    // If request is complete, call clt->request_complete
-    if (rep_recd == rep_len) {
-      //reqs.pop_front();
-      parent->pop_req();
-      // clearing request_pending after request_complete()
-      // simply limits the depth of recursion
-      request.clt->request_complete(SBS_ACK, rep_len);
-      request_pending = false;
-      parent->process_requests();
-    }
-  } else if (slcan_state == st_init || slcan_state == st_init_retry) {
-    if (buf[nc-1] == '\r' || buf[nc-1] == '\n') {
-      msg(0, "ID: %s", ascii_escape());
-      TO.Clear();
-      slcan_state = st_operate;
-      consume(nc);
-    }
-  } else {
-    report_err("%s: Unexpected input in state %d", iname, slcan_state);
   }
   return false;
 }
