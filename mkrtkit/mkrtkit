@@ -83,6 +83,7 @@ function usb_installer {
   mount -e $newusb
   # Now need to double-check that this did not go so far as
   # to automount the drive
+  sleep 2
   mntd=`mount | grep $newusb`
   if [ -n "$mntd" ]; then
     fs=${mntd#* on }
