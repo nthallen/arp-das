@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <ncurses.h>
 #include <unistd.h>
 #include "nortlib.h"
@@ -26,6 +25,7 @@ static int cur_scr_num;
 static char *ttype;
 static int ifds_opened = 0;
 static int nct_cmd_quit_fd = -1;
+static void init_grphchar();
 
 static inline void nct_select(int n) {
   nl_assert(n < n_scrs );
@@ -167,9 +167,9 @@ void nct_clear( int winnum ) {
 static chtype grphchar[81];
   
 static void init_grphchar() {
-  static bool grphchar_initialized = false;
+  static int grphchar_initialized = 0;
   if (!grphchar_initialized) {
-    grphchar_initialized = true;
+    grphchar_initialized = 1;
     grphchar[0] = ' ';
     grphchar[1] = ACS_VLINE;
     grphchar[2] = ACS_VLINE;
@@ -254,7 +254,7 @@ static void init_grphchar() {
   }
 };
 
-static unsigned char asciichar[81] = {
+static chtype asciichar[81] = {
   ' ', /*  0 = LRTB */
   ',', /*  1 = 0001 */
   ',', /*  2 = 0002 */
