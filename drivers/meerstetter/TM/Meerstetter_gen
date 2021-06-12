@@ -104,22 +104,31 @@ for (my $i = 0; $i < $n_channels; ++$i) {
   my $D = $Data{$datum};
 
   $datadef .= "TM $Rate Hz ${Name}_DevStatus_t ${datum}_DevStatus;\n";
+  $datadef .= "TM $Rate Hz ${Name}_ErrorNumber_t ${datum}_ErrorNumber;\n";
+  $datadef .= "TM $Rate Hz ${Name}_ErrorInstance_t ${datum}_ErrorInstance;\n";
+  $datadef .= "TM $Rate Hz ${Name}_ErrorParameter_t ${datum}_ErrorParameter;\n";
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_Set_T;\n";
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_T;\n";
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_Sink_T;\n";
   $datadef .= "TM $Rate Hz ${Name}_Stale_t ${datum}_Stale;\n";
 
   $coldef .= "  ${datum}_DevStatus = ${Name}_drive($i,DeviceStatus);\n";
+  $coldef .= "  ${datum}_ErrorNumber = ${Name}_drive($i,ErrorNumber);\n";
+  $coldef .= "  ${datum}_ErrorInstance = ${Name}_drive($i,ErrorInstance);\n";
+  $coldef .= "  ${datum}_ErrorParameter = ${Name}_drive($i,DeviceParameter);\n";
   $coldef .= "  ${datum}_T = ${Name}_drive($i,ObjectTemp);\n";
   $coldef .= "  ${datum}_Sink_T = ${Name}_drive($i,SinkTemp);\n";
   $coldef .= "  ${datum}_Set_T = ${Name}_drive($i,TargetObjectTemp);\n";
   $coldef .= "  ${datum}_Stale = ${Name}_drive($i,Stale);\n";
 
-  push(@grpmem, map "${datum}_$_", qw(DevStatus T Sink_T Set_T));
+  push(@grpmem, map "${datum}_$_", qw(DevStatus ErrorNumber ErrorInstance ErrorParameter T Sink_T Set_T));
 
   print $genui
-    "  $Rate ${datum}_DevStatus $Name ${datum}_Status %.0lf\n",
-    "  $Rate ${datum}_Stale $Name Stale\n",
+    "  $Rate ${datum}_DevStatus ${Name}_Status ${datum}_Status %.0lf\n",
+    "  $Rate ${datum}_ErrorNumber ${Name}_Errors ${datum}_Errors\n",
+    "  $Rate ${datum}_ErrorInstance ${Name}_Errors ${datum}_Errors\n",
+    "  $Rate ${datum}_ErrorParameter ${Name}_Errors ${datum}_Errors\n",
+    "  $Rate ${datum}_Stale ${Name}_Stale ${datum}_Stale\n",
     "  $Rate ${datum}_T $Name ${datum}_Temp %.2lf\n",
     "  $Rate ${datum}_Set_T $Name ${datum}_Temp\n",
     "  $Rate ${datum}_Sink_T $Name ${datum}_Temp\n";
@@ -154,6 +163,7 @@ print $tmc <<EOF
 %{
   /* Meerstetter driver interface */
   #define ME_MAX_DRIVES $n_channels
+  #include <stdint.h>
   #include "meerstetter.h"
   const char *${Name}_DevStatus_text(unsigned char stat) {
     switch (stat) {
@@ -168,9 +178,10 @@ print $tmc <<EOF
   }
   #define ${Name}_drive(x,y) ${Name}.drive[x].y
 %}
-TM typedef unsigned char ${Name}_DevStatus_t { text "%7u" ${Name}_DevStatus_text(); }
-TM typedef unsigned char ${Name}_Stale_t { text "%3u"; }
+TM typedef uint8_t ${Name}_DevStatus_t { text "%7u" ${Name}_DevStatus_text(); }
+TM typedef uint8_t ${Name}_Stale_t { text "%3u"; }
 TM typedef float ${Name}_Temp_t { text "%7.2f"; }
+TM typedef uint8_t ${Name}_Error_t { text"%3u"; }
 EOF
 ;
 
