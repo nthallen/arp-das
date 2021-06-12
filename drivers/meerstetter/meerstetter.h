@@ -8,6 +8,9 @@
 
 typedef struct __attribute__((packed)) {
   int32_t  DeviceStatus;
+  int32_t  ErrorNumber;
+  int32_t  ErrorInstance;
+  int32_t  ErrorParameter;
   float    ObjectTemp;
   float    SinkTemp;
   float    TargetObjectTemp;
