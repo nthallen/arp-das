@@ -5,6 +5,9 @@ Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.77 2020-04-09
+#   libtmnc: support ncurses line drawing again
+#   libtmph: just rebuilt
 # 2.5.76 2020-03-04
 #   subbusd_slcan: fixed multi-read bug
 # 2.5.75 2020-02-20
