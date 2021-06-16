@@ -1,5 +1,5 @@
 # develop package
-Version: 2.6.0
+Version: 2.6.1
 Requires: flight gcc photon mozilla sudo perllink fftwf
 Requires: mozilla_certs scmgit-base
 Files: MANIFEST @ /
@@ -8,6 +8,8 @@ Files: MANIFEST_cdr @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.6.1  2021-06-12
+#   Meerstetter_gen: collect error codes
 # 2.6.0  2020-02-20
 #   SerSelector.h add ohflow control function
 # 2.5.99 2020-02-14

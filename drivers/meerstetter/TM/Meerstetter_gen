@@ -104,9 +104,9 @@ for (my $i = 0; $i < $n_channels; ++$i) {
   my $D = $Data{$datum};
 
   $datadef .= "TM $Rate Hz ${Name}_DevStatus_t ${datum}_DevStatus;\n";
-  $datadef .= "TM $Rate Hz ${Name}_ErrorNumber_t ${datum}_ErrorNumber;\n";
-  $datadef .= "TM $Rate Hz ${Name}_ErrorInstance_t ${datum}_ErrorInstance;\n";
-  $datadef .= "TM $Rate Hz ${Name}_ErrorParameter_t ${datum}_ErrorParameter;\n";
+  $datadef .= "TM $Rate Hz ${Name}_Error_t ${datum}_ErrorNumber;\n";
+  $datadef .= "TM $Rate Hz ${Name}_Error_t ${datum}_ErrorInstance;\n";
+  $datadef .= "TM $Rate Hz ${Name}_Error_t ${datum}_ErrorParameter;\n";
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_T;\n";
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_Sink_T;\n";
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_Set_T;\n";
@@ -117,7 +117,7 @@ for (my $i = 0; $i < $n_channels; ++$i) {
   $coldef .= "  ${datum}_DevStatus = ${Name}_drive($i,DeviceStatus);\n";
   $coldef .= "  ${datum}_ErrorNumber = ${Name}_drive($i,ErrorNumber);\n";
   $coldef .= "  ${datum}_ErrorInstance = ${Name}_drive($i,ErrorInstance);\n";
-  $coldef .= "  ${datum}_ErrorParameter = ${Name}_drive($i,DeviceParameter);\n";
+  $coldef .= "  ${datum}_ErrorParameter = ${Name}_drive($i,ErrorParameter);\n";
   $coldef .= "  ${datum}_T = ${Name}_drive($i,ObjectTemp);\n";
   $coldef .= "  ${datum}_Sink_T = ${Name}_drive($i,SinkTemp);\n";
   $coldef .= "  ${datum}_Set_T = ${Name}_drive($i,TargetObjectTemp);\n";
