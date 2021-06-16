@@ -135,10 +135,10 @@ for (my $i = 0; $i < $n_channels; ++$i) {
 
     "  $Rate ${datum}_T ${Name}_${datum} Temp %.2lf\n",
     "  $Rate ${datum}_Set_T ${Name}_${datum} Temp\n",
-    "  $Rate ${datum}_Sink_T ${Name}_${datum} Temp\n";
-    "  $Rate ${datum}_OutputCurrent ${Name}_${datum} Current\n";
-    "  $Rate ${datum}_OutputVoltage ${Name}_${datum} Voltage\n";
-    "  $Rate ${datum}_DevStatus ${Name}_${datum} Status %.0lf\n",
+    "  $Rate ${datum}_Sink_T ${Name}_${datum} Temp\n",
+    "  $Rate ${datum}_OutputCurrent ${Name}_${datum} Current\n",
+    "  $Rate ${datum}_OutputVoltage ${Name}_${datum} Voltage\n",
+    "  $Rate ${datum}_DevStatus ${Name}_${datum} Status %.0lf\n";
 
   my $datumtbl =
     "  ${datum}: (${datum}_DevStatus,7) (${datum}_Stale,3) " .
