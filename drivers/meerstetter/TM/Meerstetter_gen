@@ -96,7 +96,7 @@ $coldef .= "  ${Name}_Stale = ${Name}_obj->stale(255);\n";
 push(@grpmem, "${Name}_Stale");
 
 print $genui
-  "  $Rate ${Name}_Stale $Name Stale\n";
+  "  $Rate ${Name}_Stale ${Name}_Stale ME_Stale\n";
 
 for (my $i = 0; $i < $n_channels; ++$i) {
   my $offset = $i;
@@ -107,9 +107,11 @@ for (my $i = 0; $i < $n_channels; ++$i) {
   $datadef .= "TM $Rate Hz ${Name}_ErrorNumber_t ${datum}_ErrorNumber;\n";
   $datadef .= "TM $Rate Hz ${Name}_ErrorInstance_t ${datum}_ErrorInstance;\n";
   $datadef .= "TM $Rate Hz ${Name}_ErrorParameter_t ${datum}_ErrorParameter;\n";
-  $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_Set_T;\n";
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_T;\n";
   $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_Sink_T;\n";
+  $datadef .= "TM $Rate Hz ${Name}_Temp_t ${datum}_Set_T;\n";
+  $datadef .= "TM $Rate Hz ${Name}_Amps_t ${datum}_OutputCurrent;\n";
+  $datadef .= "TM $Rate Hz ${Name}_Volts_t ${datum}_OutputVoltage;\n";
   $datadef .= "TM $Rate Hz ${Name}_Stale_t ${datum}_Stale;\n";
 
   $coldef .= "  ${datum}_DevStatus = ${Name}_drive($i,DeviceStatus);\n";
@@ -119,22 +121,29 @@ for (my $i = 0; $i < $n_channels; ++$i) {
   $coldef .= "  ${datum}_T = ${Name}_drive($i,ObjectTemp);\n";
   $coldef .= "  ${datum}_Sink_T = ${Name}_drive($i,SinkTemp);\n";
   $coldef .= "  ${datum}_Set_T = ${Name}_drive($i,TargetObjectTemp);\n";
+  $coldef .= "  ${datum}_OutputCurrent = ${Name}_drive($i,ActualOutputCurrent);\n";
+  $coldef .= "  ${datum}_OutputVoltage = ${Name}_drive($i,ActualOutputVoltage);\n";
   $coldef .= "  ${datum}_Stale = ${Name}_drive($i,Stale);\n";
 
   push(@grpmem, map "${datum}_$_", qw(DevStatus ErrorNumber ErrorInstance ErrorParameter T Sink_T Set_T));
 
   print $genui
-    "  $Rate ${datum}_DevStatus ${Name}_Status ${datum}_Status %.0lf\n",
     "  $Rate ${datum}_ErrorNumber ${Name}_Errors ${datum}_Errors\n",
     "  $Rate ${datum}_ErrorInstance ${Name}_Errors ${datum}_Errors\n",
     "  $Rate ${datum}_ErrorParameter ${Name}_Errors ${datum}_Errors\n",
     "  $Rate ${datum}_Stale ${Name}_Stale ${datum}_Stale\n",
-    "  $Rate ${datum}_T $Name ${datum}_Temp %.2lf\n",
-    "  $Rate ${datum}_Set_T $Name ${datum}_Temp\n",
-    "  $Rate ${datum}_Sink_T $Name ${datum}_Temp\n";
+
+    "  $Rate ${datum}_T ${Name}_${datum} Temp %.2lf\n",
+    "  $Rate ${datum}_Set_T ${Name}_${datum} Temp\n",
+    "  $Rate ${datum}_Sink_T ${Name}_${datum} Temp\n";
+    "  $Rate ${datum}_OutputCurrent ${Name}_${datum} Current\n";
+    "  $Rate ${datum}_OutputVoltage ${Name}_${datum} Voltage\n";
+    "  $Rate ${datum}_DevStatus ${Name}_${datum} Status %.0lf\n",
 
   my $datumtbl =
-    "  ${datum}: (${datum}_DevStatus,7) (${datum}_Stale,3) (${datum}_Sink_T,7) (${datum}_Set_T,7) (${datum}_T,7) C;\n";
+    "  ${datum}: (${datum}_DevStatus,7) (${datum}_Stale,3) " .
+    "(${datum}_Sink_T,7) (${datum}_Set_T,7) (${datum}_T,7)" .
+    "(${datum}_OutputVoltage,7) (${datum}_OutputCurrent,7);\n";
 
   $tbldef .= $datumtbl;
   
@@ -182,6 +191,8 @@ TM typedef uint8_t ${Name}_DevStatus_t { text "%7u" ${Name}_DevStatus_text(); }
 TM typedef uint8_t ${Name}_Stale_t { text "%3u"; }
 TM typedef float ${Name}_Temp_t { text "%7.2f"; }
 TM typedef uint8_t ${Name}_Error_t { text"%3u"; }
+TM typedef float ${Name}_Amps_t { text "%7.2f"; }
+TM typedef float ${Name}_Volts_t { text "%7.2f"; }
 EOF
 ;
 
@@ -204,7 +215,7 @@ print $genui
 print $tbl
   "$Name {\n" .
   "  HBox { +-; Title: $Name; -+ };\n" .
-  "  (${Name}_Stale,3) >Status< >Stl< >Sink< >Set< >T<;\n" .
+  "  (${Name}_Stale,3) >Status< >Stl< >Sink< >Set< >T< >V< >A<;\n" .
   $tbldef .
   "}\n";
 

@@ -96,37 +96,47 @@ void poll_board(Me_Ser *ser, int index, uint8_t address) {
   me_drive_t *medp = &meerstetter.drive[index];
   // board_id_t *bdp = &board_id[index];
   Me_Query *Q = ser->new_query();
-  Q->setup_int32_query(address, 104, &medp->DeviceStatus, &medp->Mask, 0x2);
+  Q->setup_int32_query(address, 104, &medp->DeviceStatus, &medp->Mask, 1<<1);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
 
   Q = ser->new_query();
-  Q->setup_int32_query(address, 105, &medp->ErrorNumber, &medp->Mask, 0x2);
+  Q->setup_int32_query(address, 105, &medp->ErrorNumber, &medp->Mask, 1<<2);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
 
   Q = ser->new_query();
-  Q->setup_int32_query(address, 106, &medp->ErrorInstance, &medp->Mask, 0x2);
+  Q->setup_int32_query(address, 106, &medp->ErrorInstance, &medp->Mask, 1<<3);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
 
   Q = ser->new_query();
-  Q->setup_int32_query(address, 107, &medp->ErrorParameter, &medp->Mask, 0x2);
+  Q->setup_int32_query(address, 107, &medp->ErrorParameter, &medp->Mask, 1<<4);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
 
   Q = ser->new_query();
-  Q->setup_float32_query(address, 1000, &medp->ObjectTemp, &medp->Mask, 0x4);
+  Q->setup_float32_query(address, 1000, &medp->ObjectTemp, &medp->Mask, 1<<5);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
 
   Q = ser->new_query();
-  Q->setup_float32_query(address, 1001, &medp->SinkTemp, &medp->Mask, 0x8);
+  Q->setup_float32_query(address, 1001, &medp->SinkTemp, &medp->Mask, 1<<6);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
 
   Q = ser->new_query();
-  Q->setup_float32_query(address, 1010, &medp->TargetObjectTemp, &medp->Mask, 0x10);
+  Q->setup_float32_query(address, 1010, &medp->TargetObjectTemp, &medp->Mask, 1<<7);
+  Q->set_persistent(true);
+  ser->enqueue_request(Q);
+
+  Q = ser->new_query();
+  Q->setup_float32_query(address, 1020, &medp->ActualOutputCurrent, &medp->Mask, 1<<8);
+  Q->set_persistent(true);
+  ser->enqueue_request(Q);
+
+  Q = ser->new_query();
+  Q->setup_float32_query(address, 1021, &medp->ActualOutputVoltage, &medp->Mask, 1<<9);
   Q->set_persistent(true);
   ser->enqueue_request(Q);
 }
