@@ -1,10 +1,12 @@
 # Package flight
-Version: 2.5.77
+Version: 2.5.78
 Requires: qnx ncurses screen sudo
 Files: MANIFEST @ /
 Files: MANIFEST_pkg @ /
 
 # Changes:
+# 2.5.78 2021-06-16
+#   meerstetter: Collect power values
 # 2.5.77 2021-06-12
 #   libtmnc: support ncurses line drawing again
 #   libtmph: just rebuilt
