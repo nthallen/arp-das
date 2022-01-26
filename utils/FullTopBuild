@@ -2,6 +2,8 @@
 
 # Bootstrap:
 #  Download the source code:
+# The following is needed by phrtg-native:
+#   sudo ln -s /usr/local $QNX_TARGET/usr/local
 # cd $BUILDROOT
 # git clone git@github.com:nthallen/arp-das.git
 # cd arp-das
