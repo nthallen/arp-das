@@ -3,24 +3,50 @@
 # Bootstrap:
 #  Download the source code:
 # cd $BUILDROOT
-# export CVSROOT=:ext:forge.abcd.harvard.edu:/cvsroot/arp-das
-# cvs checkout QNX6BUILD
-# cd QNX6BUILD
-# QNX6/utils/FullTopBuild
+# git clone git@github.com:nthallen/arp-das.git
+# cd arp-das
+# utils/FullTopBuild
 
-# This expects to find the directories arranged as they are in the CVS
-# repository. Specifically, it is looking for:
-#     nortutil
-#     nortlib2
-#     cmdgen
-#     oui
-#     tmcalgo
-#     snafu
-#     table
-#     qclicomp
-#     cycle
-#     QNX6/*
+# This expects to find the directories arranged as they are in
+# the git repository. Specifically, it is looking for:
 
+dirs=$(cat <<EOF
+utils
+nortutil
+nortlib2
+cmdgen
+oui
+tmlib
+tmphlib
+tmpplib
+displib
+drivers/subbus
+tmutil
+tmc
+TMbfr/resmgr
+lgr
+rdr
+memo
+phrtg-native
+tmcalgo
+drivers/QCLI/qcliutil
+drivers/subbus/subbusd
+drivers/dccc
+drivers/subbus/diag/diagnost
+drivers/subbus/diag/diagsuite
+drivers/DACS/DACSutil
+drivers/soldrv
+drivers/solfmt
+drivers/specq
+drivers/ssp_driver
+drivers/idx64
+drivers/hart
+playback
+drivers/oms
+drivers/tmdf
+drivers/versalogic
+EOF
+)
 
 # This should be run in the root of the source tree, which might
 # be ~/BUILD
@@ -31,7 +57,7 @@ function nl_error {
 }
 
 alldirs=yes
-for dir in QNX6 nortutil nortlib2 cmdgen oui tmcalgo snafu table qclicomp cycle; do
+for dir in $dirs; do
   if [ ! -d $dir ]; then
     echo "Directory $dir not found" >&2
     alldirs=no
@@ -68,44 +94,44 @@ function process {
 }
 
 logresult Start
-process QNX6/utils make install || nl_error "Cannot continue"
-process nortutil/bin FullBuild install
+process utils make install || nl_error "Cannot continue"
+process nortutil FullBuild install
 OK=no
 process nortlib2 FullBuild all &&
   process cmdgen FullBuild all &&
   process oui FullBuild all &&
-  process QNX6/tmlib FullBuild all &&
-  process QNX6/tmphlib FullBuild all &&
-  process QNX6/tmpplib FullBuild all &&
-  process QNX6/displib FullBuild all &&
-  process QNX6/subbus_2010 FullBuild all &&
+  process tmlib FullBuild all &&
+  process tmphlib FullBuild all &&
+  process tmpplib FullBuild all &&
+  process displib FullBuild all &&
+  process drivers/subbus FullBuild all &&
   OK=yes
 [ $OK = yes ] || nl_error "Cannot continue"
-process QNX6/tmutil FullBuild make install
-process QNX6/tmc FullBuild make install
-process QNX6/TMbfr/resmgr FullBuild make install
-process QNX6/lgr FullBuild make install
-process QNX6/rdr FullBuild make install
-process QNX6/memo FullBuild make install
-process QNX6/phrtg-native FullBuild make install
+process tmutil FullBuild make install
+process tmc FullBuild make install
+process TMbfr/resmgr FullBuild make install
+process lgr FullBuild make install
+process rdr FullBuild make install
+process memo FullBuild make install
+process phrtg-native FullBuild make install
 process tmcalgo FullBuild make install
-process QNX6/qcliutil FullBuild make install
-process snafu FullBuild all
-process QNX6/subbus_2010/subbusd FullBuild make install
-process QNX6/dccc FullBuild make install
-process QNX6/diagnost FullBuild make install
-process QNX6/diagsuite FullBuild make install
-process QNX6/DACSutil FullBuild make install
-process QNX6/soldrv FullBuild make install
-process QNX6/solfmt FullBuild make install
-process QNX6/specq FullBuild make install
-process QNX6/ssp_driver FullBuild make install
-process QNX6/idx64 FullBuild make install
-process QNX6/hart FullBuild make install
-process QNX6/playback FullBuild make install
-process QNX6/oms FullBuild make install
-process QNX6/tmdf FullBuild make install
-process QNX6/versalogic FullBuild install
+process drivers/QCLI/qcliutil FullBuild make install
+# process snafu FullBuild all
+process drivers/subbus/subbusd FullBuild make install
+process drivers/dccc FullBuild make install
+process drivers/subbus/diag/diagnost FullBuild make install
+process drivers/subbus/diag/diagsuite FullBuild make install
+process drivers/DACS/DACSutil FullBuild make install
+process drivers/soldrv FullBuild make install
+process drivers/solfmt FullBuild make install
+process drivers/specq FullBuild make install
+process drivers/ssp_driver FullBuild make install
+process drivers/idx64 FullBuild make install
+process drivers/hart FullBuild make install
+process playback FullBuild make install
+process drivers/oms FullBuild make install
+process drivers/tmdf FullBuild make install
+process drivers/versalogic FullBuild install
 
 # The eli build has been fixed, but it should probably be
 # built before FullTopBuild

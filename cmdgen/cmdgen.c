@@ -34,7 +34,7 @@ static int verbose = 0;
 static char data_file[FILENAME_MAX+1] = "";
 static time_t time_of_day;
 
-char *opt_string = OPT_COMPILER_INIT "d:V";
+const char *opt_string = OPT_COMPILER_INIT "d:V";
 
 static void print_word(FILE *fp, struct sub_item_t *si) {
   switch (si->type) {

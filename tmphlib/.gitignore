@@ -1,7 +1,11 @@
 aclocal.m4
 libtool
-Makefile.in Makefile
-configure config.log config.cache config.status
+Makefile.in
+Makefile
+configure
+config.log
+config.cache
+config.status
 autom4te.cache
 ltmain.sh
 x86
