@@ -1,4 +1,4 @@
-  1 SysTDrift TMbase TDrift
-  1 CPU_Pct TMbase CPU
-  @FREEMEM_RATE@ freemem TMbase RAM
-  1 Disk TMbase Disk
+  1 SysTDrift @Panel@TMbase TDrift
+  1 CPU_Pct @Panel@TMbase CPU
+  @FREEMEM_RATE@ freemem @Panel@TMbase RAM
+  1 Disk @Panel@TMbase Disk

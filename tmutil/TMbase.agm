@@ -1,8 +1,23 @@
-ModuleDef TMbase [ FREEMEM_RATE=1 ] {
+ModuleDef TMbase [ FREEMEM_RATE=1 SWSnot=# SWStat=SWStat Fnot=# Fail=Fail Panel= ] {
   Includes all the basic data definitions
   Creates TMbase.tbl with TMbase and TMbaseB tables
   Currently no configuration options, but cpu_usage and tmdf
   are both ripe for adaptation.
+  
+  FREEMEM_RATE is the data rate for the freemem TM channel
+  SWStat is the variable name for a software status variable defined
+         elsewhere.
+  SWSnot defaults to a comment character. Define as empty to
+         add the display of the SWStat variable in the TMbase_data
+         table
+  Fail   is the variable name for a fail status variable defined
+         elsewhere
+  Fnot   defaults to a comment character. Define as empty to
+         add the display of the Fail variable in the TMbase_data
+         table
+  Panel  default to empty. Define when generating a tabbed interface
+         for the MATLAB engineering application. For example, set
+         Panel=HK: to assign the TMbase channels to the 'HK' panel.
 }
 
 tmcbase = /usr/local/share/huarp/tdrift.tmc
