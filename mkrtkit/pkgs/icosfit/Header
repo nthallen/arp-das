@@ -2,6 +2,7 @@
 Version: 4.3.0
 Requires: lapack blas
 Files: MANIFEST @ /
+Files: MANIFEST_pkg @ /
 
 # Changes:
 # 4.3.0  2022-04-06
