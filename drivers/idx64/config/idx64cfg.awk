@@ -185,7 +185,7 @@ END {
   # Generate TMC definitions
   #----------------------------------------------------------------
   if ( basetmc ) {
-	print "TM typedef unsigned short IndxrPos {"
+	print "TM typedef uint16_t IndxrPos {"
 	print "  text \"%5d\";"
 	print "  collect x = sbrwa(x.address);"
 	print "}"
@@ -348,7 +348,7 @@ END {
 	  print "\t\"S/Al\""
 	  print "  };"
 	  print "%}"
-	  print "TM typedef unsigned short IndxrFlag {"
+	  print "TM typedef uint16_t IndxrFlag {"
 	  print "  text \"%4d\" IdxFlgTxt[];"
 	  print "}\n"
 
