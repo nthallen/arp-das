@@ -1,0 +1,8 @@
+# icosfit package
+Version: 4.3.0
+Requires: lapack blas
+Files: MANIFEST @ /
+
+# Changes:
+# 4.3.0  2022-04-06
+#   Initial version of realtime icosfit
