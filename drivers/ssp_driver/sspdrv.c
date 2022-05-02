@@ -347,7 +347,7 @@ void read_cmd( int cmd_fd ) {
     } else {
       noise_config.NSamp = noise_config.NM - noise_config.NN + 1;
       noise_config.meanX = (noise_config.NSamp+1)/2.0;
-      noise_config.sumX2  = exp(noise_config.NSamp,3)/12. -
+      noise_config.sumX2  = powf(noise_config.NSamp,3)/12. -
         noise_config.NSamp/12.;
     }
     noise_config.modified = 0;
