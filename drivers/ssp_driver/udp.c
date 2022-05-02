@@ -182,25 +182,44 @@ static void output_scan(long int *scan, mlf_def_t *mlf, int do_amp) {
   }
   if (noise_config.NZ) {
     int i, j;
-    float zero, amplitude, noise;
     for (j = 0; j < hdr->NChannels; ++j) {
+      float zero, amplitude, noise, meanY, sumXY, m;
+      
+      // Determine zero
       zero = 0;
       for (i = 0; i < noise_config.NZ; ++i) {
         zero += fdata[j][i];
       }
       zero /= noise_config.NZ;
+      
+      // Determine amplitude, meanY
       amplitude = 0;
       for (i = noise_config.NN; i <= noise_config.NM; ++i) {
         amplitude += fdata[j][i];
       }
-      amplitude = amplitude/(noise_config.NM-noise_config.NN+1);
+      meanY = amplitude/noise_config.NSamp;
+      amplitude = meanY - zero;
+
+      // Calculate slope m
+      sumXY = 0;
+      for (i = 1; i <= noise_config.NSamp; ++i) {
+        int ii = i+noise_config.NN-1;
+        float Xi = i - noise_config.meanX;
+        float Yi = fdata[j][ii] - meanY;
+        sumXY += Xi*Yi;
+      }
+      m = sumXY / noise_config.sumX2;
+
+      // Calculate std of residual
       noise = 0;
-      for (i = noise_config.NN; i <= noise_config.NM; ++i) {
-        float dev = fdata[j][i] - amplitude;
+      for (i = 1; i < noise_config.NSamp; ++i) {
+        int ii = i+noise_config.NN-1;
+        float Xi = i - noise_config.meanX;
+        float dev = fdata[j][ii] - meanY - m*Xi;
         noise += dev*dev;
       }
-      noise = sqrtf(noise/(noise_config.NM-noise_config.NN+1));
-      amplitude -= zero;
+      noise = sqrtf(noise/noise_config.NSamp);
+      
       ssp_amp_data.amplitude[j] = amplitude;
       ssp_amp_data.noise[j] = noise;
       ssp_amp_data.noise_percent[j] = 100 * noise / amplitude;

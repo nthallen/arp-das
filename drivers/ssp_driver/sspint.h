@@ -44,7 +44,8 @@ extern ssp_data_t ssp_data;
 extern ssp_amp_data_t ssp_amp_data;
 
 typedef struct {
-  unsigned short NZ, NN, NM;
+  unsigned short NZ, NN, NM, NSamp;
+  float meanX, sumX2;
   int modified;
 } noise_config_t;
 
