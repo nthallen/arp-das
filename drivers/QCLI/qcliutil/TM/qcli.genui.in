@@ -14,7 +14,7 @@
   @SSPRATE@ SSP@SUFFIX@_SN      QCLI@SUFFIX@_stat SN
   1 QCLI@SUFFIX@_Stale  QCLI@SUFFIX@_stat Stale
   @SSPRATE@ SSP@SUFFIX@_Stale   QCLI@SUFFIX@_stat Stale
-  1 QCLI@SUFFIX@_err    QCLI@SUFFIX@_stat err
+  1 QCLI@SUFFIX@_err    QCLI@SUFFIX@_stat err %.0lf
   1 QCLI@SUFFIX@_fifodep QCLI@SUFFIX@_stat fifodep
   1 QCLI@SUFFIX@_flash   QCLI@SUFFIX@_stat flash
   1 QCLI@SUFFIX@_mode    QCLI@SUFFIX@_stat mode %.0lf
