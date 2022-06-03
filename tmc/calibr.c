@@ -367,16 +367,30 @@ static int txtfmt(char *buf, char *format, struct pfmt *pformat,
     }
     sprintf(buf, format, ov);
   } else if (TYPE_INTEGRAL(type)) {
-    switch (type & (INTTYPE_CHAR | INTTYPE_LONG | INTTYPE_UNSIGNED)) {
-      case 0: mn = INT16_MIN; mx = INT16_MAX; break;
-      case INTTYPE_UNSIGNED: mn = 0; mx = UINT16_MAX; break;
-      case INTTYPE_CHAR: mn = INT8_MIN; mx = INT8_MAX; break;
-      case INTTYPE_UNSIGNED | INTTYPE_CHAR: mn = 0; mx = UINT8_MAX; break;
-      case INTTYPE_LONG: mn = INT32_MIN; mx = INT32_MAX; break;
-      case INTTYPE_UNSIGNED | INTTYPE_LONG: mn = 0; mx = UINT32_MAX; break;
-      default:
-        compile_error(2, "Internal: Strange type %X in txtfmt", type);
-        return(1);
+    if (TYPE_KR_INTEGRAL(type)) {
+      switch (type & (INTTYPE_CHAR | INTTYPE_SHORT | INTTYPE_LONG | INTTYPE_UNSIGNED)) {
+        case 0: mn = INT_MIN; mx = INT_MAX; break;
+        case INTTYPE_UNSIGNED: mn = 0; mx = UINT_MAX; break;
+        case INTTYPE_CHAR: mn = SCHAR_MIN; mx = SCHAR_MAX; break;
+        case INTTYPE_UNSIGNED | INTTYPE_CHAR: mn = 0; mx = UCHAR_MAX; break;
+        case INTTYPE_LONG: mn = LONG_MIN; mx = LONG_MAX; break;
+        case INTTYPE_UNSIGNED | INTTYPE_LONG: mn = 0; mx = ULONG_MAX; break;
+        default:
+          compile_error(2, "Internal: Strange type %X in txtfmt", type);
+          return(1);
+      }
+    } else {
+      switch (type) {
+        case INTTYPE_INT8: mn = INT8_MIN; mx = INT8_MAX; break;
+        case INTTYPE_UINT8: mn = 0; mx = UINT8_MAX; break;
+        case INTTYPE_INT16: mn = INT16_MIN; mx = INT16_MAX; break;
+        case INTTYPE_UINT16: mn = 0; mx = UINT16_MAX; break;
+        case INTTYPE_INT32: mn = INT32_MIN; mx = INT32_MAX; break;
+        case INTTYPE_UINT32: mn = 0; mx = UINT32_MAX; break;
+        default:
+          compile_error(2, "Unsupported type %X in txtfmt", type);
+          return(1);
+      }
     }
     if (ov < mn || ov > mx) {
       compile_error(2, "Conversion out of range");
