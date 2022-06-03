@@ -233,10 +233,10 @@ for (my $i = 0; $i < $n_channels; ++$i) {
     push(@grpmem, map "${datum}_$_", qw(Flow T Status ACK ACK2 Stale));
 
     print $genui
-      "  $Rate ${datum}_Status ${Name}_HK Status\n",
+      "  $Rate ${datum}_Status ${Name}_HK Status %.0lf\n",
       "  $Rate ${datum}_Stale  ${Name}_HK Stale\n",
-      "  $Rate ${datum}_ACK    ${Name}_HK ACK\n",
-      "  $Rate ${datum}_ACK2   ${Name}_HK ACK2\n",
+      "  $Rate ${datum}_ACK    ${Name}_HK ACK %.0lf\n",
+      "  $Rate ${datum}_ACK2   ${Name}_HK ACK2 %.0lf\n",
       "  $Rate ${datum}_T      ${Name}_HK Temp\n",
       (($D->{chtype} eq 'mfc') ?
         "  $Rate ${datum}_Set    $Name ${datum}_Flow\n"

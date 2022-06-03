@@ -190,7 +190,7 @@ END {
 	print "  collect x = sbrwa(x.address);"
 	print "}"
 	print "TM typedef unsigned char IndxrStat {"
-	print "  text \"%08b\";"
+	print "  text \"%3u\";"
 	print "  collect x = sbrba(x.address);"
 	print "}"
 	for ( i = 0; i <= max_channel; i++ ) {

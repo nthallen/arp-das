@@ -196,6 +196,9 @@ void compile(void) {
         new_mode_code(cycle_index & 0xFF);
         new_mode_code((cycle_index >> 8) & 0xFF);
       }
+    } else if (modes[i].next_mode >= 0) {
+      new_mode_code(SOL_SELECT);
+      new_mode_code(modes[i].next_mode);
     }
     new_mode_code(SOL_END_MODE);
   }

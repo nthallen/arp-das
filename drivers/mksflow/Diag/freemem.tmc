@@ -4,7 +4,7 @@
   */
 %}
 TM typedef double MB;
-TM typedef unsigned short freemem_t {
+TM typedef uint16_t freemem_t {
   convert MB; text "%7.2lf";
   collect x = get_free_mem();
 }

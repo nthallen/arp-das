@@ -100,6 +100,34 @@ void udp_close(void) {
   cfgerr_reported = 0;
 }
 
+/**
+ * Noise calculation:
+ *   May 2, 2022 (DCOTSS Integration Year 2)
+ *   The existing calculation assumed it was possible to find a level scan region,
+ *   which was true on the relevant system at the time. Now we clearly need to
+ *   detrend the signal before calculating the noise.
+ *
+ *   Basic problem: {Xi,Yi}. To detrend, we want m, b such that  Y = mX + b
+ *   minimizes the sum of the  squares  of  the residuals. Practically, this
+ *   calculation can be more accurately performed when mean(X) and mean(Y) are
+ *   zero, and for  our purposes, there is no problem with subtracting this mean.
+ *
+ *   i ranges from NN to MM, so there  are N = MM-NN+1 samples. With no loss of
+ *   generality, we will assume i ranges  from 1 to  N, and Xi = i.
+ *   Then mean(Xi) = (N+1)/2.
+ *   Define X'i = Xi - mean(Xi) = i-(N+1)/2. mean(X'i) = 0, and
+ *   sum(X'i^2) = (N^3)/12 - N/12
+ *
+ *   Define Y'i = Yi - mean(Yi). Then m = sum(X'i * Y'i)/sum(X'i^2) and b = 0.
+ *   Note that sum(X'i^2) is a constant, so the only thing we need to calculate
+ *   is  sum(X'i* Y'i).
+ *
+ *   The detreneded residual values are Y'i - m X'i, and the mean of the residual
+ *   is zero. (TBD: prove that last assertion, and it is not exactly
+ *   true in MATLAB simulation due to roundoff) So all we need to do is calculate
+ *   noise = sqrt(sum((Y'i-mX'i)^2))/N and presumably  noise_percent = noise/mean(Yi)
+ */
+
 static void output_scan(long int *scan, mlf_def_t *mlf, int do_amp) {
   FILE *ofp;
   ssp_scan_header_t *hdr = (ssp_scan_header_t *)scan;
@@ -154,25 +182,44 @@ static void output_scan(long int *scan, mlf_def_t *mlf, int do_amp) {
   }
   if (noise_config.NZ) {
     int i, j;
-    float zero, amplitude, noise;
     for (j = 0; j < hdr->NChannels; ++j) {
+      float zero, amplitude, noise, meanY, sumXY, m;
+      
+      // Determine zero
       zero = 0;
       for (i = 0; i < noise_config.NZ; ++i) {
         zero += fdata[j][i];
       }
       zero /= noise_config.NZ;
+      
+      // Determine amplitude, meanY
       amplitude = 0;
       for (i = noise_config.NN; i <= noise_config.NM; ++i) {
         amplitude += fdata[j][i];
       }
-      amplitude = amplitude/(noise_config.NM-noise_config.NN+1);
+      meanY = amplitude/noise_config.NSamp;
+      amplitude = meanY - zero;
+
+      // Calculate slope m
+      sumXY = 0;
+      for (i = 1; i <= noise_config.NSamp; ++i) {
+        int ii = i+noise_config.NN-1;
+        float Xi = i - noise_config.meanX;
+        float Yi = fdata[j][ii] - meanY;
+        sumXY += Xi*Yi;
+      }
+      m = sumXY / noise_config.sumX2;
+
+      // Calculate std of residual
       noise = 0;
-      for (i = noise_config.NN; i <= noise_config.NM; ++i) {
-        float dev = fdata[j][i] - amplitude;
+      for (i = 1; i < noise_config.NSamp; ++i) {
+        int ii = i+noise_config.NN-1;
+        float Xi = i - noise_config.meanX;
+        float dev = fdata[j][ii] - meanY - m*Xi;
         noise += dev*dev;
       }
-      noise = sqrtf(noise/(noise_config.NM-noise_config.NN+1));
-      amplitude -= zero;
+      noise = sqrtf(noise/noise_config.NSamp);
+      
       ssp_amp_data.amplitude[j] = amplitude;
       ssp_amp_data.noise[j] = noise;
       ssp_amp_data.noise_percent[j] = 100 * noise / amplitude;
