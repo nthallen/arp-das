@@ -300,8 +300,8 @@ int main(int argc, char **argv) {
                   nbw = write(dccc_fd, s, nbs);
                   if ( nbw != nbs )
                     nl_error(3, "Error %d sending to dccc", errno);
-		  else
-		    msg(MSG_DEBUG,"DCCC: '%s'", s);
+                  else
+                    msg(MSG_DEBUG,"DCCC: '%s'", s);
                   ++ip;
                 }
                 break;
@@ -353,8 +353,8 @@ int main(int argc, char **argv) {
                       set_points[mode_code[ip+1]].value);
                   SolStat = set_points[mode_code[ip+1]].value;
                   if (SolStat_id == NULL)
-		    nl_error(2, "Never initialized SolStat");
-		  else Col_send(SolStat_id);
+                    nl_error(2, "Never initialized SolStat");
+                  else Col_send(SolStat_id);
                 } else
                   if (set_points[mode_code[ip+1]].address >= cacher) {
                     msg(MSG_DBG(1),"Caching %d to address %d",

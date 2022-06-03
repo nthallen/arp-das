@@ -40,21 +40,21 @@ void add_change(change *nc, change **base) {
   oc = NULL;
   noc = *base;
   while (noc != NULL
-		 && (nc->time > noc->time
-			 || (nc->time == noc->time
-				 && nc->type <= noc->type))) {
-	oc = noc;
-	noc = noc->next;
+         && (nc->time > noc->time
+             || (nc->time == noc->time
+                 && nc->type <= noc->type))) {
+    oc = noc;
+    noc = noc->next;
   }
   nc->next = noc;
   if (oc == NULL) *base = nc;
   else {
-	if (oc->time == nc->time
-		&& oc->type == nc->type
-		&& oc->t_index == nc->t_index
-		&& oc->state == nc->state)
-	  free(nc);
-	else oc->next = nc;
+    if (oc->time == nc->time
+        && oc->type == nc->type
+        && oc->t_index == nc->t_index
+        && oc->state == nc->state)
+      free(nc);
+    else oc->next = nc;
   }
 }
 
@@ -100,86 +100,86 @@ void read_mode(void) {
   for (i = 0; i < n_solenoids; i++) solenoids[i].last_time =
     solenoids[i].last_state = solenoids[i].first_state = -1;
   for (i = 0; i < n_dtoas; i++) dtoas[i].last_time =
-	dtoas[i].last_state = dtoas[i].first_state = -1;
+    dtoas[i].last_state = dtoas[i].first_state = -1;
   for (i = 0; i < n_proxies; i++) proxies[i].last_time =
-	proxies[i].last_state = proxies[i].first_state = -1;
+    proxies[i].last_state = proxies[i].first_state = -1;
   for (;;) {
     token = get_token();
     switch (token) {
       case TK_INITIALIZE:
         token = get_token();
         if (token != TK_SOLENOID_NAME
-			&& token != TK_DTOA_NAME
-			&& token != TK_PROXY_NAME)
+            && token != TK_DTOA_NAME
+            && token != TK_PROXY_NAME)
           filerr("Initialize requires solenoid, DtoA or Proxy name\n");
         sn = gt_number;
         if (get_token() != TK_COLON) filerr("Initialize <name>: - ':' needed\n");
         if ((i = get_change_code(token, sn)) < 0)
           filerr("Initialize <name>:<valving char> - No <valving char>\n");
         nc = new_change(token, i);
-		nc->time = -1;
+        nc->time = -1;
         nc->t_index = sn;
-		add_change(nc, &modes[mn].init);
+        add_change(nc, &modes[mn].init);
         continue;
       case TK_SOLENOID_NAME:
       case TK_DTOA_NAME:
-	  case TK_PROXY_NAME:
+      case TK_PROXY_NAME:
         sn = gt_number;
         if (get_token() != TK_COLON) filerr("<name>: - Missing the ':'\n");
         if (token == TK_SOLENOID_NAME) time = solenoids[sn].last_time;
         else if (token == TK_DTOA_NAME) time = dtoas[sn].last_time;
         else if (token == TK_PROXY_NAME) time = proxies[sn].last_time;
         for (;;) {
-		  i = get_change_code(token, sn);
+          i = get_change_code(token, sn);
           if (i == -1) break;
           if (time == -1) time = 0;
           else if (i != MODE_SWITCH_OK) time++;
           if (i != MODE_SWITCH_OK
               && ((token == TK_DTOA_NAME
-				   && i == dtoas[sn].last_state)
-				  || (token == TK_SOLENOID_NAME
-					  && i == solenoids[sn].last_state)
-				  || (token == TK_PROXY_NAME
-					  && i == proxies[sn].last_state)))
+                   && i == dtoas[sn].last_state)
+                  || (token == TK_SOLENOID_NAME
+                      && i == solenoids[sn].last_state)
+                  || (token == TK_PROXY_NAME
+                      && i == proxies[sn].last_state)))
             continue;
-		  if (i == MODE_SWITCH_OK) {
-			nc = new_change('^', 0);
+          if (i == MODE_SWITCH_OK) {
+            nc = new_change('^', 0);
             nc->t_index = 0;
             nc->time = time+1;
           } else {
-			nc = new_change(token, i);
+            nc = new_change(token, i);
             nc->t_index = sn;
             nc->time = time;
-			switch (token) {
-			  case TK_SOLENOID_NAME:
-				if (solenoids[sn].first_state == -1)
-				  solenoids[sn].first_state = i;
-				solenoids[sn].last_state = i;
-				break;
-			  case TK_DTOA_NAME:
-				if (dtoas[sn].first_state == -1) dtoas[sn].first_state = i;
-				dtoas[sn].last_state = i;
-				break;
-			  case TK_PROXY_NAME:
-				if (proxies[sn].first_state == -1)
-				  proxies[sn].first_state = i;
-				proxies[sn].last_state = i;
-				break;
+            switch (token) {
+              case TK_SOLENOID_NAME:
+                if (solenoids[sn].first_state == -1)
+                  solenoids[sn].first_state = i;
+                solenoids[sn].last_state = i;
+                break;
+              case TK_DTOA_NAME:
+                if (dtoas[sn].first_state == -1) dtoas[sn].first_state = i;
+                dtoas[sn].last_state = i;
+                break;
+              case TK_PROXY_NAME:
+                if (proxies[sn].first_state == -1)
+                  proxies[sn].first_state = i;
+                proxies[sn].last_state = i;
+                break;
             }
-		  }
+          }
           add_change(nc, &modes[mn].first);
         }
-		switch (token) {
-		  case TK_SOLENOID_NAME:
-			solenoids[sn].last_time = time;
-			break;
-		  case TK_DTOA_NAME:
-			dtoas[sn].last_time = time;
-			break;
-		  case TK_PROXY_NAME:
-			proxies[sn].last_time = time;
-			break;
-		}
+        switch (token) {
+          case TK_SOLENOID_NAME:
+            solenoids[sn].last_time = time;
+            break;
+          case TK_DTOA_NAME:
+            dtoas[sn].last_time = time;
+            break;
+          case TK_PROXY_NAME:
+            proxies[sn].last_time = time;
+            break;
+        }
         continue;
       case TK_ROUTINE_NAME:
         if (in_routine) filerr("Nested routines are not supported\n");
@@ -208,7 +208,7 @@ void read_mode(void) {
   for (i = 0; i < n_solenoids; i++) {
     if (solenoids[i].last_time != -1) {
       if (time == -1) {
-	time = solenoids[i].last_time;
+        time = solenoids[i].last_time;
       } else if (solenoids[i].last_time != time) {
         filerr("Mode %d has ambiguous cycle lengths (sol. %s)\n", mn,
                 solenoids[i].name);
@@ -218,7 +218,7 @@ void read_mode(void) {
   for (i = 0; i < n_dtoas; i++) {
     if (dtoas[i].last_time != -1) {
       if (time == -1) {
-	time = dtoas[i].last_time;
+        time = dtoas[i].last_time;
       } else if (dtoas[i].last_time != time) {
         filerr("Mode %d has ambiguous cycle lengths (dtoa %s)\n", mn,
                 dtoas[i].name);
@@ -228,7 +228,7 @@ void read_mode(void) {
   for (i = 0; i < n_proxies; i++) {
     if (proxies[i].last_time != -1) {
       if (time == -1) {
-	time = proxies[i].last_time;
+        time = proxies[i].last_time;
       } else if (proxies[i].last_time != time) {
         filerr("Mode %d has ambiguous cycle lengths (proxy %s)\n", mn,
                 proxies[i].name);
