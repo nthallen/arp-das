@@ -235,6 +235,8 @@ print $cmd <<EOF
     }
   : &$Name Live SetPoints Enable * { if_$Name.Turf("W%d:50011:00000001\\n", \$1); }
   : &$Name Live SetPoints Disable * { if_$Name.Turf("W%d:50011:00000000\\n", \$1); }
+# : &$Name Query Int %d (Enter Address) * { if_$Name.Turf("RI%d:%d\\n", \$1, \$4); }
+# : &$Name Query Float %d (Enter Address) * { if_$Name.Turf("RF%d:%d\\n", \$1, \$4); }
   ;
 
 &$Name <int>
