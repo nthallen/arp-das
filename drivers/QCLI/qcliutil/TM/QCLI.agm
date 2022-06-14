@@ -1,4 +1,4 @@
-Moduledef QCLI [ SUFFIX= ADDR=0x1000 ACQCFG=AB3R RESET=# SSPRATE=1 AMP3=# ] {
+Moduledef QCLI [ SUFFIX= ADDR=0x1000 ACQCFG=AB3R RESET=# SSPRATE=1 AMP3=# Panel= ] {
   QCLI definitions, takes mode, SUFFIX, ADDR, ACQCFG, SSPRATE and RESET
     arguments. Generates multiple files.
   mode is one of default, amp or noise.
@@ -13,6 +13,7 @@ Moduledef QCLI [ SUFFIX= ADDR=0x1000 ACQCFG=AB3R RESET=# SSPRATE=1 AMP3=# ] {
       the third channel.
   SSPRATE is the TM reporting rate for SSP data
   RESET= will add QCLI@SUFFIX@_Reset to the .tbl file
+  Panel= optional panel prefix for genui output
 }
 
 mode (default,amp,noise) {

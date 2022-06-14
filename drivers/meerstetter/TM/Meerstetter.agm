@@ -1,4 +1,10 @@
-Moduledef Meerstetter [ src= name=ME ] {
+Moduledef Meerstetter [ src= name=ME Panel= ] {
+  Module Parameters:
+  
+  name=ME  Prefix for all variables
+  src=     Required source file name
+  Panel=   Optional panel prefix for genui grouping
+
   Meerstetter Module requires a src variable
   Source file syntax:
     source_file : source_line+ .
@@ -24,5 +30,5 @@ mode (default,driver) {
   SRC = @src@
   %%
 @name@.tmc @name@_col.tmc @name@.cmd @name@.genui @name@.tbl : @src@ @MODDIR@/Meerstetter_gen
-	@MODDIR@/Meerstetter_gen @src@ name=@name@
+	@MODDIR@/Meerstetter_gen @src@ name=@name@ panel=@panel@
 }

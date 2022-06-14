@@ -24,9 +24,12 @@ my %Channel;
 my @Index;
 my $n_channels = 0;
 my $linenum = 0;
-if (@ARGV > 1) {
-  if ($ARGV[1] =~ m/^name=([a-z][a-z0-9_]*)$/i ) {
+my $panel = '';
+for (my $i = 1; $i < @ARGV; ++$i) {
+  if ($ARGV[$i] =~ m/^name=([a-z][a-z0-9_]*)$/i ) {
     $name_cl = $1;
+  } elsif ($ARGV[$i] =~ m/^Panel=([a-z][a-z0-9_]*):?$/i ) {
+    $panel = "$1:";
   } else {
     die "Invalid name specification: '$ARGV[1]'\n";
   }
@@ -96,7 +99,7 @@ $coldef .= "  ${Name}_Stale = ${Name}_obj->stale(255);\n";
 push(@grpmem, "${Name}_Stale");
 
 print $genui
-  "  $Rate ${Name}_Stale ${Name}_Stale ME_Stale\n";
+  "  $Rate ${Name}_Stale $panel${Name}_Stale ME_Stale\n";
 
 for (my $i = 0; $i < $n_channels; ++$i) {
   my $offset = $i;
@@ -128,17 +131,17 @@ for (my $i = 0; $i < $n_channels; ++$i) {
   push(@grpmem, map "${datum}_$_", qw(DevStatus ErrorNumber ErrorInstance ErrorParameter T Sink_T Set_T));
 
   print $genui
-    "  $Rate ${datum}_ErrorNumber ${Name}_Errors ${datum}_Errors\n",
-    "  $Rate ${datum}_ErrorInstance ${Name}_Errors ${datum}_Errors\n",
-    "  $Rate ${datum}_ErrorParameter ${Name}_Errors ${datum}_Errors\n",
-    "  $Rate ${datum}_Stale ${Name}_Stale ${datum}_Stale\n",
+    "  $Rate ${datum}_ErrorNumber $panel${Name}_Errors ${datum}_Errors\n",
+    "  $Rate ${datum}_ErrorInstance $panel${Name}_Errors ${datum}_Errors\n",
+    "  $Rate ${datum}_ErrorParameter $panel${Name}_Errors ${datum}_Errors\n",
+    "  $Rate ${datum}_Stale $panel${Name}_Stale ${datum}_Stale\n",
 
-    "  $Rate ${datum}_T ${Name}_${datum} Temp %.2lf\n",
-    "  $Rate ${datum}_Set_T ${Name}_${datum} Temp\n",
-    "  $Rate ${datum}_Sink_T ${Name}_${datum} Temp\n",
-    "  $Rate ${datum}_OutputCurrent ${Name}_${datum} Current\n",
-    "  $Rate ${datum}_OutputVoltage ${Name}_${datum} Voltage\n",
-    "  $Rate ${datum}_DevStatus ${Name}_${datum} Status %.0lf\n";
+    "  $Rate ${datum}_T $panel${Name}_${datum} Temp %.2lf\n",
+    "  $Rate ${datum}_Set_T $panel${Name}_${datum} Temp\n",
+    "  $Rate ${datum}_Sink_T $panel${Name}_${datum} Temp\n",
+    "  $Rate ${datum}_OutputCurrent $panel${Name}_${datum} Current\n",
+    "  $Rate ${datum}_OutputVoltage $panel${Name}_${datum} Voltage\n",
+    "  $Rate ${datum}_DevStatus $panel${Name}_${datum} Status %.0lf\n";
 
   my $datumtbl =
     "  ${datum}: (${datum}_DevStatus,7) (${datum}_Stale,3) " .
@@ -208,9 +211,6 @@ print $col
   "%{\n" .
   "  meerstetter_t $Name;\n" .
   "%}\n";
-
-print $genui
-  "  $Rate ${Name}_Stale $Name Stale\n";
 
 print $tbl
   "$Name {\n" .

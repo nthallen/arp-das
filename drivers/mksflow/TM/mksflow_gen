@@ -29,13 +29,23 @@ my $have_analog = 0;
 my $have_non_unity_ai = 0;
 my %analog_units;
 my $linenum = 0;
-if (@ARGV > 1) {
-  if ($ARGV[1] =~ m/^name=([a-z][a-z0-9_]*)$/i ) {
+my $panel = '';
+for (my $i = 1; $i < @ARGV; ++$i) {
+  if ($ARGV[$i] =~ m/^name=([a-z][a-z0-9_]*)$/i ) {
     $name_cl = $1;
+  } elsif ($ARGV[$i] =~ m/^Panel=([a-z][a-z0-9_]*):?$/i ) {
+    $panel = "$1:";
   } else {
     die "Invalid name specification: '$ARGV[1]'\n";
   }
 }
+# if (@ARGV > 1) {
+  # if ($ARGV[1] =~ m/^name=([a-z][a-z0-9_]*)$/i ) {
+    # $name_cl = $1;
+  # } else {
+    # die "Invalid name specification: '$ARGV[1]'\n";
+  # }
+# }
 
 open(my $ifh, "<", $srcfile)
   or die "Cannot open < $srcfile\n";
@@ -233,15 +243,15 @@ for (my $i = 0; $i < $n_channels; ++$i) {
     push(@grpmem, map "${datum}_$_", qw(Flow T Status ACK ACK2 Stale));
 
     print $genui
-      "  $Rate ${datum}_Status ${Name}_HK Status %.0lf\n",
-      "  $Rate ${datum}_Stale  ${Name}_HK Stale\n",
-      "  $Rate ${datum}_ACK    ${Name}_HK ACK %.0lf\n",
-      "  $Rate ${datum}_ACK2   ${Name}_HK ACK2 %.0lf\n",
-      "  $Rate ${datum}_T      ${Name}_HK Temp\n",
+      "  $Rate ${datum}_Status $panel${Name}_HK Status %.0lf\n",
+      "  $Rate ${datum}_Stale  $panel${Name}_HK Stale\n",
+      "  $Rate ${datum}_ACK    $panel${Name}_HK ACK %.0lf\n",
+      "  $Rate ${datum}_ACK2   $panel${Name}_HK ACK2 %.0lf\n",
+      "  $Rate ${datum}_T      $panel${Name}_HK Temp\n",
       (($D->{chtype} eq 'mfc') ?
-        "  $Rate ${datum}_Set    $Name ${datum}_Flow\n"
+        "  $Rate ${datum}_Set    $panel$Name ${datum}_Flow\n"
         : ''),
-      "  $Rate ${datum}_Flow   $Name ${datum}_Flow\n";
+      "  $Rate ${datum}_Flow   $panel$Name ${datum}_Flow\n";
   } else {
     # All analog channels are mfc for now
     # Need to create types for setpoint and readback
@@ -294,8 +304,8 @@ for (my $i = 0; $i < $n_channels; ++$i) {
 
 
     print $genui
-      "  $Rate ${datum}_Set    $Name ${datum}_Flow\n",
-      "  $Rate ${datum}_Flow   $Name ${datum}_Flow\n";
+      "  $Rate ${datum}_Set    $panel$Name ${datum}_Flow\n",
+      "  $Rate ${datum}_Flow   $panel$Name ${datum}_Flow\n";
   }
   
   my $setdisp = ($D->{chtype} eq 'mfc') ? "(${datum}_Set,7)" : '"          "';
@@ -363,7 +373,7 @@ if ($have_digital) {
     "  ${Name}_obj->synch();\n}\n";
 
   print $genui
-    "  $Rate ${Name}_Stale ${Name}_HK Stale\n";
+    "  $Rate ${Name}_Stale $panel${Name}_HK Stale\n";
 }
 
 print $tbl

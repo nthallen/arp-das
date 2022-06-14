@@ -1,4 +1,9 @@
-Moduledef mksflow [ src= name=MKS ] {
+Moduledef mksflow [ src= name=MKS Panel= ] {
+  Module parameters:
+    src=     Manadatory source file name
+    name=MKS Prefix to all variables, etc.
+    Panel=   Optional panel prefix for genui output
+
   mksflow Module requires a src variable
   Source file syntax:
     source_file : source_line+ .

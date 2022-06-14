@@ -1,36 +1,36 @@
-  1 QCLI@SUFFIX@_Wave QCLI@SUFFIX@ Wave %.0lf
-  @SSPRATE@ SSP@SUFFIX@_Num   QCLI@SUFFIX@ Scan
-  @SSPRATE@ SSP@SUFFIX@_Status QCLI@SUFFIX@ SSP %.0lf
-  @SSPRATE@ CAOVF1@SUFFIX@:SSP@SUFFIX@_Flags:0 QCLI@SUFFIX@ Overflow
-  @SSPRATE@ CAOVF2@SUFFIX@:SSP@SUFFIX@_Flags:1 QCLI@SUFFIX@ Overflow
-  @SSPRATE@ CAOVF3@SUFFIX@:SSP@SUFFIX@_Flags:2 QCLI@SUFFIX@ Overflow
-  @SSPRATE@ PAOVF1@SUFFIX@:SSP@SUFFIX@_Flags:3 QCLI@SUFFIX@ Overflow
-  @SSPRATE@ PAOVF2@SUFFIX@:SSP@SUFFIX@_Flags:4 QCLI@SUFFIX@ Overflow
-  @SSPRATE@ PAOVF3@SUFFIX@:SSP@SUFFIX@_Flags:5 QCLI@SUFFIX@ Overflow
-  @SSPRATE@ ADOVF1@SUFFIX@:SSP@SUFFIX@_Flags:6 QCLI@SUFFIX@ Overflow
-  @SSPRATE@ ADOVF2@SUFFIX@:SSP@SUFFIX@_Flags:7 QCLI@SUFFIX@ Overflow
-  @SSPRATE@ ADOVF3@SUFFIX@:SSP@SUFFIX@_Flags:8 QCLI@SUFFIX@ Overflow
+  1 QCLI@SUFFIX@_Wave @Panel@QCLI@SUFFIX@ Wave %.0lf
+  @SSPRATE@ SSP@SUFFIX@_Num   @Panel@QCLI@SUFFIX@ Scan
+  @SSPRATE@ SSP@SUFFIX@_Status @Panel@QCLI@SUFFIX@ SSP %.0lf
+  @SSPRATE@ CAOVF1@SUFFIX@:SSP@SUFFIX@_Flags:0 @Panel@QCLI@SUFFIX@ Overflow
+  @SSPRATE@ CAOVF2@SUFFIX@:SSP@SUFFIX@_Flags:1 @Panel@QCLI@SUFFIX@ Overflow
+  @SSPRATE@ CAOVF3@SUFFIX@:SSP@SUFFIX@_Flags:2 @Panel@QCLI@SUFFIX@ Overflow
+  @SSPRATE@ PAOVF1@SUFFIX@:SSP@SUFFIX@_Flags:3 @Panel@QCLI@SUFFIX@ Overflow
+  @SSPRATE@ PAOVF2@SUFFIX@:SSP@SUFFIX@_Flags:4 @Panel@QCLI@SUFFIX@ Overflow
+  @SSPRATE@ PAOVF3@SUFFIX@:SSP@SUFFIX@_Flags:5 @Panel@QCLI@SUFFIX@ Overflow
+  @SSPRATE@ ADOVF1@SUFFIX@:SSP@SUFFIX@_Flags:6 @Panel@QCLI@SUFFIX@ Overflow
+  @SSPRATE@ ADOVF2@SUFFIX@:SSP@SUFFIX@_Flags:7 @Panel@QCLI@SUFFIX@ Overflow
+  @SSPRATE@ ADOVF3@SUFFIX@:SSP@SUFFIX@_Flags:8 @Panel@QCLI@SUFFIX@ Overflow
 
-  @SSPRATE@ SSP@SUFFIX@_SN      QCLI@SUFFIX@_stat SN
-  1 QCLI@SUFFIX@_Stale  QCLI@SUFFIX@_stat Stale
-  @SSPRATE@ SSP@SUFFIX@_Stale   QCLI@SUFFIX@_stat Stale
-  1 QCLI@SUFFIX@_err    QCLI@SUFFIX@_stat err %.0lf
-  1 QCLI@SUFFIX@_fifodep QCLI@SUFFIX@_stat fifodep
-  1 QCLI@SUFFIX@_flash   QCLI@SUFFIX@_stat flash
-  1 QCLI@SUFFIX@_mode    QCLI@SUFFIX@_stat mode %.0lf
-  1 QCLI@SUFFIX@_rw      QCLI@SUFFIX@_stat rw %.0lf
-  1 QCLI@SUFFIX@_present:QCLI@SUFFIX@_CS:11 QCLI@SUFFIX@_stat status
-  1 QCLI@SUFFIX@_laser:QCLI@SUFFIX@_s:12 QCLI@SUFFIX@_stat status
-  1 QCLI@SUFFIX@_cordte:QCLI@SUFFIX@_s:11 QCLI@SUFFIX@_stat status
-  1 QCLI@SUFFIX@_cmderr:QCLI@SUFFIX@_s:13 QCLI@SUFFIX@_stat status
-  1 QCLI@SUFFIX@_cksum:QCLI@SUFFIX@_s:14 QCLI@SUFFIX@_stat status
-  1 QCLI@SUFFIX@_busy:QCLI@SUFFIX@_s:15 QCLI@SUFFIX@_stat status
-  1 QCLI@SUFFIX@_loc:QCLI@SUFFIX@_s:3 QCLI@SUFFIX@_stat status
-  1 QCLI@SUFFIX@_lot:QCLI@SUFFIX@_s:4 QCLI@SUFFIX@_stat status
-  1 QCLI@SUFFIX@_dot:QCLI@SUFFIX@_s:5 QCLI@SUFFIX@_stat status
-  1 QCLI@SUFFIX@_waveerr:QCLI@SUFFIX@_s:8 QCLI@SUFFIX@_stat status
-  1 QCLI@SUFFIX@_ready:QCLI@SUFFIX@_s:9 QCLI@SUFFIX@_stat status
-# 1 QCLI@SUFFIX@_Reset:DS855:0 QCLI@SUFFIX@_stat status
-  @SSPRATE@ SSP@SUFFIX@_TS QCLI@SUFFIX@_stat Skip
-  @SSPRATE@ SSP@SUFFIX@_T_FPGA   Temps SSP@SUFFIX@
-  @SSPRATE@ SSP@SUFFIX@_T_HtSink Temps SSP@SUFFIX@
+  @SSPRATE@ SSP@SUFFIX@_SN  @Panel@QCLI@SUFFIX@_stat SN
+  1 QCLI@SUFFIX@_Stale  @Panel@QCLI@SUFFIX@_stat Stale
+  @SSPRATE@ SSP@SUFFIX@_Stale   @Panel@QCLI@SUFFIX@_stat Stale
+  1 QCLI@SUFFIX@_err    @Panel@QCLI@SUFFIX@_stat err %.0lf
+  1 QCLI@SUFFIX@_fifodep @Panel@QCLI@SUFFIX@_stat fifodep
+  1 QCLI@SUFFIX@_flash   @Panel@QCLI@SUFFIX@_stat flash
+  1 QCLI@SUFFIX@_mode    @Panel@QCLI@SUFFIX@_stat mode %.0lf
+  1 QCLI@SUFFIX@_rw      @Panel@QCLI@SUFFIX@_stat rw %.0lf
+  1 QCLI@SUFFIX@_present:QCLI@SUFFIX@_CS:11 @Panel@QCLI@SUFFIX@_stat status
+  1 QCLI@SUFFIX@_laser:QCLI@SUFFIX@_s:12 @Panel@QCLI@SUFFIX@_stat status
+  1 QCLI@SUFFIX@_cordte:QCLI@SUFFIX@_s:11 @Panel@QCLI@SUFFIX@_stat status
+  1 QCLI@SUFFIX@_cmderr:QCLI@SUFFIX@_s:13 @Panel@QCLI@SUFFIX@_stat status
+  1 QCLI@SUFFIX@_cksum:QCLI@SUFFIX@_s:14 @Panel@QCLI@SUFFIX@_stat status
+  1 QCLI@SUFFIX@_busy:QCLI@SUFFIX@_s:15 @Panel@QCLI@SUFFIX@_stat status
+  1 QCLI@SUFFIX@_loc:QCLI@SUFFIX@_s:3 @Panel@QCLI@SUFFIX@_stat status
+  1 QCLI@SUFFIX@_lot:QCLI@SUFFIX@_s:4 @Panel@QCLI@SUFFIX@_stat status
+  1 QCLI@SUFFIX@_dot:QCLI@SUFFIX@_s:5 @Panel@QCLI@SUFFIX@_stat status
+  1 QCLI@SUFFIX@_waveerr:QCLI@SUFFIX@_s:8 @Panel@QCLI@SUFFIX@_stat status
+  1 QCLI@SUFFIX@_ready:QCLI@SUFFIX@_s:9 @Panel@QCLI@SUFFIX@_stat status
+# 1 QCLI@SUFFIX@_Reset:DS855:0 @Panel@QCLI@SUFFIX@_stat status
+  @SSPRATE@ SSP@SUFFIX@_TS @Panel@QCLI@SUFFIX@_stat Skip
+  @SSPRATE@ SSP@SUFFIX@_T_FPGA   @Panel@Temps SSP@SUFFIX@
+  @SSPRATE@ SSP@SUFFIX@_T_HtSink @Panel@Temps SSP@SUFFIX@
