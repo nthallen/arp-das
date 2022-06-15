@@ -30,5 +30,5 @@ mode (default,driver) {
   SRC = @src@
   %%
 @name@.tmc @name@_col.tmc @name@.cmd @name@.genui @name@.tbl : @src@ @MODDIR@/Meerstetter_gen
-	@MODDIR@/Meerstetter_gen @src@ name=@name@ panel=@panel@
+	@MODDIR@/Meerstetter_gen @src@ name=@name@ panel=@Panel@
 }

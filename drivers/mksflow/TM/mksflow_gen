@@ -36,7 +36,7 @@ for (my $i = 1; $i < @ARGV; ++$i) {
   } elsif ($ARGV[$i] =~ m/^Panel=([a-z][a-z0-9_]*):?$/i ) {
     $panel = "$1:";
   } else {
-    die "Invalid name specification: '$ARGV[1]'\n";
+    die "Invalid argument: '$ARGV[$i]'\n";
   }
 }
 # if (@ARGV > 1) {

@@ -96,5 +96,5 @@ mode (default,driver) {
   SRC = @src@
   %%
 @name@.tmc @name@_col.tmc @name@.cmd @name@.genui @name@.tbl : @src@ @MODDIR@/mksflow_gen
-	@MODDIR@/mksflow_gen @src@ name=@name@
+	@MODDIR@/mksflow_gen @src@ name=@name@ Panel=@Panel@
 }
