@@ -142,7 +142,7 @@ function usb_installer {
 
   newusb=''
 
-  for dev in /dev/umass[0-9]; do
+  for dev in /dev/umass[0-9] /dev/hd1[0-9]; do
     if [ -e $dev -a $dev != $mtdev ]; then
       if [ -n "$newusb" ]; then
 	echo "More than one target device discovered: '$dev'"
