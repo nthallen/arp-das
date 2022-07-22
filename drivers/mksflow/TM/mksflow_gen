@@ -33,7 +33,7 @@ my $panel = '';
 for (my $i = 1; $i < @ARGV; ++$i) {
   if ($ARGV[$i] =~ m/^name=([a-z][a-z0-9_]*)$/i ) {
     $name_cl = $1;
-  } elsif ($ARGV[$i] =~ m/^Panel=([a-z][a-z0-9_]*):?$/i ) {
+  } elsif ($ARGV[$i] =~ m/^Panel=((?:[a-z][a-z0-9_]*)?):?$/i ) {
     $panel = "$1:";
   } else {
     die "Invalid argument: '$ARGV[$i]'\n";
